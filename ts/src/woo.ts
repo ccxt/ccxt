@@ -214,7 +214,7 @@ export default class woo extends Exchange {
                         'delete': {
                             'algo/order/{oid}': 1,
                             'algo/orders/pending': 1,
-                            'algo/orders/pending/{symbol}': 1,
+                            'merge/orders/pending/{symbol}': 1,
                             'orders/pending': 1,
                         },
                     },
@@ -732,6 +732,7 @@ export default class woo extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the woo api endpoint
+         * @param {string} params.triggerPrice algo order's triggerPrice stopLossPrice = takeProfitPrice = stopPrice = triggerPrice
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const reduceOnly = this.safeValue (params, 'reduceOnly');
@@ -744,21 +745,22 @@ export default class woo extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderSide = side.toUpperCase ();
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
-        // default is take profit
-        const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'stopPrice');
+        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isStopLoss = stopLossPrice !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
+        const isAlgo = isStopLoss || isTakeProfit;
         if (isStopLoss && isTakeProfit) {
             throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
         }
-        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'stopPrice' ]);
+        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice' ]);
         const request = {
             'symbol': market['id'],
             'side': orderSide,
         };
         let method = 'v1PrivatePostOrder';
-        if (isStopLoss || isTakeProfit) {
+        if (isAlgo) {
             method = 'v3PrivatePostAlgoOrder';
             request['type'] = orderType; // LIMIT/MARKET
             request['quantity'] = this.amountToPrecision (symbol, amount);
@@ -819,35 +821,46 @@ export default class woo extends Exchange {
             params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ]);
         }
         const response = await this[method] (this.extend (request, params));
-        // {
-        //     success: true,
-        //     timestamp: '1641383206.489',
-        //     order_id: '86980774',
-        //     order_type: 'LIMIT',
-        //     order_price: '1', // null for 'MARKET' order
-        //     order_quantity: '12', // null for 'MARKET' order
-        //     order_amount: null, // NOT-null for 'MARKET' order
-        //     client_order_id: '0'
-        // }
-        // algo order
-        // {
-        //     success: true,
-        //     data: {
-        //       rows: [
-        //         {
-        //           orderId: '345690',
-        //           clientOrderId: '0',
-        //           algoType: 'TAKE_PROFIT',
-        //           quantity: '0.01'
-        //         }
-        //       ]
-        //     },
-        //     timestamp: '1683082524356'
-        // }
-        return this.extend (
-            this.parseOrder (response, market),
-            { 'type': type }
-        );
+        if (isAlgo) {
+            // {
+            //     success: true,
+            //     data: {
+            //       rows: [
+            //         {
+            //           orderId: '345690',
+            //           clientOrderId: '0',
+            //           algoType: 'TAKE_PROFIT',
+            //           quantity: '0.01'
+            //         }
+            //       ]
+            //     },
+            //     timestamp: '1683082524356'
+            // }
+            const data = this.safeValue (response, 'data');
+            const rows = this.safeValue (data, 'rows');
+            const timestamp = this.safeInteger (response, 'timestamp');
+            for (let i = 0; i < rows.length; i++) {
+                if (timestamp !== undefined) {
+                    rows[i]['timestamp'] = timestamp;
+                }
+            }
+            return this.parseOrders (rows, market, undefined, undefined, { 'type': type });
+        } else {
+            // {
+            //     success: true,
+            //     timestamp: '1641383206.489',
+            //     order_id: '86980774',
+            //     order_type: 'LIMIT',
+            //     order_price: '1', // null for 'MARKET' order
+            //     order_quantity: '12', // null for 'MARKET' order
+            //     order_amount: null, // NOT-null for 'MARKET' order
+            //     client_order_id: '0'
+            // }
+            return this.extend (
+                this.parseOrder (response, market),
+                { 'type': type }
+            );
+        }
     }
 
     async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
@@ -862,10 +875,12 @@ export default class woo extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the woo api endpoint
+         * @param {bool} params.algo True if is a algo order
+         * @param {string} params.triggerPrice algo order's triggerPrice stopLossPrice = takeProfitPrice = stopPrice = triggerPrice
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        // const market = this.market (symbol);
         const request = {
             // 'quantity': this.amountToPrecision (symbol, amount),
             // 'price': this.priceToPrecision (symbol, price),
@@ -880,13 +895,38 @@ export default class woo extends Exchange {
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let method = undefined;
-        if (isByClientOrder) {
-            method = 'v3PrivatePutOrderClientClientOrderId';
-            request['client_order_id'] = clientOrderIdExchangeSpecific;
-            params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        const isAlgo = this.safeValue (params, 'algo');
+        if (isStopLoss && isTakeProfit) {
+            throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
+        }
+        params = this.omit (params, [ 'algo', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ]);
+        if (isStopLoss || isTakeProfit || isAlgo) {
+            const triggerPrice = isStopLoss ? stopLossPrice : takeProfitPrice;
+            if (triggerPrice !== undefined) {
+                request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            }
+            if (isByClientOrder) {
+                method = 'v3PrivatePutAlgoOrderClientClientOrderId';
+                request['client_order_id'] = clientOrderIdExchangeSpecific;
+                params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+            } else {
+                method = 'v3PrivatePutAlgoOrderOid';
+                request['oid'] = id;
+            }
         } else {
-            method = 'v3PrivatePutOrderOid';
-            request['oid'] = id;
+            if (isByClientOrder) {
+                method = 'v3PrivatePutOrderClientClientOrderId';
+                request['client_order_id'] = clientOrderIdExchangeSpecific;
+                params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+            } else {
+                method = 'v3PrivatePutOrderOid';
+                request['oid'] = id;
+            }
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -901,8 +941,7 @@ export default class woo extends Exchange {
         //         "timestamp": 0
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        return this.parseOrder (data, market);
+        return response;
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
@@ -913,6 +952,7 @@ export default class woo extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the woo api endpoint
+         * @param {bool} params.algo True if is a algo order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -924,19 +964,26 @@ export default class woo extends Exchange {
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let method = undefined;
-        if (isByClientOrder) {
-            method = 'v1PrivateDeleteClientOrder';
-            request['client_order_id'] = clientOrderIdExchangeSpecific;
-            params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        const isAlgo = this.safeValue (params, 'algo');
+        params = this.omit (params, [ 'algo' ]);
+        if (isAlgo) {
+            method = 'v3PrivateDeleteAlgoOrderOid';
+            request['oid'] = id;
         } else {
-            method = 'v1PrivateDeleteOrder';
-            request['order_id'] = id;
+            if (isByClientOrder) {
+                method = 'v1PrivateDeleteClientOrder';
+                request['client_order_id'] = clientOrderIdExchangeSpecific;
+                params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+            } else {
+                method = 'v1PrivateDeleteOrder';
+                request['order_id'] = id;
+            }
         }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
-        request['symbol'] = market['id'];
         const response = await this[method] (this.extend (request, params));
         //
         // { success: true, status: 'CANCEL_SENT' }
@@ -947,7 +994,7 @@ export default class woo extends Exchange {
         } else {
             extendParams['id'] = id;
         }
-        return this.extend (this.parseOrder (response), extendParams);
+        return response;
     }
 
     async cancelAllOrders (symbol: string = undefined, params = {}) {
@@ -957,6 +1004,7 @@ export default class woo extends Exchange {
          * @description cancel all open orders in a market
          * @param {string|undefined} symbol unified market symbol
          * @param {object} params extra parameters specific to the woo api endpoint
+         * @param {bool} params.algo True if is a algo order
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -967,7 +1015,15 @@ export default class woo extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.v1PrivateDeleteOrders (this.extend (request, params));
+        let method = undefined;
+        const isAlgo = this.safeValue (params, 'algo');
+        params = this.omit (params, [ 'algo' ]);
+        if (isAlgo) {
+            method = 'v3PrivateDeleteMergeOrdersPendingSymbol';
+        } else {
+            method = 'v1PrivateDeleteOrders';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -984,57 +1040,109 @@ export default class woo extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the woo api endpoint
+         * @param {bool} params.algo True if is a algo order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const request = {};
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
-        let chosenSpotMethod = undefined;
-        if (clientOrderId) {
-            chosenSpotMethod = 'v1PrivateGetClientOrderClientOrderId';
-            request['client_order_id'] = clientOrderId;
-        } else {
-            chosenSpotMethod = 'v1PrivateGetOrderOid';
+        let method = undefined;
+        const isAlgo = this.safeValue (params, 'algo');
+        params = this.omit (params, [ 'algo' ]);
+        let response = undefined;
+        if (isAlgo) {
+            method = 'v3PrivateGetAlgoOrderOid';
             request['oid'] = id;
+        } else {
+            if (clientOrderId) {
+                method = 'v1PrivateGetClientOrderClientOrderId';
+                request['client_order_id'] = clientOrderId;
+            } else {
+                method = 'v1PrivateGetOrderOid';
+                request['oid'] = id;
+            }
         }
-        const response = await this[chosenSpotMethod] (this.extend (request, params));
-        //
-        // {
-        //     success: true,
-        //     symbol: 'SPOT_WOO_USDT',
-        //     status: 'FILLED', // FILLED, NEW
-        //     side: 'BUY',
-        //     created_time: '1641480933.000',
-        //     order_id: '87541111',
-        //     order_tag: 'default',
-        //     price: '1',
-        //     type: 'LIMIT',
-        //     quantity: '12',
-        //     amount: null,
-        //     visible: '12',
-        //     executed: '12', // or any partial amount
-        //     total_fee: '0.0024',
-        //     fee_asset: 'WOO',
-        //     client_order_id: null,
-        //     average_executed_price: '1',
-        //     Transactions: [
-        //       {
-        //         id: '99111647',
-        //         symbol: 'SPOT_WOO_USDT',
-        //         fee: '0.0024',
-        //         side: 'BUY',
-        //         executed_timestamp: '1641482113.084',
-        //         order_id: '87541111',
-        //         executed_price: '1',
-        //         executed_quantity: '12',
-        //         fee_asset: 'WOO',
-        //         is_maker: '1'
-        //       }
-        //     ]
-        // }
-        //
-        return this.parseOrder (response, market);
+        response = await this[method] (this.extend (request, params));
+        if (isAlgo) {
+            //
+            // {
+            //     "success": true,
+            //     "data": {
+            //         "algoOrderId": 431601,
+            //         "clientOrderId": 0,
+            //         "rootAlgoOrderId": 431601,
+            //         "parentAlgoOrderId": 0,
+            //         "symbol": "SPOT_ADA_USDT",
+            //         "orderTag": "default",
+            //         "algoType": "BRACKET",
+            //         "side": "BUY",
+            //         "quantity": 11,
+            //         "isTriggered": false,
+            //         "triggerStatus": "SUCCESS",
+            //         "type": "LIMIT",
+            //         "status": "FILLED",
+            //         "rootAlgoStatus": "FILLED",
+            //         "algoStatus": "FILLED",
+            //         "triggerPriceType": "MARKET_PRICE",
+            //         "price": 0.33,
+            //         "triggerTime": "0",
+            //         "totalExecutedQuantity": 11,
+            //         "averageExecutedPrice": 0.33,
+            //         "totalFee": 0.0033,
+            //         "feeAsset": "ADA",
+            //         "reduceOnly": false,
+            //         "createdTime": "1676277825.917",
+            //         "updatedTime": "1676280901.229",
+            //         "childOrders": []
+            //     },
+            //     "timestamp": 1676281474630
+            // }
+            //
+            const data = this.safeValue (response, 'data');
+            const timestamp = this.safeInteger (response, 'timestamp');
+            if (timestamp !== undefined) {
+                data['timestamp'] = timestamp;
+            }
+            return this.parseOrder (data, market);
+        } else {
+            //
+            // {
+            //     success: true,
+            //     symbol: 'SPOT_WOO_USDT',
+            //     status: 'FILLED', // FILLED, NEW
+            //     side: 'BUY',
+            //     created_time: '1641480933.000',
+            //     order_id: '87541111',
+            //     order_tag: 'default',
+            //     price: '1',
+            //     type: 'LIMIT',
+            //     quantity: '12',
+            //     amount: null,
+            //     visible: '12',
+            //     executed: '12', // or any partial amount
+            //     total_fee: '0.0024',
+            //     fee_asset: 'WOO',
+            //     client_order_id: null,
+            //     average_executed_price: '1',
+            //     Transactions: [
+            //       {
+            //         id: '99111647',
+            //         symbol: 'SPOT_WOO_USDT',
+            //         fee: '0.0024',
+            //         side: 'BUY',
+            //         executed_timestamp: '1641482113.084',
+            //         order_id: '87541111',
+            //         executed_price: '1',
+            //         executed_quantity: '12',
+            //         fee_asset: 'WOO',
+            //         is_maker: '1'
+            //       }
+            //     ]
+            // }
+            //
+            return this.parseOrder (response, market);
+        }
     }
 
     async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1046,52 +1154,116 @@ export default class woo extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the woo api endpoint
+         * @param {bool} params.algo True if is a algo order
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
+        let method = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        if (since !== undefined) {
-            request['start_t'] = since;
+        const isAlgo = this.safeValue (params, 'algo');
+        if (isAlgo) {
+            method = 'v3PrivateGetAlgoOrders';
+            if (since !== undefined) {
+                request['createdTimeStart'] = since;
+            }
+            if (limit !== undefined) {
+                request['size'] = since;
+            }
+            params = this.omit (params, [ 'algo', 'size', 'createdTimeStart', 'symbol' ]);
+        } else {
+            method = 'v1PrivateGetOrders';
+            if (since !== undefined) {
+                request['start_t'] = since;
+            }
         }
-        const response = await this.v1PrivateGetOrders (this.extend (request, params));
-        //
-        //     {
-        //         "success":true,
-        //         "meta":{
-        //             "total":1,
-        //             "records_per_page":100,
-        //             "current_page":1
-        //         },
-        //         "rows":[
-        //             {
-        //                 "symbol":"PERP_BTC_USDT",
-        //                 "status":"FILLED",
-        //                 "side":"SELL",
-        //                 "created_time":"1611617776.000",
-        //                 "updated_time":"1611617776.000",
-        //                 "order_id":52121167,
-        //                 "order_tag":"default",
-        //                 "price":null,
-        //                 "type":"MARKET",
-        //                 "quantity":0.002,
-        //                 "amount":null,
-        //                 "visible":0,
-        //                 "executed":0.002,
-        //                 "total_fee":0.01732885,
-        //                 "fee_asset":"USDT",
-        //                 "client_order_id":null,
-        //                 "average_executed_price":28881.41
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'rows');
-        return this.parseOrders (data, market, since, limit, params);
+        const response = await this[method] (this.extend (request, params));
+        if (isAlgo) {
+            //
+            // {
+            //     "success": true,
+            //     "data": {
+            //         "rows": [
+            //             {
+            //                 "algoOrderId": 431601,
+            //                 "clientOrderId": 0,
+            //                 "rootAlgoOrderId": 431601,
+            //                 "parentAlgoOrderId": 0,
+            //                 "symbol": "SPOT_ADA_USDT",
+            //                 "orderTag": "default",
+            //                 "algoType": "BRACKET",
+            //                 "side": "BUY",
+            //                 "quantity": 11,
+            //                 "isTriggered": false,
+            //                 "triggerStatus": "SUCCESS",
+            //                 "type": "LIMIT",
+            //                 "status": "FILLED",
+            //                 "rootAlgoStatus": "FILLED",
+            //                 "algoStatus": "FILLED",
+            //                 "triggerPriceType": "MARKET_PRICE",
+            //                 "price": 0.33,
+            //                 "triggerTime": "0",
+            //                 "totalExecutedQuantity": 11,
+            //                 "averageExecutedPrice": 0.33,
+            //                 "totalFee": 0.0033,
+            //                 "feeAsset": "ADA",
+            //                 "reduceOnly": false,
+            //                 "createdTime": "1676277825.917",
+            //                 "updatedTime": "1676280901.229",
+            //                 "childOrders": []
+            //             }
+            //         ],
+            //         "meta": {
+            //             "total": 436,
+            //             "records_per_page": 1,
+            //             "current_page": 1
+            //         }
+            //     },
+            //     "timestamp": 1676281407576
+            // }
+            //
+            const data = this.safeValue (response, 'data');
+            const rows = this.safeValue (data, 'rows');
+            return this.parseOrders (rows, market, since, limit, params);
+        } else {
+            //
+            //     {
+            //         "success":true,
+            //         "meta":{
+            //             "total":1,
+            //             "records_per_page":100,
+            //             "current_page":1
+            //         },
+            //         "rows":[
+            //             {
+            //                 "symbol":"PERP_BTC_USDT",
+            //                 "status":"FILLED",
+            //                 "side":"SELL",
+            //                 "created_time":"1611617776.000",
+            //                 "updated_time":"1611617776.000",
+            //                 "order_id":52121167,
+            //                 "order_tag":"default",
+            //                 "price":null,
+            //                 "type":"MARKET",
+            //                 "quantity":0.002,
+            //                 "amount":null,
+            //                 "visible":0,
+            //                 "executed":0.002,
+            //                 "total_fee":0.01732885,
+            //                 "fee_asset":"USDT",
+            //                 "client_order_id":null,
+            //                 "average_executed_price":28881.41
+            //             }
+            //         ]
+            //     }
+            //
+            const data = this.safeValue (response, 'rows');
+            return this.parseOrders (data, market, since, limit, params);
+        }
     }
 
     parseTimeInForce (timeInForce) {
@@ -1107,24 +1279,11 @@ export default class woo extends Exchange {
         //
         // Possible input functions:
         // * createOrder
-        // * cancelOrder
         // * fetchOrder
         // * fetchOrders
-        // algo order
-        const data = this.safeValue (order, 'data');
-        order = this.omit (order, [ 'data' ]);
-        if (data !== undefined) {
-            const rows = this.safeValue (data, 'rows')[0];
-            if (rows !== undefined) {
-                order['orderId'] = this.safeValue (rows, 'orderId');
-                order['clientOrderId'] = this.safeValue (rows, 'clientOrderId');
-                order['algoType'] = this.safeValue (rows, 'algoType');
-                order['quantity'] = this.safeValue (rows, 'quantity');
-            }
-        }
         // const isFromFetchOrder = ('order_tag' in order); TO_DO
-        const timestamp = this.safeTimestamp2 (order, 'timestamp', 'created_time');
-        const orderId = this.safeString2 (order, 'order_id', 'orderId');
+        const timestamp = this.safeInteger2 (order, 'timestamp', 'created_time');
+        const orderId = this.safeStringN (order, [ 'order_id', 'orderId', 'algoOrderId' ]);
         const clientOrderId = this.safeString2 (order, 'client_order_id', 'clientOrderId'); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
@@ -1133,13 +1292,13 @@ export default class woo extends Exchange {
         const amount = this.safeString2 (order, 'order_quantity', 'quantity'); // This is base amount
         const cost = this.safeString2 (order, 'order_amount', 'amount'); // This is quote amount
         const orderType = this.safeStringLower2 (order, 'order_type', 'type');
-        const status = this.safeValue (order, 'status');
+        const status = this.safeValue2 (order, 'status', 'algoStatus');
         const side = this.safeStringLower (order, 'side');
-        const filled = this.safeValue (order, 'executed');
-        const average = this.safeString (order, 'average_executed_price');
+        const filled = this.safeValue2 (order, 'executed', 'totalExecutedQuantity');
+        const average = this.safeString2 (order, 'average_executed_price', 'averageExecutedPrice');
         const remaining = Precise.stringSub (cost, filled);
-        const fee = this.safeValue (order, 'total_fee');
-        const feeCurrency = this.safeString (order, 'fee_asset');
+        const fee = this.safeValue2 (order, 'total_fee', 'totalFee');
+        const feeCurrency = this.safeString2 (order, 'fee_asset', 'feeAsset');
         const transactions = this.safeValue (order, 'Transactions');
         return this.safeOrder ({
             'id': orderId,
@@ -1156,7 +1315,7 @@ export default class woo extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'triggerPrice': this.safeValue (order, 'triggerPrice'),
             'average': average,
             'amount': amount,
             'filled': filled,
