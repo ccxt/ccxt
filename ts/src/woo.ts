@@ -744,59 +744,81 @@ export default class woo extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderSide = side.toUpperCase ();
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        // default is take profit
+        const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'stopPrice');
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        if (isStopLoss && isTakeProfit) {
+            throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
+        }
+        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'stopPrice' ]);
         const request = {
             'symbol': market['id'],
-            'order_type': orderType, // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
             'side': orderSide,
         };
-        const isMarket = orderType === 'MARKET';
-        const timeInForce = this.safeStringLower (params, 'timeInForce');
-        const postOnly = this.isPostOnly (isMarket, undefined, params);
-        if (postOnly) {
-            request['order_type'] = 'POST_ONLY';
-        } else if (timeInForce === 'fok') {
-            request['order_type'] = 'FOK';
-        } else if (timeInForce === 'ioc') {
-            request['order_type'] = 'IOC';
-        }
-        if (reduceOnly) {
-            request['reduce_only'] = reduceOnly;
-        }
-        if (price !== undefined) {
-            request['order_price'] = this.priceToPrecision (symbol, price);
-        }
-        if (isMarket) {
-            // for market buy it requires the amount of quote currency to spend
-            if (market['spot'] && orderSide === 'BUY') {
-                const cost = this.safeNumber (params, 'cost');
-                if (this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true)) {
-                    if (cost === undefined) {
-                        if (price === undefined) {
-                            throw new InvalidOrder (this.id + " createOrder() requires the price argument for market buy orders to calculate total order cost. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or alternatively, supply the total cost value in the 'order_amount' in  exchange-specific parameters");
+        let method = 'v1PrivatePostOrder';
+        if (isStopLoss || isTakeProfit) {
+            method = 'v3PrivatePostAlgoOrder';
+            request['type'] = orderType; // LIMIT/MARKET
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            const triggerPrice = isStopLoss ? stopLossPrice : takeProfitPrice;
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            request['algoType'] = this.safeValue (params, 'algoType', 'STOP');
+        } else {
+            const isMarket = orderType === 'MARKET';
+            request['order_type'] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+            const timeInForce = this.safeStringLower (params, 'timeInForce');
+            const postOnly = this.isPostOnly (isMarket, undefined, params);
+            if (postOnly) {
+                request['order_type'] = 'POST_ONLY';
+            } else if (timeInForce === 'fok') {
+                request['order_type'] = 'FOK';
+            } else if (timeInForce === 'ioc') {
+                request['order_type'] = 'IOC';
+            }
+            if (reduceOnly) {
+                request['reduce_only'] = reduceOnly;
+            }
+            if (price !== undefined) {
+                request['order_price'] = this.priceToPrecision (symbol, price);
+            }
+            if (isMarket) {
+                // for market buy it requires the amount of quote currency to spend
+                if (market['spot'] && orderSide === 'BUY') {
+                    const cost = this.safeNumber (params, 'cost');
+                    if (this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true)) {
+                        if (cost === undefined) {
+                            if (price === undefined) {
+                                throw new InvalidOrder (this.id + " createOrder() requires the price argument for market buy orders to calculate total order cost. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or alternatively, supply the total cost value in the 'order_amount' in  exchange-specific parameters");
+                            } else {
+                                const amountString = this.numberToString (amount);
+                                const priceString = this.numberToString (price);
+                                const orderAmount = Precise.stringMul (amountString, priceString);
+                                request['order_amount'] = this.costToPrecision (symbol, orderAmount);
+                            }
                         } else {
-                            const amountString = this.numberToString (amount);
-                            const priceString = this.numberToString (price);
-                            const orderAmount = Precise.stringMul (amountString, priceString);
-                            request['order_amount'] = this.costToPrecision (symbol, orderAmount);
+                            request['order_amount'] = this.costToPrecision (symbol, cost);
                         }
                     } else {
-                        request['order_amount'] = this.costToPrecision (symbol, cost);
+                        request['order_amount'] = this.costToPrecision (symbol, amount);
                     }
                 } else {
-                    request['order_amount'] = this.costToPrecision (symbol, amount);
+                    request['order_quantity'] = this.amountToPrecision (symbol, amount);
                 }
             } else {
                 request['order_quantity'] = this.amountToPrecision (symbol, amount);
             }
-        } else {
-            request['order_quantity'] = this.amountToPrecision (symbol, amount);
+            const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+            if (clientOrderId !== undefined) {
+                request['client_order_id'] = clientOrderId;
+            }
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ]);
         }
-        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['client_order_id'] = clientOrderId;
-        }
-        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ]);
-        const response = await this.v1PrivatePostOrder (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         // {
         //     success: true,
         //     timestamp: '1641383206.489',
@@ -806,6 +828,21 @@ export default class woo extends Exchange {
         //     order_quantity: '12', // null for 'MARKET' order
         //     order_amount: null, // NOT-null for 'MARKET' order
         //     client_order_id: '0'
+        // }
+        // algo order
+        // {
+        //     success: true,
+        //     data: {
+        //       rows: [
+        //         {
+        //           orderId: '345690',
+        //           clientOrderId: '0',
+        //           algoType: 'TAKE_PROFIT',
+        //           quantity: '0.01'
+        //         }
+        //       ]
+        //     },
+        //     timestamp: '1683082524356'
         // }
         return this.extend (
             this.parseOrder (response, market),
@@ -1073,17 +1110,29 @@ export default class woo extends Exchange {
         // * cancelOrder
         // * fetchOrder
         // * fetchOrders
+        // algo order
+        const data = this.safeValue (order, 'data');
+        order = this.omit (order, [ 'data' ]);
+        if (data !== undefined) {
+            const rows = this.safeValue (data, 'rows')[0];
+            if (rows !== undefined) {
+                order['orderId'] = this.safeValue (rows, 'orderId');
+                order['clientOrderId'] = this.safeValue (rows, 'clientOrderId');
+                order['algoType'] = this.safeValue (rows, 'algoType');
+                order['quantity'] = this.safeValue (rows, 'quantity');
+            }
+        }
         // const isFromFetchOrder = ('order_tag' in order); TO_DO
         const timestamp = this.safeTimestamp2 (order, 'timestamp', 'created_time');
-        const orderId = this.safeString (order, 'order_id');
-        const clientOrderId = this.safeString (order, 'client_order_id'); // Somehow, this always returns 0 for limit order
+        const orderId = this.safeString2 (order, 'order_id', 'orderId');
+        const clientOrderId = this.safeString2 (order, 'client_order_id', 'clientOrderId'); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const price = this.safeString2 (order, 'order_price', 'price');
         const amount = this.safeString2 (order, 'order_quantity', 'quantity'); // This is base amount
         const cost = this.safeString2 (order, 'order_amount', 'amount'); // This is quote amount
-        const orderType = this.safeStringLower2 (order, 'order_type', 'type');
+        const orderType = this.safeStringLowerN (order, [ 'order_type', 'type', 'algoType' ]);
         const status = this.safeValue (order, 'status');
         const side = this.safeStringLower (order, 'side');
         const filled = this.safeValue (order, 'executed');
