@@ -1,7 +1,11 @@
 {
     "ace": {
         "skipMethods": {
-            "loadMarkets": "needs granular skip for baseId/quoteId/settleId, because they are numerics",
+            "loadMarkets": {
+                "baseId": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
+                "quoteId": "same",
+                "settleId": "same"
+            },
             "fetchOrderBook": "needs reversion of amount/price",
             "fetchL2OrderBook": "same"
         }
@@ -11,15 +15,23 @@
     },
     "ascendex": {
         "skipMethods": {
-            "fetchTickers": "bid might be 0",
-            "fetchTicker": "same"
+            "fetchTickers": {
+                "bid": "sometimes it is 0"
+            },
+            "fetchTicker": {
+                "bid": "same"
+            }
         }
     },
     "bequant": {
         "skipWs": true,
         "skipMethods": {
-            "fetchTickers": "close might have null value",
-            "fetchTicker": "same"
+            "fetchTickers": {
+                "close": "sometimes have null"
+            },
+            "fetchTicker": {
+                "bid": "same"
+            }
         }
     },
     "bigone": {
