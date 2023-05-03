@@ -4167,10 +4167,8 @@ export default class huobi extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice or a stop-price parameter for a stop order');
             }
         } else {
-            const stopOperator = this.safeString (params, 'operator');
-            if (stopOperator === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires an operator parameter "gte" or "lte" for a stop order');
-            }
+            const defaultOperator = (side === 'sell') ? 'lte' : 'gte';
+            const stopOperator = this.safeString (params, 'operator', defaultOperator);
             params = this.omit (params, [ 'stopPrice', 'stop-price' ]);
             request['stop-price'] = this.priceToPrecision (symbol, stopPrice);
             request['operator'] = stopOperator;
