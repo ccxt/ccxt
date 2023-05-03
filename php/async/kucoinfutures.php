@@ -1344,6 +1344,8 @@ class kucoinfutures extends kucoin {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             /**
              * fetches a list of $orders placed on the exchange
+             * @see https://docs.kucoin.com/futures/#get-order-list
+             * @see https://docs.kucoin.com/futures/#get-untriggered-$stop-order-list
              * @param {string} $status 'active' or 'closed', only 'active' is valid for $stop $orders
              * @param {string|null} $symbol unified $symbol for the $market to retrieve $orders from
              * @param {int|null} $since timestamp in ms of the earliest order to retrieve
@@ -1383,6 +1385,57 @@ class kucoinfutures extends kucoin {
             }
             $method = $stop ? 'futuresPrivateGetStopOrders' : 'futuresPrivateGetOrders';
             $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "200000",
+            //         "data" => {
+            //             "currentPage" => 1,
+            //             "pageSize" => 50,
+            //             "totalNum" => 4,
+            //             "totalPage" => 1,
+            //             "items" => array(
+            //                 {
+            //                     "id" => "64507d02921f1c0001ff6892",
+            //                     "symbol" => "XBTUSDTM",
+            //                     "type" => "market",
+            //                     "side" => "buy",
+            //                     "price" => null,
+            //                     "size" => 1,
+            //                     "value" => "27.992",
+            //                     "dealValue" => "27.992",
+            //                     "dealSize" => 1,
+            //                     "stp" => "",
+            //                     "stop" => "",
+            //                     "stopPriceType" => "",
+            //                     "stopTriggered" => false,
+            //                     "stopPrice" => null,
+            //                     "timeInForce" => "GTC",
+            //                     "postOnly" => false,
+            //                     "hidden" => false,
+            //                     "iceberg" => false,
+            //                     "leverage" => "17",
+            //                     "forceHold" => false,
+            //                     "closeOrder" => false,
+            //                     "visibleSize" => null,
+            //                     "clientOid" => null,
+            //                     "remark" => null,
+            //                     "tags" => null,
+            //                     "isActive" => false,
+            //                     "cancelExist" => false,
+            //                     "createdAt" => 1682996482000,
+            //                     "updatedAt" => 1682996483062,
+            //                     "endAt" => 1682996483062,
+            //                     "orderTime" => 1682996482953900677,
+            //                     "settleCurrency" => "USDT",
+            //                     "status" => "done",
+            //                     "filledValue" => "27.992",
+            //                     "filledSize" => 1,
+            //                     "reduceOnly" => false
+            //                 }
+            //             )
+            //         }
+            //     }
+            //
             $responseData = $this->safe_value($response, 'data', array());
             $orders = $this->safe_value($responseData, 'items', array());
             return $this->parse_orders($orders, $market, $since, $limit);
@@ -1393,6 +1446,7 @@ class kucoinfutures extends kucoin {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
+             * @see https://docs.kucoin.com/futures/#get-order-list
              * @param {string|null} $symbol unified market $symbol of the market orders were made in
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
@@ -1410,6 +1464,7 @@ class kucoinfutures extends kucoin {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             * @see https://docs.kucoin.com/futures/#get-details-of-a-single-order
              * @param {string|null} $symbol unified $symbol of the $market the order was made in
              * @param {array} $params extra parameters specific to the kucoinfutures api endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -1429,6 +1484,49 @@ class kucoinfutures extends kucoin {
                 $request['orderId'] = $id;
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "200000",
+            //         "data" => {
+            //             "id" => "64507d02921f1c0001ff6892",
+            //             "symbol" => "XBTUSDTM",
+            //             "type" => "market",
+            //             "side" => "buy",
+            //             "price" => null,
+            //             "size" => 1,
+            //             "value" => "27.992",
+            //             "dealValue" => "27.992",
+            //             "dealSize" => 1,
+            //             "stp" => "",
+            //             "stop" => "",
+            //             "stopPriceType" => "",
+            //             "stopTriggered" => false,
+            //             "stopPrice" => null,
+            //             "timeInForce" => "GTC",
+            //             "postOnly" => false,
+            //             "hidden" => false,
+            //             "iceberg" => false,
+            //             "leverage" => "17",
+            //             "forceHold" => false,
+            //             "closeOrder" => false,
+            //             "visibleSize" => null,
+            //             "clientOid" => null,
+            //             "remark" => null,
+            //             "tags" => null,
+            //             "isActive" => false,
+            //             "cancelExist" => false,
+            //             "createdAt" => 1682996482000,
+            //             "updatedAt" => 1682996483000,
+            //             "endAt" => 1682996483000,
+            //             "orderTime" => 1682996482953900677,
+            //             "settleCurrency" => "USDT",
+            //             "status" => "done",
+            //             "filledSize" => 1,
+            //             "filledValue" => "27.992",
+            //             "reduceOnly" => false
+            //         }
+            //     }
+            //
             $market = ($symbol !== null) ? $this->market($symbol) : null;
             $responseData = $this->safe_value($response, 'data');
             return $this->parse_order($responseData, $market);
@@ -1436,6 +1534,48 @@ class kucoinfutures extends kucoin {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        // fetchOrder, fetchOrdersByStatus
+        //
+        //     {
+        //         "id" => "64507d02921f1c0001ff6892",
+        //         "symbol" => "XBTUSDTM",
+        //         "type" => "market",
+        //         "side" => "buy",
+        //         "price" => null,
+        //         "size" => 1,
+        //         "value" => "27.992",
+        //         "dealValue" => "27.992",
+        //         "dealSize" => 1,
+        //         "stp" => "",
+        //         "stop" => "",
+        //         "stopPriceType" => "",
+        //         "stopTriggered" => false,
+        //         "stopPrice" => null,
+        //         "timeInForce" => "GTC",
+        //         "postOnly" => false,
+        //         "hidden" => false,
+        //         "iceberg" => false,
+        //         "leverage" => "17",
+        //         "forceHold" => false,
+        //         "closeOrder" => false,
+        //         "visibleSize" => null,
+        //         "clientOid" => null,
+        //         "remark" => null,
+        //         "tags" => null,
+        //         "isActive" => false,
+        //         "cancelExist" => false,
+        //         "createdAt" => 1682996482000,
+        //         "updatedAt" => 1682996483062,
+        //         "endAt" => 1682996483062,
+        //         "orderTime" => 1682996482953900677,
+        //         "settleCurrency" => "USDT",
+        //         "status" => "done",
+        //         "filledValue" => "27.992",
+        //         "filledSize" => 1,
+        //         "reduceOnly" => false
+        //     }
+        //
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
@@ -1451,21 +1591,19 @@ class kucoinfutures extends kucoin {
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         $feeCost = $this->safe_number($order, 'fee');
         $amount = $this->safe_string($order, 'size');
-        $filled = $this->safe_string($order, 'dealSize');
-        $rawCost = $this->safe_string_2($order, 'dealFunds', 'filledValue');
-        $leverage = $this->safe_string($order, 'leverage');
-        $cost = Precise::string_div($rawCost, $leverage);
+        $filled = $this->safe_string($order, 'filledSize');
+        $cost = $this->safe_string($order, 'filledValue');
         $average = null;
         if (Precise::string_gt($filled, '0')) {
             $contractSize = $this->safe_string($market, 'contractSize');
             if ($market['linear']) {
-                $average = Precise::string_div($rawCost, Precise::string_mul($contractSize, $filled));
+                $average = Precise::string_div($cost, Precise::string_mul($contractSize, $filled));
             } else {
-                $average = Precise::string_div(Precise::string_mul($contractSize, $filled), $rawCost);
+                $average = Precise::string_div(Precise::string_mul($contractSize, $filled), $cost);
             }
         }
         // precision reported by their api is 8 d.p.
-        // $average = Precise::string_div($rawCost, Precise::string_mul($filled, $market['contractSize']));
+        // $average = Precise::string_div($cost, Precise::string_mul($filled, $market['contractSize']));
         // bool
         $isActive = $this->safe_value($order, 'isActive', false);
         $cancelExist = $this->safe_value($order, 'cancelExist', false);

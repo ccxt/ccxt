@@ -568,7 +568,7 @@ class phemex extends \ccxt\async\phemex {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
         }) ();
     }
 
@@ -644,7 +644,7 @@ class phemex extends \ccxt\async\phemex {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
         }) ();
     }
 
@@ -767,7 +767,7 @@ class phemex extends \ccxt\async\phemex {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
         }) ();
     }
 
@@ -923,14 +923,15 @@ class phemex extends \ccxt\async\phemex {
                 }
             }
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
+            $isUSDTSettled = $this->safe_string($params, 'settle') === 'USDT';
             if ($symbol === null) {
-                $messageHash = ($params['settle'] === 'USDT') ? ($messageHash . 'perpetual') : ($messageHash . $type);
+                $messageHash = ($isUSDTSettled) ? ($messageHash . 'perpetual') : ($messageHash . $type);
             }
             $orders = Async\await($this->subscribe_private($type, $messageHash, $params));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
         }) ();
     }
 
@@ -1499,31 +1500,33 @@ class phemex extends \ccxt\async\phemex {
     }
 
     public function authenticate($params = array ()) {
-        $this->check_required_credentials();
-        $url = $this->urls['api']['ws'];
-        $client = $this->client($url);
-        $requestId = $this->request_id();
-        $messageHash = 'authenticated';
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $expiryDelta = $this->safe_integer($this->options, 'expires', 120);
-            $expiration = $this->seconds() . $expiryDelta;
-            $payload = $this->apiKey . (string) $expiration;
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
-            $method = 'user.auth';
-            $request = array(
-                'method' => $method,
-                'params' => array( 'API', $this->apiKey, $signature, $expiration ),
-                'id' => $requestId,
-            );
-            $subscriptionHash = (string) $requestId;
-            $message = array_merge($request, $params);
-            if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
-                $client->subscriptions[$subscriptionHash] = array($this, 'handle_authenticate');
+        return Async\async(function () use ($params) {
+            $this->check_required_credentials();
+            $url = $this->urls['api']['ws'];
+            $client = $this->client($url);
+            $requestId = $this->request_id();
+            $messageHash = 'authenticated';
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $expiryDelta = $this->safe_integer($this->options, 'expires', 120);
+                $expiration = $this->seconds() . $expiryDelta;
+                $payload = $this->apiKey . (string) $expiration;
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
+                $method = 'user.auth';
+                $request = array(
+                    'method' => $method,
+                    'params' => array( 'API', $this->apiKey, $signature, $expiration ),
+                    'id' => $requestId,
+                );
+                $subscriptionHash = (string) $requestId;
+                $message = array_merge($request, $params);
+                if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
+                    $client->subscriptions[$subscriptionHash] = array($this, 'handle_authenticate');
+                }
+                $future = $this->watch($url, $messageHash, $message);
+                $client->subscriptions[$messageHash] = $future;
             }
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
-        }
-        return $future;
+            return Async\await($future);
+        }) ();
     }
 }

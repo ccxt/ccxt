@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.xt import ImplicitAPI
 import asyncio
 import hashlib
 from typing import Optional
@@ -22,7 +23,7 @@ from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
 
 
-class xt(Exchange):
+class xt(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(xt, self).describe(), {
@@ -35,6 +36,7 @@ class xt(Exchange):
             # futures 1000 times per minute for each single IP -> Otherwise account locked for 10min
             'rateLimit': 100,
             'version': 'v4',
+            'certified': True,
             'pro': False,
             'has': {
                 'CORS': False,
@@ -495,6 +497,8 @@ class xt(Exchange):
             },
             'commonCurrencies': {},
             'options': {
+                'adjustForTimeDifference': False,
+                'timeDifference': 0,
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
@@ -620,7 +624,7 @@ class xt(Exchange):
         })
 
     def nonce(self):
-        return self.milliseconds()
+        return self.milliseconds() - self.options['timeDifference']
 
     async def fetch_time(self, params={}):
         """
@@ -747,6 +751,8 @@ class xt(Exchange):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns [dict]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            await self.load_time_difference()
         promisesUnresolved = [
             self.fetch_spot_markets(params),
             self.fetch_swap_and_future_markets(params),

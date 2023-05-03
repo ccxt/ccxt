@@ -68,7 +68,7 @@ export default class exmo extends Exchange {
         status: string;
         symbol: any;
         type: any;
-        side: OrderSide;
+        side: string;
         price: any;
         cost: any;
         amount: any;

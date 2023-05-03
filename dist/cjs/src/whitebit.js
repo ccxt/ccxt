@@ -306,11 +306,19 @@ class whitebit extends whitebit$1 {
             let symbol = base + '/' + quote;
             const swap = typeId === 'futures';
             const margin = isCollateral && !swap;
+            let contract = false;
+            const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec')));
+            const contractSize = amountPrecision;
+            let linear = undefined;
+            let inverse = undefined;
             if (swap) {
                 settleId = quoteId;
                 settle = this.safeCurrencyCode(settleId);
                 symbol = symbol + ':' + settle;
                 type = 'swap';
+                contract = true;
+                linear = true;
+                inverse = false;
             }
             else {
                 type = 'spot';
@@ -331,18 +339,18 @@ class whitebit extends whitebit$1 {
                 'future': false,
                 'option': false,
                 'active': active,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
+                'contract': contract,
+                'linear': linear,
+                'inverse': inverse,
                 'taker': this.safeNumber(market, 'makerFee'),
                 'maker': this.safeNumber(market, 'takerFee'),
-                'contractSize': undefined,
+                'contractSize': contractSize,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec'))),
+                    'amount': amountPrecision,
                     'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'moneyPrec'))),
                 },
                 'limits': {
@@ -940,8 +948,7 @@ class whitebit extends whitebit$1 {
                 results = this.arrayConcat(results, parsed);
             }
             results = this.sortBy2(results, 'timestamp', 'id');
-            const tail = (since === undefined);
-            return this.filterBySinceLimit(results, since, limit, 'timestamp', tail);
+            return this.filterBySinceLimit(results, since, limit, 'timestamp');
         }
     }
     parseTrade(trade, market = undefined) {

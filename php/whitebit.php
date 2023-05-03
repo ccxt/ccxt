@@ -306,11 +306,19 @@ class whitebit extends Exchange {
             $symbol = $base . '/' . $quote;
             $swap = $typeId === 'futures';
             $margin = $isCollateral && !$swap;
+            $contract = false;
+            $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'stockPrec')));
+            $contractSize = $amountPrecision;
+            $linear = null;
+            $inverse = null;
             if ($swap) {
                 $settleId = $quoteId;
                 $settle = $this->safe_currency_code($settleId);
                 $symbol = $symbol . ':' . $settle;
                 $type = 'swap';
+                $contract = true;
+                $linear = true;
+                $inverse = false;
             } else {
                 $type = 'spot';
             }
@@ -330,18 +338,18 @@ class whitebit extends Exchange {
                 'future' => false,
                 'option' => false,
                 'active' => $active,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
+                'contract' => $contract,
+                'linear' => $linear,
+                'inverse' => $inverse,
                 'taker' => $this->safe_number($market, 'makerFee'),
                 'maker' => $this->safe_number($market, 'takerFee'),
-                'contractSize' => null,
+                'contractSize' => $contractSize,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'stockPrec'))),
+                    'amount' => $amountPrecision,
                     'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'moneyPrec'))),
                 ),
                 'limits' => array(
@@ -930,8 +938,7 @@ class whitebit extends Exchange {
                 $results = $this->array_concat($results, $parsed);
             }
             $results = $this->sort_by_2($results, 'timestamp', 'id');
-            $tail = ($since === null);
-            return $this->filter_by_since_limit($results, $since, $limit, 'timestamp', $tail);
+            return $this->filter_by_since_limit($results, $since, $limit, 'timestamp');
         }
     }
 

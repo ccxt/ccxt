@@ -306,6 +306,8 @@ class lbank2 extends lbank2$1 {
                 '3s': true,
                 '5s': true,
             };
+            const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityAccuracy')));
+            const contractSize = amountPrecision;
             const ending = baseId.slice(-2);
             const isLeveragedProduct = this.safeValue(productTypes, ending, false);
             if (isLeveragedProduct) {
@@ -334,13 +336,13 @@ class lbank2 extends lbank2$1 {
                 'contract': isLeveragedProduct,
                 'linear': linear,
                 'inverse': undefined,
-                'contractSize': undefined,
+                'contractSize': isLeveragedProduct ? contractSize : undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityAccuracy'))),
+                    'amount': amountPrecision,
                     'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'priceAccuracy'))),
                 },
                 'limits': {

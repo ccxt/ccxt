@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.timex import ImplicitAPI
 from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
@@ -22,7 +23,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class timex(Exchange):
+class timex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(timex, self).describe(), {
@@ -375,7 +376,8 @@ class timex(Exchange):
         #         }
         #     ]
         #
-        return self.parse_transactions(response, code, since, limit)
+        currency = self.safe_currency(code)
+        return self.parse_transactions(response, currency, since, limit)
 
     def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -406,7 +408,8 @@ class timex(Exchange):
         #         }
         #     ]
         #
-        return self.parse_transactions(response, code, since, limit)
+        currency = self.safe_currency(code)
+        return self.parse_transactions(response, currency, since, limit)
 
     def get_currency_by_address(self, address):
         currencies = self.currencies

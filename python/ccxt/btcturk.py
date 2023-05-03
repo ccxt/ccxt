@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.btcturk import ImplicitAPI
 import hashlib
 import math
 from ccxt.base.types import OrderSide
@@ -17,7 +18,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class btcturk(Exchange):
+class btcturk(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(btcturk, self).describe(), {
@@ -618,8 +619,7 @@ class btcturk(Exchange):
             }
             results.append(self.parse_ohlcv(ohlcv, market))
         sorted = self.sort_by(results, 0)
-        tail = (since is None)
-        return self.filter_by_since_limit(sorted, since, limit, 0, tail)
+        return self.filter_by_since_limit(sorted, since, limit, 0)
 
     def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """

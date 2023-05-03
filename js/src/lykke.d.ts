@@ -23,7 +23,7 @@ export default class lykke extends Exchange {
         lastTradeTimestamp: any;
         symbol: any;
         type: any;
-        side: OrderSide;
+        side: string;
         price: any;
         amount: any;
         cost: any;

@@ -814,17 +814,24 @@ class Exchange {
         // and may be changed for consistency later
         return new Promise((resolve, reject) => resolve(Object.values(this.markets)));
     }
-    filterBySinceLimit(array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
+    filterByLimit(array, limit = undefined, key = 'timestamp') {
+        if (limit !== undefined && limit !== null) {
+            const arrayLength = array.length;
+            if (arrayLength > 0) {
+                const ascending = (key in array[0]) && (array[0][key] < array[arrayLength - 1][key]); // true if array is sorted in ascending order based on 'timestamp'
+                array = ascending ? array.slice(-limit) : array.slice(0, limit);
+            }
+        }
+        return array;
+    }
+    filterBySinceLimit(array, since = undefined, limit = undefined, key = 'timestamp') {
         const sinceIsDefined = (since !== undefined && since !== null);
         if (sinceIsDefined) {
             array = array.filter((entry) => entry[key] >= since);
         }
-        if (limit !== undefined && limit !== null) {
-            array = tail ? array.slice(-limit) : array.slice(0, limit);
-        }
-        return array;
+        return this.filterByLimit(array, limit, key);
     }
-    filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
+    filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp') {
         const valueIsDefined = value !== undefined && value !== null;
         const sinceIsDefined = since !== undefined && since !== null;
         // single-pass filter for both symbol and since
@@ -832,10 +839,7 @@ class Exchange {
             array = array.filter((entry) => ((valueIsDefined ? (entry[field] === value) : true) &&
                 (sinceIsDefined ? (entry[key] >= since) : true)));
         }
-        if (limit !== undefined && limit !== null) {
-            array = tail ? array.slice(-limit) : array.slice(0, limit);
-        }
-        return array;
+        return this.filterByLimit(array, limit, key);
     }
     checkRequiredDependencies() {
         return;
@@ -1678,8 +1682,7 @@ class Exchange {
         }
         results = this.sortBy(results, 'timestamp');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
-        const tail = since === undefined;
-        return this.filterBySymbolSinceLimit(results, symbol, since, limit, tail);
+        return this.filterBySymbolSinceLimit(results, symbol, since, limit);
     }
     calculateFee(symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         if (type === 'market' && takerOrMaker === 'maker') {
@@ -2266,8 +2269,7 @@ class Exchange {
             results.push(this.parseOHLCV(ohlcvs[i], market));
         }
         const sorted = this.sortBy(results, 0);
-        const tail = (since === undefined);
-        return this.filterBySinceLimit(sorted, since, limit, 0, tail);
+        return this.filterBySinceLimit(sorted, since, limit, 0);
     }
     parseLeverageTiers(response, symbols = undefined, marketIdKey = undefined) {
         // marketIdKey should only be undefined when response is a dictionary
@@ -2341,8 +2343,7 @@ class Exchange {
         }
         result = this.sortBy2(result, 'timestamp', 'id');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
-        const tail = (since === undefined);
-        return this.filterBySymbolSinceLimit(result, symbol, since, limit, tail);
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
     parseTransactions(transactions, currency = undefined, since = undefined, limit = undefined, params = {}) {
         transactions = this.toArray(transactions);
@@ -2353,8 +2354,7 @@ class Exchange {
         }
         result = this.sortBy(result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;
-        const tail = (since === undefined);
-        return this.filterByCurrencySinceLimit(result, code, since, limit, tail);
+        return this.filterByCurrencySinceLimit(result, code, since, limit);
     }
     parseTransfers(transfers, currency = undefined, since = undefined, limit = undefined, params = {}) {
         transfers = this.toArray(transfers);
@@ -2365,8 +2365,7 @@ class Exchange {
         }
         result = this.sortBy(result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;
-        const tail = (since === undefined);
-        return this.filterByCurrencySinceLimit(result, code, since, limit, tail);
+        return this.filterByCurrencySinceLimit(result, code, since, limit);
     }
     parseLedger(data, currency = undefined, since = undefined, limit = undefined, params = {}) {
         let result = [];
@@ -2384,8 +2383,7 @@ class Exchange {
         }
         result = this.sortBy(result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;
-        const tail = (since === undefined);
-        return this.filterByCurrencySinceLimit(result, code, since, limit, tail);
+        return this.filterByCurrencySinceLimit(result, code, since, limit);
     }
     nonce() {
         return this.seconds();
@@ -2424,17 +2422,17 @@ class Exchange {
         }
         return indexed ? this.indexBy(results, key) : results;
     }
-    async fetch2(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+    async fetch2(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
         if (this.enableRateLimit) {
-            const cost = this.calculateRateLimiterCost(api, method, path, params, config, context);
+            const cost = this.calculateRateLimiterCost(api, method, path, params, config);
             await this.throttle(cost);
         }
         this.lastRestRequestTimestamp = this.milliseconds();
         const request = this.sign(path, api, method, params, headers, body);
         return await this.fetch(request['url'], request['method'], request['headers'], request['body']);
     }
-    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        return await this.fetch2(path, api, method, params, headers, body, config, context);
+    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
+        return await this.fetch2(path, api, method, params, headers, body, config);
     }
     async loadAccounts(reload = false, params = {}) {
         if (reload) {
@@ -2645,6 +2643,7 @@ class Exchange {
             const time = await this.fetchTime(params);
             this.status = this.extend(this.status, {
                 'updated': time,
+                'info': time,
             });
         }
         if (!('info' in this.status)) {
@@ -2816,7 +2815,7 @@ class Exchange {
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
         return undefined;
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
         return this.safeValue(config, 'cost', 1);
     }
     async fetchTicker(symbol, params = {}) {
@@ -3129,11 +3128,11 @@ class Exchange {
         currency = this.safeCurrency(currencyId, currency);
         return currency['code'];
     }
-    filterBySymbolSinceLimit(array, symbol = undefined, since = undefined, limit = undefined, tail = false) {
-        return this.filterByValueSinceLimit(array, 'symbol', symbol, since, limit, 'timestamp', tail);
+    filterBySymbolSinceLimit(array, symbol = undefined, since = undefined, limit = undefined) {
+        return this.filterByValueSinceLimit(array, 'symbol', symbol, since, limit, 'timestamp');
     }
-    filterByCurrencySinceLimit(array, code = undefined, since = undefined, limit = undefined, tail = false) {
-        return this.filterByValueSinceLimit(array, 'currency', code, since, limit, 'timestamp', tail);
+    filterByCurrencySinceLimit(array, code = undefined, since = undefined, limit = undefined) {
+        return this.filterByValueSinceLimit(array, 'currency', code, since, limit, 'timestamp');
     }
     parseLastPrices(pricesData, symbols = undefined, params = {}) {
         //

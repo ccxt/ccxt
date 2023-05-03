@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '3.0.81';
+const version = '3.0.90';
 
 (Exchange as any).ccxtVersion = version
 
@@ -85,7 +85,6 @@ import btcex from  './src/btcex.js'
 import btcmarkets from  './src/btcmarkets.js'
 import btctradeua from  './src/btctradeua.js'
 import btcturk from  './src/btcturk.js'
-import buda from  './src/buda.js'
 import bybit from  './src/bybit.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
@@ -104,7 +103,6 @@ import delta from  './src/delta.js'
 import deribit from  './src/deribit.js'
 import digifinex from  './src/digifinex.js'
 import exmo from  './src/exmo.js'
-import flowbtc from  './src/flowbtc.js'
 import fmfwio from  './src/fmfwio.js'
 import gate from  './src/gate.js'
 import gateio from  './src/gateio.js'
@@ -118,7 +116,6 @@ import huobipro from  './src/huobipro.js'
 import idex from  './src/idex.js'
 import independentreserve from  './src/independentreserve.js'
 import indodax from  './src/indodax.js'
-import itbit from  './src/itbit.js'
 import kraken from  './src/kraken.js'
 import krakenfutures from  './src/krakenfutures.js'
 import kucoin from  './src/kucoin.js'
@@ -144,7 +141,6 @@ import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
 import poloniexfutures from  './src/poloniexfutures.js'
 import probit from  './src/probit.js'
-import ripio from  './src/ripio.js'
 import stex from  './src/stex.js'
 import tidex from  './src/tidex.js'
 import timex from  './src/timex.js'
@@ -211,7 +207,6 @@ import okexPro from  './src/pro/okex.js'
 import okxPro from  './src/pro/okx.js'
 import phemexPro from  './src/pro/phemex.js'
 import probitPro from  './src/pro/probit.js'
-import ripioPro from  './src/pro/ripio.js'
 import upbitPro from  './src/pro/upbit.js'
 import wazirxPro from  './src/pro/wazirx.js'
 import whitebitPro from  './src/pro/whitebit.js'
@@ -257,7 +252,6 @@ const exchanges = {
     'btcmarkets':             btcmarkets,
     'btctradeua':             btctradeua,
     'btcturk':                btcturk,
-    'buda':                   buda,
     'bybit':                  bybit,
     'cex':                    cex,
     'coinbase':               coinbase,
@@ -276,7 +270,6 @@ const exchanges = {
     'deribit':                deribit,
     'digifinex':              digifinex,
     'exmo':                   exmo,
-    'flowbtc':                flowbtc,
     'fmfwio':                 fmfwio,
     'gate':                   gate,
     'gateio':                 gateio,
@@ -290,7 +283,6 @@ const exchanges = {
     'idex':                   idex,
     'independentreserve':     independentreserve,
     'indodax':                indodax,
-    'itbit':                  itbit,
     'kraken':                 kraken,
     'krakenfutures':          krakenfutures,
     'kucoin':                 kucoin,
@@ -316,7 +308,6 @@ const exchanges = {
     'poloniex':               poloniex,
     'poloniexfutures':        poloniexfutures,
     'probit':                 probit,
-    'ripio':                  ripio,
     'stex':                   stex,
     'tidex':                  tidex,
     'timex':                  timex,
@@ -383,7 +374,6 @@ const pro = {
     'okx':                    okxPro,
     'phemex':                 phemexPro,
     'probit':                 probitPro,
-    'ripio':                  ripioPro,
     'upbit':                  upbitPro,
     'wazirx':                 wazirxPro,
     'whitebit':               whitebitPro,
@@ -500,7 +490,6 @@ export {
     btcmarkets,
     btctradeua,
     btcturk,
-    buda,
     bybit,
     cex,
     coinbase,
@@ -519,7 +508,6 @@ export {
     deribit,
     digifinex,
     exmo,
-    flowbtc,
     fmfwio,
     gate,
     gateio,
@@ -533,7 +521,6 @@ export {
     idex,
     independentreserve,
     indodax,
-    itbit,
     kraken,
     krakenfutures,
     kucoin,
@@ -559,7 +546,6 @@ export {
     poloniex,
     poloniexfutures,
     probit,
-    ripio,
     stex,
     tidex,
     timex,

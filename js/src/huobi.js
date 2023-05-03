@@ -1424,7 +1424,7 @@ export default class huobi extends Exchange {
             if (value === true) {
                 promises.push(this.fetchMarketsByTypeAndSubType(type, undefined, params));
             }
-            else if (value !== undefined) {
+            else if (value) {
                 const subKeys = Object.keys(value);
                 for (let j = 0; j < subKeys.length; j++) {
                     const subType = subKeys[j];
@@ -4156,10 +4156,14 @@ export default class huobi extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @param {float|undefined} params.stopPrice *spot and margin only* The price at which a trigger order is triggered at
+         * @param {float|undefined} params.stopPrice the price a trigger order is triggered at
+         * @param {string|undefined} params.triggerType *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
+         * @param {float|undefined} params.stopLossPrice *contract only* the price a stop-loss order is triggered at
+         * @param {float|undefined} params.takeProfitPrice *contract only* the price a take-profit order is triggered at
          * @param {string|undefined} params.operator *spot and margin only* gte or lte, trigger price condition
          * @param {string|undefined} params.offset *contract only* 'open', 'close', or 'both', required in hedge mode
          * @param {bool|undefined} params.postOnly *contract only* true or false
+         * @param {int|undefined} params.leverRate *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -4290,141 +4294,163 @@ export default class huobi extends Exchange {
         };
     }
     async createContractOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        const offset = this.safeString(params, 'offset');
-        const stopPrice = this.safeString(params, 'stopPrice');
-        if (stopPrice !== undefined) {
-            throw new NotSupported(this.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders');
-        }
         const market = this.market(symbol);
         const request = {
-            // 'symbol': 'BTC', // optional, case-insensitive, both uppercase and lowercase are supported, "BTC", "ETH", ...
-            // 'contract_type': 'this_week', // optional, this_week, next_week, quarter, next_quarter
             'contract_code': market['id'],
-            // 'client_order_id': clientOrderId, // optional, must be less than 9223372036854775807
-            // 'price': this.priceToPrecision (symbol, price), // optional
             'volume': this.amountToPrecision(symbol, amount),
             'direction': side,
-            // 'offset': offset, // open, close, both
-            //
-            //     direction buy, offset open = open long
-            //     direction sell, offset close = close long
-            //     direction sell, offset open = open short
-            //     direction buy, offset close = close short
-            //
-            // 'reduce_only': 0, // 1 or 0, in hedge mode it is invalid, and in one-way mode its value is 0 when not filled
-            'lever_rate': 1, // required, using leverage greater than 20x requires prior approval of high-leverage agreement
-            // 'order_price_type': 'limit', // required
-            //
-            //     order_price_type can be:
-            //
-            //     limit
-            //     opponent // BBO
-            //     post_only
-            //     optimal_5
-            //     optimal_10
-            //     optimal_20
-            //     ioc
-            //     fok
-            //     opponent_ioc // IOC order using the BBO price
-            //     optimal_5_ioc
-            //     optimal_10_ioc
-            //     optimal_20_ioc
-            //     opponent_fok // FOK order using the BBO price
-            //     optimal_5_fok
-            //     optimal_10_fok
-            //     optimal_20_fok
-            //
-            // 'tp_trigger_price': this.priceToPrecision (symbol, triggerPrice),
-            // 'tp_order_price': this.priceToPrecision (symbol, price),
-            // 'tp_order_price_type': 'limit', // limit，optimal_5，optimal_10，optimal_20
-            // 'sl_trigger_price': this.priceToPrecision (symbol, stopLossPrice),
-            // 'sl_order_price': this.priceToPrecision (symbol, price),
-            // 'sl_order_price_type': 'limit', // limit，optimal_5，optimal_10，optimal_20
         };
-        const stopLossOrderPrice = this.safeString(params, 'sl_order_price');
-        const stopLossTriggerPrice = this.safeString(params, 'sl_trigger_price');
-        const takeProfitOrderPrice = this.safeString(params, 'tp_order_price');
-        const takeProfitTriggerPrice = this.safeString(params, 'tp_trigger_price');
-        const isOpenOrder = (offset === 'open');
-        let isStopOrder = false;
-        if (stopLossTriggerPrice !== undefined) {
-            request['sl_trigger_price'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
-            isStopOrder = true;
-            if (price !== undefined) {
-                request['sl_order_price'] = this.priceToPrecision(symbol, price);
-            }
-        }
-        if (stopLossOrderPrice !== undefined) {
-            request['sl_order_price'] = this.priceToPrecision(symbol, stopLossOrderPrice);
-            isStopOrder = true;
-        }
-        if (takeProfitTriggerPrice !== undefined) {
-            request['tp_trigger_price'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
-            isStopOrder = true;
-            if (price !== undefined) {
-                request['tp_order_price'] = this.priceToPrecision(symbol, price);
-            }
-        }
-        if (takeProfitOrderPrice !== undefined) {
-            request['tp_order_price'] = this.priceToPrecision(symbol, takeProfitOrderPrice);
-            isStopOrder = true;
-        }
-        if (isStopOrder && !isOpenOrder) {
-            throw new NotSupported(this.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders');
-        }
-        params = this.omit(params, ['sl_order_price', 'sl_trigger_price', 'tp_order_price', 'tp_trigger_price']);
         let postOnly = undefined;
         [postOnly, params] = this.handlePostOnly(type === 'market', type === 'post_only', params);
         if (postOnly) {
             type = 'post_only';
         }
-        if (type === 'limit' || type === 'ioc' || type === 'fok' || type === 'post_only') {
-            request['price'] = this.priceToPrecision(symbol, price);
+        const triggerPrice = this.safeNumber2(params, 'stopPrice', 'trigger_price');
+        const stopLossTriggerPrice = this.safeNumber2(params, 'stopLossPrice', 'sl_trigger_price');
+        const takeProfitTriggerPrice = this.safeNumber2(params, 'takeProfitPrice', 'tp_trigger_price');
+        const isStop = triggerPrice !== undefined;
+        const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
+        const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
+        if (isStop) {
+            const triggerType = this.safeString2(params, 'triggerType', 'trigger_type', 'le');
+            request['trigger_type'] = triggerType;
+            request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
+            if (price !== undefined) {
+                request['order_price'] = this.priceToPrecision(symbol, price);
+            }
         }
-        request['order_price_type'] = type;
+        else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+            if (isStopLossTriggerOrder) {
+                request['sl_order_price_type'] = type;
+                request['sl_trigger_price'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                if (price !== undefined) {
+                    request['sl_order_price'] = this.priceToPrecision(symbol, price);
+                }
+            }
+            else {
+                request['tp_order_price_type'] = type;
+                request['tp_trigger_price'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                if (price !== undefined) {
+                    request['tp_order_price'] = this.priceToPrecision(symbol, price);
+                }
+            }
+        }
+        else {
+            const clientOrderId = this.safeString2(params, 'client_order_id', 'clientOrderId');
+            if (clientOrderId !== undefined) {
+                request['client_order_id'] = clientOrderId;
+                params = this.omit(params, ['client_order_id', 'clientOrderId']);
+            }
+            if (type === 'limit' || type === 'ioc' || type === 'fok' || type === 'post_only') {
+                request['price'] = this.priceToPrecision(symbol, price);
+            }
+        }
+        if (!isStopLossTriggerOrder && !isTakeProfitTriggerOrder) {
+            const leverRate = this.safeInteger2(params, 'leverRate', 'lever_rate', 1);
+            const reduceOnly = this.safeValue2(params, 'reduceOnly', 'reduce_only', false);
+            const openOrClose = (reduceOnly) ? 'close' : 'open';
+            const offset = this.safeString(params, 'offset', openOrClose);
+            request['offset'] = offset;
+            if (reduceOnly) {
+                request['reduce_only'] = 1;
+            }
+            request['lever_rate'] = leverRate;
+            request['order_price_type'] = type;
+        }
+        params = this.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate']);
         const broker = this.safeValue(this.options, 'broker', {});
         const brokerId = this.safeString(broker, 'id');
         request['channel_code'] = brokerId;
-        const clientOrderId = this.safeString2(params, 'client_order_id', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['client_order_id'] = clientOrderId;
-            params = this.omit(params, ['client_order_id', 'clientOrderId']);
-        }
-        let method = undefined;
+        let response = undefined;
         if (market['linear']) {
             let marginMode = undefined;
             [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
             marginMode = (marginMode === undefined) ? 'cross' : marginMode;
             if (marginMode === 'isolated') {
-                method = 'contractPrivatePostLinearSwapApiV1SwapOrder';
+                if (isStop) {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerOrder(this.extend(request, params));
+                }
+                else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapTpslOrder(this.extend(request, params));
+                }
+                else {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapOrder(this.extend(request, params));
+                }
             }
             else if (marginMode === 'cross') {
-                method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder';
+                if (isStop) {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder(this.extend(request, params));
+                }
+                else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder(this.extend(request, params));
+                }
+                else {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapCrossOrder(this.extend(request, params));
+                }
             }
         }
         else if (market['inverse']) {
             if (market['swap']) {
-                method = 'contractPrivatePostSwapApiV1SwapOrder';
+                if (isStop) {
+                    response = await this.contractPrivatePostSwapApiV1SwapTriggerOrder(this.extend(request, params));
+                }
+                else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+                    response = await this.contractPrivatePostSwapApiV1SwapTpslOrder(this.extend(request, params));
+                }
+                else {
+                    response = await this.contractPrivatePostSwapApiV1SwapOrder(this.extend(request, params));
+                }
             }
             else if (market['future']) {
-                method = 'contractPrivatePostApiV1ContractOrder';
+                if (isStop) {
+                    response = await this.contractPrivatePostApiV1ContractTriggerOrder(this.extend(request, params));
+                }
+                else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+                    response = await this.contractPrivatePostApiV1ContractTpslOrder(this.extend(request, params));
+                }
+                else {
+                    response = await this.contractPrivatePostApiV1ContractOrder(this.extend(request, params));
+                }
             }
         }
-        const response = await this[method](this.extend(request, params));
-        //
-        // linear swap cross margin
         //
         //     {
-        //         "status":"ok",
-        //         "data":{
-        //             "order_id":924660854912552960,
-        //             "order_id_str":"924660854912552960"
+        //         "status": "ok",
+        //         "data": {
+        //             "order_id": 924660854912552960,
+        //             "order_id_str": "924660854912552960"
         //         },
-        //         "ts":1640497927185
+        //         "ts": 1640497927185
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        return this.parseOrder(data, market);
+        // stop-loss and take-profit
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "tp_order": {
+        //                 "order_id": 1101494204040163328,
+        //                 "order_id_str": "1101494204040163328"
+        //             },
+        //             "sl_order": null
+        //         },
+        //         "ts": :1682658283024
+        //     }
+        //
+        let data = undefined;
+        let result = undefined;
+        if (isStopLossTriggerOrder) {
+            data = this.safeValue(response, 'data', {});
+            result = this.safeValue(data, 'sl_order', {});
+        }
+        else if (isTakeProfitTriggerOrder) {
+            data = this.safeValue(response, 'data', {});
+            result = this.safeValue(data, 'tp_order', {});
+        }
+        else {
+            result = this.safeValue(response, 'data', {});
+        }
+        return this.parseOrder(result, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -5319,7 +5345,7 @@ export default class huobi extends Exchange {
             for (let j = 0; j < currencies.length; j++) {
                 const currency = currencies[j];
                 const currencyId = this.safeString(currency, 'currency');
-                const code = this.safeCurrencyCode(currencyId, 'currency');
+                const code = this.safeCurrencyCode(currencyId);
                 symbolRates[code] = {
                     'currency': code,
                     'rate': this.safeNumber(currency, 'actual-rate'),
@@ -5380,7 +5406,7 @@ export default class huobi extends Exchange {
             for (let j = 0; j < currencies.length; j++) {
                 const currency = currencies[j];
                 const currencyId = this.safeString(currency, 'currency');
-                const code = this.safeCurrencyCode(currencyId, 'currency');
+                const code = this.safeCurrencyCode(currencyId);
                 rates[code] = {
                     'currency': code,
                     'rate': this.safeNumber(currency, 'actual-rate'),

@@ -21,6 +21,7 @@ class xt extends Exchange {
             // futures 1000 times per minute for each single IP -> Otherwise account locked for 10min
             'rateLimit' => 100,
             'version' => 'v4',
+            'certified' => true,
             'pro' => false,
             'has' => array(
                 'CORS' => false,
@@ -481,6 +482,8 @@ class xt extends Exchange {
             ),
             'commonCurrencies' => array(),
             'options' => array(
+                'adjustForTimeDifference' => false,
+                'timeDifference' => 0,
                 'networks' => array(
                     'ERC20' => 'Ethereum',
                     'TRC20' => 'Tron',
@@ -607,7 +610,7 @@ class xt extends Exchange {
     }
 
     public function nonce() {
-        return $this->milliseconds();
+        return $this->milliseconds() - $this->options['timeDifference'];
     }
 
     public function fetch_time($params = array ()) {
@@ -739,6 +742,9 @@ class xt extends Exchange {
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {[array]} an array of objects representing market data
          */
+        if ($this->options['adjustForTimeDifference']) {
+            $this->load_time_difference();
+        }
         $promisesUnresolved = array(
             $this->fetch_spot_markets($params),
             $this->fetch_swap_and_future_markets($params),

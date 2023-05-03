@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.90 (2023-05-03)
+
+### 3.0.89 (2023-05-02)
+
+### 3.0.88 (2023-05-02)
+
+### 3.0.87 (2023-05-02)
+
+### 3.0.86 (2023-05-01)
+
+### 3.0.85 (2023-05-01)
+
+### 3.0.84 (2023-04-30)
+
+### 3.0.83 (2023-04-29)
+
+### 3.0.82 (2023-04-28)
+
+
+### Bug Fixes
+
+* **phemex:** watchOrders auth flow ([5a53e1e](https://github.com/ccxt/ccxt/commit/5a53e1e91f4c33bf4c792ed8cbee90ab36f5cd1f))
+
 ### 3.0.81 (2023-04-28)
 
 ### 3.0.80 (2023-04-27)

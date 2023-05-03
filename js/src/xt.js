@@ -23,6 +23,7 @@ export default class xt extends Exchange {
             // futures 1000 times per minute for each single IP -> Otherwise account locked for 10min
             'rateLimit': 100,
             'version': 'v4',
+            'certified': true,
             'pro': false,
             'has': {
                 'CORS': false,
@@ -483,6 +484,8 @@ export default class xt extends Exchange {
             },
             'commonCurrencies': {},
             'options': {
+                'adjustForTimeDifference': false,
+                'timeDifference': 0,
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
@@ -608,7 +611,7 @@ export default class xt extends Exchange {
         });
     }
     nonce() {
-        return this.milliseconds();
+        return this.milliseconds() - this.options['timeDifference'];
     }
     async fetchTime(params = {}) {
         /**
@@ -743,6 +746,9 @@ export default class xt extends Exchange {
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {[object]} an array of objects representing market data
          */
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const promisesUnresolved = [
             this.fetchSpotMarkets(params),
             this.fetchSwapAndFutureMarkets(params),

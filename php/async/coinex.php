@@ -3826,7 +3826,7 @@ class coinex extends Exchange {
                 $rates[] = array(
                     'info' => $entry,
                     'symbol' => $symbolInner,
-                    'fundingRate' => $this->safe_string($entry, 'funding_rate'),
+                    'fundingRate' => $this->safe_number($entry, 'funding_rate'),
                     'timestamp' => $timestamp,
                     'datetime' => $this->iso8601($timestamp),
                 );

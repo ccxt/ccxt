@@ -440,7 +440,7 @@ export default class stex extends Exchange {
             const minPrice = Precise.stringMax(minBuyPrice, minSellPrice);
             const buyFee = Precise.stringDiv(this.safeString(market, 'buy_fee_percent'), '100');
             const sellFee = Precise.stringDiv(this.safeString(market, 'sell_fee_percent'), '100');
-            const fee = Precise.stringMax(buyFee, sellFee);
+            const fee = this.parseNumber(Precise.stringMax(buyFee, sellFee));
             result.push({
                 'id': id,
                 'numericId': numericId,
