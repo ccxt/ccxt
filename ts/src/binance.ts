@@ -4414,9 +4414,10 @@ export default class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const defaultType = this.safeString2 (this.options, 'fetchCanceledOrders', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        if ((type !== 'spot') && (type !== 'margin') && (type !== 'option')) {
+        this.checkRequiredSymbol ('fetchCanceledOrders', symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['contract'] || market['future']) {
             throw new NotSupported (this.id + ' fetchCanceledOrders() supports spot, margin and option markets only');
         }
         params = this.omit (params, 'type');
