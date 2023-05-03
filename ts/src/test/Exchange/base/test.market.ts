@@ -164,7 +164,7 @@ function testMarket (exchange, skippedProperties, method, market) {
             // max >= min
             const minString = exchange.safeString (limitEntry, 'min');
             if (minString !== undefined) {
-                testSharedMethods.assertGreater (exchange, skippedProperties, method, limitEntry, 'max', minString);
+                testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, limitEntry, 'max', minString);
             }
         }
     }

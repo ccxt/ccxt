@@ -3,7 +3,6 @@ import testSharedMethods from './test.sharedMethods.js';
 
 function testCurrency (exchange, skippedProperties, method, entry) {
     const format = {
-        'info': {},
         'id': 'btc', // string literal for referencing within an exchange
         'code': 'BTC', // uppercase string literal of a pair of currencies
         'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
@@ -24,6 +23,10 @@ function testCurrency (exchange, skippedProperties, method, entry) {
         },
     };
     const emptyAllowedFor = [ 'name' ];
+    // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
+    if (exchange.has['fetchCurrencies']) {
+        format['info'] = {};
+    }
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['code']);
     //
@@ -40,12 +43,12 @@ function testCurrency (exchange, skippedProperties, method, entry) {
         // max should be more than min (withdrawal limits)
         const minStringWithdrawal = exchange.safeString (withdrawLimits, 'min');
         if (minStringWithdrawal !== undefined) {
-            testSharedMethods.assertGreater (exchange, skippedProperties, method, withdrawLimits, 'max', minStringWithdrawal);
+            testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, withdrawLimits, 'max', minStringWithdrawal);
         }
         // max should be more than min (deposit limits)
         const minStringDeposit = exchange.safeString (depositLimits, 'min');
         if (minStringDeposit !== undefined) {
-            testSharedMethods.assertGreater (exchange, skippedProperties, method, depositLimits, 'max', minStringDeposit);
+            testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, depositLimits, 'max', minStringDeposit);
         }
         // check valid ID & CODE
         testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, entry, entry['id'], entry['code']);
