@@ -77,7 +77,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchBorrowRateHistory': True,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
-                'fetchCanceledOrders': False,
+                'fetchCanceledOrders': 'emulated',
                 'fetchClosedOrder': False,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': True,
@@ -4019,7 +4019,7 @@ class binance(Exchange, ImplicitAPI):
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param int|None limit: the maximum number of order structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -4130,7 +4130,7 @@ class binance(Exchange, ImplicitAPI):
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param int|None limit: the maximum number of open orders structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -4184,12 +4184,34 @@ class binance(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param int|None limit: the maximum number of order structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         orders = await self.fetch_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
+
+    async def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetches information on multiple canceled orders made by the user
+        see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+        see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
+        see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+        :param str symbol: unified market symbol of the market the orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of order structures to retrieve
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.check_required_symbol('fetchCanceledOrders', symbol)
+        await self.load_markets()
+        market = self.market(symbol)
+        if market['contract'] or market['future']:
+            raise NotSupported(self.id + ' fetchCanceledOrders() supports spot, margin and option markets only')
+        params = self.omit(params, 'type')
+        orders = await self.fetch_orders(symbol, since, None, params)
+        filteredOrders = self.filter_by(orders, 'status', 'canceled')
+        return self.filter_by_limit(filteredOrders, limit)
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
@@ -5065,7 +5087,7 @@ class binance(Exchange, ImplicitAPI):
         fetch a history of internal transfers made on an account
         :param str|None code: unified currency code of the currency transferred
         :param int|None since: the earliest time in ms to fetch transfers for
-        :param int|None limit: the maximum number of  transfers structures to retrieve
+        :param int|None limit: the maximum number of transfers structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
