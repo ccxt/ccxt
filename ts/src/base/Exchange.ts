@@ -542,7 +542,7 @@ export default class Exchange {
                 },
             },
             'status': {
-                'status': 'ok',
+                'status': undefined,
                 'updated': undefined,
                 'eta': undefined,
                 'url': undefined,
@@ -2960,6 +2960,7 @@ export default class Exchange {
         if (this.has['fetchTime']) {
             const time = await this.fetchTime (params);
             this.status = this.extend (this.status, {
+                'status': 'ok',
                 'updated': time,
                 'info': time,
             });
