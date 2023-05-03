@@ -262,7 +262,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -316,7 +316,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        orders = this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        orders = this.filterBySymbolSinceLimit (orders, symbol, since, limit);
         if (orders.length === 0) {
             return await this.watchOrders (symbol, since, limit, params);
         }
