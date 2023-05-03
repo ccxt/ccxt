@@ -191,7 +191,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -259,7 +259,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
     async watchBalance (params = {}) {
