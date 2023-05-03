@@ -1556,8 +1556,8 @@ export default class Exchange {
             'deposit': undefined,
             'withdraw': undefined,
             'fee': undefined,
-            'fees': undefined,
-            'networks': undefined,
+            'fees': {},
+            'networks': {},
             'limits': {
                 'deposit': {
                     'min': undefined,
