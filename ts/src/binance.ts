@@ -4421,8 +4421,9 @@ export default class binance extends Exchange {
             throw new NotSupported (this.id + ' fetchCanceledOrders() supports spot, margin and option markets only');
         }
         params = this.omit (params, 'type');
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'canceled');
+        const orders = await this.fetchOrders (symbol, since, undefined, params);
+        const filteredOrders = this.filterBy (orders, 'status', 'canceled');
+        return this.filterByLimit (filteredOrders, limit);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
