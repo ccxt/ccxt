@@ -1132,7 +1132,7 @@ export default class woo extends Exchange {
         const price = this.safeString2 (order, 'order_price', 'price');
         const amount = this.safeString2 (order, 'order_quantity', 'quantity'); // This is base amount
         const cost = this.safeString2 (order, 'order_amount', 'amount'); // This is quote amount
-        const orderType = this.safeStringLowerN (order, [ 'order_type', 'type', 'algoType' ]);
+        const orderType = this.safeStringLower2 (order, 'order_type', 'type');
         const status = this.safeValue (order, 'status');
         const side = this.safeStringLower (order, 'side');
         const filled = this.safeValue (order, 'executed');
