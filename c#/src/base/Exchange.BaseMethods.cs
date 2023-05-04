@@ -7,6 +7,78 @@ public partial class Exchange
 {
 
 
+    public virtual object filterByLimit(object array, object limit = null, object key = null)
+    {
+        key ??= "timestamp";
+        if (isTrue(this.valueIsDefined(limit)))
+        {
+            object arrayLength = getArrayLength(array);
+            if (isTrue(isGreaterThan(arrayLength, 0)))
+            {
+                object ascending = true;
+                if (isTrue((inOp(getValue(array, 0), key))))
+                {
+                    object first = getValue(getValue(array, 0), key);
+                    object last = getValue(getValue(array, subtract(arrayLength, 1)), key);
+                    if (isTrue(isTrue(!isEqual(first, null)) && isTrue(!isEqual(last, null))))
+                    {
+                        ascending = isLessThan(first, last); // true if array is sorted in ascending order based on 'timestamp'
+                    }
+                }
+                array = ((bool) isTrue(ascending)) ? this.arraySlice(array, prefixUnaryNeg(ref limit)) : this.arraySlice(array, 0, limit);
+            }
+        }
+        return array;
+    }
+
+    public virtual object filterBySinceLimit(object array, object since = null, object limit = null, object key = null)
+    {
+        key ??= "timestamp";
+        object sinceIsDefined = this.valueIsDefined(since);
+        object parsedArray = ((object)this.toArray(array));
+        if (isTrue(sinceIsDefined))
+        {
+            object result = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(parsedArray)); postFixIncrement(ref i))
+            {
+                object entry = getValue(parsedArray, i);
+                if (isTrue(isGreaterThanOrEqual(getValue(entry, key), since)))
+                {
+                    ((List<object>)result).Add(entry);
+                }
+            }
+            return this.filterByLimit(result, limit, key);
+        }
+        return this.filterByLimit(parsedArray, limit, key);
+    }
+
+    public virtual object filterByValueSinceLimit(object array, object field, object value = null, object since = null, object limit = null, object key = null)
+    {
+        key ??= "timestamp";
+        object valueIsDefined = this.valueIsDefined(value);
+        object sinceIsDefined = this.valueIsDefined(since);
+        object parsedArray = ((object)this.toArray(array));
+        // single-pass filter for both symbol and since
+        if (isTrue(isTrue(valueIsDefined) || isTrue(sinceIsDefined)))
+        {
+            object result = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(parsedArray)); postFixIncrement(ref i))
+            {
+                object entry = getValue(parsedArray, i);
+                object entryFiledEqualValue = isEqual(getValue(entry, field), value);
+                object firstCondition = ((bool) isTrue(valueIsDefined)) ? entryFiledEqualValue : true;
+                object entryKeyGESince = isTrue(isTrue(getValue(entry, key)) && isTrue(since)) && isTrue((isGreaterThanOrEqual(getValue(entry, key), since)));
+                object secondCondition = ((bool) isTrue(sinceIsDefined)) ? entryKeyGESince : true;
+                if (isTrue(isTrue(firstCondition) && isTrue(secondCondition)))
+                {
+                    ((List<object>)result).Add(entry);
+                }
+            }
+            return this.filterByLimit(result, limit, key);
+        }
+        return this.filterByLimit(parsedArray, limit, key);
+    }
+
     public virtual object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
@@ -752,8 +824,7 @@ public partial class Exchange
         }
         results = this.sortBy(results, "timestamp");
         object symbol = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "symbol") : null;
-        object tail = isEqual(since, null);
-        return this.filterBySymbolSinceLimit(results, symbol, since, limit, tail);
+        return this.filterBySymbolSinceLimit(results, symbol, since, limit);
     }
 
     public virtual object calculateFee(object symbol, object type, object side, object amount, object price, object takerOrMaker = null, object parameters = null)
@@ -766,40 +837,30 @@ public partial class Exchange
         }
         object market = getValue(this.markets, symbol);
         object feeSide = this.safeString(market, "feeSide", "quote");
-        object key = "quote";
-        object cost = null;
-        object amountString = this.numberToString(amount);
-        object priceString = this.numberToString(price);
-        if (isTrue(isEqual(feeSide, "quote")))
-        {
-            // the fee is always in quote currency
-            cost = Precise.stringMul(amountString, priceString);
-        } else if (isTrue(isEqual(feeSide, "base")))
-        {
-            // the fee is always in base currency
-            cost = amountString;
-        } else if (isTrue(isEqual(feeSide, "get")))
+        object useQuote = null;
+        if (isTrue(isEqual(feeSide, "get")))
         {
             // the fee is always in the currency you get
-            cost = amountString;
-            if (isTrue(isEqual(side, "sell")))
-            {
-                cost = Precise.stringMul(cost, priceString);
-            } else
-            {
-                key = "base";
-            }
+            useQuote = isEqual(side, "sell");
         } else if (isTrue(isEqual(feeSide, "give")))
         {
             // the fee is always in the currency you give
-            cost = amountString;
-            if (isTrue(isEqual(side, "buy")))
-            {
-                cost = Precise.stringMul(cost, priceString);
-            } else
-            {
-                key = "base";
-            }
+            useQuote = isEqual(side, "buy");
+        } else
+        {
+            // the fee is always in feeSide currency
+            useQuote = isEqual(feeSide, "quote");
+        }
+        object cost = this.numberToString(amount);
+        object key = null;
+        if (isTrue(useQuote))
+        {
+            object priceString = this.numberToString(price);
+            cost = Precise.stringMul(cost, priceString);
+            key = "quote";
+        } else
+        {
+            key = "base";
         }
         // for derivatives, the fee is in 'settle' currency
         if (!isTrue(getValue(market, "spot")))
@@ -812,10 +873,7 @@ public partial class Exchange
             takerOrMaker = "taker";
         }
         object rate = this.safeString(market, takerOrMaker);
-        if (isTrue(!isEqual(cost, null)))
-        {
-            cost = Precise.stringMul(cost, rate);
-        }
+        cost = Precise.stringMul(cost, rate);
         return new Dictionary<string, object>() {
             { "type", takerOrMaker },
             { "currency", getValue(market, key) },
@@ -954,7 +1012,7 @@ public partial class Exchange
                 object cost = this.safeValue(fee, "cost");
                 if (isTrue(Precise.stringEq(cost, "0")))
                 {
-
+                    continue;
                 }
                 if (!isTrue((inOp(reduced, feeCurrencyCode))))
                 {
@@ -1480,8 +1538,7 @@ public partial class Exchange
             ((List<object>)results).Add(this.parseOHLCV(getValue(ohlcvs, i), market));
         }
         object sorted = this.sortBy(results, 0);
-        object tail = (isEqual(since, null));
-        return ((object)this.filterBySinceLimit(sorted, since, limit, 0, tail));
+        return ((object)this.filterBySinceLimit(sorted, since, limit, 0));
     }
 
     public virtual object parseLeverageTiers(object response, object symbols = null, object marketIdKey = null)
@@ -1581,8 +1638,7 @@ public partial class Exchange
         }
         result = this.sortBy2(result, "timestamp", "id");
         object symbol = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "symbol") : null;
-        object tail = (isEqual(since, null));
-        return this.filterBySymbolSinceLimit(result, symbol, since, limit, tail);
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 
     public virtual object parseTransactions(object transactions, object currency = null, object since = null, object limit = null, object parameters = null)
@@ -1597,8 +1653,7 @@ public partial class Exchange
         }
         result = this.sortBy(result, "timestamp");
         object code = ((bool) isTrue((!isEqual(currency, null)))) ? getValue(currency, "code") : null;
-        object tail = (isEqual(since, null));
-        return this.filterByCurrencySinceLimit(result, code, since, limit, tail);
+        return this.filterByCurrencySinceLimit(result, code, since, limit);
     }
 
     public virtual object parseTransfers(object transfers, object currency = null, object since = null, object limit = null, object parameters = null)
@@ -1613,8 +1668,7 @@ public partial class Exchange
         }
         result = this.sortBy(result, "timestamp");
         object code = ((bool) isTrue((!isEqual(currency, null)))) ? getValue(currency, "code") : null;
-        object tail = (isEqual(since, null));
-        return this.filterByCurrencySinceLimit(result, code, since, limit, tail);
+        return this.filterByCurrencySinceLimit(result, code, since, limit);
     }
 
     public virtual object parseLedger(object data, object currency = null, object since = null, object limit = null, object parameters = null)
@@ -1638,8 +1692,7 @@ public partial class Exchange
         }
         result = this.sortBy(result, "timestamp");
         object code = ((bool) isTrue((!isEqual(currency, null)))) ? getValue(currency, "code") : null;
-        object tail = (isEqual(since, null));
-        return this.filterByCurrencySinceLimit(result, code, since, limit, tail);
+        return this.filterByCurrencySinceLimit(result, code, since, limit);
     }
 
     public virtual object nonce()
@@ -1693,16 +1746,15 @@ public partial class Exchange
         return ((bool) isTrue(indexed)) ? this.indexBy(results, key) : results;
     }
 
-    public async virtual Task<object> fetch2(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null, object config = null, object context = null)
+    public async virtual Task<object> fetch2(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null, object config = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         config ??= new Dictionary<string, object>();
-        context ??= new Dictionary<string, object>();
         if (isTrue(this.enableRateLimit))
         {
-            object cost = this.calculateRateLimiterCost(api, method, path, parameters, config, context);
+            object cost = this.calculateRateLimiterCost(api, method, path, parameters, config);
             await this.throttle(cost);
         }
         this.lastRestRequestTimestamp = this.milliseconds();
@@ -1710,14 +1762,13 @@ public partial class Exchange
         return await this.fetch(getValue(request, "url"), getValue(request, "method"), getValue(request, "headers"), getValue(request, "body"));
     }
 
-    public async virtual Task<object> request(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null, object config = null, object context = null)
+    public async virtual Task<object> request(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null, object config = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         config ??= new Dictionary<string, object>();
-        context ??= new Dictionary<string, object>();
-        return await this.fetch2(path, api, method, parameters, headers, body, config, context);
+        return await this.fetch2(path, api, method, parameters, headers, body, config);
     }
 
     public async virtual Task<object> loadAccounts(object reload = null, object parameters = null)
@@ -2056,6 +2107,7 @@ public partial class Exchange
             object time = await this.fetchTime(parameters);
             this.status = this.extend(this.status, new Dictionary<string, object>() {
                 { "updated", time },
+                { "info", time },
             });
         }
         if (!isTrue((inOp(this.status, "info"))))
@@ -2301,10 +2353,9 @@ public partial class Exchange
         return null;
     }
 
-    public virtual object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null, object context = null)
+    public virtual object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        context ??= new Dictionary<string, object>();
         return this.safeValue(config, "cost", 1);
     }
 
@@ -2798,16 +2849,14 @@ public partial class Exchange
         return getValue(currency, "code");
     }
 
-    public virtual object filterBySymbolSinceLimit(object array, object symbol = null, object since = null, object limit = null, object tail = null)
+    public virtual object filterBySymbolSinceLimit(object array, object symbol = null, object since = null, object limit = null)
     {
-        tail ??= false;
-        return this.filterByValueSinceLimit(array, "symbol", symbol, since, limit, "timestamp", tail);
+        return this.filterByValueSinceLimit(array, "symbol", symbol, since, limit, "timestamp");
     }
 
-    public virtual object filterByCurrencySinceLimit(object array, object code = null, object since = null, object limit = null, object tail = null)
+    public virtual object filterByCurrencySinceLimit(object array, object code = null, object since = null, object limit = null)
     {
-        tail ??= false;
-        return this.filterByValueSinceLimit(array, "currency", code, since, limit, "timestamp", tail);
+        return this.filterByValueSinceLimit(array, "currency", code, since, limit, "timestamp");
     }
 
     public virtual object parseLastPrices(object pricesData, object symbols = null, object parameters = null)

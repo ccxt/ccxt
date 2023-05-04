@@ -489,4 +489,19 @@ public partial class Exchange
         }
         return value;
     }
+
+    public bool valueIsDefined(object value)
+    {
+        return value != null;
+    }
+
+    public object arraySlice(object array, object first, object second = null)
+    {
+        var parsedArray = ((List<object>)array);
+        if (second == null)
+        {
+            return parsedArray.GetRange((int)first, parsedArray.Count - (int)first);
+        }
+        return parsedArray.GetRange((int)first, (int)second);
+    }
 }

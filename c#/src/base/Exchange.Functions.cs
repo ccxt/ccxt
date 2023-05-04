@@ -147,40 +147,40 @@ public partial class Exchange
         return outList; // stub to override
     }
 
-    public List<object> filterByValueSinceLimit(object aa, object key, object value, object since, object limit, object timestamp = null, object tail = null)
-    {
-        tail ??= false;
-        var a = (List<object>)aa;
-        var outList = new List<object>();
-        foreach (object elem in a)
-        {
-            var elemDict = (dict)elem;
-            if (elemDict[(string)key].ToString() == value)
-            {
-                outList.Add(elem);
-            }
-        }
-        return outList;
-    }
+    // public List<object> filterByValueSinceLimit(object aa, object key, object value, object since, object limit, object timestamp = null, object tail = null)
+    // {
+    //     tail ??= false;
+    //     var a = (List<object>)aa;
+    //     var outList = new List<object>();
+    //     foreach (object elem in a)
+    //     {
+    //         var elemDict = (dict)elem;
+    //         if (elemDict[(string)key].ToString() == value)
+    //         {
+    //             outList.Add(elem);
+    //         }
+    //     }
+    //     return outList;
+    // }
 
-    public List<object> filterBySinceLimit(object a, object since, object limit, object key = null, object tail2 = null)
-    {
-        var list = (List<object>)a;
-        key ??= "timestamp";
-        tail2 ??= false;
-        var tail = (bool)tail2;
-        var outList = new List<object>();
-        if (tail)
-        {
-            list.Reverse();
-        }
-        foreach (object elem in list)
-        {
-            outList.Add(elem);
-        }
+    // public List<object> filterBySinceLimit(object a, object since, object limit, object key = null, object tail2 = null)
+    // {
+    //     var list = (List<object>)a;
+    //     key ??= "timestamp";
+    //     tail2 ??= false;
+    //     var tail = (bool)tail2;
+    //     var outList = new List<object>();
+    //     if (tail)
+    //     {
+    //         list.Reverse();
+    //     }
+    //     foreach (object elem in list)
+    //     {
+    //         outList.Add(elem);
+    //     }
 
-        return outList;
-    }
+    //     return outList;
+    // }
 
 
     public string uuidv1()

@@ -98,9 +98,9 @@ public partial class Exchange
         var res = await this.fetchL2OrderBook(symbol, limit, parameters);
         return ((object)res);
     }
-    public async Task<object> Fetch2(object path, object api = null, string method = "GET", Dictionary<string, object> parameters = null, object headers = null, object body = null, Dictionary<string, object> config = null, Dictionary<string, object> context = null)
+    public async Task<object> Fetch2(object path, object api = null, string method = "GET", Dictionary<string, object> parameters = null, object headers = null, object body = null, Dictionary<string, object> config = null)
     {
-        var res = await this.fetch2(path, api, method, parameters, headers, body, config, context);
+        var res = await this.fetch2(path, api, method, parameters, headers, body, config);
         return ((object)res);
     }
     public async Task<List<OHLCVC>> FetchOHLCVC(object symbol, string timeframe = "1m", object since = null, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
@@ -505,7 +505,6 @@ public class Btcex : btcex { }
 public class Btcmarkets : btcmarkets { }
 public class Btctradeua : btctradeua { }
 public class Btcturk : btcturk { }
-public class Buda : buda { }
 public class Bybit : bybit { }
 public class Cex : cex { }
 public class Coinbase : coinbase { }
@@ -524,7 +523,6 @@ public class Delta : delta { }
 public class Deribit : deribit { }
 public class Digifinex : digifinex { }
 public class Exmo : exmo { }
-public class Flowbtc : flowbtc { }
 public class Fmfwio : fmfwio { }
 public class Gate : gate { }
 public class Gateio : gateio { }
@@ -538,7 +536,6 @@ public class Huobipro : huobipro { }
 public class Idex : idex { }
 public class Independentreserve : independentreserve { }
 public class Indodax : indodax { }
-public class Itbit : itbit { }
 public class Kraken : kraken { }
 public class Krakenfutures : krakenfutures { }
 public class Kucoin : kucoin { }
@@ -564,7 +561,6 @@ public class Phemex : phemex { }
 public class Poloniex : poloniex { }
 public class Poloniexfutures : poloniexfutures { }
 public class Probit : probit { }
-public class Ripio : ripio { }
 public class Stex : stex { }
 public class Tidex : tidex { }
 public class Timex : timex { }
@@ -577,5 +573,4 @@ public class Woo : woo { }
 public class Xt : xt { }
 public class Yobit : yobit { }
 public class Zaif : zaif { }
-public class Zb : zb { }
 public class Zonda : zonda { }
