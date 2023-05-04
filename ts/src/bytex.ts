@@ -2,14 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import Exchange from './abstract/bytex.js';
+import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds } from './base/errors';
+import { TICK_SIZE } from './base/functions/number';
+import { Precise } from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bytex extends Exchange {
+export default class bytex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bytex',
@@ -389,7 +389,7 @@ module.exports = class bytex extends Exchange {
         return result;
     }
 
-    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
+    async fetchOrderBooks (symbols: string[] = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bytex#fetchOrderBooks
@@ -452,7 +452,7 @@ module.exports = class bytex extends Exchange {
         return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bytex#fetchTicker
@@ -481,7 +481,7 @@ module.exports = class bytex extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bytex#fetchTickers
@@ -566,7 +566,7 @@ module.exports = class bytex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bytex#fetchTrades
@@ -715,7 +715,7 @@ module.exports = class bytex extends Exchange {
         return result;
     }
 
-    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bytex#fetchOHLCV
@@ -846,7 +846,7 @@ module.exports = class bytex extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchOpenOrder (id, symbol = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bytex#fetchOpenOrder
@@ -888,7 +888,7 @@ module.exports = class bytex extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bytex#fetchOpenOrders
@@ -912,7 +912,7 @@ module.exports = class bytex extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bytex#fetchClosedOrders
@@ -936,7 +936,7 @@ module.exports = class bytex extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bytex#fetchOrder
@@ -981,7 +981,7 @@ module.exports = class bytex extends Exchange {
         return this.parseOrder (order);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bytex#fetchOrders
@@ -1122,7 +1122,7 @@ module.exports = class bytex extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bytex#createOrder
@@ -1192,7 +1192,7 @@ module.exports = class bytex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bytex#cancelOrder
@@ -1223,7 +1223,7 @@ module.exports = class bytex extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bytex#cancelAllOrders
@@ -1258,7 +1258,7 @@ module.exports = class bytex extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bytex#fetchMyTrades
@@ -1419,7 +1419,7 @@ module.exports = class bytex extends Exchange {
         return this.parseDepositAddresses (addresses, codes);
     }
 
-    async fetchDepositAddressesByNetwork (code, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}) {
         /**
          * @method
          * @name bytex#fetchDepositAddressesByNetwork
@@ -1480,7 +1480,7 @@ module.exports = class bytex extends Exchange {
         return this.indexBy (addresses, 'network');
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bytex#fetchDeposits
@@ -1540,7 +1540,7 @@ module.exports = class bytex extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bytex#fetchWithdrawals
@@ -1697,7 +1697,7 @@ module.exports = class bytex extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bytex#withdraw
