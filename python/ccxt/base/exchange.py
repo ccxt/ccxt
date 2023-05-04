@@ -1628,7 +1628,7 @@ class Exchange(object):
     def valueIsDefined(self, value):
         return value is not None
 
-    def arraySlice(self, array, first, second = None):
+    def arraySlice(self, array, first, second=None):
         return array[first:second] if second else array[first:]
 
     # ########################################################################
