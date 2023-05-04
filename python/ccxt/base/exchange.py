@@ -1490,7 +1490,11 @@ class Exchange(object):
 
     def filter_by_limit(self, array, limit=None, key='timestamp'):
         if (limit is not None) and (len(array) > 0) and (key in array[0]):
-            ascending = (array[0][key] < array[len(array) - 1][key])  # true if array is sorted in ascending order based on 'timestamp'
+            first = array[0][key]
+            last = array[len(array) - 1][key]
+            ascending = True # default value
+            if first != None and last != None:
+                ascending = first < last # true if array is sorted in ascending order based on 'timestamp'
             array = array[-limit:] if ascending else array[:limit]
         return array
 
