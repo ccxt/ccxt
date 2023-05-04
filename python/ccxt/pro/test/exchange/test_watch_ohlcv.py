@@ -16,6 +16,7 @@ async def test_watch_ohlcv(exchange, symbol):
         'bitget',  # timeframes structure differs from rest
         'zb'
     ]
+    skipped_properties = {}
 
     if exchange.id in skipped_exchanges:
         print(exchange.id, method, 'skipped')
@@ -38,7 +39,7 @@ async def test_watch_ohlcv(exchange, symbol):
                 now = exchange.milliseconds()
                 print(exchange.iso8601(now), symbol, timeframe, len(ohlcvs), 'ohlcvs')
                 for ohlcv in ohlcvs:
-                    test_ohlcv(exchange, method, ohlcv, symbol, now)
+                    test_ohlcv(exchange, skipped_properties, method, ohlcv, symbol, now)
                 # print(table([[exchange.iso8601(o[0])] + o[1:] for o in ohlcvs]))
             except NetworkError:
                 now = exchange.milliseconds()
