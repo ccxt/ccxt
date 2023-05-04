@@ -1,4 +1,5 @@
 using ccxt;
+
 using System.Globalization;
 using System.Reflection;
 namespace Tests;
@@ -57,7 +58,7 @@ public partial class testMainClass : BaseTest
         foreach (var key2 in hasKeys)
         {
             var key = key2 as string;
-            var testFilePath = rootDir + "c#/newTests/Generated/Exchange/test." + key + ".cs";
+            var testFilePath = rootDir + "c#/tests/Generated/Exchange/test." + key + ".cs";
             if (ioFileExists(testFilePath))
             {
                 var methodName = "test" + key.Substring(0, 1).ToUpper() + key.Substring(1);

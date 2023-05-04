@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="../../c#/src/src.csproj" />
+    <ProjectReference Include="../../c#/ccxt/src.csproj" />
   </ItemGroup>
 
   <ItemGroup>
