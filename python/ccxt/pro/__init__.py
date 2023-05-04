@@ -4,13 +4,11 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.6.80'
+__version__ = '3.0.90'
 
 # ----------------------------------------------------------------------------
 
-# Pro Exchange
-
-from ccxt.pro.base.exchange import Exchange  # noqa: F401
+from ccxt.base.exchange import Exchange  # noqa: F401
 
 # CCXT Pro exchanges (now this is mainly used for importing exchanges in WS tests)
 
@@ -51,22 +49,24 @@ from ccxt.pro.huobi import huobi                                          # noqa
 from ccxt.pro.huobijp import huobijp                                      # noqa: F401
 from ccxt.pro.huobipro import huobipro                                    # noqa: F401
 from ccxt.pro.idex import idex                                            # noqa: F401
+from ccxt.pro.independentreserve import independentreserve                # noqa: F401
 from ccxt.pro.kraken import kraken                                        # noqa: F401
+from ccxt.pro.krakenfutures import krakenfutures                          # noqa: F401
 from ccxt.pro.kucoin import kucoin                                        # noqa: F401
 from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.pro.luno import luno                                            # noqa: F401
 from ccxt.pro.mexc import mexc                                            # noqa: F401
+from ccxt.pro.mexc3 import mexc3                                          # noqa: F401
 from ccxt.pro.ndax import ndax                                            # noqa: F401
 from ccxt.pro.okcoin import okcoin                                        # noqa: F401
 from ccxt.pro.okex import okex                                            # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
-from ccxt.pro.ripio import ripio                                          # noqa: F401
+from ccxt.pro.probit import probit                                        # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
 from ccxt.pro.wazirx import wazirx                                        # noqa: F401
 from ccxt.pro.whitebit import whitebit                                    # noqa: F401
 from ccxt.pro.woo import woo                                              # noqa: F401
-from ccxt.pro.zb import zb                                                # noqa: F401
 
 exchanges = [
     'alpaca',
@@ -106,20 +106,22 @@ exchanges = [
     'huobijp',
     'huobipro',
     'idex',
+    'independentreserve',
     'kraken',
+    'krakenfutures',
     'kucoin',
     'kucoinfutures',
     'luno',
     'mexc',
+    'mexc3',
     'ndax',
     'okcoin',
     'okex',
     'okx',
     'phemex',
-    'ripio',
+    'probit',
     'upbit',
     'wazirx',
     'whitebit',
     'woo',
-    'zb',
 ]

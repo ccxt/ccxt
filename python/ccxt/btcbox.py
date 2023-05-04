@@ -4,20 +4,24 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.btcbox import ImplicitAPI
+import hashlib
 import json
+from ccxt.base.types import OrderSide
+from typing import Optional
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class btcbox(Exchange):
+class btcbox(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(btcbox, self).describe(), {
@@ -62,7 +66,7 @@ class btcbox(Exchange):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
-                'fetchTickers': None,
+                'fetchTickers': False,
                 'fetchTrades': True,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
@@ -150,13 +154,13 @@ class btcbox(Exchange):
         response = self.privatePostBalance(params)
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the btcbox api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -194,12 +198,12 @@ class btcbox(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the btcbox api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -245,7 +249,7 @@ class btcbox(Exchange):
             'fee': None,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -274,7 +278,7 @@ class btcbox(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -283,7 +287,7 @@ class btcbox(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the btcbox api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -302,13 +306,13 @@ class btcbox(Exchange):
         #
         return self.parse_order(response, market)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the btcbox api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         # a special case for btcbox – default symbol is BTC/JPY
@@ -391,12 +395,12 @@ class btcbox(Exchange):
             'average': None,
         }, market)
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the btcbox api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         # a special case for btcbox – default symbol is BTC/JPY
@@ -422,7 +426,7 @@ class btcbox(Exchange):
         #
         return self.parse_order(response, market)
 
-    def fetch_orders_by_type(self, type, symbol=None, since=None, limit=None, params={}):
+    def fetch_orders_by_type(self, type, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
         # a special case for btcbox – default symbol is BTC/JPY
         if symbol is None:
@@ -447,31 +451,31 @@ class btcbox(Exchange):
         #
         orders = self.parse_orders(response, market, since, limit)
         # status(open/closed/canceled) is None
-        # btcbox does not return status, but we know it's 'open' as we queried for open orders
+        # btcbox does not return status, but we know it's 'open' queried for open orders
         if type == 'open':
             for i in range(0, len(orders)):
                 orders[i]['status'] = 'open'
         return orders
 
-    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the btcbox api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_type('all', symbol, since, limit, params)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the btcbox api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_type('open', symbol, since, limit, params)
 
@@ -491,8 +495,8 @@ class btcbox(Exchange):
                 'nonce': nonce,
             }, params)
             request = self.urlencode(query)
-            secret = self.hash(self.encode(self.secret))
-            query['signature'] = self.hmac(self.encode(request), self.encode(secret))
+            secret = self.hash(self.encode(self.secret), 'sha256')
+            query['signature'] = self.hmac(self.encode(request), self.encode(secret), hashlib.sha256)
             body = self.urlencode(query)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -501,20 +505,20 @@ class btcbox(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # resort to defaultErrorHandler
+            return None  # resort to defaultErrorHandler
         # typical error response: {"result":false,"code":"401"}
         if httpCode >= 400:
-            return  # resort to defaultErrorHandler
+            return None  # resort to defaultErrorHandler
         result = self.safe_value(response, 'result')
         if result is None or result is True:
-            return  # either public API(no error codes expected) or success
+            return None  # either public API(no error codes expected) or success
         code = self.safe_value(response, 'code')
         feedback = self.id + ' ' + body
         self.throw_exactly_matched_exception(self.exceptions, code, feedback)
         raise ExchangeError(feedback)  # unknown message
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
-        response = self.fetch2(path, api, method, params, headers, body, config, context)
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}):
+        response = self.fetch2(path, api, method, params, headers, body, config)
         if isinstance(response, str):
             # sometimes the exchange returns whitespace prepended to json
             response = self.strip(response)

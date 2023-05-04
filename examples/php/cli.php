@@ -23,7 +23,7 @@ $main = function() use ($argv) {
         $args = array_values(array_filter($argv, function ($option) { return strstr($option, '--verbose') === false; }));
 
         $test = count(array_filter($args, function ($option) { return strstr($option, '--test') !== false || strstr($option, '--testnet') !== false || strstr($option, '--sandbox') !== false; })) > 0;
-        $args = array_values(array_filter($args, function ($option) { return strstr($option, '--test') === false || strstr($option, '--testnet') !== false || strstr($option, '--sandbox') !== false; }));
+        $args = array_values(array_filter($args, function ($option) { return strstr($option, '--test') === false && strstr($option, '--testnet') === false && strstr($option, '--sandbox') === false; }));
 
         $debug = count(array_filter($args, function ($option) { return strstr($option, '--debug') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--debug') === false; }));
