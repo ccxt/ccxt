@@ -725,6 +725,7 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#createOrder
+         * @see https://docs.woo.org/?python#send-algo-order
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -750,7 +751,7 @@ export default class woo extends Exchange {
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isStopLoss = stopLossPrice !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
-        const isAlgo = isStopLoss || isTakeProfit;
+        const isStop = isStopLoss || isTakeProfit;
         if (isStopLoss && isTakeProfit) {
             throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
         }
@@ -760,7 +761,7 @@ export default class woo extends Exchange {
             'side': orderSide,
         };
         let method = 'v1PrivatePostOrder';
-        if (isAlgo) {
+        if (isStop) {
             method = 'v3PrivatePostAlgoOrder';
             request['type'] = orderType; // LIMIT/MARKET
             request['quantity'] = this.amountToPrecision (symbol, amount);
@@ -821,7 +822,7 @@ export default class woo extends Exchange {
             params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ]);
         }
         const response = await this[method] (this.extend (request, params));
-        if (isAlgo) {
+        if (isStop) {
             // {
             //     success: true,
             //     data: {
@@ -844,7 +845,10 @@ export default class woo extends Exchange {
                     rows[i]['timestamp'] = timestamp;
                 }
             }
-            return this.parseOrders (rows, market, undefined, undefined, { 'type': type });
+            return this.extend (
+                this.parseOrder (rows[0], market),
+                { 'type': type }
+            );
         } else {
             // {
             //     success: true,
@@ -867,6 +871,7 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#editOrder
+         * @see https://docs.woo.org/?python#edit-algo-order
          * @description edit a trade order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
@@ -900,12 +905,12 @@ export default class woo extends Exchange {
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isStopLoss = stopLossPrice !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
-        const isAlgo = this.safeValue (params, 'stop');
+        const isStop = this.safeValue (params, 'stop');
         if (isStopLoss && isTakeProfit) {
             throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
         }
         params = this.omit (params, [ 'stop', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ]);
-        if (isStopLoss || isTakeProfit || isAlgo) {
+        if (isStopLoss || isTakeProfit || isStop) {
             const triggerPrice = isStopLoss ? stopLossPrice : takeProfitPrice;
             if (triggerPrice !== undefined) {
                 request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
@@ -948,6 +953,7 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#cancelOrder
+         * @see https://docs.woo.org/?python#cancel-algo-order
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
@@ -964,9 +970,9 @@ export default class woo extends Exchange {
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let method = undefined;
-        const isAlgo = this.safeValue (params, 'stop');
+        const isStop = this.safeValue (params, 'stop');
         params = this.omit (params, [ 'stop' ]);
-        if (isAlgo) {
+        if (isStop) {
             method = 'v3PrivateDeleteAlgoOrderOid';
             request['oid'] = id;
         } else {
@@ -1001,6 +1007,7 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#cancelAllOrders
+         * @see https://docs.woo.org/?python#cancel-pending-merge-orders-by-symbol
          * @description cancel all open orders in a market
          * @param {string|undefined} symbol unified market symbol
          * @param {object} params extra parameters specific to the woo api endpoint
@@ -1016,9 +1023,9 @@ export default class woo extends Exchange {
             'symbol': market['id'],
         };
         let method = undefined;
-        const isAlgo = this.safeValue (params, 'stop');
+        const isStop = this.safeValue (params, 'stop');
         params = this.omit (params, [ 'stop' ]);
-        if (isAlgo) {
+        if (isStop) {
             method = 'v3PrivateDeleteMergeOrdersPendingSymbol';
         } else {
             method = 'v1PrivateDeleteOrders';
@@ -1037,6 +1044,7 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#fetchOrder
+         * @see https://docs.woo.org/?python#get-algo-order
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the woo api endpoint
@@ -1048,10 +1056,10 @@ export default class woo extends Exchange {
         const request = {};
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         let method = undefined;
-        const isAlgo = this.safeValue (params, 'stop');
+        const isStop = this.safeValue (params, 'stop');
         params = this.omit (params, [ 'stop' ]);
         let response = undefined;
-        if (isAlgo) {
+        if (isStop) {
             method = 'v3PrivateGetAlgoOrderOid';
             request['oid'] = id;
         } else {
@@ -1064,7 +1072,7 @@ export default class woo extends Exchange {
             }
         }
         response = await this[method] (this.extend (request, params));
-        if (isAlgo) {
+        if (isStop) {
             //
             // {
             //     "success": true,
@@ -1149,6 +1157,7 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#fetchOrders
+         * @see https://docs.woo.org/?python#get-algo-orders
          * @description fetches information on multiple orders made by the user
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
@@ -1165,8 +1174,8 @@ export default class woo extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const isAlgo = this.safeValue (params, 'stop');
-        if (isAlgo) {
+        const isStop = this.safeValue (params, 'stop');
+        if (isStop) {
             method = 'v3PrivateGetAlgoOrders';
             if (since !== undefined) {
                 request['createdTimeStart'] = since;
@@ -1182,7 +1191,7 @@ export default class woo extends Exchange {
             }
         }
         const response = await this[method] (this.extend (request, params));
-        if (isAlgo) {
+        if (isStop) {
             //
             // {
             //     "success": true,
