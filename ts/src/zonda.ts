@@ -664,10 +664,8 @@ export default class zonda extends Exchange {
         const fetchTickerMethod = this.safeString (params, 'fetchTickerMethod', defaultMethod);
         if (fetchTickerMethod === 'fetchTickerV1') {
             return await this.fetchTickerV1 (symbol, params);
-        } else if (fetchTickerMethod === 'fetchTickerV2') {
-            return await this.fetchTickerV2 (symbol, params);
         } else {
-            return await this.fetchTickerV1AndV2 (symbol, params);
+            return await this.fetchTickerV2 (symbol, params);
         }
     }
 
