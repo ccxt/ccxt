@@ -107,7 +107,7 @@ function testMarket (exchange, skippedProperties, method, market) {
         }
         if (!('settle' in skippedProperties)) {
             // settle should be defined
-            assert ((market['settle'] !== undefined) && (market['settleId'] !== undefined), '"settle" must be defined when "contract" is true' + logText);
+            assert ((market['settle'] !== undefined) && (market['settleId'] !== undefined), '"settle" & "settleId" must be defined when "contract" is true' + logText);
         }
         // spot should be false
         assert (!market['spot'], '"spot" must be false when "contract" is true' + logText);
