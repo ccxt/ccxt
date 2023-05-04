@@ -4199,10 +4199,8 @@ class huobi extends Exchange {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice or a stop-$price parameter for a stop order');
                 }
             } else {
-                $stopOperator = $this->safe_string($params, 'operator');
-                if ($stopOperator === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires an operator parameter "gte" or "lte" for a stop order');
-                }
+                $defaultOperator = ($side === 'sell') ? 'lte' : 'gte';
+                $stopOperator = $this->safe_string($params, 'operator', $defaultOperator);
                 $params = $this->omit($params, array( 'stopPrice', 'stop-price' ));
                 $request['stop-price'] = $this->price_to_precision($symbol, $stopPrice);
                 $request['operator'] = $stopOperator;

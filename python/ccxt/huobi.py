@@ -3950,9 +3950,8 @@ class huobi(Exchange, ImplicitAPI):
             if orderType in stopOrderTypes:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice or a stop-price parameter for a stop order')
         else:
-            stopOperator = self.safe_string(params, 'operator')
-            if stopOperator is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires an operator parameter "gte" or "lte" for a stop order')
+            defaultOperator = 'lte' if (side == 'sell') else 'gte'
+            stopOperator = self.safe_string(params, 'operator', defaultOperator)
             params = self.omit(params, ['stopPrice', 'stop-price'])
             request['stop-price'] = self.price_to_precision(symbol, stopPrice)
             request['operator'] = stopOperator

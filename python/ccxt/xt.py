@@ -1042,7 +1042,11 @@ class xt(Exchange, ImplicitAPI):
             minAmount = self.safe_number(market, 'minQty')
             contract = True
             spot = False
-        isActive = (state == 'ONLINE') or (state == '0')
+        isActive = True
+        if contract:
+            isActive = self.safe_value(market, 'isOpenApi', False)
+        else:
+            isActive = (state == 'ONLINE') or (state == '0')
         return {
             'id': id,
             'symbol': symbol,

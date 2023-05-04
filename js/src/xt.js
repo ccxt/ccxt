@@ -1047,7 +1047,13 @@ export default class xt extends Exchange {
             contract = true;
             spot = false;
         }
-        const isActive = (state === 'ONLINE') || (state === '0');
+        let isActive = true;
+        if (contract) {
+            isActive = this.safeValue(market, 'isOpenApi', false);
+        }
+        else {
+            isActive = (state === 'ONLINE') || (state === '0');
+        }
         return {
             'id': id,
             'symbol': symbol,
