@@ -875,7 +875,7 @@ export default class woo extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @param {bool} params.algo True if is a algo order
+         * @param {bool} params.stop True if is a algo order
          * @param {string} params.triggerPrice algo order's triggerPrice stopLossPrice = takeProfitPrice = stopPrice = triggerPrice
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -900,11 +900,11 @@ export default class woo extends Exchange {
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isStopLoss = stopLossPrice !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
-        const isAlgo = this.safeValue (params, 'algo');
+        const isAlgo = this.safeValue (params, 'stop');
         if (isStopLoss && isTakeProfit) {
             throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
         }
-        params = this.omit (params, [ 'algo', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ]);
+        params = this.omit (params, [ 'stop', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ]);
         if (isStopLoss || isTakeProfit || isAlgo) {
             const triggerPrice = isStopLoss ? stopLossPrice : takeProfitPrice;
             if (triggerPrice !== undefined) {
@@ -952,7 +952,7 @@ export default class woo extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @param {bool} params.algo True if is a algo order
+         * @param {bool} params.stop True if is a algo order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -964,8 +964,8 @@ export default class woo extends Exchange {
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let method = undefined;
-        const isAlgo = this.safeValue (params, 'algo');
-        params = this.omit (params, [ 'algo' ]);
+        const isAlgo = this.safeValue (params, 'stop');
+        params = this.omit (params, [ 'stop' ]);
         if (isAlgo) {
             method = 'v3PrivateDeleteAlgoOrderOid';
             request['oid'] = id;
@@ -1004,7 +1004,7 @@ export default class woo extends Exchange {
          * @description cancel all open orders in a market
          * @param {string|undefined} symbol unified market symbol
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @param {bool} params.algo True if is a algo order
+         * @param {bool} params.stop True if is a algo order
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -1016,8 +1016,8 @@ export default class woo extends Exchange {
             'symbol': market['id'],
         };
         let method = undefined;
-        const isAlgo = this.safeValue (params, 'algo');
-        params = this.omit (params, [ 'algo' ]);
+        const isAlgo = this.safeValue (params, 'stop');
+        params = this.omit (params, [ 'stop' ]);
         if (isAlgo) {
             method = 'v3PrivateDeleteMergeOrdersPendingSymbol';
         } else {
@@ -1040,7 +1040,7 @@ export default class woo extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @param {bool} params.algo True if is a algo order
+         * @param {bool} params.stop True if is a algo order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1048,8 +1048,8 @@ export default class woo extends Exchange {
         const request = {};
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         let method = undefined;
-        const isAlgo = this.safeValue (params, 'algo');
-        params = this.omit (params, [ 'algo' ]);
+        const isAlgo = this.safeValue (params, 'stop');
+        params = this.omit (params, [ 'stop' ]);
         let response = undefined;
         if (isAlgo) {
             method = 'v3PrivateGetAlgoOrderOid';
@@ -1154,7 +1154,7 @@ export default class woo extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the woo api endpoint
-         * @param {bool} params.algo True if is a algo order
+         * @param {bool} params.stop True if is a algo order
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1165,7 +1165,7 @@ export default class woo extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const isAlgo = this.safeValue (params, 'algo');
+        const isAlgo = this.safeValue (params, 'stop');
         if (isAlgo) {
             method = 'v3PrivateGetAlgoOrders';
             if (since !== undefined) {
@@ -1174,7 +1174,7 @@ export default class woo extends Exchange {
             if (limit !== undefined) {
                 request['size'] = since;
             }
-            params = this.omit (params, [ 'algo', 'size', 'createdTimeStart', 'symbol' ]);
+            params = this.omit (params, [ 'stop', 'size', 'createdTimeStart', 'symbol' ]);
         } else {
             method = 'v1PrivateGetOrders';
             if (since !== undefined) {
