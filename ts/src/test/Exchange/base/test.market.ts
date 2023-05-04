@@ -145,7 +145,8 @@ function testMarket (exchange, skippedProperties, method, market) {
         assert (market['expiry'] !== undefined, '"expiry" must be defined when "future" is true' + logText);
         assert (market['expiryDatetime'] !== undefined, '"expiryDatetime" must be defined when "future" is true' + logText);
         // expiry datetime should be correct
-        assert (market['expiryDatetime'] === exchange.iso8601 (market['expiry']), 'expiryDatetime must be equal to expiry in iso8601 format' + logText);
+        const isoString = exchange.iso8601 (market['expiry']);
+        assert (market['expiryDatetime'] === isoString, 'expiryDatetime ("' + market['expiryDatetime'] + '") must be equal to expiry in iso8601 format "' + isoString + '"' + logText);
     } else {
         // otherwise, they need to be undefined
         assert ((market['expiry'] === undefined) && (market['expiryDatetime'] === undefined), '"expiry" and "expiryDatetime" must be undefined when it is not future|option market' + logText);
