@@ -385,7 +385,7 @@ export default class bitmex extends Exchange {
             const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'underlying');
             const quoteId = this.safeString (market, 'quoteCurrency');
-            const settleId = this.safeString (market, 'settlCurrency', '');
+            const settleId = this.safeString (market, 'settlCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
@@ -406,22 +406,22 @@ export default class bitmex extends Exchange {
                 'FFWCSF': 'swap',
                 'IFXXXP': 'spot',
                 'FFCCSX': 'future',
-            }
+            };
             const type = this.safeString (types, typ, typ);
             const swap = type === 'swap';
             const future = type === 'future';
             const spot = type === 'spot';
-            let contract = swap || future;
+            const contract = swap || future;
             let symbol = base + '/' + quote;
             let contractSize = undefined;
             if (contract) {
                 symbol = symbol + ':' + settle;
                 const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier'));
-                contractSize = this.parseNumber (multiplierString)
+                contractSize = this.parseNumber (multiplierString);
             }
             const inverse = this.safeValue (market, 'isInverse');
             const status = this.safeString (market, 'state');
-            let active = status !== 'Unlisted';
+            const active = status !== 'Unlisted';
             let expiry = undefined;
             let expiryDatetime = undefined;
             if (future) {
