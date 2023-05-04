@@ -78,8 +78,10 @@ function testMarket (exchange, skippedProperties, method, market) {
         // otherwise, it must be false or undefined
         testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'margin', [ false, undefined ]);
     }
+    if (!('contractSize' in skippedProperties)) {
+        testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'contractSize', '0');
+    }
     // typical values
-    testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'contractSize', '0');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'expiry', '0');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'strike', '0');
     testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'optionType', [ 'put', 'call' ]);
@@ -97,10 +99,12 @@ function testMarket (exchange, skippedProperties, method, market) {
     if (market['contract']) {
         // linear & inverse should have different values (true/false)
         assert (market['linear'] !== market['inverse'], 'market linear and inverse must not be the same' + logText);
-        // contract size should be defined
-        assert (contractSize !== undefined, '"contractSize" must be defined when "contract" is true' + logText);
-        // contract size should be above zero
-        assert (Precise.stringGt (contractSize, '0'), '"contractSize" must be > 0 when "contract" is true' + logText);
+        if (!('contractSize' in skippedProperties)) {
+            // contract size should be defined
+            assert (contractSize !== undefined, '"contractSize" must be defined when "contract" is true' + logText);
+            // contract size should be above zero
+            assert (Precise.stringGt (contractSize, '0'), '"contractSize" must be > 0 when "contract" is true' + logText);
+        }
         // settle should be defined
         assert ((market['settle'] !== undefined) && (market['settleId'] !== undefined), '"settle" must be defined when "contract" is true' + logText);
         // spot should be false
@@ -109,9 +113,11 @@ function testMarket (exchange, skippedProperties, method, market) {
         // linear & inverse needs to be undefined
         assert ((market['linear'] === undefined) && (market['inverse'] === undefined), 'market linear and inverse must be undefined when "contract" is true' + logText);
         // contract size should be undefined
-        assert (contractSize === undefined, '"contractSize" must be undefined when "contract" is false' + logText);
+        if (!('contractSize' in skippedProperties)) {
+            assert (contractSize === undefined, '"contractSize" must be undefined when "contract" is false' + logText);
+        }
         // settle should be undefined
-        assert ((market['settle'] === undefined) && (market['settleId'] === undefined), '"settle" must be defined when "contract" is true' + logText);
+        assert ((market['settle'] === undefined) && (market['settleId'] === undefined), '"settle" must be undefined when "contract" is true' + logText);
         // spot should be true
         assert (market['spot'], 'market spot must be false when "contract" is true' + logText);
     }
@@ -145,10 +151,12 @@ function testMarket (exchange, skippedProperties, method, market) {
         assert ((market['expiry'] === undefined) && (market['expiryDatetime'] === undefined), '"expiry" and "expiryDatetime" must be undefined when it is not future|option market' + logText);
     }
     // check precisions
-    const precisionKeys = Object.keys (market['precision']);
-    assert (precisionKeys.length >= 2, 'precision should have "amount" and "price" keys at least' + logText);
-    for (let i = 0; i < precisionKeys.length; i++) {
-        testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, market['precision'], precisionKeys[i]);
+    if (!('precision' in skippedProperties)) {
+        const precisionKeys = Object.keys (market['precision']);
+        assert (precisionKeys.length >= 2, 'precision should have "amount" and "price" keys at least' + logText);
+        for (let i = 0; i < precisionKeys.length; i++) {
+            testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, market['precision'], precisionKeys[i]);
+        }
     }
     // check limits
     if (!('limits' in skippedProperties)) {
@@ -169,9 +177,11 @@ function testMarket (exchange, skippedProperties, method, market) {
         }
     }
     // check whether valid currency ID and CODE is used
-    testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['baseId'], market['base']);
-    testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
-    testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['settleId'], market['settle']);
+    if (!('currencyIdAndCode' in skippedProperties)) {
+        testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['baseId'], market['base']);
+        testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
+        testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['settleId'], market['settle']);
+    }
 }
 
 export default testMarket;

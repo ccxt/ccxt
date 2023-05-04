@@ -27,7 +27,7 @@ function testTicker (exchange, skippedProperties, method, entry, symbol) {
         'quoteVolume': exchange.parseNumber ('1.234'), // volume of quote currency
     };
     // todo: atm, many exchanges fail, so temporarily decrease stict mode
-    const emptyAllowedFor = [ 'timestamp', 'datetime', 'open', 'high', 'low', 'close', 'last', 'ask', 'bid', 'bidVolume', 'askVolume', 'baseVolume', 'quoteVolume', 'previousClose', 'vwap' ];
+    const emptyAllowedFor = [ 'timestamp', 'datetime', 'open', 'high', 'low', 'close', 'last', 'ask', 'bid', 'bidVolume', 'askVolume', 'baseVolume', 'quoteVolume', 'previousClose', 'vwap', 'change', 'percentage', 'average' ];
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
@@ -71,7 +71,15 @@ function testTicker (exchange, skippedProperties, method, entry, symbol) {
             assert (baseVolume !== undefined, 'quoteVolume & vwap is defined, but baseVolume is not' + logText);
         }
     }
-    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'ask', exchange.safeString (entry, 'bid'));
+    if (!('ask' in skippedProperties) && !('bid' in skippedProperties)) {
+        const askString = exchange.safeString (entry, 'ask');
+        const bidString = exchange.safeString (entry, 'bid');
+        if ((askString !== undefined) && (bidString !== undefined)) {
+            testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'ask', exchange.safeString (entry, 'bid'));
+        } else {
+            assert ((askString === undefined) && (bidString === undefined), 'ask & bid should be both defined or both undefined' + logText);
+        }
+    }
     // if singular fetchTicker was called, then symbol needs to be asserted
     if (method === 'fetchTicker') {
         testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);

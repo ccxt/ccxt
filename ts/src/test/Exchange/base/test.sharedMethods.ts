@@ -15,6 +15,8 @@ function stringValue (value) {
     let stringVal = undefined;
     if (typeof value === 'string') {
         stringVal = value;
+    } else if (value === undefined) {
+        stringVal = 'undefined';
     } else {
         stringVal = value.toString ();
     }
@@ -64,11 +66,10 @@ function assertStructure (exchange, skippedProperties, method, entry, format, em
         const keys = Object.keys (format);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const keyStr = key.toString (); // needed in other langs, where `object` might have non-string keys
-            assert ((key in entry), 'key "' + stringValue (key) + '" is missing from structure' + logText);
             if (key in skippedProperties) {
-                return;
+                continue;
             }
+            assert (key in entry, 'key "' + stringValue (key) + '" is missing from structure' + logText);
             const emptyAllowedForThisKey = exchange.inArray (key, emptyAllowedFor);
             const value = entry[key];
             // check when:
