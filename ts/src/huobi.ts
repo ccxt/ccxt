@@ -2839,7 +2839,7 @@ export default class huobi extends Exchange {
                 const withdrawEnabled = (withdrawStatus === 'allowed');
                 const depositEnabled = (depositStatus === 'allowed');
                 withdraw = (withdrawEnabled) ? withdrawEnabled : withdraw;
-                deposit = (depositEnabled) ? depositEnabled : deposit; 
+                deposit = (depositEnabled) ? depositEnabled : deposit;
                 const active = withdrawEnabled && depositEnabled;
                 const precision = this.parsePrecision (this.safeString (chainEntry, 'withdrawPrecision'));
                 if (precision !== undefined) {
