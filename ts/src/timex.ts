@@ -1332,6 +1332,7 @@ export default class timex extends Exchange {
                 'withdraw': { 'min': fee, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
             },
+            'networks': {},
         };
     }
 
