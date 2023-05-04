@@ -414,7 +414,22 @@ export default class probit extends Exchange {
             const name = this.safeString (displayName, 'en-us');
             const platforms = this.safeValue (currency, 'platform', []);
             const platformsByPriority = this.sortBy (platforms, 'priority');
-            const platform = this.safeValue (platformsByPriority, 0, {});
+            let platform = undefined;
+            for (let j = 0; j < platformsByPriority.length; i++) {
+                const currentPlatform = platformsByPriority[j];
+                const currentDepositSuspended = this.safeValue (currentPlatform, 'deposit_suspended');
+                const currentWithdrawalSuspended = this.safeValue (currentPlatform, 'withdrawal_suspended');
+                const currentDeposit = !currentDepositSuspended;
+                const currentWithdraw = !currentWithdrawalSuspended;
+                const currentActive = currentDeposit && currentWithdraw;
+                if (currentActive) {
+                    platform = currentPlatform;
+                    break;
+                }
+            }
+            if (platform === undefined) {
+                platform = this.safeValue (platformsByPriority, 0, {});
+            }
             const depositSuspended = this.safeValue (platform, 'deposit_suspended');
             const withdrawalSuspended = this.safeValue (platform, 'withdrawal_suspended');
             const deposit = !depositSuspended;
