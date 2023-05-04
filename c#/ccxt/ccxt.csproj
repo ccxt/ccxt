@@ -8,7 +8,7 @@
     <NoWarn>1998,CS0168, CS0108, CS8604, CS8625, CS8600, CS8601, CS8602, CS8603, CS8625, CS8618, CS8981, CA2200, CS8974</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
-    <PackageId>CCXT</PackageId>
+    <PackageId>ccxt</PackageId>
     <Authors>Kroitor, Carlos, Carlo</Authors>
     <PackageVersion>0.0.1</PackageVersion>
     <AssemblyVersion>0.0.1</AssemblyVersion>
