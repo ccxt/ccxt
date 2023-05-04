@@ -500,8 +500,13 @@ public partial class Exchange
         var parsedArray = ((List<object>)array);
         if (second == null)
         {
-            return parsedArray.GetRange((int)first, parsedArray.Count - (int)first);
+            var firstInt = (int)first;
+            if (firstInt < 0)
+            {
+                return (parsedArray.ToArray()[(parsedArray.Count + firstInt)..]).ToList();
+            }
+            return (parsedArray.ToArray()[firstInt..]).ToList();
         }
-        return parsedArray.GetRange((int)first, (int)second);
+        return (parsedArray.ToArray()[(int)first..(int)second]).ToList();
     }
 }
