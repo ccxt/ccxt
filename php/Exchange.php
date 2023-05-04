@@ -1575,20 +1575,21 @@ class Exchange {
         } else {
             $result = $array;
         }
-        if (isset($limit)) {
-            $ascending = $result[0][$key] < $result[count($array) - 1][$key];  // true if array is sorted in ascending order based on 'timestamp'
-            if (is_array($result)) {
-                $result = $ascending ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
-            } else {
-                $length = count($result);
-                $start = $ascending ? max($length - $limit, 0) : 0;
-                $end = min($start + $limit, $length);
-                $result_copy = array();
-                for ($i = $start; $i < $end; $i++) {
-                    $result_copy[] = $result[$i];
+        return $this->filter_by_limit($result, $limit, $key);
+    }
+
+    public function filter_by_limit($array, $limit = null, $key = 'timestamp') {
+        $result = $array;
+        if (isset($limit) && count($array) > 0) {
+            $ascending = true; // default value
+            if (array_key_exists($key, $result[0])) {
+                $first = $result[0][$key];
+                $last = $result[count($array) - 1][$key];
+                if ($first != null && $last != null) {
+                    $ascending = $first < $last; // true if array is sorted in ascending order based on 'timestamp'
                 }
-                $result = $result_copy;
             }
+            $result = $ascending ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
         }
         return $result;
     }
