@@ -73,7 +73,9 @@ interface Exchange {
     privateMixGetPlanCurrentPlan(params?: {}): Promise<implicitReturnType>;
     privateMixGetPlanHistoryPlan(params?: {}): Promise<implicitReturnType>;
     privateMixGetPositionSinglePosition(params?: {}): Promise<implicitReturnType>;
+    privateMixGetPositionSinglePositionV2(params?: {}): Promise<implicitReturnType>;
     privateMixGetPositionAllPosition(params?: {}): Promise<implicitReturnType>;
+    privateMixGetPositionAllPositionV2(params?: {}): Promise<implicitReturnType>;
     privateMixGetTraceCurrentTrack(params?: {}): Promise<implicitReturnType>;
     privateMixGetTraceFollowerOrder(params?: {}): Promise<implicitReturnType>;
     privateMixGetTraceHistoryTrack(params?: {}): Promise<implicitReturnType>;

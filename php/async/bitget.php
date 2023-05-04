@@ -223,7 +223,9 @@ class bitget extends Exchange {
                             'plan/currentPlan' => 2,
                             'plan/historyPlan' => 2,
                             'position/singlePosition' => 2,
+                            'position/singlePosition-v2' => 2,
                             'position/allPosition' => 2,
+                            'position/allPosition-v2' => 2,
                             'trace/currentTrack' => 2,
                             'trace/followerOrder' => 2,
                             'trace/historyTrack' => 2,
@@ -3511,7 +3513,7 @@ class bitget extends Exchange {
                 'symbol' => $market['id'],
                 'marginCoin' => $market['settleId'],
             );
-            $response = Async\await($this->privateMixGetPositionSinglePosition (array_merge($request, $params)));
+            $response = Async\await($this->privateMixGetPositionSinglePositionV2 (array_merge($request, $params)));
             //
             //     {
             //       code => '00000',
@@ -3569,7 +3571,7 @@ class bitget extends Exchange {
             $request = array(
                 'productType' => $productType,
             );
-            $response = Async\await($this->privateMixGetPositionAllPosition (array_merge($request, $params)));
+            $response = Async\await($this->privateMixGetPositionAllPositionV2 (array_merge($request, $params)));
             //
             //     {
             //       code => '00000',

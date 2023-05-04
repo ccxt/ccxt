@@ -223,8 +223,14 @@ abstract class bitget extends \ccxt\Exchange {
     public function private_mix_get_position_singleposition($params = array()) {
         return $this->request('position/singlePosition', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function private_mix_get_position_singleposition_v2($params = array()) {
+        return $this->request('position/singlePosition-v2', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_mix_get_position_allposition($params = array()) {
         return $this->request('position/allPosition', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_get_position_allposition_v2($params = array()) {
+        return $this->request('position/allPosition-v2', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_mix_get_trace_currenttrack($params = array()) {
         return $this->request('trace/currentTrack', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
@@ -568,8 +574,14 @@ abstract class bitget extends \ccxt\Exchange {
     public function privateMixGetPositionSinglePosition($params = array()) {
         return $this->request('position/singlePosition', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function privateMixGetPositionSinglePositionV2($params = array()) {
+        return $this->request('position/singlePosition-v2', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function privateMixGetPositionAllPosition($params = array()) {
         return $this->request('position/allPosition', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixGetPositionAllPositionV2($params = array()) {
+        return $this->request('position/allPosition-v2', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateMixGetTraceCurrentTrack($params = array()) {
         return $this->request('trace/currentTrack', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));

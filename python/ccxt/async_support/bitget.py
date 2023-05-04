@@ -240,7 +240,9 @@ class bitget(Exchange, ImplicitAPI):
                             'plan/currentPlan': 2,
                             'plan/historyPlan': 2,
                             'position/singlePosition': 2,
+                            'position/singlePosition-v2': 2,
                             'position/allPosition': 2,
+                            'position/allPosition-v2': 2,
                             'trace/currentTrack': 2,
                             'trace/followerOrder': 2,
                             'trace/historyTrack': 2,
@@ -3315,7 +3317,7 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'marginCoin': market['settleId'],
         }
-        response = await self.privateMixGetPositionSinglePosition(self.extend(request, params))
+        response = await self.privateMixGetPositionSinglePositionV2(self.extend(request, params))
         #
         #     {
         #       code: '00000',
@@ -3368,7 +3370,7 @@ class bitget(Exchange, ImplicitAPI):
         request = {
             'productType': productType,
         }
-        response = await self.privateMixGetPositionAllPosition(self.extend(request, params))
+        response = await self.privateMixGetPositionAllPositionV2(self.extend(request, params))
         #
         #     {
         #       code: '00000',

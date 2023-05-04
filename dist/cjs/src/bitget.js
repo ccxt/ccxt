@@ -213,7 +213,9 @@ class bitget extends bitget$1 {
                             'plan/currentPlan': 2,
                             'plan/historyPlan': 2,
                             'position/singlePosition': 2,
+                            'position/singlePosition-v2': 2,
                             'position/allPosition': 2,
+                            'position/allPosition-v2': 2,
                             'trace/currentTrack': 2,
                             'trace/followerOrder': 2,
                             'trace/historyTrack': 2,
@@ -3481,7 +3483,7 @@ class bitget extends bitget$1 {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
         };
-        const response = await this.privateMixGetPositionSinglePosition(this.extend(request, params));
+        const response = await this.privateMixGetPositionSinglePositionV2(this.extend(request, params));
         //
         //     {
         //       code: '00000',
@@ -3538,7 +3540,7 @@ class bitget extends bitget$1 {
         const request = {
             'productType': productType,
         };
-        const response = await this.privateMixGetPositionAllPosition(this.extend(request, params));
+        const response = await this.privateMixGetPositionAllPositionV2(this.extend(request, params));
         //
         //     {
         //       code: '00000',
