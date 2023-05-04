@@ -105,8 +105,10 @@ function testMarket (exchange, skippedProperties, method, market) {
             // contract size should be above zero
             assert (Precise.stringGt (contractSize, '0'), '"contractSize" must be > 0 when "contract" is true' + logText);
         }
-        // settle should be defined
-        assert ((market['settle'] !== undefined) && (market['settleId'] !== undefined), '"settle" must be defined when "contract" is true' + logText);
+        if (!('settle' in skippedProperties)) {
+            // settle should be defined
+            assert ((market['settle'] !== undefined) && (market['settleId'] !== undefined), '"settle" must be defined when "contract" is true' + logText);
+        }
         // spot should be false
         assert (!market['spot'], '"spot" must be false when "contract" is true' + logText);
     } else {
