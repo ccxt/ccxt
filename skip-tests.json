@@ -258,6 +258,7 @@
         }
     },
     "btcmarkets": {
+        "skip": "04/05 under maintenance",
         "skipMethods": {
             "fetchCurrencies": "info key is missing",
             "fetchTickers": "high might be set to 0",
