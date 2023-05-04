@@ -143,6 +143,7 @@ class phemex extends Exchange {
                         'md/spot/ticker/24hr' => 5, // ?symbol=<symbol>&id=<id>
                         'md/spot/ticker/24hr/all' => 5, // ?symbol=<symbol>&id=<id>
                         'exchange/public/products' => 5, // contracts only
+                        'api-data/public/data/funding-rate-history' => 5,
                     ),
                 ),
                 'v2' => array(
@@ -4140,10 +4141,16 @@ class phemex extends Exchange {
         $this->check_required_symbol('fetchFundingRateHistory', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
-        if (!$market['swap'] || $market['settle'] !== 'USDT') {
-            throw new BadRequest($this->id . ' fetchFundingRateHistory() supports USDT swap contracts only');
+        $isUsdtSettled = $market['settle'] === 'USDT';
+        if (!$market['swap']) {
+            throw new BadRequest($this->id . ' fetchFundingRateHistory() supports swap contracts only');
         }
-        $customSymbol = '.' . $market['id'] . 'FR8H'; // phemex requires a custom $symbol for funding rate history
+        $customSymbol = null;
+        if ($isUsdtSettled) {
+            $customSymbol = '.' . $market['id'] . 'FR8H'; // phemex requires a custom $symbol for funding rate history
+        } else {
+            $customSymbol = '.' . $market['baseId'] . 'FR8H';
+        }
         $request = array(
             'symbol' => $customSymbol,
         );
@@ -4153,7 +4160,12 @@ class phemex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v2GetApiDataPublicDataFundingRateHistory (array_merge($request, $params));
+        $response = null;
+        if ($isUsdtSettled) {
+            $response = $this->v2GetApiDataPublicDataFundingRateHistory (array_merge($request, $params));
+        } else {
+            $response = $this->v1GetApiDataPublicDataFundingRateHistory (array_merge($request, $params));
+        }
         //
         //    {
         //        "code":"0",

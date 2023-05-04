@@ -214,7 +214,9 @@ class bitget extends Exchange {
                             'plan/currentPlan' => 2,
                             'plan/historyPlan' => 2,
                             'position/singlePosition' => 2,
+                            'position/singlePosition-v2' => 2,
                             'position/allPosition' => 2,
+                            'position/allPosition-v2' => 2,
                             'trace/currentTrack' => 2,
                             'trace/followerOrder' => 2,
                             'trace/historyTrack' => 2,
@@ -2116,6 +2118,7 @@ class bitget extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-candle-$data
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
@@ -3440,7 +3443,7 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
             'marginCoin' => $market['settleId'],
         );
-        $response = $this->privateMixGetPositionSinglePosition (array_merge($request, $params));
+        $response = $this->privateMixGetPositionSinglePositionV2 (array_merge($request, $params));
         //
         //     {
         //       code => '00000',
@@ -3496,7 +3499,7 @@ class bitget extends Exchange {
         $request = array(
             'productType' => $productType,
         );
-        $response = $this->privateMixGetPositionAllPosition (array_merge($request, $params));
+        $response = $this->privateMixGetPositionAllPositionV2 (array_merge($request, $params));
         //
         //     {
         //       code => '00000',

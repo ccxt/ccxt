@@ -1045,7 +1045,12 @@ class xt extends Exchange {
             $contract = true;
             $spot = false;
         }
-        $isActive = ($state === 'ONLINE') || ($state === '0');
+        $isActive = true;
+        if ($contract) {
+            $isActive = $this->safe_value($market, 'isOpenApi', false);
+        } else {
+            $isActive = ($state === 'ONLINE') || ($state === '0');
+        }
         return array(
             'id' => $id,
             'symbol' => $symbol,
