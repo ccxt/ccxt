@@ -3510,8 +3510,6 @@ export default class huobi extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         const request = {
             // POST /api/v1/contract_hisorders inverse futures ----------------
             // 'symbol': market['settleId'], // BTC, ETH, ...
@@ -3519,87 +3517,214 @@ export default class huobi extends Exchange {
             // POST /swap-api/v3/swap_hisorders inverse swap ------------------
             // POST /linear-swap-api/v3/swap_hisorders linear isolated --------
             // POST /linear-swap-api/v3/swap_cross_hisorders linear cross -----
-            'contract': market['id'],
             'trade_type': 0, // 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
-            'type': 1, // 1:All Orders,2:Order in Finished Status
             'status': '0', // support multiple query seperated by ',',such as '3,4,5', 0: all. 3. Have sumbmitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
         };
-        if (since !== undefined) {
-            request['start_time'] = since; // max 90 days back
-            // request['end_time'] = since + 172800000; // 48 hours window
+        let response = undefined;
+        const stop = this.safeValue (params, 'stop');
+        const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
+        params = this.omit (params, [ 'stop', 'stopLossTakeProfit' ]);
+        if (stop || stopLossTakeProfit) {
+            if (limit !== undefined) {
+                request['page_size'] = limit;
+            }
+            request['contract_code'] = market['id'];
+            request['create_date'] = 90;
+        } else {
+            if (since !== undefined) {
+                request['start_time'] = since; // max 90 days back
+                // request['end_time'] = since + 172800000; // 48 hours window
+            }
+            request['contract'] = market['id'];
+            request['type'] = 1; // 1:All Orders,2:Order in Finished Status
         }
-        let method = undefined;
         if (market['linear']) {
             let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchContractOrders', params);
             marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-            method = this.getSupportedMapping (marginMode, {
-                'isolated': 'contractPrivatePostLinearSwapApiV3SwapHisorders',
-                'cross': 'contractPrivatePostLinearSwapApiV3SwapCrossHisorders',
-            });
+            if (marginMode === 'isolated') {
+                if (stop) {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerHisorders (this.extend (request, params));
+                } else if (stopLossTakeProfit) {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapTpslHisorders (this.extend (request, params));
+                } else {
+                    response = await this.contractPrivatePostLinearSwapApiV3SwapHisorders (this.extend (request, params));
+                }
+            } else if (marginMode === 'cross') {
+                if (stop) {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerHisorders (this.extend (request, params));
+                } else if (stopLossTakeProfit) {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslHisorders (this.extend (request, params));
+                } else {
+                    response = await this.contractPrivatePostLinearSwapApiV3SwapCrossHisorders (this.extend (request, params));
+                }
+            }
         } else if (market['inverse']) {
-            method = this.getSupportedMapping (marketType, {
-                'future': 'contractPrivatePostApiV3ContractHisorders',
-                'swap': 'contractPrivatePostSwapApiV3SwapHisorders',
-            });
-            if (marketType === 'future') {
+            if (market['swap']) {
+                if (stop) {
+                    response = await this.contractPrivatePostSwapApiV1SwapTriggerHisorders (this.extend (request, params));
+                } else if (stopLossTakeProfit) {
+                    response = await this.contractPrivatePostSwapApiV1SwapTpslHisorders (this.extend (request, params));
+                } else {
+                    response = await this.contractPrivatePostSwapApiV3SwapHisorders (this.extend (request, params));
+                }
+            } else if (market['future']) {
                 request['symbol'] = market['settleId'];
+                if (stop) {
+                    response = await this.contractPrivatePostApiV1ContractTriggerHisorders (this.extend (request, params));
+                } else if (stopLossTakeProfit) {
+                    response = await this.contractPrivatePostApiV1ContractTpslHisorders (this.extend (request, params));
+                } else {
+                    response = await this.contractPrivatePostApiV3ContractHisorders (this.extend (request, params));
+                }
             }
         }
-        if (limit !== undefined) {
-            request['page_size'] = limit;
-        }
-        const response = await this[method] (this.extend (request, params));
+        //
+        // future and swap
+        //
+        //     {
+        //         "code": 200,
+        //         "msg": "ok",
+        //         "data": [
+        //             {
+        //                 "direction": "buy",
+        //                 "offset": "open",
+        //                 "volume": 1.000000000000000000,
+        //                 "price": 25000.000000000000000000,
+        //                 "profit": 0E-18,
+        //                 "pair": "BTC-USDT",
+        //                 "query_id": 47403349100,
+        //                 "order_id": 1103683465337593856,
+        //                 "contract_code": "BTC-USDT-230505",
+        //                 "symbol": "BTC",
+        //                 "lever_rate": 5,
+        //                 "create_date": 1683180243577,
+        //                 "order_source": "web",
+        //                 "canceled_source": "web",
+        //                 "order_price_type": 1,
+        //                 "order_type": 1,
+        //                 "margin_frozen": 0E-18,
+        //                 "trade_volume": 0E-18,
+        //                 "trade_turnover": 0E-18,
+        //                 "fee": 0E-18,
+        //                 "trade_avg_price": 0,
+        //                 "status": 7,
+        //                 "order_id_str": "1103683465337593856",
+        //                 "fee_asset": "USDT",
+        //                 "fee_amount": 0,
+        //                 "fee_quote_amount": 0,
+        //                 "liquidation_type": "0",
+        //                 "margin_asset": "USDT",
+        //                 "margin_mode": "cross",
+        //                 "margin_account": "USDT",
+        //                 "update_time": 1683180352034,
+        //                 "is_tpsl": 0,
+        //                 "real_profit": 0,
+        //                 "trade_partition": "USDT",
+        //                 "reduce_only": 0,
+        //                 "contract_type": "this_week",
+        //                 "business_type": "futures"
+        //             }
+        //         ],
+        //         "ts": 1683239909141
+        //     }
+        //
+        // trigger
         //
         //     {
         //         "status": "ok",
         //         "data": {
         //             "orders": [
         //                 {
-        //                     "order_id": 773131315209248768,
-        //                     "contract_code": "ADA201225",
-        //                     "symbol": "ADA",
-        //                     "lever_rate": 20,
-        //                     "direction": "buy",
-        //                     "offset": "close",
-        //                     "volume": 1,
-        //                     "price": 0.0925,
-        //                     "create_date": 1604370469629,
-        //                     "update_time": 1603704221118,
-        //                     "order_source": "web",
-        //                     "order_price_type": 6,
+        //                     "contract_type": "swap",
+        //                     "business_type": "swap",
+        //                     "pair": "BTC-USDT",
+        //                     "symbol": "BTC",
+        //                     "contract_code": "BTC-USDT",
+        //                     "trigger_type": "le",
+        //                     "volume": 1.000000000000000000,
         //                     "order_type": 1,
-        //                     "margin_frozen": 0,
-        //                     "profit": 0,
-        //                     "contract_type": "quarter",
-        //                     "trade_volume": 0,
-        //                     "trade_turnover": 0,
-        //                     "fee": 0,
-        //                     "trade_avg_price": 0,
-        //                     "status": 3,
-        //                     "order_id_str": "773131315209248768",
-        //                     "fee_asset": "ADA",
-        //                     "liquidation_type": "0",
-        //                     "is_tpsl": 0,
-        //                     "real_profit": 0
-        //                     "margin_asset": "USDT",
+        //                     "direction": "buy",
+        //                     "offset": "open",
+        //                     "lever_rate": 1,
+        //                     "order_id": 1103670703588327424,
+        //                     "order_id_str": "1103670703588327424",
+        //                     "relation_order_id": "-1",
+        //                     "order_price_type": "limit",
+        //                     "status": 6,
+        //                     "order_source": "web",
+        //                     "trigger_price": 25000.000000000000000000,
+        //                     "triggered_price": null,
+        //                     "order_price": 24000.000000000000000000,
+        //                     "created_at": 1683177200945,
+        //                     "triggered_at": null,
+        //                     "order_insert_at": 0,
+        //                     "canceled_at": 1683179075234,
+        //                     "fail_code": null,
+        //                     "fail_reason": null,
         //                     "margin_mode": "cross",
         //                     "margin_account": "USDT",
-        //                     "trade_partition": "USDT", // only in isolated & cross of linear
-        //                     "reduce_only": "1", // only in isolated & cross of linear
-        //                     "contract_type": "quarter", // only in cross-margin (inverse & linear)
-        //                     "pair": "BTC-USDT", // only in cross-margin (inverse & linear)
-        //                     "business_type": "futures" // only in cross-margin (inverse & linear)
-        //                 }
+        //                     "update_time": 1683179075958,
+        //                     "trade_partition": "USDT",
+        //                     "reduce_only": 0
+        //                 },
         //             ],
-        //             "total_page": 19,
+        //             "total_page": 1,
         //             "current_page": 1,
-        //             "total_size": 19
+        //             "total_size": 2
         //         },
-        //         "ts": 1604370617322
+        //         "ts": 1683239702792
         //     }
         //
-        const orders = this.safeValue (response, 'data', []);
+        // stop-loss and take-profit
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "contract_type": "swap",
+        //                     "business_type": "swap",
+        //                     "pair": "BTC-USDT",
+        //                     "symbol": "BTC",
+        //                     "contract_code": "BTC-USDT",
+        //                     "margin_mode": "cross",
+        //                     "margin_account": "USDT",
+        //                     "volume": 1.000000000000000000,
+        //                     "order_type": 1,
+        //                     "tpsl_order_type": "sl",
+        //                     "direction": "sell",
+        //                     "order_id": 1103680386844839936,
+        //                     "order_id_str": "1103680386844839936",
+        //                     "order_source": "web",
+        //                     "trigger_type": "le",
+        //                     "trigger_price": 25000.000000000000000000,
+        //                     "created_at": 1683179509613,
+        //                     "order_price_type": "market",
+        //                     "status": 11,
+        //                     "source_order_id": null,
+        //                     "relation_tpsl_order_id": "-1",
+        //                     "canceled_at": 0,
+        //                     "fail_code": null,
+        //                     "fail_reason": null,
+        //                     "triggered_price": null,
+        //                     "relation_order_id": "-1",
+        //                     "update_time": 1683179968231,
+        //                     "order_price": 0E-18,
+        //                     "trade_partition": "USDT"
+        //                 },
+        //             ],
+        //             "total_page": 1,
+        //             "current_page": 1,
+        //             "total_size": 2
+        //         },
+        //         "ts": 1683229230233
+        //     }
+        //
+        let orders = this.safeValue (response, 'data');
+        if (!Array.isArray (orders)) {
+            orders = this.safeValue (orders, 'orders', []);
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -3617,8 +3742,10 @@ export default class huobi extends Exchange {
          * @description fetches information on multiple orders made by the user
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {int|undefined} limit the maximum number of order structures to retrieve
          * @param {object} params extra parameters specific to the huobi api endpoint
+         * @param {bool|undefined} params.stop *contract only* if the orders are stop trigger orders or not
+         * @param {bool|undefined} params.stopLossTakeProfit *contract only* if the orders are stop-loss or take-profit orders
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -3681,8 +3808,8 @@ export default class huobi extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of open order structures to retrieve
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @param {bool|undefined} params.stop if the orders are stop trigger orders or not
-         * @param {bool|undefined} params.stopLossTakeProfit if the orders are stop-loss or take-profit orders
+         * @param {bool|undefined} params.stop *contract only* if the orders are stop trigger orders or not
+         * @param {bool|undefined} params.stopLossTakeProfit *contract only* if the orders are stop-loss or take-profit orders
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -3726,11 +3853,11 @@ export default class huobi extends Exchange {
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
+            request['contract_code'] = market['id'];
             const stop = this.safeValue (params, 'stop');
             const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
             params = this.omit (params, [ 'stop', 'stopLossTakeProfit' ]);
             if (market['linear']) {
-                request['contract_code'] = market['id'];
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
@@ -3753,7 +3880,6 @@ export default class huobi extends Exchange {
                 }
             } else if (market['inverse']) {
                 if (market['swap']) {
-                    request['contract_code'] = market['id'];
                     if (stop) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerOpenorders (this.extend (request, params));
                     } else if (stopLossTakeProfit) {
@@ -3762,7 +3888,7 @@ export default class huobi extends Exchange {
                         response = await this.contractPrivatePostSwapApiV1SwapOpenorders (this.extend (request, params));
                     }
                 } else if (market['future']) {
-                    request['symbol'] = market['id'];
+                    request['symbol'] = market['settleId'];
                     if (stop) {
                         response = await this.contractPrivatePostApiV1ContractTriggerOpenorders (this.extend (request, params));
                     } else if (stopLossTakeProfit) {
@@ -4084,7 +4210,7 @@ export default class huobi extends Exchange {
         //         "is_tpsl": 0
         //     }
         //
-        // fetchOrders
+        // future and swap: fetchOrders
         //
         //     {
         //         "order_id": 773131315209248768,
@@ -4176,6 +4302,77 @@ export default class huobi extends Exchange {
         //         "tpsl_order_type": "sl",
         //         "source_order_id": null,
         //         "relation_tpsl_order_id": "-1",
+        //         "trade_partition": "USDT"
+        //     }
+        //
+        //
+        // trigger: fetchOrders
+        //
+        //     {
+        //         "contract_type": "swap",
+        //         "business_type": "swap",
+        //         "pair": "BTC-USDT",
+        //         "symbol": "BTC",
+        //         "contract_code": "BTC-USDT",
+        //         "trigger_type": "le",
+        //         "volume": 1.000000000000000000,
+        //         "order_type": 1,
+        //         "direction": "buy",
+        //         "offset": "open",
+        //         "lever_rate": 1,
+        //         "order_id": 1103670703588327424,
+        //         "order_id_str": "1103670703588327424",
+        //         "relation_order_id": "-1",
+        //         "order_price_type": "limit",
+        //         "status": 6,
+        //         "order_source": "web",
+        //         "trigger_price": 25000.000000000000000000,
+        //         "triggered_price": null,
+        //         "order_price": 24000.000000000000000000,
+        //         "created_at": 1683177200945,
+        //         "triggered_at": null,
+        //         "order_insert_at": 0,
+        //         "canceled_at": 1683179075234,
+        //         "fail_code": null,
+        //         "fail_reason": null,
+        //         "margin_mode": "cross",
+        //         "margin_account": "USDT",
+        //         "update_time": 1683179075958,
+        //         "trade_partition": "USDT",
+        //         "reduce_only": 0
+        //     }
+        //
+        // stop-loss and take-profit: fetchOrders
+        //
+        //     {
+        //         "contract_type": "swap",
+        //         "business_type": "swap",
+        //         "pair": "BTC-USDT",
+        //         "symbol": "BTC",
+        //         "contract_code": "BTC-USDT",
+        //         "margin_mode": "cross",
+        //         "margin_account": "USDT",
+        //         "volume": 1.000000000000000000,
+        //         "order_type": 1,
+        //         "tpsl_order_type": "sl",
+        //         "direction": "sell",
+        //         "order_id": 1103680386844839936,
+        //         "order_id_str": "1103680386844839936",
+        //         "order_source": "web",
+        //         "trigger_type": "le",
+        //         "trigger_price": 25000.000000000000000000,
+        //         "created_at": 1683179509613,
+        //         "order_price_type": "market",
+        //         "status": 11,
+        //         "source_order_id": null,
+        //         "relation_tpsl_order_id": "-1",
+        //         "canceled_at": 0,
+        //         "fail_code": null,
+        //         "fail_reason": null,
+        //         "triggered_price": null,
+        //         "relation_order_id": "-1",
+        //         "update_time": 1683179968231,
+        //         "order_price": 0E-18,
         //         "trade_partition": "USDT"
         //     }
         //
