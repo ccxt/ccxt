@@ -2564,9 +2564,11 @@ class huobi(Exchange, ImplicitAPI):
                     method = 'contractPublicGetLinearSwapExMarketHistoryKline'
             fieldName = 'contract_code'
         if market['contract']:
-            if limit is None:
-                limit = 2000
-            request['size'] = limit
+            if limit is not None:
+                request['size'] = limit  # when using limit from and to are ignored
+                # https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
+            else:
+                limit = 2000  # only used for from/to calculation
             if price is None:
                 duration = self.parse_timeframe(timeframe)
                 if since is None:

@@ -613,7 +613,8 @@ class bitmart extends bitmart$1 {
             const quoteId = this.safeString(market, 'quote_currency');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
-            const settle = 'USDT';
+            const settleId = 'USDT'; // this is bitmart's ID for usdt
+            const settle = this.safeCurrencyCode(settleId);
             const symbol = base + '/' + quote + ':' + settle;
             const productType = this.safeNumber(market, 'product_type');
             const expiry = this.safeInteger(market, 'expire_timestamp');
@@ -626,7 +627,7 @@ class bitmart extends bitmart$1 {
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined,
+                'settleId': settleId,
                 'type': 'swap',
                 'spot': false,
                 'margin': false,

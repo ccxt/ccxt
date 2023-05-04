@@ -814,40 +814,6 @@ class Exchange {
         // and may be changed for consistency later
         return new Promise((resolve, reject) => resolve(Object.values(this.markets)));
     }
-    filterByLimit(array, limit = undefined, key = 'timestamp') {
-        if (limit !== undefined && limit !== null) {
-            const arrayLength = array.length;
-            if (arrayLength > 0) {
-                let ascending = true;
-                if ((key in array[0])) {
-                    const first = array[0][key];
-                    const last = array[arrayLength - 1][key];
-                    if (first !== undefined && last !== undefined) {
-                        ascending = first < last; // true if array is sorted in ascending order based on 'timestamp'
-                    }
-                }
-                array = ascending ? array.slice(-limit) : array.slice(0, limit);
-            }
-        }
-        return array;
-    }
-    filterBySinceLimit(array, since = undefined, limit = undefined, key = 'timestamp') {
-        const sinceIsDefined = (since !== undefined && since !== null);
-        if (sinceIsDefined) {
-            array = array.filter((entry) => entry[key] >= since);
-        }
-        return this.filterByLimit(array, limit, key);
-    }
-    filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp') {
-        const valueIsDefined = value !== undefined && value !== null;
-        const sinceIsDefined = since !== undefined && since !== null;
-        // single-pass filter for both symbol and since
-        if (valueIsDefined || sinceIsDefined) {
-            array = array.filter((entry) => ((valueIsDefined ? (entry[field] === value) : true) &&
-                (sinceIsDefined ? (entry[key] >= since) : true)));
-        }
-        return this.filterByLimit(array, limit, key);
-    }
     checkRequiredDependencies() {
         return;
     }
@@ -1089,6 +1055,15 @@ class Exchange {
     convertToBigInt(value) {
         return BigInt(value); // used on XT
     }
+    valueIsDefined(value) {
+        return value !== undefined && value !== null;
+    }
+    arraySlice(array, first, second = undefined) {
+        if (second === undefined) {
+            return array.slice(first);
+        }
+        return array.slice(first, second);
+    }
     /* eslint-enable */
     // ------------------------------------------------------------------------
     // ########################################################################
@@ -1129,6 +1104,59 @@ class Exchange {
     // ########################################################################
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    filterByLimit(array, limit = undefined, key = 'timestamp') {
+        if (this.valueIsDefined(limit)) {
+            const arrayLength = array.length;
+            if (arrayLength > 0) {
+                let ascending = true;
+                if ((key in array[0])) {
+                    const first = array[0][key];
+                    const last = array[arrayLength - 1][key];
+                    if (first !== undefined && last !== undefined) {
+                        ascending = first < last; // true if array is sorted in ascending order based on 'timestamp'
+                    }
+                }
+                array = ascending ? this.arraySlice(array, -limit) : this.arraySlice(array, 0, limit);
+            }
+        }
+        return array;
+    }
+    filterBySinceLimit(array, since = undefined, limit = undefined, key = 'timestamp') {
+        const sinceIsDefined = this.valueIsDefined(since);
+        const parsedArray = this.toArray(array);
+        if (sinceIsDefined) {
+            const result = [];
+            for (let i = 0; i < parsedArray.length; i++) {
+                const entry = parsedArray[i];
+                if (entry[key] >= since) {
+                    result.push(entry);
+                }
+            }
+            return this.filterByLimit(result, limit, key);
+        }
+        return this.filterByLimit(parsedArray, limit, key);
+    }
+    filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp') {
+        const valueIsDefined = this.valueIsDefined(value);
+        const sinceIsDefined = this.valueIsDefined(since);
+        const parsedArray = this.toArray(array);
+        // single-pass filter for both symbol and since
+        if (valueIsDefined || sinceIsDefined) {
+            const result = [];
+            for (let i = 0; i < parsedArray.length; i++) {
+                const entry = parsedArray[i];
+                const entryFiledEqualValue = entry[field] === value;
+                const firstCondition = valueIsDefined ? entryFiledEqualValue : true;
+                const entryKeyGESince = entry[key] && since && (entry[key] >= since);
+                const secondCondition = sinceIsDefined ? entryKeyGESince : true;
+                if (firstCondition && secondCondition) {
+                    result.push(entry);
+                }
+            }
+            return this.filterByLimit(result, limit, key);
+        }
+        return this.filterByLimit(parsedArray, limit, key);
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         return {};
     }

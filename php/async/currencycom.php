@@ -458,10 +458,11 @@ class currencycom extends Exchange {
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
-                $type = $this->safe_string($market, 'marketType');
-                $spot = ($type === 'SPOT');
+                $typeRaw = $this->safe_string($market, 'marketType');
+                $spot = ($typeRaw === 'SPOT');
                 $futures = false;
-                $swap = ($type === 'LEVERAGE');
+                $swap = ($typeRaw === 'LEVERAGE');
+                $type = $swap ? 'swap' : 'spot';
                 $margin = $swap; // decided to set
                 if ($swap) {
                     $symbol = str_replace($this->options['leverage_markets_suffix'], '', $symbol);

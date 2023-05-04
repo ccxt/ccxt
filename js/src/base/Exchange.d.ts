@@ -458,9 +458,6 @@ export default class Exchange {
     loadMarkets(reload?: boolean, params?: {}): Promise<Dictionary<Market>>;
     fetchCurrencies(params?: {}): Promise<unknown>;
     fetchMarkets(params?: {}): Promise<Market[]>;
-    filterByLimit(array: object[], limit?: Int, key?: IndexType): any;
-    filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType): any;
-    filterByValueSinceLimit(array: object[], field: IndexType, value?: any, since?: Int, limit?: Int, key?: string): any;
     checkRequiredDependencies(): void;
     parseNumber(value: any, d?: number): number;
     checkOrderArguments(market: any, type: any, side: any, amount: any, price: any, params: any): void;
@@ -484,6 +481,11 @@ export default class Exchange {
     handleDeltas(orderbook: any, deltas: any, nonce?: any): void;
     getCacheIndex(orderbook: any, deltas: any): number;
     convertToBigInt(value: string): bigint;
+    valueIsDefined(value: any): boolean;
+    arraySlice(array: any, first: any, second?: any): any;
+    filterByLimit(array: object[], limit?: Int, key?: IndexType): any;
+    filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType): any;
+    filterByValueSinceLimit(array: object[], field: IndexType, value?: any, since?: Int, limit?: Int, key?: string): any;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {};
     fetchAccounts(params?: {}): Promise<any>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
