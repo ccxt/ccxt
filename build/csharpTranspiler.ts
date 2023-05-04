@@ -30,10 +30,10 @@ if (platform === 'win32') {
     }
 }
 
-const WRAPPER_FILE = './c#/src/base/Exchange.Wrappers.cs';
-const ERRORS_FILE = './c#/src/base/Exchange.Errors.cs';
-const BASE_METHODS_FILE = './c#/src/base/Exchange.BaseMethods.cs';
-const EXCHANGES_FOLDER = './c#/src/exchanges/';
+const WRAPPER_FILE = './c#/ccxt/base/Exchange.Wrappers.cs';
+const ERRORS_FILE = './c#/ccxt/base/Exchange.Errors.cs';
+const BASE_METHODS_FILE = './c#/ccxt/base/Exchange.BaseMethods.cs';
+const EXCHANGES_FOLDER = './c#/ccxt/exchanges/';
 const GENERATED_TESTS_FOLDER = './c#/tests/Generated/Exchange/';
 const BASE_TESTS_FOLDER = './c#/tests/Generated/Base';
 const BASE_TESTS_FILE =  './c#/tests/Generated/TestMethods.cs';

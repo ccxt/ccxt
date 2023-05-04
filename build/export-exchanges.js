@@ -610,7 +610,7 @@ async function exportEverything () {
             replacement: "exchanges = [\n" + "    '" + wsIds.join ("',\n    '") + "'," + "\n]",
         },
         {
-            file: './c#/src/base/Exchange.MetaData.cs',
+            file: './c#/ccxt/base/Exchange.MetaData.cs',
             regex: /public static List<string> exchanges =.+$/gm,
             replacement: `public static List<string> exchanges = new List<string> { ${ids.map(i=>`"${i}"`).join(', ')} };`,
         },
