@@ -83,7 +83,7 @@ function run_tests {
   fi
   if [ -z "$ws_pid" ]; then
     # shellcheck disable=SC2086
-    node run-tests-ws --js --python-async --php-async $ws_args &
+    node run-tests-ws --js $ws_args &
     local ws_pid=$!
   fi
   wait $rest_pid && wait $ws_pid && echo "$TRAVIS_BUILD_WEB_URL" > "$cached_url_file"
