@@ -159,6 +159,7 @@ var huobipro$1 = require('./src/pro/huobipro.js');
 var idex$1 = require('./src/pro/idex.js');
 var independentreserve$1 = require('./src/pro/independentreserve.js');
 var kraken$1 = require('./src/pro/kraken.js');
+var krakenfutures$1 = require('./src/pro/krakenfutures.js');
 var kucoin$1 = require('./src/pro/kucoin.js');
 var kucoinfutures$1 = require('./src/pro/kucoinfutures.js');
 var luno$1 = require('./src/pro/luno.js');
@@ -177,7 +178,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '3.0.90';
+const version = '3.0.91';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -329,6 +330,7 @@ const pro = {
     'idex': idex$1,
     'independentreserve': independentreserve$1,
     'kraken': kraken$1,
+    'krakenfutures': krakenfutures$1,
     'kucoin': kucoin$1,
     'kucoinfutures': kucoinfutures$1,
     'luno': luno$1,

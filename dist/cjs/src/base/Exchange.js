@@ -818,7 +818,14 @@ class Exchange {
         if (limit !== undefined && limit !== null) {
             const arrayLength = array.length;
             if (arrayLength > 0) {
-                const ascending = (key in array[0]) && (array[0][key] < array[arrayLength - 1][key]); // true if array is sorted in ascending order based on 'timestamp'
+                let ascending = true;
+                if ((key in array[0])) {
+                    const first = array[0][key];
+                    const last = array[arrayLength - 1][key];
+                    if (first !== undefined && last !== undefined) {
+                        ascending = first < last; // true if array is sorted in ascending order based on 'timestamp'
+                    }
+                }
                 array = ascending ? array.slice(-limit) : array.slice(0, limit);
             }
         }

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.90'
+__version__ = '3.0.91'
 
 # -----------------------------------------------------------------------------
 
@@ -1489,8 +1489,13 @@ class Exchange(object):
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
     def filter_by_limit(self, array, limit=None, key='timestamp'):
-        if (limit is not None) and (len(array) > 0) and (key in array[0]):
-            ascending = (array[0][key] < array[len(array) - 1][key])  # true if array is sorted in ascending order based on 'timestamp'
+        if (limit is not None) and (len(array) > 0):
+            ascending = True  # default value
+            if key in array[0]:
+                first = array[0][key]
+                last = array[len(array) - 1][key]
+                if first is not None and last is not None:
+                    ascending = first < last  # true if array is sorted in ascending order based on 'timestamp'
             array = array[-limit:] if ascending else array[:limit]
         return array
 

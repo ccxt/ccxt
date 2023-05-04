@@ -4206,7 +4206,7 @@ class binance(Exchange, ImplicitAPI):
         self.check_required_symbol('fetchCanceledOrders', symbol)
         await self.load_markets()
         market = self.market(symbol)
-        if market['contract'] or market['future']:
+        if market['swap'] or market['future']:
             raise NotSupported(self.id + ' fetchCanceledOrders() supports spot, margin and option markets only')
         params = self.omit(params, 'type')
         orders = await self.fetch_orders(symbol, since, None, params)
