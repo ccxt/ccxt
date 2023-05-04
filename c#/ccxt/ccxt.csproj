@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFrameworks>net7.0</TargetFrameworks>
     <OutputType>Library</OutputType>
     <RootNamespace>ccxt</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -9,7 +9,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>ccxt</PackageId>
-    <Authors>Kroitor, Carlos, Carlo</Authors>
+    <Authors>Carlos, Kroitor, Carlo</Authors>
     <PackageVersion>0.0.1</PackageVersion>
     <AssemblyVersion>0.0.1</AssemblyVersion>
     <FileVersion>0.0.1</FileVersion>
@@ -19,7 +19,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/ccxt/ccxt</RepositoryUrl>
     <PackageProjectUrl>https://github.com/ccxt/ccxt</PackageProjectUrl>
-    <!-- <PackageIcon>icon.png</PackageIcon> -->
+    <PackageIcon>ccxt.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -28,4 +28,8 @@
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="*" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="img/ccxt.png" Pack="true" PackagePath=""/>
+</ItemGroup>
+
 </Project>
