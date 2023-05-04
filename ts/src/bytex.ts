@@ -2,11 +2,11 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange';
-import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds } from './base/errors';
-import { TICK_SIZE } from './base/functions/number';
-import { Precise } from './base/Precise';
-import { Int, OrderSide } from './base/types';
+import { Exchange } from './base/Exchange.js';
+import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds } from './base/errors.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import { Precise } from './base/Precise.js';
+import { Int, OrderSide } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
