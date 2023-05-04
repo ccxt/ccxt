@@ -108,7 +108,7 @@ function testMarket (exchange, skippedProperties, method, market) {
         // settle should be defined
         assert ((market['settle'] !== undefined) && (market['settleId'] !== undefined), '"settle" must be defined when "contract" is true' + logText);
         // spot should be false
-        assert (!market['spot'], 'market spot must be false when "contract" is true' + logText);
+        assert (!market['spot'], '"spot" must be false when "contract" is true' + logText);
     } else {
         // linear & inverse needs to be undefined
         assert ((market['linear'] === undefined) && (market['inverse'] === undefined), 'market linear and inverse must be undefined when "contract" is true' + logText);
@@ -119,7 +119,7 @@ function testMarket (exchange, skippedProperties, method, market) {
         // settle should be undefined
         assert ((market['settle'] === undefined) && (market['settleId'] === undefined), '"settle" must be undefined when "contract" is true' + logText);
         // spot should be true
-        assert (market['spot'], 'market spot must be false when "contract" is true' + logText);
+        assert (market['spot'], '"spot" must be true when "contract" is false' + logText);
     }
     // option fields
     if (market['option']) {
