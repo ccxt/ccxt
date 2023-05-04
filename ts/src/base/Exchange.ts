@@ -296,7 +296,7 @@ export default class Exchange {
 
     baseCurrencies = undefined
     quoteCurrencies = undefined
-    currencies_by_id = undefined
+    currencies_by_id: object = undefined;
     codes = undefined
 
     reloadingMarkets = undefined
@@ -1661,11 +1661,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseTrade() is not supported yet');
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency: Currency = undefined) {
         throw new NotSupported (this.id + ' parseTransaction() is not supported yet');
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         throw new NotSupported (this.id + ' parseTransfer() is not supported yet');
     }
 
@@ -1673,7 +1673,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseAccount() is not supported yet');
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         throw new NotSupported (this.id + ' parseLedgerEntry() is not supported yet');
     }
 
@@ -1769,7 +1769,7 @@ export default class Exchange {
         };
     }
 
-    safeLedgerEntry (entry: object, currency: object = undefined) {
+    safeLedgerEntry (entry: object, currency: Currency = undefined) {
         currency = this.safeCurrency (undefined, currency);
         let direction = this.safeString (entry, 'direction');
         let before = this.safeString (entry, 'before');
@@ -1816,7 +1816,7 @@ export default class Exchange {
         };
     }
 
-    safeCurrencyStructure (currency: object) {
+    safeCurrencyStructure (currency: Currency): Currency {
         return this.extend ({
             'info': undefined,
             'id': undefined,
@@ -3068,7 +3068,7 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
     }
 
-    parseTransactions (transactions, currency: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    parseTransactions (transactions, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         transactions = this.toArray (transactions);
         let result = [];
         for (let i = 0; i < transactions.length; i++) {
@@ -3080,7 +3080,7 @@ export default class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseTransfers (transfers, currency: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    parseTransfers (transfers, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         transfers = this.toArray (transfers);
         let result = [];
         for (let i = 0; i < transfers.length; i++) {
@@ -3092,7 +3092,7 @@ export default class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseLedger (data, currency: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    parseLedger (data, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         let result = [];
         const arrayData = this.toArray (data);
         for (let i = 0; i < arrayData.length; i++) {
@@ -3295,7 +3295,7 @@ export default class Exchange {
         return [ price, amount ];
     }
 
-    safeCurrency (currencyId?: string, currency: any = undefined) {
+    safeCurrency (currencyId?: string, currency: Currency = undefined) {
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }
@@ -3834,14 +3834,14 @@ export default class Exchange {
         };
     }
 
-    commonCurrencyCode (currency: string) {
+    commonCurrencyCode (currency: string): string {
         if (!this.substituteCommonCurrencyCodes) {
             return currency;
         }
         return this.safeString (this.commonCurrencies, currency, currency);
     }
 
-    currency (code) {
+    currency (code: string): Currency {
         if (this.currencies === undefined) {
             throw new ExchangeError (this.id + ' currencies not loaded');
         }
@@ -4075,7 +4075,7 @@ export default class Exchange {
         return await this.createOrder (symbol, 'market', side, amount, undefined, query);
     }
 
-    safeCurrencyCode (currencyId?: string, currency: any = undefined) {
+    safeCurrencyCode (currencyId?: string, currency: Currency = undefined): string {
         currency = this.safeCurrency (currencyId, currency);
         return currency['code'];
     }
