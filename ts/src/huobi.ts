@@ -2823,8 +2823,8 @@ export default class huobi extends Exchange {
             let minPrecision = undefined;
             let minWithdraw = undefined;
             let maxWithdraw = undefined;
-            let deposit = undefined;
-            let withdraw = undefined;
+            let deposit = false;
+            let withdraw = false;
             for (let j = 0; j < chains.length; j++) {
                 const chainEntry = chains[j];
                 const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
@@ -2838,20 +2838,12 @@ export default class huobi extends Exchange {
                 const depositStatus = this.safeString (chainEntry, 'depositStatus');
                 const withdrawEnabled = (withdrawStatus === 'allowed');
                 const depositEnabled = (depositStatus === 'allowed');
+                withdraw = (withdrawEnabled) ? withdrawEnabled : withdraw;
+                deposit = (depositEnabled) ? depositEnabled : deposit; 
                 const active = withdrawEnabled && depositEnabled;
                 const precision = this.parsePrecision (this.safeString (chainEntry, 'withdrawPrecision'));
                 if (precision !== undefined) {
                     minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
-                }
-                if (withdrawEnabled && !withdraw) {
-                    withdraw = true;
-                } else if (!withdrawEnabled) {
-                    withdraw = false;
-                }
-                if (depositEnabled && !deposit) {
-                    deposit = true;
-                } else if (!depositEnabled) {
-                    deposit = false;
                 }
                 const fee = this.safeNumber (chainEntry, 'transactFeeWithdraw');
                 networks[networkCode] = {
