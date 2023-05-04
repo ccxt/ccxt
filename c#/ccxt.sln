@@ -1,9 +1,9 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "src", "src\src.csproj", "{CD33A344-BAFE-4BBB-98F1-1733491D4280}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ccxt", "ccxt\ccxt.csproj", "{CD33A344-BAFE-4BBB-98F1-1733491D4280}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tests", "tests\tests.csproj", "{5EB4B369-F61B-49A6-B9DA-6368A6F9F1E1}"
 EndProject
