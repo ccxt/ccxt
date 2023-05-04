@@ -144,6 +144,7 @@ export default class phemex extends Exchange {
                         'md/spot/ticker/24hr': 5, // ?symbol=<symbol>&id=<id>
                         'md/spot/ticker/24hr/all': 5, // ?symbol=<symbol>&id=<id>
                         'exchange/public/products': 5, // contracts only
+                        'api-data/public/data/funding-rate-history': 5,
                     },
                 },
                 'v2': {
@@ -4201,10 +4202,16 @@ export default class phemex extends Exchange {
         this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['swap'] || market['settle'] !== 'USDT') {
-            throw new BadRequest (this.id + ' fetchFundingRateHistory() supports USDT swap contracts only');
+        const isUsdtSettled = market['settle'] === 'USDT';
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
-        const customSymbol = '.' + market['id'] + 'FR8H'; // phemex requires a custom symbol for funding rate history
+        let customSymbol = undefined;
+        if (isUsdtSettled) {
+            customSymbol = '.' + market['id'] + 'FR8H'; // phemex requires a custom symbol for funding rate history
+        } else {
+            customSymbol = '.' + market['baseId'] + 'FR8H';
+        }
         const request = {
             'symbol': customSymbol,
         };
@@ -4214,7 +4221,12 @@ export default class phemex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v2GetApiDataPublicDataFundingRateHistory (this.extend (request, params));
+        let response = undefined;
+        if (isUsdtSettled) {
+            response = await this.v2GetApiDataPublicDataFundingRateHistory (this.extend (request, params));
+        } else {
+            response = await this.v1GetApiDataPublicDataFundingRateHistory (this.extend (request, params));
+        }
         //
         //    {
         //        "code":"0",

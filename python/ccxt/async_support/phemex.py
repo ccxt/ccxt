@@ -164,6 +164,7 @@ class phemex(Exchange, ImplicitAPI):
                         'md/spot/ticker/24hr': 5,  # ?symbol=<symbol>&id=<id>
                         'md/spot/ticker/24hr/all': 5,  # ?symbol=<symbol>&id=<id>
                         'exchange/public/products': 5,  # contracts only
+                        'api-data/public/data/funding-rate-history': 5,
                     },
                 },
                 'v2': {
@@ -3934,9 +3935,14 @@ class phemex(Exchange, ImplicitAPI):
         self.check_required_symbol('fetchFundingRateHistory', symbol)
         await self.load_markets()
         market = self.market(symbol)
-        if not market['swap'] or market['settle'] != 'USDT':
-            raise BadRequest(self.id + ' fetchFundingRateHistory() supports USDT swap contracts only')
-        customSymbol = '.' + market['id'] + 'FR8H'  # phemex requires a custom symbol for funding rate history
+        isUsdtSettled = market['settle'] == 'USDT'
+        if not market['swap']:
+            raise BadRequest(self.id + ' fetchFundingRateHistory() supports swap contracts only')
+        customSymbol = None
+        if isUsdtSettled:
+            customSymbol = '.' + market['id'] + 'FR8H'  # phemex requires a custom symbol for funding rate history
+        else:
+            customSymbol = '.' + market['baseId'] + 'FR8H'
         request = {
             'symbol': customSymbol,
         }
@@ -3944,7 +3950,11 @@ class phemex(Exchange, ImplicitAPI):
             request['start'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.v2GetApiDataPublicDataFundingRateHistory(self.extend(request, params))
+        response = None
+        if isUsdtSettled:
+            response = await self.v2GetApiDataPublicDataFundingRateHistory(self.extend(request, params))
+        else:
+            response = await self.v1GetApiDataPublicDataFundingRateHistory(self.extend(request, params))
         #
         #    {
         #        "code":"0",
