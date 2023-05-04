@@ -128,7 +128,8 @@
     "bitget": {
         "skipMethods": {
             "loadMarkets": {
-                "limits": "limit max value is zero, lwer than min"
+                "limits": "limit max value is zero, lwer than min",
+                "contractSize": "not defined when contract"
             },
             "fetchCurrencies": {
                 "precision": "nor provided",
@@ -153,7 +154,9 @@
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
-                "expiry":"expiry is expected to be > 0 "
+                "expiry":"expiry is expected to be > 0",
+                "settle": "not defined when contract",
+                "settleId": "not defined when contract"
             },
             "fetchCurrencies": {
                 "precision":"nor provided"
@@ -402,6 +405,13 @@
             }
         }
     },
+    "coinone": {
+        "skipMethods": {
+            "loadMarkets": {
+                "active":"is undefined"
+            }
+        }
+    },
     "coinspot": {
         "skipMethods": {
             "loadMarkets": "precision key has an null value, but is expected to have a value| taker key missing from structure (markets are created from constructor .options, so needs to fill with default values in base)"
@@ -420,7 +430,12 @@
         }
     },
     "coinex": {
-        "skipWs": true
+        "skipWs": true,
+        "skipMethods": {
+            "loadMarkets": {
+                "active":"is undefined"
+            }
+        }
     },
     "coinmate": {
         "skipMethods": {
@@ -431,11 +446,20 @@
             "fetchL2OrderBook": "same"
         }
     },
+    "loadMarkets": {
+        "skipMethods": {
+            "loadMarkets": {
+                "taker": "nor provided",
+                "maker": "nor provided"
+            }
+        }
+    },
     "cryptocom": {
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
-                "limits":"max is below min"
+                "limits":"max is below min",
+                "active":"is undefined"
             },
             "fetchTickers": "timestamp might be of 1970-01-01T00:00:00.000Z",
             "fetchTicker": "same"
@@ -473,7 +497,8 @@
     "deribit": {
         "skipWs": true,
         "skipMethods": {
-            "loadMarkets": "strike is set when option is not true"
+            "loadMarkets": "strike is set when option is not true",
+            "fetchTickers": "something wrong"
         }
     },
     "flowbtc": {
@@ -483,18 +508,55 @@
         }
     },
     "fmfwio": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "fee": "nor provided"
+            }
+        }
     },
     "gemini": {
-        "skipWs": true
+        "skipWs": true,
+        "skipMethods": {
+            "loadMarkets": {
+                "active": "not provided"
+            }
+        }
+    },
+    "hitbtc": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "fee": "not provided"
+            }
+        }
+    },
+    "hitbtc3": {
+        "skipMethods": {
+            "loadMarkets": {
+                "limits": "messed min max"
+            },
+            "fetchCurrencies": {
+                "fee": "not provided"
+            }
+        }
     },
     "digifinex": {
         "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "messed codes"
+            },
+            "fetchCurrencies": {
+                "precision": "messed"
+            },
             "fetchTickers": "unexpected symbol is being returned | safeMarket() requires a fourth argument for BTC_USDT to disambiguate between different markets with the same market id"
         }
     },
     "gate": {
         "skipMethods": {
             "loadMarkets": {
+                "currencyIdAndCode": "messed codes",
+                "fetchCurrencies": {
+                    "fee":"nor provided"
+                },
                 "limits": "max should be above min"
             },
             "fetchTrades": "timestamp is in decimal seconds like 1234567890.123"
@@ -507,8 +569,12 @@
 		"skipPhpAsync": true,
         "skipWs": true,
         "skipMethods": {
+            "loadMarkets": {
+                "limits":"messed"
+            },
             "fetchCurrencies": {
-                "precision":"nor provided"
+                "withdraw":"not provided",
+                "deposit":"not provided"
             },
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -523,6 +589,12 @@
     "huobijp": {
         "skipWs": true,
         "skipMethods": {
+            "loadMarkets": {
+                "limits": "messed"
+            },
+            "fetchCurrencies": {
+                "fee": "not defined"
+            },
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
@@ -538,6 +610,10 @@
     },
     "stex": {
         "skipMethods": {
+            "fetchCurrencies":{
+                "withdraw":"not provided",
+                "deposit":"not provided"
+            },
             "fetchTickers":  {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
@@ -551,6 +627,12 @@
     "probit": {
 		"skipWs": true,
         "skipMethods": {
+            "loadMarkets":{
+                "currencyIdAndCode": "messed codes"
+            },
+            "fetchCurrencies": {
+                "limits": "messed"
+            },
             "fetchTickers":  {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
@@ -561,20 +643,21 @@
             }
         }
     },
-    "huobipro": {
+    "idex": {
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
-                "precision":"nor provided"
+                "withdraw":"not provided",
+                "deposit":"not provided"
             }
         }
-    },
-    "idex": {
-        "skipWs": true
     },
     "independentreserve": {
         "skipWs": true,
         "skipMethods": {
+            "loadMarkets": {
+                "active":"is undefined"
+            },
             "fetchTrades": {
                 "side":"side is undefined"
             },
@@ -586,7 +669,23 @@
         "skip": "403 forbidden"
     },
     "kucoinfutures": {
-        "skipWs": true
+        "skipWs": true,
+        "skipMethods":{
+            "loadMarkets": {
+                "currencyIdAndCode": "messed"
+            }
+        }
+    },
+    "latoken": {
+        "skipMethods":{
+            "loadMarkets": {
+                "currencyIdAndCode": "messed"
+            },
+            "fetchCurrencies": {
+                "withdraw":"not provided",
+                "deposit":"not provided"
+            }
+        }
     },
     "luno": {
         "skipMethods": {
@@ -621,6 +720,12 @@
     },
     "lykke": {
         "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "messed codes"
+            },
+            "fetchCurrencies": {
+                "fee":"not provided"
+            },
             "fetchOrderBook": "bid should be greater than next bid",
             "fetchL2OrderBook": "same"
         }
@@ -648,11 +753,23 @@
         }
     },
     "ndax": {
-        "skipWs": true
+        "skipWs": true,
+        "skipMethods": {
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided"
+            }
+        }
     },
     "mexc": {
         "skipWs": true,
         "skipMethods": {
+            "loadMarkets":{
+                "currencyIdAndCode": "messed"
+            },
+            "fetchCurrencies":{
+                "precision":"is undefined"
+            },
             "fetchTrades": {
                 "side": "side is not buy/sell"
             },
@@ -668,13 +785,17 @@
     },
     "oceanex": {
         "skipMethods": {
+            "loadMarkets":{
+                "active":"is undefined"
+            }, 
             "fetchOrderBooks": "fetchOrderBooks returned 0 length"
         }
     },
     "paymium": {
         "skipMethods": {
             "loadMarkets": {
-                "precision": "nor provided"
+                "precision": "nor provided",
+                "active": "not provided"
             },
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -688,8 +809,19 @@
     },
     "phemex": {
         "skipMethods": {
-            "loadMarkets": "contractSize might be set to 0",
+            "loadMarkets": {
+                "contractSize": "contractSize might be set to 0",
+                "active": "not provided"
+            },
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided"
+            },
             "fetchTickers": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
+                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             }
@@ -712,6 +844,9 @@
     "exmo": {
         "skipWs": true,
         "skipMethods": {
+            "loadMarkets": {
+                "active":"is undefined"
+            },
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
@@ -750,7 +885,13 @@
     "krakenfutures": {
         "skipMethods": {
             "loadMarkets": {
-                "type":"unexpected market type"
+                "type":"unexpected market type",
+                "limits": "messed",
+                "active":"is undefined"
+            },
+            "fetchCurrencies": {
+                "withdraw": "undefined",
+                "deposit": "undefined"
             }
         }
     },
@@ -773,6 +914,12 @@
     },
     "timex": {
         "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "messed"
+            },
+            "fetchCurrencies": {
+                "fee":"is undefined"
+            },
             "fetchTrades": {
                 "fees": "missingn from structure"
             }
@@ -806,6 +953,9 @@
     },
     "yobit": {
         "skipMethods": {
+            "loadMarkets":{
+                "currencyIdAndCode": "messed"
+            },
             "fetchTickers": "all tickers request exceedes max url length"
         }
     },
@@ -815,8 +965,22 @@
     "xt": {
         "skipMethods": {
             "loadMarkets": "expiry and expiryDatetime are defined for non future/options markets",
+            "fetchCurrencies": {
+                "withdraw": "undefined",
+                "deposit": "undefined"
+            },
             "fetchTickers": "some outaded contracts, eg RICHARLISONGBALL2022/USDT:USDT-221219 return bid > ask",
-            "fetchTicker": "same"
+            "fetchTicker": "same",
+            "fetchTrades": {
+                "side": "messed"
+            }
+        }
+    },
+    "zonda": {
+        "skipMethods": {
+            "loadMarkets": {
+                "active":"is undefined"
+            }
         }
     }
 }
