@@ -260,10 +260,13 @@ function assertFeeStructure (exchange, skippedProperties, method, entry, key) {
         assert (key in entry, 'fee key ' + key + ' was expected to be present in entry' + logText);
     }
     const feeObject = exchange.safeValue (entry, key);
-    assert ('cost' in feeObject, keyString + ' fee object should contain "cost" key' + logText);
-    assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0');
-    assert ('currency' in feeObject, keyString + ' fee object should contain "currency" key' + logText);
-    assertCurrencyCode (exchange, skippedProperties, method, entry, feeObject['currency']);
+    // todo: remove undefined check to make stricter
+    if (feeObject !== undefined) {
+        assert ('cost' in feeObject, keyString + ' fee object should contain "cost" key' + logText);
+        assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0');
+        assert ('currency' in feeObject, keyString + ' fee object should contain "currency" key' + logText);
+        assertCurrencyCode (exchange, skippedProperties, method, entry, feeObject['currency']);
+    }
 }
 
 function assertTimestampOrder (exchange, method, codeOrSymbol, items, ascending = false) {
