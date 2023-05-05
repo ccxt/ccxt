@@ -39,11 +39,16 @@ public partial class Exchange
     public object safeTimestamp2(object obj, object key1, object key2, int defaultValue = -1)
     {
         var value = safeValue2(obj, key1, key2, defaultValue);
-        if (value is string)
+        if (value != null)
         {
-            return (Int64)milliseconds() / 1000;
+            return Convert.ToInt64(value) * 1000;
         }
-        return safeInteger(value, defaultValue);
+        // if (value is string)
+        // {
+        //     return (Int64)milliseconds() / 1000;
+        // }
+        // return safeInteger(value, defaultValue);
+        return null;
     }
 
     public object safeInteger(object obj, object key, object defaultValue = null) => SafeInteger(obj, key, defaultValue);
