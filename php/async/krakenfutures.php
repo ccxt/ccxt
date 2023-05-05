@@ -310,8 +310,9 @@ class krakenfutures extends Exchange {
                 $settleId = null;
                 $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'contractValueTradePrecision', '0')));
                 $pricePrecision = $this->safe_number($market, 'tickSize');
-                $contract = ($swap || $future);
-                if ($contract) {
+                $contract = ($swap || $future || $index);
+                $swapOrFutures = ($swap || $future);
+                if ($swapOrFutures) {
                     $exchangeType = $this->safe_string($market, 'type');
                     if ($exchangeType === 'futures_inverse') {
                         $settle = $base;

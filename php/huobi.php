@@ -2648,10 +2648,12 @@ class huobi extends Exchange {
             $fieldName = 'contract_code';
         }
         if ($market['contract']) {
-            if ($limit === null) {
-                $limit = 2000;
+            if ($limit !== null) {
+                $request['size'] = $limit; // when using $limit from and to are ignored
+                // https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-$data
+            } else {
+                $limit = 2000; // only used for from/to calculation
             }
-            $request['size'] = $limit;
             if ($price === null) {
                 $duration = $this->parse_timeframe($timeframe);
                 if ($since === null) {
