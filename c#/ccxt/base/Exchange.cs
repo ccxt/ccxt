@@ -503,7 +503,9 @@ public partial class Exchange
         {
             if (firstInt < 0)
             {
-                return (parsedArray.ToArray()[(parsedArray.Count + firstInt)..]).ToList();
+                var index = parsedArray.Count + firstInt;
+                index = index < 0 ? 0 : index;
+                return (parsedArray.ToArray()[index..]).ToList();
             }
             return (parsedArray.ToArray()[firstInt..]).ToList();
         }

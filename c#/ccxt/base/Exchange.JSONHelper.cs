@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace ccxt;
@@ -46,7 +47,13 @@ public static class JsonHelper
 {
     public static object Deserialize(string json)
     {
-        return ToObject(JToken.Parse(json));
+        using (var sr = new StringReader(json))
+        using (var jr = new JsonTextReader(sr) { DateParseHandling = DateParseHandling.None })
+        {
+            return ToObject(JToken.ReadFrom(jr)); /// prints '2015-11-23T00:00:00'
+            // we need this to avoid wrong dates
+            // https://github.com/JamesNK/Newtonsoft.Json/issues/1241
+        }
     }
 
     public static object ToObject(JToken token)

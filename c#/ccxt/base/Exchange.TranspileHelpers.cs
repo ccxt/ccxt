@@ -3,6 +3,7 @@ namespace ccxt;
 using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
+
 using dict = Dictionary<string, object>;
 
 
@@ -463,51 +464,69 @@ public partial class Exchange
         }
     }
 
+    public static bool IsInteger(double number)
+    {
+        return number == Math.Truncate(number);
+    }
+
     public static object mathMin(object a, object b)
     {
         if (a == null || b == null)
         {
             return null;
         }
-        a = normalizeIntIfNeeded(a);
-        b = normalizeIntIfNeeded(b);
-        if (a.GetType() == typeof(Int64))
+        var first = Convert.ToDouble(a);
+        var second = Convert.ToDouble(b);
+
+        if (first < second)
         {
-            return Math.Min((Int64)a, (Int64)b);
-        }
-        else if (a.GetType() == typeof(double))
-        {
-            return Math.Min((double)a, (double)b);
-        }
-        else if (a.GetType() == typeof(float))
-        {
-            return Math.Min((float)a, (float)b);
-        }
-        else if (a.GetType() == typeof(int))
-        {
-            return Math.Min((int)a, (int)b);
+            return a;
         }
         else
         {
-            return null;
+            return b;
         }
+
+        // a = normalizeIntIfNeeded(a);
+        // b = normalizeIntIfNeeded(b);
+        // if (a.GetType() == typeof(Int64))
+        // {
+        //     return Math.Min((Int64)a, (Int64)b);
+        // }
+        // else if (a.GetType() == typeof(double))
+        // {
+        //     return Math.Min((double)a, (double)b);
+        // }
+        // else if (a.GetType() == typeof(float))
+        // {
+        //     return Math.Min((float)a, (float)b);
+        // }
+        // else if (a.GetType() == typeof(int))
+        // {
+        //     return Math.Min((int)a, (int)b);
+        // }
+        // else
+        // {
+        //     return null;
+        // }
     }
 
     public static object mathMax(object a, object b)
     {
-        a = normalizeIntIfNeeded(a);
-        b = normalizeIntIfNeeded(b);
-        if (a.GetType() == typeof(Int64))
+        if (a == null || b == null)
         {
-            return Math.Max((Int64)a, (Int64)b);
+            return null;
         }
-        else if (a.GetType() == typeof(double))
+        var first = Convert.ToDouble(a);
+        var second = Convert.ToDouble(b);
+
+        if (first > second)
         {
-            return Math.Max((double)a, (double)b);
+            return a;
         }
         else
         {
-            return null;
+            return b;
         }
     }
 
