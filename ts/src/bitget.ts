@@ -2164,8 +2164,9 @@ export default class bitget extends Exchange {
         };
         const until = this.safeInteger2 (params, 'until', 'till');
         if (limit === undefined) {
-            limit = 100;
+            limit = 1000;
         }
+        request['limit'] = limit;
         const marketType = market['spot'] ? 'spot' : 'swap';
         const timeframes = this.options['timeframes'][marketType];
         const selectedTimeframe = this.safeString (timeframes, timeframe, timeframe);
