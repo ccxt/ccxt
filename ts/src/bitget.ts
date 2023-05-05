@@ -2190,7 +2190,7 @@ export default class bitget extends Exchange {
                 request['startTime'] = now - limit * (duration * 1000);
                 request['endTime'] = now;
             } else {
-                request['startTime'] = this.sum (since, duration * 1000);
+                request['startTime'] = since;
                 if (until !== undefined) {
                     request['endTime'] = until;
                 } else {
