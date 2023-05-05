@@ -1121,19 +1121,6 @@
             "fetchTickers": "temporary issues"
         }
     },
-    "whitebit": {
-        "skipWs": true,
-        "skipMethods": {
-            "loadMarkets": "contractSize must be undefined when contract is false",
-            "fetchCurrencies": {
-                "info": "missing key",
-                "precision":"not provided",
-                "fee":"is undefined",
-                "networks":"missing",
-                "limits": "broken for some markets"
-            }
-        }
-    },
     "wavesexchange": {
         "skipMethods": {
             "loadMarkets": "missing key",
@@ -1145,6 +1132,23 @@
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            }
+        }
+    },
+    "wazirx": {
+        "skipWs": true,
+        "skip": "rate limit blocks"
+    },
+    "whitebit": {
+        "skipWs": true,
+        "skipMethods": {
+            "loadMarkets": "contractSize must be undefined when contract is false",
+            "fetchCurrencies": {
+                "info": "missing key",
+                "precision":"not provided",
+                "fee":"is undefined",
+                "networks":"missing",
+                "limits": "broken for some markets"
             }
         }
     },
@@ -1161,26 +1165,6 @@
             }
         }
 	},
-    "wazirx": {
-        "skipWs": true,
-        "skip": "rate limit blocks"
-    },
-    "zaif": {
-        "skipMethods": {
-            "fetchCurrencies": "info key is missing"
-        }
-    },
-    "yobit": {
-        "skipMethods": {
-            "loadMarkets":{
-                "currencyIdAndCode": "messed"
-            },
-            "fetchTickers": "all tickers request exceedes max url length"
-        }
-    },
-    "zipmex": {
-        "skipWs": true
-    },
     "xt": {
         "skipMethods": {
             "loadMarkets": "expiry and expiryDatetime are defined for non future/options markets",
@@ -1196,6 +1180,27 @@
                 "side": "messed"
             }
         }
+    },
+    "yobit": {
+        "skipMethods": {
+            "loadMarkets":{
+                "currencyIdAndCode": "messed"
+            },
+            "fetchTickers": "all tickers request exceedes max url length"
+        }
+    },
+    "zaif": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "info": "key is missing"
+            },
+            "loadMarkets": {
+                "active": "is undefined"
+            }
+        }
+    },
+    "zipmex": {
+        "skipWs": true
     },
     "zonda": {
         "skipMethods": {
