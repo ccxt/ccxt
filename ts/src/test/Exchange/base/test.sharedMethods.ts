@@ -244,8 +244,10 @@ function assertInArray (exchange, skippedProperties, method, entry, key, expecte
     }
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeValue (entry, key);
+    // todo: remove undefined check
     if (value !== undefined) {
-        assert (exchange.inArray (value, expectedArray), stringValue (key) + ' key (with a value of ' + stringValue (value) + ') is not from the expected list : [' + expectedArray.join (',') + ']' + logText);
+        const stingifiedArrayValue = exchange.json (expectedArray); // don't use expectedArray.join (','), as it bugs in other languages, if values are bool, undefined or etc..
+        assert (exchange.inArray (value, expectedArray), stringValue (key) + ' key (with a value of ' + stringValue (value) + ') is not from the expected list : [' + stingifiedArrayValue + ']' + logText);
     }
 }
 
