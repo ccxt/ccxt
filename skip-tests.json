@@ -417,6 +417,7 @@
         }
     },
     "btcmarkets": {
+        "skip": "04/05 under maintenance",
         "skipMethods": {
             "loadMarkets":{
                 "active":"is undefined"

@@ -1011,7 +1011,7 @@ class bitget extends bitget$1 {
                 const year = '20' + expiryString.slice(0, 2);
                 const month = expiryString.slice(2, 4);
                 const day = expiryString.slice(4, 6);
-                expiryDatetime = year + '-' + month + '-' + day + 'T00:00:00Z';
+                expiryDatetime = year + '-' + month + '-' + day + 'T00:00:000Z';
                 expiry = this.parse8601(expiryDatetime);
                 type = 'future';
                 future = true;

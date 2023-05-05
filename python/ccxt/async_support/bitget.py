@@ -1024,7 +1024,7 @@ class bitget(Exchange, ImplicitAPI):
                 year = '20' + expiryString[0:2]
                 month = expiryString[2:4]
                 day = expiryString[4:6]
-                expiryDatetime = year + '-' + month + '-' + day + 'T00:00:00Z'
+                expiryDatetime = year + '-' + month + '-' + day + 'T00:00:000Z'
                 expiry = self.parse8601(expiryDatetime)
                 type = 'future'
                 future = True

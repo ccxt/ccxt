@@ -626,7 +626,8 @@ class bitmart extends Exchange {
                 $quoteId = $this->safe_string($market, 'quote_currency');
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
-                $settle = 'USDT';
+                $settleId = 'USDT'; // this is bitmart's ID for usdt
+                $settle = $this->safe_currency_code($settleId);
                 $symbol = $base . '/' . $quote . ':' . $settle;
                 $productType = $this->safe_number($market, 'product_type');
                 $expiry = $this->safe_integer($market, 'expire_timestamp');
@@ -639,7 +640,7 @@ class bitmart extends Exchange {
                     'settle' => $settle,
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
-                    'settleId' => null,
+                    'settleId' => $settleId,
                     'type' => 'swap',
                     'spot' => false,
                     'margin' => false,

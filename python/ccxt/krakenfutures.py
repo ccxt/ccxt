@@ -320,8 +320,9 @@ class krakenfutures(Exchange, ImplicitAPI):
             settleId = None
             amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'contractValueTradePrecision', '0')))
             pricePrecision = self.safe_number(market, 'tickSize')
-            contract = (swap or future)
-            if contract:
+            contract = (swap or future or index)
+            swapOrFutures = (swap or future)
+            if swapOrFutures:
                 exchangeType = self.safe_string(market, 'type')
                 if exchangeType == 'futures_inverse':
                     settle = base

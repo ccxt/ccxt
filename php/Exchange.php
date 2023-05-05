@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.0.91';
+$version = '3.0.92';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.0.91';
+    const VERSION = '3.0.92';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1563,53 +1563,6 @@ class Exchange {
         return call_user_func($this->number, $n);
     }
 
-    public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp') {
-        $result = array();
-        $since_is_set = isset($since);
-        if ($since_is_set) {
-            foreach ($array as $entry) {
-                if ($entry[$key] > $since) {
-                    $result[] = $entry;
-                }
-            }
-        } else {
-            $result = $array;
-        }
-        return $this->filter_by_limit($result, $limit, $key);
-    }
-
-    public function filter_by_limit($array, $limit = null, $key = 'timestamp') {
-        $result = $array;
-        if (isset($limit) && count($array) > 0) {
-            $ascending = true; // default value
-            if (array_key_exists($key, $result[0])) {
-                $first = $result[0][$key];
-                $last = $result[count($array) - 1][$key];
-                if ($first != null && $last != null) {
-                    $ascending = $first < $last; // true if array is sorted in ascending order based on 'timestamp'
-                }
-            }
-            $result = $ascending ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
-        }
-        return $result;
-    }
-
-    public function filter_by_value_since_limit($array, $field, $value = null, $since = null, $limit = null, $key = 'timestamp') {
-        $valueIsSet = isset($value);
-        $sinceIsSet = isset($since);
-        $result = array();
-        foreach ($array as $k => $v) {
-            if (($valueIsSet ? ($v[$field] === $value) : true) && ($sinceIsSet ? ($v[$key] >= $since) : true)) {
-                $result[] = $v;
-            }
-        }
-        if (isset($limit)) {
-            $ascending = $result[0]['timestamp'] < $result[count($array) - 1]['timestamp'];  // true if array is sorted in ascending order based on 'timestamp'
-            return $ascending ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
-        }
-        return $result;
-    }
-
     public function fetch_markets($params = array()) {
         // markets are returned as a list
         // currencies are returned as a dict
@@ -2128,6 +2081,18 @@ class Exchange {
         return intval($value);
     }
 
+    function valueIsDefined($value){
+        return isset($value) && !is_null($value);
+    }
+
+    function arraySlice($array, $first, $second = null){
+        if ($second === null) {
+            return array_slice($array, $first);
+        } else {
+            return array_slice($array, $first, $second);
+        }
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################
@@ -2166,6 +2131,62 @@ class Exchange {
     // ########################################################################
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function filter_by_limit(array $array, ?int $limit = null, int|string $key = 'timestamp') {
+        if ($this->valueIsDefined ($limit)) {
+            $arrayLength = count($array);
+            if ($arrayLength > 0) {
+                $ascending = true;
+                if ((is_array($array[0]) && array_key_exists($key, $array[0]))) {
+                    $first = $array[0][$key];
+                    $last = $array[$arrayLength - 1][$key];
+                    if ($first !== null && $last !== null) {
+                        $ascending = $first < $last;  // true if $array is sorted in $ascending order based on 'timestamp'
+                    }
+                }
+                $array = $ascending ? $this->arraySlice ($array, -$limit) : $this->arraySlice ($array, 0, $limit);
+            }
+        }
+        return $array;
+    }
+
+    public function filter_by_since_limit(array $array, ?int $since = null, ?int $limit = null, int|string $key = 'timestamp') {
+        $sinceIsDefined = $this->valueIsDefined ($since);
+        $parsedArray = $this->to_array($array);
+        if ($sinceIsDefined) {
+            $result = [ ];
+            for ($i = 0; $i < count($parsedArray); $i++) {
+                $entry = $parsedArray[$i];
+                if ($entry[$key] >= $since) {
+                    $result[] = $entry;
+                }
+            }
+            return $this->filterByLimit ($result, $limit, $key);
+        }
+        return $this->filterByLimit ($parsedArray, $limit, $key);
+    }
+
+    public function filter_by_value_since_limit(array $array, int|string $field, $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp') {
+        $valueIsDefined = $this->valueIsDefined ($value);
+        $sinceIsDefined = $this->valueIsDefined ($since);
+        $parsedArray = $this->to_array($array);
+        // single-pass filter for both symbol and $since
+        if ($valueIsDefined || $sinceIsDefined) {
+            $result = [ ];
+            for ($i = 0; $i < count($parsedArray); $i++) {
+                $entry = $parsedArray[$i];
+                $entryFiledEqualValue = $entry[$field] === $value;
+                $firstCondition = $valueIsDefined ? $entryFiledEqualValue : true;
+                $entryKeyGESince = $entry[$key] && $since && ($entry[$key] >= $since);
+                $secondCondition = $sinceIsDefined ? $entryKeyGESince : true;
+                if ($firstCondition && $secondCondition) {
+                    $result[] = $entry;
+                }
+            }
+            return $this->filterByLimit ($result, $limit, $key);
+        }
+        return $this->filterByLimit ($parsedArray, $limit, $key);
+    }
 
     public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null) {
         return array();
