@@ -622,7 +622,7 @@ export default class bitmart extends Exchange {
             const settle = this.safeCurrencyCode (settleId);
             const symbol = base + '/' + quote + ':' + settle;
             const productType = this.safeNumber (market, 'product_type');
-            const expiry = this.safeInteger (market, 'expire_timestamp');
+            const expiry = this.omitZero (this.safeInteger (market, 'expire_timestamp'));
             result.push ({
                 'id': id,
                 'numericId': undefined,
