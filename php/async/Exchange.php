@@ -157,6 +157,16 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function fetch_currencies($params = array()) {
+        // markets are returned as a list
+        // currencies are returned as a dict
+        // this is for historical reasons
+        // and may be changed for consistency later
+        return React\Async\async(function () use ($params) {
+            return parent::fetch_currencies($params);
+        });
+    }
+
     public function load_markets_helper($reload = false, $params = array()) {
         // copied from js
         return React\Async\async(function () use ($reload, $params) {
