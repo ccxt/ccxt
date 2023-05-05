@@ -415,17 +415,42 @@ export default class probit extends Exchange {
             const platforms = this.safeValue (currency, 'platform', []);
             const platformsByPriority = this.sortBy (platforms, 'priority');
             let platform = undefined;
+            const networkList = {};
             for (let j = 0; j < platformsByPriority.length; i++) {
-                const currentPlatform = platformsByPriority[j];
-                const currentDepositSuspended = this.safeValue (currentPlatform, 'deposit_suspended');
-                const currentWithdrawalSuspended = this.safeValue (currentPlatform, 'withdrawal_suspended');
+                const network = platformsByPriority[j];
+                const id = this.safeString (network, 'id');
+                const networkCode = this.networkIdToCode (id);
+                const currentDepositSuspended = this.safeValue (network, 'deposit_suspended');
+                const currentWithdrawalSuspended = this.safeValue (network, 'withdrawal_suspended');
                 const currentDeposit = !currentDepositSuspended;
                 const currentWithdraw = !currentWithdrawalSuspended;
                 const currentActive = currentDeposit && currentWithdraw;
                 if (currentActive) {
-                    platform = currentPlatform;
-                    break;
+                    platform = network;
                 }
+                const precision = this.safeString (network, 'precision');
+                const withdrawFee = this.safeValue (network, 'withdrawal_fee', []);
+                const fee = this.safeValue (withdrawFee, 0, {});
+                networkList[networkCode] = {
+                    'id': id,
+                    'network': networkCode,
+                    'active': currentActive,
+                    'deposit': currentDeposit,
+                    'withdraw': currentWithdraw,
+                    'fee': this.safeNumber (fee, 'amount'),
+                    'precision': this.parseNumber (precision),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (network, 'min_withdrawal_amount'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (network, 'min_deposit_amount'),
+                            'max': undefined,
+                        },
+                    },
+                    'info': network,
+                };
             }
             if (platform === undefined) {
                 platform = this.safeValue (platformsByPriority, 0, {});
@@ -474,7 +499,7 @@ export default class probit extends Exchange {
                         'max': undefined,
                     },
                 },
-                'networks': {},
+                'networks': networkList,
             };
         }
         return result;
