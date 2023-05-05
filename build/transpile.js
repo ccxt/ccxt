@@ -1287,7 +1287,7 @@ class Transpiler {
                 overwriteFile (tsPath, contents)
             }
 
-            const tsMtime = fs.statSync (tsPath).mtime.getTime ()
+            const tsMtime = fs.statSync (tsPath).mtime.getTime () - 250
 
             const python2Path  = python2Folder  ? (python2Folder  + pythonFilename) : undefined
             const python3Path  = python3Folder  ? (python3Folder  + pythonFilename) : undefined
