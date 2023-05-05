@@ -331,7 +331,16 @@ public partial class Exchange
 
     public virtual object sum(object a, object b)
     {
-        return float.Parse(a.ToString()) + float.Parse(b.ToString());
+        if (a == null)
+            a = 0;
+        if (b == null)
+            b = 0;
+        var sum = Convert.ToDouble(a) + Convert.ToDouble(b);
+        if (IsInteger(sum))
+        {
+            return Convert.ToInt64(sum);
+        }
+        return sum;
     }
 
 }

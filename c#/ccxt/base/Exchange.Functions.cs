@@ -1,6 +1,7 @@
 using System.Text;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace ccxt;
 
@@ -191,8 +192,14 @@ public partial class Exchange
 
     public List<object> extractParams(object str)
     {
+        var regex = new Regex(@"\{([^\}]+)\}");
+        var matches = regex.Matches((string)str);
         var outList = new List<object>();
-        return outList; // stub to implement
+        foreach (Match match in matches)
+        {
+            outList.Add(match.Groups[1].Value);
+        }
+        return outList;
     }
 
 

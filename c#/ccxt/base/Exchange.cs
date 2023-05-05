@@ -513,3 +513,12 @@ public partial class Exchange
         return (parsedArray.ToArray()[firstInt..secondInt]).ToList();
     }
 }
+
+
+public static class BoolExtensions
+{
+    public static string ToString(this bool _bool)
+    {
+        return _bool.ToString().ToLowerInvariant();
+    }
+}

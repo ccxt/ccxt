@@ -129,7 +129,13 @@ public partial class Exchange
                 foreach (string key2 in keys2)
                 {
                     var value2 = ((dict)value)[key2];
-                    queryString.Add(key + "[" + key2 + "]", value2.ToString());
+                    var finalValue = value2.ToString();
+                    if (value2.GetType() == typeof(bool))
+                    {
+                        finalValue = finalValue.ToLower(); // c# uses "True" and "False" instead of "true" and "false" $:(
+
+                    }
+                    queryString.Add(key + "[" + key2 + "]", finalValue);
                 }
             }
             else
@@ -143,15 +149,19 @@ public partial class Exchange
     public string urlencode(object parameters2)
     {
         var parameters = (dict)parameters2;
-        var x = new Dictionary<string, object>() { { "ola", 1 } };
-        var y = new List<string>(x.Keys);
-        var z = new List<object>(x.Values);
 
         var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
-        var keys = new List<string>(parameters.Keys);
+        var keys = parameters.Keys;
         foreach (string key in keys)
         {
-            queryString.Add(key, parameters[key].ToString());
+            var value = parameters[key];
+            var finalValue = value.ToString();
+            if (value.GetType() == typeof(bool))
+            {
+                finalValue = finalValue.ToLower(); // c# uses "True" and "False" instead of "true" and "false" $:(
+
+            }
+            queryString.Add(key, finalValue);
         }
         return queryString.ToString();
     }

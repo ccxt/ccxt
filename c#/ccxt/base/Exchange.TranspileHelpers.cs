@@ -458,6 +458,10 @@ public partial class Exchange
         {
             return ((List<string>)value).Count;
         }
+        else if (value.GetType() == typeof(string))
+        {
+            return ((string)value).Length; // fallback that should not be used
+        }
         else
         {
             return 0;
@@ -583,6 +587,12 @@ public partial class Exchange
         if (value2 == null || key == null)
         {
             return null;
+        }
+
+        if (value2.GetType() == typeof(string))
+        {
+            var str = (string)value2;
+            return (str[Convert.ToInt32(key)]).ToString();
         }
 
         // check if array
