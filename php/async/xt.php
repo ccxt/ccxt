@@ -2224,11 +2224,11 @@ class xt extends Exchange {
             $stop = $this->safe_value($params, 'stop');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
             if ($stop) {
-                $request['entrustId'] = $this->convert_to_big_int($id);
+                $request['entrustId'] = $id;
             } elseif ($stopLossTakeProfit) {
-                $request['profitId'] = $this->convert_to_big_int($id);
+                $request['profitId'] = $id;
             } else {
-                $request['orderId'] = $this->convert_to_big_int($id);
+                $request['orderId'] = $id;
             }
             if ($stop) {
                 $params = $this->omit($params, 'stop');
@@ -2896,11 +2896,11 @@ class xt extends Exchange {
             $stop = $this->safe_value($params, 'stop');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
             if ($stop) {
-                $request['entrustId'] = $this->convert_to_big_int($id);
+                $request['entrustId'] = $id;
             } elseif ($stopLossTakeProfit) {
-                $request['profitId'] = $this->convert_to_big_int($id);
+                $request['profitId'] = $id;
             } else {
-                $request['orderId'] = $this->convert_to_big_int($id);
+                $request['orderId'] = $id;
             }
             if ($stop) {
                 $params = $this->omit($params, 'stop');
