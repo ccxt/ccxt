@@ -238,7 +238,7 @@ export default class testMainClass extends baseMainTestClass {
 
     async testMethod (methodName, exchange, args, isPublic) {
         const methodNameInTest = getTestName (methodName);
-        // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in exchange)
+        // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if (!isPublic && (methodNameInTest in this.checkedPublicTests) && (methodName !== 'fetchCurrencies')) {
             return;
         }
