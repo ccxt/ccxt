@@ -2210,11 +2210,11 @@ export default class xt extends Exchange {
         const stop = this.safeValue (params, 'stop');
         const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
         if (stop) {
-            request['entrustId'] = this.convertToBigInt (id);
+            request['entrustId'] = id;
         } else if (stopLossTakeProfit) {
-            request['profitId'] = this.convertToBigInt (id);
+            request['profitId'] = id;
         } else {
-            request['orderId'] = this.convertToBigInt (id);
+            request['orderId'] = id;
         }
         if (stop) {
             params = this.omit (params, 'stop');
@@ -2880,11 +2880,11 @@ export default class xt extends Exchange {
         const stop = this.safeValue (params, 'stop');
         const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
         if (stop) {
-            request['entrustId'] = this.convertToBigInt (id);
+            request['entrustId'] = id;
         } else if (stopLossTakeProfit) {
-            request['profitId'] = this.convertToBigInt (id);
+            request['profitId'] = id;
         } else {
-            request['orderId'] = this.convertToBigInt (id);
+            request['orderId'] = id;
         }
         if (stop) {
             params = this.omit (params, 'stop');
