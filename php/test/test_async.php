@@ -5,9 +5,24 @@ error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 ini_set('memory_limit', '512M');
 
-include_once 'vendor/autoload.php';
+define('rootDir', __DIR__ . '/../../');
+include_once rootDir .'/vendor/autoload.php';
 use React\Async;
 use React\Promise;
+
+assert_options (ASSERT_CALLBACK, function(){
+    $args = func_get_args();
+    try {
+        $file = $args[0];
+        $line = $args[1];
+        $message = $args[3];
+        var_dump("ASSERT FAILURE: $message [ $file : $line ]");
+    } catch (\Exception $exc) {
+        var_dump("assert failure:");
+        var_dump($args);
+    }
+    exit;
+});
 
 $filetered_args = array_filter(array_map (function ($x) { return stripos($x,'--')===false? $x : null;} , $argv));
 $exchangeId = array_key_exists(1, $filetered_args) ? $filetered_args[1] : null; // this should be different than JS
@@ -30,7 +45,6 @@ class baseMainTestClass {
 
 define ('is_synchronous', stripos(__FILE__, '_async') === false);
 
-define('rootDir', __DIR__ . '/../../');
 define('rootDirForSkips', __DIR__ . '/../../');
 define('envVars', $_ENV);
 define('ext', 'php');
