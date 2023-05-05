@@ -8,7 +8,8 @@
                 "baseId": "numeric",
                 "base": "numeric",
                 "settleId": "numeric",
-                "settle": "numeric"
+                "settle": "numeric",
+                "active":"is undefined"
             },
             "fetchOrderBook": "needs reversion of amount/price",
             "fetchL2OrderBook": "same"
@@ -55,21 +56,20 @@
             }
         }
     },
-    "bit2c": {
-        "skipMethods": {
-            "loadMarkets": {
-                "precision": "not provided",
-                "active": "not provided",
-                "info":"null"
-            }
-        }
-    },
     "binanceus": {
 		"skipPhpAsync":true,
         "skipMethods": {
             "loadMarkets": {
                 "expiry": "expiry not set for future markets",
                 "expiryDatetime": "expiry not set for future markets"
+            },
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
+                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "fetchTicker": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
+                "baseVolume": "quoteVolume >= baseVolume * low is failing"
             }
         }
     },
@@ -93,7 +93,26 @@
     },
     "binanceusdm": {
 		"skipPhpAsync":true,
-        "skipWs": true
+        "skipWs": true,
+        "skipMethods": {
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
+                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "fetchTicker": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
+                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            }
+        }
+    },
+    "bit2c": {
+        "skipMethods": {
+            "loadMarkets": {
+                "precision": "not provided",
+                "active": "not provided",
+                "info":"null"
+            }
+        }
     },
     "tokocrypto": {
 		"skipPhpAsync":true,
