@@ -421,7 +421,47 @@ class probit extends Exchange {
                 $name = $this->safe_string($displayName, 'en-us');
                 $platforms = $this->safe_value($currency, 'platform', array());
                 $platformsByPriority = $this->sort_by($platforms, 'priority');
-                $platform = $this->safe_value($platformsByPriority, 0, array());
+                $platform = null;
+                $networkList = array();
+                for ($j = 0; $j < count($platformsByPriority); $j++) {
+                    $network = $platformsByPriority[$j];
+                    $id = $this->safe_string($network, 'id');
+                    $networkCode = $this->network_id_to_code($id);
+                    $currentDepositSuspended = $this->safe_value($network, 'deposit_suspended');
+                    $currentWithdrawalSuspended = $this->safe_value($network, 'withdrawal_suspended');
+                    $currentDeposit = !$currentDepositSuspended;
+                    $currentWithdraw = !$currentWithdrawalSuspended;
+                    $currentActive = $currentDeposit && $currentWithdraw;
+                    if ($currentActive) {
+                        $platform = $network;
+                    }
+                    $precision = $this->safe_string($network, 'precision');
+                    $withdrawFee = $this->safe_value($network, 'withdrawal_fee', array());
+                    $fee = $this->safe_value($withdrawFee, 0, array());
+                    $networkList[$networkCode] = array(
+                        'id' => $id,
+                        'network' => $networkCode,
+                        'active' => $currentActive,
+                        'deposit' => $currentDeposit,
+                        'withdraw' => $currentWithdraw,
+                        'fee' => $this->safe_number($fee, 'amount'),
+                        'precision' => $this->parse_number($precision),
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => $this->safe_number($network, 'min_withdrawal_amount'),
+                                'max' => null,
+                            ),
+                            'deposit' => array(
+                                'min' => $this->safe_number($network, 'min_deposit_amount'),
+                                'max' => null,
+                            ),
+                        ),
+                        'info' => $network,
+                    );
+                }
+                if ($platform === null) {
+                    $platform = $this->safe_value($platformsByPriority, 0, array());
+                }
                 $depositSuspended = $this->safe_value($platform, 'deposit_suspended');
                 $withdrawalSuspended = $this->safe_value($platform, 'withdrawal_suspended');
                 $deposit = !$depositSuspended;
@@ -466,7 +506,7 @@ class probit extends Exchange {
                             'max' => null,
                         ),
                     ),
-                    'networks' => array(),
+                    'networks' => $networkList,
                 );
             }
             return $result;
