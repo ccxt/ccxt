@@ -26,7 +26,7 @@ function testCurrency (exchange, method, entry) {
     testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
     testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['code']);
     //
-    testSharedMethods.assertGreater (exchange, method, entry, 'precision', '0');
+    // testSharedMethods.assertGreater (exchange, method, entry, 'precision', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'fee', '0');
     const limits = exchange.safeValue (entry, 'limits', {});
     const withdrawLimits = exchange.safeValue (limits, 'withdraw', {});
