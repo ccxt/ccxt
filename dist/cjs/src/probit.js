@@ -410,7 +410,47 @@ class probit extends probit$1 {
             const name = this.safeString(displayName, 'en-us');
             const platforms = this.safeValue(currency, 'platform', []);
             const platformsByPriority = this.sortBy(platforms, 'priority');
-            const platform = this.safeValue(platformsByPriority, 0, {});
+            let platform = undefined;
+            const networkList = {};
+            for (let j = 0; j < platformsByPriority.length; j++) {
+                const network = platformsByPriority[j];
+                const id = this.safeString(network, 'id');
+                const networkCode = this.networkIdToCode(id);
+                const currentDepositSuspended = this.safeValue(network, 'deposit_suspended');
+                const currentWithdrawalSuspended = this.safeValue(network, 'withdrawal_suspended');
+                const currentDeposit = !currentDepositSuspended;
+                const currentWithdraw = !currentWithdrawalSuspended;
+                const currentActive = currentDeposit && currentWithdraw;
+                if (currentActive) {
+                    platform = network;
+                }
+                const precision = this.safeString(network, 'precision');
+                const withdrawFee = this.safeValue(network, 'withdrawal_fee', []);
+                const fee = this.safeValue(withdrawFee, 0, {});
+                networkList[networkCode] = {
+                    'id': id,
+                    'network': networkCode,
+                    'active': currentActive,
+                    'deposit': currentDeposit,
+                    'withdraw': currentWithdraw,
+                    'fee': this.safeNumber(fee, 'amount'),
+                    'precision': this.parseNumber(precision),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(network, 'min_withdrawal_amount'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(network, 'min_deposit_amount'),
+                            'max': undefined,
+                        },
+                    },
+                    'info': network,
+                };
+            }
+            if (platform === undefined) {
+                platform = this.safeValue(platformsByPriority, 0, {});
+            }
             const depositSuspended = this.safeValue(platform, 'deposit_suspended');
             const withdrawalSuspended = this.safeValue(platform, 'withdrawal_suspended');
             const deposit = !depositSuspended;
@@ -455,7 +495,7 @@ class probit extends probit$1 {
                         'max': undefined,
                     },
                 },
-                'networks': {},
+                'networks': networkList,
             };
         }
         return result;

@@ -425,7 +425,44 @@ class probit(Exchange, ImplicitAPI):
             name = self.safe_string(displayName, 'en-us')
             platforms = self.safe_value(currency, 'platform', [])
             platformsByPriority = self.sort_by(platforms, 'priority')
-            platform = self.safe_value(platformsByPriority, 0, {})
+            platform = None
+            networkList = {}
+            for j in range(0, len(platformsByPriority)):
+                network = platformsByPriority[j]
+                id = self.safe_string(network, 'id')
+                networkCode = self.network_id_to_code(id)
+                currentDepositSuspended = self.safe_value(network, 'deposit_suspended')
+                currentWithdrawalSuspended = self.safe_value(network, 'withdrawal_suspended')
+                currentDeposit = not currentDepositSuspended
+                currentWithdraw = not currentWithdrawalSuspended
+                currentActive = currentDeposit and currentWithdraw
+                if currentActive:
+                    platform = network
+                precision = self.safe_string(network, 'precision')
+                withdrawFee = self.safe_value(network, 'withdrawal_fee', [])
+                fee = self.safe_value(withdrawFee, 0, {})
+                networkList[networkCode] = {
+                    'id': id,
+                    'network': networkCode,
+                    'active': currentActive,
+                    'deposit': currentDeposit,
+                    'withdraw': currentWithdraw,
+                    'fee': self.safe_number(fee, 'amount'),
+                    'precision': self.parse_number(precision),
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(network, 'min_withdrawal_amount'),
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': self.safe_number(network, 'min_deposit_amount'),
+                            'max': None,
+                        },
+                    },
+                    'info': network,
+                }
+            if platform is None:
+                platform = self.safe_value(platformsByPriority, 0, {})
             depositSuspended = self.safe_value(platform, 'deposit_suspended')
             withdrawalSuspended = self.safe_value(platform, 'withdrawal_suspended')
             deposit = not depositSuspended
@@ -468,7 +505,7 @@ class probit(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-                'networks': {},
+                'networks': networkList,
             }
         return result
 
