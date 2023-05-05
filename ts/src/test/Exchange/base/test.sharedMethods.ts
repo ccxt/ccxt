@@ -8,7 +8,12 @@ function logTemplate (exchange, method, entry) {
 }
 
 function isInteger (value) {
-    return (value % 1) === 0;
+    const isNumeric = (typeof value === 'number');
+    if (isNumeric) {
+        return (value % 1) === 0;
+    } else {
+        return false;
+    }
 }
 
 function stringValue (value) {
