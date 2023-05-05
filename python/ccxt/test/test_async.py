@@ -170,7 +170,8 @@ async def set_test_files(holderClass, properties):
 
 
 async def close(exchange):
-    await exchange.close()
+    if (hasattr(exchange, 'close')):
+        await exchange.close()
 
 # *********************************
 # ***** AUTO-TRANSPILER-START *****
@@ -283,7 +284,7 @@ class testMainClass(baseMainTestClass):
 
     async def test_method(self, methodName, exchange, args, isPublic):
         methodNameInTest = get_test_name(methodName)
-        # if self is a private test, and the implementation was already tested in public, then no need to re-test it in private test(exception is fetchCurrencies, because our approach in exchange)
+        # if self is a private test, and the implementation was already tested in public, then no need to re-test it in private test(exception is fetchCurrencies, because our approach in base exchange)
         if not isPublic and (methodNameInTest in self.checkedPublicTests) and (methodName != 'fetchCurrencies'):
             return
         skipMessage = None
