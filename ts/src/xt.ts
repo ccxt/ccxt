@@ -4452,7 +4452,7 @@ export default class xt extends Exchange {
                 headers['xt-validate-algorithms'] = 'HmacSHA256';
                 headers['xt-validate-recvwindow'] = recvWindow;
             } else {
-                payloadString = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-timestamp=' + timestamp;
+                payloadString = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp; // we can't glue timestamp, breaks in php
                 if (method === 'GET') {
                     if (urlencoded) {
                         url += '?' + urlencoded;
