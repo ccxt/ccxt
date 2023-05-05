@@ -2697,10 +2697,13 @@ class huobi extends huobi$1 {
             fieldName = 'contract_code';
         }
         if (market['contract']) {
-            if (limit === undefined) {
-                limit = 2000;
+            if (limit !== undefined) {
+                request['size'] = limit; // when using limit from and to are ignored
+                // https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
             }
-            request['size'] = limit;
+            else {
+                limit = 2000; // only used for from/to calculation
+            }
             if (price === undefined) {
                 const duration = this.parseTimeframe(timeframe);
                 if (since === undefined) {

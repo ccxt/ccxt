@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.0.91';
+$version = '3.0.92';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.91';
+    const VERSION = '3.0.92';
 
     public $browser;
     public $marketsLoading = null;
@@ -263,6 +263,62 @@ class Exchange extends \ccxt\Exchange {
     // ########################################################################
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function filter_by_limit(array $array, ?int $limit = null, int|string $key = 'timestamp') {
+        if ($this->valueIsDefined ($limit)) {
+            $arrayLength = count($array);
+            if ($arrayLength > 0) {
+                $ascending = true;
+                if ((is_array($array[0]) && array_key_exists($key, $array[0]))) {
+                    $first = $array[0][$key];
+                    $last = $array[$arrayLength - 1][$key];
+                    if ($first !== null && $last !== null) {
+                        $ascending = $first < $last;  // true if $array is sorted in $ascending order based on 'timestamp'
+                    }
+                }
+                $array = $ascending ? $this->arraySlice ($array, -$limit) : $this->arraySlice ($array, 0, $limit);
+            }
+        }
+        return $array;
+    }
+
+    public function filter_by_since_limit(array $array, ?int $since = null, ?int $limit = null, int|string $key = 'timestamp') {
+        $sinceIsDefined = $this->valueIsDefined ($since);
+        $parsedArray = $this->to_array($array);
+        if ($sinceIsDefined) {
+            $result = [ ];
+            for ($i = 0; $i < count($parsedArray); $i++) {
+                $entry = $parsedArray[$i];
+                if ($entry[$key] >= $since) {
+                    $result[] = $entry;
+                }
+            }
+            return $this->filterByLimit ($result, $limit, $key);
+        }
+        return $this->filterByLimit ($parsedArray, $limit, $key);
+    }
+
+    public function filter_by_value_since_limit(array $array, int|string $field, $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp') {
+        $valueIsDefined = $this->valueIsDefined ($value);
+        $sinceIsDefined = $this->valueIsDefined ($since);
+        $parsedArray = $this->to_array($array);
+        // single-pass filter for both symbol and $since
+        if ($valueIsDefined || $sinceIsDefined) {
+            $result = [ ];
+            for ($i = 0; $i < count($parsedArray); $i++) {
+                $entry = $parsedArray[$i];
+                $entryFiledEqualValue = $entry[$field] === $value;
+                $firstCondition = $valueIsDefined ? $entryFiledEqualValue : true;
+                $entryKeyGESince = $entry[$key] && $since && ($entry[$key] >= $since);
+                $secondCondition = $sinceIsDefined ? $entryKeyGESince : true;
+                if ($firstCondition && $secondCondition) {
+                    $result[] = $entry;
+                }
+            }
+            return $this->filterByLimit ($result, $limit, $key);
+        }
+        return $this->filterByLimit ($parsedArray, $limit, $key);
+    }
 
     public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null) {
         return array();
