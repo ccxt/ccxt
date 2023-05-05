@@ -2113,11 +2113,11 @@ class xt(Exchange, ImplicitAPI):
         stop = self.safe_value(params, 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
         if stop:
-            request['entrustId'] = self.convert_to_big_int(id)
+            request['entrustId'] = id
         elif stopLossTakeProfit:
-            request['profitId'] = self.convert_to_big_int(id)
+            request['profitId'] = id
         else:
-            request['orderId'] = self.convert_to_big_int(id)
+            request['orderId'] = id
         if stop:
             params = self.omit(params, 'stop')
             if subType == 'inverse':
@@ -2742,11 +2742,11 @@ class xt(Exchange, ImplicitAPI):
         stop = self.safe_value(params, 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
         if stop:
-            request['entrustId'] = self.convert_to_big_int(id)
+            request['entrustId'] = id
         elif stopLossTakeProfit:
-            request['profitId'] = self.convert_to_big_int(id)
+            request['profitId'] = id
         else:
-            request['orderId'] = self.convert_to_big_int(id)
+            request['orderId'] = id
         if stop:
             params = self.omit(params, 'stop')
             if subType == 'inverse':
