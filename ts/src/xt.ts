@@ -4438,7 +4438,7 @@ export default class xt extends Exchange {
             body = isUndefinedBody ? undefined : this.json (body);
             let payloadString = undefined;
             if (endpoint === 'spot') {
-                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-timestamp=' + timestamp;
+                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
                 if (isUndefinedBody) {
                     if (urlencoded) {
                         url += '?' + urlencoded;
