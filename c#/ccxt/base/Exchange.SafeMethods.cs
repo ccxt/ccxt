@@ -24,11 +24,16 @@ public partial class Exchange
         var value = safeValue(obj, key, defaultValue);
         if (value == null)
             return null;
-        if (value is string)
-        {
-            return Convert.ToInt64(value) * 1000;
-        }
-        return (Int64)(value) * 1000;
+        // if (value is string)
+        // {
+        //     return Convert.ToInt64(value) * 1000;
+        // }
+        // if (value.GetType() == typeof(double))
+        // {
+        //     return Convert.ToInt64(value) * 1000;
+        // }
+        // return (Int64)(value) * 1000;
+        return Convert.ToInt64(value) * 1000;
     }
 
     public object safeTimestamp2(object obj, object key1, object key2, int defaultValue = -1)

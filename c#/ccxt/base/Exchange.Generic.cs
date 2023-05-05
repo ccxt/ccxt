@@ -21,7 +21,14 @@ public partial class Exchange
         else
         {
             var value = (int)value1;
-            var sortedList = list.OrderBy(x => ((list)x)[value]).ToList();
+            var sortedList = list.OrderBy(x =>
+            {
+                if (x.GetType() == typeof(list))
+                {
+                    return ((list)x)[value];
+                }
+                return "";
+            }).ToList();
 
             if (desc)
                 sortedList.Reverse();
