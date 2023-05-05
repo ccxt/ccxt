@@ -2187,7 +2187,7 @@ export default class bitget extends Exchange {
             request['granularity'] = selectedTimeframe;
             const now = this.milliseconds ();
             if (since === undefined) {
-                request['startTime'] = now - (limit - 1) * (duration * 1000);
+                request['startTime'] = now - limit * (duration * 1000);
                 request['endTime'] = now;
             } else {
                 request['startTime'] = this.sum (since, duration * 1000);
