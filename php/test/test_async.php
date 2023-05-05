@@ -31,6 +31,7 @@ class baseMainTestClass {
 define ('is_synchronous', stripos(__FILE__, '_async') === false);
 
 define('rootDir', __DIR__ . '/../../');
+define('rootDirForSkips', __DIR__ . '/../../');
 define('envVars', $_ENV);
 define('ext', 'php');
 define('httpsAgent', null);
@@ -221,7 +222,7 @@ class testMainClass extends baseMainTestClass {
             }
         }
         // skipped tests
-        $skippedFile = rootDir . 'skip-tests.json';
+        $skippedFile = rootDirForSkips . 'skip-tests.json';
         $skippedSettings = io_file_read ($skippedFile);
         $skippedSettingsForExchange = $exchange->safe_value($skippedSettings, $exchangeId, array());
         // others
@@ -262,7 +263,7 @@ class testMainClass extends baseMainTestClass {
             $isFetchOhlcvEmulated = ($methodName === 'fetchOHLCV' && $exchange->has['fetchOHLCV'] === 'emulated'); // todo => remove emulation from base
             if (($methodName !== 'loadMarkets') && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName]) || $isFetchOhlcvEmulated) {
                 $skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
-            } elseif (is_array($this->skippedMethods) && array_key_exists($methodName, $this->skippedMethods)) {
+            } elseif ((is_array($this->skippedMethods) && array_key_exists($methodName, $this->skippedMethods)) && (gettype($this->skippedMethods[$methodName]) === 'string')) {
                 $skipMessage = '[INFO:SKIPPED_TEST]';
             } elseif (!(is_array($this->testFiles) && array_key_exists($methodNameInTest, $this->testFiles))) {
                 $skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
@@ -279,7 +280,8 @@ class testMainClass extends baseMainTestClass {
             }
             $result = null;
             try {
-                $result = Async\await(call_method ($this->testFiles, $methodNameInTest, $exchange, $args));
+                $skippedProperties = $exchange->safe_value($this->skippedMethods, $methodName, array());
+                $result = Async\await(call_method ($this->testFiles, $methodNameInTest, $exchange, $skippedProperties, $args));
                 if ($isPublic) {
                     $this->checkedPublicTests[$methodNameInTest] = true;
                 }

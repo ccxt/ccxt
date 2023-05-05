@@ -86,6 +86,7 @@ class baseMainTestClass():
 is_synchronous = 'async' not in os.path.basename(__file__)
 
 rootDir = current_dir + '/../../../'
+rootDirForSkips = current_dir + '/../../../'
 envVars = os.environ
 ext = 'py'
 httpsAgent = None
@@ -256,7 +257,7 @@ class testMainClass(baseMainTestClass):
                 if credentialValue:
                     set_exchange_prop(exchange, credential, credentialValue)
         # skipped tests
-        skippedFile = rootDir + 'skip-tests.json'
+        skippedFile = rootDirForSkips + 'skip-tests.json'
         skippedSettings = io_file_read(skippedFile)
         skippedSettingsForExchange = exchange.safe_value(skippedSettings, exchangeId, {})
         # others
@@ -289,7 +290,7 @@ class testMainClass(baseMainTestClass):
         isFetchOhlcvEmulated = (methodName == 'fetchOHLCV' and exchange.has['fetchOHLCV'] == 'emulated')  # todo: remove emulation from base
         if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]) or isFetchOhlcvEmulated:
             skipMessage = '[INFO:UNSUPPORTED_TEST]'  # keep it aligned with the longest message
-        elif methodName in self.skippedMethods:
+        elif (methodName in self.skippedMethods) and (isinstance(self.skippedMethods[methodName], str)):
             skipMessage = '[INFO:SKIPPED_TEST]'
         elif not (methodNameInTest in self.testFiles):
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]'
@@ -302,7 +303,8 @@ class testMainClass(baseMainTestClass):
             dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified)
         result = None
         try:
-            result = await call_method(self.testFiles, methodNameInTest, exchange, args)
+            skippedProperties = exchange.safe_value(self.skippedMethods, methodName, [])
+            result = await call_method(self.testFiles, methodNameInTest, exchange, skippedProperties, args)
             if isPublic:
                 self.checkedPublicTests[methodNameInTest] = True
         except Exception as e:

@@ -26,10 +26,10 @@ function testTrade (exchange, skippedProperties, method, entry, symbol, now) {
     //
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'side', [ 'buy', 'sell' ]);
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'takerOrMaker', [ 'taker', 'maker' ]);
-    testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry['fee']);
+    testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry, 'fee');
     if (entry['fees'] !== undefined) {
-        for (let i = 0; i < entry.length; i++) {
-            testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry[i]);
+        for (let i = 0; i < entry['fees'].length; i++) {
+            testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry['fees'], i);
         }
     }
 }

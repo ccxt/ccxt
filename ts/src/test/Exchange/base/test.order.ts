@@ -52,7 +52,7 @@ function testOrder (exchange, skippedProperties, method, entry, symbol, now) {
             }
         }
     }
-    testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry['fee']);
+    testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry, 'fee');
 }
 
 export default testOrder;

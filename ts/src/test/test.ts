@@ -34,6 +34,7 @@ class baseMainTestClass {
     publicTests = {};
 }
 const rootDir = __dirname + '/../../../';
+const rootDirForSkips = __dirname + '/../../../';
 const envVars = process.env;
 const ext = import.meta.url.split ('.')[1];
 const httpsAgent = new Agent ({ 'ecdhCurve': 'auto' });
@@ -205,7 +206,7 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         // skipped tests
-        const skippedFile = rootDir + 'skip-tests.json';
+        const skippedFile = rootDirForSkips + 'skip-tests.json';
         const skippedSettings = ioFileRead (skippedFile);
         const skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
         // others
@@ -262,7 +263,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         let result = null;
         try {
-            const skippedProperties = exchange.safeValue (this.skippedMethods, methodNameInTest, []);
+            const skippedProperties = exchange.safeValue (this.skippedMethods, methodName, []);
             result = await callMethod (this.testFiles, methodNameInTest, exchange, skippedProperties, args);
             if (isPublic) {
                 this.checkedPublicTests[methodNameInTest] = true;

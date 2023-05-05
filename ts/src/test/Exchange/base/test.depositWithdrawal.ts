@@ -30,7 +30,7 @@ function testDepositWithdrawal (exchange, skippedProperties, method, entry, requ
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'status', [ 'ok', 'pending', 'failed', 'rejected', 'canceled' ]);
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'type', [ 'deposit', 'withdrawal' ]);
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'amount', '0');
-    testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry['fee']);
+    testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry, 'fee');
     if (entry['type'] === 'deposit') {
         testSharedMethods.assertType (exchange, skippedProperties, entry, 'addressFrom', format);
     } else {

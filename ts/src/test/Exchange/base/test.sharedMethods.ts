@@ -244,14 +244,21 @@ function assertInArray (exchange, skippedProperties, method, entry, key, expecte
     }
 }
 
-function assertFeeStructure (exchange, skippedProperties, method, entry) {
+function assertFeeStructure (exchange, skippedProperties, method, entry, key) {
     const logText = logTemplate (exchange, method, entry);
-    if (entry !== undefined) {
-        assert (('cost' in entry), '"fee" should contain a "cost" key' + logText);
-        assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'cost', '0');
-        assert (('currency' in entry), '"fee" should contain a "currency" key' + logText);
-        assertCurrencyCode (exchange, skippedProperties, method, entry, entry['currency']);
+    const keyString = stringValue (key);
+    if (isInteger (key)) {
+        assert (Array.isArray (entry), 'fee container is expected to be an array' + logText);
+        assert (key < entry.length, 'fee key ' + keyString + ' was expected to be present in entry' + logText);
+    } else {
+        assert (typeof entry === 'object', 'fee container is expected to be an object' + logText);
+        assert (key in entry, 'fee key ' + key + ' was expected to be present in entry' + logText);
     }
+    const feeObject = exchange.safeValue (entry, key);
+    assert ('cost' in feeObject, keyString + ' fee object should contain "cost" key' + logText);
+    assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0');
+    assert ('currency' in feeObject, keyString + ' fee object should contain "currency" key' + logText);
+    assertCurrencyCode (exchange, skippedProperties, method, entry, feeObject['currency']);
 }
 
 function assertTimestampOrder (exchange, method, codeOrSymbol, items, ascending = false) {
