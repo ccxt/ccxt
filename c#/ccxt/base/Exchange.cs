@@ -497,16 +497,17 @@ public partial class Exchange
 
     public object arraySlice(object array, object first, object second = null)
     {
+        var firstInt = Convert.ToInt32(first);
         var parsedArray = ((List<object>)array);
         if (second == null)
         {
-            var firstInt = (int)first;
             if (firstInt < 0)
             {
                 return (parsedArray.ToArray()[(parsedArray.Count + firstInt)..]).ToList();
             }
             return (parsedArray.ToArray()[firstInt..]).ToList();
         }
-        return (parsedArray.ToArray()[(int)first..(int)second]).ToList();
+        var secondInt = Convert.ToInt32(second);
+        return (parsedArray.ToArray()[firstInt..secondInt]).ToList();
     }
 }

@@ -354,5 +354,6 @@ public partial class Exchange
         this.exceptions = SafeValue(extendedProperties, "exceptions") as dict;
         this.markets = SafeValue(extendedProperties, "markets") as dict;
         this.rateLimit = SafeFloat(extendedProperties, "rateLimit", -1) ?? -1;
+        this.status = SafeValue(extendedProperties, "status") as dict;
     }
 }
