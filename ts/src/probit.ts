@@ -416,7 +416,7 @@ export default class probit extends Exchange {
             const platformsByPriority = this.sortBy (platforms, 'priority');
             let platform = undefined;
             const networkList = {};
-            for (let j = 0; j < platformsByPriority.length; i++) {
+            for (let j = 0; j < platformsByPriority.length; j++) {
                 const network = platformsByPriority[j];
                 const id = this.safeString (network, 'id');
                 const networkCode = this.networkIdToCode (id);
