@@ -3169,6 +3169,27 @@ class bybit extends Exchange {
         //         "positionIdx" => 2
         //     }
         //
+        //     {
+        //         "orderId":"0b3499a4-9691-40ec-b2b9-7d94ee0165ff",
+        //         "orderLinkId":"",
+        //         "mmp":false,
+        //         "symbol":"SOLPERP",
+        //         "orderType":"Market",
+        //         "side":"Buy",
+        //         "orderQty":"0.10000000",
+        //         "orderPrice":"23.030",
+        //         "iv":"0",
+        //         "timeInForce":"ImmediateOrCancel",
+        //         "orderStatus":"Created",
+        //         "createdAt":"1683380752146568",
+        //         "basePrice":"0.000",
+        //         "triggerPrice":"0.000",
+        //         "takeProfit":"0.000",
+        //         "stopLoss":"0.000",
+        //         "slTriggerBy":"UNKNOWN",
+        //         "tpTriggerBy":"UNKNOWN"
+        //     }
+        //
         $marketId = $this->safe_string($order, 'symbol');
         $marketType = 'contract';
         if ($market !== null) {
@@ -3182,11 +3203,16 @@ class bybit extends Exchange {
         }
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $market['symbol'];
-        $timestamp = $this->safe_integer($order, 'createdTime');
+        $timestamp = null;
+        if (is_array($order) && array_key_exists('createdTime', $order)) {
+            $timestamp = $this->safe_integer($order, 'createdTime');
+        } elseif (is_array($order) && array_key_exists('createdAt', $order)) {
+            $timestamp = $this->safe_integer_product($order, 'createdAt', 0.001);
+        }
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'orderType');
-        $price = $this->safe_string($order, 'price');
-        $amount = $this->safe_string($order, 'qty');
+        $price = $this->safe_string_2($order, 'price', 'orderPrice');
+        $amount = $this->safe_string_2($order, 'qty', 'orderQty');
         $cost = $this->safe_string($order, 'cumExecValue');
         $filled = $this->safe_string($order, 'cumExecQty');
         $remaining = $this->safe_string($order, 'leavesQty');
@@ -3209,6 +3235,8 @@ class bybit extends Exchange {
         $rawTimeInForce = $this->safe_string($order, 'timeInForce');
         $timeInForce = $this->parse_time_in_force($rawTimeInForce);
         $stopPrice = $this->omit_zero($this->safe_string($order, 'triggerPrice'));
+        $takeProfitPrice = $this->omit_zero($this->safe_string($order, 'takeProfit'));
+        $stopLossPrice = $this->omit_zero($this->safe_string($order, 'stopLoss'));
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -3225,6 +3253,8 @@ class bybit extends Exchange {
             'price' => $price,
             'stopPrice' => $stopPrice,
             'triggerPrice' => $stopPrice,
+            'takeProfitPrice' => $takeProfitPrice,
+            'stopLossPrice' => $stopLossPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => null,
@@ -3856,9 +3886,6 @@ class bybit extends Exchange {
     public function create_usdc_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($type === 'market') {
-            throw new NotSupported($this->id . 'createOrder does not allow $market orders for ' . $symbol . ' markets');
-        }
         $lowerCaseType = strtolower($type);
         if (($price === null) && ($lowerCaseType === 'limit')) {
             throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for limit orders');
@@ -3885,7 +3912,7 @@ class bybit extends Exchange {
         );
         $isMarket = $lowerCaseType === 'market';
         $isLimit = $lowerCaseType === 'limit';
-        if ($isLimit !== null) {
+        if ($isLimit) {
             $request['orderPrice'] = $this->price_to_precision($symbol, $price);
         }
         $exchangeSpecificParam = $this->safe_string($params, 'time_in_force');
@@ -3939,8 +3966,12 @@ class bybit extends Exchange {
             $request['orderLinkId'] = $this->uuid16();
         }
         $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit' ));
-        $method = $market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder';
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($market['option']) {
+            $response = $this->privatePostOptionUsdcOpenapiPrivateV1PlaceOrder (array_merge($request, $params));
+        } else {
+            $response = $this->privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder (array_merge($request, $params));
+        }
         //
         //     {
         //         "retCode":0,
