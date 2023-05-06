@@ -125,7 +125,7 @@ export default class blockchaincom extends blockchaincomRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name blockchaincom#watchOHLCV
@@ -158,7 +158,7 @@ export default class blockchaincom extends blockchaincomRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //  subscribed
         //     {
@@ -340,7 +340,7 @@ export default class blockchaincom extends blockchaincomRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //  subscribed
         //     {
@@ -447,7 +447,7 @@ export default class blockchaincom extends blockchaincomRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    handleOrders (client, message) {
+    handleOrders (client: Client, message) {
         //
         //     {
         //         seqnum: 1,
@@ -655,10 +655,10 @@ export default class blockchaincom extends blockchaincomRest {
         };
         const request = this.deepExtend (subscribe, params);
         const orderbook = await this.watch (url, messageHash, request, messageHash);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //  subscribe
         //     {
@@ -763,13 +763,14 @@ export default class blockchaincom extends blockchaincomRest {
         }
     }
 
-    checkSequenceNumber (client, message) {
+    checkSequenceNumber (client: Client, message) {
         const seqnum = this.safeInteger (message, 'seqnum', 0);
         const channel = this.safeString (message, 'channel', '');
-        if (seqnum === 0) {
+        const sequenceNumbersByChannel = this.safeValue (this.options, 'sequenceNumbers', {});
+        const lastSeqnum = this.safeInteger (sequenceNumbersByChannel, channel);
+        if (lastSeqnum === undefined) {
             this.options['sequenceNumbers'][channel] = seqnum;
         } else {
-            const lastSeqnum = this.options['sequenceNumbers'][channel];
             if (seqnum !== lastSeqnum + 1) {
                 throw new ExchangeError (this.id + ' ' + channel + ' seqnum ' + seqnum + ' is not the expected ' + (lastSeqnum + 1));
             }
@@ -777,7 +778,7 @@ export default class blockchaincom extends blockchaincomRest {
         }
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         this.checkSequenceNumber (client, message);
         const channel = this.safeString (message, 'channel');
         const handlers = {
@@ -797,7 +798,7 @@ export default class blockchaincom extends blockchaincomRest {
         throw new NotSupported (this.id + ' received an unsupported message: ' + this.json (message));
     }
 
-    handleAuthenticationMessage (client, message) {
+    handleAuthenticationMessage (client: Client, message) {
         //
         //     {
         //         seqnum: 0,
@@ -820,17 +821,16 @@ export default class blockchaincom extends blockchaincomRest {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';
-        const future = client.future ('authenticated');
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
-        if (authenticated === undefined) {
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
             this.checkRequiredCredentials ();
             const request = {
                 'action': 'subscribe',
                 'channel': 'auth',
                 'token': this.secret,
             };
-            this.spawn (this.watch, url, messageHash, this.extend (request, params), messageHash);
+            future = this.watch (url, messageHash, this.extend (request, params), messageHash);
         }
-        return await future;
+        return future;
     }
 }
