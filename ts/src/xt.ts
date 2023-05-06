@@ -304,6 +304,11 @@ export default class xt extends Exchange {
                             'future/user/v1/user/collection/cancel': 1,
                         },
                     },
+                    'ws': {
+                        'post': {
+                            '/v4/ws-token': 1,
+                        },
+                    },
                 },
             },
             'fees': {
