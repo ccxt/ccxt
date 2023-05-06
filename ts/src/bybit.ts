@@ -3884,9 +3884,6 @@ export default class bybit extends Exchange {
     async createUsdcOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (type === 'market') {
-            throw new NotSupported (this.id + 'createOrder does not allow market orders for ' + symbol + ' markets');
-        }
         const lowerCaseType = type.toLowerCase ();
         if ((price === undefined) && (lowerCaseType === 'limit')) {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
@@ -3913,7 +3910,7 @@ export default class bybit extends Exchange {
         };
         const isMarket = lowerCaseType === 'market';
         const isLimit = lowerCaseType === 'limit';
-        if (isLimit !== undefined) {
+        if (isLimit) {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
         const exchangeSpecificParam = this.safeString (params, 'time_in_force');
@@ -3967,8 +3964,12 @@ export default class bybit extends Exchange {
             request['orderLinkId'] = this.uuid16 ();
         }
         params = this.omit (params, [ 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit' ]);
-        const method = market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder';
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['option']) {
+            response = this.privatePostOptionUsdcOpenapiPrivateV1PlaceOrder (this.extend (request, params));
+        } else {
+            response = this.privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder (this.extend (request, params));
+        }
         //
         //     {
         //         "retCode":0,
