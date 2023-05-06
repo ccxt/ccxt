@@ -3966,9 +3966,9 @@ export default class bybit extends Exchange {
         params = this.omit (params, [ 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit' ]);
         let response = undefined;
         if (market['option']) {
-            response = this.privatePostOptionUsdcOpenapiPrivateV1PlaceOrder (this.extend (request, params));
+            response = await this.privatePostOptionUsdcOpenapiPrivateV1PlaceOrder (this.extend (request, params));
         } else {
-            response = this.privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder (this.extend (request, params));
+            response = await this.privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder (this.extend (request, params));
         }
         //
         //     {
