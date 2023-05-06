@@ -2,13 +2,15 @@
 
 //  ---------------------------------------------------------------------------
 
-const blockchaincomRest = require ('../blockchaincom');
-const { NotSupported, AuthenticationError, ExchangeError } = require ('../base/errors');
-const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
+import blockchaincomRest from '../blockchaincom.js';
+import { NotSupported, AuthenticationError, ExchangeError } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { IndexType, Int } from '../base/types';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class blockchaincom extends blockchaincomRest {
+export default class blockchaincom extends blockchaincomRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -73,7 +75,7 @@ module.exports = class blockchaincom extends blockchaincomRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //  subscribed
         //     {
@@ -123,7 +125,7 @@ module.exports = class blockchaincom extends blockchaincomRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name blockchaincom#watchOHLCV
@@ -153,7 +155,7 @@ module.exports = class blockchaincom extends blockchaincomRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0);
     }
 
     handleOHLCV (client, message) {
@@ -203,7 +205,7 @@ module.exports = class blockchaincom extends blockchaincomRest {
         }
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name blockchaincom#watchTicker
@@ -227,7 +229,7 @@ module.exports = class blockchaincom extends blockchaincomRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //  subscribed
         //     {
@@ -311,7 +313,7 @@ module.exports = class blockchaincom extends blockchaincomRest {
         }, market);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name blockchaincom#watchTrades
@@ -335,7 +337,7 @@ module.exports = class blockchaincom extends blockchaincomRest {
         };
         request = this.deepExtend (request, params);
         const trades = await this.watch (url, messageHash, request, messageHash, request);
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
     handleTrades (client, message) {
@@ -413,7 +415,7 @@ module.exports = class blockchaincom extends blockchaincomRest {
         }, market);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name blockchaincom#fetchOrders
@@ -442,7 +444,7 @@ module.exports = class blockchaincom extends blockchaincomRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     handleOrders (client, message) {
@@ -628,7 +630,7 @@ module.exports = class blockchaincom extends blockchaincomRest {
         return this.safeString (statuses, status, status);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name blockchaincom#watchOrderBook
@@ -721,14 +723,14 @@ module.exports = class blockchaincom extends blockchaincomRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
-    parseCountedBidAsk (bidAsk, priceKey = 0, amountKey = 1, countKey = 2) {
+    parseCountedBidAsk (bidAsk, priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2) {
         const price = this.safeNumber (bidAsk, priceKey);
         const amount = this.safeNumber (bidAsk, amountKey);
         const count = this.safeNumber (bidAsk, countKey);
         return [ price, amount, count ];
     }
 
-    parseCountedBidsAsks (bidasks, priceKey = 0, amountKey = 1, countKey = 2) {
+    parseCountedBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2) {
         bidasks = this.toArray (bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
@@ -737,7 +739,7 @@ module.exports = class blockchaincom extends blockchaincomRest {
         return result;
     }
 
-    parseCountedOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, countKey = 2) {
+    parseCountedOrderBook (orderbook, symbol: string, timestamp: Int = undefined, bidsKey: IndexType = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2) {
         const bids = this.parseCountedBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, countKey);
         const asks = this.parseCountedBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, countKey);
         return {
@@ -831,4 +833,4 @@ module.exports = class blockchaincom extends blockchaincomRest {
         }
         return await future;
     }
-};
+}
