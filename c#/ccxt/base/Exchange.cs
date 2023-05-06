@@ -86,7 +86,7 @@ public partial class Exchange
                         }
                         else
                         {
-                            cost = (int)cost;
+                            // cost = cost != null ? Convert.ToInt32(cost) : 1;
                         }
                     }
 

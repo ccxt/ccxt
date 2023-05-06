@@ -46,7 +46,7 @@ namespace ccxt
 
         public Precise mul(Precise other)
         {
-            var integer = (long)this.integer * (long)other.integer;
+            var integer = this.integer * other.integer;
             var decimals = Convert.ToInt32(this.decimals) + Convert.ToInt32(other.decimals);
             return new Precise(integer.ToString(), decimals);
         }

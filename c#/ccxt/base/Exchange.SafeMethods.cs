@@ -120,7 +120,7 @@ public partial class Exchange
         return result == null ? defaultValue : ((string)result).ToLower();
     }
 
-    public object safeIntegerProduct(object obj, object key, object defaultValue = null, object multiplier = null)
+    public object safeIntegerProduct(object obj, object key, object multiplier = null, object defaultValue = null)
     {
         defaultValue ??= 0;
         multiplier ??= 1;
@@ -128,7 +128,7 @@ public partial class Exchange
         object parsedValue = null;
         try
         {
-            parsedValue = (Convert.ToInt64(result) * Convert.ToInt64(multiplier));
+            parsedValue = Convert.ToInt64((Convert.ToInt64(result) * Convert.ToSingle(multiplier)));
         }
         catch (Exception e)
         {
