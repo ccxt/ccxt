@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.wavesexchange import ImplicitAPI
 import math
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -22,7 +23,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
 
 
-class wavesexchange(Exchange):
+class wavesexchange(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(wavesexchange, self).describe(), {

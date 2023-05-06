@@ -335,7 +335,10 @@ class woo extends Exchange {
                 $symbol = $base . '/' . $quote;
                 $contractSize = null;
                 $linear = null;
-                if ($isSwap) {
+                $margin = true;
+                $contract = $isSwap;
+                if ($contract) {
+                    $margin = false;
                     $settleId = $this->safe_string($parts, 2);
                     $settle = $this->safe_currency_code($settleId);
                     $symbol = $base . '/' . $quote . ':' . $settle;
@@ -354,12 +357,12 @@ class woo extends Exchange {
                     'settleId' => $settleId,
                     'type' => $marketType,
                     'spot' => $isSpot,
-                    'margin' => true,
+                    'margin' => $margin,
                     'swap' => $isSwap,
                     'future' => false,
                     'option' => false,
                     'active' => null,
-                    'contract' => $isSwap,
+                    'contract' => $contract,
                     'linear' => $linear,
                     'inverse' => null,
                     'contractSize' => $contractSize,

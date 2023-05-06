@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -24,7 +25,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bybit(Exchange):
+class bybit(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bybit, self).describe(), {
@@ -3082,6 +3083,27 @@ class bybit(Exchange):
         #         "positionIdx": 2
         #     }
         #
+        #     {
+        #         "orderId":"0b3499a4-9691-40ec-b2b9-7d94ee0165ff",
+        #         "orderLinkId":"",
+        #         "mmp":false,
+        #         "symbol":"SOLPERP",
+        #         "orderType":"Market",
+        #         "side":"Buy",
+        #         "orderQty":"0.10000000",
+        #         "orderPrice":"23.030",
+        #         "iv":"0",
+        #         "timeInForce":"ImmediateOrCancel",
+        #         "orderStatus":"Created",
+        #         "createdAt":"1683380752146568",
+        #         "basePrice":"0.000",
+        #         "triggerPrice":"0.000",
+        #         "takeProfit":"0.000",
+        #         "stopLoss":"0.000",
+        #         "slTriggerBy":"UNKNOWN",
+        #         "tpTriggerBy":"UNKNOWN"
+        #     }
+        #
         marketId = self.safe_string(order, 'symbol')
         marketType = 'contract'
         if market is not None:
@@ -3092,11 +3114,15 @@ class bybit(Exchange):
                 marketType = 'spot'
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
-        timestamp = self.safe_integer(order, 'createdTime')
+        timestamp = None
+        if 'createdTime' in order:
+            timestamp = self.safe_integer(order, 'createdTime')
+        elif 'createdAt' in order:
+            timestamp = self.safe_integer_product(order, 'createdAt', 0.001)
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'orderType')
-        price = self.safe_string(order, 'price')
-        amount = self.safe_string(order, 'qty')
+        price = self.safe_string_2(order, 'price', 'orderPrice')
+        amount = self.safe_string_2(order, 'qty', 'orderQty')
         cost = self.safe_string(order, 'cumExecValue')
         filled = self.safe_string(order, 'cumExecQty')
         remaining = self.safe_string(order, 'leavesQty')
@@ -3117,6 +3143,8 @@ class bybit(Exchange):
         rawTimeInForce = self.safe_string(order, 'timeInForce')
         timeInForce = self.parse_time_in_force(rawTimeInForce)
         stopPrice = self.omit_zero(self.safe_string(order, 'triggerPrice'))
+        takeProfitPrice = self.omit_zero(self.safe_string(order, 'takeProfit'))
+        stopLossPrice = self.omit_zero(self.safe_string(order, 'stopLoss'))
         return self.safe_order({
             'info': order,
             'id': id,
@@ -3133,6 +3161,8 @@ class bybit(Exchange):
             'price': price,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'amount': amount,
             'cost': cost,
             'average': None,
@@ -3709,8 +3739,6 @@ class bybit(Exchange):
     def create_usdc_order(self, symbol: str, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        if type == 'market':
-            raise NotSupported(self.id + 'createOrder does not allow market orders for ' + symbol + ' markets')
         lowerCaseType = type.lower()
         if (price is None) and (lowerCaseType == 'limit'):
             raise ArgumentsRequired(self.id + ' createOrder requires a price argument for limit orders')
@@ -3736,7 +3764,7 @@ class bybit(Exchange):
         }
         isMarket = lowerCaseType == 'market'
         isLimit = lowerCaseType == 'limit'
-        if isLimit is not None:
+        if isLimit:
             request['orderPrice'] = self.price_to_precision(symbol, price)
         exchangeSpecificParam = self.safe_string(params, 'time_in_force')
         timeInForce = self.safe_string_lower(params, 'timeInForce')
@@ -3783,8 +3811,11 @@ class bybit(Exchange):
             # mandatory field for options
             request['orderLinkId'] = self.uuid16()
         params = self.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit'])
-        method = 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' if market['option'] else 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder'
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if market['option']:
+            response = self.privatePostOptionUsdcOpenapiPrivateV1PlaceOrder(self.extend(request, params))
+        else:
+            response = self.privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder(self.extend(request, params))
         #
         #     {
         #         "retCode":0,

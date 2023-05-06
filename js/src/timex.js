@@ -369,7 +369,8 @@ export default class timex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions(response, code, since, limit);
+        const currency = this.safeCurrency(code);
+        return this.parseTransactions(response, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -403,7 +404,8 @@ export default class timex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions(response, code, since, limit);
+        const currency = this.safeCurrency(code);
+        return this.parseTransactions(response, currency, since, limit);
     }
     getCurrencyByAddress(address) {
         const currencies = this.currencies;

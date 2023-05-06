@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.bitget import ImplicitAPI
 import asyncio
 import hashlib
 import json
@@ -33,7 +34,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bitget(Exchange):
+class bitget(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitget, self).describe(), {
@@ -115,20 +116,18 @@ class bitget(Exchange):
                 'withdraw': False,
             },
             'timeframes': {
-                '1m': '1m',
-                '3m': '3m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
+                '1m': '1min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
                 '1h': '1h',
-                '2h': '2h',
                 '4h': '4h',
-                '6h': '6h',
-                '12h': '12h',
-                '1d': '1d',
-                '3d': '3d',
-                '1w': '1w',
-                '1M': '1M',
+                '6h': '6Hutc',
+                '12h': '12Hutc',
+                '1d': '1Dutc',
+                '3d': '3Dutc',
+                '1w': '1Wutc',
+                '1M': '1Mutc',
             },
             'hostname': 'bitget.com',
             'urls': {
@@ -136,6 +135,7 @@ class bitget(Exchange):
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'mix': 'https://api.{hostname}',
+                    'p2p': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
@@ -238,7 +238,9 @@ class bitget(Exchange):
                             'plan/currentPlan': 2,
                             'plan/historyPlan': 2,
                             'position/singlePosition': 2,
+                            'position/singlePosition-v2': 2,
                             'position/allPosition': 2,
+                            'position/allPosition-v2': 2,
                             'trace/currentTrack': 2,
                             'trace/followerOrder': 2,
                             'trace/historyTrack': 2,
@@ -279,6 +281,14 @@ class bitget(Exchange):
                             'trace/followerCloseByTrackingNo': 2,
                             'trace/followerCloseByAll': 2,
                             'trace/followerSetTpsl': 2,
+                        },
+                    },
+                    'p2p': {
+                        'get': {
+                            'merchant/merchantList': 1,
+                            'merchant/merchantInfo': 1,
+                            'merchant/advList': 1,
+                            'merchant/orderList': 1,
                         },
                     },
                 },
@@ -813,10 +823,10 @@ class bitget(Exchange):
             'options': {
                 'timeframes': {
                     'spot': {
-                        '1m': '1m',
-                        '5m': '5m',
-                        '15m': '15m',
-                        '30m': '30m',
+                        '1m': '1min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
                         '1h': '1h',
                         '4h': '4h',
                         '6h': '6Hutc',
@@ -1012,7 +1022,7 @@ class bitget(Exchange):
                 year = '20' + expiryString[0:2]
                 month = expiryString[2:4]
                 day = expiryString[4:6]
-                expiryDatetime = year + '-' + month + '-' + day + 'T00:00:00Z'
+                expiryDatetime = year + '-' + month + '-' + day + 'T00:00:00.000Z'
                 expiry = self.parse8601(expiryDatetime)
                 type = 'future'
                 future = True
@@ -2068,6 +2078,8 @@ class bitget(Exchange):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-candle-data
+        see https://bitgetlimited.github.io/apidoc/en/spot/#candlestick-line-timeframe
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
@@ -2083,7 +2095,8 @@ class bitget(Exchange):
         }
         until = self.safe_integer_2(params, 'until', 'till')
         if limit is None:
-            limit = 100
+            limit = 1000
+        request['limit'] = limit
         marketType = 'spot' if market['spot'] else 'swap'
         timeframes = self.options['timeframes'][marketType]
         selectedTimeframe = self.safe_string(timeframes, timeframe, timeframe)
@@ -2101,10 +2114,10 @@ class bitget(Exchange):
             request['granularity'] = selectedTimeframe
             now = self.milliseconds()
             if since is None:
-                request['startTime'] = now - (limit - 1) * (duration * 1000)
+                request['startTime'] = now - limit * (duration * 1000)
                 request['endTime'] = now
             else:
-                request['startTime'] = self.sum(since, duration * 1000)
+                request['startTime'] = since
                 if until is not None:
                     request['endTime'] = until
                 else:
@@ -3304,7 +3317,7 @@ class bitget(Exchange):
             'symbol': market['id'],
             'marginCoin': market['settleId'],
         }
-        response = await self.privateMixGetPositionSinglePosition(self.extend(request, params))
+        response = await self.privateMixGetPositionSinglePositionV2(self.extend(request, params))
         #
         #     {
         #       code: '00000',
@@ -3357,7 +3370,7 @@ class bitget(Exchange):
         request = {
             'productType': productType,
         }
-        response = await self.privateMixGetPositionAllPosition(self.extend(request, params))
+        response = await self.privateMixGetPositionAllPositionV2(self.extend(request, params))
         #
         #     {
         #       code: '00000',
@@ -3543,7 +3556,7 @@ class bitget(Exchange):
             rates.append({
                 'info': entry,
                 'symbol': symbolInner,
-                'fundingRate': self.safe_string(entry, 'fundingRate'),
+                'fundingRate': self.safe_number(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             })
@@ -4129,7 +4142,13 @@ class bitget(Exchange):
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         signed = api[0] == 'private'
         endpoint = api[1]
-        pathPart = '/api/spot/v1' if (endpoint == 'spot') else '/api/mix/v1'
+        pathPart = ''
+        if endpoint == 'spot':
+            pathPart = '/api/spot/v1'
+        elif endpoint == 'mix':
+            pathPart = '/api/mix/v1'
+        else:
+            pathPart = '/api/p2p/v1'
         request = '/' + self.implode_params(path, params)
         payload = pathPart + request
         url = self.implode_hostname(self.urls['api'][endpoint]) + payload

@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -23,7 +24,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bitmex(Exchange):
+class bitmex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitmex, self).describe(), {
@@ -396,92 +397,108 @@ class bitmex(Exchange):
             id = self.safe_string(market, 'symbol')
             baseId = self.safe_string(market, 'underlying')
             quoteId = self.safe_string(market, 'quoteCurrency')
-            settleId = self.safe_string(market, 'settlCurrency', '')
+            settleId = self.safe_string(market, 'settlCurrency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
-            basequote = baseId + quoteId
-            swap = (id == basequote)
             # 'positionCurrency' may be empty("", currently returns for ETHUSD)
             # so let's take the settlCurrency first and then adjust if needed
-            type = None
-            future = False
-            symbol = base + '/' + quote + ':' + settle
-            expiryDatetime = self.safe_string(market, 'expiry')
-            expiry = self.parse8601(expiryDatetime)
+            typ = self.safe_string(market, 'typ')
+            # Perpetual Contracts - FFWCSX
+            # Perpetual Contracts(FX underliers) - FFWCSF
+            # Spot - IFXXXP
+            # Futures - FFCCSX
+            # BitMEX Basket Index - MRBXXX
+            # BitMEX Crypto Index - MRCXXX
+            # BitMEX FX Index - MRFXXX
+            # BitMEX Lending/Premium Index - MRRXXX
+            # BitMEX Volatility Index - MRIXXX
+            types = {
+                'FFWCSX': 'swap',
+                'FFWCSF': 'swap',
+                'IFXXXP': 'spot',
+                'FFCCSX': 'future',
+            }
+            type = self.safe_string(types, typ, typ)
+            swap = type == 'swap'
+            future = type == 'future'
+            spot = type == 'spot'
+            contract = swap or future
+            symbol = base + '/' + quote
+            contractSize = None
+            if contract:
+                symbol = symbol + ':' + settle
+                multiplierString = Precise.string_abs(self.safe_string(market, 'multiplier'))
+                contractSize = self.parse_number(multiplierString)
             inverse = self.safe_value(market, 'isInverse')
             status = self.safe_string(market, 'state')
             active = status != 'Unlisted'
-            contract = True
-            if swap:
-                type = 'swap'
-            elif expiry is not None:
-                future = True
-                type = 'future'
+            expiry = None
+            expiryDatetime = None
+            if future:
+                expiryDatetime = self.safe_string(market, 'expiry')
+                expiry = self.parse8601(expiryDatetime)
                 symbol = symbol + '-' + self.yymmdd(expiry)
-            else:
-                symbol = base + '/' + quote
-                active = False
-                contract = False
             positionId = self.safe_string_2(market, 'positionCurrency', 'underlying')
             position = self.safe_currency_code(positionId)
             positionIsQuote = (position == quote)
             maxOrderQty = self.safe_number(market, 'maxOrderQty')
             initMargin = self.safe_string(market, 'initMargin', '1')
             maxLeverage = self.parse_number(Precise.string_div('1', initMargin))
-            multiplierString = Precise.string_abs(self.safe_string(market, 'multiplier'))
-            result.append({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': type,
-                'spot': False,
-                'margin': False,
-                'swap': swap,
-                'future': future,
-                'option': False,
-                'active': active,
-                'contract': contract,
-                'linear': not inverse if contract else None,
-                'inverse': inverse if contract else None,
-                'taker': self.safe_number(market, 'takerFee'),
-                'maker': self.safe_number(market, 'makerFee'),
-                'contractSize': self.parse_number(multiplierString),
-                'expiry': expiry,
-                'expiryDatetime': expiryDatetime,
-                'strike': self.safe_number(market, 'optionStrikePrice'),
-                'optionType': None,
-                'precision': {
-                    'amount': self.safe_number(market, 'lotSize'),
-                    'price': self.safe_number(market, 'tickSize'),
-                    'quote': self.safe_number(market, 'tickSize'),
-                    'base': self.safe_number(market, 'tickSize'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': self.parse_number('1') if contract else None,
-                        'max': maxLeverage if contract else None,
+            # temporarily filter out unlisted markets to avoid symbol conflicts
+            if active:
+                result.append({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'settle': settle,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'settleId': settleId,
+                    'type': type,
+                    'spot': spot,
+                    'margin': False,
+                    'swap': swap,
+                    'future': future,
+                    'option': False,
+                    'active': active,
+                    'contract': contract,
+                    'linear': not inverse if contract else None,
+                    'inverse': inverse if contract else None,
+                    'taker': self.safe_number(market, 'takerFee'),
+                    'maker': self.safe_number(market, 'makerFee'),
+                    'contractSize': contractSize,
+                    'expiry': expiry,
+                    'expiryDatetime': expiryDatetime,
+                    'strike': self.safe_number(market, 'optionStrikePrice'),
+                    'optionType': None,
+                    'precision': {
+                        'amount': self.safe_number(market, 'lotSize'),
+                        'price': self.safe_number(market, 'tickSize'),
+                        'quote': self.safe_number(market, 'tickSize'),
+                        'base': self.safe_number(market, 'tickSize'),
                     },
-                    'amount': {
-                        'min': None,
-                        'max': None if positionIsQuote else maxOrderQty,
+                    'limits': {
+                        'leverage': {
+                            'min': self.parse_number('1') if contract else None,
+                            'max': maxLeverage if contract else None,
+                        },
+                        'amount': {
+                            'min': None,
+                            'max': None if positionIsQuote else maxOrderQty,
+                        },
+                        'price': {
+                            'min': None,
+                            'max': self.safe_number(market, 'maxPrice'),
+                        },
+                        'cost': {
+                            'min': None,
+                            'max': maxOrderQty if positionIsQuote else None,
+                        },
                     },
-                    'price': {
-                        'min': None,
-                        'max': self.safe_number(market, 'maxPrice'),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': maxOrderQty if positionIsQuote else None,
-                    },
-                },
-                'info': market,
-            })
+                    'info': market,
+                })
         return result
 
     def parse_balance(self, response):
@@ -2587,7 +2604,7 @@ class bitmex(Exchange):
             'info': response,
         }
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         isAuthenticated = self.check_required_credentials(False)
         cost = self.safe_value(config, 'cost', 1)
         if cost != 1:  # trading endpoints

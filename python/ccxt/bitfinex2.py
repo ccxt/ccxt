@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitfinex2 import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -29,7 +30,7 @@ from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 from ccxt.base.precise import Precise
 
 
-class bitfinex2(Exchange):
+class bitfinex2(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitfinex2, self).describe(), {
@@ -518,13 +519,15 @@ class bitfinex2(Exchange):
             baseId = self.get_currency_id(baseId)
             quoteId = self.get_currency_id(quoteId)
             settle = None
+            settleId = None
             if swap:
                 settle = quote
+                settleId = quote
                 symbol = symbol + ':' + settle
             minOrderSizeString = self.safe_string(market, 3)
             maxOrderSizeString = self.safe_string(market, 4)
             margin = False
-            if self.in_array(id, marginIds):
+            if spot and self.in_array(id, marginIds):
                 margin = True
             result.append({
                 'id': 't' + id,
@@ -534,7 +537,7 @@ class bitfinex2(Exchange):
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': quoteId,
+                'settleId': settleId,
                 'type': 'spot' if spot else 'swap',
                 'spot': spot,
                 'margin': margin,

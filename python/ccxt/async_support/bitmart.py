@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.bitmart import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -28,7 +29,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bitmart(Exchange):
+class bitmart(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitmart, self).describe(), {
@@ -625,10 +626,14 @@ class bitmart(Exchange):
             quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            settle = 'USDT'
+            settleId = 'USDT'  # self is bitmart's ID for usdt
+            settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote + ':' + settle
             productType = self.safe_number(market, 'product_type')
+            isFutures = (productType == 2)
             expiry = self.safe_integer(market, 'expire_timestamp')
+            if not isFutures and (expiry == 0):
+                expiry = None
             result.append({
                 'id': id,
                 'numericId': None,
@@ -638,12 +643,12 @@ class bitmart(Exchange):
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': None,
+                'settleId': settleId,
                 'type': 'swap',
                 'spot': False,
                 'margin': False,
                 'swap': (productType == 1),
-                'future': (productType == 2),
+                'future': isFutures,
                 'option': False,
                 'active': True,
                 'contract': True,

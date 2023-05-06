@@ -747,7 +747,8 @@ class Transpiler {
     // one-time helpers
 
     createPythonClassDeclaration (className, baseClass) {
-        return 'class ' + className + '(' + baseClass + '):'
+        const mixin = (className === 'testMainClass') ? '' : ', ImplicitAPI'
+        return 'class ' + className + '(' + baseClass + mixin + '):'
     }
 
     createPythonHeader () {
@@ -765,16 +766,21 @@ class Transpiler {
         return header.concat (imports);
     }
 
-    createPythonClassImports (baseClass, async = false) {
+    createPythonClassImports (baseClass, className, async = false) {
         const baseClasses = {
             'Exchange': 'base.exchange',
         }
         async = (async ? '.async_support' : '')
 
-        return [
+        const imports = [
             (baseClass.indexOf ('ccxt.') === 0) ?
                 ('import ccxt' + async + ' as ccxt') :
-                ('from ccxt' + async + '.' + safeString (baseClasses, baseClass, baseClass) + ' import ' + baseClass)        ]
+                ('from ccxt' + async + '.' + safeString (baseClasses, baseClass, baseClass) + ' import ' + baseClass),
+        ]
+        if (className !== 'testMainClass') {
+            imports.push ('from ccxt.abstract.' + className + ' import ImplicitAPI')
+        }
+        return imports
     }
 
     createPythonClass (className, baseClass, body, methods, async = false) {
@@ -787,7 +793,7 @@ class Transpiler {
             libraries,
             errorImports,
             precisionImports
-        } = this.createPythonImports(baseClass, bodyAsString, async)
+        } = this.createPythonImports(baseClass, bodyAsString, className, async)
 
         let header = this.createPythonClassHeader (imports, bodyAsString)
 
@@ -811,7 +817,7 @@ class Transpiler {
         return result
     }
 
-    createPythonImports (baseClass, bodyAsString, async = false) {
+    createPythonImports (baseClass, bodyAsString, className, async = false) {
 
         async = (async ? '.async_support' : '')
 
@@ -824,7 +830,7 @@ class Transpiler {
             'sys': 'sys',
         }
 
-        const imports = this.createPythonClassImports (baseClass, async)
+        const imports = this.createPythonClassImports (baseClass, className, async)
 
         const libraries = []
 

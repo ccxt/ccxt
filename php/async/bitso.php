@@ -185,7 +185,7 @@ class bitso extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
-             * @param {string|null} $code unified currency $code, default is null
+             * @param {string|null} $code unified $currency $code, default is null
              * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
              * @param {int|null} $limit max number of ledger entrys to return, default is null
              * @param {array} $params extra parameters specific to the bitso api endpoint
@@ -204,7 +204,7 @@ class bitso extends Exchange {
             //             created_at => '2022-06-08T12:21:42+0000',
             //             balance_updates => [array(
             //                 amount => '0.00080000',
-            //                 currency => 'btc'
+            //                 $currency => 'btc'
             //             )],
             //             operation => 'funding',
             //             details => array(
@@ -220,7 +220,8 @@ class bitso extends Exchange {
             //     }
             //
             $payload = $this->safe_value($response, 'payload', array());
-            return $this->parse_ledger($payload, $code, $since, $limit);
+            $currency = $this->safe_currency($code);
+            return $this->parse_ledger($payload, $currency, $since, $limit);
         }) ();
     }
 

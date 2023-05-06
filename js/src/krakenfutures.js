@@ -21,6 +21,7 @@ export default class krakenfutures extends Exchange {
             'version': 'v3',
             'userAgent': undefined,
             'rateLimit': 600,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -307,8 +308,9 @@ export default class krakenfutures extends Exchange {
             let settleId = undefined;
             const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'contractValueTradePrecision', '0')));
             const pricePrecision = this.safeNumber(market, 'tickSize');
-            const contract = (swap || future);
-            if (contract) {
+            const contract = (swap || future || index);
+            const swapOrFutures = (swap || future);
+            if (swapOrFutures) {
                 const exchangeType = this.safeString(market, 'type');
                 if (exchangeType === 'futures_inverse') {
                     settle = base;
@@ -808,7 +810,8 @@ export default class krakenfutures extends Exchange {
         type = this.safeString(params, 'orderType', type);
         const timeInForce = this.safeString(params, 'timeInForce');
         const stopPrice = this.safeString(params, 'stopPrice');
-        const postOnly = this.safeString(params, 'postOnly');
+        let postOnly = false;
+        [postOnly, params] = this.handlePostOnly(type === 'market', type === 'post', params);
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'cliOrdId');
         params = this.omit(params, ['clientOrderId', 'cliOrdId']);
         if ((type === 'stp' || type === 'take_profit') && stopPrice === undefined) {
@@ -818,7 +821,7 @@ export default class krakenfutures extends Exchange {
             type = 'stp';
         }
         else if (postOnly) {
-            type = 'postOnly';
+            type = 'post';
         }
         else if (timeInForce === 'ioc') {
             type = 'ioc';

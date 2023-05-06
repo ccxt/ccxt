@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.lbank2 import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -24,7 +25,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class lbank2(Exchange):
+class lbank2(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(lbank2, self).describe(), {
@@ -319,6 +320,8 @@ class lbank2(Exchange):
                 '3s': True,
                 '5s': True,
             }
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityAccuracy')))
+            contractSize = amountPrecision
             ending = baseId[-2:]
             isLeveragedProduct = self.safe_value(productTypes, ending, False)
             if isLeveragedProduct:
@@ -345,13 +348,13 @@ class lbank2(Exchange):
                 'contract': isLeveragedProduct,
                 'linear': linear,  # all leveraged ETF products are in USDT
                 'inverse': None,
-                'contractSize': None,
+                'contractSize': contractSize if isLeveragedProduct else None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityAccuracy'))),
+                    'amount': amountPrecision,
                     'price': self.parse_number(self.parse_precision(self.safe_string(market, 'priceAccuracy'))),
                 },
                 'limits': {

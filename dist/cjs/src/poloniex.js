@@ -679,6 +679,7 @@ class poloniex extends poloniex$1 {
                 'withdraw': undefined,
                 'fee': fee,
                 'precision': undefined,
+                'networks': {},
                 'limits': {
                     'amount': {
                         'min': undefined,

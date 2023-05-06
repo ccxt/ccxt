@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.digifinex import ImplicitAPI
 import hashlib
 import json
 from ccxt.base.types import OrderSide
@@ -29,7 +30,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class digifinex(Exchange):
+class digifinex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(digifinex, self).describe(), {
@@ -2834,7 +2835,7 @@ class digifinex(Exchange):
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'fundingRate': self.safe_string(contract, 'funding_rate'),
+            'fundingRate': self.safe_number(contract, 'funding_rate'),
             'fundingTimestamp': timestamp,
             'fundingDatetime': self.iso8601(timestamp),
             'nextFundingRate': self.safe_string(contract, 'next_funding_rate'),
@@ -2893,7 +2894,7 @@ class digifinex(Exchange):
             rates.append({
                 'info': entry,
                 'symbol': symbolInner,
-                'fundingRate': self.safe_string(entry, 'rate'),
+                'fundingRate': self.safe_number(entry, 'rate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             })

@@ -90,20 +90,18 @@ class bitget extends Exchange {
                 'withdraw' => false,
             ),
             'timeframes' => array(
-                '1m' => '1m',
-                '3m' => '3m',
-                '5m' => '5m',
-                '15m' => '15m',
-                '30m' => '30m',
+                '1m' => '1min',
+                '5m' => '5min',
+                '15m' => '15min',
+                '30m' => '30min',
                 '1h' => '1h',
-                '2h' => '2h',
                 '4h' => '4h',
-                '6h' => '6h',
-                '12h' => '12h',
-                '1d' => '1d',
-                '3d' => '3d',
-                '1w' => '1w',
-                '1M' => '1M',
+                '6h' => '6Hutc',
+                '12h' => '12Hutc',
+                '1d' => '1Dutc',
+                '3d' => '3Dutc',
+                '1w' => '1Wutc',
+                '1M' => '1Mutc',
             ),
             'hostname' => 'bitget.com',
             'urls' => array(
@@ -111,6 +109,7 @@ class bitget extends Exchange {
                 'api' => array(
                     'spot' => 'https://api.{hostname}',
                     'mix' => 'https://api.{hostname}',
+                    'p2p' => 'https://api.{hostname}',
                 ),
                 'www' => 'https://www.bitget.com',
                 'doc' => array(
@@ -213,7 +212,9 @@ class bitget extends Exchange {
                             'plan/currentPlan' => 2,
                             'plan/historyPlan' => 2,
                             'position/singlePosition' => 2,
+                            'position/singlePosition-v2' => 2,
                             'position/allPosition' => 2,
+                            'position/allPosition-v2' => 2,
                             'trace/currentTrack' => 2,
                             'trace/followerOrder' => 2,
                             'trace/historyTrack' => 2,
@@ -254,6 +255,14 @@ class bitget extends Exchange {
                             'trace/followerCloseByTrackingNo' => 2,
                             'trace/followerCloseByAll' => 2,
                             'trace/followerSetTpsl' => 2,
+                        ),
+                    ),
+                    'p2p' => array(
+                        'get' => array(
+                            'merchant/merchantList' => 1,
+                            'merchant/merchantInfo' => 1,
+                            'merchant/advList' => 1,
+                            'merchant/orderList' => 1,
                         ),
                     ),
                 ),
@@ -788,10 +797,10 @@ class bitget extends Exchange {
             'options' => array(
                 'timeframes' => array(
                     'spot' => array(
-                        '1m' => '1m',
-                        '5m' => '5m',
-                        '15m' => '15m',
-                        '30m' => '30m',
+                        '1m' => '1min',
+                        '5m' => '5min',
+                        '15m' => '15min',
+                        '30m' => '30min',
                         '1h' => '1h',
                         '4h' => '4h',
                         '6h' => '6Hutc',
@@ -999,7 +1008,7 @@ class bitget extends Exchange {
                 $year = '20' . mb_substr($expiryString, 0, 2 - 0);
                 $month = mb_substr($expiryString, 2, 4 - 2);
                 $day = mb_substr($expiryString, 4, 6 - 4);
-                $expiryDatetime = $year . '-' . $month . '-' . $day . 'T00:00:00Z';
+                $expiryDatetime = $year . '-' . $month . '-' . $day . 'T00:00:00.000Z';
                 $expiry = $this->parse8601($expiryDatetime);
                 $type = 'future';
                 $future = true;
@@ -2107,6 +2116,8 @@ class bitget extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-candle-$data
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#candlestick-line-$timeframe
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
@@ -2122,8 +2133,9 @@ class bitget extends Exchange {
         );
         $until = $this->safe_integer_2($params, 'until', 'till');
         if ($limit === null) {
-            $limit = 100;
+            $limit = 1000;
         }
+        $request['limit'] = $limit;
         $marketType = $market['spot'] ? 'spot' : 'swap';
         $timeframes = $this->options['timeframes'][$marketType];
         $selectedTimeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
@@ -2144,10 +2156,10 @@ class bitget extends Exchange {
             $request['granularity'] = $selectedTimeframe;
             $now = $this->milliseconds();
             if ($since === null) {
-                $request['startTime'] = $now - ($limit - 1) * ($duration * 1000);
+                $request['startTime'] = $now - $limit * ($duration * 1000);
                 $request['endTime'] = $now;
             } else {
-                $request['startTime'] = $this->sum($since, $duration * 1000);
+                $request['startTime'] = $since;
                 if ($until !== null) {
                     $request['endTime'] = $until;
                 } else {
@@ -3431,7 +3443,7 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
             'marginCoin' => $market['settleId'],
         );
-        $response = $this->privateMixGetPositionSinglePosition (array_merge($request, $params));
+        $response = $this->privateMixGetPositionSinglePositionV2 (array_merge($request, $params));
         //
         //     {
         //       code => '00000',
@@ -3487,7 +3499,7 @@ class bitget extends Exchange {
         $request = array(
             'productType' => $productType,
         );
-        $response = $this->privateMixGetPositionAllPosition (array_merge($request, $params));
+        $response = $this->privateMixGetPositionAllPositionV2 (array_merge($request, $params));
         //
         //     {
         //       code => '00000',
@@ -3683,7 +3695,7 @@ class bitget extends Exchange {
             $rates[] = array(
                 'info' => $entry,
                 'symbol' => $symbolInner,
-                'fundingRate' => $this->safe_string($entry, 'fundingRate'),
+                'fundingRate' => $this->safe_number($entry, 'fundingRate'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
             );
@@ -4314,7 +4326,14 @@ class bitget extends Exchange {
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
         $signed = $api[0] === 'private';
         $endpoint = $api[1];
-        $pathPart = ($endpoint === 'spot') ? '/api/spot/v1' : '/api/mix/v1';
+        $pathPart = '';
+        if ($endpoint === 'spot') {
+            $pathPart = '/api/spot/v1';
+        } elseif ($endpoint === 'mix') {
+            $pathPart = '/api/mix/v1';
+        } else {
+            $pathPart = '/api/p2p/v1';
+        }
         $request = '/' . $this->implode_params($path, $params);
         $payload = $pathPart . $request;
         $url = $this->implode_hostname($this->urls['api'][$endpoint]) . $payload;

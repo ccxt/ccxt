@@ -67,7 +67,7 @@ class gemini(ccxt.async_support.gemini):
         trades = await self.watch(url, messageHash, request, subscribeHash)
         if self.newUpdates:
             limit = trades.getLimit(market['symbol'], limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     def parse_ws_trade(self, trade, market=None):
         #
@@ -211,7 +211,7 @@ class gemini(ccxt.async_support.gemini):
         ohlcv = await self.watch(url, messageHash, request, messageHash)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -380,7 +380,7 @@ class gemini(ccxt.async_support.gemini):
         orders = await self.watch(url, messageHash, None, messageHash)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_heartbeat(self, client: Client, message):
         #

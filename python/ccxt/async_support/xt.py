@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.xt import ImplicitAPI
 import asyncio
 import hashlib
 from typing import Optional
@@ -22,7 +23,7 @@ from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
 
 
-class xt(Exchange):
+class xt(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(xt, self).describe(), {
@@ -496,6 +497,8 @@ class xt(Exchange):
             },
             'commonCurrencies': {},
             'options': {
+                'adjustForTimeDifference': False,
+                'timeDifference': 0,
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
@@ -621,7 +624,7 @@ class xt(Exchange):
         })
 
     def nonce(self):
-        return self.milliseconds()
+        return self.milliseconds() - self.options['timeDifference']
 
     async def fetch_time(self, params={}):
         """
@@ -748,6 +751,8 @@ class xt(Exchange):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns [dict]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            await self.load_time_difference()
         promisesUnresolved = [
             self.fetch_spot_markets(params),
             self.fetch_swap_and_future_markets(params),
@@ -1038,7 +1043,11 @@ class xt(Exchange):
             minAmount = self.safe_number(market, 'minQty')
             contract = True
             spot = False
-        isActive = (state == 'ONLINE') or (state == '0')
+        isActive = True
+        if contract:
+            isActive = self.safe_value(market, 'isOpenApi', False)
+        else:
+            isActive = (state == 'ONLINE') or (state == '0')
         return {
             'id': id,
             'symbol': symbol,
@@ -2105,11 +2114,11 @@ class xt(Exchange):
         stop = self.safe_value(params, 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
         if stop:
-            request['entrustId'] = self.convert_to_big_int(id)
+            request['entrustId'] = id
         elif stopLossTakeProfit:
-            request['profitId'] = self.convert_to_big_int(id)
+            request['profitId'] = id
         else:
-            request['orderId'] = self.convert_to_big_int(id)
+            request['orderId'] = id
         if stop:
             params = self.omit(params, 'stop')
             if subType == 'inverse':
@@ -2734,11 +2743,11 @@ class xt(Exchange):
         stop = self.safe_value(params, 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
         if stop:
-            request['entrustId'] = self.convert_to_big_int(id)
+            request['entrustId'] = id
         elif stopLossTakeProfit:
-            request['profitId'] = self.convert_to_big_int(id)
+            request['profitId'] = id
         else:
-            request['orderId'] = self.convert_to_big_int(id)
+            request['orderId'] = id
         if stop:
             params = self.omit(params, 'stop')
             if subType == 'inverse':
@@ -4173,7 +4182,7 @@ class xt(Exchange):
             body = None if isUndefinedBody else self.json(body)
             payloadString = None
             if endpoint == 'spot':
-                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-timestamp=' + timestamp
+                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp
                 if isUndefinedBody:
                     if urlencoded:
                         url += '?' + urlencoded
@@ -4185,7 +4194,7 @@ class xt(Exchange):
                 headers['xt-validate-algorithms'] = 'HmacSHA256'
                 headers['xt-validate-recvwindow'] = recvWindow
             else:
-                payloadString = 'xt-validate-appkey=' + self.apiKey + '&xt-validate-timestamp=' + timestamp
+                payloadString = 'xt-validate-appkey=' + self.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp  # we can't glue timestamp, breaks in php
                 if method == 'GET':
                     if urlencoded:
                         url += '?' + urlencoded

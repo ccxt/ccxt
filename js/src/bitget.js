@@ -92,20 +92,18 @@ export default class bitget extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                '1m': '1m',
-                '3m': '3m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
+                '1m': '1min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
                 '1h': '1h',
-                '2h': '2h',
                 '4h': '4h',
-                '6h': '6h',
-                '12h': '12h',
-                '1d': '1d',
-                '3d': '3d',
-                '1w': '1w',
-                '1M': '1M',
+                '6h': '6Hutc',
+                '12h': '12Hutc',
+                '1d': '1Dutc',
+                '3d': '3Dutc',
+                '1w': '1Wutc',
+                '1M': '1Mutc',
             },
             'hostname': 'bitget.com',
             'urls': {
@@ -113,6 +111,7 @@ export default class bitget extends Exchange {
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'mix': 'https://api.{hostname}',
+                    'p2p': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
@@ -215,7 +214,9 @@ export default class bitget extends Exchange {
                             'plan/currentPlan': 2,
                             'plan/historyPlan': 2,
                             'position/singlePosition': 2,
+                            'position/singlePosition-v2': 2,
                             'position/allPosition': 2,
+                            'position/allPosition-v2': 2,
                             'trace/currentTrack': 2,
                             'trace/followerOrder': 2,
                             'trace/historyTrack': 2,
@@ -256,6 +257,14 @@ export default class bitget extends Exchange {
                             'trace/followerCloseByTrackingNo': 2,
                             'trace/followerCloseByAll': 2,
                             'trace/followerSetTpsl': 2,
+                        },
+                    },
+                    'p2p': {
+                        'get': {
+                            'merchant/merchantList': 1,
+                            'merchant/merchantInfo': 1,
+                            'merchant/advList': 1,
+                            'merchant/orderList': 1,
                         },
                     },
                 },
@@ -790,10 +799,10 @@ export default class bitget extends Exchange {
             'options': {
                 'timeframes': {
                     'spot': {
-                        '1m': '1m',
-                        '5m': '5m',
-                        '15m': '15m',
-                        '30m': '30m',
+                        '1m': '1min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
                         '1h': '1h',
                         '4h': '4h',
                         '6h': '6Hutc',
@@ -1003,7 +1012,7 @@ export default class bitget extends Exchange {
                 const year = '20' + expiryString.slice(0, 2);
                 const month = expiryString.slice(2, 4);
                 const day = expiryString.slice(4, 6);
-                expiryDatetime = year + '-' + month + '-' + day + 'T00:00:00Z';
+                expiryDatetime = year + '-' + month + '-' + day + 'T00:00:00.000Z';
                 expiry = this.parse8601(expiryDatetime);
                 type = 'future';
                 future = true;
@@ -2120,6 +2129,8 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-candle-data
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#candlestick-line-timeframe
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
@@ -2135,8 +2146,9 @@ export default class bitget extends Exchange {
         };
         const until = this.safeInteger2(params, 'until', 'till');
         if (limit === undefined) {
-            limit = 100;
+            limit = 1000;
         }
+        request['limit'] = limit;
         const marketType = market['spot'] ? 'spot' : 'swap';
         const timeframes = this.options['timeframes'][marketType];
         const selectedTimeframe = this.safeString(timeframes, timeframe, timeframe);
@@ -2158,11 +2170,11 @@ export default class bitget extends Exchange {
             request['granularity'] = selectedTimeframe;
             const now = this.milliseconds();
             if (since === undefined) {
-                request['startTime'] = now - (limit - 1) * (duration * 1000);
+                request['startTime'] = now - limit * (duration * 1000);
                 request['endTime'] = now;
             }
             else {
-                request['startTime'] = this.sum(since, duration * 1000);
+                request['startTime'] = since;
                 if (until !== undefined) {
                     request['endTime'] = until;
                 }
@@ -3474,7 +3486,7 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
         };
-        const response = await this.privateMixGetPositionSinglePosition(this.extend(request, params));
+        const response = await this.privateMixGetPositionSinglePositionV2(this.extend(request, params));
         //
         //     {
         //       code: '00000',
@@ -3531,7 +3543,7 @@ export default class bitget extends Exchange {
         const request = {
             'productType': productType,
         };
-        const response = await this.privateMixGetPositionAllPosition(this.extend(request, params));
+        const response = await this.privateMixGetPositionAllPositionV2(this.extend(request, params));
         //
         //     {
         //       code: '00000',
@@ -3730,7 +3742,7 @@ export default class bitget extends Exchange {
             rates.push({
                 'info': entry,
                 'symbol': symbolInner,
-                'fundingRate': this.safeString(entry, 'fundingRate'),
+                'fundingRate': this.safeNumber(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
             });
@@ -4363,7 +4375,16 @@ export default class bitget extends Exchange {
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
-        const pathPart = (endpoint === 'spot') ? '/api/spot/v1' : '/api/mix/v1';
+        let pathPart = '';
+        if (endpoint === 'spot') {
+            pathPart = '/api/spot/v1';
+        }
+        else if (endpoint === 'mix') {
+            pathPart = '/api/mix/v1';
+        }
+        else {
+            pathPart = '/api/p2p/v1';
+        }
         const request = '/' + this.implodeParams(path, params);
         const payload = pathPart + request;
         let url = this.implodeHostname(this.urls['api'][endpoint]) + payload;

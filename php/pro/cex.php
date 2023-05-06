@@ -150,7 +150,7 @@ class cex extends \ccxt\async\cex {
             for ($i = 0; $i < count($trades); $i++) {
                 $trades[$i]['symbol'] = $symbol;
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
         }) ();
     }
 
@@ -424,7 +424,7 @@ class cex extends \ccxt\async\cex {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
         }) ();
     }
 
@@ -460,7 +460,7 @@ class cex extends \ccxt\async\cex {
             );
             $request = $this->deep_extend($message, $params);
             $orders = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $request));
-            return $this->filter_by_symbol_since_limit($orders, $market['symbol'], $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($orders, $market['symbol'], $since, $limit);
         }) ();
     }
 
@@ -1030,7 +1030,7 @@ class cex extends \ccxt\async\cex {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
         }) ();
     }
 

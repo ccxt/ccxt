@@ -484,6 +484,8 @@ export default class xt extends Exchange {
             },
             'commonCurrencies': {},
             'options': {
+                'adjustForTimeDifference': false,
+                'timeDifference': 0,
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
@@ -609,7 +611,7 @@ export default class xt extends Exchange {
         });
     }
     nonce() {
-        return this.milliseconds();
+        return this.milliseconds() - this.options['timeDifference'];
     }
     async fetchTime(params = {}) {
         /**
@@ -744,6 +746,9 @@ export default class xt extends Exchange {
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {[object]} an array of objects representing market data
          */
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const promisesUnresolved = [
             this.fetchSpotMarkets(params),
             this.fetchSwapAndFutureMarkets(params),
@@ -1042,7 +1047,13 @@ export default class xt extends Exchange {
             contract = true;
             spot = false;
         }
-        const isActive = (state === 'ONLINE') || (state === '0');
+        let isActive = true;
+        if (contract) {
+            isActive = this.safeValue(market, 'isOpenApi', false);
+        }
+        else {
+            isActive = (state === 'ONLINE') || (state === '0');
+        }
         return {
             'id': id,
             'symbol': symbol,
@@ -2208,13 +2219,13 @@ export default class xt extends Exchange {
         const stop = this.safeValue(params, 'stop');
         const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
         if (stop) {
-            request['entrustId'] = this.convertToBigInt(id);
+            request['entrustId'] = id;
         }
         else if (stopLossTakeProfit) {
-            request['profitId'] = this.convertToBigInt(id);
+            request['profitId'] = id;
         }
         else {
-            request['orderId'] = this.convertToBigInt(id);
+            request['orderId'] = id;
         }
         if (stop) {
             params = this.omit(params, 'stop');
@@ -2897,13 +2908,13 @@ export default class xt extends Exchange {
         const stop = this.safeValue(params, 'stop');
         const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
         if (stop) {
-            request['entrustId'] = this.convertToBigInt(id);
+            request['entrustId'] = id;
         }
         else if (stopLossTakeProfit) {
-            request['profitId'] = this.convertToBigInt(id);
+            request['profitId'] = id;
         }
         else {
-            request['orderId'] = this.convertToBigInt(id);
+            request['orderId'] = id;
         }
         if (stop) {
             params = this.omit(params, 'stop');
@@ -4450,7 +4461,7 @@ export default class xt extends Exchange {
             body = isUndefinedBody ? undefined : this.json(body);
             let payloadString = undefined;
             if (endpoint === 'spot') {
-                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-timestamp=' + timestamp;
+                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
                 if (isUndefinedBody) {
                     if (urlencoded) {
                         url += '?' + urlencoded;
@@ -4467,7 +4478,7 @@ export default class xt extends Exchange {
                 headers['xt-validate-recvwindow'] = recvWindow;
             }
             else {
-                payloadString = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-timestamp=' + timestamp;
+                payloadString = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp; // we can't glue timestamp, breaks in php
                 if (method === 'GET') {
                     if (urlencoded) {
                         url += '?' + urlencoded;
