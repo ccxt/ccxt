@@ -463,7 +463,7 @@ class currencycom extends Exchange {
                 $futures = false;
                 $swap = ($typeRaw === 'LEVERAGE');
                 $type = $swap ? 'swap' : 'spot';
-                $margin = $swap; // decided to set
+                $margin = null;
                 if ($swap) {
                     $symbol = str_replace($this->options['leverage_markets_suffix'], '', $symbol);
                     $symbol .= ':' . $quote;

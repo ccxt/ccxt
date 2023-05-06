@@ -453,7 +453,7 @@ class currencycom extends currencycom$1 {
             const futures = false;
             const swap = (typeRaw === 'LEVERAGE');
             const type = swap ? 'swap' : 'spot';
-            const margin = swap; // as we decided to set
+            const margin = undefined;
             if (swap) {
                 symbol = symbol.replace(this.options['leverage_markets_suffix'], '');
                 symbol += ':' + quote;
