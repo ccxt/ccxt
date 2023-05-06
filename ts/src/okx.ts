@@ -1830,7 +1830,7 @@ export default class okx extends Exchange {
         const data = this.safeValue (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const rate = data[i];
-            const timestamp = this.safeNumber (rate, 'fundingTime');
+            const timestamp = this.safeInteger (rate, 'fundingTime');
             rates.push ({
                 'info': rate,
                 'symbol': this.safeSymbol (this.safeString (rate, 'instId')),

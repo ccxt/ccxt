@@ -203,7 +203,7 @@ function assertInArray (exchange, method, entry, key, expectedArray) {
         } else {
             keyStr = key.toString ();
         }
-        assert (exchange.inArray (value, expectedArray), keyStr + ' key (with a value of ' + value + ') was expected to be one from: [' + expectedArray.join (',') + ']' + logText);
+        assert (exchange.inArray (value, expectedArray), keyStr + ' key (with a value of ' + value.toString () + ') was expected to be one from: [' + expectedArray.join (',') + ']' + logText);
     }
 }
 
