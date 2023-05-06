@@ -3235,7 +3235,7 @@ export default class bybit extends Exchange {
         }
         const id = this.safeString (order, 'orderId');
         const type = this.safeStringLower (order, 'orderType');
-        const price = this.safeString (order, 'price', 'orderPrice');
+        const price = this.safeString2 (order, 'price', 'orderPrice');
         const amount = this.safeString2 (order, 'qty', 'orderQty');
         const cost = this.safeString (order, 'cumExecValue');
         const filled = this.safeString (order, 'cumExecQty');
