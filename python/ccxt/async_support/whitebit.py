@@ -1962,7 +1962,7 @@ class whitebit(Exchange, ImplicitAPI):
             request = '/' + 'api' + '/' + version + pathWithParams
             body = self.json(self.extend({'request': request, 'nonce': nonce}, params))
             payload = self.string_to_base64(body)
-            signature = self.hmac(payload, secret, hashlib.sha512)
+            signature = self.hmac(self.encode(payload), secret, hashlib.sha512)
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': self.apiKey,

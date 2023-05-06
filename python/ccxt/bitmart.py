@@ -626,10 +626,14 @@ class bitmart(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            settle = 'USDT'
+            settleId = 'USDT'  # self is bitmart's ID for usdt
+            settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote + ':' + settle
             productType = self.safe_number(market, 'product_type')
+            isFutures = (productType == 2)
             expiry = self.safe_integer(market, 'expire_timestamp')
+            if not isFutures and (expiry == 0):
+                expiry = None
             result.append({
                 'id': id,
                 'numericId': None,
@@ -639,12 +643,12 @@ class bitmart(Exchange, ImplicitAPI):
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': None,
+                'settleId': settleId,
                 'type': 'swap',
                 'spot': False,
                 'margin': False,
                 'swap': (productType == 1),
-                'future': (productType == 2),
+                'future': isFutures,
                 'option': False,
                 'active': True,
                 'contract': True,

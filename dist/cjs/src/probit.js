@@ -238,6 +238,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#fetchMarkets
+         * @see https://docs-en.probit.com/reference/market
          * @description retrieves data on all markets for probit
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
@@ -339,6 +340,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#fetchCurrencies
+         * @see https://docs-en.probit.com/reference/currency
          * @description fetches all available currencies on an exchange
          * @param {object} params extra parameters specific to the probit api endpoint
          * @returns {object} an associative dictionary of currencies
@@ -410,7 +412,47 @@ class probit extends probit$1 {
             const name = this.safeString(displayName, 'en-us');
             const platforms = this.safeValue(currency, 'platform', []);
             const platformsByPriority = this.sortBy(platforms, 'priority');
-            const platform = this.safeValue(platformsByPriority, 0, {});
+            let platform = undefined;
+            const networkList = {};
+            for (let j = 0; j < platformsByPriority.length; j++) {
+                const network = platformsByPriority[j];
+                const id = this.safeString(network, 'id');
+                const networkCode = this.networkIdToCode(id);
+                const currentDepositSuspended = this.safeValue(network, 'deposit_suspended');
+                const currentWithdrawalSuspended = this.safeValue(network, 'withdrawal_suspended');
+                const currentDeposit = !currentDepositSuspended;
+                const currentWithdraw = !currentWithdrawalSuspended;
+                const currentActive = currentDeposit && currentWithdraw;
+                if (currentActive) {
+                    platform = network;
+                }
+                const precision = this.safeString(network, 'precision');
+                const withdrawFee = this.safeValue(network, 'withdrawal_fee', []);
+                const fee = this.safeValue(withdrawFee, 0, {});
+                networkList[networkCode] = {
+                    'id': id,
+                    'network': networkCode,
+                    'active': currentActive,
+                    'deposit': currentDeposit,
+                    'withdraw': currentWithdraw,
+                    'fee': this.safeNumber(fee, 'amount'),
+                    'precision': this.parseNumber(precision),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(network, 'min_withdrawal_amount'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(network, 'min_deposit_amount'),
+                            'max': undefined,
+                        },
+                    },
+                    'info': network,
+                };
+            }
+            if (platform === undefined) {
+                platform = this.safeValue(platformsByPriority, 0, {});
+            }
             const depositSuspended = this.safeValue(platform, 'deposit_suspended');
             const withdrawalSuspended = this.safeValue(platform, 'withdrawal_suspended');
             const deposit = !depositSuspended;
@@ -455,7 +497,7 @@ class probit extends probit$1 {
                         'max': undefined,
                     },
                 },
-                'networks': {},
+                'networks': networkList,
             };
         }
         return result;
@@ -482,6 +524,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#fetchBalance
+         * @see https://docs-en.probit.com/reference/balance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} params extra parameters specific to the probit api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
@@ -505,6 +548,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#fetchOrderBook
+         * @see https://docs-en.probit.com/reference/order_book
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
@@ -534,6 +578,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#fetchTickers
+         * @see https://docs-en.probit.com/reference/ticker
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the probit api endpoint
@@ -569,6 +614,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#fetchTicker
+         * @see https://docs-en.probit.com/reference/ticker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the probit api endpoint
@@ -650,6 +696,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#fetchMyTrades
+         * @see https://docs-en.probit.com/reference/trade
          * @description fetch all trades made by the user
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
@@ -701,6 +748,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#fetchTrades
+         * @see https://docs-en.probit.com/reference/trade-1
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
@@ -820,6 +868,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#fetchTime
+         * @see https://docs-en.probit.com/reference/time
          * @description fetches the current integer timestamp in milliseconds from the exchange server
          * @param {object} params extra parameters specific to the probit api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
@@ -871,6 +920,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#fetchOHLCV
+         * @see https://docs-en.probit.com/reference/candle
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -961,6 +1011,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#fetchOpenOrders
+         * @see https://docs-en.probit.com/reference/open_order-1
          * @description fetch all unfilled currently open orders
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
@@ -984,6 +1035,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#fetchClosedOrders
+         * @see https://docs-en.probit.com/reference/order
          * @description fetches information on multiple closed orders made by the user
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
@@ -1016,6 +1068,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#fetchOrder
+         * @see https://docs-en.probit.com/reference/order-3
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the probit api endpoint
@@ -1122,6 +1175,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#createOrder
+         * @see https://docs-en.probit.com/reference/order-1
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1214,6 +1268,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#cancelOrder
+         * @see https://docs-en.probit.com/reference/order-2
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
@@ -1253,6 +1308,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#fetchDepositAddress
+         * @see https://docs-en.probit.com/reference/deposit_address
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the probit api endpoint
@@ -1306,6 +1362,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#fetchDepositAddresses
+         * @see https://docs-en.probit.com/reference/deposit_address
          * @description fetch deposit addresses for multiple currencies and chain types
          * @param {[string]|undefined} codes list of unified currency codes, default is undefined
          * @param {object} params extra parameters specific to the probit api endpoint
@@ -1329,6 +1386,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#withdraw
+         * @see https://docs-en.probit.com/reference/withdrawal
          * @description make a withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
@@ -1428,6 +1486,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name poloniex#fetchDepositWithdrawFees
+         * @see https://docs-en.probit.com/reference/currency
          * @description fetch deposit and withdraw fees
          * @see https://docs.poloniex.com/#public-endpoints-reference-data-currency-information
          * @param {[string]|undefined} codes list of unified currency codes
@@ -1614,6 +1673,7 @@ class probit extends probit$1 {
         /**
          * @method
          * @name probit#signIn
+         * @see https://docs-en.probit.com/reference/token
          * @description sign in, must be called prior to using other authenticated methods
          * @param {object} params extra parameters specific to the probit api endpoint
          * @returns response from exchange
