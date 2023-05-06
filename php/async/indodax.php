@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\indodax as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use React\Async;
@@ -32,7 +33,6 @@ class indodax extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => false,
                 'createDepositAddress' => false,
-                'createMarketOrder' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
@@ -57,19 +57,17 @@ class indodax extends Exchange {
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
-                'fetchMyTrades' => null,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => null,
+                'fetchOrders' => false,
                 'fetchPosition' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
-                'fetchTickers' => null,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
@@ -89,7 +87,7 @@ class indodax extends Exchange {
                 'transfer' => false,
                 'withdraw' => true,
             ),
-            'version' => '2.0', // as of 9 April 2018
+            'version' => '2.0', // 9 April 2018
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg',
                 'api' => array(
@@ -261,7 +259,7 @@ class indodax extends Exchange {
                     'optionType' => null,
                     'percentage' => true,
                     'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision('8')),
+                        'amount' => $this->parse_number('1e-8'),
                         'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_round'))),
                         'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'volume_precision'))),
                     ),
@@ -355,14 +353,14 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the indodax api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -416,13 +414,13 @@ class indodax extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} $params extra parameters specific to the indodax api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -449,6 +447,38 @@ class indodax extends Exchange {
         }) ();
     }
 
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the indodax api endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             */
+            Async\await($this->load_markets());
+            //
+            // {
+            //     "tickers" => {
+            //         "btc_idr" => {
+            //             "high" => "120009000",
+            //             "low" => "116735000",
+            //             "vol_btc" => "218.13777777",
+            //             "vol_idr" => "25800033297",
+            //             "last" => "117088000",
+            //             "buy" => "117002000",
+            //             "sell" => "117078000",
+            //             "server_time" => 1571207881
+            //         }
+            //     }
+            // }
+            //
+            $response = Async\await($this->publicGetTickerAll ($params));
+            $tickers = $this->safe_value($response, 'tickers');
+            return $this->parse_tickers($tickers, $symbols);
+        }) ();
+    }
+
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->safe_timestamp($trade, 'date');
         return $this->safe_trade(array(
@@ -468,7 +498,7 @@ class indodax extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -564,6 +594,7 @@ class indodax extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => $cost,
             'average' => null,
             'amount' => $amount,
@@ -575,13 +606,13 @@ class indodax extends Exchange {
         ));
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} $params extra parameters specific to the indodax api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol');
@@ -599,7 +630,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -607,7 +638,7 @@ class indodax extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open orders for
              * @param {int|null} $limit the maximum number of  open orders structures to retrieve
              * @param {array} $params extra parameters specific to the indodax api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -632,7 +663,7 @@ class indodax extends Exchange {
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
                 $marketOrders = $rawOrders[$marketId];
-                $market = $this->markets_by_id[$marketId];
+                $market = $this->safe_market($marketId);
                 $parsedOrders = $this->parse_orders($marketOrders, $market, $since, $limit);
                 $exchangeOrders = $this->array_concat($exchangeOrders, $parsedOrders);
             }
@@ -640,7 +671,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed $orders made by the user
@@ -648,7 +679,7 @@ class indodax extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the indodax api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
@@ -668,7 +699,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -678,7 +709,7 @@ class indodax extends Exchange {
              * @param {float} $amount how much of $currency you want to trade in units of base $currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote $currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the indodax api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($type !== 'limit') {
                 throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
@@ -700,21 +731,21 @@ class indodax extends Exchange {
             $result = Async\await($this->privatePostTrade (array_merge($request, $params)));
             $data = $this->safe_value($result, 'return', array());
             $id = $this->safe_string($data, 'order_id');
-            return array(
+            return $this->safe_order(array(
                 'info' => $result,
                 'id' => $id,
-            );
+            ), $market);
         }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} $params extra parameters specific to the indodax api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -734,13 +765,13 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function fetch_transaction_fee($code, $params = array ()) {
+    public function fetch_transaction_fee(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the fee for a transaction
              * @param {string} $code unified $currency $code
              * @param {array} $params extra parameters specific to the indodax api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -768,7 +799,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of $deposits and withdrawals
@@ -776,7 +807,7 @@ class indodax extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
              * @param {int|null} $limit max number of $transactions to return, default is null
              * @param {array} $params extra parameters specific to the indodax api endpoint
-             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -869,7 +900,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -878,7 +909,7 @@ class indodax extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string|null} $tag
              * @param {array} $params extra parameters specific to the indodax api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_address($address);
@@ -971,6 +1002,7 @@ class indodax extends Exchange {
             $fee = array(
                 'currency' => $this->safe_currency_code(null, $currency),
                 'cost' => $feeCost,
+                'rate' => null,
             );
         }
         return array(
@@ -1025,24 +1057,24 @@ class indodax extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         // array( success => 0, $error => "invalid order." )
         // or
         // [array( data, ... ), array( ... ), ... ]
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
-            return; // public endpoints may return array()-arrays
+            return null; // public endpoints may return array()-arrays
         }
         $error = $this->safe_value($response, 'error', '');
         if (!(is_array($response) && array_key_exists('success', $response)) && $error === '') {
-            return; // no 'success' property on public responses
+            return null; // no 'success' property on public responses
         }
         if ($this->safe_integer($response, 'success', 0) === 1) {
             // array( success => 1, return => array( orders => array() ))
             if (!(is_array($response) && array_key_exists('return', $response))) {
                 throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json($response));
             } else {
-                return;
+                return null;
             }
         }
         $feedback = $this->id . ' ' . $body;

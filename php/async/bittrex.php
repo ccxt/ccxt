@@ -6,15 +6,16 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\bittrex as Exchange;
 use ccxt\ExchangeError;
-use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidAddress;
-use ccxt\AddressPending;
 use ccxt\InvalidOrder;
 use ccxt\OrderNotFound;
 use ccxt\DDoSProtection;
+use ccxt\AuthenticationError;
+use ccxt\AddressPending;
 use React\Async;
 
 class bittrex extends Exchange {
@@ -87,7 +88,7 @@ class bittrex extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => null,
-                'fetchTransactions' => null,
+                'fetchTransactions' => false,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
@@ -264,25 +265,6 @@ class bittrex extends Exchange {
                 ),
                 'parseOrderStatus' => false,
                 'hasAlreadyAuthenticatedSuccessfully' => false, // a workaround for APIKEY_INVALID
-                // With certain currencies, like
-                // AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP
-                // an additional tag / memo / payment id is usually required by exchanges.
-                // With Bittrex some currencies imply the "base address . tag" logic.
-                // The base address for depositing is stored on $this->currencies[code]
-                // The base address identifies the exchange as the recipient
-                // while the tag identifies the user account within the exchange
-                // and the tag is retrieved with fetchDepositAddress.
-                'tag' => array(
-                    'NXT' => true, // NXT, BURST
-                    'CRYPTO_NOTE_PAYMENTID' => true, // AEON, XMR
-                    'BITSHAREX' => true, // BTS
-                    'RIPPLE' => true, // XRP
-                    'NEM' => true, // XEM
-                    'STELLAR' => true, // XLM
-                    'STEEM' => true, // SBD, GOLOS
-                    // https://github.com/ccxt/ccxt/issues/4794
-                    // 'LISK' => true, // LSK
-                ),
                 'subaccountId' => null,
                 // see the implementation of fetchClosedOrdersV3 below
                 // 'fetchClosedOrdersMethod' => 'fetch_closed_orders_v3',
@@ -333,7 +315,7 @@ class bittrex extends Exchange {
             //             "precision":8,
             //             "status":"ONLINE", // "OFFLINE"
             //             "createdAt":"2019-05-23T00:41:21.843Z",
-            //             "notice":"USDT has swapped to an ERC20-based token as of August 5, 2019."
+            //             "notice":"USDT has swapped to an ERC20-based token August 5, 2019."
             //         }
             //     )
             //
@@ -370,8 +352,8 @@ class bittrex extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => $this->parse_number('0.00000001'),
-                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'precision', '8'))),
+                        'amount' => $this->parse_number('1e-8'), // seems exchange has same amount-precision across all pairs in UI too. This is same as 'minTradeSize' digits after dot
+                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'precision'))),
                     ),
                     'limits' => array(
                         'leverage' => array(
@@ -427,14 +409,14 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -499,13 +481,12 @@ class bittrex extends Exchange {
                 $currency = $response[$i];
                 $id = $this->safe_string($currency, 'symbol');
                 $code = $this->safe_currency_code($id);
-                $precision = $this->parse_number('0.00000001'); // default $precision, todo => fix "magic constants"
+                $precision = $this->parse_number('1e-8'); // default $precision, seems exchange has same amount-$precision across all pairs in UI too. todo => fix "magic constants"
                 $fee = $this->safe_number($currency, 'txFee'); // todo => redesign
                 $isActive = $this->safe_string($currency, 'status');
                 $result[$code] = array(
                     'id' => $id,
                     'code' => $code,
-                    'address' => $this->safe_string($currency, 'baseAddress'),
                     'info' => $currency,
                     'type' => $this->safe_string($currency, 'coinType'),
                     'name' => $this->safe_string($currency, 'name'),
@@ -583,13 +564,13 @@ class bittrex extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -633,13 +614,13 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -678,13 +659,13 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function fetch_bids_asks($symbols = null, $params = array ()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches the bid and ask price and volume for multiple markets
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
              * @param {array} $params extra parameters specific to the binance api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetMarketsTickers ($params));
@@ -751,7 +732,7 @@ class bittrex extends Exchange {
         $isTaker = $this->safe_value($trade, 'isTaker');
         if ($isTaker !== null) {
             $takerOrMaker = $isTaker ? 'taker' : 'maker';
-            if (!$isTaker) { // as noted in PR #15655 this API provides confusing value - when it's 'maker' $trade, then $side value should reversed
+            if (!$isTaker) { // in PR #15655 this API provides confusing value - when it's 'maker' $trade, then $side value should reversed
                 if ($side === 'buy') {
                     $side = 'sell';
                 } elseif ($side === 'sell') {
@@ -801,7 +782,7 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -832,13 +813,13 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fee($symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
              * @param {string} $symbol unified $market $symbol
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -862,7 +843,7 @@ class bittrex extends Exchange {
             /**
              * fetch the trading fees for multiple markets
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetAccountFeesTrading ($params));
@@ -925,7 +906,7 @@ class bittrex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -934,13 +915,13 @@ class bittrex extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $reverseId = $market['baseId'] . '-' . $market['quoteId'];
             $request = array(
-                'candleInterval' => $this->timeframes[$timeframe],
+                'candleInterval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'marketSymbol' => $reverseId,
             );
             $method = 'publicGetMarketsMarketSymbolCandlesCandleIntervalRecent';
@@ -988,7 +969,7 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -996,7 +977,7 @@ class bittrex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open orders for
              * @param {int|null} $limit the maximum number of  open orders structures to retrieve
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1059,7 +1040,7 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
@@ -1068,7 +1049,7 @@ class bittrex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch trades for
              * @param {int|null} $limit the maximum number of trades to retrieve
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1083,7 +1064,7 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1093,7 +1074,7 @@ class bittrex extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             // A $ceiling order is a $market or $limit order that allows you to specify
             // the $amount of quote currency you want to spend (or receive, if selling)
@@ -1268,14 +1249,14 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
              * @param {string} $id order $id
              * @param {string|null} $symbol unified $symbol of the $market the order was made in
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $stop = $this->safe_value($params, 'stop');
@@ -1350,13 +1331,13 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open $orders
              * @param {string|null} $symbol unified $market $symbol, only $orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1399,14 +1380,14 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit($id, $code = null, $params = array ()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch data on a $currency deposit via the deposit $id
              * @param {string} $id deposit $id
              * @param {string|null} $code filter by $currency $code
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1422,7 +1403,7 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1433,7 +1414,7 @@ class bittrex extends Exchange {
              * @param {int|null} $params->endDate Filters out result after this timestamp. Uses ISO-8602 format.
              * @param {string|null} $params->nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
              * @param {string|null} $params->previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             // https://support.bittrex.com/hc/en-us/articles/115003723911
@@ -1444,7 +1425,7 @@ class bittrex extends Exchange {
                 $request['currencySymbol'] = $currency['id'];
             }
             if ($since !== null) {
-                $startDate = intval($since / 1000) * 1000;
+                $startDate = $this->parse_to_int($since / 1000) * 1000;
                 $request['startDate'] = $this->iso8601($startDate);
             }
             if ($limit !== null) {
@@ -1461,14 +1442,14 @@ class bittrex extends Exchange {
             }
             $params = $this->omit($params, 'status');
             $response = Async\await($this->$method (array_merge($request, $params)));
-            // we cannot filter by `$since` timestamp, as it isn't set by Bittrex
+            // we cannot filter by `$since` timestamp, isn't set by Bittrex
             // see https://github.com/ccxt/ccxt/issues/4067
             // return $this->parse_transactions($response, $currency, $since, $limit);
             return $this->parse_transactions($response, $currency, null, $limit);
         }) ();
     }
 
-    public function fetch_pending_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_pending_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all pending deposits made from an account
@@ -1479,21 +1460,21 @@ class bittrex extends Exchange {
              * @param {int|null} $params->endDate Filters out result after this timestamp. Uses ISO-8602 format.
              * @param {string|null} $params->nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
              * @param {string|null} $params->previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             return $this->fetch_deposits($code, $since, $limit, array_merge($params, array( 'status' => 'pending' )));
         }) ();
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch data on a $currency withdrawal via the withdrawal $id
              * @param {string} $id withdrawal $id
              * @param {string|null} $code filter by $currency $code
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1509,7 +1490,7 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1520,7 +1501,7 @@ class bittrex extends Exchange {
              * @param {int|null} $params->endDate Filters out result after this timestamp. Uses ISO-8602 format.
              * @param {string|null} $params->nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
              * @param {string|null} $params->previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             // https://support.bittrex.com/hc/en-us/articles/115003723911
@@ -1531,7 +1512,7 @@ class bittrex extends Exchange {
                 $request['currencySymbol'] = $currency['id'];
             }
             if ($since !== null) {
-                $startDate = intval($since / 1000) * 1000;
+                $startDate = $this->parse_to_int($since / 1000) * 1000;
                 $request['startDate'] = $this->iso8601($startDate);
             }
             if ($limit !== null) {
@@ -1552,7 +1533,7 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function fetch_pending_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_pending_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all pending withdrawals made from an account
@@ -1563,7 +1544,7 @@ class bittrex extends Exchange {
              * @param {int|null} $params->endDate Filters out result after this timestamp. Uses ISO-8602 format.
              * @param {string|null} $params->nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
              * @param {string|null} $params->previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             return $this->fetch_withdrawals($code, $since, $limit, array_merge($params, array( 'status' => 'pending' )));
@@ -1817,6 +1798,7 @@ class bittrex extends Exchange {
             'side' => $direction,
             'price' => $limit,
             'stopPrice' => $this->safe_string($order, 'triggerPrice'),
+            'triggerPrice' => $this->safe_string($order, 'triggerPrice'),
             'cost' => $proceeds,
             'average' => null,
             'amount' => $quantity,
@@ -1832,7 +1814,7 @@ class bittrex extends Exchange {
         ), $market);
     }
 
-    public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array ()) {
+    public function parse_orders($orders, $market = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         if ($this->options['fetchClosedOrdersFilterBySince']) {
             return parent::parse_orders($orders, $market, $since, $limit, $params);
         } else {
@@ -1850,13 +1832,13 @@ class bittrex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
              * @param {string|null} $symbol unified $symbol of the $market the order was made in
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $stop = $this->safe_value($params, 'stop');
@@ -1890,7 +1872,7 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
@@ -1898,7 +1880,7 @@ class bittrex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $trades for
              * @param {int|null} $limit the maximum number of $trades structures to retrieve
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1920,7 +1902,7 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -1928,7 +1910,7 @@ class bittrex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $stop = $this->safe_value($params, 'stop');
@@ -1947,7 +1929,7 @@ class bittrex extends Exchange {
                 // and v3 $market ids are reversed in comparison to v1
                 // v3 has to be a completely separate implementation
                 // otherwise we will have to shuffle symbols and currencies everywhere
-                // which is prone to errors, as was shown here
+                // which is prone to errors, shown here
                 // https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
                 $request['marketSymbol'] = $market['base'] . '-' . $market['quote'];
             }
@@ -2004,13 +1986,13 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * create a $currency deposit $address
              * @param {string} $code unified $currency $code of the $currency for the deposit $address
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -2031,28 +2013,24 @@ class bittrex extends Exchange {
             if (!$address || $message === 'REQUESTED') {
                 throw new AddressPending($this->id . ' the $address for ' . $code . ' is being generated (pending, not ready yet, retry again later)');
             }
-            $tag = $this->safe_string($response, 'cryptoAddressTag');
-            if (($tag === null) && (is_array($this->options['tag']) && array_key_exists($currency['type'], $this->options['tag']))) {
-                $tag = $address;
-                $address = $currency['address'];
-            }
             $this->check_address($address);
             return array(
                 'currency' => $code,
                 'address' => $address,
-                'tag' => $tag,
+                'tag' => $this->safe_string($response, 'cryptoAddressTag'),
+                'network' => null,
                 'info' => $response,
             );
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
              * @param {string} $code unified $currency $code
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -2073,23 +2051,18 @@ class bittrex extends Exchange {
             if (!$address || $message === 'REQUESTED') {
                 throw new AddressPending($this->id . ' the $address for ' . $code . ' is being generated (pending, not ready yet, retry again later)');
             }
-            $tag = $this->safe_string($response, 'cryptoAddressTag');
-            if (($tag === null) && (is_array($this->options['tag']) && array_key_exists($currency['type'], $this->options['tag']))) {
-                $tag = $address;
-                $address = $currency['address'];
-            }
             $this->check_address($address);
             return array(
                 'currency' => $code,
                 'address' => $address,
-                'tag' => $tag,
+                'tag' => $this->safe_string($response, 'cryptoAddressTag'),
                 'network' => null,
                 'info' => $response,
             );
         }) ();
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2098,7 +2071,7 @@ class bittrex extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string|null} $tag
              * @param {array} $params extra parameters specific to the bittrex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_address($address);
@@ -2180,7 +2153,7 @@ class bittrex extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         //
         //     array( $success => false, $message => "message" )
@@ -2189,16 +2162,16 @@ class bittrex extends Exchange {
             $feedback = $this->id . ' ' . $body;
             $success = $this->safe_value($response, 'success');
             if ($success === null) {
-                $code = $this->safe_string($response, 'code');
-                if (($code === 'NOT_FOUND') && (mb_strpos($url, 'addresses') !== false)) {
+                $codeInner = $this->safe_string($response, 'code');
+                if (($codeInner === 'NOT_FOUND') && (mb_strpos($url, 'addresses') !== false)) {
                     throw new InvalidAddress($feedback);
                 }
-                if ($code !== null) {
-                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
-                    $this->throw_broadly_matched_exception($this->exceptions['broad'], $code, $feedback);
+                if ($codeInner !== null) {
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeInner, $feedback);
+                    $this->throw_broadly_matched_exception($this->exceptions['broad'], $codeInner, $feedback);
                 }
                 // throw new ExchangeError($this->id . ' malformed $response ' . $this->json($response));
-                return;
+                return null;
             }
             if (gettype($success) === 'string') {
                 // bleutrade uses string instead of boolean
@@ -2257,5 +2230,6 @@ class bittrex extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+        return null;
     }
 }
