@@ -47,7 +47,7 @@ const buildOHLCVC = (trades: Trade[], timeframe: string = '1m', since: number = 
     const [ timestamp, /* open */, high, low, close, volume, count ] = [ 0, 1, 2, 3, 4, 5, 6 ];
     const oldest = Math.min(trades.length, limit);
 
-    for (let i = 0; i < oldest; i++) {{
+    for (let i = 0; i < oldest; i++) {
         const trade = trades[i];
         if (trade.timestamp < since) {
             continue;
