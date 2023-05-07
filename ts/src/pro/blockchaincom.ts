@@ -817,19 +817,20 @@ export default class blockchaincom extends blockchaincomRest {
         }
     }
 
-    async authenticate (params = {}) {
+    authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future (messageHash);
+        const isAuthenticated = this.safeValue (client.subscriptions, messageHash);
+        if (isAuthenticated === undefined) {
             this.checkRequiredCredentials ();
             const request = {
                 'action': 'subscribe',
                 'channel': 'auth',
                 'token': this.secret,
             };
-            future = this.watch (url, messageHash, this.extend (request, params), messageHash);
+            return this.watch (url, messageHash, this.extend (request, params), messageHash);
         }
         return future;
     }
