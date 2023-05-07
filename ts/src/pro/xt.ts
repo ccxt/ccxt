@@ -438,13 +438,37 @@ export default class xt extends xtRest {
     }
 
     handleTickers (client: Client, message) {
-        // TODO
+        //
         //    {
-        //        "topic": "tickers",
-        //        "event": "tickers",
-        //        "data": [ ]  // refer to ticker(real-time push)
+        //        topic: 'tickers',
+        //        event: 'tickers',
+        //        data: [
+        //            {
+        //                s: 'elon_usdt',
+        //                t: 1683502958381,
+        //                cv: '-0.0000000125',
+        //                cr: '-0.0495',
+        //                o: '0.0000002522',
+        //                c: '0.0000002397',
+        //                h: '0.0000002690',
+        //                l: '0.0000002371',
+        //                q: '3803783034.0000000000',
+        //                v: '955.3260820022'
+        //            },
+        //            ...
+        //        ]
         //    }
         //
+        const data = this.safeValue (message, 'data');
+        if (data !== undefined) {
+            for (let i = 0; i < data.length; i++) {
+                const tickerData = data[i];
+                const ticker = this.parseTicker (tickerData);
+                const symbol = ticker['symbol'];
+                this.tickers[symbol] = ticker;
+            }
+            client.resolve (this.tickers, 'tickers');
+        }
         return message;
     }
 
