@@ -441,12 +441,13 @@ class NewTranspiler {
         // const pythonExports = [ 'error_hierarchy', 'BaseError' ]
         const csharpBody = undefined;
         const csharpErrors = intellisense (root as any, 'BaseError', csharpMakeErrorClassFile, undefined)
-        const csharpBodyIntellisense = '\n' + this.createGeneratedHeader().join('\n') + '\n' + csharpBaseError + '\n' + csharpErrors.join ('\n') + '\n'
+        const csharpBodyIntellisense = '\nnamespace ccxt;\n' + this.createGeneratedHeader().join('\n') + '\n' + csharpBaseError + '\n' + csharpErrors.join ('\n') + '\n'
         const csharpFile = ""
         if (fs.existsSync (ERRORS_FILE)) {
             log.bright.cyan (message, (ERRORS_FILE as any).yellow)
-            const csharpRegex = /(?<=public partial class Exchange\n{)((.|\n)+)(?=})/g
-            replaceInFile (ERRORS_FILE, csharpRegex, csharpBodyIntellisense)
+            // const csharpRegex = /(?<=public partial class Exchange\n{)((.|\n)+)(?=})/g
+            // replaceInFile (ERRORS_FILE, csharpRegex, csharpBodyIntellisense)
+            overwriteFile (ERRORS_FILE, csharpBodyIntellisense)
         }
 
         log.bright.cyan (message, (ERRORS_FILE as any).yellow)
