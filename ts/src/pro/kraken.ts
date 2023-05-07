@@ -2,13 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import krakenRest from '../kraken.js';
-import { BadSymbol, BadRequest, ExchangeError, NotSupported, InvalidNonce } from '../base/errors.js';
+import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import { Int, OrderSide } from '../base/types.js';
+import { Int, OrderSide, OrderType } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { OrderType } from '../base/types.js';
-
 //  ---------------------------------------------------------------------------
 
 export default class kraken extends krakenRest {
@@ -58,7 +56,48 @@ export default class kraken extends krakenRest {
                         'Event(s) not found': BadRequest,
                     },
                     'broad': {
+                        'Already subscribed': BadRequest,
                         'Currency pair not in ISO 4217-A3 format': BadSymbol,
+                        'Malformed request': BadRequest,
+                        'Pair field must be an array': BadRequest,
+                        'Pair field unsupported for this subscription type': BadRequest,
+                        'Pair(s) not found': BadSymbol,
+                        'Subscription book depth must be an integer': BadRequest,
+                        'Subscription depth not supported': BadRequest,
+                        'Subscription field must be an object': BadRequest,
+                        'Subscription name invalid': BadRequest,
+                        'Subscription object unsupported field': BadRequest,
+                        'Subscription ohlc interval must be an integer': BadRequest,
+                        'Subscription ohlc interval not supported': BadRequest,
+                        'Subscription ohlc requires interval': BadRequest,
+                        'EAccount:Invalid permissions': PermissionDenied,
+                        'EAuth:Account temporary disabled': AccountSuspended,
+                        'EAuth:Account unconfirmed': AuthenticationError,
+                        'EAuth:Rate limit exceeded': RateLimitExceeded,
+                        'EAuth:Too many requests': RateLimitExceeded,
+                        'EDatabase: Internal error (to be deprecated)': ExchangeError,
+                        'EGeneral:Internal error[:<code>]': ExchangeError,
+                        'EGeneral:Invalid arguments': BadRequest,
+                        'EOrder:Cannot open opposing position': InvalidOrder,
+                        'EOrder:Cannot open position': InvalidOrder,
+                        'EOrder:Insufficient funds (insufficient user funds)': InsufficientFunds,
+                        'EOrder:Insufficient margin (exchange does not have sufficient funds to allow margin trading)': InsufficientFunds,
+                        'EOrder:Invalid price': InvalidOrder,
+                        'EOrder:Margin allowance exceeded': InvalidOrder,
+                        'EOrder:Margin level too low': InvalidOrder,
+                        'EOrder:Margin position size exceeded (client would exceed the maximum position size for this pair)': InvalidOrder,
+                        'EOrder:Order minimum not met (volume too low)': InvalidOrder,
+                        'EOrder:Orders limit exceeded': InvalidOrder,
+                        'EOrder:Positions limit exceeded': InvalidOrder,
+                        'EOrder:Rate limit exceeded': RateLimitExceeded,
+                        'EOrder:Scheduled orders limit exceeded': InvalidOrder,
+                        'EOrder:Unknown position': OrderNotFound,
+                        'EService:Deadline elapsed': ExchangeNotAvailable,
+                        'EService:Market in cancel_only mode': NotSupported,
+                        'EService:Market in limit_only mode': NotSupported,
+                        'EService:Market in post_only mode': NotSupported,
+                        'EService:Unavailable': ExchangeNotAvailable,
+                        'ETrade:Invalid request': BadRequest,
                     },
                 },
             },
