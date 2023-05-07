@@ -48,7 +48,10 @@ export default class xt extends xtRest {
          * @returns {object} response from exchange
          */
         this.checkRequiredCredentials ();
-        if (this.accessToken === undefined) {
+        const url = this.urls['api']['ws'] + 'private';
+        const client = this.client (url);
+        const accessToken = this.safeValue (client.subscriptions, 'accessToken');
+        if (accessToken === undefined) {
             const response = await this.privateWsPostV4WsToken (params);
             //
             //    {
@@ -62,9 +65,9 @@ export default class xt extends xtRest {
             //    }
             //
             const result = this.safeValue (response, 'result');
-            this.accessToken = this.safeString (result, 'accessToken');
+            client.subscriptions['accessToken'] = this.safeString (result, 'accessToken');
         }
-        return this.accessToken;
+        return client.subscriptions['accessToken'];
     }
 
     async subscribe (name: string, access: string, symbol: string = undefined, params = {}) {
@@ -81,13 +84,12 @@ export default class xt extends xtRest {
          */
         await this.loadMarkets ();
         const url = this.urls['api']['ws'] + access;
-        const id = '//TODO: get id';
         const subscribe = {
             'method': 'subscribe',
             'params': [
                 name,
             ],
-            'id': id,  // call back ID
+            'id': this.milliseconds () + name,  // call back ID
         };
         if (access === 'private') {
             subscribe['listenKey'] = this.getAccessToken ();
