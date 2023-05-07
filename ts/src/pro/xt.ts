@@ -248,46 +248,68 @@ export default class xt extends xtRest {
         return await this.subscribe (name, 'private', undefined, params);
     }
 
-    handleTrade (client: Client, message) {
-        // TODO
+    handleTicker (client: Client, message) {
         //
         //    {
-        //        "topic": "trade",
-        //        "event": "trade@btc_usdt",
-        //        "data": {
-        //            "s": "btc_usdt",          // symbol
-        //            "i": 6316559590087222000, // trade id
-        //            "t": 1655992403617,       // trade time
-        //            "p": "43000",             // trade price
-        //            "q": "0.21",              // qty，trade quantity
-        //            "b": true                 // whether is buyerMaker or not
+        //        topic: 'ticker',
+        //        event: 'ticker@btc_usdt',
+        //        data: {
+        //           s: 'btc_usdt',            // symbol
+        //           t: 1683501935877,         // time(Last transaction time)
+        //           cv: '-82.67',             // priceChangeValue(24 hour price change)
+        //           cr: '-0.0028',            // priceChangeRate 24-hour price change (percentage)
+        //           o: '28823.87',            // open price
+        //           c: '28741.20',            // close price
+        //           h: '29137.64',            // highest price
+        //           l: '28660.93',            // lowest price
+        //           q: '6372.601573',         // quantity
+        //           v: '184086075.2772391'    // volume
         //        }
         //    }
         //
-        const channel = this.safeString (message, 'feed');
-        const marketId = this.safeStringLower (message, 'product_id');
+        const data = this.safeValue (message, 'data');
+        const marketId = this.safeString (data, 's');
         if (marketId !== undefined) {
-            const market = this.market (marketId);
-            const symbol = market['symbol'];
-            const messageHash = 'trade:' + symbol;
-            let tradesArray = this.safeValue (this.trades, symbol);
-            if (tradesArray === undefined) {
-                const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                tradesArray = new ArrayCache (tradesLimit);
-                this.trades[symbol] = tradesArray;
+            const ticker = this.parseTicker (data);
+            const symbol = ticker['symbol'];
+            this.tickers[symbol] = ticker;
+            const messageHash = this.safeString (message, 'event');
+            client.resolve (ticker, messageHash);
+        }
+        return message;
+    }
+
+    handleTickers (client: Client, message) {
+        //
+        //    {
+        //        topic: 'tickers',
+        //        event: 'tickers',
+        //        data: [
+        //            {
+        //                s: 'elon_usdt',
+        //                t: 1683502958381,
+        //                cv: '-0.0000000125',
+        //                cr: '-0.0495',
+        //                o: '0.0000002522',
+        //                c: '0.0000002397',
+        //                h: '0.0000002690',
+        //                l: '0.0000002371',
+        //                q: '3803783034.0000000000',
+        //                v: '955.3260820022'
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (message, 'data');
+        if (data !== undefined) {
+            for (let i = 0; i < data.length; i++) {
+                const tickerData = data[i];
+                const ticker = this.parseTicker (tickerData);
+                const symbol = ticker['symbol'];
+                this.tickers[symbol] = ticker;
             }
-            if (channel === 'trade_snapshot') {
-                const trades = this.safeValue (message, 'trades', []);
-                for (let i = 0; i < trades.length; i++) {
-                    const item = trades[i];
-                    const trade = this.parseTrade (item);
-                    tradesArray.append (trade);
-                }
-            } else {
-                const trade = this.parseTrade (message);
-                tradesArray.append (trade);
-            }
-            client.resolve (tradesArray, messageHash);
+            client.resolve (this.tickers, 'tickers');
         }
         return message;
     }
@@ -336,6 +358,135 @@ export default class xt extends xtRest {
             const messageHash = table + ':' + marketId;
             client.resolve (stored, messageHash);
         }
+    }
+
+    handleTrade (client: Client, message) {
+        // TODO
+        //
+        //    {
+        //        "topic": "trade",
+        //        "event": "trade@btc_usdt",
+        //        "data": {
+        //            "s": "btc_usdt",          // symbol
+        //            "i": 6316559590087222000, // trade id
+        //            "t": 1655992403617,       // trade time
+        //            "p": "43000",             // trade price
+        //            "q": "0.21",              // qty，trade quantity
+        //            "b": true                 // whether is buyerMaker or not
+        //        }
+        //    }
+        //
+        const channel = this.safeString (message, 'feed');
+        const marketId = this.safeStringLower (message, 'product_id');
+        if (marketId !== undefined) {
+            const market = this.market (marketId);
+            const symbol = market['symbol'];
+            const messageHash = 'trade:' + symbol;
+            let tradesArray = this.safeValue (this.trades, symbol);
+            if (tradesArray === undefined) {
+                const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                tradesArray = new ArrayCache (tradesLimit);
+                this.trades[symbol] = tradesArray;
+            }
+            if (channel === 'trade_snapshot') {
+                const trades = this.safeValue (message, 'trades', []);
+                for (let i = 0; i < trades.length; i++) {
+                    const item = trades[i];
+                    const trade = this.parseTrade (item);
+                    tradesArray.append (trade);
+                }
+            } else {
+                const trade = this.parseTrade (message);
+                tradesArray.append (trade);
+            }
+            client.resolve (tradesArray, messageHash);
+        }
+        return message;
+    }
+
+    handleOrderBook (client: Client, message) {
+        // TODO
+        // depth@symbols,levels
+        //
+        //    {
+        //        "topic": "depth",
+        //        "event": "depth@btc_usdt,20",
+        //        "data": {
+        //            "s": "btc_usdt",        // symbol
+        //            "i": 12345678,          // updateId
+        //            "t": 1657699200000,     // time
+        //            "a": [                  // asks(sell order)
+        //                [                   //[0]price, [1]quantity
+        //                    "34000",        //price
+        //                    "1.2"           //quantity
+        //                ],
+        //                [
+        //                    "34001",
+        //                    "2.3"
+        //                ]
+        //            ],
+        //            "b": [                   // bids(buy order)
+        //                [
+        //                    "32000",
+        //                    "0.2"
+        //                ],
+        //                [
+        //                    "31000",
+        //                    "0.5"
+        //                ]
+        //            ]
+        //        }
+        //    }
+        //
+        // depth_update@{symbol}
+        //
+        //    {
+        //        "topic": "depth_update",
+        //        "event": "depth_update@btc_usdt",
+        //        "data": {
+        //            "s": "btc_usdt",        // symbol
+        //            "fi": 121,              // firstUpdateId = previous lastUpdateId + 1
+        //            "i": 123,               // lastUpdateId
+        //            "a": [                  // asks  sell order
+        //                [                   // [0]price, [1]quantity
+        //                    "34000",        //price
+        //                    "1.2"           //quantity
+        //                ],
+        //                [
+        //                    "34001",
+        //                    "2.3"
+        //                ]
+        //            ],
+        //            "b": [                  // bids buy order
+        //                [
+        //                    "32000",
+        //                    "0.2"
+        //                ],
+        //                [
+        //                    "31000",
+        //                    "0.5"
+        //                ]
+        //            ]
+        //        }
+        //    }
+        //
+        const marketId = this.safeStringLower (message, 'product_id');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const messageHash = 'book:' + symbol;
+        const orderbook = this.orderbooks[symbol];
+        const side = this.safeString (message, 'side');
+        const price = this.safeNumber (message, 'price');
+        const qty = this.safeNumber (message, 'qty');
+        const timestamp = this.safeInteger (message, 'timestamp');
+        if (side === 'sell') {
+            orderbook['asks'].store (price, qty);
+        } else {
+            orderbook['bids'].store (price, qty);
+        }
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        client.resolve (orderbook, messageHash);
     }
 
     handleOrder (client: Client, message) {
@@ -435,157 +586,6 @@ export default class xt extends xtRest {
             }
         }
         return message;
-    }
-
-    handleTickers (client: Client, message) {
-        //
-        //    {
-        //        topic: 'tickers',
-        //        event: 'tickers',
-        //        data: [
-        //            {
-        //                s: 'elon_usdt',
-        //                t: 1683502958381,
-        //                cv: '-0.0000000125',
-        //                cr: '-0.0495',
-        //                o: '0.0000002522',
-        //                c: '0.0000002397',
-        //                h: '0.0000002690',
-        //                l: '0.0000002371',
-        //                q: '3803783034.0000000000',
-        //                v: '955.3260820022'
-        //            },
-        //            ...
-        //        ]
-        //    }
-        //
-        const data = this.safeValue (message, 'data');
-        if (data !== undefined) {
-            for (let i = 0; i < data.length; i++) {
-                const tickerData = data[i];
-                const ticker = this.parseTicker (tickerData);
-                const symbol = ticker['symbol'];
-                this.tickers[symbol] = ticker;
-            }
-            client.resolve (this.tickers, 'tickers');
-        }
-        return message;
-    }
-
-    handleTicker (client: Client, message) {
-        //
-        //    {
-        //        topic: 'ticker',
-        //        event: 'ticker@btc_usdt',
-        //        data: {
-        //           s: 'btc_usdt',            // symbol
-        //           t: 1683501935877,         // time(Last transaction time)
-        //           cv: '-82.67',             // priceChangeValue(24 hour price change)
-        //           cr: '-0.0028',            // priceChangeRate 24-hour price change (percentage)
-        //           o: '28823.87',            // open price
-        //           c: '28741.20',            // close price
-        //           h: '29137.64',            // highest price
-        //           l: '28660.93',            // lowest price
-        //           q: '6372.601573',         // quantity
-        //           v: '184086075.2772391'    // volume
-        //        }
-        //    }
-        //
-        const data = this.safeValue (message, 'data');
-        const marketId = this.safeString (data, 's');
-        if (marketId !== undefined) {
-            const ticker = this.parseTicker (data);
-            const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
-            const messageHash = this.safeString (message, 'event');
-            client.resolve (ticker, messageHash);
-        }
-        return message;
-    }
-
-    handleOrderBook (client: Client, message) {
-        // TODO
-        // depth@symbols,levels
-        //
-        //    {
-        //        "topic": "depth",
-        //        "event": "depth@btc_usdt,20",
-        //        "data": {
-        //            "s": "btc_usdt",        // symbol
-        //            "i": 12345678,          // updateId
-        //            "t": 1657699200000,     // time
-        //            "a": [                  // asks(sell order)
-        //                [                   //[0]price, [1]quantity
-        //                    "34000",        //price
-        //                    "1.2"           //quantity
-        //                ],
-        //                [
-        //                    "34001",
-        //                    "2.3"
-        //                ]
-        //            ],
-        //            "b": [                   // bids(buy order)
-        //                [
-        //                    "32000",
-        //                    "0.2"
-        //                ],
-        //                [
-        //                    "31000",
-        //                    "0.5"
-        //                ]
-        //            ]
-        //        }
-        //    }
-        //
-        // depth_update@{symbol}
-        //
-        //    {
-        //        "topic": "depth_update",
-        //        "event": "depth_update@btc_usdt",
-        //        "data": {
-        //            "s": "btc_usdt",        // symbol
-        //            "fi": 121,              // firstUpdateId = previous lastUpdateId + 1
-        //            "i": 123,               // lastUpdateId
-        //            "a": [                  // asks  sell order
-        //                [                   // [0]price, [1]quantity
-        //                    "34000",        //price
-        //                    "1.2"           //quantity
-        //                ],
-        //                [
-        //                    "34001",
-        //                    "2.3"
-        //                ]
-        //            ],
-        //            "b": [                  // bids buy order
-        //                [
-        //                    "32000",
-        //                    "0.2"
-        //                ],
-        //                [
-        //                    "31000",
-        //                    "0.5"
-        //                ]
-        //            ]
-        //        }
-        //    }
-        //
-        const marketId = this.safeStringLower (message, 'product_id');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        const messageHash = 'book:' + symbol;
-        const orderbook = this.orderbooks[symbol];
-        const side = this.safeString (message, 'side');
-        const price = this.safeNumber (message, 'price');
-        const qty = this.safeNumber (message, 'qty');
-        const timestamp = this.safeInteger (message, 'timestamp');
-        if (side === 'sell') {
-            orderbook['asks'].store (price, qty);
-        } else {
-            orderbook['bids'].store (price, qty);
-        }
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = this.iso8601 (timestamp);
-        client.resolve (orderbook, messageHash);
     }
 
     handleBalance (client: Client, message) {
