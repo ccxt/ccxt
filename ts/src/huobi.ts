@@ -4910,9 +4910,7 @@ export default class huobi extends Exchange {
             }
             response = await this.spotPrivatePostV1OrderOrdersBatchcancel (this.extend (request, params));
         } else {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol for ' + marketType + ' orders');
-            }
+            this.checkRequiredSymbol ('cancelOrders', symbol);
             let clientOrderIds = this.safeString2 (params, 'client_order_id', 'clientOrderId');
             clientOrderIds = this.safeString2 (params, 'client_order_ids', 'clientOrderIds', clientOrderIds);
             if (clientOrderIds === undefined) {
