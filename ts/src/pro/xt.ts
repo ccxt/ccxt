@@ -94,10 +94,7 @@ export default class xt extends xtRest {
         if (access === 'private') {
             subscribe['listenKey'] = await this.getAccessToken ();
         }
-        let messageHash = name;
-        if (symbol !== undefined) {
-            messageHash = messageHash + ':' + symbol;
-        }
+        const messageHash = name;
         const request = this.extend (subscribe, params);
         return await this.watch (url, messageHash, request, messageHash);
     }
@@ -452,34 +449,33 @@ export default class xt extends xtRest {
     }
 
     handleTicker (client: Client, message) {
-        // TODO
+        //
         //    {
-        //        "topic": "ticker",
-        //        "event": "ticker@btc_usdt",
-        //        "data": {
-        //            "s": "btc_usdt",      // symbol
-        //            "t": 1657586700119,   // time(Last transaction time)
-        //            "cv": "-200",         // priceChangeValue(24 hour price change)
-        //            "cr": "-0.02",        // priceChangeRate 24-hour price change (percentage)
-        //            "o": "30000",         // open price
-        //            "c": "39000",         // close price
-        //            "h": "38000",         // highest price
-        //            "l": "40000",         // lowest price
-        //            "q": "4",             // quantity
-        //            "v": "150000",        // volume
-        //       }
+        //        topic: 'ticker',
+        //        event: 'ticker@btc_usdt',
+        //        data: {
+        //           s: 'btc_usdt',            // symbol
+        //           t: 1683501935877,         // time(Last transaction time)
+        //           cv: '-82.67',             // priceChangeValue(24 hour price change)
+        //           cr: '-0.0028',            // priceChangeRate 24-hour price change (percentage)
+        //           o: '28823.87',            // open price
+        //           c: '28741.20',            // close price
+        //           h: '29137.64',            // highest price
+        //           l: '28660.93',            // lowest price
+        //           q: '6372.601573',         // quantity
+        //           v: '184086075.2772391'    // volume
+        //        }
         //    }
         //
-        const marketId = this.safeStringLower (message, 'product_id');
-        const feed = this.safeString (message, 'feed');
+        const data = this.safeValue (message, 'data');
+        const marketId = this.safeString (data, 's');
         if (marketId !== undefined) {
-            const ticker = this.parseTicker (message);
+            const ticker = this.parseTicker (data);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            const messageHash = feed + ':' + symbol;
+            const messageHash = this.safeString (message, 'event');
             client.resolve (ticker, messageHash);
         }
-        client.resolve (this.tickers, feed);
         return message;
     }
 
@@ -699,7 +695,7 @@ export default class xt extends xtRest {
         const event = this.safeString (message, 'event');
         if (event === 'pong') {
             return client.onPong (message);
-        } else if (event === undefined) {
+        } else if (event !== undefined) {
             const topic = this.safeString (message, 'topic');
             const methods = {
                 'trade': this.handleMyTrades,
