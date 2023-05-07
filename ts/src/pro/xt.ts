@@ -45,7 +45,7 @@ export default class xt extends xtRest {
          * @method
          * @description required for private endpoints
          * @see https://doc.xt.com/#websocket_privategetToken
-         * @returns {object} response from exchange
+         * @returns {string} accessToken
          */
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'] + 'private';
@@ -92,7 +92,7 @@ export default class xt extends xtRest {
             'id': this.milliseconds () + name,  // call back ID
         };
         if (access === 'private') {
-            subscribe['listenKey'] = this.getAccessToken ();
+            subscribe['listenKey'] = await this.getAccessToken ();
         }
         let messageHash = name;
         if (symbol !== undefined) {
