@@ -1,8 +1,10 @@
 {
-    "binance":       {  },
-    "bybit":         {  },
-    "binanceus":     {  },
-    "binancecoinm":  {  },
-    "binanceusdm":   {  },
-    "tokocrypto":    {  }
+    "sampleExchange" : {
+        "httpProxy": "012.345.678.910",
+        "apiKey": "xxxxxxxx",
+        "secret": "xxxxxxxx",
+        "options": {
+            "defaultType": "spot"
+        }
+    }
 }
