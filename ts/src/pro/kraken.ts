@@ -5,8 +5,9 @@ import krakenRest from '../kraken.js';
 import { BadSymbol, BadRequest, ExchangeError, NotSupported, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import { Int } from '../base/types.js';
+import { Int, OrderSide } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import { OrderType } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -23,11 +24,11 @@ export default class kraken extends krakenRest {
                 'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchTrades': true,
-                'createOrder': true,
-                'editOrder': true,
-                'cancelOrder': true,
-                'cancelOrders': true,
-                'cancelAllOrders': true,
+                'createOrderWs': true,
+                'editOrderWs': true,
+                'cancelOrderWs': true,
+                'cancelOrdersWs': true,
+                'cancelAllOrdersWs': true,
                 // 'watchHeartbeat': true,
                 // 'watchStatus': true,
             },
@@ -64,10 +65,10 @@ export default class kraken extends krakenRest {
         });
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
-         * @name kraken#createOrder
+         * @name kraken#createOrderWs
          * @see https://docs.kraken.com/websockets/#message-addOrder
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
@@ -93,7 +94,7 @@ export default class kraken extends krakenRest {
             'pair': market['wsId'],
             'volume': this.amountToPrecision (symbol, amount),
         };
-        [ request, params ] = this.orderRequest ('createOrder()', symbol, type, request, price, params);
+        [ request, params ] = this.orderRequest ('createOrderWs()', symbol, type, request, price, params);
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
@@ -122,10 +123,10 @@ export default class kraken extends krakenRest {
         client.resolve (order, messageHash);
     }
 
-    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
-         * @name kraken#editOrder
+         * @name kraken#editOrderWs
          * @description edit a trade order
          * @see https://docs.kraken.com/websockets/#message-editOrder
          * @param {string} id order id
@@ -151,14 +152,14 @@ export default class kraken extends krakenRest {
             'pair': market['wsId'],
             'volume': this.amountToPrecision (symbol, amount),
         };
-        [ request, params ] = this.orderRequest ('editOrder()', symbol, type, request, price, params);
+        [ request, params ] = this.orderRequest ('editOrderWs()', symbol, type, request, price, params);
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) {
+    async cancelOrdersWs (ids: string[], symbol: string = undefined, params = {}) {
         /**
          * @method
-         * @name kraken#cancelOrders
+         * @name kraken#cancelOrdersWs
          * @see https://docs.kraken.com/websockets/#message-cancelOrder
          * @description cancel multiple orders
          * @param {[string]} ids order ids
@@ -180,10 +181,10 @@ export default class kraken extends krakenRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrderWs (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
-         * @name kraken#cancelOrder
+         * @name kraken#cancelOrderWs
          * @see https://docs.kraken.com/websockets/#message-cancelOrder
          * @description cancels an open order
          * @param {string} id order id
@@ -220,10 +221,10 @@ export default class kraken extends krakenRest {
         client.resolve (message, reqId);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrdersWs (symbol: string = undefined, params = {}) {
         /**
          * @method
-         * @name kraken#cancelAllOrders
+         * @name kraken#cancelAllOrdersWs
          * @see https://docs.kraken.com/websockets/#message-cancelAll
          * @description cancel all open orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
@@ -231,7 +232,7 @@ export default class kraken extends krakenRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol !== undefined) {
-            throw new NotSupported (this.id + ' cancelAllOrders () does not support cancelling orders in a specific market.');
+            throw new NotSupported (this.id + ' cancelAllOrdersWs () does not support cancelling orders in a specific market.');
         }
         await this.loadMarkets ();
         const token = await this.authenticate ();
