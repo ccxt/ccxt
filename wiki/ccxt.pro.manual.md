@@ -423,7 +423,17 @@ $exchange = new \ccxt\pro\kucoin(array( 'newUpdates' => false ));
 ## Proxy
 ### Python Proxies
 
-The python version of the library uses the [aiohttp]([python-requests.org](https://docs.aiohttp.org/en/stable/client_advanced.html) package for underlying websockets client.
+The python version of the library uses the [aiohttp python-requests.org](https://docs.aiohttp.org/en/stable/client_advanced.html) package for underlying websockets client.
+
+We have two options to set a ws proxy:
+#### Using the aiohttp_proxy option
+```python
+exchange = ccxt.binance({
+    # your options ..
+    aiohttp_proxy = 'proxy.com'
+    })
+```
+#### Using the env variables
 
 You can configure proxies by setting `aiohttp_trust_env` to `True` and setting the environment variables HTPP_PROXY, HTTPS_PROXY, WS_PROXY and WSS_PROXY.
 
