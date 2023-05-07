@@ -4,13 +4,17 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.coinspot import ImplicitAPI
 import hashlib
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class coinspot(Exchange):
+class coinspot(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(coinspot, self).describe(), {
@@ -27,7 +31,7 @@ class coinspot(Exchange):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
-                'createMarketOrder': None,
+                'createMarketOrder': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': False,
@@ -185,13 +189,13 @@ class coinspot(Exchange):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the coinspot api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -236,12 +240,12 @@ class coinspot(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the coinspot api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -264,13 +268,13 @@ class coinspot(Exchange):
         ticker = self.safe_value(prices, id)
         return self.parse_ticker(ticker, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         see https://www.coinspot.com.au/api#latestprices
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the coinspot api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         response = self.publicGetLatest(params)
@@ -303,7 +307,7 @@ class coinspot(Exchange):
                 result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -364,16 +368,17 @@ class coinspot(Exchange):
             'fee': None,
         }, market)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        see https://www.coinspot.com.au/api#placebuyorder
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the coinspot api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         method = 'privatePostMy' + self.capitalize(side)
@@ -387,13 +392,13 @@ class coinspot(Exchange):
         }
         return getattr(self, method)(self.extend(request, params))
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
         :param str|None symbol: not used by coinspot cancelOrder()
         :param dict params: extra parameters specific to the coinspot api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         side = self.safe_string(params, 'side')
         if side != 'buy' and side != 'sell':
