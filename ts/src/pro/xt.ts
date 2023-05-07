@@ -301,16 +301,14 @@ export default class xt extends xtRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data');
-        if (data !== undefined) {
-            for (let i = 0; i < data.length; i++) {
-                const tickerData = data[i];
-                const ticker = this.parseTicker (tickerData);
-                const symbol = ticker['symbol'];
-                this.tickers[symbol] = ticker;
-            }
-            client.resolve (this.tickers, 'tickers');
+        const data = this.safeValue (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const tickerData = data[i];
+            const ticker = this.parseTicker (tickerData);
+            const symbol = ticker['symbol'];
+            this.tickers[symbol] = ticker;
         }
+        client.resolve (this.tickers, 'tickers');
         return message;
     }
 
@@ -333,7 +331,6 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
-        const table = this.safeString (message, 'table');
         const data = this.safeValue (message, 'data', []);
         const parts = table.split ('/');
         const part1 = this.safeString (parts, 1);
