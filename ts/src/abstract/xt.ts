@@ -149,6 +149,8 @@ interface Exchange {
     privateInversePostFutureUserV1PositionMargin (params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureUserV1UserCollectionAdd (params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureUserV1UserCollectionCancel (params?: {}): Promise<implicitReturnType>;
+    privateInversePostFutureUserV1UserCollectionCancel (params?: {}): Promise<implicitReturnType>;
+    privateWsPostV4WsToken (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
