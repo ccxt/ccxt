@@ -60,6 +60,7 @@ function testMarket (exchange, skippedProperties, method, market) {
     //
     const validTypes = [ 'spot', 'margin', 'swap', 'future', 'option' ];
     testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'type', validTypes);
+    const hasIndex = ('index' in market); // todo: add in all
     // check if string is consistent with 'type'
     if (market['spot']) {
         assert (market['type'] === 'spot', '"type" string should be "spot" when spot is true' + logText);
@@ -69,7 +70,8 @@ function testMarket (exchange, skippedProperties, method, market) {
         assert (market['type'] === 'future', '"type" string should be "future" when future is true' + logText);
     } else if (market['option']) {
         assert (market['type'] === 'option', '"type" string should be "option" when option is true' + logText);
-    } else if (market['index']) {
+    } else if (hasIndex && market['index']) {
+        // todo: add index in all implementations
         assert (market['type'] === 'index', '"type" string should be "index" when index is true' + logText);
     }
     // margin check (todo: add margin as mandatory, instead of undefined)
@@ -90,7 +92,7 @@ function testMarket (exchange, skippedProperties, method, market) {
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'taker', '-100');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'maker', '-100');
     // 'contract' boolean check
-    if (market['future'] || market['swap'] || market['option'] || market['index']) {
+    if (market['future'] || market['swap'] || market['option'] || (hasIndex && market['index'])) {
         // if it's some kind of contract market, then `conctract` should be true
         assert (market['contract'], '"contract" must be true when "future", "swap", "option" or "index" is true' + logText);
     } else {
