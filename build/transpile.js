@@ -1469,6 +1469,7 @@ class Transpiler {
                 'IndexType': 'int|string',
                 'Int': 'int',
                 'object': 'array',
+                'object[]': 'mixed',
                 'OrderType': 'string',
                 'OrderSide': 'string',
             }
