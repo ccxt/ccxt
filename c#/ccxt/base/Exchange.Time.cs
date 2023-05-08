@@ -7,19 +7,25 @@ public partial class Exchange
 
     public long milliseconds()
     {
+
+        DateTimeOffset dto = new DateTimeOffset(DateTime.UtcNow);
+        string unixTime = dto.ToUnixTimeSeconds().ToString();
+        return dto.ToUnixTimeMilliseconds();
+
         // DateTimeOffset now = DateTimeOffset.UtcNow;
         // long unixTimeMilliseconds = now.ToUnixTimeMilliseconds();
-        // return unixTimeMilliseconds;
+        // // return unixTimeMilliseconds;
         // DateTime unixEpoch = new DateTime(1970, 1, 1);
-
         // DateTime currentTime = DateTime.UtcNow;
         // TimeSpan elapsedTime = unixEpoch.Subtract(currentTime);
 
         // long unixTimstamp = (long)elapsedTime.TotalMilliseconds;
         // return unixTimstamp;
-        DateTimeOffset now = (DateTimeOffset)DateTime.UtcNow;
-        var res = now.ToUnixTimeMilliseconds();
-        return res;
+        // DateTimeOffset now = (DateTimeOffset)DateTime.UtcNow;
+        // var res = now.ToUnixTimeMilliseconds();
+        // return res;
+
+
     }
 
     public long microseconds()
@@ -155,6 +161,13 @@ public partial class Exchange
         Int64 timestamp;
         try
         {
+            if (datetime.IndexOf("+0") > -1)
+            {
+                // "2023-05-08T17:04:43+0000"
+                // dates like this aren't correctly mapped to UTC
+                var parts = datetime.Split('+');
+                datetime = parts[0];
+            }
             timestamp = (long)DateTime.Parse(datetime, null, System.Globalization.DateTimeStyles.RoundtripKind).Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
         }
         catch (Exception e)
