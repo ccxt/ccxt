@@ -388,7 +388,9 @@
                 "precision":"is undefined",
                 "active":"is undefined",
                 "info": "null"
-            }
+            },
+            "fetchOrderBook": "bids[0][0] (3787971.0) should be < than asks[0][0] (3787971.0) <<< btcbox ",
+            "fetchL2OrderBook": "bids[0][0] (3787971.0) should be < than asks[0][0] (3787971.0) <<< btcbox "
         }
     },
     "btcex": {
