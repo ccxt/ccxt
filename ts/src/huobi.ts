@@ -4896,15 +4896,15 @@ export default class huobi extends Exchange {
             clientOrderIds = this.safeValue2 (params, 'client-order-ids', 'clientOrderIds', clientOrderIds);
             if (clientOrderIds === undefined) {
                 if (typeof clientOrderIds === 'string') {
-                    request['order-ids'] = ids;
+                    request['order-ids'] = [ ids ];
                 } else {
-                    request['order-ids'] = ids.join (',');
+                    request['order-ids'] = ids;
                 }
             } else {
                 if (typeof clientOrderIds === 'string') {
-                    request['client-order-ids'] = clientOrderIds;
+                    request['client-order-ids'] = [ clientOrderIds ];
                 } else {
-                    request['client-order-ids'] = clientOrderIds.join (',');
+                    request['client-order-ids'] = clientOrderIds;
                 }
                 params = this.omit (params, [ 'client-order-id', 'client-order-ids', 'clientOrderId', 'clientOrderIds' ]);
             }
