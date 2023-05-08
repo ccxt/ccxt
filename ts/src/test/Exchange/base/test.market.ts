@@ -62,13 +62,15 @@ function testMarket (exchange, skippedProperties, method, market) {
     testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'type', validTypes);
     // check if string is consistent with 'type'
     if (market['spot']) {
-        assert (market['type'] === 'spot', 'market type must be "spot" when spot is true' + logText);
+        assert (market['type'] === 'spot', '"type" string should be "spot" when spot is true' + logText);
     } else if (market['swap']) {
-        assert (market['type'] === 'swap', 'market type must be "swap" when swap is true' + logText);
+        assert (market['type'] === 'swap', '"type" string should be "swap" when swap is true' + logText);
     } else if (market['future']) {
-        assert (market['type'] === 'future', 'market type must be "future" when future is true' + logText);
+        assert (market['type'] === 'future', '"type" string should be "future" when future is true' + logText);
     } else if (market['option']) {
-        assert (market['type'] === 'option', 'market type must be "option" when option is true' + logText);
+        assert (market['type'] === 'option', '"type" string should be "option" when option is true' + logText);
+    } else if (market['index']) {
+        assert (market['type'] === 'index', '"type" string should be "index" when index is true' + logText);
     }
     // margin check (todo: add margin as mandatory, instead of undefined)
     if (market['spot']) {
@@ -88,26 +90,30 @@ function testMarket (exchange, skippedProperties, method, market) {
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'taker', '-100');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'maker', '-100');
     // 'contract' boolean check
-    if (market['future'] || market['swap'] || market['option']) {
+    if (market['future'] || market['swap'] || market['option'] || market['index']) {
         // if it's some kind of contract market, then `conctract` should be true
-        assert (market['contract'], 'market contract must be true when "future", "swap" or "option" is true' + logText);
+        assert (market['contract'], '"contract" must be true when "future", "swap", "option" or "index" is true' + logText);
     } else {
-        assert (!market['contract'], 'market contract must be false when "future", "swap" or "option" is undefined' + logText);
+        assert (!market['contract'], '"contract" must be false when neither "future", "swap","option" or "index" is true' + logText);
     }
+    const isSwapOrFuture = market['swap'] || market['future'];
     const contractSize = exchange.safeString (market, 'contractSize');
     // contract fields
     if (market['contract']) {
         // linear & inverse should have different values (true/false)
-        assert (market['linear'] !== market['inverse'], 'market linear and inverse must not be the same' + logText);
-        if (!('contractSize' in skippedProperties)) {
-            // contract size should be defined
-            assert (contractSize !== undefined, '"contractSize" must be defined when "contract" is true' + logText);
-            // contract size should be above zero
-            assert (Precise.stringGt (contractSize, '0'), '"contractSize" must be > 0 when "contract" is true' + logText);
-        }
-        if (!('settle' in skippedProperties)) {
-            // settle should be defined
-            assert ((market['settle'] !== undefined) && (market['settleId'] !== undefined), '"settle" & "settleId" must be defined when "contract" is true' + logText);
+        // todo: expand logic on other market types
+        if (isSwapOrFuture) {
+            assert (market['linear'] !== market['inverse'], 'market linear and inverse must not be the same' + logText);
+            if (!('contractSize' in skippedProperties)) {
+                // contract size should be defined
+                assert (contractSize !== undefined, '"contractSize" must be defined when "contract" is true' + logText);
+                // contract size should be above zero
+                assert (Precise.stringGt (contractSize, '0'), '"contractSize" must be > 0 when "contract" is true' + logText);
+            }
+            if (!('settle' in skippedProperties)) {
+                // settle should be defined
+                assert ((market['settle'] !== undefined) && (market['settleId'] !== undefined), '"settle" & "settleId" must be defined when "contract" is true' + logText);
+            }
         }
         // spot should be false
         assert (!market['spot'], '"spot" must be false when "contract" is true' + logText);

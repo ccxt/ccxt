@@ -9,7 +9,8 @@ function testCurrency (exchange, skippedProperties, method, entry) {
     // todo: remove fee from empty
     const emptyAllowedFor = [ 'name', 'fee' ];
     // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
-    if (exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated') {
+    const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
+    if (isNative) {
         format['info'] = {};
         // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
         format['withdraw'] = true; // withdraw enabled

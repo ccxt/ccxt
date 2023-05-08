@@ -16,9 +16,9 @@ assert_options (ASSERT_CALLBACK, function(){
         $file = $args[0];
         $line = $args[1];
         $message = $args[3];
-        var_dump("[TEST_FAILURE] ASSERT - $message [ $file : $line ]");
+        var_dump("[ASSERT_ERROR] - $message [ $file : $line ]");
     } catch (\Exception $exc) {
-        var_dump("[TEST_FAILURE] -");
+        var_dump("[ASSERT_ERROR] -");
         var_dump($args);
     }
     exit;
