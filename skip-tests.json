@@ -447,8 +447,7 @@
     },
     "bybit": {
         "httpProxy": "http://51.83.140.52:11230",
-        "skipPhpAsync": true,
-        "//": "missing php async proxy",
+        "skipPhpAsync": "missing php async proxy",
         "skipMethods": {
             "fetchTickers": {
                 "symbol" :"returned symbol is not same as requested symbol. i.e. BTC/USDT:USDT vs BTC/USDT"
