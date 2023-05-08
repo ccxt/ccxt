@@ -53,7 +53,8 @@
                 "expiryDatetime": "expiry not set for future markets"
             },
             "fetchCurrencies": {
-                "precision": "not provided in public api"
+                "precision": "not provided in public api",
+                "networks": "not yet unified"
             }
         }
     },
