@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net7.0</TargetFrameworks>
+    <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
     <OutputType>Library</OutputType>
     <RootNamespace>ccxt</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>

@@ -176,7 +176,11 @@ public partial class Exchange
         else if (method == "POST")
         {
             contentType = contentType == "" ? "application/json" : contentType;
+#if NET7_0_OR_GREATER
             var contentTypeHeader = new MediaTypeWithQualityHeaderValue(contentType);
+#else
+            var contentTypeHeader = contentType;
+#endif
             var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
             response = await this.client.PostAsync(url, stringContent);
             result = await response.Content.ReadAsStringAsync();

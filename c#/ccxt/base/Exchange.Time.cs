@@ -30,7 +30,11 @@ public partial class Exchange
 
     public long microseconds()
     {
-        return DateTime.Now.Ticks / TimeSpan.TicksPerMicrosecond;
+#if NET7_0_OR_GREATER
+        return DateTime.Now.Ticks / TimeSpan.TicksPerMicrosecond; ;
+#else
+        return DateTime.Now.Ticks / (TimeSpan.TicksPerMillisecond / 1000);
+#endif
     }
 
     public object parseDate(object datetime2)
