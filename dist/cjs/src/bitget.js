@@ -3275,7 +3275,7 @@ class bitget extends bitget$1 {
         //         "requestTime":1627354109502
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        return this.safeValue(JSON.parse(response), 'data');
         return this.safeValue(data, 'orderList', []);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {

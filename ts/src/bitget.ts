@@ -2927,7 +2927,7 @@ export default class bitget extends Exchange {
         //       }
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue(JSON.parse(response), 'data');
         const first = this.safeValue (data, 0, data);
         return this.parseOrder (first, market);
     }
