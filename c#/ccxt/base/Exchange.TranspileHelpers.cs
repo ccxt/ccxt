@@ -411,17 +411,22 @@ public partial class Exchange
         a = normalizeIntIfNeeded(a);
         b = normalizeIntIfNeeded(b);
 
-        if (a.GetType() == typeof(Int64))
+        if (a == null || b == null)
+        {
+            return null;
+        }
+
+        if (a.GetType() == typeof(Int64) && b.GetType() == typeof(Int64))
         {
             return (Int64)a / (Int64)b;
         }
-        else if (a.GetType() == typeof(double))
+        else if (a.GetType() == typeof(double) && b.GetType() == typeof(double))
         {
             return (double)a / (double)b;
         }
         else
         {
-            return null;
+            return Convert.ToDouble(a) / Convert.ToDouble(b);
         }
     }
 

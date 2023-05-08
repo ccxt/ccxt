@@ -177,7 +177,7 @@ public partial class Exchange
         {
             contentType = contentType == "" ? "application/json" : contentType;
             var contentTypeHeader = new MediaTypeWithQualityHeaderValue(contentType);
-            var stringContent = new StringContent(body, Encoding.UTF8, contentTypeHeader);
+            var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
             response = await this.client.PostAsync(url, stringContent);
             result = await response.Content.ReadAsStringAsync();
         }
