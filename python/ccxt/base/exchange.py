@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.93'
+__version__ = '3.0.96'
 
 # -----------------------------------------------------------------------------
 
@@ -1429,7 +1429,7 @@ class Exchange(object):
         ohlcvs = []
         (timestamp, open, high, low, close, volume, count) = (0, 1, 2, 3, 4, 5, 6)
         num_trades = len(trades)
-        oldest = (num_trades - 1) if limit is None else min(num_trades - 1, limit)
+        oldest = num_trades if limit is None else min(num_trades, limit)
         for i in range(0, oldest):
             trade = trades[i]
             if (since is not None) and (trade['timestamp'] < since):

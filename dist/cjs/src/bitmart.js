@@ -617,7 +617,11 @@ class bitmart extends bitmart$1 {
             const settle = this.safeCurrencyCode(settleId);
             const symbol = base + '/' + quote + ':' + settle;
             const productType = this.safeNumber(market, 'product_type');
-            const expiry = this.safeInteger(market, 'expire_timestamp');
+            const isFutures = (productType === 2);
+            let expiry = this.safeInteger(market, 'expire_timestamp');
+            if (!isFutures && (expiry === 0)) {
+                expiry = undefined;
+            }
             result.push({
                 'id': id,
                 'numericId': undefined,
@@ -632,7 +636,7 @@ class bitmart extends bitmart$1 {
                 'spot': false,
                 'margin': false,
                 'swap': (productType === 1),
-                'future': (productType === 2),
+                'future': isFutures,
                 'option': false,
                 'active': true,
                 'contract': true,

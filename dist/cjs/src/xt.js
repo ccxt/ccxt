@@ -2216,13 +2216,13 @@ class xt extends xt$1 {
         const stop = this.safeValue(params, 'stop');
         const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
         if (stop) {
-            request['entrustId'] = this.convertToBigInt(id);
+            request['entrustId'] = id;
         }
         else if (stopLossTakeProfit) {
-            request['profitId'] = this.convertToBigInt(id);
+            request['profitId'] = id;
         }
         else {
-            request['orderId'] = this.convertToBigInt(id);
+            request['orderId'] = id;
         }
         if (stop) {
             params = this.omit(params, 'stop');
@@ -2905,13 +2905,13 @@ class xt extends xt$1 {
         const stop = this.safeValue(params, 'stop');
         const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
         if (stop) {
-            request['entrustId'] = this.convertToBigInt(id);
+            request['entrustId'] = id;
         }
         else if (stopLossTakeProfit) {
-            request['profitId'] = this.convertToBigInt(id);
+            request['profitId'] = id;
         }
         else {
-            request['orderId'] = this.convertToBigInt(id);
+            request['orderId'] = id;
         }
         if (stop) {
             params = this.omit(params, 'stop');
@@ -4458,7 +4458,7 @@ class xt extends xt$1 {
             body = isUndefinedBody ? undefined : this.json(body);
             let payloadString = undefined;
             if (endpoint === 'spot') {
-                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-timestamp=' + timestamp;
+                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
                 if (isUndefinedBody) {
                     if (urlencoded) {
                         url += '?' + urlencoded;
@@ -4475,7 +4475,7 @@ class xt extends xt$1 {
                 headers['xt-validate-recvwindow'] = recvWindow;
             }
             else {
-                payloadString = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-timestamp=' + timestamp;
+                payloadString = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp; // we can't glue timestamp, breaks in php
                 if (method === 'GET') {
                     if (urlencoded) {
                         url += '?' + urlencoded;

@@ -2113,11 +2113,11 @@ class xt(Exchange, ImplicitAPI):
         stop = self.safe_value(params, 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
         if stop:
-            request['entrustId'] = self.convert_to_big_int(id)
+            request['entrustId'] = id
         elif stopLossTakeProfit:
-            request['profitId'] = self.convert_to_big_int(id)
+            request['profitId'] = id
         else:
-            request['orderId'] = self.convert_to_big_int(id)
+            request['orderId'] = id
         if stop:
             params = self.omit(params, 'stop')
             if subType == 'inverse':
@@ -2742,11 +2742,11 @@ class xt(Exchange, ImplicitAPI):
         stop = self.safe_value(params, 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
         if stop:
-            request['entrustId'] = self.convert_to_big_int(id)
+            request['entrustId'] = id
         elif stopLossTakeProfit:
-            request['profitId'] = self.convert_to_big_int(id)
+            request['profitId'] = id
         else:
-            request['orderId'] = self.convert_to_big_int(id)
+            request['orderId'] = id
         if stop:
             params = self.omit(params, 'stop')
             if subType == 'inverse':
@@ -4181,7 +4181,7 @@ class xt(Exchange, ImplicitAPI):
             body = None if isUndefinedBody else self.json(body)
             payloadString = None
             if endpoint == 'spot':
-                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-timestamp=' + timestamp
+                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp
                 if isUndefinedBody:
                     if urlencoded:
                         url += '?' + urlencoded
@@ -4193,7 +4193,7 @@ class xt(Exchange, ImplicitAPI):
                 headers['xt-validate-algorithms'] = 'HmacSHA256'
                 headers['xt-validate-recvwindow'] = recvWindow
             else:
-                payloadString = 'xt-validate-appkey=' + self.apiKey + '&xt-validate-timestamp=' + timestamp
+                payloadString = 'xt-validate-appkey=' + self.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp  # we can't glue timestamp, breaks in php
                 if method == 'GET':
                     if urlencoded:
                         url += '?' + urlencoded

@@ -4485,6 +4485,8 @@ class huobi(Exchange, ImplicitAPI):
         :param str id: order id
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the huobi api endpoint
+        :param bool|None params['stop']: *contract only* if the order is a stop trigger order or not
+        :param bool|None params['stopLossTakeProfit']: *contract only* if the order is a stop-loss or take-profit order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -4505,60 +4507,84 @@ class huobi(Exchange, ImplicitAPI):
             # 'pair': 'BTC-USDT',
             # 'contract_type': 'this_week',  # swap, self_week, next_week, quarter, next_ quarter
         }
-        method = None
+        response = None
         if marketType == 'spot':
             clientOrderId = self.safe_string_2(params, 'client-order-id', 'clientOrderId')
-            method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel'
             if clientOrderId is None:
                 request['order-id'] = id
+                response = await self.spotPrivatePostV1OrderOrdersOrderIdSubmitcancel(self.extend(request, params))
             else:
                 request['client-order-id'] = clientOrderId
-                method = 'spotPrivatePostV1OrderOrdersSubmitCancelClientOrder'
                 params = self.omit(params, ['client-order-id', 'clientOrderId'])
+                response = await self.spotPrivatePostV1OrderOrdersSubmitCancelClientOrder(self.extend(request, params))
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol for ' + marketType + ' orders')
-            request['contract_code'] = market['id']
-            if market['linear']:
-                marginMode = None
-                marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
-                marginMode = 'cross' if (marginMode is None) else marginMode
-                if marginMode == 'isolated':
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCancel'
-                elif marginMode == 'cross':
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel'
-            elif market['inverse']:
-                if market['future']:
-                    method = 'contractPrivatePostApiV1ContractCancel'
-                    request['symbol'] = market['settleId']
-                elif market['swap']:
-                    method = 'contractPrivatePostSwapApiV1SwapCancel'
-            else:
-                raise NotSupported(self.id + ' cancelOrder() does not support ' + marketType + ' markets')
             clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
             if clientOrderId is None:
                 request['order_id'] = id
             else:
                 request['client_order_id'] = clientOrderId
                 params = self.omit(params, ['client_order_id', 'clientOrderId'])
-        response = await getattr(self, method)(self.extend(request, params))
+            if market['future']:
+                request['symbol'] = market['settleId']
+            else:
+                request['contract_code'] = market['id']
+            stop = self.safe_value(params, 'stop')
+            stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
+            params = self.omit(params, ['stop', 'stopLossTakeProfit'])
+            if market['linear']:
+                marginMode = None
+                marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
+                marginMode = 'cross' if (marginMode is None) else marginMode
+                if marginMode == 'isolated':
+                    if stop:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapTriggerCancel(self.extend(request, params))
+                    elif stopLossTakeProfit:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapTpslCancel(self.extend(request, params))
+                    else:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapCancel(self.extend(request, params))
+                elif marginMode == 'cross':
+                    if stop:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel(self.extend(request, params))
+                    elif stopLossTakeProfit:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel(self.extend(request, params))
+                    else:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapCrossCancel(self.extend(request, params))
+            elif market['inverse']:
+                if market['swap']:
+                    if stop:
+                        response = await self.contractPrivatePostSwapApiV1SwapTriggerCancel(self.extend(request, params))
+                    elif stopLossTakeProfit:
+                        response = await self.contractPrivatePostSwapApiV1SwapTpslCancel(self.extend(request, params))
+                    else:
+                        response = await self.contractPrivatePostSwapApiV1SwapCancel(self.extend(request, params))
+                elif market['future']:
+                    if stop:
+                        response = await self.contractPrivatePostApiV1ContractTriggerCancel(self.extend(request, params))
+                    elif stopLossTakeProfit:
+                        response = await self.contractPrivatePostApiV1ContractTpslCancel(self.extend(request, params))
+                    else:
+                        response = await self.contractPrivatePostApiV1ContractCancel(self.extend(request, params))
+            else:
+                raise NotSupported(self.id + ' cancelOrder() does not support ' + marketType + ' markets')
         #
         # spot
         #
         #     {
-        #         'status': 'ok',
-        #         'data': '10138899000',
+        #         "status": "ok",
+        #         "data": "10138899000",
         #     }
         #
-        # linear swap cross margin
+        # future and swap
         #
         #     {
-        #         "status":"ok",
-        #         "data":{
-        #             "errors":[],
-        #             "successes":"924660854912552960"
+        #         "status": "ok",
+        #         "data": {
+        #             "errors": [],
+        #             "successes": "924660854912552960"
         #         },
-        #         "ts":1640504486089
+        #         "ts": 1640504486089
         #     }
         #
         return self.extend(self.parse_order(response, market), {
