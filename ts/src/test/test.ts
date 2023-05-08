@@ -269,7 +269,7 @@ export default class testMainClass extends baseMainTestClass {
         } catch (e) {
             const isAuthError = (e instanceof AuthenticationError);
             if (!(isPublic && isAuthError)) {
-                dump ('ERROR:', exceptionMessage (e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
+                dump ('[TEST_FAILURE]', exceptionMessage (e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
                 throw e;
             }
         }

@@ -136,7 +136,7 @@ const exec = (bin, ...args) =>
 
             // detect error
             let hasFailed = false;
-            if (output.indexOf('ERROR:') > -1) {
+            if (output.indexOf('[TEST_FAILURE]') > -1) {
                 hasFailed = true;
             }
 
