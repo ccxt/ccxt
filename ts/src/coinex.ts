@@ -1773,7 +1773,7 @@ export default class coinex extends Exchange {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap markets only');
             }
             if (positionId === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a position_id parameter for reduceOnly orders');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a position_id/positionId parameter for reduceOnly orders');
             }
         }
         let method = undefined;
