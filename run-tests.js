@@ -144,7 +144,7 @@ const exec = (bin, ...args) =>
                 // 2) thrown from PYTHON (i.e. [AssertionError], [KeyError], [ValueError], etc)
                 output.indexOf('Error]') > -1 ||
                 // 3) thrown from PHP assert hook
-                output.indexOf('[ASSERT_ERROR]]') > -1 ||
+                output.indexOf('[ASSERT_ERROR]') > -1 ||
                 // 4) thrown from PHP async library
                 output.indexOf('Fatal error:') > -1
             ) {

@@ -570,7 +570,8 @@
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
-                "type": "unexpected market type"
+                "type": "unexpected market type",
+                "contractSize": "not defined when contract"
             },
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
