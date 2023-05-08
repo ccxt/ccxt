@@ -43,6 +43,7 @@
         }
     },
     "binance": {
+        "httpProxy": "http://51.83.140.52:11230",
         "skipWs": true,
 		"skipPhpAsync":true,
         "skipMethods": {
@@ -74,6 +75,7 @@
         }
     },
     "binancecoinm": {
+        "httpProxy": "http://51.83.140.52:11230",
 		"skipPhpAsync":true,
         "skipWs": true,
         "skipMethods": {
@@ -92,6 +94,7 @@
         }
     },
     "binanceusdm": {
+        "httpProxy": "http://51.83.140.52:11230",
 		"skipPhpAsync":true,
         "skipWs": true,
         "skipMethods": {
@@ -115,6 +118,7 @@
         }
     },
     "tokocrypto": {
+        "httpProxy": "http://51.83.140.52:11230",
 		"skipPhpAsync":true,
         "skipWs": true
     },
@@ -438,6 +442,7 @@
         }
     },
     "bybit": {
+        "httpProxy": "http://51.83.140.52:11230",
         "skipPhpAsync": true,
         "//": "missing php async proxy",
         "skipMethods": {
