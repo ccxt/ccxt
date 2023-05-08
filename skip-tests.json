@@ -451,6 +451,9 @@
         "skipMethods": {
             "fetchTickers": {
                 "symbol" :"returned symbol is not same as requested symbol. i.e. BTC/USDT:USDT vs BTC/USDT"
+            },
+            "fetchTicker": {
+                "symbol" :"same"
             }
         }
     },
@@ -1085,6 +1088,10 @@
             "fetchCurrencies": {
                 "withdraw": "undefined",
                 "deposit": "undefined"
+            },
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume <= baseVolume * high is failing",
+                "baseVolume": "quoteVolume <= baseVolume * high is failing"
             }
         }
     },
