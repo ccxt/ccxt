@@ -573,7 +573,9 @@
         "skipMethods": {
             "loadMarkets": {
                 "type": "unexpected market type",
-                "contractSize": "not defined when contract"
+                "contractSize": "not defined when contract",
+                "settle": "not defined when contract",
+                "settleId": "not defined when contract"
             },
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -938,6 +940,7 @@
     },
     "mexc": {
         "skipWs": true,
+        "skipPhpAsync": "Connection ended before receiving response...",
         "skipMethods": {
             "loadMarkets":{
                 "currencyIdAndCode": "messed"
