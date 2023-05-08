@@ -313,7 +313,6 @@ export default class xt extends xtRest {
     }
 
     handleOHLCV (client: Client, message) {
-        // TODO
         //
         //    {
         //        "topic": "kline",
@@ -331,19 +330,14 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
-        const parts = table.split ('/');
-        const part1 = this.safeString (parts, 1);
-        let interval = part1.replace ('candle', '');
-        interval = interval.replace ('s', '');
-        // use a reverse lookup in a static map instead
-        const timeframe = this.findTimeframe (interval);
-        for (let i = 0; i < data.length; i++) {
-            const marketId = this.safeString (data[i], 'instrument_id');
-            const candle = this.safeValue (data[i], 'candle');
-            const market = this.safeMarket (marketId);
+        const data = this.safeValue (message, 'data', {});
+        const messageHash = this.safeString (message, 'event');
+        const timeframe = this.safeString (data, 'i');
+        const marketId = this.safeString (data, 's');
+        if (marketId !== undefined) {
+            const market = this.market (marketId);
             const symbol = market['symbol'];
-            const parsed = this.parseOHLCV (candle, market);
+            const parsed = this.parseOHLCV (data, market);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
@@ -352,9 +346,9 @@ export default class xt extends xtRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);
-            const messageHash = table + ':' + marketId;
             client.resolve (stored, messageHash);
         }
+        return message;
     }
 
     handleTrade (client: Client, message) {
