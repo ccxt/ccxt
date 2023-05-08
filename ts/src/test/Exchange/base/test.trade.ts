@@ -27,9 +27,12 @@ function testTrade (exchange, skippedProperties, method, entry, symbol, now) {
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'side', [ 'buy', 'sell' ]);
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'takerOrMaker', [ 'taker', 'maker' ]);
     testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry, 'fee');
-    if (entry['fees'] !== undefined) {
-        for (let i = 0; i < entry['fees'].length; i++) {
-            testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry['fees'], i);
+    if (!('fees' in skippedProperties)) {
+        // todo: remove undefined check
+        if (entry['fees'] !== undefined) {
+            for (let i = 0; i < entry['fees'].length; i++) {
+                testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry['fees'], i);
+            }
         }
     }
 }
