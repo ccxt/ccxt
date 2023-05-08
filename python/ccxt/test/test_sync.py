@@ -238,10 +238,6 @@ class testMainClass(baseMainTestClass):
                     else:
                         finalValue = exchangeSettings[key]
                     set_exchange_prop(exchange, key, finalValue)
-            # support simple proxy
-            proxy = get_exchange_prop(exchange, 'httpProxy')
-            if proxy:
-                add_proxy(exchange, proxy)
         # credentials
         reqCreds = get_exchange_prop(exchange, 're' + 'quiredCredentials')  # dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
         objkeys = list(reqCreds.keys())
@@ -266,7 +262,9 @@ class testMainClass(baseMainTestClass):
         if exchange.alias:
             dump('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
-        #
+        proxy = exchange.safe_string(skippedSettingsForExchange, 'httpProxy')
+        if proxy is not None:
+            add_proxy(exchange, proxy)
         self.skippedMethods = exchange.safe_value(skippedSettingsForExchange, 'skipMethods', {})
         self.checkedPublicTests = {}
 
