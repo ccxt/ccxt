@@ -2007,6 +2007,9 @@ export default class xt extends Exchange {
             side = (bidOrAsk === 'BID') ? 'buy' : 'sell';
         }
         const buyerMaker = this.safeValue (trade, 'b');
+        if (buyerMaker !== undefined) {
+            side = 'buy';
+        }
         let takerOrMaker = this.safeStringLower (trade, 'takerMaker');
         if (buyerMaker !== undefined) {
             takerOrMaker = buyerMaker ? 'maker' : 'taker';
