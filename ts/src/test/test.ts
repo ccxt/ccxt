@@ -213,7 +213,7 @@ export default class testMainClass extends baseMainTestClass {
             dump ('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
             exitScript ();
         }
-        const proxy = exchange.safeString (skippedSettingsForExchange, 'proxy');
+        const proxy = exchange.safeString (skippedSettingsForExchange, 'httpProxy');
         if (proxy !== undefined) {
             addProxy (exchange, proxy);
         }
