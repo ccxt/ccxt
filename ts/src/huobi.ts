@@ -4857,6 +4857,8 @@ export default class huobi extends Exchange {
          * @param {[string]} ids order ids
          * @param {string|undefined} symbol unified market symbol, default is undefined
          * @param {object} params extra parameters specific to the huobi api endpoint
+         * @param {bool|undefined} params.stop *contract only* if the orders are stop trigger orders or not
+         * @param {bool|undefined} params.stopLossTakeProfit *contract only* if the orders are stop-loss or take-profit orders
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -4868,7 +4870,7 @@ export default class huobi extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
         const request = {
             // spot -----------------------------------------------------------
-            // 'order-ids': ids.jsoin (','), // max 50
+            // 'order-ids': ids.join (','), // max 50
             // 'client-order-ids': ids.join (','), // max 50
             // contracts ------------------------------------------------------
             // 'order_id': id, // comma separated, max 10
@@ -4876,50 +4878,27 @@ export default class huobi extends Exchange {
             // 'contract_code': market['id'],
             // 'symbol': market['settleId'],
         };
-        let method = undefined;
+        let response = undefined;
         if (marketType === 'spot') {
             let clientOrderIds = this.safeValue2 (params, 'client-order-id', 'clientOrderId');
             clientOrderIds = this.safeValue2 (params, 'client-order-ids', 'clientOrderIds', clientOrderIds);
             if (clientOrderIds === undefined) {
                 if (typeof clientOrderIds === 'string') {
-                    request['order-ids'] = ids;
+                    request['order-ids'] = [ ids ];
                 } else {
-                    request['order-ids'] = ids.join (',');
+                    request['order-ids'] = ids;
                 }
             } else {
                 if (typeof clientOrderIds === 'string') {
-                    request['client-order-ids'] = clientOrderIds;
+                    request['client-order-ids'] = [ clientOrderIds ];
                 } else {
-                    request['client-order-ids'] = clientOrderIds.join (',');
+                    request['client-order-ids'] = clientOrderIds;
                 }
                 params = this.omit (params, [ 'client-order-id', 'client-order-ids', 'clientOrderId', 'clientOrderIds' ]);
             }
-            method = 'spotPrivatePostV1OrderOrdersBatchcancel';
+            response = await this.spotPrivatePostV1OrderOrdersBatchcancel (this.extend (request, params));
         } else {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol for ' + marketType + ' orders');
-            }
-            const marketInner = this.market (symbol);
-            request['contract_code'] = marketInner['id'];
-            if (marketInner['linear']) {
-                let marginMode = undefined;
-                [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrders', params);
-                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-                if (marginMode === 'isolated') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
-                } else if (marginMode === 'cross') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
-                }
-            } else if (marketInner['inverse']) {
-                if (marketInner['future']) {
-                    method = 'contractPrivatePostApiV1ContractCancel';
-                    request['symbol'] = marketInner['settleId'];
-                } else if (marketInner['swap']) {
-                    method = 'contractPrivatePostSwapApiV1SwapCancel';
-                } else {
-                    throw new NotSupported (this.id + ' cancelOrders() does not support ' + marketType + ' markets');
-                }
-            }
+            this.checkRequiredSymbol ('cancelOrders', symbol);
             let clientOrderIds = this.safeString2 (params, 'client_order_id', 'clientOrderId');
             clientOrderIds = this.safeString2 (params, 'client_order_ids', 'clientOrderIds', clientOrderIds);
             if (clientOrderIds === undefined) {
@@ -4928,8 +4907,57 @@ export default class huobi extends Exchange {
                 request['client_order_id'] = clientOrderIds;
                 params = this.omit (params, [ 'client_order_id', 'client_order_ids', 'clientOrderId', 'clientOrderIds' ]);
             }
+            if (market['future']) {
+                request['symbol'] = market['settleId'];
+            } else {
+                request['contract_code'] = market['id'];
+            }
+            const stop = this.safeValue (params, 'stop');
+            const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
+            params = this.omit (params, [ 'stop', 'stopLossTakeProfit' ]);
+            if (market['linear']) {
+                let marginMode = undefined;
+                [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrders', params);
+                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
+                if (marginMode === 'isolated') {
+                    if (stop) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerCancel (this.extend (request, params));
+                    } else if (stopLossTakeProfit) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapTpslCancel (this.extend (request, params));
+                    } else {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCancel (this.extend (request, params));
+                    }
+                } else if (marginMode === 'cross') {
+                    if (stop) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel (this.extend (request, params));
+                    } else if (stopLossTakeProfit) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel (this.extend (request, params));
+                    } else {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossCancel (this.extend (request, params));
+                    }
+                }
+            } else if (market['inverse']) {
+                if (market['swap']) {
+                    if (stop) {
+                        response = await this.contractPrivatePostSwapApiV1SwapTriggerCancel (this.extend (request, params));
+                    } else if (stopLossTakeProfit) {
+                        response = await this.contractPrivatePostSwapApiV1SwapTpslCancel (this.extend (request, params));
+                    } else {
+                        response = await this.contractPrivatePostSwapApiV1SwapCancel (this.extend (request, params));
+                    }
+                } else if (market['future']) {
+                    if (stop) {
+                        response = await this.contractPrivatePostApiV1ContractTriggerCancel (this.extend (request, params));
+                    } else if (stopLossTakeProfit) {
+                        response = await this.contractPrivatePostApiV1ContractTpslCancel (this.extend (request, params));
+                    } else {
+                        response = await this.contractPrivatePostApiV1ContractCancel (this.extend (request, params));
+                    }
+                }
+            } else {
+                throw new NotSupported (this.id + ' cancelOrders() does not support ' + marketType + ' markets');
+            }
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -4964,7 +4992,7 @@ export default class huobi extends Exchange {
         //         }
         //     }
         //
-        // contracts
+        // future and swap
         //
         //     {
         //         "status": "ok",
