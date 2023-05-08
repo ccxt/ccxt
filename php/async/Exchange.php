@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.0.96';
+$version = '3.0.97';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.96';
+    const VERSION = '3.0.97';
 
     public $browser;
     public $marketsLoading = null;
@@ -154,16 +154,6 @@ class Exchange extends \ccxt\Exchange {
             $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $response_body);
 
             return isset($json_response) ? $json_response : $response_body;
-        }) ();
-    }
-
-    public function fetch_currencies($params = array()) {
-        // markets are returned as a list
-        // currencies are returned as a dict
-        // this is for historical reasons
-        // and may be changed for consistency later
-        return React\Async\async(function () use ($params) {
-            return parent::fetch_currencies($params);
         }) ();
     }
 
