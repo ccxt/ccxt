@@ -2897,7 +2897,7 @@ module.exports = class gate extends Exchange {
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
-            'fee': undefined,
+            'fee': fees.length ? fees[0] : undefined,
             'fees': fees,
         }, market);
     }
