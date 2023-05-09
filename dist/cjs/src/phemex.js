@@ -2495,7 +2495,7 @@ class phemex extends phemex$1 {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @param {string|undefined} params.posSide either 'Hedged' or 'OneWay' or 'Merged'
+         * @param {string|undefined} params.posSide either 'Merged' or 'Long' or 'Short'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -2571,7 +2571,7 @@ class phemex extends phemex$1 {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @param {string|undefined} params.posSide either 'Hedged' or 'OneWay' or 'Merged'
+         * @param {string|undefined} params.posSide either 'Merged' or 'Long' or 'Short'
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
