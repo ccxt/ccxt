@@ -2298,6 +2298,7 @@ export default class okx extends Exchange {
          * @param {float} amount how much of the currency you want to trade in units of the base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the okx api endpoint
+         * @param {bool} params.stop True if is algo order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -2305,26 +2306,65 @@ export default class okx extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['spot']) {
-            throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
-        }
         const request = {
             'instId': market['id'],
         };
-        const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['clOrdId'] = clientOrderId;
+        const isStop = this.safeValue (params, 'stop');
+        const tpTriggerPx = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
+        const tpOrdPx = this.safeValue (params, 'tpOrdPx', price);
+        const tpTriggerPxType = this.safeString (params, 'tpTriggerPxType');
+        const slTriggerPx = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
+        const slOrdPx = this.safeValue (params, 'slOrdPx', price);
+        const slTriggerPxType = this.safeString (params, 'slTriggerPxType');
+        const conditional = (tpTriggerPx !== undefined) || (slTriggerPx !== undefined) || (type === 'conditional');
+        const clientOrderId = this.safeStringN (params, [ 'clOrdId', 'clientOrderId', 'algoClOrdId' ]);
+        let method = undefined;
+        // Support stop order only
+        if (conditional || isStop) {
+            // Only applicable to Futures and Perpetual swap.
+            if ((!market['future']) && !market['swap']) {
+                throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only future & swap orders are accepted');
+            }
+            method = 'privatePostTradeAmendAlgos';
+            request['algoClOrdId'] = clientOrderId;
+            request['algoId'] = id;
+            if (tpTriggerPx !== undefined) {
+                request['newTpTriggerPx'] = this.amountToPrecision (symbol, tpTriggerPx);
+            }
+            if (tpOrdPx !== undefined) {
+                request['newTpOrdPx'] = this.amountToPrecision (symbol, tpOrdPx);
+            }
+            if (tpTriggerPxType !== undefined) {
+                request['newTpTriggerPxType'] = tpTriggerPxType;
+            }
+            if (slTriggerPx !== undefined) {
+                request['newSlTriggerPx'] = this.amountToPrecision (symbol, slTriggerPx);
+            }
+            if (slOrdPx !== undefined) {
+                request['newSlOrdPx'] = this.amountToPrecision (symbol, slOrdPx);
+            }
+            if (slTriggerPxType !== undefined) {
+                request['newSlTriggerPxType'] = slTriggerPxType;
+            }
         } else {
-            request['ordId'] = id;
+            if (!market['spot']) {
+                throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
+            }
+            method = 'privatePostTradeAmendOrder';
+            if (clientOrderId !== undefined) {
+                request['clOrdId'] = clientOrderId;
+            } else {
+                request['ordId'] = id;
+            }
+            if (price !== undefined) {
+                request['newPx'] = this.priceToPrecision (symbol, price);
+            }
         }
-        params = this.omit (params, [ 'clOrdId', 'clientOrderId' ]);
+        params = this.omit (params, [ 'clOrdId', 'clientOrderId', 'algoClOrdId' ]);
         if (amount !== undefined) {
             request['newSz'] = this.amountToPrecision (symbol, amount);
         }
-        if (price !== undefined) {
-            request['newPx'] = this.priceToPrecision (symbol, price);
-        }
-        const response = await (this as any).privatePostTradeAmendOrder (this.extend (request, params));
+        const response = await (this as any)[method] (this.extend (request, params));
         //
         //     {
         //        "code": "0",
@@ -2340,6 +2380,21 @@ export default class okx extends Exchange {
         //        "msg": ""
         //     }
         //
+        // Algo order
+        //
+        //     {
+        //         "code":"0",
+        //         "msg":"",
+        //         "data":[
+        //             {
+        //                 "algoClOrdId":"algo_01",
+        //                 "algoId":"2510789768709120",
+        //                 "reqId":"po103ux",
+        //                 "sCode":"0",
+        //                 "sMsg":""
+        //             }
+        //         ]
+        //     }
         const data = this.safeValue (response, 'data', []);
         const first = this.safeValue (data, 0);
         const order = this.parseOrder (first, market);
