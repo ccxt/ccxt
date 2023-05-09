@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.98 (2023-05-09)
+
+### 3.0.97 (2023-05-08)
+
+
+### Bug Fixes
+
+* **deribit:** fix [#17729](https://github.com/ccxt/ccxt/issues/17729) ([2a5d61a](https://github.com/ccxt/ccxt/commit/2a5d61af37235ca85f72bbbab2440685c68a4d39))
+
+### 3.0.96 (2023-05-06)
+
+### 3.0.95 (2023-05-06)
+
+### 3.0.94 (2023-05-05)
+
+
+### Bug Fixes
+
+* **whitebit:** signing ([08249c7](https://github.com/ccxt/ccxt/commit/08249c79b6a4680acf0da4f186aa2fc8ce10f6f1))
+
 ### 3.0.93 (2023-05-05)
 
 ### 3.0.92 (2023-05-04)

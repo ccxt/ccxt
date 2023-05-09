@@ -2046,7 +2046,7 @@ class whitebit extends Exchange {
             $request = '/' . 'api' . '/' . $version . $pathWithParams;
             $body = $this->json(array_merge(array( 'request' => $request, 'nonce' => $nonce ), $params));
             $payload = base64_encode($body);
-            $signature = $this->hmac($payload, $secret, 'sha512');
+            $signature = $this->hmac($this->encode($payload), $secret, 'sha512');
             $headers = array(
                 'Content-Type' => 'application/json',
                 'X-TXC-APIKEY' => $this->apiKey,

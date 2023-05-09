@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.0.93';
+$version = '3.0.98';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.93';
+    const VERSION = '3.0.98';
 
     public $browser;
     public $marketsLoading = null;
@@ -157,6 +157,12 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function fetch_currencies($params = array()) {
+        return React\Async\async(function () use ($params) {
+            return parent::fetch_currencies($params);
+        }) ();
+    }
+
     public function load_markets_helper($reload = false, $params = array()) {
         // copied from js
         return React\Async\async(function () use ($reload, $params) {
@@ -264,7 +270,7 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    public function filter_by_limit(array $array, ?int $limit = null, int|string $key = 'timestamp') {
+    public function filter_by_limit(mixed $array, ?int $limit = null, int|string $key = 'timestamp') {
         if ($this->valueIsDefined ($limit)) {
             $arrayLength = count($array);
             if ($arrayLength > 0) {
@@ -282,7 +288,7 @@ class Exchange extends \ccxt\Exchange {
         return $array;
     }
 
-    public function filter_by_since_limit(array $array, ?int $since = null, ?int $limit = null, int|string $key = 'timestamp') {
+    public function filter_by_since_limit(mixed $array, ?int $since = null, ?int $limit = null, int|string $key = 'timestamp') {
         $sinceIsDefined = $this->valueIsDefined ($since);
         $parsedArray = $this->to_array($array);
         if ($sinceIsDefined) {
@@ -298,7 +304,7 @@ class Exchange extends \ccxt\Exchange {
         return $this->filterByLimit ($parsedArray, $limit, $key);
     }
 
-    public function filter_by_value_since_limit(array $array, int|string $field, $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp') {
+    public function filter_by_value_since_limit(mixed $array, int|string $field, $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp') {
         $valueIsDefined = $this->valueIsDefined ($value);
         $sinceIsDefined = $this->valueIsDefined ($since);
         $parsedArray = $this->to_array($array);
@@ -1495,7 +1501,7 @@ class Exchange extends \ccxt\Exchange {
         );
     }
 
-    public function parse_ohlcvs(array $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
+    public function parse_ohlcvs(mixed $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
         $results = array();
         for ($i = 0; $i < count($ohlcvs); $i++) {
             $results[] = $this->parse_ohlcv($ohlcvs[$i], $market);

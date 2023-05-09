@@ -2401,9 +2401,7 @@ class huobi extends Exchange {
                 }
                 $method = 'spotPrivateGetV1OrderMatchresults';
             } else {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol for ' . $marketType . ' orders');
-                }
+                $this->check_required_symbol('fetchMyTrades', $symbol);
                 $request['contract'] = $market['id'];
                 $request['trade_type'] = 0; // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
                 if ($since !== null) {
@@ -3262,9 +3260,7 @@ class huobi extends Exchange {
                     $request['order-id'] = $id;
                 }
             } else {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol for ' . $marketType . ' orders');
-                }
+                $this->check_required_symbol('fetchOrder', $symbol);
                 $request['contract_code'] = $market['id'];
                 if ($market['linear']) {
                     $marginMode = null;
@@ -3447,9 +3443,7 @@ class huobi extends Exchange {
         return Async\async(function () use ($states, $symbol, $since, $limit, $params) {
             $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
             if ($method === 'spot_private_get_v1_order_orders') {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
-                }
+                $this->check_required_symbol('fetchOrders', $symbol);
             }
             Async\await($this->load_markets());
             $market = null;
@@ -3527,9 +3521,7 @@ class huobi extends Exchange {
 
     public function fetch_contract_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchContractOrders() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchContractOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -3871,9 +3863,7 @@ class huobi extends Exchange {
                 $params = $this->omit($params, 'account-id');
                 $response = Async\await($this->spotPrivateGetV1OrderOpenOrders (array_merge($request, $params)));
             } else {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol for ' . $marketType . ' orders');
-                }
+                $this->check_required_symbol('fetchOpenOrders', $symbol);
                 if ($limit !== null) {
                     $request['page_size'] = $limit;
                 }
@@ -4774,6 +4764,8 @@ class huobi extends Exchange {
              * @param {string} $id order $id
              * @param {string|null} $symbol unified $symbol of the $market the order was made in
              * @param {array} $params extra parameters specific to the huobi api endpoint
+             * @param {bool|null} $params->stop *contract only* if the order is a $stop trigger order or not
+             * @param {bool|null} $params->stopLossTakeProfit *contract only* if the order is a $stop-loss or take-profit order
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -4795,41 +4787,19 @@ class huobi extends Exchange {
                 // 'pair' => 'BTC-USDT',
                 // 'contract_type' => 'this_week', // swap, this_week, next_week, quarter, next_ quarter
             );
-            $method = null;
+            $response = null;
             if ($marketType === 'spot') {
                 $clientOrderId = $this->safe_string_2($params, 'client-order-id', 'clientOrderId');
-                $method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel';
                 if ($clientOrderId === null) {
                     $request['order-id'] = $id;
+                    $response = Async\await($this->spotPrivatePostV1OrderOrdersOrderIdSubmitcancel (array_merge($request, $params)));
                 } else {
                     $request['client-order-id'] = $clientOrderId;
-                    $method = 'spotPrivatePostV1OrderOrdersSubmitCancelClientOrder';
                     $params = $this->omit($params, array( 'client-order-id', 'clientOrderId' ));
+                    $response = Async\await($this->spotPrivatePostV1OrderOrdersSubmitCancelClientOrder (array_merge($request, $params)));
                 }
             } else {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol for ' . $marketType . ' orders');
-                }
-                $request['contract_code'] = $market['id'];
-                if ($market['linear']) {
-                    $marginMode = null;
-                    list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
-                    $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
-                    if ($marginMode === 'isolated') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
-                    } elseif ($marginMode === 'cross') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
-                    }
-                } elseif ($market['inverse']) {
-                    if ($market['future']) {
-                        $method = 'contractPrivatePostApiV1ContractCancel';
-                        $request['symbol'] = $market['settleId'];
-                    } elseif ($market['swap']) {
-                        $method = 'contractPrivatePostSwapApiV1SwapCancel';
-                    }
-                } else {
-                    throw new NotSupported($this->id . ' cancelOrder() does not support ' . $marketType . ' markets');
-                }
+                $this->check_required_symbol('cancelOrder', $symbol);
                 $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
                 if ($clientOrderId === null) {
                     $request['order_id'] = $id;
@@ -4837,25 +4807,74 @@ class huobi extends Exchange {
                     $request['client_order_id'] = $clientOrderId;
                     $params = $this->omit($params, array( 'client_order_id', 'clientOrderId' ));
                 }
+                if ($market['future']) {
+                    $request['symbol'] = $market['settleId'];
+                } else {
+                    $request['contract_code'] = $market['id'];
+                }
+                $stop = $this->safe_value($params, 'stop');
+                $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
+                $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit' ));
+                if ($market['linear']) {
+                    $marginMode = null;
+                    list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
+                    $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
+                    if ($marginMode === 'isolated') {
+                        if ($stop) {
+                            $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapTriggerCancel (array_merge($request, $params)));
+                        } elseif ($stopLossTakeProfit) {
+                            $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapTpslCancel (array_merge($request, $params)));
+                        } else {
+                            $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCancel (array_merge($request, $params)));
+                        }
+                    } elseif ($marginMode === 'cross') {
+                        if ($stop) {
+                            $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel (array_merge($request, $params)));
+                        } elseif ($stopLossTakeProfit) {
+                            $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel (array_merge($request, $params)));
+                        } else {
+                            $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCrossCancel (array_merge($request, $params)));
+                        }
+                    }
+                } elseif ($market['inverse']) {
+                    if ($market['swap']) {
+                        if ($stop) {
+                            $response = Async\await($this->contractPrivatePostSwapApiV1SwapTriggerCancel (array_merge($request, $params)));
+                        } elseif ($stopLossTakeProfit) {
+                            $response = Async\await($this->contractPrivatePostSwapApiV1SwapTpslCancel (array_merge($request, $params)));
+                        } else {
+                            $response = Async\await($this->contractPrivatePostSwapApiV1SwapCancel (array_merge($request, $params)));
+                        }
+                    } elseif ($market['future']) {
+                        if ($stop) {
+                            $response = Async\await($this->contractPrivatePostApiV1ContractTriggerCancel (array_merge($request, $params)));
+                        } elseif ($stopLossTakeProfit) {
+                            $response = Async\await($this->contractPrivatePostApiV1ContractTpslCancel (array_merge($request, $params)));
+                        } else {
+                            $response = Async\await($this->contractPrivatePostApiV1ContractCancel (array_merge($request, $params)));
+                        }
+                    }
+                } else {
+                    throw new NotSupported($this->id . ' cancelOrder() does not support ' . $marketType . ' markets');
+                }
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // spot
             //
             //     {
-            //         'status' => 'ok',
-            //         'data' => '10138899000',
+            //         "status" => "ok",
+            //         "data" => "10138899000",
             //     }
             //
-            // linear swap cross margin
+            // future and swap
             //
             //     {
-            //         "status":"ok",
-            //         "data":array(
-            //             "errors":array(),
-            //             "successes":"924660854912552960"
+            //         "status" => "ok",
+            //         "data" => array(
+            //             "errors" => array(),
+            //             "successes" => "924660854912552960"
             //         ),
-            //         "ts":1640504486089
+            //         "ts" => 1640504486089
             //     }
             //
             return array_merge($this->parse_order($response, $market), array(
@@ -4872,6 +4891,8 @@ class huobi extends Exchange {
              * @param {[string]} $ids order $ids
              * @param {string|null} $symbol unified $market $symbol, default is null
              * @param {array} $params extra parameters specific to the huobi api endpoint
+             * @param {bool|null} $params->stop *contract only* if the orders are $stop trigger orders or not
+             * @param {bool|null} $params->stopLossTakeProfit *contract only* if the orders are $stop-loss or take-profit orders
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -4883,7 +4904,7 @@ class huobi extends Exchange {
             list($marketType, $params) = $this->handle_market_type_and_params('cancelOrders', $market, $params);
             $request = array(
                 // spot -----------------------------------------------------------
-                // 'order-ids' => $ids->jsoin (','), // max 50
+                // 'order-ids' => implode(',', $ids), // max 50
                 // 'client-order-ids' => implode(',', $ids), // max 50
                 // contracts ------------------------------------------------------
                 // 'order_id' => id, // comma separated, max 10
@@ -4891,50 +4912,27 @@ class huobi extends Exchange {
                 // 'contract_code' => $market['id'],
                 // 'symbol' => $market['settleId'],
             );
-            $method = null;
+            $response = null;
             if ($marketType === 'spot') {
                 $clientOrderIds = $this->safe_value_2($params, 'client-order-id', 'clientOrderId');
                 $clientOrderIds = $this->safe_value_2($params, 'client-order-ids', 'clientOrderIds', $clientOrderIds);
                 if ($clientOrderIds === null) {
                     if (gettype($clientOrderIds) === 'string') {
-                        $request['order-ids'] = $ids;
+                        $request['order-ids'] = array( $ids );
                     } else {
-                        $request['order-ids'] = implode(',', $ids);
+                        $request['order-ids'] = $ids;
                     }
                 } else {
                     if (gettype($clientOrderIds) === 'string') {
-                        $request['client-order-ids'] = $clientOrderIds;
+                        $request['client-order-ids'] = array( $clientOrderIds );
                     } else {
-                        $request['client-order-ids'] = implode(',', $clientOrderIds);
+                        $request['client-order-ids'] = $clientOrderIds;
                     }
                     $params = $this->omit($params, array( 'client-order-id', 'client-order-ids', 'clientOrderId', 'clientOrderIds' ));
                 }
-                $method = 'spotPrivatePostV1OrderOrdersBatchcancel';
+                $response = Async\await($this->spotPrivatePostV1OrderOrdersBatchcancel (array_merge($request, $params)));
             } else {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol for ' . $marketType . ' orders');
-                }
-                $marketInner = $this->market($symbol);
-                $request['contract_code'] = $marketInner['id'];
-                if ($marketInner['linear']) {
-                    $marginMode = null;
-                    list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrders', $params);
-                    $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
-                    if ($marginMode === 'isolated') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
-                    } elseif ($marginMode === 'cross') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
-                    }
-                } elseif ($marketInner['inverse']) {
-                    if ($marketInner['future']) {
-                        $method = 'contractPrivatePostApiV1ContractCancel';
-                        $request['symbol'] = $marketInner['settleId'];
-                    } elseif ($marketInner['swap']) {
-                        $method = 'contractPrivatePostSwapApiV1SwapCancel';
-                    } else {
-                        throw new NotSupported($this->id . ' cancelOrders() does not support ' . $marketType . ' markets');
-                    }
-                }
+                $this->check_required_symbol('cancelOrders', $symbol);
                 $clientOrderIds = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
                 $clientOrderIds = $this->safe_string_2($params, 'client_order_ids', 'clientOrderIds', $clientOrderIds);
                 if ($clientOrderIds === null) {
@@ -4943,8 +4941,57 @@ class huobi extends Exchange {
                     $request['client_order_id'] = $clientOrderIds;
                     $params = $this->omit($params, array( 'client_order_id', 'client_order_ids', 'clientOrderId', 'clientOrderIds' ));
                 }
+                if ($market['future']) {
+                    $request['symbol'] = $market['settleId'];
+                } else {
+                    $request['contract_code'] = $market['id'];
+                }
+                $stop = $this->safe_value($params, 'stop');
+                $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
+                $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit' ));
+                if ($market['linear']) {
+                    $marginMode = null;
+                    list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrders', $params);
+                    $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
+                    if ($marginMode === 'isolated') {
+                        if ($stop) {
+                            $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapTriggerCancel (array_merge($request, $params)));
+                        } elseif ($stopLossTakeProfit) {
+                            $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapTpslCancel (array_merge($request, $params)));
+                        } else {
+                            $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCancel (array_merge($request, $params)));
+                        }
+                    } elseif ($marginMode === 'cross') {
+                        if ($stop) {
+                            $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel (array_merge($request, $params)));
+                        } elseif ($stopLossTakeProfit) {
+                            $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel (array_merge($request, $params)));
+                        } else {
+                            $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCrossCancel (array_merge($request, $params)));
+                        }
+                    }
+                } elseif ($market['inverse']) {
+                    if ($market['swap']) {
+                        if ($stop) {
+                            $response = Async\await($this->contractPrivatePostSwapApiV1SwapTriggerCancel (array_merge($request, $params)));
+                        } elseif ($stopLossTakeProfit) {
+                            $response = Async\await($this->contractPrivatePostSwapApiV1SwapTpslCancel (array_merge($request, $params)));
+                        } else {
+                            $response = Async\await($this->contractPrivatePostSwapApiV1SwapCancel (array_merge($request, $params)));
+                        }
+                    } elseif ($market['future']) {
+                        if ($stop) {
+                            $response = Async\await($this->contractPrivatePostApiV1ContractTriggerCancel (array_merge($request, $params)));
+                        } elseif ($stopLossTakeProfit) {
+                            $response = Async\await($this->contractPrivatePostApiV1ContractTpslCancel (array_merge($request, $params)));
+                        } else {
+                            $response = Async\await($this->contractPrivatePostApiV1ContractCancel (array_merge($request, $params)));
+                        }
+                    }
+                } else {
+                    throw new NotSupported($this->id . ' cancelOrders() does not support ' . $marketType . ' markets');
+                }
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // spot
             //
@@ -4979,7 +5026,7 @@ class huobi extends Exchange {
             //         }
             //     }
             //
-            // contracts
+            // future and swap
             //
             //     {
             //         "status" => "ok",
@@ -5006,6 +5053,8 @@ class huobi extends Exchange {
              * cancel all open orders
              * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} $params extra parameters specific to the huobi api endpoint
+             * @param {bool|null} $params->stop *contract only* if the orders are $stop trigger orders or not
+             * @param {bool|null} $params->stopLossTakeProfit *contract only* if the orders are $stop-loss or take-profit orders
              * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -5019,7 +5068,7 @@ class huobi extends Exchange {
                 // spot -----------------------------------------------------------
                 // 'account-id' => account['id'],
                 // 'symbol' => $market['id'], // a list of comma-separated symbols, all symbols by default
-                // 'types' 'string', buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
+                // 'types' 'string', buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-$stop-limit, sell-$stop-limit, buy-limit-fok, sell-limit-fok, buy-$stop-limit-fok, sell-$stop-limit-fok
                 // 'side' => 'buy', // or 'sell'
                 // 'size' => 100, // the number of orders to cancel 1-100
                 // contract -------------------------------------------------------
@@ -5029,40 +5078,66 @@ class huobi extends Exchange {
                 // 'direction' => 'buy' => // buy, sell
                 // 'offset' => 'open', // open, close
             );
-            $method = null;
+            $response = null;
             if ($marketType === 'spot') {
                 if ($symbol !== null) {
-                    $market = $this->market($symbol);
                     $request['symbol'] = $market['id'];
                 }
-                $method = 'spotPrivatePostV1OrderOrdersBatchCancelOpenOrders';
+                $response = Async\await($this->spotPrivatePostV1OrderOrdersBatchCancelOpenOrders (array_merge($request, $params)));
             } else {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol for ' . $marketType . ' orders');
+                $this->check_required_symbol('cancelAllOrders', $symbol);
+                if ($market['future']) {
+                    $request['symbol'] = $market['settleId'];
                 }
-                $marketInner = $this->market($symbol);
-                $request['contract_code'] = $marketInner['id'];
-                if ($marketInner['linear']) {
+                $request['contract_code'] = $market['id'];
+                $stop = $this->safe_value($params, 'stop');
+                $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
+                $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit' ));
+                if ($market['linear']) {
                     $marginMode = null;
                     list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
                     $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
                     if ($marginMode === 'isolated') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCancelallall';
+                        if ($stop) {
+                            $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapTriggerCancelall (array_merge($request, $params)));
+                        } elseif ($stopLossTakeProfit) {
+                            $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapTpslCancelall (array_merge($request, $params)));
+                        } else {
+                            $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCancelall (array_merge($request, $params)));
+                        }
                     } elseif ($marginMode === 'cross') {
-                        $method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancelall';
+                        if ($stop) {
+                            $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall (array_merge($request, $params)));
+                        } elseif ($stopLossTakeProfit) {
+                            $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall (array_merge($request, $params)));
+                        } else {
+                            $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCrossCancelall (array_merge($request, $params)));
+                        }
                     }
-                } elseif ($marketInner['inverse']) {
-                    if ($marketType === 'future') {
-                        $method = 'contractPrivatePostApiV1ContractCancelall';
-                        $request['symbol'] = $marketInner['settleId'];
-                    } elseif ($marketType === 'swap') {
-                        $method = 'contractPrivatePostSwapApiV1SwapCancelall';
-                    } else {
-                        throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $marketType . ' markets');
+                } elseif ($market['inverse']) {
+                    if ($market['swap']) {
+                        if ($stop) {
+                            $response = Async\await($this->contractPrivatePostSwapApiV1SwapTriggerCancelall (array_merge($request, $params)));
+                        } elseif ($stopLossTakeProfit) {
+                            $response = Async\await($this->contractPrivatePostSwapApiV1SwapTpslCancelall (array_merge($request, $params)));
+                        } else {
+                            $response = Async\await($this->contractPrivatePostSwapApiV1SwapCancelall (array_merge($request, $params)));
+                        }
+                    } elseif ($market['future']) {
+                        if ($stop) {
+                            $response = Async\await($this->contractPrivatePostApiV1ContractTriggerCancelall (array_merge($request, $params)));
+                        } elseif ($stopLossTakeProfit) {
+                            $response = Async\await($this->contractPrivatePostApiV1ContractTpslCancelall (array_merge($request, $params)));
+                        } else {
+                            $response = Async\await($this->contractPrivatePostApiV1ContractCancelall (array_merge($request, $params)));
+                        }
                     }
+                } else {
+                    throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $marketType . ' markets');
                 }
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            // spot
             //
             //     {
             //         code => 200,
@@ -5071,6 +5146,17 @@ class huobi extends Exchange {
             //             "failed-count" => 0,
             //             "next-id" => 5454600
             //         }
+            //     }
+            //
+            // future and swap
+            //
+            //     {
+            //         status => "ok",
+            //         data => array(
+            //             errors => array(),
+            //             successes => "1104754904426696704"
+            //         ),
+            //         ts => "1683435723755"
             //     }
             //
             return $response;
@@ -5734,9 +5820,7 @@ class huobi extends Exchange {
              * @param {array} $params extra parameters specific to the huobi api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchFundingRateHistory', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -6288,9 +6372,7 @@ class huobi extends Exchange {
              * @param {array} $params extra parameters specific to the huobi api endpoint
              * @return {array} $response from the exchange
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
-            }
+            $this->check_required_symbol('setLeverage', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             list($marketType, $query) = $this->handle_market_type_and_params('setLeverage', $market, $params);
@@ -7429,9 +7511,7 @@ class huobi extends Exchange {
             $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
             $method = null;
             if ($marginMode === 'isolated') {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument for isolated margin');
-                }
+                $this->check_required_symbol('borrowMargin', $symbol);
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
                 $method = 'privatePostMarginOrders';

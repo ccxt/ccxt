@@ -2224,11 +2224,11 @@ class xt extends Exchange {
             $stop = $this->safe_value($params, 'stop');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
             if ($stop) {
-                $request['entrustId'] = $this->convert_to_big_int($id);
+                $request['entrustId'] = $id;
             } elseif ($stopLossTakeProfit) {
-                $request['profitId'] = $this->convert_to_big_int($id);
+                $request['profitId'] = $id;
             } else {
-                $request['orderId'] = $this->convert_to_big_int($id);
+                $request['orderId'] = $id;
             }
             if ($stop) {
                 $params = $this->omit($params, 'stop');
@@ -2896,11 +2896,11 @@ class xt extends Exchange {
             $stop = $this->safe_value($params, 'stop');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
             if ($stop) {
-                $request['entrustId'] = $this->convert_to_big_int($id);
+                $request['entrustId'] = $id;
             } elseif ($stopLossTakeProfit) {
-                $request['profitId'] = $this->convert_to_big_int($id);
+                $request['profitId'] = $id;
             } else {
-                $request['orderId'] = $this->convert_to_big_int($id);
+                $request['orderId'] = $id;
             }
             if ($stop) {
                 $params = $this->omit($params, 'stop');
@@ -4457,7 +4457,7 @@ class xt extends Exchange {
             $body = $isUndefinedBody ? null : $this->json($body);
             $payloadString = null;
             if ($endpoint === 'spot') {
-                $payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' . $this->apiKey . '&xt-validate-recvwindow=' . $recvWindow . '&xt-validate-$timestamp=' . $timestamp;
+                $payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' . $this->apiKey . '&xt-validate-recvwindow=' . $recvWindow . '&xt-validate-t' . 'imestamp=' . $timestamp;
                 if ($isUndefinedBody) {
                     if ($urlencoded) {
                         $url .= '?' . $urlencoded;
@@ -4471,7 +4471,7 @@ class xt extends Exchange {
                 $headers['xt-validate-algorithms'] = 'HmacSHA256';
                 $headers['xt-validate-recvwindow'] = $recvWindow;
             } else {
-                $payloadString = 'xt-validate-appkey=' . $this->apiKey . '&xt-validate-$timestamp=' . $timestamp;
+                $payloadString = 'xt-validate-appkey=' . $this->apiKey . '&xt-validate-t' . 'imestamp=' . $timestamp; // we can't glue $timestamp, breaks in php
                 if ($method === 'GET') {
                     if ($urlencoded) {
                         $url .= '?' . $urlencoded;

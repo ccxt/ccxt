@@ -461,7 +461,7 @@ class currencycom(Exchange, ImplicitAPI):
             futures = False
             swap = (typeRaw == 'LEVERAGE')
             type = 'swap' if swap else 'spot'
-            margin = swap  # decided to set
+            margin = None
             if swap:
                 symbol = symbol.replace(self.options['leverage_markets_suffix'], '')
                 symbol += ':' + quote

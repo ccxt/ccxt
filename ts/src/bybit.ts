@@ -3193,6 +3193,27 @@ export default class bybit extends Exchange {
         //         "positionIdx": 2
         //     }
         //
+        //     {
+        //         "orderId":"0b3499a4-9691-40ec-b2b9-7d94ee0165ff",
+        //         "orderLinkId":"",
+        //         "mmp":false,
+        //         "symbol":"SOLPERP",
+        //         "orderType":"Market",
+        //         "side":"Buy",
+        //         "orderQty":"0.10000000",
+        //         "orderPrice":"23.030",
+        //         "iv":"0",
+        //         "timeInForce":"ImmediateOrCancel",
+        //         "orderStatus":"Created",
+        //         "createdAt":"1683380752146568",
+        //         "basePrice":"0.000",
+        //         "triggerPrice":"0.000",
+        //         "takeProfit":"0.000",
+        //         "stopLoss":"0.000",
+        //         "slTriggerBy":"UNKNOWN",
+        //         "tpTriggerBy":"UNKNOWN"
+        //     }
+        //
         const marketId = this.safeString (order, 'symbol');
         let marketType = 'contract';
         if (market !== undefined) {
@@ -3206,11 +3227,16 @@ export default class bybit extends Exchange {
         }
         market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger (order, 'createdTime');
+        let timestamp = undefined;
+        if ('createdTime' in order) {
+            timestamp = this.safeInteger (order, 'createdTime');
+        } else if ('createdAt' in order) {
+            timestamp = this.safeIntegerProduct (order, 'createdAt', 0.001);
+        }
         const id = this.safeString (order, 'orderId');
         const type = this.safeStringLower (order, 'orderType');
-        const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'qty');
+        const price = this.safeString2 (order, 'price', 'orderPrice');
+        const amount = this.safeString2 (order, 'qty', 'orderQty');
         const cost = this.safeString (order, 'cumExecValue');
         const filled = this.safeString (order, 'cumExecQty');
         const remaining = this.safeString (order, 'leavesQty');
@@ -3233,6 +3259,8 @@ export default class bybit extends Exchange {
         const rawTimeInForce = this.safeString (order, 'timeInForce');
         const timeInForce = this.parseTimeInForce (rawTimeInForce);
         const stopPrice = this.omitZero (this.safeString (order, 'triggerPrice'));
+        const takeProfitPrice = this.omitZero (this.safeString (order, 'takeProfit'));
+        const stopLossPrice = this.omitZero (this.safeString (order, 'stopLoss'));
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -3249,6 +3277,8 @@ export default class bybit extends Exchange {
             'price': price,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'amount': amount,
             'cost': cost,
             'average': undefined,
@@ -3884,9 +3914,6 @@ export default class bybit extends Exchange {
     async createUsdcOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (type === 'market') {
-            throw new NotSupported (this.id + 'createOrder does not allow market orders for ' + symbol + ' markets');
-        }
         const lowerCaseType = type.toLowerCase ();
         if ((price === undefined) && (lowerCaseType === 'limit')) {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
@@ -3913,7 +3940,7 @@ export default class bybit extends Exchange {
         };
         const isMarket = lowerCaseType === 'market';
         const isLimit = lowerCaseType === 'limit';
-        if (isLimit !== undefined) {
+        if (isLimit) {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
         const exchangeSpecificParam = this.safeString (params, 'time_in_force');
@@ -3967,8 +3994,12 @@ export default class bybit extends Exchange {
             request['orderLinkId'] = this.uuid16 ();
         }
         params = this.omit (params, [ 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit' ]);
-        const method = market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder';
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['option']) {
+            response = await this.privatePostOptionUsdcOpenapiPrivateV1PlaceOrder (this.extend (request, params));
+        } else {
+            response = await this.privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder (this.extend (request, params));
+        }
         //
         //     {
         //         "retCode":0,
