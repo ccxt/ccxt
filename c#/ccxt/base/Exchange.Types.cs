@@ -293,8 +293,8 @@ public partial class Exchange
 
     public struct OrderBook
     {
-        public List<List<float>>? bids;
-        public List<List<float>>? asks;
+        public List<List<double>>? bids;
+        public List<List<double>>? asks;
 
         public string? symbol;
         public Int64? timestamp;
@@ -304,8 +304,8 @@ public partial class Exchange
         public OrderBook(object orderbook2)
         {
             var orderbook = (Dictionary<string, object>)orderbook2;
-            bids = orderbook.ContainsKey("bids") ? ((IEnumerable<object>)orderbook["bids"]).Select(x => ((IEnumerable<object>)x).Select(y => (float)y).ToList()).ToList() : null;
-            asks = orderbook.ContainsKey("asks") ? ((IEnumerable<object>)orderbook["asks"]).Select(x => ((IEnumerable<object>)x).Select(y => (float)y).ToList()).ToList() : null;
+            bids = orderbook.ContainsKey("bids") ? ((IEnumerable<object>)orderbook["bids"]).Select(x => ((IEnumerable<object>)x).Select(y => (double)y).ToList()).ToList() : null;
+            asks = orderbook.ContainsKey("asks") ? ((IEnumerable<object>)orderbook["asks"]).Select(x => ((IEnumerable<object>)x).Select(y => (double)y).ToList()).ToList() : null;
             symbol = SafeString(orderbook, "symbol");
             timestamp = SafeInteger(orderbook, "timestamp");
             datetime = SafeString(orderbook, "datetime");
