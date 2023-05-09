@@ -142,7 +142,7 @@ export default class testMainClass extends baseMainTestClass {
             'debug': this.debug,
             'httpsAgent': httpsAgent,
             'enableRateLimit': true,
-            'timeout': 20000,
+            'timeout': 30000,
         };
         const exchange = initExchange (exchangeId, exchangeArgs);
         await this.importFiles (exchange);
