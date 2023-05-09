@@ -2309,8 +2309,7 @@ class huobi(Exchange, ImplicitAPI):
                 # request['end-time'] = self.sum(since, 172800000)  # 48 hours window
             method = 'spotPrivateGetV1OrderMatchresults'
         else:
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol for ' + marketType + ' orders')
+            self.check_required_symbol('fetchMyTrades', symbol)
             request['contract'] = market['id']
             request['trade_type'] = 0  # 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
             if since is not None:
@@ -3095,8 +3094,7 @@ class huobi(Exchange, ImplicitAPI):
             else:
                 request['order-id'] = id
         else:
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol for ' + marketType + ' orders')
+            self.check_required_symbol('fetchOrder', symbol)
             request['contract_code'] = market['id']
             if market['linear']:
                 marginMode = None
@@ -3266,8 +3264,7 @@ class huobi(Exchange, ImplicitAPI):
     async def fetch_spot_orders_by_states(self, states, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         method = self.safe_string(self.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders')  # spot_private_get_v1_order_history
         if method == 'spot_private_get_v1_order_orders':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
+            self.check_required_symbol('fetchOrders', symbol)
         await self.load_markets()
         market = None
         request = {
@@ -3332,8 +3329,7 @@ class huobi(Exchange, ImplicitAPI):
         return await self.fetch_spot_orders_by_states('filled,partial-canceled,canceled', symbol, since, limit, params)
 
     async def fetch_contract_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchContractOrders() requires a symbol argument')
+        self.check_required_symbol('fetchContractOrders', symbol)
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -3640,8 +3636,7 @@ class huobi(Exchange, ImplicitAPI):
             params = self.omit(params, 'account-id')
             response = await self.spotPrivateGetV1OrderOpenOrders(self.extend(request, params))
         else:
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol for ' + marketType + ' orders')
+            self.check_required_symbol('fetchOpenOrders', symbol)
             if limit is not None:
                 request['page_size'] = limit
             request['contract_code'] = market['id']
@@ -4518,8 +4513,7 @@ class huobi(Exchange, ImplicitAPI):
                 params = self.omit(params, ['client-order-id', 'clientOrderId'])
                 response = await self.spotPrivatePostV1OrderOrdersSubmitCancelClientOrder(self.extend(request, params))
         else:
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol for ' + marketType + ' orders')
+            self.check_required_symbol('cancelOrder', symbol)
             clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
             if clientOrderId is None:
                 request['order_id'] = id
@@ -4598,6 +4592,8 @@ class huobi(Exchange, ImplicitAPI):
         :param [str] ids: order ids
         :param str|None symbol: unified market symbol, default is None
         :param dict params: extra parameters specific to the huobi api endpoint
+        :param bool|None params['stop']: *contract only* if the orders are stop trigger orders or not
+        :param bool|None params['stopLossTakeProfit']: *contract only* if the orders are stop-loss or take-profit orders
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -4608,7 +4604,7 @@ class huobi(Exchange, ImplicitAPI):
         marketType, params = self.handle_market_type_and_params('cancelOrders', market, params)
         request = {
             # spot -----------------------------------------------------------
-            # 'order-ids': ids.jsoin(','),  # max 50
+            # 'order-ids': ','.join(ids),  # max 50
             # 'client-order-ids': ','.join(ids),  # max 50
             # contracts ------------------------------------------------------
             # 'order_id': id,  # comma separated, max 10
@@ -4616,43 +4612,24 @@ class huobi(Exchange, ImplicitAPI):
             # 'contract_code': market['id'],
             # 'symbol': market['settleId'],
         }
-        method = None
+        response = None
         if marketType == 'spot':
             clientOrderIds = self.safe_value_2(params, 'client-order-id', 'clientOrderId')
             clientOrderIds = self.safe_value_2(params, 'client-order-ids', 'clientOrderIds', clientOrderIds)
             if clientOrderIds is None:
                 if isinstance(clientOrderIds, str):
-                    request['order-ids'] = ids
+                    request['order-ids'] = [ids]
                 else:
-                    request['order-ids'] = ','.join(ids)
+                    request['order-ids'] = ids
             else:
                 if isinstance(clientOrderIds, str):
+                    request['client-order-ids'] = [clientOrderIds]
+                else:
                     request['client-order-ids'] = clientOrderIds
-                else:
-                    request['client-order-ids'] = ','.join(clientOrderIds)
                 params = self.omit(params, ['client-order-id', 'client-order-ids', 'clientOrderId', 'clientOrderIds'])
-            method = 'spotPrivatePostV1OrderOrdersBatchcancel'
+            response = await self.spotPrivatePostV1OrderOrdersBatchcancel(self.extend(request, params))
         else:
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol for ' + marketType + ' orders')
-            marketInner = self.market(symbol)
-            request['contract_code'] = marketInner['id']
-            if marketInner['linear']:
-                marginMode = None
-                marginMode, params = self.handle_margin_mode_and_params('cancelOrders', params)
-                marginMode = 'cross' if (marginMode is None) else marginMode
-                if marginMode == 'isolated':
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCancel'
-                elif marginMode == 'cross':
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel'
-            elif marketInner['inverse']:
-                if marketInner['future']:
-                    method = 'contractPrivatePostApiV1ContractCancel'
-                    request['symbol'] = marketInner['settleId']
-                elif marketInner['swap']:
-                    method = 'contractPrivatePostSwapApiV1SwapCancel'
-                else:
-                    raise NotSupported(self.id + ' cancelOrders() does not support ' + marketType + ' markets')
+            self.check_required_symbol('cancelOrders', symbol)
             clientOrderIds = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
             clientOrderIds = self.safe_string_2(params, 'client_order_ids', 'clientOrderIds', clientOrderIds)
             if clientOrderIds is None:
@@ -4660,7 +4637,48 @@ class huobi(Exchange, ImplicitAPI):
             else:
                 request['client_order_id'] = clientOrderIds
                 params = self.omit(params, ['client_order_id', 'client_order_ids', 'clientOrderId', 'clientOrderIds'])
-        response = await getattr(self, method)(self.extend(request, params))
+            if market['future']:
+                request['symbol'] = market['settleId']
+            else:
+                request['contract_code'] = market['id']
+            stop = self.safe_value(params, 'stop')
+            stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
+            params = self.omit(params, ['stop', 'stopLossTakeProfit'])
+            if market['linear']:
+                marginMode = None
+                marginMode, params = self.handle_margin_mode_and_params('cancelOrders', params)
+                marginMode = 'cross' if (marginMode is None) else marginMode
+                if marginMode == 'isolated':
+                    if stop:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapTriggerCancel(self.extend(request, params))
+                    elif stopLossTakeProfit:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapTpslCancel(self.extend(request, params))
+                    else:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapCancel(self.extend(request, params))
+                elif marginMode == 'cross':
+                    if stop:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel(self.extend(request, params))
+                    elif stopLossTakeProfit:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel(self.extend(request, params))
+                    else:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapCrossCancel(self.extend(request, params))
+            elif market['inverse']:
+                if market['swap']:
+                    if stop:
+                        response = await self.contractPrivatePostSwapApiV1SwapTriggerCancel(self.extend(request, params))
+                    elif stopLossTakeProfit:
+                        response = await self.contractPrivatePostSwapApiV1SwapTpslCancel(self.extend(request, params))
+                    else:
+                        response = await self.contractPrivatePostSwapApiV1SwapCancel(self.extend(request, params))
+                elif market['future']:
+                    if stop:
+                        response = await self.contractPrivatePostApiV1ContractTriggerCancel(self.extend(request, params))
+                    elif stopLossTakeProfit:
+                        response = await self.contractPrivatePostApiV1ContractTpslCancel(self.extend(request, params))
+                    else:
+                        response = await self.contractPrivatePostApiV1ContractCancel(self.extend(request, params))
+            else:
+                raise NotSupported(self.id + ' cancelOrders() does not support ' + marketType + ' markets')
         #
         # spot
         #
@@ -4695,7 +4713,7 @@ class huobi(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        # contracts
+        # future and swap
         #
         #     {
         #         "status": "ok",
@@ -4719,6 +4737,8 @@ class huobi(Exchange, ImplicitAPI):
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict params: extra parameters specific to the huobi api endpoint
+        :param bool|None params['stop']: *contract only* if the orders are stop trigger orders or not
+        :param bool|None params['stopLossTakeProfit']: *contract only* if the orders are stop-loss or take-profit orders
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -4741,34 +4761,56 @@ class huobi(Exchange, ImplicitAPI):
             # 'direction': 'buy':  # buy, sell
             # 'offset': 'open',  # open, close
         }
-        method = None
+        response = None
         if marketType == 'spot':
             if symbol is not None:
-                market = self.market(symbol)
                 request['symbol'] = market['id']
-            method = 'spotPrivatePostV1OrderOrdersBatchCancelOpenOrders'
+            response = await self.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders(self.extend(request, params))
         else:
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol for ' + marketType + ' orders')
-            marketInner = self.market(symbol)
-            request['contract_code'] = marketInner['id']
-            if marketInner['linear']:
+            self.check_required_symbol('cancelAllOrders', symbol)
+            if market['future']:
+                request['symbol'] = market['settleId']
+            request['contract_code'] = market['id']
+            stop = self.safe_value(params, 'stop')
+            stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
+            params = self.omit(params, ['stop', 'stopLossTakeProfit'])
+            if market['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('cancelAllOrders', params)
                 marginMode = 'cross' if (marginMode is None) else marginMode
                 if marginMode == 'isolated':
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCancelallall'
+                    if stop:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapTriggerCancelall(self.extend(request, params))
+                    elif stopLossTakeProfit:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapTpslCancelall(self.extend(request, params))
+                    else:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapCancelall(self.extend(request, params))
                 elif marginMode == 'cross':
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancelall'
-            elif marketInner['inverse']:
-                if marketType == 'future':
-                    method = 'contractPrivatePostApiV1ContractCancelall'
-                    request['symbol'] = marketInner['settleId']
-                elif marketType == 'swap':
-                    method = 'contractPrivatePostSwapApiV1SwapCancelall'
-                else:
-                    raise NotSupported(self.id + ' cancelAllOrders() does not support ' + marketType + ' markets')
-        response = await getattr(self, method)(self.extend(request, params))
+                    if stop:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall(self.extend(request, params))
+                    elif stopLossTakeProfit:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall(self.extend(request, params))
+                    else:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapCrossCancelall(self.extend(request, params))
+            elif market['inverse']:
+                if market['swap']:
+                    if stop:
+                        response = await self.contractPrivatePostSwapApiV1SwapTriggerCancelall(self.extend(request, params))
+                    elif stopLossTakeProfit:
+                        response = await self.contractPrivatePostSwapApiV1SwapTpslCancelall(self.extend(request, params))
+                    else:
+                        response = await self.contractPrivatePostSwapApiV1SwapCancelall(self.extend(request, params))
+                elif market['future']:
+                    if stop:
+                        response = await self.contractPrivatePostApiV1ContractTriggerCancelall(self.extend(request, params))
+                    elif stopLossTakeProfit:
+                        response = await self.contractPrivatePostApiV1ContractTpslCancelall(self.extend(request, params))
+                    else:
+                        response = await self.contractPrivatePostApiV1ContractCancelall(self.extend(request, params))
+            else:
+                raise NotSupported(self.id + ' cancelAllOrders() does not support ' + marketType + ' markets')
+        #
+        # spot
         #
         #     {
         #         code: 200,
@@ -4777,6 +4819,17 @@ class huobi(Exchange, ImplicitAPI):
         #             "failed-count": 0,
         #             "next-id": 5454600
         #         }
+        #     }
+        #
+        # future and swap
+        #
+        #     {
+        #         status: "ok",
+        #         data: {
+        #             errors: [],
+        #             successes: "1104754904426696704"
+        #         },
+        #         ts: "1683435723755"
         #     }
         #
         return response
@@ -5380,8 +5433,7 @@ class huobi(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.check_required_symbol('fetchFundingRateHistory', symbol)
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -5885,8 +5937,7 @@ class huobi(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        self.check_required_symbol('setLeverage', symbol)
         await self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('setLeverage', market, params)
@@ -6965,8 +7016,7 @@ class huobi(Exchange, ImplicitAPI):
         marginMode = 'cross' if (marginMode is None) else marginMode
         method = None
         if marginMode == 'isolated':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
+            self.check_required_symbol('borrowMargin', symbol)
             market = self.market(symbol)
             request['symbol'] = market['id']
             method = 'privatePostMarginOrders'
