@@ -5105,7 +5105,7 @@ export default class bitget extends Exchange {
             const data = this.safeValue (response, 'data', []);
             positions = this.parsePositions (data, [ market['symbol'] ], params);
         }
-        return this.buildFullPosition (positions, market);
+        return this.safeFullPosition (positions, market);
     }
 
     parsePosition (position, market = undefined) {
