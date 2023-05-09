@@ -128,7 +128,7 @@ public partial class Exchange
         object parsedValue = null;
         try
         {
-            parsedValue = Convert.ToInt64((Convert.ToInt64(result) * Convert.ToSingle(multiplier)));
+            parsedValue = Convert.ToInt64((Convert.ToDouble(result) * Convert.ToDouble(multiplier)));
         }
         catch (Exception e)
         {
@@ -143,7 +143,7 @@ public partial class Exchange
         object parsedValue = null;
         try
         {
-            parsedValue = (Convert.ToInt64(result) * Convert.ToInt64(multiplier));
+            parsedValue = Convert.ToInt64((Convert.ToDouble(result) * Convert.ToDouble(multiplier)));
         }
         catch (Exception e)
         {
