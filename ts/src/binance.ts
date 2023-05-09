@@ -6921,13 +6921,7 @@ export default class binance extends Exchange {
         if (side !== 'long') {
             quantity = Precise.stringMul ('-1', quantity);
         }
-        const optionSide = this.safeString (position, 'optionSide');
-        let optionType = undefined;
-        if (optionSide === 'CALL') {
-            optionType = 'call';
-        } else if (optionSide === 'PUT') {
-            optionType = 'put';
-        }
+        const optionSide = this.safeStringLower (position, 'optionSide');
         const strikePrice = this.safeNumber (position, 'strikePrice');
         const timestamp = this.safeInteger (position, 'time');
         return this.safePosition ({
@@ -6954,7 +6948,7 @@ export default class binance extends Exchange {
             'marginRatio': undefined,
             'marginMode': undefined,
             'percentage': undefined,
-            'optionType': optionType,
+            'optionType': optionSide,
             'strikePrice': strikePrice,
         });
     }
