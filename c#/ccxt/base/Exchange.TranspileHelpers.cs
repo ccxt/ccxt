@@ -255,17 +255,17 @@ public partial class Exchange
         a = normalizeIntIfNeeded(a);
         b = normalizeIntIfNeeded(b);
 
-        if (a.GetType() == typeof(Int64))
+        if (a.GetType() == typeof(Int64) && b.GetType() == typeof(Int64))
         {
-            return (Int64)a > (Int64)b;
+            return Convert.ToInt64(a) > Convert.ToInt64(b);
         }
-        else if (a.GetType() == typeof(int))
+        else if (a.GetType() == typeof(int) && b.GetType() == typeof(int))
         {
             return (int)a > (int)b;
         }
-        else if (a.GetType() == typeof(double))
+        else if (a.GetType() == typeof(double) || b.GetType() == typeof(double))
         {
-            return (double)a > (double)b;
+            return Convert.ToDouble(a) > Convert.ToDouble(b);
         }
         else if (a.GetType() == typeof(string))
         {
