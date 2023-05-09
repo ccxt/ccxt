@@ -1118,7 +1118,7 @@
                 "deposit": "undefined"
             }
         },
-        "timeout": 60000
+        "timeout": 120000
     },
     "upbit": {
         "skipWs": true,
