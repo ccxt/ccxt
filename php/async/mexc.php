@@ -507,7 +507,7 @@ class mexc extends Exchange {
                     '30010' => '\\ccxt\\InvalidOrder', // no valid trade price
                     '30014' => '\\ccxt\\InvalidOrder', // invalid symbol
                     '30016' => '\\ccxt\\InvalidOrder', // trading disabled
-                    '30018' => '\\ccxt\\InvalidOrder', // market order is disabled
+                    '30018' => '\\ccxt\\AccountSuspended', // array("msg":"账号暂时不能下单，请联系客服","code":30018)
                     '30020' => '\\ccxt\\AuthenticationError', // no permission for the symbol
                     '30021' => '\\ccxt\\BadRequest', // invalid symbol
                     '30025' => '\\ccxt\\InvalidOrder', // no exist opponent order

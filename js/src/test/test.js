@@ -170,11 +170,6 @@ export default class testMainClass extends baseMainTestClass {
                     setExchangeProp(exchange, key, finalValue);
                 }
             }
-            // support simple proxy
-            const proxy = getExchangeProp(exchange, 'httpProxy');
-            if (proxy) {
-                addProxy(exchange, proxy);
-            }
         }
         // credentials
         const reqCreds = getExchangeProp(exchange, 're' + 'quiredCredentials'); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
@@ -205,7 +200,10 @@ export default class testMainClass extends baseMainTestClass {
             dump('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
             exitScript();
         }
-        //
+        const proxy = exchange.safeString(skippedSettingsForExchange, 'httpProxy');
+        if (proxy !== undefined) {
+            addProxy(exchange, proxy);
+        }
         this.skippedMethods = exchange.safeValue(skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
     }
