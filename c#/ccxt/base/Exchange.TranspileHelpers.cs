@@ -2,7 +2,8 @@ namespace ccxt;
 
 using System.Globalization;
 using System.Reflection;
-using System.Text.Json;
+// using System.Text.Json;
+using Newtonsoft.Json;
 
 using dict = Dictionary<string, object>;
 
@@ -131,7 +132,7 @@ public partial class Exchange
 
     public dict parseJson(object json)
     {
-        return JsonSerializer.Deserialize<Dictionary<string, object>>((string)json);
+        return JsonConvert.DeserializeObject<dict>((string)json);
     }
 
     public static bool isTrue(object value)

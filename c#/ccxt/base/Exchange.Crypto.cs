@@ -182,8 +182,11 @@ public partial class Exchange
         var algo = hash.DynamicInvoke() as string;
         var dataToSign = Encoding.UTF8.GetBytes((string)data);
         using var rsa = RSA.Create();
+#if !NETSTANDARD2_1 && !NETCOREAPP3_1
         rsa.ImportFromPem((string)publicKey);
-
+#else
+        rsa.ImportRSAPrivateKey(StringToByteArray((string)publicKey), out _);
+#endif
         var rsaFormatter = new RSAPKCS1SignatureFormatter(rsa);
         var sign = rsa.SignData(dataToSign, stringToHashAlgorithmName(algo), RSASignaturePadding.Pkcs1);
         return binaryToBase64(sign);
