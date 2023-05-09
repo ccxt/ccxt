@@ -1678,6 +1678,12 @@ class coinex(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http017_put_limit
+        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http018_put_market
+        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http019_put_limit_stop
+        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http020_put_market_stop
+        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http031_market_close
+        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http030_limit_close
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1691,6 +1697,7 @@ class coinex(Exchange, ImplicitAPI):
         :param str params['timeInForce']: "GTC", "IOC", "FOK", "PO"
         :param bool params.postOnly:
         :param bool params.reduceOnly:
+        :param bool|None params['position_id']: *required for reduce only orders* the position id to reduce
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1705,9 +1712,11 @@ class coinex(Exchange, ImplicitAPI):
         positionId = self.safe_integer_2(params, 'position_id', 'positionId')  # Required for closing swap positions
         timeInForceRaw = self.safe_string(params, 'timeInForce')  # Spot: IOC, FOK, PO, GTC, ... NORMAL(default), MAKER_ONLY
         reduceOnly = self.safe_value(params, 'reduceOnly')
-        if reduceOnly is not None:
+        if reduceOnly:
             if market['type'] != 'swap':
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap markets only')
+            if positionId is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a position_id/positionId parameter for reduceOnly orders')
         method = None
         request = {
             'market': market['id'],

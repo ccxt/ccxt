@@ -1777,7 +1777,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         for i in range(0, len(data)):
             rate = data[i]
-            timestamp = self.safe_number(rate, 'fundingTime')
+            timestamp = self.safe_integer(rate, 'fundingTime')
             rates.append({
                 'info': rate,
                 'symbol': self.safe_symbol(self.safe_string(rate, 'instId')),

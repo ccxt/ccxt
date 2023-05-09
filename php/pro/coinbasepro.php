@@ -6,7 +6,9 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\BadSymbol;
+use ccxt\AuthenticationError;
 use React\Async;
 
 class coinbasepro extends \ccxt\async\coinbasepro {
@@ -734,6 +736,36 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         return $message;
     }
 
+    public function handle_error_message(Client $client, $message) {
+        //
+        //     {
+        //         "type" => "error",
+        //         "message" => "error $message",
+        //         /* ... */
+        //     }
+        //
+        // auth $error
+        //
+        //     {
+        //         type => 'error',
+        //         $message => 'Authentication Failed',
+        //         $reason => 'array("message":"Invalid API Key")'
+        //     }
+        //
+        $errMsg = $this->safe_string($message, 'message');
+        $reason = $this->safe_string($message, 'reason');
+        try {
+            if ($errMsg === 'Authentication Failed') {
+                throw new AuthenticationError('Authentication failed => ' . $reason);
+            } else {
+                throw new ExchangeError($this->id . ' ' . $reason);
+            }
+        } catch (Exception $error) {
+            $client->reject ($error);
+            return true;
+        }
+    }
+
     public function handle_message(Client $client, $message) {
         $type = $this->safe_string($message, 'type');
         $methods = array(
@@ -745,6 +777,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             'open' => array($this, 'handle_order'),
             'change' => array($this, 'handle_order'),
             'done' => array($this, 'handle_order'),
+            'error' => array($this, 'handle_error_message'),
         );
         $length = strlen($client->url) - 0;
         $authenticated = $client->url[$length - 1] === '?';
