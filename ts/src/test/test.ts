@@ -206,6 +206,10 @@ export default class testMainClass extends baseMainTestClass {
         const skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
         // others
         const skipReason = exchange.safeValue (skippedSettingsForExchange, 'skip');
+        const timeout = exchange.safeValue (skippedSettingsForExchange, 'timeout');
+        if (timeout !== undefined) {
+            exchange.timeout = timeout;
+        }
         if (skipReason !== undefined) {
             dump ('[SKIPPED] exchange', exchangeId, skipReason);
             exitScript ();

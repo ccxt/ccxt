@@ -1117,7 +1117,8 @@
                 "withdraw": "undefined",
                 "deposit": "undefined"
             }
-        }
+        },
+        "timeout": 60000
     },
     "upbit": {
         "skipWs": true,
