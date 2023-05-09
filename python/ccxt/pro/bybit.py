@@ -110,12 +110,6 @@ class bybit(ccxt.async_support.bybit):
                 'ping': self.ping,
                 'keepAlive': 20000,
             },
-            'exceptions': {
-                'ws': {
-                    'exact': {
-                    },
-                },
-            },
         })
 
     def request_id(self):
