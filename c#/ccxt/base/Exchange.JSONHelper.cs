@@ -68,6 +68,9 @@ public static class JsonHelper
             case JTokenType.Array:
                 return token.Select(ToObject).ToList();
 
+            case JTokenType.Float:
+                return token.ToObject<double>();
+
             default:
                 return ((JValue)token).Value;
         }

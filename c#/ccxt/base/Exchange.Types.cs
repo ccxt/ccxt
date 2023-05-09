@@ -9,8 +9,8 @@ public partial class Exchange
 
     public struct Precision
     {
-        public float? amount;
-        public float? price;
+        public double? amount;
+        public double? price;
         public Precision(object precision2)
         {
             var precision = (Dictionary<string, object>)precision2;
@@ -21,8 +21,8 @@ public partial class Exchange
 
     public struct MinMax
     {
-        public float? min;
-        public float? max;
+        public double? min;
+        public double? max;
         public MinMax(object minMax2)
         {
             var minMax = (Dictionary<string, object>)minMax2;
@@ -33,8 +33,8 @@ public partial class Exchange
 
     public struct Fee
     {
-        public float? rate;
-        public float? cost;
+        public double? rate;
+        public double? cost;
 
         public Fee(object fee2)
         {
@@ -79,15 +79,15 @@ public partial class Exchange
         public bool? contract;
         public string? settle;
         public string? settleId;
-        public float? contractSize;
+        public double? contractSize;
         public bool? linear;
         public bool? inverse;
-        public float? expiry;
+        public double? expiry;
         public string? expiryDatetime;
-        public float? strike;
+        public double? strike;
         public string? optionType;
-        public float? taker;
-        public float? maker;
+        public double? taker;
+        public double? maker;
         public bool? percentage;
         public bool? tierBased;
         public string? feeSide;
@@ -136,9 +136,9 @@ public partial class Exchange
 
     public struct Trade
     {
-        public float? amount;
-        public float? price;
-        public float? cost;
+        public double? amount;
+        public double? price;
+        public double? cost;
         public string? id;
         public string? orderId;
         public Dictionary<string, object>? info;
@@ -178,12 +178,12 @@ public partial class Exchange
         public string? symbol;
         public string? type;
         public string? side;
-        public float? price;
-        public float? cost;
-        public float? average;
-        public float? amount;
-        public float? filled;
-        public float? remaining;
+        public double? price;
+        public double? cost;
+        public double? average;
+        public double? amount;
+        public double? filled;
+        public double? remaining;
         public string? status;
         public Fee? fee;
         public IEnumerable<Trade>? trades;
@@ -217,23 +217,23 @@ public partial class Exchange
         public string? symbol;
         public Int64? timestamp;
         public string? datetime;
-        public float? high;
-        public float? low;
-        public float? bid;
-        public float? bidVolume;
-        public float? ask;
-        public float? askVolume;
-        public float? vwap;
-        public float? open;
+        public double? high;
+        public double? low;
+        public double? bid;
+        public double? bidVolume;
+        public double? ask;
+        public double? askVolume;
+        public double? vwap;
+        public double? open;
 
-        public float? close;
-        public float? last;
-        public float? previousClose;
-        public float? change;
-        public float? percentage;
-        public float? average;
-        public float? baseVolume;
-        public float? quoteVolume;
+        public double? close;
+        public double? last;
+        public double? previousClose;
+        public double? change;
+        public double? percentage;
+        public double? average;
+        public double? baseVolume;
+        public double? quoteVolume;
 
         public Ticker(object ticker2)
         {
@@ -267,7 +267,7 @@ public partial class Exchange
             public string? tag;
             public string? type;
             public string? currency;
-            public float? amount;
+            public double? amount;
             public string? status;
             public Int64? updated;
             public Int64? timestamp;
@@ -316,11 +316,11 @@ public partial class Exchange
     public struct OHLCV
     {
         public Int64? timestamp;
-        public float? open;
-        public float? high;
-        public float? low;
-        public float? close;
-        public float? volume;
+        public double? open;
+        public double? high;
+        public double? low;
+        public double? close;
+        public double? volume;
 
         public OHLCV(object ohlcv2)
         {
@@ -337,12 +337,12 @@ public partial class Exchange
     public struct OHLCVC
     {
         public Int64? timestamp;
-        public float? open;
-        public float? high;
-        public float? low;
-        public float? close;
-        public float? volume;
-        public float? cost;
+        public double? open;
+        public double? high;
+        public double? low;
+        public double? close;
+        public double? volume;
+        public double? cost;
 
         public OHLCVC(object ohlcv2)
         {
@@ -359,9 +359,9 @@ public partial class Exchange
 
     public struct Balance
     {
-        public float? free;
-        public float? used;
-        public float? total;
+        public double? free;
+        public double? used;
+        public double? total;
 
         public Balance(object balance2)
         {

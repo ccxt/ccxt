@@ -66,7 +66,7 @@ public partial class Exchange
     public object fees { get; set; } = new dict();
     public object requiredCredentials { get; set; } = new dict();
     public object timeframes { get; set; } = new dict();
-    public float rateLimit { get; set; }
+    public double rateLimit { get; set; }
     public object exceptions { get; set; } = new dict();
     public object urls { get; set; } = new dict();
     public object precision { get; set; } = new dict();

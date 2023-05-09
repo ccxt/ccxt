@@ -480,7 +480,7 @@ public partial class Exchange
 
         if (this.number.GetType() == typeof(float).GetType())
         {
-            return float.Parse(value.ToString(), CultureInfo.InvariantCulture);
+            return double.Parse(value.ToString(), CultureInfo.InvariantCulture);
         }
         return value;
     }

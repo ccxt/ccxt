@@ -61,10 +61,10 @@ public partial class Exchange
     public object safeInteger2(object obj, object key1, object key2, object defaultValue = null) => safeIntegerN(obj, new List<object> { key1, key2 }, defaultValue);
 
     public object safeFloat(object obj, object key, object defaultValue = null) => safeFloatN(obj, new List<object> { key }, defaultValue);
-    public static float? SafeFloat(object obj, object key, object defaultValue = null)
+    public static double? SafeFloat(object obj, object key, object defaultValue = null)
     {
         var res = SafeFloatN(obj, new List<object> { key }, defaultValue);
-        return res == null ? null : (float)res;
+        return res == null ? null : Convert.ToDouble(res);
     }
 
     public object safeFloat2(object obj, object key1, object key2, object defaultValue = null) => safeFloatN(obj, new List<object> { key1, key2 }, defaultValue);
@@ -232,13 +232,13 @@ public partial class Exchange
         object parsedValue = null;
         try
         {
-            parsedValue = Convert.ToSingle(result);
+            parsedValue = Convert.ToDouble(result); // altough the name is float right now it is double
         }
         catch (Exception e)
         {
 
         }
-        return parsedValue == null ? defaultValue : Convert.ToSingle(result);
+        return parsedValue == null ? defaultValue : Convert.ToDouble(result);
     }
     public object safeValueN(object obj, object keys2, object defaultValue = null) => SafeValueN(obj, keys2, defaultValue);
     public static object SafeValueN(object obj, object keys2, object defaultValue = null)
