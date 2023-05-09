@@ -194,7 +194,9 @@
             },
             "fetchTickers": {
                 "bid":"broken bid-ask",
-                "ask":"broken bid-ask"
+                "ask":"broken bid-ask",
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
+                "baseVolume": "quoteVolume >= baseVolume * low is failing",
             }
         }
     },
@@ -349,6 +351,7 @@
         }
     },
     "blockchaincom": {
+        "skip":"temporary outage",
         "skipMethods": {
             "loadMarkets": {
                 "taker":"not provided",
