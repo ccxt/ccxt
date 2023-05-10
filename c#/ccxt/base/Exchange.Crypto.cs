@@ -182,9 +182,12 @@ public partial class Exchange
         var algo = hash.DynamicInvoke() as string;
         var dataToSign = Encoding.UTF8.GetBytes((string)data);
         using var rsa = RSA.Create();
-#if !NETSTANDARD2_1 && !NETCOREAPP3_1
+#if NETSTANDARD2_0
+        throw new NotSupportedException("RSA signing is notccxt supported on .NET Standard 2.0 yet");
+#endif
+#if !NETSTANDARD2_1 && !NETCOREAPP3_1 && !NETSTANDARD2_0
         rsa.ImportFromPem((string)publicKey);
-#else
+#elif !NETSTANDARD2_0
         rsa.ImportRSAPrivateKey(StringToByteArray((string)publicKey), out _);
 #endif
         var rsaFormatter = new RSAPKCS1SignatureFormatter(rsa);

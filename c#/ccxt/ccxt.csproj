@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;net5.0;net7.0;net6.0;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;netstandard2.0</TargetFrameworks>
     <LangVersion>10.0</LangVersion>
     <OutputType>Library</OutputType>
     <RootNamespace>ccxt</RootNamespace>

@@ -81,8 +81,8 @@ public partial class Exchange
                         if (config.GetType() == typeof(dict))
                         {
                             var dictConfig = config as dict;
-                            var rawCost = dictConfig.GetValueOrDefault("cost");
-                            cost = rawCost != null ? Convert.ToInt32(rawCost) : 1;
+                            var success = dictConfig.TryGetValue("cost", out var rl);
+                            cost = success ? Convert.ToInt32(rl) : 1;
                         }
                         else
                         {
@@ -221,9 +221,9 @@ public partial class Exchange
     public object call(string implicitEndpoint, object parameters2)
     {
         var parameters = (dict)parameters2;
-        if (this.transformedApi.GetValueOrDefault(implicitEndpoint) != null)
+        if (this.transformedApi.TryGetValue(implicitEndpoint, out var info))
         {
-            var endpointInfo = this.transformedApi[implicitEndpoint] as dict;
+            var endpointInfo = info as dict;
             var method = endpointInfo["method"] as String;
             var path = endpointInfo["path"] as String;
             var api = endpointInfo["api"] as String;
@@ -239,9 +239,9 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         var implicitEndpoint = (string)implicitEndpoint2;
-        if (this.transformedApi.GetValueOrDefault(implicitEndpoint) != null)
+        if (this.transformedApi.TryGetValue(implicitEndpoint, out var info))
         {
-            var endpointInfo = this.transformedApi[implicitEndpoint] as dict;
+            var endpointInfo = info as dict;
             var method = endpointInfo["method"] as String;
             var path = endpointInfo["path"] as String;
             var api = endpointInfo["api"];

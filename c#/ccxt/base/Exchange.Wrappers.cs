@@ -55,7 +55,7 @@ public partial class Exchange
         var result = new Dictionary<string, LeverageTier>();
         foreach (var key in keys)
         {
-            result[key] = new LeverageTier(((Dictionary<string, object>)res)[key]);
+            result[key] = new LeverageTier(((Dictionary<string,object>)res)[key]);
         }
         return result;
     }
@@ -162,7 +162,7 @@ public partial class Exchange
         var result = new Dictionary<string, Ticker>();
         foreach (var key in keys)
         {
-            result[key] = new Ticker(((Dictionary<string, object>)res)[key]);
+            result[key] = new Ticker(((Dictionary<string,object>)res)[key]);
         }
         return result;
     }
@@ -181,7 +181,7 @@ public partial class Exchange
         var result = new Dictionary<string, OrderBook>();
         foreach (var key in keys)
         {
-            result[key] = new OrderBook(((Dictionary<string, object>)res)[key]);
+            result[key] = new OrderBook(((Dictionary<string,object>)res)[key]);
         }
         return result;
     }
@@ -281,7 +281,7 @@ public partial class Exchange
         var result = new Dictionary<string, Ticker>();
         foreach (var key in keys)
         {
-            result[key] = new Ticker(((Dictionary<string, object>)res)[key]);
+            result[key] = new Ticker(((Dictionary<string,object>)res)[key]);
         }
         return result;
     }

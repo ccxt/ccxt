@@ -333,7 +333,7 @@ public partial class Exchange
             var list = (List<int>)obj;
             foreach (var key in keys)
             {
-                if (list.ElementAtOrDefault((int)key) != null) // this is wrong apparently
+                if (list.IndexOf((int)key) > -1) // this is wrong apparently
                 {
                     var returnValue = list[(int)key];
                     if ((returnValue.GetType() == typeof(int)))

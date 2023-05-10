@@ -2007,7 +2007,7 @@ public partial class Exchange
                 }
             } else if (isTrue(!isEqual(delimiter, null)))
             {
-                object parts = ((string)marketId).Split((string)delimiter).ToList<object>();
+                object parts = ((string)marketId).Split(((string)delimiter).ToCharArray()).ToList<object>();
                 object partsLength = getArrayLength(parts);
                 if (isTrue(isEqual(partsLength, 2)))
                 {
