@@ -178,6 +178,7 @@ class ImplicitAPI:
     sapi_get_portfolio_pmloan = sapiGetPortfolioPmLoan = Entry('portfolio/pmLoan', 'sapi', 'GET', {'cost': 3.3335})
     sapi_get_portfolio_interest_history = sapiGetPortfolioInterestHistory = Entry('portfolio/interest-history', 'sapi', 'GET', {'cost': 0.6667})
     sapi_get_portfolio_interest_rate = sapiGetPortfolioInterestRate = Entry('portfolio/interest-rate', 'sapi', 'GET', {'cost': 0.6667})
+    sapi_get_portfolio_asset_index_price = sapiGetPortfolioAssetIndexPrice = Entry('portfolio/asset-index-price', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_staking_productlist = sapiGetStakingProductList = Entry('staking/productList', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_staking_position = sapiGetStakingPosition = Entry('staking/position', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_staking_stakingrecord = sapiGetStakingStakingRecord = Entry('staking/stakingRecord', 'sapi', 'GET', {'cost': 0.1})

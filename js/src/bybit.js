@@ -240,6 +240,7 @@ export default class bybit extends Exchange {
                         'v5/announcements/index': 1,
                         'v5/spot-cross-margin-trade/pledge-token': 1,
                         'v5/spot-cross-margin-trade/borrow-token': 1,
+                        'v5/ins-loan/ensure-tokens-convert': 1,
                     },
                 },
                 'private': {
@@ -397,7 +398,8 @@ export default class bybit extends Exchange {
                         'v5/spot-cross-margin-trade/loan-info': 1,
                         'v5/spot-cross-margin-trade/account': 1,
                         'v5/spot-cross-margin-trade/orders': 1,
-                        'v5/spot-cross-margin-trade/repay-history': 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/repay-history': 1,
+                        'v5/ins-loan/ltv-convert': 1,
                     },
                     'post': {
                         // inverse swap
@@ -7663,6 +7665,11 @@ export default class bybit extends Exchange {
         };
         if (since !== undefined) {
             request['startTime'] = since;
+        }
+        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        params = this.omit(params, ['till', 'until']);
+        if (until !== undefined) {
+            request['endTime'] = until;
         }
         if (limit !== undefined) {
             request['limit'] = limit;

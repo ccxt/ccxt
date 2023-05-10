@@ -254,6 +254,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/announcements/index': 1,
                         'v5/spot-cross-margin-trade/pledge-token': 1,
                         'v5/spot-cross-margin-trade/borrow-token': 1,
+                        'v5/ins-loan/ensure-tokens-convert': 1,
                     },
                 },
                 'private': {
@@ -412,6 +413,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-cross-margin-trade/account': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/repay-history': 1,  # 50/s => cost = 50 / 50 = 1
+                        'v5/ins-loan/ltv-convert': 1,
                     },
                     'post': {
                         # inverse swap
@@ -7110,6 +7112,10 @@ class bybit(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['startTime'] = since
+        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        params = self.omit(params, ['till', 'until'])
+        if until is not None:
+            request['endTime'] = until
         if limit is not None:
             request['limit'] = limit
         response = self.publicGetV5MarketOpenInterest(self.extend(request, params))
