@@ -5,141 +5,141 @@ export interface Dictionary<T> {
 // type Params = Dictionary<string | number | boolean | string[]>;
 
 export interface MinMax {
-    min: number | undefined;
     max: number | undefined;
+    min: number | undefined;
 }
 
 export interface Fee {
-    type?: 'taker' | 'maker' | string;
+    cost: number;
     currency: string;
     rate?: number;
-    cost: number;
+    type?: 'taker' | 'maker' | string;
 }
 
 export interface Market {
-    id: string;
-    symbol: string;
-    base: string;
-    quote: string;
-    baseId: string;
-    quoteId: string;
     active?: boolean | undefined;
-    type?: string;
-    spot?: boolean;
-    margin?: boolean;
-    swap?: boolean;
-    future?: boolean;
-    option?: boolean;
+    base: string;
+    baseId: string;
     contract?: boolean;
-    settle?: string | undefined;
-    settleId?: string | undefined;
     contractSize?: number | undefined;
-    linear?: boolean | undefined;
-    inverse?: boolean | undefined;
     expiry?: number | undefined;
     expiryDatetime?: string | undefined;
-    strike?: number | undefined;
-    optionType?: string | undefined;
-    taker?: number | undefined;
-    maker?: number | undefined;
-    percentage?: boolean | undefined;
-    tierBased?: boolean | undefined;
     feeSide?: string | undefined;
-    precision: {
-        amount: number | undefined,
-        price: number | undefined
-    };
+    future?: boolean;
+    id: string;
+    info: any;
+    inverse?: boolean | undefined;
     limits: {
         amount?: MinMax,
         cost?: MinMax,
         leverage?: MinMax,
         price?: MinMax,
     };
-    info: any;
+    linear?: boolean | undefined;
+    maker?: number | undefined;
+    margin?: boolean;
+    option?: boolean;
+    optionType?: string | undefined;
+    percentage?: boolean | undefined;
+    precision: {
+        amount: number | undefined,
+        price: number | undefined
+    };
+    quote: string;
+    quoteId: string;
+    settle?: string | undefined;
+    settleId?: string | undefined;
+    spot?: boolean;
+    strike?: number | undefined;
+    swap?: boolean;
+    symbol: string;
+    taker?: number | undefined;
+    tierBased?: boolean | undefined;
+    type?: string;
 }
 
 export interface Trade {
     amount: number;                  // amount of base currency
+    cost: number;                    // total cost (including fees), `price * amount`
     datetime: string;                // ISO8601 datetime with milliseconds;
+    fee: Fee;
     id: string;                      // string trade id
-    info: any;                        // the original decoded JSON as is
+    info: any;                       // the original decoded JSON as is
     order?: string;                  // string order id or undefined/None/null
     price: number;                   // float price in quote currency
-    timestamp: number;               // Unix timestamp in milliseconds
-    type?: string;                   // order type, 'market', 'limit', ... or undefined/None/null
-    side: 'buy' | 'sell' | string;            // direction of the trade, 'buy' or 'sell'
+    side: 'buy' | 'sell' | string;   // direction of the trade, 'buy' or 'sell'
     symbol: string;                  // symbol in CCXT format
     takerOrMaker: 'taker' | 'maker' | string; // string, 'taker' or 'maker'
-    cost: number;                    // total cost (including fees), `price * amount`
-    fee: Fee;
+    timestamp: number;               // Unix timestamp in milliseconds
+    type?: string;                   // order type, 'market', 'limit', ... or undefined/None/null
 }
 
 export interface Order {
-    id: string;
+    amount: number;
+    average?: number;
     clientOrderId: string;
+    cost: number;
     datetime: string;
-    timestamp: number;
+    fee: Fee;
+    filled: number;
+    id: string;
+    info: any;
     lastTradeTimestamp: number;
+    price: number;
+    remaining: number;
+    side: 'buy' | 'sell' | string;
     status: 'open' | 'closed' | 'canceled' | string;
     symbol: string;
-    type: string;
     timeInForce?: string;
-    side: 'buy' | 'sell' | string;
-    price: number;
-    average?: number;
-    amount: number;
-    filled: number;
-    remaining: number;
-    cost: number;
+    timestamp: number;
     trades: Trade[];
-    fee: Fee;
-    info: any;
+    type: string;
 }
 
 export interface OrderBook {
-    asks: [number, number][];
-    bids: [number, number][];
+    asks: [ number, number ][];
+    bids: [ number, number ][];
     datetime: string;
-    timestamp: number;
     nonce: number;
+    timestamp: number;
 }
 
 export interface Ticker {
-    symbol: string;
-    info: any;
-    timestamp: number;
-    datetime: string;
-    high: number;
-    low: number;
-    bid: number;
-    bidVolume?: number;
     ask: number;
     askVolume?: number;
-    vwap?: number;
-    open?: number;
-    close?: number;
-    last?: number;
-    previousClose?: number;
-    change?: number;
-    percentage?: number;
     average?: number;
-    quoteVolume?: number;
     baseVolume?: number;
+    bid: number;
+    bidVolume?: number;
+    change?: number;
+    close?: number;
+    datetime: string;
+    high: number;
+    info: any;
+    last?: number;
+    low: number;
+    open?: number;
+    percentage?: number;
+    previousClose?: number;
+    quoteVolume?: number;
+    symbol: string;
+    timestamp: number;
+    vwap?: number;
 }
 
 export interface Transaction {
-    info: any;
-    id: string;
-    txid?: string;
-    timestamp: number;
-    datetime: string;
     address: string;
-    type: 'deposit' | 'withdrawal' | string;
     amount: number;
     currency: string;
-    status: 'pending' | 'ok' | string;
-    updated: number;
+    datetime: string;
     fee: Fee;
+    id: string;
+    info: any;
+    status: 'pending' | 'ok' | string;
+    timestamp: number;
+    txid?: string;
+    type: 'deposit' | 'withdrawal' | string;
+    updated: number;
 }
 
 export interface Tickers extends Dictionary<Ticker> {
@@ -147,16 +147,16 @@ export interface Tickers extends Dictionary<Ticker> {
 }
 
 export interface Currency {
-    id: string;
     code: string;
+    id: string;
     numericId?: number;
     precision: number;
 }
 
 export interface Balance {
     free: number | string;
-    used: number | string;
     total: number | string;
+    used: number | string;
 }
 
 export interface PartialBalances extends Dictionary<number> {
@@ -167,20 +167,20 @@ export interface Balances extends Dictionary<Balance> {
 }
 
 export interface DepositAddress {
-    currency: string;
     address: string;
-    status: string;
+    currency: string;
     info: any;
+    status: string;
 }
 
 export interface WithdrawalResponse {
-    info: any;
     id: string;
+    info: any;
 }
 
 export interface DepositAddressResponse {
-    currency: string;
     address: string;
+    currency: string;
     info: any;
     tag?: string;
 }
