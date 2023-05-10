@@ -1584,8 +1584,8 @@ export default class Exchange {
         };
     }
 
-    currencyStructure () {
-        return {
+    safeCurrencyStructure (currency: object) {
+        return this.extend ({
             'info': undefined,
             'id': undefined,
             'numericId': undefined,
@@ -1609,7 +1609,7 @@ export default class Exchange {
                     'max': undefined,
                 },
             },
-        };
+        }, currency);
     }
 
     setMarkets (markets, currencies = undefined) {
