@@ -584,7 +584,7 @@ export default class xt extends xtRest {
     }
 
     handleMyTrades (client: Client, message) {
-        // TODO
+        //
         //    {
         //        "topic": "trade",
         //        "event": "trade",
@@ -599,27 +599,16 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
-        const trades = this.safeValue (message, 'fills', []);
+        const data = this.safeValue (message, 'data', {});
         let stored = this.myTrades;
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = new ArrayCacheBySymbolById (limit);
             this.myTrades = stored;
         }
-        const tradeSymbols = {};
-        for (let i = 0; i < trades.length; i++) {
-            const trade = trades[i];
-            const parsedTrade = this.parseTrade (trade);
-            tradeSymbols[parsedTrade['symbol']] = true;
-            stored.append (parsedTrade);
-        }
-        const tradeSymbolKeys = Object.keys (tradeSymbols);
-        for (let i = 0; i < tradeSymbolKeys.length; i++) {
-            const symbol = tradeSymbolKeys[i];
-            const messageHash = 'myTrades:' + symbol;
-            client.resolve (stored, messageHash);
-        }
-        client.resolve (stored, 'myTrades');
+        const parsedTrade = this.parseTrade (data);
+        stored.append (parsedTrade);
+        client.resolve (stored, 'trade');
     }
 
     handleMessage (client, message) {
