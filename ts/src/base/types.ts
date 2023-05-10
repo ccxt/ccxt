@@ -256,7 +256,17 @@ export interface BorrowInterest {
     amountBorrowed?: number;
     marginMode?: string;
     timestamp?: number;
-    datetoime?: string;
+    datetime?: string;
+    info: any;
+}
+
+export interface LeverageTier {
+    tier?: number;
+    currency?: string;
+    minNotional?: number;
+    maxNotional?: number;
+    maintenanceMarginRate?: number;
+    maxLeverage?: number;
     info: any;
 }
 

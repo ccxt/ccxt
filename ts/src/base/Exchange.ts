@@ -140,7 +140,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 import {
     Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances,
     Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int,
-    OrderType, OrderSide, FundingRate, OpenInterest, Position, BorrowInterest, BorrowRate
+    OrderType, OrderSide, FundingRate, OpenInterest, Position, BorrowInterest, BorrowRate, LeverageTier
 } from './types';
 export {Market, Trade, Fee, Ticker} from './types'
 
@@ -1489,7 +1489,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseMarketLeverageTiers() is not supported yet');
     }
 
-    async fetchLeverageTiers (symbols: string[] = undefined, params = {}): Promise<{}> {
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}): Promise<Dictionary<LeverageTier>> {
         throw new NotSupported (this.id + ' fetchLeverageTiers() is not supported yet');
     }
 
