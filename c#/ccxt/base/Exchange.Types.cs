@@ -625,4 +625,26 @@ public partial class Exchange
         }
 
     }
+
+    public struct LeverageTier
+    {
+        public Int64? tier;
+        public string? currency;
+        public double? minNotional;
+        public double? maxNotional;
+        public double? maintenanceMarginRate;
+        public double? maxLeverage;
+        public Dictionary<string, object>? info;
+
+        public LeverageTier(object leverageTier)
+        {
+            tier = SafeInteger(leverageTier, "tier");
+            currency = SafeString(leverageTier, "currency");
+            minNotional = SafeFloat(leverageTier, "minNotional");
+            maxNotional = SafeFloat(leverageTier, "maxNotional");
+            maintenanceMarginRate = SafeFloat(leverageTier, "maintenanceMarginRate");
+            maxLeverage = SafeFloat(leverageTier, "maxLeverage");
+            info = SafeValue(leverageTier, "info") != null ? (Dictionary<string, object>)SafeValue(leverageTier, "info") : null;
+        }
+    }
 }

@@ -48,10 +48,16 @@ public partial class Exchange
         var res = await this.fetchBorrowRates(parameters);
         return ((List<object>)res).Select(item => new BorrowRate(item)).ToList<BorrowRate>();
     }
-    public async Task<Dictionary<string, object>> FetchLeverageTiers(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, LeverageTier>> FetchLeverageTiers(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        var keys = ((Dictionary<string, object>)res).Keys.ToList();
+        var result = new Dictionary<string, LeverageTier>();
+        foreach (var key in keys)
+        {
+            result[key] = new LeverageTier(((Dictionary<string, object>)res)[key]);
+        }
+        return result;
     }
     public async Task<List<FundingRate>> FetchFundingRates(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
@@ -156,7 +162,7 @@ public partial class Exchange
         var result = new Dictionary<string, Ticker>();
         foreach (var key in keys)
         {
-            result[key] = new Ticker(((Dictionary<string,object>)res)[key]);
+            result[key] = new Ticker(((Dictionary<string, object>)res)[key]);
         }
         return result;
     }
@@ -175,7 +181,7 @@ public partial class Exchange
         var result = new Dictionary<string, OrderBook>();
         foreach (var key in keys)
         {
-            result[key] = new OrderBook(((Dictionary<string,object>)res)[key]);
+            result[key] = new OrderBook(((Dictionary<string, object>)res)[key]);
         }
         return result;
     }
@@ -275,7 +281,7 @@ public partial class Exchange
         var result = new Dictionary<string, Ticker>();
         foreach (var key in keys)
         {
-            result[key] = new Ticker(((Dictionary<string,object>)res)[key]);
+            result[key] = new Ticker(((Dictionary<string, object>)res)[key]);
         }
         return result;
     }
