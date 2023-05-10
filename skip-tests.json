@@ -1119,7 +1119,8 @@
             "fetchCurrencies": {
                 "withdraw": "undefined",
                 "deposit": "undefined"
-            }
+            },
+            "fetchTickers": "timeouts this call specifically"
         },
         "timeout": 120000
     },
