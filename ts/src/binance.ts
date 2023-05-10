@@ -377,6 +377,7 @@ export default class binance extends Exchange {
                         'portfolio/pmLoan': 3.3335,
                         'portfolio/interest-history': 0.6667,
                         'portfolio/interest-rate': 0.6667,
+                        'portfolio/asset-index-price': 0.1,
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
