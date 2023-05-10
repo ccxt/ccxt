@@ -647,4 +647,42 @@ public partial class Exchange
             info = SafeValue(leverageTier, "info") != null ? (Dictionary<string, object>)SafeValue(leverageTier, "info") : null;
         }
     }
+
+    public struct LedgerEntry
+    {
+        public string? id;
+        public Dictionary<string, object>? info;
+        public Int64? timestamp;
+        public string? datetime;
+        public string? direction;
+        public string? account;
+        public string? referenceId;
+        public string? referenceAccount;
+        public string? type;
+        public string? currency;
+        public double? amount;
+        public double? before;
+        public double? after;
+        public string? status;
+        public Fee? fee;
+
+        public LedgerEntry(object ledgerEntry)
+        {
+            id = SafeString(ledgerEntry, "id");
+            info = SafeValue(ledgerEntry, "info") != null ? (Dictionary<string, object>)SafeValue(ledgerEntry, "info") : null;
+            timestamp = SafeInteger(ledgerEntry, "timestamp");
+            datetime = SafeString(ledgerEntry, "datetime");
+            direction = SafeString(ledgerEntry, "direction");
+            account = SafeString(ledgerEntry, "account");
+            referenceId = SafeString(ledgerEntry, "referenceId");
+            referenceAccount = SafeString(ledgerEntry, "referenceAccount");
+            type = SafeString(ledgerEntry, "type");
+            currency = SafeString(ledgerEntry, "currency");
+            amount = SafeFloat(ledgerEntry, "amount");
+            before = SafeFloat(ledgerEntry, "before");
+            after = SafeFloat(ledgerEntry, "after");
+            status = SafeString(ledgerEntry, "status");
+            fee = SafeValue(ledgerEntry, "fee") != null ? new Fee(SafeValue(ledgerEntry, "fee")) : null;
+        }
+    }
 }

@@ -270,6 +270,24 @@ export interface LeverageTier {
     info: any;
 }
 
+export interface LedgerEntry {
+    id?: string;
+    info: any;
+    timestamp?: number;
+    datetime?: string;
+    direction?: string;
+    account?: string;
+    referenceId?: string;
+    referenceAccount?: string;
+    type?: string;
+    currency?: string;
+    amount?: number;
+    before?: number;
+    after?: number;
+    status?: string;
+    fee?: Fee;
+}
+
 export interface BorrowRate {
     currency?: string;
     rate?: number;

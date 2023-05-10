@@ -765,6 +765,10 @@ public partial class Exchange
 
     public static string Slice(object str2, object idx1, object idx2)
     {
+        if (str2 == null)
+        {
+            return null;
+        }
         var str = (string)str2;
         var start = idx1 != null ? (int)idx1 : -1;
         if (idx2 == null)

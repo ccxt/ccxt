@@ -192,17 +192,17 @@ public partial class Exchange
         var res = await this.fetchFundingRateHistory(symbol, since, limit, parameters);
         return ((List<object>)res).Select(item => new FundingRate(item)).ToList<FundingRate>();
     }
-    public async Task<object> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((object)res);
+        return ((List<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
-    public async Task<Dictionary<string, object>> FetchLedgerEntry(string id, string code = null, Dictionary<string, object> parameters = null)
+    public async Task<LedgerEntry> FetchLedgerEntry(string id, string code = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLedgerEntry(id, code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new LedgerEntry(res);
     }
     public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {

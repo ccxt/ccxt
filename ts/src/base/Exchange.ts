@@ -140,7 +140,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 import {
     Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances,
     Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int,
-    OrderType, OrderSide, FundingRate, OpenInterest, Position, BorrowInterest, BorrowRate, LeverageTier
+    OrderType, OrderSide, FundingRate, OpenInterest, Position, BorrowInterest, BorrowRate, LeverageTier, LedgerEntry
 } from './types';
 export {Market, Trade, Fee, Ticker} from './types'
 
@@ -2867,11 +2867,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchFundingRateHistory() is not supported yet');
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         throw new NotSupported (this.id + ' fetchLedger() is not supported yet');
     }
 
-    async fetchLedgerEntry (id: string, code: string = undefined, params = {}): Promise<{}> {
+    async fetchLedgerEntry (id: string, code: string = undefined, params = {}): Promise<LedgerEntry> {
         throw new NotSupported (this.id + ' fetchLedgerEntry() is not supported yet');
     }
 
