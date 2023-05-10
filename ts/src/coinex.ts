@@ -2728,7 +2728,7 @@ export default class coinex extends Exchange {
         let address = undefined;
         let tag = undefined;
         const partsLength = parts.length;
-        if (partsLength > 1) {
+        if (partsLength > 1 && parts[0] !== 'cfx') {
             address = parts[0];
             tag = parts[1];
         } else {

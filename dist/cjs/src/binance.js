@@ -375,6 +375,7 @@ class binance extends binance$1 {
                         'portfolio/pmLoan': 3.3335,
                         'portfolio/interest-history': 0.6667,
                         'portfolio/interest-rate': 0.6667,
+                        'portfolio/asset-index-price': 0.1,
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -2717,6 +2718,7 @@ class binance extends binance$1 {
         //     }
         //
         // coinm
+        //
         //     {
         //         baseVolume: '214549.95171161',
         //         closeTime: '1621965286847',
@@ -2736,7 +2738,32 @@ class binance extends binance$1 {
         //         volume: '81990451',
         //         weightedAvgPrice: '38215.08713747'
         //     }
+        //
+        // eapi: fetchTicker, fetchTickers
+        //
+        //     {
+        //         "symbol": "ETH-230510-1825-C",
+        //         "priceChange": "-5.1",
+        //         "priceChangePercent": "-0.1854",
+        //         "lastPrice": "22.4",
+        //         "lastQty": "0",
+        //         "open": "27.5",
+        //         "high": "34.1",
+        //         "low": "22.4",
+        //         "volume": "6.83",
+        //         "amount": "201.44",
+        //         "bidPrice": "21.9",
+        //         "askPrice": "22.4",
+        //         "openTime": 1683614771898,
+        //         "closeTime": 1683695017784,
+        //         "firstTradeId": 12,
+        //         "tradeCount": 22,
+        //         "strikePrice": "1825",
+        //         "exercisePrice": "1845.95341176"
+        //     }
+        //
         // spot bidsAsks
+        //
         //     {
         //         "symbol":"ETHBTC",
         //         "bidPrice":"0.07466800",
@@ -2744,7 +2771,9 @@ class binance extends binance$1 {
         //         "askPrice":"0.07466900",
         //         "askQty":"10.93540000"
         //     }
+        //
         // usdm bidsAsks
+        //
         //     {
         //         "symbol":"BTCUSDT",
         //         "bidPrice":"21321.90",
@@ -2753,7 +2782,9 @@ class binance extends binance$1 {
         //         "askQty":"1.427",
         //         "time":"1673899207538"
         //     }
+        //
         // coinm bidsAsks
+        //
         //     {
         //         "symbol":"BTCUSD_PERP",
         //         "pair":"BTCUSD",
@@ -2784,20 +2815,20 @@ class binance extends binance$1 {
         }
         else {
             baseVolume = this.safeString(ticker, 'volume');
-            quoteVolume = this.safeString(ticker, 'quoteVolume');
+            quoteVolume = this.safeString2(ticker, 'quoteVolume', 'amount');
         }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'high': this.safeString(ticker, 'highPrice'),
-            'low': this.safeString(ticker, 'lowPrice'),
+            'high': this.safeString2(ticker, 'highPrice', 'high'),
+            'low': this.safeString2(ticker, 'lowPrice', 'low'),
             'bid': this.safeString(ticker, 'bidPrice'),
             'bidVolume': this.safeString(ticker, 'bidQty'),
             'ask': this.safeString(ticker, 'askPrice'),
             'askVolume': this.safeString(ticker, 'askQty'),
             'vwap': this.safeString(ticker, 'weightedAvgPrice'),
-            'open': this.safeString(ticker, 'openPrice'),
+            'open': this.safeString2(ticker, 'openPrice', 'open'),
             'close': last,
             'last': last,
             'previousClose': this.safeString(ticker, 'prevClosePrice'),
@@ -2842,6 +2873,7 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         // spot
          * @see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      // swap
          * @see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     // future
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -2852,7 +2884,10 @@ class binance extends binance$1 {
             'symbol': market['id'],
         };
         let method = 'publicGetTicker24hr';
-        if (market['linear']) {
+        if (market['option']) {
+            method = 'eapiPublicGetTicker';
+        }
+        else if (market['linear']) {
             method = 'fapiPublicGetTicker24hr';
         }
         else if (market['inverse']) {
@@ -3012,18 +3047,27 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         // spot
          * @see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      // swap
          * @see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     // future
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
-        const defaultType = this.safeString2(this.options, 'fetchTickers', 'defaultType', 'spot');
-        const type = this.safeString(params, 'type', defaultType);
+        let type = undefined;
+        let market = undefined;
+        if (symbols !== undefined) {
+            const first = this.safeString(symbols, 0);
+            market = this.market(first);
+        }
+        [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         let subType = undefined;
-        [subType, params] = this.handleSubTypeAndParams('fetchTickers', undefined, params);
+        [subType, params] = this.handleSubTypeAndParams('fetchTickers', market, params);
         const query = this.omit(params, 'type');
         let defaultMethod = undefined;
-        if (this.isLinear(type, subType)) {
+        if (type === 'option') {
+            defaultMethod = 'eapiPublicGetTicker';
+        }
+        else if (this.isLinear(type, subType)) {
             defaultMethod = 'fapiPublicGetTicker24hr';
         }
         else if (this.isInverse(type, subType)) {

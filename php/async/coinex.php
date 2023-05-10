@@ -2749,7 +2749,7 @@ class coinex extends Exchange {
         $address = null;
         $tag = null;
         $partsLength = count($parts);
-        if ($partsLength > 1) {
+        if ($partsLength > 1 && $parts[0] !== 'cfx') {
             $address = $parts[0];
             $tag = $parts[1];
         } else {

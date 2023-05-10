@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.0.98';
+$version = '3.0.99';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.98';
+    const VERSION = '3.0.99';
 
     public $browser;
     public $marketsLoading = null;
@@ -503,6 +503,34 @@ class Exchange extends \ccxt\Exchange {
         );
     }
 
+    public function currency_structure() {
+        return array(
+            'info' => null,
+            'id' => null,
+            'numericId' => null,
+            'code' => null,
+            'precision' => null,
+            'type' => null,
+            'name' => null,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'fees' => array(),
+            'networks' => array(),
+            'limits' => array(
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+        );
+    }
+
     public function set_markets($markets, $currencies = null) {
         $values = array();
         $this->markets_by_id = array();
@@ -528,6 +556,7 @@ class Exchange extends \ccxt\Exchange {
         $this->symbols = is_array($marketsSortedBySymbol) ? array_keys($marketsSortedBySymbol) : array();
         $this->ids = is_array($marketsSortedById) ? array_keys($marketsSortedById) : array();
         if ($currencies !== null) {
+            // $currencies is always null when called in constructor but not when called from loadMarkets
             $this->currencies = $this->deep_extend($this->currencies, $currencies);
         } else {
             $baseCurrencies = array();
@@ -537,23 +566,19 @@ class Exchange extends \ccxt\Exchange {
                 $defaultCurrencyPrecision = ($this->precisionMode === DECIMAL_PLACES) ? 8 : $this->parse_number('1e-8');
                 $marketPrecision = $this->safe_value($market, 'precision', array());
                 if (is_array($market) && array_key_exists('base', $market)) {
-                    $currencyPrecision = $this->safe_value_2($marketPrecision, 'base', 'amount', $defaultCurrencyPrecision);
-                    $currency = array(
-                        'id' => $this->safe_string_2($market, 'baseId', 'base'),
-                        'numericId' => $this->safe_integer($market, 'baseNumericId'),
-                        'code' => $this->safe_string($market, 'base'),
-                        'precision' => $currencyPrecision,
-                    );
+                    $currency = $this->currency_structure();
+                    $currency['id'] = $this->safe_string_2($market, 'baseId', 'base');
+                    $currency['numericId'] = $this->safe_integer($market, 'baseNumericId');
+                    $currency['code'] = $this->safe_string($market, 'base');
+                    $currency['precision'] = $this->safe_value_2($marketPrecision, 'base', 'amount', $defaultCurrencyPrecision);
                     $baseCurrencies[] = $currency;
                 }
                 if (is_array($market) && array_key_exists('quote', $market)) {
-                    $currencyPrecision = $this->safe_value_2($marketPrecision, 'quote', 'price', $defaultCurrencyPrecision);
-                    $currency = array(
-                        'id' => $this->safe_string_2($market, 'quoteId', 'quote'),
-                        'numericId' => $this->safe_integer($market, 'quoteNumericId'),
-                        'code' => $this->safe_string($market, 'quote'),
-                        'precision' => $currencyPrecision,
-                    );
+                    $currency = $this->currency_structure();
+                    $currency['id'] = $this->safe_string_2($market, 'quoteId', 'quote');
+                    $currency['numericId'] = $this->safe_integer($market, 'quoteNumericId');
+                    $currency['code'] = $this->safe_string($market, 'quote');
+                    $currency['precision'] = $this->safe_value_2($marketPrecision, 'quote', 'price', $defaultCurrencyPrecision);
                     $quoteCurrencies[] = $currency;
                 }
             }
