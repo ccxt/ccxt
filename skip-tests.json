@@ -381,6 +381,7 @@
     "bittrex": {
         "skipWs": true,
         "skipMethods": {
+            "fetchStatus": "frequent rate limit for this endpoint",
             "fetchTickers": "bid might be set to 0",
             "fetchTicker": "same",
             "fetchCurrencies": {
