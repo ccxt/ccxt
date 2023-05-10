@@ -469,7 +469,8 @@
             },
             "fetchTicker": {
                 "symbol" :"same"
-            }
+            },
+            "fetchTrades": "endpoint return Internal System Error"
         }
     },
     "buda": { 
