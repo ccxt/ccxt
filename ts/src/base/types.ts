@@ -242,6 +242,18 @@ export interface Position {
     percentage?: number;
 }
 
+export interface BorrowInterest {
+    account?: string;
+    currency?: string;
+    interest?: number;
+    interestRate?: number;
+    amountBorrowed?: number;
+    marginMode?: string;
+    timestamp?: number;
+    datetoime?: string;
+    info: any;
+}
+
 /** [ timestamp, open, high, low, close, volume ] */
 export type OHLCV = [number, number, number, number, number, number];
 
