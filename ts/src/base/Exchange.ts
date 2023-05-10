@@ -140,7 +140,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 import {
     Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances,
     Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int,
-    OrderType, OrderSide, FundingRate, OpenInterest
+    OrderType, OrderSide, FundingRate, OpenInterest, Position
 } from './types';
 export {Market, Trade, Fee, Ticker} from './types'
 
@@ -2839,15 +2839,15 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPermissions() is not supported yet');
     }
 
-    async fetchPosition (symbol: string, params = {}): Promise<{}> {
+    async fetchPosition (symbol: string, params = {}): Promise<Position> {
         throw new NotSupported (this.id + ' fetchPosition() is not supported yet');
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}): Promise<{}> {
+    async fetchPositions (symbols: string[] = undefined, params = {}): Promise<Position[]> {
         throw new NotSupported (this.id + ' fetchPositions() is not supported yet');
     }
 
-    async fetchPositionsRisk (symbols: string[] = undefined, params = {}): Promise<{}> {
+    async fetchPositionsRisk (symbols: string[] = undefined, params = {}): Promise<Position[]> {
         throw new NotSupported (this.id + ' fetchPositionsRisk() is not supported yet');
     }
 

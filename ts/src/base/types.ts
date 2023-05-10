@@ -214,6 +214,34 @@ export interface OpenInterest {
     info: any;
 }
 
+export interface Position {
+    symbol: string;
+    id?: string;
+    info: any;
+    timestamp?: number;
+    datetime?: string;
+    contracts?: number;
+    contractsSize?: number;
+    side?: string;
+    notional?: number;
+    leverage?: number;
+    unrealizedPnl?: number;
+    collateral?: number;
+    entryPrice?: number;
+    markPrice?: number;
+    liquidationPrice?: number;
+    marginMode?: string;
+    hedged?: boolean;
+    maintenenceMargin?: number;
+    maintenanceMarginPercentage?: number;
+    initialMargin?: number;
+    initialMarginPercentage?: number;
+    marginRatio?: number;
+    lastUpdateTimestamp?: number;
+    lastPrice?: number;
+    percentage?: number;
+}
+
 /** [ timestamp, open, high, low, close, volume ] */
 export type OHLCV = [number, number, number, number, number, number];
 
