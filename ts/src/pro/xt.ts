@@ -562,7 +562,7 @@ export default class xt extends xtRest {
     }
 
     handleBalance (client: Client, message) {
-        // TODO
+        //
         //    {
         //        "topic": "balance",
         //        "event": "balance",
@@ -572,81 +572,15 @@ export default class xt extends xtRest {
         //            "c": "btc",           // currency
         //            "b": "123",           // balance available balance
         //            "f": "11",            // frozen
-        //            "z": "SPOT",           // bizType [SPOT,LEVER]
+        //            "z": "SPOT",          // bizType [SPOT,LEVER]
         //            "s": "btc_usdt"       // symbol
         //        }
         //    }
         //
-        const holding = this.safeValue (message, 'holding');
-        const futures = this.safeValue (message, 'futures');
-        const flexFutures = this.safeValue (message, 'flex_futures');
-        const messageHash = 'balances';
-        const timestamp = this.safeInteger (message, 'timestamp');
-        if (holding !== undefined) {
-            const holdingKeys = Object.keys (holding);                  // cashAccount
-            const holdingResult = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-            };
-            for (let i = 0; i < holdingKeys.length; i++) {
-                const key = holdingKeys[i];
-                const code = this.safeCurrencyCode (key);
-                const newAccount = this.account ();
-                const amount = this.safeNumber (holding, key);
-                newAccount['free'] = amount;
-                newAccount['total'] = amount;
-                newAccount['used'] = 0;
-                holdingResult[code] = newAccount;
-            }
-            this.balance['cash'] = holdingResult;
-            client.resolve (holdingResult, messageHash);
-        }
-        if (futures !== undefined) {
-            const futuresKeys = Object.keys (futures);                  // marginAccount
-            const futuresResult = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-            };
-            for (let i = 0; i < futuresKeys.length; i++) {
-                const key = futuresKeys[i];
-                const symbol = this.safeSymbol (key);
-                const newAccount = this.account ();
-                const future = this.safeValue (futures, key);
-                const currencyId = this.safeString (future, 'unit');
-                const code = this.safeCurrencyCode (currencyId);
-                newAccount['free'] = this.safeNumber (future, 'available');
-                newAccount['used'] = this.safeNumber (future, 'initial_margin');
-                newAccount['total'] = this.safeNumber (future, 'balance');
-                futuresResult[symbol] = {};
-                futuresResult[symbol][code] = newAccount;
-            }
-            this.balance['margin'] = futuresResult;
-            client.resolve (this.balance['margin'], messageHash + 'futures');
-        }
-        if (flexFutures !== undefined) {
-            const flexFutureCurrencies = this.safeValue (flexFutures, 'currencies', {});
-            const flexFuturesKeys = Object.keys (flexFutureCurrencies); // multi-collateral margin account
-            const flexFuturesResult = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-            };
-            for (let i = 0; i < flexFuturesKeys.length; i++) {
-                const key = flexFuturesKeys[i];
-                const flexFuture = this.safeValue (flexFutureCurrencies, key);
-                const code = this.safeCurrencyCode (key);
-                const newAccount = this.account ();
-                newAccount['free'] = this.safeNumber (flexFuture, 'available');
-                newAccount['used'] = this.safeNumber (flexFuture, 'collateral_value');
-                newAccount['total'] = this.safeNumber (flexFuture, 'quantity');
-                flexFuturesResult[code] = newAccount;
-            }
-            this.balance['flex'] = flexFuturesResult;
-            client.resolve (this.balance['flex'], messageHash + 'flex_futures');
-        }
-        client.resolve (this.balance, messageHash);
+        const data = this.safeValue (message, 'data', {});
+        const balance = this.parseBalance (data);
+        this.balance = this.deepExtend (this.balance, balance);
+        client.resolve (this.balance, 'balance');
     }
 
     handleMyTrades (client: Client, message) {
