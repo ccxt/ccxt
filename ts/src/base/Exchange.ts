@@ -1550,7 +1550,6 @@ export default class Exchange {
             'code': undefined,
             'precision': undefined,
             'type': undefined,
-            'margin': undefined,
             'name': undefined,
             'active': undefined,
             'deposit': undefined,
