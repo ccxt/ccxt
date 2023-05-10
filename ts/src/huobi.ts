@@ -5770,7 +5770,7 @@ export default class huobi extends Exchange {
                 };
             }
         }
-        return rates;
+        return rates as any;
     }
 
     async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

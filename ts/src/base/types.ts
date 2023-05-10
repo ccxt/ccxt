@@ -138,8 +138,14 @@ export interface Transaction {
     amount: number;
     currency: string;
     status: 'pending' | 'ok' | string;
-    updated: number;
+    updated?: number;
     fee: Fee;
+    tag?: string;
+    tagFrom?: string;
+    tagTo?: string;
+    addressTo?: string;
+    addressFrom?: string;
+    comment?: string;
 }
 
 export interface Tickers extends Dictionary<Ticker> {
@@ -251,6 +257,15 @@ export interface BorrowInterest {
     marginMode?: string;
     timestamp?: number;
     datetoime?: string;
+    info: any;
+}
+
+export interface BorrowRate {
+    currency?: string;
+    rate?: number;
+    period?: number;
+    timestamp?: number;
+    datetime?: string;
     info: any;
 }
 

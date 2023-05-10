@@ -2955,7 +2955,7 @@ export default class digifinex extends Exchange {
             const borrowRate = this.parseBorrowRate (item, currency);
             result[code] = borrowRate;
         }
-        return result;
+        return result as any;
     }
 
     async fetchFundingRate (symbol: string, params = {}) {

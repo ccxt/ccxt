@@ -5212,7 +5212,7 @@ export default class okx extends Exchange {
                 'info': rate,
             };
         }
-        return rates;
+        return rates as any;
     }
 
     async fetchBorrowRate (code: string, params = {}) {
