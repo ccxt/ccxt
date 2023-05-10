@@ -27,7 +27,7 @@ export default class binance extends Exchange {
                 'margin': true,
                 'swap': true,
                 'future': true,
-                'option': undefined,
+                'option': true,
                 'addMargin': true,
                 'borrowMargin': true,
                 'cancelAllOrders': true,
