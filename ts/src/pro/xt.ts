@@ -396,20 +396,18 @@ export default class xt extends xtRest {
     }
 
     handleOrderBook (client: Client, message) {
-        // TODO
-        // depth@symbols,levels
         //
         //    {
         //        "topic": "depth",
         //        "event": "depth@btc_usdt,20",
         //        "data": {
         //            "s": "btc_usdt",        // symbol
-        //            "i": 12345678,          // updateId
-        //            "t": 1657699200000,     // time
+        //            "fi": 1681433733351,
+        //            "i": 1681433733371,
         //            "a": [                  // asks(sell order)
-        //                [                   //[0]price, [1]quantity
-        //                    "34000",        //price
-        //                    "1.2"           //quantity
+        //                [                   // [0]price, [1]quantity
+        //                    "34000",        // price
+        //                    "1.2"           // quantity
         //                ],
         //                [
         //                    "34001",
@@ -429,55 +427,39 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
-        // depth_update@{symbol}
-        //
-        //    {
-        //        "topic": "depth_update",
-        //        "event": "depth_update@btc_usdt",
-        //        "data": {
-        //            "s": "btc_usdt",        // symbol
-        //            "fi": 121,              // firstUpdateId = previous lastUpdateId + 1
-        //            "i": 123,               // lastUpdateId
-        //            "a": [                  // asks  sell order
-        //                [                   // [0]price, [1]quantity
-        //                    "34000",        //price
-        //                    "1.2"           //quantity
-        //                ],
-        //                [
-        //                    "34001",
-        //                    "2.3"
-        //                ]
-        //            ],
-        //            "b": [                  // bids buy order
-        //                [
-        //                    "32000",
-        //                    "0.2"
-        //                ],
-        //                [
-        //                    "31000",
-        //                    "0.5"
-        //                ]
-        //            ]
-        //        }
-        //    }
-        //
-        const marketId = this.safeStringLower (message, 'product_id');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        const messageHash = 'book:' + symbol;
-        const orderbook = this.orderbooks[symbol];
-        const side = this.safeString (message, 'side');
-        const price = this.safeNumber (message, 'price');
-        const qty = this.safeNumber (message, 'qty');
-        const timestamp = this.safeInteger (message, 'timestamp');
-        if (side === 'sell') {
-            orderbook['asks'].store (price, qty);
-        } else {
-            orderbook['bids'].store (price, qty);
+        const data = this.safeValue (message, 'data');
+        const marketId = this.safeString (data, 's');
+        const messageHash = this.safeString (message, 'event');
+        if (marketId !== undefined) {
+            const market = this.market (marketId);
+            const symbol = market['id'];
+            const asks = this.safeValue (data, 'a');
+            const bids = this.safeValue (data, 'b');
+            let orderbook = this.safeValue (this.orderbooks, symbol);
+            if (orderbook === undefined) {
+                const subscription = this.safeValue (client.subscriptions, messageHash, {});
+                const limit = this.safeInteger (subscription, 'limit');
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
+                orderbook = this.orderbooks[symbol];
+            }
+            if (asks !== undefined) {
+                for (let i = 0; i < asks.length; i++) {
+                    const ask = asks[i];
+                    const price = this.safeNumber (ask, 0);
+                    const quantity = this.safeNumber (ask, 1);
+                    orderbook['asks'].store (price, quantity);
+                }
+            }
+            if (bids !== undefined) {
+                for (let i = 0; i < bids.length; i++) {
+                    const bid = bids[i];
+                    const price = this.safeNumber (bid, 0);
+                    const quantity = this.safeNumber (bid, 1);
+                    orderbook['bids'].store (price, quantity);
+                }
+            }
+            client.resolve (orderbook, messageHash);
         }
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = this.iso8601 (timestamp);
-        client.resolve (orderbook, messageHash);
     }
 
     handleOrder (client: Client, message) {
@@ -494,7 +476,7 @@ export default class xt extends xtRest {
         //            "sd": "BUY",                    // side BUY/SELL
         //            "eq": "2",                      // executedQty executed quantity
         //            "ap": "30000",                  // avg price
-        //            "f":"0.002"                     // fee
+        //            "f": "0.002"                    // fee
         //        }
         //    }
         //
