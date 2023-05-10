@@ -2589,7 +2589,7 @@ class coinex(Exchange, ImplicitAPI):
         address = None
         tag = None
         partsLength = len(parts)
-        if partsLength > 1:
+        if partsLength > 1 and parts[0] != 'cfx':
             address = parts[0]
             tag = parts[1]
         else:
