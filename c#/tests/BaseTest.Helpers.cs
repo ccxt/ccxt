@@ -123,7 +123,7 @@ public partial class testMainClass : BaseTest
 
     public static void addProxy(object exchange, object proxy)
     {
-        // exchange.GetType().GetProperty("proxy").SetValue(exchange, proxy);
+        exchange.GetType().GetProperty("httpProxy").SetValue(exchange, proxy);
     }
 
     public static void exitScript()
