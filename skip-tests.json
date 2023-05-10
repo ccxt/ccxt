@@ -683,6 +683,7 @@
             "fetchCurrencies": {
                 "precision": "messed"
             },
+            "fetchTicker": "unexpected symbol is being returned | safeMarket() requires a fourth argument for BTC_USDT to disambiguate between different markets with the same market id",
             "fetchTickers": "unexpected symbol is being returned | safeMarket() requires a fourth argument for BTC_USDT to disambiguate between different markets with the same market id"
         }
     },
