@@ -137,10 +137,10 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 
 // import types
-import { 
-    Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, 
-    Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, 
-    OrderType, OrderSide, FundingRate
+import {
+    Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances,
+    Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int,
+    OrderType, OrderSide, FundingRate, OpenInterest
 } from './types';
 export {Market, Trade, Fee, Ticker} from './types'
 
@@ -1525,11 +1525,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' setLeverage() is not supported yet');
     }
 
-    async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}): Promise<{}> {
+    async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OpenInterest[]> {
         throw new NotSupported (this.id + ' fetchOpenInterestHistory() is not supported yet');
     }
 
-    async fetchOpenInterest (symbol: string, params = {}): Promise<{}> {
+    async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
         throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
     }
 

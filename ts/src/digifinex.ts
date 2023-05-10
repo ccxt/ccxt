@@ -2990,7 +2990,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseFundingRate (data, market);
+        return this.parseFundingRate (data, market) as any;
     }
 
     parseFundingRate (contract, market = undefined) {
