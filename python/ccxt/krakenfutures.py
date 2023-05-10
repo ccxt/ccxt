@@ -1822,7 +1822,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         currency = self.currency(code)
         method = 'privatePostTransfer'
         request = {
-            'amount': self.currency_to_precision(code, amount),
+            'amount': amount,
         }
         if fromAccount == 'spot':
             raise BadRequest(self.id + ' transfer does not yet support transfers from spot')

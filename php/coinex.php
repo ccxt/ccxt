@@ -169,6 +169,7 @@ class coinex extends Exchange {
                         'order/market/trade/info' => 1,
                         'sub_account/balance' => 1,
                         'sub_account/transfer/history' => 40,
+                        'sub_account/auth/api' => 40,
                         'sub_account/auth/api/{user_auth_id}' => 40,
                     ),
                     'post' => array(
@@ -2688,7 +2689,7 @@ class coinex extends Exchange {
         $address = null;
         $tag = null;
         $partsLength = count($parts);
-        if ($partsLength > 1) {
+        if ($partsLength > 1 && $parts[0] !== 'cfx') {
             $address = $parts[0];
             $tag = $parts[1];
         } else {
