@@ -7593,6 +7593,11 @@ export default class bybit extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
+        const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
+        params = this.omit (params, [ 'till', 'until' ]);
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
