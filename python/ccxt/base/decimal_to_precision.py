@@ -18,19 +18,19 @@ __all__ = [
 
 
 # rounding mode
-TRUNCATE = 0
-ROUND = 1
+ROUND = 0
+TRUNCATE = 1
 ROUND_UP = 2
 ROUND_DOWN = 3
 
 # digits counting mode
-DECIMAL_PLACES = 2
-SIGNIFICANT_DIGITS = 3
-TICK_SIZE = 4
+DECIMAL_PLACES = 0
+SIGNIFICANT_DIGITS = 1
+TICK_SIZE = 2
 
 # padding mode
-NO_PADDING = 5
-PAD_WITH_ZERO = 6
+NO_PADDING = 0
+PAD_WITH_ZERO = 1
 
 
 def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
