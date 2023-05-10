@@ -2,143 +2,166 @@
 /* eslint-disable */
 
 import * as functions from './functions.js'
+
 const {
-    isNode
-    , keys
-    , values
-    , deepExtend
-    , extend
-    , clone
-    , flatten
-    , unique
-    , indexBy
-    , sortBy
-    , sortBy2
-    , safeFloat2
-    , groupBy
-    , aggregate
-    , uuid
-    , unCamelCase
-    , precisionFromString
-    , Throttler
-    , capitalize
-    , now
-    , buildOHLCVC
-    , decimalToPrecision
-    , safeValue
-    , safeValue2
-    , safeString
-    , safeString2
-    , seconds
-    , milliseconds
-    , binaryToBase16
-    , numberToBE
-    , base16ToBinary
-    , iso8601
-    , omit
-    , isJsonEncodedObject
-    , safeInteger
-    , sum
-    , omitZero
-    , implodeParams
-    , extractParams
-    , json
-    , vwap
-    , merge
-    , binaryConcat
-    , hash
-    , ecdsa
-    , arrayConcat
-    , encode
-    , urlencode
-    , hmac
-    , numberToString
-    , parseTimeframe
-    , safeInteger2
-    , safeStringLower
-    , parse8601
-    , yyyymmdd
-    , safeStringUpper
-    , safeTimestamp
-    , binaryConcatArray
-    , uuidv1
-    , numberToLE
-    , ymdhms
-    , stringToBase64
-    , decode
-    , uuid22
-    , safeIntegerProduct2
-    , safeIntegerProduct
-    , safeStringLower2
-    , yymmdd
-    , base58ToBinary
-    , safeTimestamp2
-    , rawencode
-    , keysort
-    , inArray
-    , isEmpty
-    , ordered
-    , filterBy
-    , uuid16
-    , safeFloat
-    , base64ToBinary
-    , safeStringUpper2
-    , urlencodeWithArrayRepeat
-    , microseconds
-    , binaryToBase64
-    , strip
-    , toArray
-    , safeFloatN
-    , safeIntegerN
-    , safeIntegerProductN
-    , safeTimestampN
-    , safeValueN
-    , safeStringN
-    , safeStringLowerN
-    , safeStringUpperN
-    , urlencodeNested
-    , parseDate
-    , ymd
-    , isArray
-    , base64ToString
-    , crc32
-    , TRUNCATE
-    , ROUND
-    , DECIMAL_PLACES
-    , NO_PADDING
-    , TICK_SIZE
+    aggregate,
+    arrayConcat,
+    base16ToBinary,
+    base58ToBinary,
+    base64ToBinary,
+    base64ToString,
+    binaryConcat,
+    binaryConcatArray,
+    binaryToBase16,
+    binaryToBase64,
+    buildOHLCVC,
+    capitalize,
+    clone,
+    crc32,
+    DECIMAL_PLACES,
+    decimalToPrecision,
+    decode,
+    deepExtend,
+    ecdsa,
+    encode,
+    extend,
+    extractParams,
+    filterBy,
+    flatten,
+    groupBy,
+    hash,
+    hmac,
+    implodeParams,
+    inArray,
+    indexBy,
+    isArray,
+    isEmpty,
+    isJsonEncodedObject,
+    isNode,
+    iso8601,
+    json,
+    keys,
+    keysort,
+    merge,
+    microseconds,
+    milliseconds,
+    NO_PADDING,
+    now,
+    numberToBE,
+    numberToLE,
+    numberToString,
+    omit,
+    omitZero,
+    ordered,
+    parse8601,
+    parseDate,
+    parseTimeframe,
+    precisionFromString,
+    rawencode,
+    ROUND,
+    safeFloat,
+    safeFloat2,
+    safeFloatN,
+    safeInteger,
+    safeInteger2,
+    safeIntegerN,
+    safeIntegerProduct,
+    safeIntegerProduct2,
+    safeIntegerProductN,
+    safeString,
+    safeString2,
+    safeStringLower,
+    safeStringLower2,
+    safeStringLowerN,
+    safeStringN,
+    safeStringUpper,
+    safeStringUpper2,
+    safeStringUpperN,
+    safeTimestamp,
+    safeTimestamp2,
+    safeTimestampN,
+    safeValue,
+    safeValue2,
+    safeValueN,
+    seconds,
+    sortBy,
+    sortBy2,
+    stringToBase64,
+    strip,
+    sum,
+    Throttler,
+    TICK_SIZE,
+    toArray,
+    TRUNCATE,
+    unCamelCase,
+    unique,
+    urlencode,
+    urlencodeNested,
+    urlencodeWithArrayRepeat,
+    uuid,
+    uuid16,
+    uuid22,
+    uuidv1,
+    values,
+    vwap,
+    ymd,
+    ymdhms,
+    yymmdd,
+    yyyymmdd
 } = functions
 
 // import exceptions from "./errors.js"
 
- import { // eslint-disable-line object-curly-newline
-    ExchangeError
-    , BadSymbol
-    , NullResponse
-    , InvalidAddress
-    , InvalidOrder
-    , NotSupported
-    , AuthenticationError
-    , DDoSProtection
-    , RequestTimeout
-    , NetworkError
-    , ExchangeNotAvailable
-    , ArgumentsRequired
-    , RateLimitExceeded } from "./errors.js"
+import { // eslint-disable-line object-curly-newline
+    ArgumentsRequired,
+    AuthenticationError,
+    BadSymbol,
+    DDoSProtection,
+    ExchangeError,
+    ExchangeNotAvailable,
+    InvalidAddress,
+    InvalidOrder,
+    NetworkError,
+    NotSupported,
+    NullResponse,
+    RateLimitExceeded,
+    RequestTimeout
+} from "./errors.js"
 
 import { Precise } from './Precise.js'
 
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
 import { createFuture, Future } from './ws/Future.js';
-import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
+import { CountedOrderBook, IndexedOrderBook, OrderBook as WsOrderBook } from './ws/OrderBook.js';
 
 // ----------------------------------------------------------------------------
 //
 
 // import types
-import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide } from './types';
-export {Market, Trade, Fee, Ticker} from './types'
+import {
+    Balance,
+    Balances,
+    Currency,
+    DepositAddressResponse,
+    Dictionary,
+    Fee,
+    IndexType,
+    Int,
+    Market,
+    MinMax,
+    OHLCV,
+    OHLCVC,
+    Order,
+    OrderBook,
+    OrderSide,
+    OrderType,
+    Ticker,
+    Trade,
+    Transaction
+} from './types';
+
+export { Fee, Market, Ticker, Trade } from './types'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
@@ -180,30 +203,30 @@ export default class Exchange {
     validateServerSsl = true
     validateClientSsl = false
 
-    timeout       = 10000 // milliseconds
-    verbose       = false
-    debug         = false
+    timeout = 10000 // milliseconds
+    verbose = false
+    debug = false
     userAgent: { 'User-Agent': string } | false = undefined;
-    twofa         = undefined // two-factor authentication (2FA)
+    twofa = undefined // two-factor authentication (2FA)
 
     apiKey: string;
     secret: string;
     uid: string;
-    login:string;
+    login: string;
     password: string;
     privateKey: string;// a "0x"-prefixed hexstring private key for a wallet
     walletAddress: string; // a wallet address "0x"-prefixed hexstring
     token: string; // reserved for HTTP auth in some cases
 
-    balance      = {}
-    orderbooks   = {}
-    tickers      = {}
-    orders       = undefined
+    balance = {}
+    orderbooks = {}
+    tickers = {}
+    orders = undefined
     trades: any
     transactions = {}
     ohlcvs: any
     myTrades: any
-    positions    = {}
+    positions = {}
     urls: {
         logo?: string;
         api?: string | Dictionary<string>;
@@ -215,42 +238,42 @@ export default class Exchange {
         referral?: string;
     };
 
-    requiresWeb3 = false
-    requiresEddsa = false
     precision: {
         amount: number | undefined,
         price: number | undefined
     };
+    requiresEddsa = false
+    requiresWeb3 = false
 
-    enableLastJsonResponse = true
     enableLastHttpResponse = true
+    enableLastJsonResponse = true
     enableLastResponseHeaders = true
-    last_http_response    = undefined
-    last_json_response    = undefined
+    last_http_response = undefined
+    last_json_response = undefined
     last_response_headers = undefined
 
     id: string = undefined
 
-    markets: Dictionary<any> = undefined
     has: Dictionary<boolean | 'emulated'>
+    markets: Dictionary<any> = undefined
 
     status = undefined
 
     requiredCredentials: {
         apiKey: boolean;
-        secret: boolean;
-        uid: boolean;
         login: boolean;
         password: boolean;
-        twofa: boolean;
         privateKey: boolean;
-        walletAddress: boolean;
+        secret: boolean;
         token: boolean;
+        twofa: boolean;
+        uid: boolean;
+        walletAddress: boolean;
     };
-    rateLimit: number = undefined; // milliseconds
-    tokenBucket = undefined
-    throttler = undefined
     enableRateLimit: boolean = undefined;
+    rateLimit: number = undefined; // milliseconds
+    throttler = undefined
+    tokenBucket = undefined
 
     httpExceptions = undefined
 
@@ -260,19 +283,19 @@ export default class Exchange {
         leverage?: MinMax,
         price?: MinMax,
     };
+    currencies: Dictionary<Currency> = undefined;
     fees: object;
+    ids: string[] = undefined;
     markets_by_id: Dictionary<any> = undefined;
     symbols: string[] = undefined;
-    ids: string[] = undefined;
-    currencies: Dictionary<Currency> = undefined;
 
     baseCurrencies = undefined
-    quoteCurrencies = undefined
-    currencies_by_id = undefined
     codes = undefined
+    currencies_by_id = undefined
+    quoteCurrencies = undefined
 
-    reloadingMarkets = undefined
     marketsLoading = undefined
+    reloadingMarkets = undefined
 
     accounts = undefined
     accountsById = undefined
@@ -281,8 +304,8 @@ export default class Exchange {
 
     hostname: string = undefined;
 
-    precisionMode: number = undefined;
     paddingMode = undefined
+    precisionMode: number = undefined;
 
     exceptions = {}
     timeframes: Dictionary<number | string> = {}
@@ -291,9 +314,9 @@ export default class Exchange {
 
     marketsByAltname = undefined
 
-    name:string = undefined
+    name: string = undefined
 
-    lastRestRequestTimestamp:number;
+    lastRestRequestTimestamp: number;
 
     targetAccount = undefined
 
@@ -305,122 +328,134 @@ export default class Exchange {
     streaming = {}
 
     deepExtend = deepExtend
-    isNode = isNode
-    keys = keys
-    values = values
-    extend = extend
-    clone = clone
-    flatten = flatten
-    unique = unique
-    indexBy = indexBy
-    sortBy = sortBy
-    sortBy2 = sortBy2
-    groupBy = groupBy
     aggregate = aggregate
-    uuid = uuid
-    unCamelCase = unCamelCase
-    precisionFromString = precisionFromString
-    capitalize = capitalize
-    now = now
-    buildOHLCVC = buildOHLCVC
-    decimalToPrecision = decimalToPrecision
-    safeValue = safeValue
-    safeValue2 = safeValue2
-    safeString = safeString
-    safeString2 = safeString2
-    safeFloat = safeFloat
-    safeFloat2 = safeFloat2
-    seconds = seconds
-    milliseconds = milliseconds
-    binaryToBase16 = binaryToBase16
-    numberToBE = numberToBE
-    base16ToBinary = base16ToBinary
-    iso8601 = iso8601
-    omit = omit
-    isJsonEncodedObject = isJsonEncodedObject
-    safeInteger = safeInteger
-    sum = sum
-    omitZero = omitZero
-    implodeParams = implodeParams
-    extractParams = extractParams
-    json = json
-    vwap = vwap
-    merge = merge
-    binaryConcat = binaryConcat
-    hash = hash
     arrayConcat = arrayConcat
-    encode = encode
-    urlencode = urlencode
-    hmac = hmac
-    numberToString = numberToString
-    parseTimeframe = parseTimeframe
-    safeInteger2 = safeInteger2
-    safeStringLower = safeStringLower
-    parse8601 = parse8601
-    yyyymmdd = yyyymmdd
-    safeStringUpper = safeStringUpper
-    safeTimestamp = safeTimestamp
-    binaryConcatArray = binaryConcatArray
-    uuidv1 = uuidv1
-    numberToLE = numberToLE
-    ymdhms = ymdhms
-    yymmdd = yymmdd
-    stringToBase64 = stringToBase64
-    decode = decode
-    uuid22 = uuid22
-    safeIntegerProduct2 = safeIntegerProduct2
-    safeIntegerProduct = safeIntegerProduct
+    base16ToBinary = base16ToBinary
     base58ToBinary = base58ToBinary
     base64ToBinary = base64ToBinary
-    safeTimestamp2 = safeTimestamp2
-    rawencode = rawencode
-    keysort = keysort
-    inArray = inArray
-    safeStringLower2 = safeStringLower2
-    safeStringUpper2 = safeStringUpper2
-    isEmpty = isEmpty
-    ordered = ordered
-    filterBy = filterBy
-    uuid16 = uuid16
-    urlencodeWithArrayRepeat = urlencodeWithArrayRepeat
-    microseconds = microseconds
-    binaryToBase64 = binaryToBase64
-    strip = strip
-    toArray = toArray
-    safeFloatN = safeFloatN
-    safeIntegerN = safeIntegerN
-    safeIntegerProductN = safeIntegerProductN
-    safeTimestampN = safeTimestampN
-    safeValueN = safeValueN
-    safeStringN = safeStringN
-    safeStringLowerN = safeStringLowerN
-    safeStringUpperN = safeStringUpperN
-    urlencodeNested = urlencodeNested
-    parseDate = parseDate
-    ymd = ymd
-    isArray = isArray
     base64ToString = base64ToString
+    binaryConcat = binaryConcat
+    binaryConcatArray = binaryConcatArray
+    binaryToBase16 = binaryToBase16
+    binaryToBase64 = binaryToBase64
+    buildOHLCVC = buildOHLCVC
+    capitalize = capitalize
+    clone = clone
     crc32 = crc32
+    decimalToPrecision = decimalToPrecision
+    decode = decode
+    encode = encode
+    extend = extend
+    extractParams = extractParams
+    filterBy = filterBy
+    flatten = flatten
+    groupBy = groupBy
+    hash = hash
+    hmac = hmac
+    implodeParams = implodeParams
+    inArray = inArray
+    indexBy = indexBy
+    isArray = isArray
+    isEmpty = isEmpty
+    isJsonEncodedObject = isJsonEncodedObject
+    isNode = isNode
+    iso8601 = iso8601
+    json = json
+    keys = keys
+    keysort = keysort
+    merge = merge
+    microseconds = microseconds
+    milliseconds = milliseconds
+    now = now
+    numberToBE = numberToBE
+    numberToLE = numberToLE
+    numberToString = numberToString
+    omit = omit
+    omitZero = omitZero
+    ordered = ordered
+    parse8601 = parse8601
+    parseDate = parseDate
+    parseTimeframe = parseTimeframe
+    precisionFromString = precisionFromString
+    rawencode = rawencode
+    safeFloat = safeFloat
+    safeFloat2 = safeFloat2
+    safeFloatN = safeFloatN
+    safeInteger = safeInteger
+    safeInteger2 = safeInteger2
+    safeIntegerN = safeIntegerN
+    safeIntegerProduct = safeIntegerProduct
+    safeIntegerProduct2 = safeIntegerProduct2
+    safeIntegerProductN = safeIntegerProductN
+    safeString = safeString
+    safeString2 = safeString2
+    safeStringLower = safeStringLower
+    safeStringLower2 = safeStringLower2
+    safeStringLowerN = safeStringLowerN
+    safeStringN = safeStringN
+    safeStringUpper = safeStringUpper
+    safeStringUpper2 = safeStringUpper2
+    safeStringUpperN = safeStringUpperN
+    safeTimestamp = safeTimestamp
+    safeTimestamp2 = safeTimestamp2
+    safeTimestampN = safeTimestampN
+    safeValue = safeValue
+    safeValue2 = safeValue2
+    safeValueN = safeValueN
+    seconds = seconds
+    sortBy = sortBy
+    sortBy2 = sortBy2
+    stringToBase64 = stringToBase64
+    strip = strip
+    sum = sum
+    toArray = toArray
+    unCamelCase = unCamelCase
+    unique = unique
+    urlencode = urlencode
+    urlencodeNested = urlencodeNested
+    urlencodeWithArrayRepeat = urlencodeWithArrayRepeat
+    uuid = uuid
+    uuid16 = uuid16
+    uuid22 = uuid22
+    uuidv1 = uuidv1
+    values = values
+    vwap = vwap
+    ymd = ymd
+    ymdhms = ymdhms
+    yymmdd = yymmdd
+    yyyymmdd = yyyymmdd
 
     describe () {
         return {
-            'id': undefined,
-            'name': undefined,
-            'countries': undefined,
-            'enableRateLimit': true,
-            'rateLimit': 2000, // milliseconds = seconds * 1000
-            'certified': false, // if certified by the CCXT dev team
-            'pro': false, // if it is integrated with CCXT Pro for WebSocket support
-            'alias': false, // whether this exchange is an alias to another exchange
+            'alias': false,
+            'api': undefined,
+            'certified': false,
+            'commonCurrencies': { // gets extended/overwritten in subclasses
+                'BCC': 'BCH',
+                'BCHABC': 'BCH',
+                'BCHSV': 'BSV',
+                'XBT': 'BTC',
+            },
+            'countries': undefined, // milliseconds = seconds * 1000
+            'currencies': {}, // if certified by the CCXT dev team
+            'enableRateLimit': true, // if it is integrated with CCXT Pro for WebSocket support
+            'exceptions': undefined, // whether this exchange is an alias to another exchange
+            'fees': {
+                'funding': {
+                    'deposit': {},
+                    'percentage': undefined,
+                    'tierBased': undefined,
+                    'withdraw': {},
+                },
+                'trading': {
+                    'maker': undefined,
+                    'percentage': undefined,
+                    'taker': undefined,
+                    'tierBased': undefined,
+                },
+            },
             'has': {
-                'publicAPI': true,
-                'privateAPI': true,
                 'CORS': undefined,
-                'spot': undefined,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
                 'addMargin': undefined,
                 'cancelAllOrders': undefined,
                 'cancelOrder': true,
@@ -431,9 +466,9 @@ export default class Exchange {
                 'createOrder': true,
                 'createPostOnlyOrder': undefined,
                 'createReduceOnlyOrder': undefined,
-                'createStopOrder': undefined,
                 'createStopLimitOrder': undefined,
                 'createStopMarketOrder': undefined,
+                'createStopOrder': undefined,
                 'editOrder': 'emulated',
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -441,8 +476,8 @@ export default class Exchange {
                 'fetchBorrowInterest': undefined,
                 'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistory': undefined,
-                'fetchBorrowRatesPerSymbol': undefined,
                 'fetchBorrowRates': undefined,
+                'fetchBorrowRatesPerSymbol': undefined,
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
@@ -452,8 +487,6 @@ export default class Exchange {
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': undefined,
                 'fetchDeposits': undefined,
-                'fetchTransactionFee': undefined,
-                'fetchTransactionFees': undefined,
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': undefined,
                 'fetchFundingRateHistory': undefined,
@@ -464,9 +497,9 @@ export default class Exchange {
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverageTiers': undefined,
+                'fetchMarkOHLCV': undefined,
                 'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': 'emulated',
                 'fetchOpenInterest': undefined,
@@ -476,8 +509,8 @@ export default class Exchange {
                 'fetchOrder': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
-                'fetchOrders': undefined,
                 'fetchOrderTrades': undefined,
+                'fetchOrders': undefined,
                 'fetchPermissions': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
@@ -491,103 +524,93 @@ export default class Exchange {
                 'fetchTradingFee': undefined,
                 'fetchTradingFees': undefined,
                 'fetchTradingLimits': undefined,
+                'fetchTransactionFee': undefined,
+                'fetchTransactionFees': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
                 'fetchWithdrawAddresses': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
+                'future': undefined,
+                'margin': undefined,
+                'option': undefined,
+                'privateAPI': true,
+                'publicAPI': true,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
                 'setMargin': undefined,
                 'setMarginMode': undefined,
                 'setPositionMode': undefined,
                 'signIn': undefined,
+                'spot': undefined,
+                'swap': undefined,
                 'transfer': undefined,
                 'withdraw': undefined,
             },
-            'urls': {
-                'logo': undefined,
-                'api': undefined,
-                'www': undefined,
-                'doc': undefined,
-                'fees': undefined,
-            },
-            'api': undefined,
-            'requiredCredentials': {
-                'apiKey':     true,
-                'secret':     true,
-                'uid':        false,
-                'login':      false,
-                'password':   false,
-                'twofa':      false, // 2-factor authentication (one-time password key)
-                'privateKey': false, // a "0x"-prefixed hexstring private key for a wallet
-                'walletAddress': false, // the wallet address "0x"-prefixed hexstring
-                'token':      false, // reserved for HTTP auth in some cases
-            },
-            'markets': undefined, // to be filled manually or by fetchMarkets
-            'currencies': {}, // to be filled manually or by fetchMarkets
-            'timeframes': undefined, // redefine if the exchange has.fetchOHLCV
-            'fees': {
-                'trading': {
-                    'tierBased': undefined,
-                    'percentage': undefined,
-                    'taker': undefined,
-                    'maker': undefined,
-                },
-                'funding': {
-                    'tierBased': undefined,
-                    'percentage': undefined,
-                    'withdraw': {},
-                    'deposit': {},
-                },
-            },
-            'status': {
-                'status': 'ok',
-                'updated': undefined,
-                'eta': undefined,
-                'url': undefined,
-            },
-            'exceptions': undefined,
             'httpExceptions': {
-                '422': ExchangeError,
-                '418': DDoSProtection,
-                '429': RateLimitExceeded,
+                '400': ExchangeNotAvailable,
+                '401': AuthenticationError,
+                '403': ExchangeNotAvailable,
                 '404': ExchangeNotAvailable,
+                '405': ExchangeNotAvailable,
+                '407': AuthenticationError,
+                '408': RequestTimeout,
                 '409': ExchangeNotAvailable,
                 '410': ExchangeNotAvailable,
+                '418': DDoSProtection,
+                '422': ExchangeError,
+                '429': RateLimitExceeded,
                 '451': ExchangeNotAvailable,
                 '500': ExchangeNotAvailable,
                 '501': ExchangeNotAvailable,
                 '502': ExchangeNotAvailable,
+                '503': ExchangeNotAvailable,
+                '504': RequestTimeout,
+                '511': AuthenticationError,
                 '520': ExchangeNotAvailable,
                 '521': ExchangeNotAvailable,
                 '522': ExchangeNotAvailable,
                 '525': ExchangeNotAvailable,
                 '526': ExchangeNotAvailable,
-                '400': ExchangeNotAvailable,
-                '403': ExchangeNotAvailable,
-                '405': ExchangeNotAvailable,
-                '503': ExchangeNotAvailable,
                 '530': ExchangeNotAvailable,
-                '408': RequestTimeout,
-                '504': RequestTimeout,
-                '401': AuthenticationError,
-                '407': AuthenticationError,
-                '511': AuthenticationError,
             },
-            'commonCurrencies': { // gets extended/overwritten in subclasses
-                'XBT': 'BTC',
-                'BCC': 'BCH',
-                'BCHABC': 'BCH',
-                'BCHSV': 'BSV',
-            },
-            'precisionMode': DECIMAL_PLACES,
-            'paddingMode': NO_PADDING,
+            'id': undefined,
             'limits': {
-                'leverage': { 'min': undefined, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
-                'price': { 'min': undefined, 'max': undefined },
                 'cost': { 'min': undefined, 'max': undefined },
+                'leverage': { 'min': undefined, 'max': undefined },
+                'price': { 'min': undefined, 'max': undefined },
+            }, // to be filled manually or by fetchMarkets
+            'markets': undefined, // to be filled manually or by fetchMarkets
+            'name': undefined, // redefine if the exchange has.fetchOHLCV
+            'paddingMode': NO_PADDING,
+            'precisionMode': DECIMAL_PLACES,
+            'pro': false,
+            'rateLimit': 2000,
+            'requiredCredentials': {
+                'apiKey': true,
+                'login': false,
+                'password': false,
+                'privateKey': false,
+                'secret': true,
+                'token': false, // 2-factor authentication (one-time password key)
+                'twofa': false, // a "0x"-prefixed hexstring private key for a wallet
+                'uid': false, // the wallet address "0x"-prefixed hexstring
+                'walletAddress': false, // reserved for HTTP auth in some cases
+            },
+            'status': {
+                'eta': undefined,
+                'status': 'ok',
+                'updated': undefined,
+                'url': undefined,
+            },
+            'timeframes': undefined,
+            'urls': {
+                'api': undefined,
+                'doc': undefined,
+                'fees': undefined,
+                'logo': undefined,
+                'www': undefined,
             },
         } // return
     } // describe ()
@@ -604,7 +627,7 @@ export default class Exchange {
         //         }
         //     }
         //
-        this.options = this.getDefaultOptions(); // exchange-specific options, if any
+        this.options = this.getDefaultOptions (); // exchange-specific options, if any
         // fetch implementation options (JS only)
         // http properties
         this.userAgents = {
@@ -614,56 +637,56 @@ export default class Exchange {
         }
         this.headers = {}
         // prepended to URL, like https://proxy.com/https://exchange.com/api...
-        this.proxy = ''
         this.origin = '*' // CORS origin
+        this.proxy = ''
         // underlying properties
-        this.minFundingAddressLength = 1 // used in checkAddress
-        this.substituteCommonCurrencyCodes = true  // reserved
-        this.quoteJsonNumbers = true // treat numbers in json as quoted precise strings
-        this.number = Number // or String (a pointer to a function)
         this.handleContentTypeApplicationZip = false
+        this.minFundingAddressLength = 1 // used in checkAddress
+        this.number = Number // or String (a pointer to a function)
+        this.quoteJsonNumbers = true // treat numbers in json as quoted precise strings
+        this.substituteCommonCurrencyCodes = true  // reserved
         // whether fees should be summed by currency code
         this.reduceFees = true
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
         this.fetchImplementation = undefined
-        this.validateServerSsl = true
         this.validateClientSsl = false
+        this.validateServerSsl = true
         // default property values
-        this.timeout       = 10000 // milliseconds
-        this.verbose       = false
-        this.debug         = false
-        this.userAgent     = undefined
-        this.twofa         = undefined // two-factor authentication (2FA)
+        this.debug = false
+        this.timeout = 10000 // milliseconds
+        this.twofa = undefined // two-factor authentication (2FA)
+        this.userAgent = undefined
+        this.verbose = false
         // default credentials
-        this.apiKey        = undefined
-        this.secret        = undefined
-        this.uid           = undefined
-        this.login         = undefined
-        this.password      = undefined
-        this.privateKey    = undefined // a "0x"-prefixed hexstring private key for a wallet
+        this.apiKey = undefined
+        this.login = undefined
+        this.password = undefined
+        this.privateKey = undefined // a "0x"-prefixed hexstring private key for a wallet
+        this.secret = undefined
+        this.token = undefined // reserved for HTTP auth in some cases
+        this.uid = undefined
         this.walletAddress = undefined // a wallet address "0x"-prefixed hexstring
-        this.token         = undefined // reserved for HTTP auth in some cases
         // placeholders for cached data
-        this.balance      = {}
-        this.orderbooks   = {}
-        this.tickers      = {}
-        this.orders       = undefined
-        this.trades       = {}
+        this.balance = {}
+        this.myTrades = undefined
+        this.ohlcvs = {}
+        this.orderbooks = {}
+        this.orders = undefined
+        this.positions = {}
+        this.tickers = {}
+        this.trades = {}
         this.transactions = {}
-        this.ohlcvs       = {}
-        this.myTrades     = undefined
-        this.positions    = {}
         // web3 and cryptography flags
-        this.requiresWeb3 = false
         this.requiresEddsa = false
+        this.requiresWeb3 = false
         // response handling flags and properties
-        this.lastRestRequestTimestamp = 0
-        this.enableLastJsonResponse = true
         this.enableLastHttpResponse = true
+        this.enableLastJsonResponse = true
         this.enableLastResponseHeaders = true
-        this.last_http_response    = undefined
-        this.last_json_response    = undefined
+        this.last_http_response = undefined
+        this.last_json_response = undefined
         this.last_response_headers = undefined
+        this.lastRestRequestTimestamp = 0
         // camelCase and snake_notation support
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
@@ -679,7 +702,7 @@ export default class Exchange {
         // merge constructor overrides to this instance
         const configEntries = Object.entries (this.describe ()).concat (Object.entries (userConfig))
         for (let i = 0; i < configEntries.length; i++) {
-            const [property, value] = configEntries[i]
+            const [ property, value ] = configEntries[i]
             if (value && Object.getPrototypeOf (value) === Object.prototype) {
                 this[property] = this.deepExtend (this[property], value)
             } else {
@@ -713,9 +736,9 @@ export default class Exchange {
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
     }
 
-    encodeURIComponent (...args) {
+    encodeURIComponent (... args) {
         // @ts-expect-error
-        return encodeURIComponent (...args)
+        return encodeURIComponent (... args)
     }
 
     checkRequiredVersion (requiredVersion, error = true) {
@@ -801,17 +824,17 @@ export default class Exchange {
 
     defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
         const splitPath = path.split (/[^a-zA-Z0-9]/)
-        const camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
+        const camelcaseSuffix = splitPath.map (this.capitalize).join ('')
         const underscoreSuffix = splitPath.map ((x) => x.trim ().toLowerCase ()).filter ((x) => x.length > 0).join ('_')
         const camelcasePrefix = [ paths[0] ].concat (paths.slice (1).map (this.capitalize)).join ('')
         const underscorePrefix = [ paths[0] ].concat (paths.slice (1).map ((x) => x.trim ()).filter ((x) => x.length > 0)).join ('_')
-        const camelcase  = camelcasePrefix + camelcaseMethod + this.capitalize (camelcaseSuffix)
+        const camelcase = camelcasePrefix + camelcaseMethod + this.capitalize (camelcaseSuffix)
         const underscore = underscorePrefix + '_' + lowercaseMethod + '_' + underscoreSuffix
         const typeArgument = (paths.length > 1) ? paths : paths[0]
         // handle call costs here
         const partial = async (params = {}, context = {}) => this[methodName] (path, typeArgument, uppercaseMethod, params, undefined, undefined, config, context)
         // const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
-        this[camelcase]  = partial
+        this[camelcase] = partial
         this[underscore] = partial
     }
 
@@ -828,8 +851,8 @@ export default class Exchange {
                     const path = value[k].trim ()
                     this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths)
                 }
-            // the options HTTP method conflicts with the 'options' API url path
-            // } else if (key.match (/^(?:get|post|put|delete|options|head|patch)$/i)) {
+                // the options HTTP method conflicts with the 'options' API url path
+                // } else if (key.match (/^(?:get|post|put|delete|options|head|patch)$/i)) {
             } else if (key.match (/^(?:get|post|put|delete|head|patch)$/i)) {
                 const endpoints = Object.keys (value);
                 for (let j = 0; j < endpoints.length; j++) {
@@ -1053,7 +1076,7 @@ export default class Exchange {
     checkOrderArguments (market, type, side, amount, price, params) {
         if (price === undefined) {
             if (type === 'limit') {
-                  throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a limit order');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a limit order');
             }
         }
         if (amount <= 0) {
@@ -1119,7 +1142,8 @@ export default class Exchange {
         return new CountedOrderBook (snapshot, depth);
     }
 
-    handleMessage (client, message) {} // stub to override
+    handleMessage (client, message) {
+    } // stub to override
 
     // ping (client) {} // stub to override
 
@@ -1205,10 +1229,13 @@ export default class Exchange {
                         //               V
                         client.throttle (cost).then (() => {
                             client.send (message);
-                        }).catch ((e) => { throw e });
+                        }).catch ((e) => {
+                            throw e
+                        });
                     } else {
-                        client.send (message)
-                        .catch ((e) => { throw e });;
+                        client.send (message).catch ((e) => {
+                            throw e
+                        });
                     }
                 }
             }
@@ -1247,7 +1274,7 @@ export default class Exchange {
         }
     }
 
-    handleDelta(bookside, delta, nonce = undefined) {
+    handleDelta (bookside, delta, nonce = undefined) {
         //stub
     }
 
@@ -1293,19 +1320,19 @@ export default class Exchange {
         return -1;
     }
 
-    convertToBigInt(value: string) {
-        return BigInt(value); // used on XT
+    convertToBigInt (value: string) {
+        return BigInt (value); // used on XT
     }
 
-    valueIsDefined(value){
+    valueIsDefined (value) {
         return value !== undefined && value !== null;
     }
 
-    arraySlice(array, first, second = undefined) {
+    arraySlice (array, first, second = undefined) {
         if (second === undefined) {
-            return array.slice(first);
+            return array.slice (first);
         }
-        return array.slice(first, second);
+        return array.slice (first, second);
     }
 
     /* eslint-enable */
@@ -1373,7 +1400,7 @@ export default class Exchange {
         const sinceIsDefined = this.valueIsDefined (since);
         const parsedArray = this.toArray (array) as any;
         if (sinceIsDefined) {
-            const result = [ ];
+            const result = [];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
                 if (entry[key] >= since) {
@@ -1391,7 +1418,7 @@ export default class Exchange {
         const parsedArray = this.toArray (array) as any;
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined) {
-            const result = [ ];
+            const result = [];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
                 const entryFiledEqualValue = entry[field] === value;
@@ -1926,28 +1953,28 @@ export default class Exchange {
         }
         const triggerPrice = this.parseNumber (this.safeString2 (order, 'triggerPrice', 'stopPrice'));
         return this.extend (order, {
-            'id': this.safeString (order, 'id'),
-            'clientOrderId': this.safeString (order, 'clientOrderId'),
-            'timestamp': timestamp,
-            'datetime': datetime,
-            'symbol': symbol,
-            'type': this.safeString (order, 'type'),
-            'side': side,
-            'lastTradeTimestamp': lastTradeTimeTimestamp,
-            'price': this.parseNumber (price),
             'amount': this.parseNumber (amount),
-            'cost': this.parseNumber (cost),
             'average': this.parseNumber (average),
-            'filled': this.parseNumber (filled),
-            'remaining': this.parseNumber (remaining),
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
-            'trades': trades,
-            'reduceOnly': this.safeValue (order, 'reduceOnly'),
-            'stopPrice': triggerPrice,  // ! deprecated, use triggerPrice instead
-            'triggerPrice': triggerPrice,
-            'status': this.safeString (order, 'status'),
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'cost': this.parseNumber (cost),
+            'datetime': datetime,
             'fee': this.safeValue (order, 'fee'),
+            'filled': this.parseNumber (filled),
+            'id': this.safeString (order, 'id'),
+            'lastTradeTimestamp': lastTradeTimeTimestamp,
+            'postOnly': postOnly,
+            'price': this.parseNumber (price),
+            'reduceOnly': this.safeValue (order, 'reduceOnly'),
+            'remaining': this.parseNumber (remaining),
+            'side': side,
+            'status': this.safeString (order, 'status'),
+            'stopPrice': triggerPrice,
+            'symbol': symbol,
+            'timeInForce': timeInForce,
+            'timestamp': timestamp,  // ! deprecated, use triggerPrice instead
+            'trades': trades,
+            'triggerPrice': triggerPrice,
+            'type': this.safeString (order, 'type'),
         });
     }
 
@@ -2029,10 +2056,10 @@ export default class Exchange {
         const rate = this.safeString (market, takerOrMaker);
         cost = Precise.stringMul (cost, rate);
         return {
-            'type': takerOrMaker,
+            'cost': this.parseNumber (cost),
             'currency': market[key],
             'rate': this.parseNumber (rate),
-            'cost': this.parseNumber (cost),
+            'type': takerOrMaker,
         };
     }
 
@@ -2090,8 +2117,8 @@ export default class Exchange {
             }
         }
         trade['amount'] = this.parseNumber (amount);
-        trade['price'] = this.parseNumber (price);
         trade['cost'] = this.parseNumber (cost);
+        trade['price'] = this.parseNumber (price);
         return trade as Trade;
     }
 
@@ -2160,8 +2187,8 @@ export default class Exchange {
                     reduced[feeCurrencyCode][rateKey]['cost'] = Precise.stringAdd (reduced[feeCurrencyCode][rateKey]['cost'], cost);
                 } else {
                     reduced[feeCurrencyCode][rateKey] = {
-                        'currency': feeCurrencyCode,
                         'cost': cost,
+                        'currency': feeCurrencyCode,
                     };
                     if (rate !== undefined) {
                         reduced[feeCurrencyCode][rateKey]['rate'] = rate;
@@ -2216,22 +2243,22 @@ export default class Exchange {
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         return this.extend (ticker, {
-            'bid': this.omitZero (this.safeNumber (ticker, 'bid')),
-            'bidVolume': this.safeNumber (ticker, 'bidVolume'),
             'ask': this.omitZero (this.safeNumber (ticker, 'ask')),
             'askVolume': this.safeNumber (ticker, 'askVolume'),
+            'average': this.omitZero (this.parseNumber (average)),
+            'baseVolume': this.parseNumber (baseVolume),
+            'bid': this.omitZero (this.safeNumber (ticker, 'bid')),
+            'bidVolume': this.safeNumber (ticker, 'bidVolume'),
+            'change': this.parseNumber (change),
+            'close': this.omitZero (this.parseNumber (close)),
             'high': this.omitZero (this.safeNumber (ticker, 'high')),
+            'last': this.omitZero (this.parseNumber (last)),
             'low': this.omitZero (this.safeNumber (ticker, 'low')),
             'open': this.omitZero (this.parseNumber (open)),
-            'close': this.omitZero (this.parseNumber (close)),
-            'last': this.omitZero (this.parseNumber (last)),
-            'change': this.parseNumber (change),
             'percentage': this.parseNumber (percentage),
-            'average': this.omitZero (this.parseNumber (average)),
-            'vwap': this.omitZero (this.parseNumber (vwap)),
-            'baseVolume': this.parseNumber (baseVolume),
-            'quoteVolume': this.parseNumber (quoteVolume),
             'previousClose': this.safeNumber (ticker, 'previousClose'),
+            'quoteVolume': this.parseNumber (quoteVolume),
+            'vwap': this.omitZero (this.parseNumber (vwap)),
         });
     }
 
@@ -2282,11 +2309,11 @@ export default class Exchange {
 
     convertOHLCVToTradingView (ohlcvs, timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false) {
         const result = {};
-        result[timestamp] = [];
-        result[open] = [];
+        result[close] = [];
         result[high] = [];
         result[low] = [];
-        result[close] = [];
+        result[open] = [];
+        result[timestamp] = [];
         result[volume] = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             const ts = ms ? ohlcvs[i][0] : this.parseToInt (ohlcvs[i][0] / 1000);
@@ -2381,32 +2408,32 @@ export default class Exchange {
     getNetwork (network: string, code: string): string {
         network = network.toUpperCase ();
         const aliases = {
-            'ETHEREUM': 'ETH',
-            'ETHER': 'ETH',
+            'AVALANCHE': 'AVAX',
+            'AVAX': 'AVAX',
+            'BEP20': 'BSC',
+            'BSC': 'BSC',
+            'CHZ': 'CHZ',
+            'EOS': 'EOS',
             'ERC20': 'ETH',
             'ETH': 'ETH',
+            'ETHER': 'ETH',
+            'ETHEREUM': 'ETH',
+            'HECO': 'HT',
+            'HRC20': 'HT',
+            'LUNA': 'LUNA',
+            'MATIC': 'MATIC',
+            'NEO': 'NEO',
+            'ONT': 'ONT',
+            'POLYGON': 'MATIC',
+            'QTUM': 'QTUM',
+            'RON': 'RON',
+            'SOL': 'SOL',
+            'SPL': 'SOL',
+            'TERRA': 'LUNA',
             'TRC20': 'TRX',
             'TRON': 'TRX',
             'TRX': 'TRX',
-            'BEP20': 'BSC',
-            'BSC': 'BSC',
-            'HRC20': 'HT',
-            'HECO': 'HT',
-            'SPL': 'SOL',
-            'SOL': 'SOL',
-            'TERRA': 'LUNA',
-            'LUNA': 'LUNA',
-            'POLYGON': 'MATIC',
-            'MATIC': 'MATIC',
-            'EOS': 'EOS',
             'WAVES': 'WAVES',
-            'AVALANCHE': 'AVAX',
-            'AVAX': 'AVAX',
-            'QTUM': 'QTUM',
-            'CHZ': 'CHZ',
-            'NEO': 'NEO',
-            'ONT': 'ONT',
-            'RON': 'RON',
         };
         if (network === code) {
             return network;
@@ -2575,12 +2602,12 @@ export default class Exchange {
         const bids = this.parseBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey);
         const asks = this.parseBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey);
         return {
-            'symbol': symbol,
-            'bids': this.sortBy (bids, 0, true),
             'asks': this.sortBy (asks, 0),
-            'timestamp': timestamp,
+            'bids': this.sortBy (bids, 0, true),
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
+            'symbol': symbol,
+            'timestamp': timestamp,
         } as any;
     }
 
@@ -2862,39 +2889,19 @@ export default class Exchange {
 
     safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const result = {
-            'id': marketId,
-            'symbol': marketId,
-            'base': undefined,
-            'quote': undefined,
-            'baseId': undefined,
-            'quoteId': undefined,
             'active': undefined,
-            'type': undefined,
-            'linear': undefined,
-            'inverse': undefined,
-            'spot': false,
-            'swap': false,
-            'future': false,
-            'option': false,
-            'margin': false,
+            'base': undefined,
+            'baseId': undefined,
             'contract': false,
             'contractSize': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
-            'optionType': undefined,
-            'strike': undefined,
-            'settle': undefined,
-            'settleId': undefined,
-            'precision': {
-                'amount': undefined,
-                'price': undefined,
-            },
+            'future': false,
+            'id': marketId,
+            'info': undefined,
+            'inverse': undefined,
             'limits': {
                 'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
                     'min': undefined,
                     'max': undefined,
                 },
@@ -2902,8 +2909,28 @@ export default class Exchange {
                     'min': undefined,
                     'max': undefined,
                 },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
             },
-            'info': undefined,
+            'linear': undefined,
+            'margin': false,
+            'option': false,
+            'optionType': undefined,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'quote': undefined,
+            'quoteId': undefined,
+            'settle': undefined,
+            'settleId': undefined,
+            'spot': false,
+            'strike': undefined,
+            'swap': false,
+            'symbol': marketId,
+            'type': undefined,
         };
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
@@ -3983,16 +4010,16 @@ export default class Exchange {
 
     depositWithdrawFee (info): any {
         return {
-            'info': info,
-            'withdraw': {
-                'fee': undefined,
-                'percentage': undefined,
-            },
             'deposit': {
                 'fee': undefined,
                 'percentage': undefined,
             },
+            'info': info,
             'networks': {},
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
         };
     }
 
@@ -4016,8 +4043,8 @@ export default class Exchange {
         for (let i = 0; i < numNetworks; i++) {
             const network = networkKeys[i];
             if (network === currencyCode) {
-                fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw'];
                 fee['deposit'] = fee['networks'][networkKeys[i]]['deposit'];
+                fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw'];
             }
         }
         return fee;
