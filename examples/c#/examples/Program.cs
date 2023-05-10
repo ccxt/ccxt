@@ -11,6 +11,6 @@ partial class Examples
         // FetchTrades();
         // FetchOrderBook();
         // FetchBalance().Wait();
-        FetchMultipleTrades().Wait();
+        FetchPositions().Wait();
     }
 }
