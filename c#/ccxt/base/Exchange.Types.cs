@@ -421,4 +421,208 @@ public partial class Exchange
             info = depositAddressResponse.ContainsKey("info") ? (Dictionary<string, object>)depositAddressResponse["info"] : null;
         }
     }
+
+    public struct BorrowRate
+    {
+        public string? currency;
+        public double? rate;
+        public Int64? timestamp;
+        public string? datetime;
+        public Dictionary<string, object> info;
+
+        public BorrowRate(object borrowRate)
+        {
+            var borrowRate2 = (Dictionary<string, object>)borrowRate;
+            currency = SafeString(borrowRate2, "currency");
+            rate = SafeFloat(borrowRate2, "rate");
+            timestamp = SafeInteger(borrowRate2, "timestamp");
+            datetime = SafeString(borrowRate2, "datetime");
+            info = borrowRate2.ContainsKey("info") ? (Dictionary<string, object>)borrowRate2["info"] : null;
+        }
+    }
+
+    public struct BorrowInterest
+    {
+        public string? account;
+        public string? currency;
+        public double? interest;
+        public double? interestRate;
+        public double? amountBorrowed;
+        public Int64? timestamp;
+        public string? datetime;
+        public string? marginMode;
+        public Dictionary<string, object> info;
+
+        public BorrowInterest(object borrowInterest)
+        {
+            account = SafeString(borrowInterest, "account");
+            currency = SafeString(borrowInterest, "currency");
+            interest = SafeFloat(borrowInterest, "interest");
+            interestRate = SafeFloat(borrowInterest, "interestRate");
+            amountBorrowed = SafeFloat(borrowInterest, "amountBorrowed");
+            timestamp = SafeInteger(borrowInterest, "timestamp");
+            datetime = SafeString(borrowInterest, "datetime");
+            marginMode = SafeString(borrowInterest, "marginMode");
+            info = SafeValue(borrowInterest, "info", new Dictionary<string, object>()) as Dictionary<string, object>;
+        }
+    }
+
+    public struct OpenInterest
+    {
+        public string? symbol;
+        public double? openInterestAmount;
+        public double? openInterestValue;
+        public Int64? timestamp;
+        public string? datetime;
+        public Dictionary<string, object> info;
+
+        public OpenInterest(object openInterest)
+        {
+            symbol = SafeString(openInterest, "symbol");
+            openInterestAmount = SafeFloat(openInterest, "openInterestAmount");
+            openInterestValue = SafeFloat(openInterest, "openInterestValue");
+            timestamp = SafeInteger(openInterest, "timestamp");
+            datetime = SafeString(openInterest, "datetime");
+            info = SafeValue(openInterest, "info", new Dictionary<string, object>()) as Dictionary<string, object>;
+        }
+    }
+
+    public struct FundingRate
+    {
+        public string? symbol;
+        public Int64? timestamp;
+        public string? datetime;
+        public double? fundingRate;
+        public double? markPrice;
+        public double? indexPrice;
+        public double? interestRate;
+        public double? estimatedSettlePrice;
+        public double? fundingTimestamp;
+        public double? nextFundingTimestamp;
+        public double? nextFundingRate;
+        public Int64? nextFundingDatetime;
+        public double? previousFundingTimestamp;
+        public string? previousFundingDatetime;
+        public double? previousFundingRate;
+
+        public FundingRate(object fundingRateEntry)
+        {
+            symbol = SafeString(fundingRateEntry, "symbol");
+            datetime = SafeString(fundingRateEntry, "datetime");
+            timestamp = SafeInteger(fundingRateEntry, "timestamp");
+            fundingRate = SafeFloat(fundingRateEntry, "fundingRate");
+            markPrice = SafeFloat(fundingRateEntry, "markPrice");
+            indexPrice = SafeFloat(fundingRateEntry, "indexPrice");
+            interestRate = SafeFloat(fundingRateEntry, "interestRate");
+            estimatedSettlePrice = SafeFloat(fundingRateEntry, "estimatedSettlePrice");
+            fundingTimestamp = SafeFloat(fundingRateEntry, "fundingTimestamp");
+            nextFundingTimestamp = SafeFloat(fundingRateEntry, "nextFundingTimestamp");
+            nextFundingRate = SafeFloat(fundingRateEntry, "nextFundingRate");
+            nextFundingDatetime = SafeInteger(fundingRateEntry, "nextFundingDatetime");
+            previousFundingTimestamp = SafeFloat(fundingRateEntry, "previousFundingTimestamp");
+            previousFundingDatetime = SafeString(fundingRateEntry, "previousFundingDatetime");
+            previousFundingRate = SafeFloat(fundingRateEntry, "previousFundingRate");
+        }
+    }
+
+    public struct Transaction
+    {
+        public string? id;
+        public string? txid;
+        public string? address;
+        public string? tag;
+        public string? type;
+        public string? currency;
+        public double? amount;
+        public string? status;
+        public Int64? updated;
+        public Int64? timestamp;
+        public string? datetime;
+        public Fee? fee;
+        public string? tagFrom;
+        public string? tagTo;
+        public string? addressTo;
+        public string? addressFrom;
+        public string? comment;
+
+        public Transaction(object transaction)
+        {
+            id = SafeString(transaction, "id");
+            txid = SafeString(transaction, "txid");
+            address = SafeString(transaction, "address");
+            tag = SafeString(transaction, "tag");
+            type = SafeString(transaction, "type");
+            currency = SafeString(transaction, "currency");
+            amount = SafeFloat(transaction, "amount");
+            status = SafeString(transaction, "status");
+            updated = SafeInteger(transaction, "updated");
+            timestamp = SafeInteger(transaction, "timestamp");
+            datetime = SafeString(transaction, "datetime");
+            fee = SafeValue(transaction, "fee") != null ? new Fee(SafeValue(transaction, "fee")) : null;
+            tagFrom = SafeString(transaction, "tagFrom");
+            tagTo = SafeString(transaction, "tagTo");
+            addressTo = SafeString(transaction, "addressTo");
+            addressFrom = SafeString(transaction, "addressFrom");
+            comment = SafeString(transaction, "comment");
+        }
+    }
+
+    public struct Position
+    {
+        public string symbol;
+        public string? id;
+        public Dictionary<string, object>? info;
+        public double? timestamp;
+        public string? datetime;
+        public double? contracts;
+        public double? contractsSize;
+        public string? side;
+        public double? notional;
+        public double? leverage;
+        public double? unrealizedPnl;
+        public double? collateral;
+        public double? entryPrice;
+        public double? markPrice;
+        public double? liquidationPrice;
+        public string? marginMode;
+        public bool? hedged;
+        public double? maintenenceMargin;
+        public double? maintenanceMarginPercentage;
+        public double? initialMargin;
+        public double? initialMarginPercentage;
+        public double? marginRatio;
+        public double? lastUpdateTimestamp;
+        public double? lastPrice;
+        public double? percentage;
+
+        public Position(object position)
+        {
+            symbol = SafeString(position, "symbol");
+            id = SafeString(position, "id");
+            info = SafeValue(position, "info") != null ? (Dictionary<string, object>)SafeValue(position, "info") : null;
+            timestamp = SafeInteger(position, "timestamp");
+            datetime = SafeString(position, "datetime");
+            contracts = SafeFloat(position, "contracts");
+            contractsSize = SafeFloat(position, "contractsSize");
+            side = SafeString(position, "side");
+            notional = SafeFloat(position, "notional");
+            leverage = SafeFloat(position, "leverage");
+            unrealizedPnl = SafeFloat(position, "unrealizedPnl");
+            collateral = SafeFloat(position, "collateral");
+            entryPrice = SafeFloat(position, "entryPrice");
+            markPrice = SafeFloat(position, "markPrice");
+            liquidationPrice = SafeFloat(position, "liquidationPrice");
+            marginMode = SafeString(position, "marginMode");
+            hedged = SafeValue(position, "hedged") != null ? (bool)SafeValue(position, "hedged") : null;
+            maintenenceMargin = SafeFloat(position, "maintenenceMargin");
+            maintenanceMarginPercentage = SafeFloat(position, "maintenanceMarginPercentage");
+            initialMargin = SafeFloat(position, "initialMargin");
+            initialMarginPercentage = SafeFloat(position, "initialMarginPercentage");
+            marginRatio = SafeFloat(position, "marginRatio");
+            lastUpdateTimestamp = SafeFloat(position, "lastUpdateTimestamp");
+            lastPrice = SafeFloat(position, "lastPrice");
+            percentage = SafeFloat(position, "percentage");
+        }
+
+    }
 }

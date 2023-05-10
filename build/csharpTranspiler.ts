@@ -137,7 +137,7 @@ class NewTranspiler {
     }
 
     isIntegerType(type: string) {
-        return type !== undefined && type.toLowerCase().includes('int');
+        return type !== undefined && type.toLowerCase() === 'int';
     }
 
     isBooleanType(type: string) {
