@@ -43,7 +43,8 @@ git add CHANGELOG.md dist/cjs/**/* dist/ccxt.bundle.cjs dist/ccxt.browser.js dis
 git add php/test/ php/pro/test/
 git add python/ccxt/test/ python/ccxt/pro/test/
 git add -f python/LICENSE.txt python/package.json python/README.md
-git commit -a -m "${COMMIT_MESSAGE}" -m '[ci skip]' || exit 0
+git commit add .
+git commit -m "${COMMIT_MESSAGE}" -m '[ci skip]' || exit 0
 if [ "$SHOULD_TAG" = "true" ]; then
     git tag -a "${COMMIT_MESSAGE}" -m "${LAST_COMMIT_MESSAGE}" -m "" -m "[ci skip]";
 fi
