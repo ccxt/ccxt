@@ -24,7 +24,7 @@ export default class xt extends xtRest {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://stream.xt.com/',
+                    'ws': 'wss://stream.xt.com',
                 },
             },
             'options': {
@@ -48,7 +48,7 @@ export default class xt extends xtRest {
          * @returns {string} accessToken
          */
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws'] + 'private';
+        const url = this.urls['api']['ws'] + '/private';
         const client = this.client (url);
         const accessToken = this.safeValue (client.subscriptions, 'accessToken');
         if (accessToken === undefined) {
@@ -83,7 +83,7 @@ export default class xt extends xtRest {
          * @returns {Object} data from the websocket stream
          */
         await this.loadMarkets ();
-        const url = this.urls['api']['ws'] + access;
+        const url = this.urls['api']['ws'] + '/' + access;
         const subscribe = {
             'method': 'subscribe',
             'params': [
