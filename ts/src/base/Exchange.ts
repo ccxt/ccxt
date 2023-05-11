@@ -3467,6 +3467,18 @@ export default class Exchange {
         }
     }
 
+    precisionModeIsTickSize () {
+        return this.precisionMode === TICK_SIZE;
+    }
+
+    precisionModeIsDecimalPlaces () {
+        return this.precisionMode === DECIMAL_PLACES;
+    }
+
+    precisionModeIsSignificantDigits () {
+        return this.precisionMode === functions.SIGNIFICANT_DIGITS;
+    }
+
     safeNumber (obj: object, key: IndexType, defaultNumber: number = undefined): number {
         const value = this.safeString (obj, key);
         return this.parseNumber (value, defaultNumber);
