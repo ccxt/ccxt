@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.lbank import ImplicitAPI
 from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
@@ -15,7 +16,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class lbank(Exchange):
+class lbank(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(lbank, self).describe(), {
@@ -763,10 +764,10 @@ class lbank(Exchange):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            query = self.keysort(self.extend({
+            queryInner = self.keysort(self.extend({
                 'api_key': self.apiKey,
             }, params))
-            queryString = self.rawencode(query)
+            queryString = self.rawencode(queryInner)
             message = self.hash(self.encode(queryString), 'md5').upper()
             cacheSecretAsPem = self.safe_value(self.options, 'cacheSecretAsPem', True)
             pem = None
@@ -784,7 +785,7 @@ class lbank(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         success = self.safe_string(response, 'result')
         if success == 'false':
             errorCode = self.safe_string(response, 'error_code')
@@ -829,3 +830,4 @@ class lbank(Exchange):
                 '10022': AuthenticationError,
             }, errorCode, ExchangeError)
             raise ErrorClass(message)
+        return None

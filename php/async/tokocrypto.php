@@ -604,6 +604,7 @@ class tokocrypto extends Exchange {
     public function fetch_time($params = array ()) {
         return Async\async(function () use ($params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#check-server-time
              * fetches the current integer timestamp in milliseconds from the exchange server
              * @param {array} $params extra parameters specific to the tokocrypto api endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -619,6 +620,7 @@ class tokocrypto extends Exchange {
     public function fetch_markets($params = array ()) {
         return Async\async(function () use ($params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#get-all-supported-trading-$symbol
              * retrieves $data on all markets for tokocrypto
              * @param {array} $params extra parameters specific to the exchange api endpoint
              * @return {[array]} an array of objects representing $market $data
@@ -784,6 +786,7 @@ class tokocrypto extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#order-book
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
@@ -973,6 +976,8 @@ class tokocrypto extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#recent-trades-list
+             * @see https://www.tokocrypto.com/apidocs/#compressedaggregate-trades-list
              * get the list of most recent trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
@@ -1131,6 +1136,7 @@ class tokocrypto extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the tokocrypto api endpoint
@@ -1147,6 +1153,7 @@ class tokocrypto extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the tokocrypto api endpoint
@@ -1169,6 +1176,7 @@ class tokocrypto extends Exchange {
     public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker
              * fetches the bid and ask price and volume for multiple markets
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
              * @param {array} $params extra parameters specific to the tokocrypto api endpoint
@@ -1228,6 +1236,7 @@ class tokocrypto extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -1279,6 +1288,7 @@ class tokocrypto extends Exchange {
     public function fetch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#account-information-signed
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} $params extra parameters specific to the tokocrypto api endpoint
              * @param {string|null} $params->type 'future', 'delivery', 'savings', 'funding', or 'spot'
@@ -1525,6 +1535,7 @@ class tokocrypto extends Exchange {
     public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
              * create a trade order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -1609,10 +1620,10 @@ class tokocrypto extends Exchange {
             if ($uppercaseType === 'MARKET') {
                 $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', true);
                 if ($quoteOrderQty) {
-                    $quoteOrderQty = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
+                    $quoteOrderQtyInner = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
                     $precision = $market['precision']['price'];
-                    if ($quoteOrderQty !== null) {
-                        $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQty, TRUNCATE, $precision, $this->precisionMode);
+                    if ($quoteOrderQtyInner !== null) {
+                        $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQtyInner, TRUNCATE, $precision, $this->precisionMode);
                         $params = $this->omit($params, array( 'quoteOrderQty', 'cost' ));
                     } elseif ($price !== null) {
                         $request['quoteOrderQty'] = $this->decimal_to_precision($amount * $price, TRUNCATE, $precision, $this->precisionMode);
@@ -1692,6 +1703,7 @@ class tokocrypto extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#all-orders-signed
              * fetches information on an order made by the user
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} $params extra parameters specific to the tokocrypto api endpoint
@@ -1741,6 +1753,7 @@ class tokocrypto extends Exchange {
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#all-$orders-signed
              * fetches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int|null} $since the earliest time in ms to fetch $orders for
@@ -1812,6 +1825,7 @@ class tokocrypto extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#all-orders-signed
              * fetch all unfilled currently open orders
              * @param {string|null} $symbol unified market $symbol
              * @param {int|null} $since the earliest time in ms to fetch open orders for
@@ -1827,6 +1841,7 @@ class tokocrypto extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#all-orders-signed
              * fetches information on multiple closed orders made by the user
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int|null} $since the earliest time in ms to fetch orders for
@@ -1842,6 +1857,7 @@ class tokocrypto extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#cancel-order-signed
              * cancels an open order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
@@ -1887,6 +1903,7 @@ class tokocrypto extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
              * fetch all $trades made by the user
              * @param {string} $symbol unified $market $symbol
              * @param {int|null} $since the earliest time in ms to fetch $trades for
@@ -1948,6 +1965,7 @@ class tokocrypto extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#deposit-$address-signed
              * fetch the deposit $address for a $currency associated with this account
              * @param {string} $code unified $currency $code
              * @param {array} $params extra parameters specific to the tokocrypto api endpoint
@@ -2004,6 +2022,7 @@ class tokocrypto extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#deposit-history-signed
              * fetch all $deposits made to an account
              * @param {string|null} $code unified $currency $code
              * @param {int|null} $since the earliest time in ms to fetch $deposits for
@@ -2065,6 +2084,7 @@ class tokocrypto extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#withdraw-signed
              * fetch all $withdrawals made from an account
              * @param {string|null} $code unified $currency $code
              * @param {int|null} $since the earliest time in ms to fetch $withdrawals for
@@ -2258,6 +2278,7 @@ class tokocrypto extends Exchange {
     public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
+             * @see https://www.tokocrypto.com/apidocs/#withdraw-signed
              * make a withdrawal
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
@@ -2383,17 +2404,17 @@ class tokocrypto extends Exchange {
             }
         }
         if ($response === null) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         // check $success value for wapi endpoints
         // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
         $success = $this->safe_value($response, 'success', true);
         if (!$success) {
-            $message = $this->safe_string($response, 'msg');
+            $messageInner = $this->safe_string($response, 'msg');
             $parsedMessage = null;
-            if ($message !== null) {
+            if ($messageInner !== null) {
                 try {
-                    $parsedMessage = json_decode($message, $as_associative_array = true);
+                    $parsedMessage = json_decode($messageInner, $as_associative_array = true);
                 } catch (Exception $e) {
                     // do nothing
                     $parsedMessage = null;
@@ -2437,9 +2458,10 @@ class tokocrypto extends Exchange {
         if (!$success) {
             throw new ExchangeError($this->id . ' ' . $body);
         }
+        return null;
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         if ((is_array($config) && array_key_exists('noCoin', $config)) && !(is_array($params) && array_key_exists('coin', $params))) {
             return $config['noCoin'];
         } elseif ((is_array($config) && array_key_exists('noSymbol', $config)) && !(is_array($params) && array_key_exists('symbol', $params))) {

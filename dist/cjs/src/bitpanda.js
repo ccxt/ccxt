@@ -338,6 +338,7 @@ class bitpanda extends bitpanda$1 {
                     'amount': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -1961,7 +1962,7 @@ class bitpanda extends bitpanda$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //     {"error":"MISSING_FROM_PARAM"}
@@ -1975,6 +1976,7 @@ class bitpanda extends bitpanda$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }
 

@@ -939,7 +939,7 @@ export default class oceanex extends Exchange {
         //     {"code":1011,"message":"This IP 'x.x.x.x' is not allowed","data":{}}
         //
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const errorCode = this.safeString(response, 'code');
         const message = this.safeString(response, 'message');
@@ -949,5 +949,6 @@ export default class oceanex extends Exchange {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             throw new ExchangeError(feedback);
         }
+        return undefined;
     }
 }

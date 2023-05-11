@@ -1767,8 +1767,8 @@ class okcoin extends Exchange {
             if ($this->safe_string($balance, 'margin_mode') === 'fixed') {
                 $contracts = $this->safe_value($balance, 'contracts', array());
                 $free = $totalAvailBalance;
-                for ($i = 0; $i < count($contracts); $i++) {
-                    $contract = $contracts[$i];
+                for ($j = 0; $j < count($contracts); $j++) {
+                    $contract = $contracts[$j];
                     $fixedBalance = $this->safe_string($contract, 'fixed_balance');
                     $realizedPnl = $this->safe_string($contract, 'realized_pnl');
                     $marginFrozen = $this->safe_string($contract, 'margin_frozen');
@@ -3842,7 +3842,7 @@ class okcoin extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         $feedback = $this->id . ' ' . $body;
         if ($code === 503) {
@@ -3866,5 +3866,6 @@ class okcoin extends Exchange {
         if ($nonZeroErrorCode || $nonEmptyMessage) {
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

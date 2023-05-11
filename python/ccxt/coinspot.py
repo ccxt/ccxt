@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.coinspot import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -13,7 +14,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class coinspot(Exchange):
+class coinspot(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(coinspot, self).describe(), {

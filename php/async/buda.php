@@ -939,9 +939,9 @@ class buda extends Exchange {
             for ($i = 1; $i < count($receiveAddresses); $i++) {
                 $receiveAddress = $receiveAddresses[$i];
                 if ($receiveAddress['ready']) {
-                    $address = $receiveAddress['address'];
-                    $this->check_address($address);
-                    $addressPool[] = $address;
+                    $addressInner = $receiveAddress['address'];
+                    $this->check_address($addressInner);
+                    $addressPool[] = $addressInner;
                 }
             }
             $addressPoolLength = count($addressPool);
@@ -1152,7 +1152,7 @@ class buda extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         if ($code >= 400) {
             $errorCode = $this->safe_string($response, 'code');
@@ -1163,5 +1163,6 @@ class buda extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+        return null;
     }
 }

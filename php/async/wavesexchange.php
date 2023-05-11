@@ -361,7 +361,7 @@ class wavesexchange extends Exchange {
 
     public function set_sandbox_mode($enabled) {
         $this->options['messagePrefix'] = $enabled ? 'T' : 'W';
-        return parent::set_sandbox_mode($enabled);
+        parent::set_sandbox_mode($enabled);
     }
 
     public function get_fees_for_asset(string $symbol, $side, $amount, $price, $params = array ()) {
@@ -756,6 +756,7 @@ class wavesexchange extends Exchange {
                 $this->options['accessToken'] = $this->safe_string($response, 'access_token');
                 return $this->options['accessToken'];
             }
+            return null;
         }) ();
     }
 
@@ -1125,15 +1126,15 @@ class wavesexchange extends Exchange {
                     $request = array(
                         'publicKey' => $this->apiKey,
                     );
-                    $response = Async\await($this->nodeGetAddressesPublicKeyPublicKey (array_merge($request, $request)));
-                    $address = $this->safe_string($response, 'address');
+                    $responseInner = Async\await($this->nodeGetAddressesPublicKeyPublicKey (array_merge($request, $request)));
+                    $addressInner = $this->safe_string($response, 'address');
                     return array(
-                        'address' => $address,
+                        'address' => $addressInner,
                         'code' => $code, // kept here for backward-compatibility, but will be removed soon
                         'currency' => $code,
                         'network' => $network,
                         'tag' => null,
-                        'info' => $response,
+                        'info' => $responseInner,
                     );
                 } else {
                     $request = array(
@@ -1874,10 +1875,10 @@ class wavesexchange extends Exchange {
             }
             $nonStandardAssets = count($assetIds);
             if ($nonStandardAssets) {
-                $request = array(
+                $requestInner = array(
                     'ids' => $assetIds,
                 );
-                $response = Async\await($this->publicGetAssets ($request));
+                $response = Async\await($this->publicGetAssets ($requestInner));
                 $data = $this->safe_value($response, 'data', array());
                 for ($i = 0; $i < count($data); $i++) {
                     $entry = $data[$i];
@@ -2227,8 +2228,8 @@ class wavesexchange extends Exchange {
         $success = $this->safe_value($response, 'success', true);
         $Exception = $this->safe_value($this->exceptions, $errorCode);
         if ($Exception !== null) {
-            $message = $this->safe_string($response, 'message');
-            throw new $Exception($this->id . ' ' . $message);
+            $messageInner = $this->safe_string($response, 'message');
+            throw new $Exception($this->id . ' ' . $messageInner);
         }
         $message = $this->safe_string($response, 'message');
         if ($message === 'Validation Error') {
@@ -2237,6 +2238,7 @@ class wavesexchange extends Exchange {
         if (!$success) {
             throw new ExchangeError($this->id . ' ' . $body);
         }
+        return null;
     }
 
     public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
@@ -2293,8 +2295,8 @@ class wavesexchange extends Exchange {
                     'currency' => $code,
                 );
                 $withdrawAddress = Async\await($this->privateGetWithdrawAddressesCurrencyAddress ($withdrawAddressRequest));
-                $currency = $this->safe_value($withdrawAddress, 'currency');
-                $allowedAmount = $this->safe_value($currency, 'allowed_amount');
+                $currencyInner = $this->safe_value($withdrawAddress, 'currency');
+                $allowedAmount = $this->safe_value($currencyInner, 'allowed_amount');
                 $minimum = $this->safe_number($allowedAmount, 'min');
                 if ($amount <= $minimum) {
                     throw new BadRequest($this->id . ' ' . $code . ' withdraw failed, $amount ' . (string) $amount . ' must be greater than the $minimum allowed $amount of ' . (string) $minimum);

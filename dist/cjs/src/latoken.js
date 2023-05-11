@@ -453,6 +453,7 @@ class latoken extends latoken$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -1561,7 +1562,7 @@ class latoken extends latoken$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return;
+            return undefined;
         }
         //
         // {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
@@ -1582,6 +1583,7 @@ class latoken extends latoken$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }
 

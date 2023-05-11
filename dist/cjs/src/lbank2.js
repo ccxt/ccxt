@@ -306,6 +306,8 @@ class lbank2 extends lbank2$1 {
                 '3s': true,
                 '5s': true,
             };
+            const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityAccuracy')));
+            const contractSize = amountPrecision;
             const ending = baseId.slice(-2);
             const isLeveragedProduct = this.safeValue(productTypes, ending, false);
             if (isLeveragedProduct) {
@@ -334,13 +336,13 @@ class lbank2 extends lbank2$1 {
                 'contract': isLeveragedProduct,
                 'linear': linear,
                 'inverse': undefined,
-                'contractSize': undefined,
+                'contractSize': isLeveragedProduct ? contractSize : undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityAccuracy'))),
+                    'amount': amountPrecision,
                     'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'priceAccuracy'))),
                 },
                 'limits': {
@@ -821,11 +823,11 @@ class lbank2 extends lbank2$1 {
             for (let i = 0; i < balances.length; i++) {
                 const item = balances[i];
                 const currencyId = this.safeString(item, 'asset');
-                const code = this.safeCurrencyCode(currencyId);
+                const codeInner = this.safeCurrencyCode(currencyId);
                 const account = this.account();
                 account['free'] = this.safeString(item, 'free');
                 account['used'] = this.safeString(item, 'locked');
-                result[code] = account;
+                result[codeInner] = account;
             }
             return this.safeBalance(result);
         }
@@ -835,14 +837,15 @@ class lbank2 extends lbank2$1 {
             for (let i = 0; i < data.length; i++) {
                 const item = data[i];
                 const currencyId = this.safeString(item, 'coin');
-                const code = this.safeCurrencyCode(currencyId);
+                const codeInner = this.safeCurrencyCode(currencyId);
                 const account = this.account();
                 account['free'] = this.safeString(item, 'usableAmt');
                 account['used'] = this.safeString(item, 'freezeAmt');
-                result[code] = account;
+                result[codeInner] = account;
             }
             return this.safeBalance(result);
         }
+        return undefined;
     }
     async fetchBalance(params = {}) {
         /**
@@ -2026,17 +2029,17 @@ class lbank2 extends lbank2$1 {
             const canWithdraw = this.safeValue(item, 'canWithDraw');
             if (canWithdraw === 'true') {
                 const currencyId = this.safeString(item, 'assetCode');
-                const code = this.safeCurrencyCode(currencyId);
+                const codeInner = this.safeCurrencyCode(currencyId);
                 const chain = this.safeString(item, 'chain');
                 let network = this.safeString(this.options['inverse-networks'], chain, chain);
                 if (network === undefined) {
-                    network = code;
+                    network = codeInner;
                 }
                 const fee = this.safeString(item, 'fee');
-                if (withdrawFees[code] === undefined) {
-                    withdrawFees[code] = {};
+                if (withdrawFees[codeInner] === undefined) {
+                    withdrawFees[codeInner] = {};
                 }
-                withdrawFees[code][network] = this.parseNumber(fee);
+                withdrawFees[codeInner][network] = this.parseNumber(fee);
             }
         }
         return {
@@ -2331,7 +2334,7 @@ class lbank2 extends lbank2$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const success = this.safeString(response, 'result');
         if (success === 'false') {
@@ -2443,6 +2446,7 @@ class lbank2 extends lbank2$1 {
             }, errorCode, errors.ExchangeError);
             throw new ErrorClass(message);
         }
+        return undefined;
     }
 }
 

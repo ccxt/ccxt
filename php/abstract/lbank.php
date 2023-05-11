@@ -8,93 +8,93 @@ namespace ccxt\abstract;
 
 abstract class lbank extends \ccxt\Exchange {
     public function public_get_currencypairs($params = array()) {
-        return $this->request('currencyPairs', 'public', 'GET', $params);
+        return $this->request('currencyPairs', 'public', 'GET', $params, null, null, array());
     }
     public function public_get_ticker($params = array()) {
-        return $this->request('ticker', 'public', 'GET', $params);
+        return $this->request('ticker', 'public', 'GET', $params, null, null, array());
     }
     public function public_get_depth($params = array()) {
-        return $this->request('depth', 'public', 'GET', $params);
+        return $this->request('depth', 'public', 'GET', $params, null, null, array());
     }
     public function public_get_trades($params = array()) {
-        return $this->request('trades', 'public', 'GET', $params);
+        return $this->request('trades', 'public', 'GET', $params, null, null, array());
     }
     public function public_get_kline($params = array()) {
-        return $this->request('kline', 'public', 'GET', $params);
+        return $this->request('kline', 'public', 'GET', $params, null, null, array());
     }
     public function public_get_accuracy($params = array()) {
-        return $this->request('accuracy', 'public', 'GET', $params);
+        return $this->request('accuracy', 'public', 'GET', $params, null, null, array());
     }
     public function private_post_user_info($params = array()) {
-        return $this->request('user_info', 'private', 'POST', $params);
+        return $this->request('user_info', 'private', 'POST', $params, null, null, array());
     }
     public function private_post_create_order($params = array()) {
-        return $this->request('create_order', 'private', 'POST', $params);
+        return $this->request('create_order', 'private', 'POST', $params, null, null, array());
     }
     public function private_post_cancel_order($params = array()) {
-        return $this->request('cancel_order', 'private', 'POST', $params);
+        return $this->request('cancel_order', 'private', 'POST', $params, null, null, array());
     }
     public function private_post_orders_info($params = array()) {
-        return $this->request('orders_info', 'private', 'POST', $params);
+        return $this->request('orders_info', 'private', 'POST', $params, null, null, array());
     }
     public function private_post_orders_info_history($params = array()) {
-        return $this->request('orders_info_history', 'private', 'POST', $params);
+        return $this->request('orders_info_history', 'private', 'POST', $params, null, null, array());
     }
     public function private_post_withdraw($params = array()) {
-        return $this->request('withdraw', 'private', 'POST', $params);
+        return $this->request('withdraw', 'private', 'POST', $params, null, null, array());
     }
     public function private_post_withdrawcancel($params = array()) {
-        return $this->request('withdrawCancel', 'private', 'POST', $params);
+        return $this->request('withdrawCancel', 'private', 'POST', $params, null, null, array());
     }
     public function private_post_withdraws($params = array()) {
-        return $this->request('withdraws', 'private', 'POST', $params);
+        return $this->request('withdraws', 'private', 'POST', $params, null, null, array());
     }
     public function private_post_withdrawconfigs($params = array()) {
-        return $this->request('withdrawConfigs', 'private', 'POST', $params);
+        return $this->request('withdrawConfigs', 'private', 'POST', $params, null, null, array());
     }
     public function publicGetCurrencyPairs($params = array()) {
-        return $this->request('currencyPairs', 'public', 'GET', $params);
+        return $this->request('currencyPairs', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetTicker($params = array()) {
-        return $this->request('ticker', 'public', 'GET', $params);
+        return $this->request('ticker', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetDepth($params = array()) {
-        return $this->request('depth', 'public', 'GET', $params);
+        return $this->request('depth', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetTrades($params = array()) {
-        return $this->request('trades', 'public', 'GET', $params);
+        return $this->request('trades', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetKline($params = array()) {
-        return $this->request('kline', 'public', 'GET', $params);
+        return $this->request('kline', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetAccuracy($params = array()) {
-        return $this->request('accuracy', 'public', 'GET', $params);
+        return $this->request('accuracy', 'public', 'GET', $params, null, null, array());
     }
     public function privatePostUserInfo($params = array()) {
-        return $this->request('user_info', 'private', 'POST', $params);
+        return $this->request('user_info', 'private', 'POST', $params, null, null, array());
     }
     public function privatePostCreateOrder($params = array()) {
-        return $this->request('create_order', 'private', 'POST', $params);
+        return $this->request('create_order', 'private', 'POST', $params, null, null, array());
     }
     public function privatePostCancelOrder($params = array()) {
-        return $this->request('cancel_order', 'private', 'POST', $params);
+        return $this->request('cancel_order', 'private', 'POST', $params, null, null, array());
     }
     public function privatePostOrdersInfo($params = array()) {
-        return $this->request('orders_info', 'private', 'POST', $params);
+        return $this->request('orders_info', 'private', 'POST', $params, null, null, array());
     }
     public function privatePostOrdersInfoHistory($params = array()) {
-        return $this->request('orders_info_history', 'private', 'POST', $params);
+        return $this->request('orders_info_history', 'private', 'POST', $params, null, null, array());
     }
     public function privatePostWithdraw($params = array()) {
-        return $this->request('withdraw', 'private', 'POST', $params);
+        return $this->request('withdraw', 'private', 'POST', $params, null, null, array());
     }
     public function privatePostWithdrawCancel($params = array()) {
-        return $this->request('withdrawCancel', 'private', 'POST', $params);
+        return $this->request('withdrawCancel', 'private', 'POST', $params, null, null, array());
     }
     public function privatePostWithdraws($params = array()) {
-        return $this->request('withdraws', 'private', 'POST', $params);
+        return $this->request('withdraws', 'private', 'POST', $params, null, null, array());
     }
     public function privatePostWithdrawConfigs($params = array()) {
-        return $this->request('withdrawConfigs', 'private', 'POST', $params);
+        return $this->request('withdrawConfigs', 'private', 'POST', $params, null, null, array());
     }
 }

@@ -51,7 +51,6 @@ var btcex = require('./src/btcex.js');
 var btcmarkets = require('./src/btcmarkets.js');
 var btctradeua = require('./src/btctradeua.js');
 var btcturk = require('./src/btcturk.js');
-var buda = require('./src/buda.js');
 var bybit = require('./src/bybit.js');
 var cex = require('./src/cex.js');
 var coinbase = require('./src/coinbase.js');
@@ -70,7 +69,6 @@ var delta = require('./src/delta.js');
 var deribit = require('./src/deribit.js');
 var digifinex = require('./src/digifinex.js');
 var exmo = require('./src/exmo.js');
-var flowbtc = require('./src/flowbtc.js');
 var fmfwio = require('./src/fmfwio.js');
 var gate = require('./src/gate.js');
 var gateio = require('./src/gateio.js');
@@ -84,7 +82,6 @@ var huobipro = require('./src/huobipro.js');
 var idex = require('./src/idex.js');
 var independentreserve = require('./src/independentreserve.js');
 var indodax = require('./src/indodax.js');
-var itbit = require('./src/itbit.js');
 var kraken = require('./src/kraken.js');
 var krakenfutures = require('./src/krakenfutures.js');
 var kucoin = require('./src/kucoin.js');
@@ -110,7 +107,6 @@ var phemex = require('./src/phemex.js');
 var poloniex = require('./src/poloniex.js');
 var poloniexfutures = require('./src/poloniexfutures.js');
 var probit = require('./src/probit.js');
-var ripio = require('./src/ripio.js');
 var stex = require('./src/stex.js');
 var tidex = require('./src/tidex.js');
 var timex = require('./src/timex.js');
@@ -123,7 +119,6 @@ var woo = require('./src/woo.js');
 var xt = require('./src/xt.js');
 var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
-var zb = require('./src/zb.js');
 var zonda = require('./src/zonda.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
 var ascendex$1 = require('./src/pro/ascendex.js');
@@ -143,6 +138,7 @@ var bitrue$1 = require('./src/pro/bitrue.js');
 var bitstamp$1 = require('./src/pro/bitstamp.js');
 var bittrex$1 = require('./src/pro/bittrex.js');
 var bitvavo$1 = require('./src/pro/bitvavo.js');
+var blockchaincom$1 = require('./src/pro/blockchaincom.js');
 var btcex$1 = require('./src/pro/btcex.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
@@ -164,6 +160,7 @@ var huobipro$1 = require('./src/pro/huobipro.js');
 var idex$1 = require('./src/pro/idex.js');
 var independentreserve$1 = require('./src/pro/independentreserve.js');
 var kraken$1 = require('./src/pro/kraken.js');
+var krakenfutures$1 = require('./src/pro/krakenfutures.js');
 var kucoin$1 = require('./src/pro/kucoin.js');
 var kucoinfutures$1 = require('./src/pro/kucoinfutures.js');
 var luno$1 = require('./src/pro/luno.js');
@@ -175,16 +172,14 @@ var okex$1 = require('./src/pro/okex.js');
 var okx$1 = require('./src/pro/okx.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var probit$1 = require('./src/pro/probit.js');
-var ripio$1 = require('./src/pro/ripio.js');
 var upbit$1 = require('./src/pro/upbit.js');
 var wazirx$1 = require('./src/pro/wazirx.js');
 var whitebit$1 = require('./src/pro/whitebit.js');
 var woo$1 = require('./src/pro/woo.js');
-var zb$1 = require('./src/pro/zb.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '3.0.72';
+const version = '3.0.100';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -226,7 +221,6 @@ const exchanges = {
     'btcmarkets': btcmarkets,
     'btctradeua': btctradeua,
     'btcturk': btcturk,
-    'buda': buda,
     'bybit': bybit,
     'cex': cex,
     'coinbase': coinbase,
@@ -245,7 +239,6 @@ const exchanges = {
     'deribit': deribit,
     'digifinex': digifinex,
     'exmo': exmo,
-    'flowbtc': flowbtc,
     'fmfwio': fmfwio,
     'gate': gate,
     'gateio': gateio,
@@ -259,7 +252,6 @@ const exchanges = {
     'idex': idex,
     'independentreserve': independentreserve,
     'indodax': indodax,
-    'itbit': itbit,
     'kraken': kraken,
     'krakenfutures': krakenfutures,
     'kucoin': kucoin,
@@ -285,7 +277,6 @@ const exchanges = {
     'poloniex': poloniex,
     'poloniexfutures': poloniexfutures,
     'probit': probit,
-    'ripio': ripio,
     'stex': stex,
     'tidex': tidex,
     'timex': timex,
@@ -298,7 +289,6 @@ const exchanges = {
     'xt': xt,
     'yobit': yobit,
     'zaif': zaif,
-    'zb': zb,
     'zonda': zonda,
 };
 const pro = {
@@ -320,6 +310,7 @@ const pro = {
     'bitstamp': bitstamp$1,
     'bittrex': bittrex$1,
     'bitvavo': bitvavo$1,
+    'blockchaincom': blockchaincom$1,
     'btcex': btcex$1,
     'bybit': bybit$1,
     'cex': cex$1,
@@ -341,6 +332,7 @@ const pro = {
     'idex': idex$1,
     'independentreserve': independentreserve$1,
     'kraken': kraken$1,
+    'krakenfutures': krakenfutures$1,
     'kucoin': kucoin$1,
     'kucoinfutures': kucoinfutures$1,
     'luno': luno$1,
@@ -352,12 +344,10 @@ const pro = {
     'okx': okx$1,
     'phemex': phemex$1,
     'probit': probit$1,
-    'ripio': ripio$1,
     'upbit': upbit$1,
     'wazirx': wazirx$1,
     'whitebit': whitebit$1,
     'woo': woo$1,
-    'zb': zb$1,
 };
 pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange["default"]; // now the same for rest and ts
@@ -438,7 +428,6 @@ exports.btcex = btcex;
 exports.btcmarkets = btcmarkets;
 exports.btctradeua = btctradeua;
 exports.btcturk = btcturk;
-exports.buda = buda;
 exports.bybit = bybit;
 exports.cex = cex;
 exports.coinbase = coinbase;
@@ -457,7 +446,6 @@ exports.delta = delta;
 exports.deribit = deribit;
 exports.digifinex = digifinex;
 exports.exmo = exmo;
-exports.flowbtc = flowbtc;
 exports.fmfwio = fmfwio;
 exports.gate = gate;
 exports.gateio = gateio;
@@ -471,7 +459,6 @@ exports.huobipro = huobipro;
 exports.idex = idex;
 exports.independentreserve = independentreserve;
 exports.indodax = indodax;
-exports.itbit = itbit;
 exports.kraken = kraken;
 exports.krakenfutures = krakenfutures;
 exports.kucoin = kucoin;
@@ -497,7 +484,6 @@ exports.phemex = phemex;
 exports.poloniex = poloniex;
 exports.poloniexfutures = poloniexfutures;
 exports.probit = probit;
-exports.ripio = ripio;
 exports.stex = stex;
 exports.tidex = tidex;
 exports.timex = timex;
@@ -510,7 +496,6 @@ exports.woo = woo;
 exports.xt = xt;
 exports.yobit = yobit;
 exports.zaif = zaif;
-exports.zb = zb;
 exports.zonda = zonda;
 exports["default"] = ccxt;
 exports.exchanges = exchanges;

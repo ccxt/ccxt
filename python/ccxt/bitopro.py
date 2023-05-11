@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitopro import ImplicitAPI
 import hashlib
 import math
 from ccxt.base.types import OrderSide
@@ -19,7 +20,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bitopro(Exchange):
+class bitopro(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitopro, self).describe(), {
@@ -1531,9 +1532,9 @@ class bitopro(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to the default error handler
+            return None  # fallback to the default error handler
         if code >= 200 and code < 300:
-            return
+            return None
         feedback = self.id + ' ' + body
         error = self.safe_string(response, 'error')
         self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)

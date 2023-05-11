@@ -72,7 +72,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         trades = await self.subscribe('trades', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     async def watch_ticker(self, symbol: str, params={}):
         """
@@ -444,7 +444,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         orders = await self.watch(url, 'os', None, 1)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_orders(self, client: Client, message, subscription):
         #

@@ -101,6 +101,7 @@ interface okx {
     privateGetTradeOrdersAlgoHistory (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrderAlgo (params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubaccountBalances (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountSubaccountInterestLimits (params?: {}): Promise<implicitReturnType>;
     privateGetAssetSubaccountBills (params?: {}): Promise<implicitReturnType>;
     privateGetUsersSubaccountList (params?: {}): Promise<implicitReturnType>;
     privateGetUsersSubaccountApikey (params?: {}): Promise<implicitReturnType>;
@@ -153,6 +154,7 @@ interface okx {
     privatePostAccountQuickMarginBorrowRepay (params?: {}): Promise<implicitReturnType>;
     privatePostAccountActivateOption (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSetAutoLoan (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountSubaccountSetLoanAllocation (params?: {}): Promise<implicitReturnType>;
     privatePostAssetTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostAssetWithdrawal (params?: {}): Promise<implicitReturnType>;
     privatePostAssetWithdrawalLightning (params?: {}): Promise<implicitReturnType>;
@@ -164,6 +166,7 @@ interface okx {
     privatePostTradeCancelBatchOrders (params?: {}): Promise<implicitReturnType>;
     privatePostTradeAmendOrder (params?: {}): Promise<implicitReturnType>;
     privatePostTradeAmendBatchOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeAmendAlgos (params?: {}): Promise<implicitReturnType>;
     privatePostTradeClosePosition (params?: {}): Promise<implicitReturnType>;
     privatePostTradeOrderAlgo (params?: {}): Promise<implicitReturnType>;
     privatePostTradeCancelAlgos (params?: {}): Promise<implicitReturnType>;

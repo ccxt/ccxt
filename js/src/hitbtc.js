@@ -499,6 +499,7 @@ export default class hitbtc extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -1352,7 +1353,7 @@ export default class hitbtc extends Exchange {
         this.checkAddress(address);
         const tag = this.safeString(response, 'paymentId');
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': tag,
             'info': response,
@@ -1489,7 +1490,7 @@ export default class hitbtc extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (code >= 400) {
             const feedback = this.id + ' ' + body;
@@ -1500,7 +1501,7 @@ export default class hitbtc extends Exchange {
             // fallback to default error handler on rate limit errors
             // {"code":429,"message":"Too many requests","description":"Too many requests"}
             if (code === 429) {
-                return;
+                return undefined;
             }
             // {"error":{"code":20002,"message":"Order not found","description":""}}
             if (body[0] === '{') {
@@ -1515,5 +1516,6 @@ export default class hitbtc extends Exchange {
             }
             throw new ExchangeError(feedback);
         }
+        return undefined;
     }
 }

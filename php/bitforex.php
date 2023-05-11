@@ -696,18 +696,19 @@ class bitforex extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (gettype($body) !== 'string') {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         if (($body[0] === '{') || ($body[0] === '[')) {
             $feedback = $this->id . ' ' . $body;
             $success = $this->safe_value($response, 'success');
             if ($success !== null) {
                 if (!$success) {
-                    $code = $this->safe_string($response, 'code');
-                    $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
+                    $codeInner = $this->safe_string($response, 'code');
+                    $this->throw_exactly_matched_exception($this->exceptions, $codeInner, $feedback);
                     throw new ExchangeError($feedback);
                 }
             }
         }
+        return null;
     }
 }
