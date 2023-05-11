@@ -2299,6 +2299,12 @@ export default class okx extends Exchange {
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the okx api endpoint
          * @param {bool} params.stop True if is algo order
+         * @param {float} params.takeProfitPrice price to trigger take-profit orders
+         * @param {string} params.tpOrdPx Take-profit order price. If the price is -1, take-profit will be executed at the market price.
+         * @param {string} params.tpTriggerPxType Take-profit trigger price type [last, index, mark]
+         * @param {float} params.stopLossPrice price to trigger stop-loss orders
+         * @param {string} params.slOrdPx Stop-loss order price. If the price is -1, take-profit will be executed at the market price.
+         * @param {string} params.slTriggerPxType Stop-loss trigger price type [last, index, mark]
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -2311,10 +2317,10 @@ export default class okx extends Exchange {
         };
         const isStop = this.safeValue (params, 'stop');
         const tpTriggerPx = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
-        const tpOrdPx = this.safeValue (params, 'tpOrdPx', price);
+        const tpOrdPx = this.safeValue2 (params, 'tpOrdPx', 'tpOrderPx', price);
         const tpTriggerPxType = this.safeString (params, 'tpTriggerPxType');
         const slTriggerPx = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
-        const slOrdPx = this.safeValue (params, 'slOrdPx', price);
+        const slOrdPx = this.safeValue2 (params, 'slOrdPx', 'slOrderPx', price);
         const slTriggerPxType = this.safeString (params, 'slTriggerPxType');
         const conditional = (tpTriggerPx !== undefined) || (slTriggerPx !== undefined) || (type === 'conditional');
         const clientOrderId = this.safeStringN (params, [ 'clOrdId', 'clientOrderId', 'algoClOrdId' ]);
@@ -2364,7 +2370,7 @@ export default class okx extends Exchange {
         if (amount !== undefined) {
             request['newSz'] = this.amountToPrecision (symbol, amount);
         }
-        const response = await (this as any)[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //        "code": "0",
