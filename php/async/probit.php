@@ -437,7 +437,7 @@ class probit extends Exchange {
                     if ($currentActive) {
                         $platform = $network;
                     }
-                    $precision = $this->safe_string($network, 'precision');
+                    $precision = $this->parse_precision($this->safe_string($network, 'precision'));
                     $withdrawFee = $this->safe_value($network, 'withdrawal_fee', array());
                     $fee = $this->safe_value($withdrawFee, 0, array());
                     $networkList[$networkCode] = array(
