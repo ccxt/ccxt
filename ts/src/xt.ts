@@ -109,7 +109,7 @@ export default class xt extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'signIn': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'precisionMode': DECIMAL_PLACES,
