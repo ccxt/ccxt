@@ -214,6 +214,8 @@ export default class xt extends Exchange {
                         'post': {
                             'order': 0.2,
                             'withdraw': 1,
+                            'balance/transfer': 1,
+                            'balance/account/transfer': 1,
                         },
                         'delete': {
                             'batch-order': 1,
