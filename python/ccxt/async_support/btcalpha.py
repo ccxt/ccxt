@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.btcalpha import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -17,7 +18,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class btcalpha(Exchange):
+class btcalpha(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(btcalpha, self).describe(), {
@@ -387,7 +388,7 @@ class btcalpha(Exchange):
         marketId = self.safe_string(trade, 'pair')
         market = self.safe_market(marketId, market, '_')
         timestampRaw = self.safe_string(trade, 'timestamp')
-        timestamp = self.parse_number(Precise.string_mul(timestampRaw, '1000000'))
+        timestamp = self.parse_to_int(Precise.string_mul(timestampRaw, '1000000'))
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
         id = self.safe_string(trade, 'id')
@@ -841,7 +842,7 @@ class btcalpha(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
         #
@@ -855,5 +856,5 @@ class btcalpha(Exchange):
         elif code == 429:
             raise DDoSProtection(feedback)
         if code < 400:
-            return
+            return None
         raise ExchangeError(feedback)

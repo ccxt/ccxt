@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.gate import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -28,7 +29,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class gate(Exchange):
+class gate(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(gate, self).describe(), {
@@ -99,6 +100,7 @@ class gate(Exchange):
                 'createMarketOrder': True,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
+                'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': False,
                 'createStopOrder': True,
@@ -108,6 +110,7 @@ class gate(Exchange):
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -148,6 +151,7 @@ class gate(Exchange):
                 'repayMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
+                'signIn': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -1095,8 +1099,8 @@ class gate(Exchange):
             #        }
             #    ]
             #
-            for i in range(0, len(response)):
-                market = response[i]
+            for j in range(0, len(response)):
+                market = response[j]
                 id = self.safe_string(market, 'name')
                 parts = underlying.split('_')
                 baseId = self.safe_string(parts, 0)
@@ -1335,6 +1339,7 @@ class gate(Exchange):
                 'fee': None,
                 'fees': [],
                 'limits': self.limits,
+                'networks': {},
             }
         return result
 
@@ -1753,8 +1758,8 @@ class gate(Exchange):
                 withdrawFees = self.safe_number(entry, 'withdraw_fix')
             else:
                 chainKeys = list(withdrawFixOnChains.keys())
-                for i in range(0, len(chainKeys)):
-                    chainKey = chainKeys[i]
+                for j in range(0, len(chainKeys)):
+                    chainKey = chainKeys[j]
                     withdrawFees[chainKey] = self.parse_number(withdrawFixOnChains[chainKey])
             result[code] = {
                 'withdraw': withdrawFees,
@@ -2323,7 +2328,7 @@ class gate(Exchange):
             entry = data[i]
             if isolated:
                 marketId = self.safe_string(entry, 'currency_pair')
-                symbol = self.safe_symbol(marketId, None, '_', 'margin')
+                symbolInner = self.safe_symbol(marketId, None, '_', 'margin')
                 base = self.safe_value(entry, 'base', {})
                 quote = self.safe_value(entry, 'quote', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
@@ -2331,7 +2336,7 @@ class gate(Exchange):
                 subResult = {}
                 subResult[baseCode] = self.parse_balance_helper(base)
                 subResult[quoteCode] = self.parse_balance_helper(quote)
-                result[symbol] = self.safe_balance(subResult)
+                result[symbolInner] = self.safe_balance(subResult)
             else:
                 code = self.safe_currency_code(self.safe_string(entry, 'currency'))
                 result[code] = self.parse_balance_helper(entry)
@@ -3809,8 +3814,8 @@ class gate(Exchange):
         if openSpotOrders:
             result = []
             for i in range(0, len(response)):
-                orders = self.safe_value(response[i], 'orders')
-                result = self.array_concat(result, orders)
+                ordersInner = self.safe_value(response[i], 'orders')
+                result = self.array_concat(result, ordersInner)
         orders = self.parse_orders(result, market, since, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
@@ -4880,7 +4885,7 @@ class gate(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         #    {"label": "ORDER_NOT_FOUND", "message": "Order not found"}
         #    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: status"}
@@ -4893,3 +4898,4 @@ class gate(Exchange):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], label, feedback)
             raise ExchangeError(feedback)
+        return None

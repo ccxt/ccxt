@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.bitforex import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -19,7 +20,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class bitforex(Exchange):
+class bitforex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitforex, self).describe(), {
@@ -674,12 +675,13 @@ class bitforex(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not isinstance(body, str):
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
             feedback = self.id + ' ' + body
             success = self.safe_value(response, 'success')
             if success is not None:
                 if not success:
-                    code = self.safe_string(response, 'code')
-                    self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                    codeInner = self.safe_string(response, 'code')
+                    self.throw_exactly_matched_exception(self.exceptions, codeInner, feedback)
                     raise ExchangeError(feedback)
+        return None

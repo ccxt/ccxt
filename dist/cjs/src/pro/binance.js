@@ -284,8 +284,10 @@ class binance extends binance$1 {
         //         ]
         //     }
         //
-        const index = client.url.indexOf('/stream');
-        const marketType = (index >= 0) ? 'spot' : 'contract';
+        const isTestnetSpot = client.url.indexOf('testnet') > 0;
+        const isSpotMainNet = client.url.indexOf('/stream.binance.') > 0;
+        const isSpot = isTestnetSpot || isSpotMainNet;
+        const marketType = isSpot ? 'spot' : 'contract';
         const marketId = this.safeString(message, 's');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
@@ -429,7 +431,7 @@ class binance extends binance$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(market['symbol'], limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     parseTrade(trade, market = undefined) {
         //
@@ -659,7 +661,7 @@ class binance extends binance$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0);
     }
     handleOHLCV(client, message) {
         //
@@ -1313,7 +1315,7 @@ class binance extends binance$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     parseWsOrder(order, market = undefined) {
         //
@@ -1449,6 +1451,7 @@ class binance extends binance$1 {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': undefined,
+            'reduceOnly': this.safeValue(order, 'R'),
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1589,7 +1592,7 @@ class binance extends binance$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
     }
     handleMyTrade(client, message) {
         const messageHash = 'myTrades';

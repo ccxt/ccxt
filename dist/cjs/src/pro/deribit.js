@@ -240,7 +240,10 @@ class deribit extends deribit$1 {
         };
         const request = this.deepExtend(message, params);
         const trades = await this.watch(url, channel, request, channel, request);
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        if (this.newUpdates) {
+            limit = trades.getLimit(symbol, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     handleTrades(client, message) {
         //
@@ -317,7 +320,7 @@ class deribit extends deribit$1 {
         };
         const request = this.deepExtend(message, params);
         const trades = await this.watch(url, channel, request, channel, request);
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
     }
     handleMyTrades(client, message) {
         //
@@ -534,7 +537,7 @@ class deribit extends deribit$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleOrders(client, message) {
         // Does not return a snapshot of current orders
@@ -626,7 +629,7 @@ class deribit extends deribit$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(market['symbol'], limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0);
     }
     handleOHLCV(client, message) {
         //

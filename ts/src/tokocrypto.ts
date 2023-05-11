@@ -596,6 +596,7 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#fetchTime
+         * @see https://www.tokocrypto.com/apidocs/#check-server-time
          * @description fetches the current integer timestamp in milliseconds from the exchange server
          * @param {object} params extra parameters specific to the tokocrypto api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
@@ -611,6 +612,7 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#fetchMarkets
+         * @see https://www.tokocrypto.com/apidocs/#get-all-supported-trading-symbol
          * @description retrieves data on all markets for tokocrypto
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
@@ -776,6 +778,7 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#fetchOrderBook
+         * @see https://www.tokocrypto.com/apidocs/#order-book
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
@@ -965,6 +968,8 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#fetchTrades
+         * @see https://www.tokocrypto.com/apidocs/#recent-trades-list
+         * @see https://www.tokocrypto.com/apidocs/#compressedaggregate-trades-list
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
@@ -1123,6 +1128,7 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#fetchTickers
+         * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the tokocrypto api endpoint
@@ -1139,6 +1145,7 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#fetchTicker
+         * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the tokocrypto api endpoint
@@ -1161,6 +1168,7 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#fetchBidsAsks
+         * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker
          * @description fetches the bid and ask price and volume for multiple markets
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} params extra parameters specific to the tokocrypto api endpoint
@@ -1220,6 +1228,7 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#fetchOHLCV
+         * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -1271,6 +1280,7 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#fetchBalance
+         * @see https://www.tokocrypto.com/apidocs/#account-information-signed
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} params extra parameters specific to the tokocrypto api endpoint
          * @param {string|undefined} params.type 'future', 'delivery', 'savings', 'funding', or 'spot'
@@ -1517,6 +1527,7 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#createOrder
+         * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1601,10 +1612,10 @@ export default class tokocrypto extends Exchange {
         if (uppercaseType === 'MARKET') {
             const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', true);
             if (quoteOrderQty) {
-                const quoteOrderQty = this.safeValue2 (params, 'quoteOrderQty', 'cost');
+                const quoteOrderQtyInner = this.safeValue2 (params, 'quoteOrderQty', 'cost');
                 const precision = market['precision']['price'];
-                if (quoteOrderQty !== undefined) {
-                    request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
+                if (quoteOrderQtyInner !== undefined) {
+                    request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyInner, TRUNCATE, precision, this.precisionMode);
                     params = this.omit (params, [ 'quoteOrderQty', 'cost' ]);
                 } else if (price !== undefined) {
                     request['quoteOrderQty'] = this.decimalToPrecision (amount * price, TRUNCATE, precision, this.precisionMode);
@@ -1684,6 +1695,7 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#fetchOrder
+         * @see https://www.tokocrypto.com/apidocs/#all-orders-signed
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the tokocrypto api endpoint
@@ -1733,6 +1745,7 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#fetchOrders
+         * @see https://www.tokocrypto.com/apidocs/#all-orders-signed
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
@@ -1804,6 +1817,7 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#fetchOpenOrders
+         * @see https://www.tokocrypto.com/apidocs/#all-orders-signed
          * @description fetch all unfilled currently open orders
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
@@ -1819,6 +1833,7 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#fetchClosedOrders
+         * @see https://www.tokocrypto.com/apidocs/#all-orders-signed
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
@@ -1834,6 +1849,7 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#cancelOrder
+         * @see https://www.tokocrypto.com/apidocs/#cancel-order-signed
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
@@ -1879,6 +1895,7 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#fetchMyTrades
+         * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
@@ -1940,6 +1957,7 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#fetchDepositAddress
+         * @see https://www.tokocrypto.com/apidocs/#deposit-address-signed
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the tokocrypto api endpoint
@@ -1996,6 +2014,7 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#fetchDeposits
+         * @see https://www.tokocrypto.com/apidocs/#deposit-history-signed
          * @description fetch all deposits made to an account
          * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
@@ -2057,6 +2076,7 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#fetchWithdrawals
+         * @see https://www.tokocrypto.com/apidocs/#withdraw-signed
          * @description fetch all withdrawals made from an account
          * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
@@ -2250,6 +2270,7 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name bybit#withdraw
+         * @see https://www.tokocrypto.com/apidocs/#withdraw-signed
          * @description make a withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
@@ -2374,17 +2395,17 @@ export default class tokocrypto extends Exchange {
             }
         }
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeValue (response, 'success', true);
         if (!success) {
-            const message = this.safeString (response, 'msg');
+            const messageInner = this.safeString (response, 'msg');
             let parsedMessage = undefined;
-            if (message !== undefined) {
+            if (messageInner !== undefined) {
                 try {
-                    parsedMessage = JSON.parse (message);
+                    parsedMessage = JSON.parse (messageInner);
                 } catch (e) {
                     // do nothing
                     parsedMessage = undefined;
@@ -2428,9 +2449,10 @@ export default class tokocrypto extends Exchange {
         if (!success) {
             throw new ExchangeError (this.id + ' ' + body);
         }
+        return undefined;
     }
 
-    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost (api, method, path, params, config = {}) {
         if (('noCoin' in config) && !('coin' in params)) {
             return config['noCoin'];
         } else if (('noSymbol' in config) && !('symbol' in params)) {

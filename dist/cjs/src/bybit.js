@@ -235,6 +235,9 @@ class bybit extends bybit$1 {
                         'v5/spot-lever-token/info': 1,
                         'v5/spot-lever-token/reference': 1,
                         'v5/announcements/index': 1,
+                        'v5/spot-cross-margin-trade/pledge-token': 1,
+                        'v5/spot-cross-margin-trade/borrow-token': 1,
+                        'v5/ins-loan/ensure-tokens-convert': 1,
                     },
                 },
                 'private': {
@@ -389,6 +392,11 @@ class bybit extends bybit$1 {
                         // user
                         'v5/user/query-sub-members': 10,
                         'v5/user/query-api': 10,
+                        'v5/spot-cross-margin-trade/loan-info': 1,
+                        'v5/spot-cross-margin-trade/account': 1,
+                        'v5/spot-cross-margin-trade/orders': 1,
+                        'v5/spot-cross-margin-trade/repay-history': 1,
+                        'v5/ins-loan/ltv-convert': 1,
                     },
                     'post': {
                         // inverse swap
@@ -575,6 +583,9 @@ class bybit extends bybit$1 {
                         'v5/user/update-sub-api': 10,
                         'v5/user/delete-api': 10,
                         'v5/user/delete-sub-api': 10,
+                        'v5/spot-cross-margin-trade/loan': 2.5,
+                        'v5/spot-cross-margin-trade/repay': 2.5,
+                        'v5/spot-cross-margin-trade/switch': 2.5, // 20/s => cost = 50 / 20 = 2.5
                     },
                     'delete': {
                         // spot
@@ -1452,15 +1463,15 @@ class bybit extends bybit$1 {
         if (paginationCursor !== undefined) {
             while (paginationCursor !== undefined) {
                 params['cursor'] = paginationCursor;
-                const response = await this.publicGetDerivativesV3PublicInstrumentsInfo(params);
-                const data = this.safeValue(response, 'result', {});
-                const rawMarkets = this.safeValue(data, 'list', []);
+                const responseInner = await this.publicGetDerivativesV3PublicInstrumentsInfo(params);
+                const dataNew = this.safeValue(responseInner, 'result', {});
+                const rawMarkets = this.safeValue(dataNew, 'list', []);
                 const rawMarketsLength = rawMarkets.length;
                 if (rawMarketsLength === 0) {
                     break;
                 }
                 markets = this.arrayConcat(rawMarkets, markets);
-                paginationCursor = this.safeString(data, 'nextPageCursor');
+                paginationCursor = this.safeString(dataNew, 'nextPageCursor');
             }
         }
         //
@@ -3190,6 +3201,27 @@ class bybit extends bybit$1 {
         //         "positionIdx": 2
         //     }
         //
+        //     {
+        //         "orderId":"0b3499a4-9691-40ec-b2b9-7d94ee0165ff",
+        //         "orderLinkId":"",
+        //         "mmp":false,
+        //         "symbol":"SOLPERP",
+        //         "orderType":"Market",
+        //         "side":"Buy",
+        //         "orderQty":"0.10000000",
+        //         "orderPrice":"23.030",
+        //         "iv":"0",
+        //         "timeInForce":"ImmediateOrCancel",
+        //         "orderStatus":"Created",
+        //         "createdAt":"1683380752146568",
+        //         "basePrice":"0.000",
+        //         "triggerPrice":"0.000",
+        //         "takeProfit":"0.000",
+        //         "stopLoss":"0.000",
+        //         "slTriggerBy":"UNKNOWN",
+        //         "tpTriggerBy":"UNKNOWN"
+        //     }
+        //
         const marketId = this.safeString(order, 'symbol');
         let marketType = 'contract';
         if (market !== undefined) {
@@ -3203,11 +3235,17 @@ class bybit extends bybit$1 {
         }
         market = this.safeMarket(marketId, market, undefined, marketType);
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger(order, 'createdTime');
+        let timestamp = undefined;
+        if ('createdTime' in order) {
+            timestamp = this.safeInteger(order, 'createdTime');
+        }
+        else if ('createdAt' in order) {
+            timestamp = this.safeIntegerProduct(order, 'createdAt', 0.001);
+        }
         const id = this.safeString(order, 'orderId');
         const type = this.safeStringLower(order, 'orderType');
-        const price = this.safeString(order, 'price');
-        const amount = this.safeString(order, 'qty');
+        const price = this.safeString2(order, 'price', 'orderPrice');
+        const amount = this.safeString2(order, 'qty', 'orderQty');
         const cost = this.safeString(order, 'cumExecValue');
         const filled = this.safeString(order, 'cumExecQty');
         const remaining = this.safeString(order, 'leavesQty');
@@ -3230,6 +3268,8 @@ class bybit extends bybit$1 {
         const rawTimeInForce = this.safeString(order, 'timeInForce');
         const timeInForce = this.parseTimeInForce(rawTimeInForce);
         const stopPrice = this.omitZero(this.safeString(order, 'triggerPrice'));
+        const takeProfitPrice = this.omitZero(this.safeString(order, 'takeProfit'));
+        const stopLossPrice = this.omitZero(this.safeString(order, 'stopLoss'));
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -3246,6 +3286,8 @@ class bybit extends bybit$1 {
             'price': price,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'amount': amount,
             'cost': cost,
             'average': undefined,
@@ -3906,9 +3948,6 @@ class bybit extends bybit$1 {
     async createUsdcOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (type === 'market') {
-            throw new errors.NotSupported(this.id + 'createOrder does not allow market orders for ' + symbol + ' markets');
-        }
         const lowerCaseType = type.toLowerCase();
         if ((price === undefined) && (lowerCaseType === 'limit')) {
             throw new errors.ArgumentsRequired(this.id + ' createOrder requires a price argument for limit orders');
@@ -3935,7 +3974,7 @@ class bybit extends bybit$1 {
         };
         const isMarket = lowerCaseType === 'market';
         const isLimit = lowerCaseType === 'limit';
-        if (isLimit !== undefined) {
+        if (isLimit) {
             request['orderPrice'] = this.priceToPrecision(symbol, price);
         }
         const exchangeSpecificParam = this.safeString(params, 'time_in_force');
@@ -3995,8 +4034,13 @@ class bybit extends bybit$1 {
             request['orderLinkId'] = this.uuid16();
         }
         params = this.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit']);
-        const method = market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder';
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (market['option']) {
+            response = await this.privatePostOptionUsdcOpenapiPrivateV1PlaceOrder(this.extend(request, params));
+        }
+        else {
+            response = await this.privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder(this.extend(request, params));
+        }
         //
         //     {
         //         "retCode":0,
@@ -7198,24 +7242,26 @@ class bybit extends bybit$1 {
         symbols = this.marketSymbols(symbols);
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         let settle = this.safeString(params, 'settleCoin');
+        let paramsOmitted = undefined;
         if (settle === undefined) {
-            [settle, params] = this.handleOptionAndParams(params, 'fetchPositions', 'settle', settle);
+            [settle, paramsOmitted] = this.handleOptionAndParams(params, 'fetchPositions', 'settle', settle);
         }
         const isUsdcSettled = settle === 'USDC';
-        const [subType, query] = this.handleSubTypeAndParams('fetchPositions', undefined, params);
+        let subType = undefined;
+        [subType, paramsOmitted] = this.handleSubTypeAndParams('fetchPositions', undefined, paramsOmitted);
         const isInverse = subType === 'inverse';
         const isLinearSettle = isUsdcSettled || (settle === 'USDT');
         if (isInverse && isLinearSettle) {
             throw new errors.ArgumentsRequired(this.id + ' fetchPositions with inverse subType requires settle to not be USDT or USDC');
         }
         if ((enableUnifiedMargin || enableUnifiedAccount) && !isInverse) {
-            return await this.fetchUnifiedPositions(symbols, query);
+            return await this.fetchUnifiedPositions(symbols, params);
         }
         else if (isUsdcSettled) {
-            return await this.fetchUSDCPositions(symbols, query);
+            return await this.fetchUSDCPositions(symbols, paramsOmitted);
         }
         else {
-            return await this.fetchDerivativesPositions(symbols, query);
+            return await this.fetchDerivativesPositions(symbols, params);
         }
     }
     parsePosition(position, market = undefined) {
@@ -7616,6 +7662,11 @@ class bybit extends bybit$1 {
         };
         if (since !== undefined) {
             request['startTime'] = since;
+        }
+        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        params = this.omit(params, ['till', 'until']);
+        if (until !== undefined) {
+            request['endTime'] = until;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -8450,7 +8501,7 @@ class bybit extends bybit$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {
@@ -8491,6 +8542,7 @@ class bybit extends bybit$1 {
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }
 

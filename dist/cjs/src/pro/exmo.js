@@ -277,7 +277,7 @@ class exmo extends exmo$1 {
         };
         const request = this.deepExtend(message, params);
         const trades = await this.watch(url, messageHash, request, messageHash, request);
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     handleTrades(client, message) {
         //
@@ -349,7 +349,7 @@ class exmo extends exmo$1 {
         };
         const request = this.deepExtend(message, query);
         const trades = await this.watch(url, messageHash, request, messageHash, request);
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
     }
     handleMyTrades(client, message) {
         //

@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.poloniex import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -17,6 +18,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import CancelPending
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
@@ -26,7 +28,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class poloniex(Exchange):
+class poloniex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(poloniex, self).describe(), {
@@ -263,6 +265,7 @@ class poloniex(Exchange):
             'exceptions': {
                 'exact': {
                     # General
+                    '200': CancelPending,  # {"orderId" : "173928661399957504", "clientOrderId" : "", "state" : "PENDING_CANCEL", "code" : 200, "message" : ""}
                     '500': ExchangeNotAvailable,  # Internal System Error
                     '603': RequestTimeout,  # Internal Request Timeout
                     '601': BadRequest,  # Invalid Parameter
@@ -684,6 +687,7 @@ class poloniex(Exchange):
                 'withdraw': None,
                 'fee': fee,
                 'precision': None,
+                'networks': {},
                 'limits': {
                     'amount': {
                         'min': None,
@@ -1950,9 +1954,11 @@ class poloniex(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'comment': None,
             'fee': {
                 'currency': code,
                 'cost': self.parse_number(feeCostString),
+                'rate': None,
             },
         }
 
@@ -1996,7 +2002,7 @@ class poloniex(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         #     {
         #         "code" : 21709,
@@ -2004,9 +2010,10 @@ class poloniex(Exchange):
         #     }
         #
         if 'code' in response:
-            code = response['code']
+            codeInner = response['code']
             message = self.safe_string(response, 'message')
             feedback = self.id + ' ' + body
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeInner, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

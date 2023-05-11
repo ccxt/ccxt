@@ -272,7 +272,7 @@ export default class woo extends wooRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(market['symbol'], limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0);
     }
     handleOHLCV(client, message) {
         //
@@ -331,7 +331,7 @@ export default class woo extends wooRest {
         if (this.newUpdates) {
             limit = trades.getLimit(market['symbol'], limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
     }
     handleTrade(client, message) {
         //
@@ -462,7 +462,7 @@ export default class woo extends wooRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     parseWsOrder(order, market = undefined) {
         //
@@ -500,11 +500,15 @@ export default class woo extends wooRest {
             'cost': cost,
             'currency': this.safeString(order, 'feeAsset'),
         };
-        const price = this.safeFloat(order, 'price');
+        let price = this.safeNumber(order, 'price');
+        const avgPrice = this.safeNumber(order, 'avgPrice');
+        if ((price === 0) && (avgPrice !== undefined)) {
+            price = avgPrice;
+        }
         const amount = this.safeFloat(order, 'quantity');
         const side = this.safeStringLower(order, 'side');
         const type = this.safeStringLower(order, 'type');
-        const filled = this.safeFloat(order, 'executedQuantity');
+        const filled = this.safeNumber(order, 'totalExecutedQuantity');
         const totalExecQuantity = this.safeFloat(order, 'totalExecutedQuantity');
         let remaining = amount;
         if (amount >= totalExecQuantity) {
@@ -514,7 +518,7 @@ export default class woo extends wooRest {
         const status = this.parseOrderStatus(rawStatus);
         const trades = undefined;
         const clientOrderId = this.safeString(order, 'clientOrderId');
-        return {
+        return this.safeOrder({
             'info': order,
             'symbol': symbol,
             'id': orderId,
@@ -537,7 +541,7 @@ export default class woo extends wooRest {
             'status': status,
             'fee': fee,
             'trades': trades,
-        };
+        });
     }
     handleOrderUpdate(client, message) {
         //

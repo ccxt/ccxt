@@ -72,7 +72,7 @@ function test_market($exchange, $method, $market) {
     if ($market['contract']) {
         assert($market['linear'] !== $market['inverse'], 'market linear and inverse must not be the same' . $log_text);
     } else {
-        assert(($market['linear'] === null) && ($market['inverse'] === null), 'market linear and inverse must be undefined when \"contract\" is true' . $log_text);
+        assert(($market['linear'] === null) && ($market['inverse'] === null), 'market linear and inverse must be undefined when \"contract\" is false' . $log_text);
     }
     if ($market['option']) {
         assert($market['strike'] !== null, '\"strike\" must be defined when \"option\" is true' . $log_text);

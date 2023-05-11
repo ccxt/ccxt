@@ -647,8 +647,7 @@ export default class btcturk extends Exchange {
             results.push (this.parseOHLCV (ohlcv, market));
         }
         const sorted = this.sortBy (results, 0);
-        const tail = (since === undefined);
-        return this.filterBySinceLimit (sorted, since, limit, 0, tail) as any;
+        return this.filterBySinceLimit (sorted, since, limit, 0) as any;
     }
 
     async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
@@ -932,5 +931,6 @@ export default class btcturk extends Exchange {
         if ((errorCode !== '0') && (errorCode !== 'SUCCESS')) {
             throw new ExchangeError (this.id + ' ' + output);
         }
+        return undefined;
     }
 }

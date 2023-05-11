@@ -98,7 +98,7 @@ class bitmart(ccxt.async_support.bitmart):
         trades = await self.subscribe('trade', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     async def watch_ticker(self, symbol: str, params={}):
         """
@@ -129,7 +129,7 @@ class bitmart(ccxt.async_support.bitmart):
         orders = await self.subscribe_private(channel, symbol, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_orders(self, client: Client, message):
         #
@@ -312,7 +312,7 @@ class bitmart(ccxt.async_support.bitmart):
         ohlcv = await self.subscribe(name, symbol, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0)
 
     def handle_ohlcv(self, client: Client, message):
         #

@@ -251,7 +251,10 @@ class deribit extends \ccxt\async\deribit {
             );
             $request = $this->deep_extend($message, $params);
             $trades = Async\await($this->watch($url, $channel, $request, $channel, $request));
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
         }) ();
     }
 
@@ -330,7 +333,7 @@ class deribit extends \ccxt\async\deribit {
             );
             $request = $this->deep_extend($message, $params);
             $trades = Async\await($this->watch($url, $channel, $request, $channel, $request));
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
         }) ();
     }
 
@@ -555,7 +558,7 @@ class deribit extends \ccxt\async\deribit {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
         }) ();
     }
 
@@ -648,7 +651,7 @@ class deribit extends \ccxt\async\deribit {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($market['symbol'], $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
         }) ();
     }
 

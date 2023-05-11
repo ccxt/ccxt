@@ -1137,7 +1137,7 @@ class ripio extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         //
         //      array("detail":"Authentication credentials were not provided.")
@@ -1165,5 +1165,6 @@ class ripio extends Exchange {
             }
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

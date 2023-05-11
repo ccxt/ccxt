@@ -1749,8 +1749,8 @@ export default class okcoin extends Exchange {
             if (this.safeString(balance, 'margin_mode') === 'fixed') {
                 const contracts = this.safeValue(balance, 'contracts', []);
                 let free = totalAvailBalance;
-                for (let i = 0; i < contracts.length; i++) {
-                    const contract = contracts[i];
+                for (let j = 0; j < contracts.length; j++) {
+                    const contract = contracts[j];
                     const fixedBalance = this.safeString(contract, 'fixed_balance');
                     const realizedPnl = this.safeString(contract, 'realized_pnl');
                     const marginFrozen = this.safeString(contract, 'margin_frozen');
@@ -3824,7 +3824,7 @@ export default class okcoin extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         const feedback = this.id + ' ' + body;
         if (code === 503) {
@@ -3848,5 +3848,6 @@ export default class okcoin extends Exchange {
         if (nonZeroErrorCode || nonEmptyMessage) {
             throw new ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }

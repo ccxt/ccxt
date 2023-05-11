@@ -144,7 +144,7 @@ export default class cex extends cexRest {
         for (let i = 0; i < trades.length; i++) {
             trades[i]['symbol'] = symbol;
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     handleTradesSnapshot(client, message) {
         //
@@ -410,7 +410,7 @@ export default class cex extends cexRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -445,7 +445,7 @@ export default class cex extends cexRest {
         };
         const request = this.deepExtend(message, params);
         const orders = await this.watch(url, messageHash, request, subscriptionHash, request);
-        return this.filterBySymbolSinceLimit(orders, market['symbol'], since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, market['symbol'], since, limit);
     }
     handleTransaction(client, message) {
         const data = this.safeValue(message, 'data');
@@ -1001,7 +1001,7 @@ export default class cex extends cexRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0);
     }
     handleInitOHLCV(client, message) {
         //

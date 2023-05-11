@@ -20,6 +20,7 @@ class xt extends xt$1 {
             // futures 1000 times per minute for each single IP -> Otherwise account locked for 10min
             'rateLimit': 100,
             'version': 'v4',
+            'certified': true,
             'pro': false,
             'has': {
                 'CORS': false,
@@ -106,7 +107,7 @@ class xt extends xt$1 {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'signIn': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'precisionMode': number.DECIMAL_PLACES,
@@ -116,6 +117,7 @@ class xt extends xt$1 {
                     'spot': 'https://sapi.xt.com',
                     'linear': 'https://fapi.xt.com',
                     'inverse': 'https://dapi.xt.com',
+                    'user': 'https://api.xt.com',
                 },
                 'www': 'https://xt.com',
                 'referral': 'https://www.xt.com/en/accounts/register?ref=9PTM9VW',
@@ -210,6 +212,8 @@ class xt extends xt$1 {
                         'post': {
                             'order': 0.2,
                             'withdraw': 1,
+                            'balance/transfer': 1,
+                            'balance/account/transfer': 1,
                         },
                         'delete': {
                             'batch-order': 1,
@@ -299,6 +303,22 @@ class xt extends xt$1 {
                             'future/user/v1/position/margin': 1,
                             'future/user/v1/user/collection/add': 1,
                             'future/user/v1/user/collection/cancel': 1,
+                        },
+                    },
+                    'user': {
+                        'get': {
+                            'user/account': 1,
+                            'user/account/api-key': 1,
+                        },
+                        'post': {
+                            'user/account': 1,
+                            'user/account/api-key': 1,
+                        },
+                        'put': {
+                            'user/account/api-key': 1,
+                        },
+                        'delete': {
+                            'user/account/{apikeyId}': 1,
                         },
                     },
                 },
@@ -455,6 +475,33 @@ class xt extends xt$1 {
                     'WITHDRAW_023': errors.BadRequest,
                     'WITHDRAW_024': errors.BadRequest,
                     'WITHDRAW_025': errors.BadRequest,
+                    'FUND_001': errors.BadRequest,
+                    'FUND_002': errors.InsufficientFunds,
+                    'FUND_003': errors.BadRequest,
+                    'FUND_004': errors.ExchangeError,
+                    'FUND_005': errors.PermissionDenied,
+                    'FUND_014': errors.BadRequest,
+                    'FUND_015': errors.BadRequest,
+                    'FUND_016': errors.BadRequest,
+                    'FUND_017': errors.BadRequest,
+                    'FUND_018': errors.BadRequest,
+                    'FUND_019': errors.BadRequest,
+                    'FUND_020': errors.BadRequest,
+                    'FUND_021': errors.BadRequest,
+                    'FUND_022': errors.BadRequest,
+                    'FUND_044': errors.BadRequest,
+                    'TRANSFER_001': errors.BadRequest,
+                    'TRANSFER_002': errors.InsufficientFunds,
+                    'TRANSFER_003': errors.BadRequest,
+                    'TRANSFER_004': errors.PermissionDenied,
+                    'TRANSFER_005': errors.PermissionDenied,
+                    'TRANSFER_006': errors.PermissionDenied,
+                    'TRANSFER_007': errors.RequestTimeout,
+                    'TRANSFER_008': errors.BadRequest,
+                    'TRANSFER_009': errors.BadRequest,
+                    'TRANSFER_010': errors.PermissionDenied,
+                    'TRANSFER_011': errors.PermissionDenied,
+                    'TRANSFER_012': errors.PermissionDenied,
                     'symbol_not_support_trading_via_api': errors.BadSymbol,
                     'open_order_min_nominal_value_limit': errors.InvalidOrder, // {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
                 },
@@ -480,6 +527,17 @@ class xt extends xt$1 {
             },
             'commonCurrencies': {},
             'options': {
+                'adjustForTimeDifference': false,
+                'timeDifference': 0,
+                'accountsById': {
+                    'spot': 'SPOT',
+                    'leverage': 'LEVER',
+                    'finance': 'FINANCE',
+                    'swap': 'FUTURES_U',
+                    'future': 'FUTURES_U',
+                    'linear': 'FUTURES_U',
+                    'inverse': 'FUTURES_C',
+                },
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
@@ -605,7 +663,7 @@ class xt extends xt$1 {
         });
     }
     nonce() {
-        return this.milliseconds();
+        return this.milliseconds() - this.options['timeDifference'];
     }
     async fetchTime(params = {}) {
         /**
@@ -740,6 +798,9 @@ class xt extends xt$1 {
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {[object]} an array of objects representing market data
          */
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const promisesUnresolved = [
             this.fetchSpotMarkets(params),
             this.fetchSwapAndFutureMarkets(params),
@@ -1038,7 +1099,13 @@ class xt extends xt$1 {
             contract = true;
             spot = false;
         }
-        const isActive = (state === 'ONLINE') || (state === '0');
+        let isActive = true;
+        if (contract) {
+            isActive = this.safeValue(market, 'isOpenApi', false);
+        }
+        else {
+            isActive = (state === 'ONLINE') || (state === '0');
+        }
         return {
             'id': id,
             'symbol': symbol,
@@ -2204,13 +2271,13 @@ class xt extends xt$1 {
         const stop = this.safeValue(params, 'stop');
         const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
         if (stop) {
-            request['entrustId'] = this.convertToBigInt(id);
+            request['entrustId'] = id;
         }
         else if (stopLossTakeProfit) {
-            request['profitId'] = this.convertToBigInt(id);
+            request['profitId'] = id;
         }
         else {
-            request['orderId'] = this.convertToBigInt(id);
+            request['orderId'] = id;
         }
         if (stop) {
             params = this.omit(params, 'stop');
@@ -2893,13 +2960,13 @@ class xt extends xt$1 {
         const stop = this.safeValue(params, 'stop');
         const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
         if (stop) {
-            request['entrustId'] = this.convertToBigInt(id);
+            request['entrustId'] = id;
         }
         else if (stopLossTakeProfit) {
-            request['profitId'] = this.convertToBigInt(id);
+            request['profitId'] = id;
         }
         else {
-            request['orderId'] = this.convertToBigInt(id);
+            request['orderId'] = id;
         }
         if (stop) {
             params = this.omit(params, 'stop');
@@ -3997,11 +4064,11 @@ class xt extends xt$1 {
         for (let i = 0; i < items.length; i++) {
             const entry = items[i];
             const marketId = this.safeString(entry, 'symbol');
-            const symbol = this.safeSymbol(marketId, market);
+            const symbolInner = this.safeSymbol(marketId, market);
             const timestamp = this.safeInteger(entry, 'createdTime');
             rates.push({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': this.safeNumber(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
@@ -4230,12 +4297,13 @@ class xt extends xt$1 {
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             const marketId = this.safeString(entry, 'symbol');
-            const market = this.safeMarket(marketId, undefined, undefined, 'contract');
+            const marketInner = this.safeMarket(marketId, undefined, undefined, 'contract');
             const positionSize = this.safeString(entry, 'positionSize');
             if (positionSize !== '0') {
-                return this.parsePosition(entry, market);
+                return this.parsePosition(entry, marketInner);
             }
         }
+        return undefined;
     }
     async fetchPositions(symbols = undefined, params = {}) {
         /**
@@ -4290,8 +4358,8 @@ class xt extends xt$1 {
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             const marketId = this.safeString(entry, 'symbol');
-            const market = this.safeMarket(marketId, undefined, undefined, 'contract');
-            result.push(this.parsePosition(entry, market));
+            const marketInner = this.safeMarket(marketId, undefined, undefined, 'contract');
+            result.push(this.parsePosition(entry, marketInner));
         }
         return this.filterByArray(result, 'symbol', undefined, false);
     }
@@ -4345,6 +4413,61 @@ class xt extends xt$1 {
             'percentage': undefined,
             'marginRatio': undefined,
         });
+    }
+    async transfer(code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name xt#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @see https://doc.xt.com/#transfersubTransferPost
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount account to transfer from -  spot, swap, leverage, finance
+         * @param {string} toAccount account to transfer to - spot, swap, leverage, finance
+         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const accountsByType = this.safeValue(this.options, 'accountsById');
+        const fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
+        const toAccountId = this.safeString(accountsByType, toAccount, toAccount);
+        const amountString = this.currencyToPrecision(code, amount);
+        const request = {
+            'bizId': this.uuid(),
+            'currency': currency['id'],
+            'amount': amountString,
+            'from': fromAccountId,
+            'to': toAccountId,
+        };
+        const response = await this.privateSpotPostBalanceTransfer(this.extend(request, params));
+        //
+        //   {
+        //       info: { rc: '0', mc: 'SUCCESS', ma: [], result: '226971333791398656' },
+        //       id: '226971333791398656',
+        //       timestamp: undefined,
+        //       datetime: undefined,
+        //       currency: undefined,
+        //       amount: undefined,
+        //       fromAccount: undefined,
+        //       toAccount: undefined,
+        //       status: undefined
+        //   }
+        //
+        return this.parseTransfer(response, currency);
+    }
+    parseTransfer(transfer, currency = undefined) {
+        return {
+            'info': transfer,
+            'id': this.safeString(transfer, 'result'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': undefined,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
+        };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //
@@ -4408,13 +4531,14 @@ class xt extends xt$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const request = '/' + this.implodeParams(path, params);
         let payload = undefined;
-        if (endpoint === 'spot') {
+        if ((endpoint === 'spot') || (endpoint === 'user')) {
             if (signed) {
                 payload = '/' + this.version + request;
             }
@@ -4443,8 +4567,8 @@ class xt extends xt$1 {
             const isUndefinedBody = ((method === 'GET') || (path === 'order/{orderId}'));
             body = isUndefinedBody ? undefined : this.json(body);
             let payloadString = undefined;
-            if (endpoint === 'spot') {
-                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-timestamp=' + timestamp;
+            if ((endpoint === 'spot') || (endpoint === 'user')) {
+                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
                 if (isUndefinedBody) {
                     if (urlencoded) {
                         url += '?' + urlencoded;
@@ -4461,7 +4585,7 @@ class xt extends xt$1 {
                 headers['xt-validate-recvwindow'] = recvWindow;
             }
             else {
-                payloadString = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-timestamp=' + timestamp;
+                payloadString = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp; // we can't glue timestamp, breaks in php
                 if (method === 'GET') {
                     if (urlencoded) {
                         url += '?' + urlencoded;
