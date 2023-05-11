@@ -2945,6 +2945,10 @@ class bitget extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-list
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-open-order
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-plan-order-tpsl-list
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-order
              * fetch all unfilled currently open orders
              * @param {string} $symbol unified $market $symbol
              * @param {int|null} $since the earliest time in ms to fetch open orders for
@@ -2952,33 +2956,48 @@ class bitget extends Exchange {
              * @param {array} $params extra parameters specific to the bitget api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            $this->check_required_symbol('fetchOpenOrders', $symbol);
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
+            $request = array();
             $marketType = null;
             $query = null;
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
             list($marketType, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'privateSpotPostTradeOpenOrders',
-                'swap' => 'privateMixGetOrderCurrent',
-                'future' => 'privateMixGetOrderCurrent',
-            ));
+            $response = null;
             $stop = $this->safe_value($query, 'stop');
             if ($stop) {
+                $this->check_required_symbol('fetchOpenOrders', $symbol);
+                $query = $this->omit($query, 'stop');
                 if ($marketType === 'spot') {
-                    $method = 'privateSpotPostPlanCurrentPlan';
                     if ($limit !== null) {
                         $request['pageSize'] = $limit;
                     }
+                    $response = Async\await($this->privateSpotPostPlanCurrentPlan (array_merge($request, $query)));
                 } else {
-                    $method = 'privateMixGetPlanCurrentPlan';
+                    $response = Async\await($this->privateMixGetPlanCurrentPlan (array_merge($request, $query)));
                 }
-                $query = $this->omit($query, 'stop');
+            } else {
+                if ($marketType === 'spot') {
+                    $response = Async\await($this->privateSpotPostTradeOpenOrders (array_merge($request, $query)));
+                } else {
+                    if ($market === null) {
+                        $subType = null;
+                        list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenOrders', null, $params);
+                        $productType = ($subType === 'linear') ? 'UMCBL' : 'DMCBL';
+                        $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+                        if ($sandboxMode) {
+                            $productType = 'S' . $productType;
+                        }
+                        $request['productType'] = $productType;
+                        $response = Async\await($this->privateMixGetOrderMarginCoinCurrent (array_merge($request, $query)));
+                    } else {
+                        $response = Async\await($this->privateMixGetOrderCurrent (array_merge($request, $query)));
+                    }
+                }
             }
-            $response = Async\await($this->$method (array_merge($request, $query)));
             //
             //  spot
             //     {

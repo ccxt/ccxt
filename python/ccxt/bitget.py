@@ -2788,6 +2788,10 @@ class bitget(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-list
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-open-order
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-plan-order-tpsl-list
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-order
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch open orders for
@@ -2795,30 +2799,41 @@ class bitget(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        self.check_required_symbol('fetchOpenOrders', symbol)
         self.load_markets()
-        market = self.market(symbol)
+        request = {}
         marketType = None
         query = None
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
         marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
-        request = {
-            'symbol': market['id'],
-        }
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privateSpotPostTradeOpenOrders',
-            'swap': 'privateMixGetOrderCurrent',
-            'future': 'privateMixGetOrderCurrent',
-        })
+        response = None
         stop = self.safe_value(query, 'stop')
         if stop:
+            self.check_required_symbol('fetchOpenOrders', symbol)
+            query = self.omit(query, 'stop')
             if marketType == 'spot':
-                method = 'privateSpotPostPlanCurrentPlan'
                 if limit is not None:
                     request['pageSize'] = limit
+                response = self.privateSpotPostPlanCurrentPlan(self.extend(request, query))
             else:
-                method = 'privateMixGetPlanCurrentPlan'
-            query = self.omit(query, 'stop')
-        response = getattr(self, method)(self.extend(request, query))
+                response = self.privateMixGetPlanCurrentPlan(self.extend(request, query))
+        else:
+            if marketType == 'spot':
+                response = self.privateSpotPostTradeOpenOrders(self.extend(request, query))
+            else:
+                if market is None:
+                    subType = None
+                    subType, params = self.handle_sub_type_and_params('fetchOpenOrders', None, params)
+                    productType = 'UMCBL' if (subType == 'linear') else 'DMCBL'
+                    sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+                    if sandboxMode:
+                        productType = 'S' + productType
+                    request['productType'] = productType
+                    response = self.privateMixGetOrderMarginCoinCurrent(self.extend(request, query))
+                else:
+                    response = self.privateMixGetOrderCurrent(self.extend(request, query))
         #
         #  spot
         #     {
