@@ -837,7 +837,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = response['data'];
-        return this.parseDepositWithdrawFee (data);
+        return this.parseDepositWithdrawFee (data) as any;
     }
 
     parseTicker (ticker, market = undefined) {

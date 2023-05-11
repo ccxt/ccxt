@@ -140,7 +140,8 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 import {
     Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances,
     Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int,
-    OrderType, OrderSide, FundingRate, OpenInterest, Position, BorrowInterest, BorrowRate, LeverageTier, LedgerEntry
+    OrderType, OrderSide, FundingRate, OpenInterest, Position, BorrowInterest, BorrowRate, LeverageTier,
+    LedgerEntry, DepositWithdrawFeeNetwork
 } from './types';
 export {Market, Trade, Fee, Ticker} from './types'
 
@@ -3102,11 +3103,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTransactionFees() is not supported yet');
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}): Promise<{}> {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}): Promise<Dictionary<DepositWithdrawFeeNetwork>> {
         throw new NotSupported (this.id + ' fetchDepositWithdrawFees() is not supported yet');
     }
 
-    async fetchDepositWithdrawFee (code: string, params = {}): Promise<{}> {
+    async fetchDepositWithdrawFee (code: string, params = {}): Promise<DepositWithdrawFeeNetwork> {
         if (!this.has['fetchDepositWithdrawFees']) {
             throw new NotSupported (this.id + ' fetchDepositWithdrawFee() is not supported yet');
         }

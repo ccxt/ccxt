@@ -288,6 +288,18 @@ export interface LedgerEntry {
     fee?: Fee;
 }
 
+export interface DepositWithdrawFeeNetwork {
+    fee?: number;
+    percentage?: boolean;
+}
+
+export interface DepositWithdrawFee {
+    info: any;
+    withdraw?: DepositWithdrawFeeNetwork,
+    deposit?: DepositWithdrawFeeNetwork,
+    networks?: Dictionary<DepositWithdrawFeeNetwork>;
+}
+
 export interface BorrowRate {
     currency?: string;
     rate?: number;
