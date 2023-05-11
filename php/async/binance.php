@@ -686,6 +686,7 @@ class binance extends Exchange {
                         'apiReferral/traderSummary' => 1,
                         'adlQuantile' => 5,
                         'pmAccountInfo' => 5,
+                        'orderAmendment' => 1,
                     ),
                     'post' => array(
                         'batchOrders' => 5,
@@ -703,6 +704,8 @@ class binance extends Exchange {
                     ),
                     'put' => array(
                         'listenKey' => 1,
+                        'order' => 1,
+                        'batchOrders' => 5,
                     ),
                     'delete' => array(
                         'batchOrders' => 1,
