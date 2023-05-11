@@ -1131,7 +1131,8 @@
                 "withdraw": "undefined",
                 "deposit": "undefined"
             },
-            "fetchTickers": "timeouts this call specifically"
+            "fetchTickers": "timeouts this call specifically",
+            "fetchTicker": "timeouts this call specifically"
         },
         "timeout": 120000
     },
