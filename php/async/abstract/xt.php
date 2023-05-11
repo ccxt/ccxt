@@ -202,6 +202,12 @@ abstract class xt extends \ccxt\async\Exchange {
     public function private_spot_post_withdraw($params = array()) {
         return $this->request('withdraw', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_spot_post_balance_transfer($params = array()) {
+        return $this->request('balance/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_spot_post_balance_account_transfer($params = array()) {
+        return $this->request('balance/account/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_spot_delete_batch_order($params = array()) {
         return $this->request('batch-order', array('private', 'spot'), 'DELETE', $params, null, null, array("cost" => 1));
     }
@@ -427,6 +433,24 @@ abstract class xt extends \ccxt\async\Exchange {
     public function private_inverse_post_future_user_v1_user_collection_cancel($params = array()) {
         return $this->request('future/user/v1/user/collection/cancel', array('private', 'inverse'), 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_user_get_user_account($params = array()) {
+        return $this->request('user/account', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_user_get_user_account_api_key($params = array()) {
+        return $this->request('user/account/api-key', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_user_post_user_account($params = array()) {
+        return $this->request('user/account', array('private', 'user'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_user_post_user_account_api_key($params = array()) {
+        return $this->request('user/account/api-key', array('private', 'user'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_user_put_user_account_api_key($params = array()) {
+        return $this->request('user/account/api-key', array('private', 'user'), 'PUT', $params, null, null, array("cost" => 1));
+    }
+    public function private_user_delete_user_account_apikeyid($params = array()) {
+        return $this->request('user/account/{apikeyId}', array('private', 'user'), 'DELETE', $params, null, null, array("cost" => 1));
+    }
     public function publicSpotGetCurrencies($params = array()) {
         return $this->request('currencies', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -621,6 +645,12 @@ abstract class xt extends \ccxt\async\Exchange {
     }
     public function privateSpotPostWithdraw($params = array()) {
         return $this->request('withdraw', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privateSpotPostBalanceTransfer($params = array()) {
+        return $this->request('balance/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privateSpotPostBalanceAccountTransfer($params = array()) {
+        return $this->request('balance/account/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function privateSpotDeleteBatchOrder($params = array()) {
         return $this->request('batch-order', array('private', 'spot'), 'DELETE', $params, null, null, array("cost" => 1));
@@ -846,5 +876,23 @@ abstract class xt extends \ccxt\async\Exchange {
     }
     public function privateInversePostFutureUserV1UserCollectionCancel($params = array()) {
         return $this->request('future/user/v1/user/collection/cancel', array('private', 'inverse'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privateUserGetUserAccount($params = array()) {
+        return $this->request('user/account', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUserGetUserAccountApiKey($params = array()) {
+        return $this->request('user/account/api-key', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUserPostUserAccount($params = array()) {
+        return $this->request('user/account', array('private', 'user'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privateUserPostUserAccountApiKey($params = array()) {
+        return $this->request('user/account/api-key', array('private', 'user'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privateUserPutUserAccountApiKey($params = array()) {
+        return $this->request('user/account/api-key', array('private', 'user'), 'PUT', $params, null, null, array("cost" => 1));
+    }
+    public function privateUserDeleteUserAccountApikeyId($params = array()) {
+        return $this->request('user/account/{apikeyId}', array('private', 'user'), 'DELETE', $params, null, null, array("cost" => 1));
     }
 }
