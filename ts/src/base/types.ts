@@ -62,7 +62,7 @@ export interface Trade {
     amount: number;                  // amount of base currency
     cost: number;                    // total cost (including fees), `price * amount`
     datetime: string;                // ISO8601 datetime with milliseconds;
-    fee: Fee;
+    fee: Fee;                        // trade fee
     id: string;                      // string trade id
     info: any;                       // the original decoded JSON as is
     order?: string;                  // string order id or undefined/None/null
