@@ -8,7 +8,7 @@
 import Exchange from './abstract/xt.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import { AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
+import { AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class xt extends Exchange {
@@ -110,7 +110,7 @@ export default class xt extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'signIn': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'precisionMode': DECIMAL_PLACES,
@@ -120,6 +120,7 @@ export default class xt extends Exchange {
                     'spot': 'https://sapi.xt.com',
                     'linear': 'https://fapi.xt.com',
                     'inverse': 'https://dapi.xt.com',
+                    'user': 'https://api.xt.com',
                 },
                 'www': 'https://xt.com',
                 'referral': 'https://www.xt.com/en/accounts/register?ref=9PTM9VW',
@@ -214,6 +215,8 @@ export default class xt extends Exchange {
                         'post': {
                             'order': 0.2,
                             'withdraw': 1,
+                            'balance/transfer': 1,
+                            'balance/account/transfer': 1,
                         },
                         'delete': {
                             'batch-order': 1,
@@ -303,6 +306,22 @@ export default class xt extends Exchange {
                             'future/user/v1/position/margin': 1,
                             'future/user/v1/user/collection/add': 1,
                             'future/user/v1/user/collection/cancel': 1,
+                        },
+                    },
+                    'user': {
+                        'get': {
+                            'user/account': 1,
+                            'user/account/api-key': 1,
+                        },
+                        'post': {
+                            'user/account': 1,
+                            'user/account/api-key': 1,
+                        },
+                        'put': {
+                            'user/account/api-key': 1,
+                        },
+                        'delete': {
+                            'user/account/{apikeyId}': 1,
                         },
                     },
                 },
@@ -459,6 +478,33 @@ export default class xt extends Exchange {
                     'WITHDRAW_023': BadRequest,
                     'WITHDRAW_024': BadRequest,
                     'WITHDRAW_025': BadRequest,
+                    'FUND_001': BadRequest,
+                    'FUND_002': InsufficientFunds,
+                    'FUND_003': BadRequest,
+                    'FUND_004': ExchangeError,
+                    'FUND_005': PermissionDenied,
+                    'FUND_014': BadRequest,
+                    'FUND_015': BadRequest,
+                    'FUND_016': BadRequest,
+                    'FUND_017': BadRequest,
+                    'FUND_018': BadRequest,
+                    'FUND_019': BadRequest,
+                    'FUND_020': BadRequest,
+                    'FUND_021': BadRequest,
+                    'FUND_022': BadRequest,
+                    'FUND_044': BadRequest,
+                    'TRANSFER_001': BadRequest,
+                    'TRANSFER_002': InsufficientFunds,
+                    'TRANSFER_003': BadRequest,
+                    'TRANSFER_004': PermissionDenied,
+                    'TRANSFER_005': PermissionDenied,
+                    'TRANSFER_006': PermissionDenied,
+                    'TRANSFER_007': RequestTimeout,
+                    'TRANSFER_008': BadRequest,
+                    'TRANSFER_009': BadRequest,
+                    'TRANSFER_010': PermissionDenied,
+                    'TRANSFER_011': PermissionDenied,
+                    'TRANSFER_012': PermissionDenied,
                     'symbol_not_support_trading_via_api': BadSymbol,
                     'open_order_min_nominal_value_limit': InvalidOrder, // {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
                 },
@@ -486,6 +532,15 @@ export default class xt extends Exchange {
             'options': {
                 'adjustForTimeDifference': false,
                 'timeDifference': 0,
+                'accountsById': {
+                    'spot': 'SPOT',
+                    'leverage': 'LEVER',
+                    'finance': 'FINANCE',
+                    'swap': 'FUTURES_U',
+                    'future': 'FUTURES_U',
+                    'linear': 'FUTURES_U',
+                    'inverse': 'FUTURES_C',
+                },
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
@@ -4362,6 +4417,61 @@ export default class xt extends Exchange {
             'marginRatio': undefined,
         });
     }
+    async transfer(code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name xt#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @see https://doc.xt.com/#transfersubTransferPost
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount account to transfer from -  spot, swap, leverage, finance
+         * @param {string} toAccount account to transfer to - spot, swap, leverage, finance
+         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const accountsByType = this.safeValue(this.options, 'accountsById');
+        const fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
+        const toAccountId = this.safeString(accountsByType, toAccount, toAccount);
+        const amountString = this.currencyToPrecision(code, amount);
+        const request = {
+            'bizId': this.uuid(),
+            'currency': currency['id'],
+            'amount': amountString,
+            'from': fromAccountId,
+            'to': toAccountId,
+        };
+        const response = await this.privateSpotPostBalanceTransfer(this.extend(request, params));
+        //
+        //   {
+        //       info: { rc: '0', mc: 'SUCCESS', ma: [], result: '226971333791398656' },
+        //       id: '226971333791398656',
+        //       timestamp: undefined,
+        //       datetime: undefined,
+        //       currency: undefined,
+        //       amount: undefined,
+        //       fromAccount: undefined,
+        //       toAccount: undefined,
+        //       status: undefined
+        //   }
+        //
+        return this.parseTransfer(response, currency);
+    }
+    parseTransfer(transfer, currency = undefined) {
+        return {
+            'info': transfer,
+            'id': this.safeString(transfer, 'result'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': undefined,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
+        };
+    }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //
         // spot: error
@@ -4431,7 +4541,7 @@ export default class xt extends Exchange {
         const endpoint = api[1];
         const request = '/' + this.implodeParams(path, params);
         let payload = undefined;
-        if (endpoint === 'spot') {
+        if ((endpoint === 'spot') || (endpoint === 'user')) {
             if (signed) {
                 payload = '/' + this.version + request;
             }
@@ -4460,7 +4570,7 @@ export default class xt extends Exchange {
             const isUndefinedBody = ((method === 'GET') || (path === 'order/{orderId}'));
             body = isUndefinedBody ? undefined : this.json(body);
             let payloadString = undefined;
-            if (endpoint === 'spot') {
+            if ((endpoint === 'spot') || (endpoint === 'user')) {
                 payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
                 if (isUndefinedBody) {
                     if (urlencoded) {

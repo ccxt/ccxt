@@ -1204,6 +1204,9 @@ abstract class binanceusdm extends \ccxt\binance {
     public function fapiprivate_get_pmaccountinfo($params = array()) {
         return $this->request('pmAccountInfo', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function fapiprivate_get_orderamendment($params = array()) {
+        return $this->request('orderAmendment', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function fapiprivate_post_batchorders($params = array()) {
         return $this->request('batchOrders', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -1239,6 +1242,12 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function fapiprivate_put_listenkey($params = array()) {
         return $this->request('listenKey', 'fapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    public function fapiprivate_put_order($params = array()) {
+        return $this->request('order', 'fapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    public function fapiprivate_put_batchorders($params = array()) {
+        return $this->request('batchOrders', 'fapiPrivate', 'PUT', $params, null, null, array("cost" => 5));
     }
     public function fapiprivate_delete_batchorders($params = array()) {
         return $this->request('batchOrders', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
@@ -2659,6 +2668,9 @@ abstract class binanceusdm extends \ccxt\binance {
     public function fapiPrivateGetPmAccountInfo($params = array()) {
         return $this->request('pmAccountInfo', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function fapiPrivateGetOrderAmendment($params = array()) {
+        return $this->request('orderAmendment', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function fapiPrivatePostBatchOrders($params = array()) {
         return $this->request('batchOrders', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -2694,6 +2706,12 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function fapiPrivatePutListenKey($params = array()) {
         return $this->request('listenKey', 'fapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPrivatePutOrder($params = array()) {
+        return $this->request('order', 'fapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPrivatePutBatchOrders($params = array()) {
+        return $this->request('batchOrders', 'fapiPrivate', 'PUT', $params, null, null, array("cost" => 5));
     }
     public function fapiPrivateDeleteBatchOrders($params = array()) {
         return $this->request('batchOrders', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
