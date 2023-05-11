@@ -251,6 +251,9 @@ class Transpiler {
             [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
             [ /\.omitZero\s/g, '.omit_zero'],
             [ /\.currencyStructure\s/g, '.currency_structure'],
+            [ /\.precisionModeIsTickSize\s/g, '.precision_mode_is_tick_size'],
+            [ /\.precisionModeIsDecimalPlaces\s/g, '.precision_mode_is_decimal_places'],
+            [ /\.precisionModeIsSignificantDigits\s/g, '.precision_mode_is_significant_digits'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
