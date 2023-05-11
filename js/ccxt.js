@@ -38,7 +38,7 @@ import * as errors from './src/base/errors.js';
 import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending } from './src/base/errors.js';
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '3.0.99';
+const version = '3.0.100';
 Exchange.ccxtVersion = version;
 //-----------------------------------------------------------------------------
 import ace from './src/ace.js';
@@ -168,6 +168,7 @@ import bitruePro from './src/pro/bitrue.js';
 import bitstampPro from './src/pro/bitstamp.js';
 import bittrexPro from './src/pro/bittrex.js';
 import bitvavoPro from './src/pro/bitvavo.js';
+import blockchaincomPro from './src/pro/blockchaincom.js';
 import btcexPro from './src/pro/btcex.js';
 import bybitPro from './src/pro/bybit.js';
 import cexPro from './src/pro/cex.js';
@@ -334,6 +335,7 @@ const pro = {
     'bitstamp': bitstampPro,
     'bittrex': bittrexPro,
     'bitvavo': bitvavoPro,
+    'blockchaincom': blockchaincomPro,
     'btcex': btcexPro,
     'bybit': bybitPro,
     'cex': cexPro,

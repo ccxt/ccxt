@@ -53,7 +53,7 @@ class binance(Exchange, ImplicitAPI):
                 'margin': True,
                 'swap': True,
                 'future': True,
-                'option': None,
+                'option': True,
                 'addMargin': True,
                 'borrowMargin': True,
                 'cancelAllOrders': True,

@@ -131,6 +131,7 @@ import bitruePro from './src/pro/bitrue.js';
 import bitstampPro from './src/pro/bitstamp.js';
 import bittrexPro from './src/pro/bittrex.js';
 import bitvavoPro from './src/pro/bitvavo.js';
+import blockchaincomPro from './src/pro/blockchaincom.js';
 import btcexPro from './src/pro/btcex.js';
 import bybitPro from './src/pro/bybit.js';
 import cexPro from './src/pro/cex.js';
@@ -297,6 +298,7 @@ declare const pro: {
     bitstamp: typeof bitstampPro;
     bittrex: typeof bittrexPro;
     bitvavo: typeof bitvavoPro;
+    blockchaincom: typeof blockchaincomPro;
     btcex: typeof btcexPro;
     bybit: typeof bybitPro;
     cex: typeof cexPro;
@@ -359,6 +361,7 @@ declare const ccxt: {
         bitstamp: typeof bitstampPro;
         bittrex: typeof bittrexPro;
         bitvavo: typeof bitvavoPro;
+        blockchaincom: typeof blockchaincomPro;
         btcex: typeof btcexPro;
         bybit: typeof bybitPro;
         cex: typeof cexPro;

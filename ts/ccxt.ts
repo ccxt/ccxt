@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '3.0.99';
+const version = '3.0.100';
 
 (Exchange as any).ccxtVersion = version
 
@@ -175,6 +175,7 @@ import bitruePro from  './src/pro/bitrue.js'
 import bitstampPro from  './src/pro/bitstamp.js'
 import bittrexPro from  './src/pro/bittrex.js'
 import bitvavoPro from  './src/pro/bitvavo.js'
+import blockchaincomPro from  './src/pro/blockchaincom.js'
 import btcexPro from  './src/pro/btcex.js'
 import bybitPro from  './src/pro/bybit.js'
 import cexPro from  './src/pro/cex.js'
@@ -343,6 +344,7 @@ const pro = {
     'bitstamp':               bitstampPro,
     'bittrex':                bittrexPro,
     'bitvavo':                bitvavoPro,
+    'blockchaincom':          blockchaincomPro,
     'btcex':                  btcexPro,
     'bybit':                  bybitPro,
     'cex':                    cexPro,
