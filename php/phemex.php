@@ -49,7 +49,7 @@ class phemex extends Exchange {
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistories' => false,
-                'fetchFundingRateHistory' => false,
+                'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => false,
@@ -67,6 +67,7 @@ class phemex extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
@@ -84,7 +85,7 @@ class phemex extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
                 'test' => array(
                     'v1' => 'https://testnet-api.phemex.com/v1',
-                    'v2' => 'https://testnet-api.phemex.com/',
+                    'v2' => 'https://testnet-api.phemex.com',
                     'public' => 'https://testnet-api.phemex.com/exchange/public',
                     'private' => 'https://testnet-api.phemex.com',
                 ),
@@ -142,6 +143,7 @@ class phemex extends Exchange {
                         'md/spot/ticker/24hr' => 5, // ?symbol=<symbol>&id=<id>
                         'md/spot/ticker/24hr/all' => 5, // ?symbol=<symbol>&id=<id>
                         'exchange/public/products' => 5, // contracts only
+                        'api-data/public/data/funding-rate-history' => 5,
                     ),
                 ),
                 'v2' => array(
@@ -150,6 +152,7 @@ class phemex extends Exchange {
                         'md/v2/trade' => 5, // ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr' => 5, // ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr/all' => 5, // ?id=<id>
+                        'api-data/public/data/funding-rate-history' => 5,
                     ),
                 ),
                 'private' => array(
@@ -906,14 +909,15 @@ class phemex extends Exchange {
                     ),
                 ),
                 'valueScale' => $valueScale,
+                'networks' => array(),
             );
         }
         return $result;
     }
 
-    public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1, $market = null) {
+    public function custom_parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1, $market = null) {
         if ($market === null) {
-            throw new ArgumentsRequired($this->id . ' parseBidAsk() requires a $market argument');
+            throw new ArgumentsRequired($this->id . ' customParseBidAsk() requires a $market argument');
         }
         $amount = $this->safe_string($bidask, $amountKey);
         if ($market['spot']) {
@@ -938,7 +942,7 @@ class phemex extends Exchange {
             $orders = array();
             $bidasks = $this->safe_value($orderbook, $side);
             for ($k = 0; $k < count($bidasks); $k++) {
-                $orders[] = $this->parse_bid_ask($bidasks[$k], $priceKey, $amountKey, $market);
+                $orders[] = $this->custom_parse_bid_ask($bidasks[$k], $priceKey, $amountKey, $market);
             }
             $result[$side] = $orders;
         }
@@ -1124,7 +1128,7 @@ class phemex extends Exchange {
             }
             $request['limit'] = $limit;
         }
-        $method = 'publicGetMdKline';
+        $method = 'publicGetMdV2Kline';
         if ($market['linear'] || $market['settle'] === 'USDT') {
             $method = 'publicGetMdV2KlineLast';
         }
@@ -1306,6 +1310,41 @@ class phemex extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_ticker($result, $market);
+    }
+
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @see https://phemex-docs.github.io/#$query-24-hours-ticker-for-all-$symbols-2     // spot
+         * @see https://phemex-docs.github.io/#$query-24-ticker-for-all-$symbols             // linear
+         * @see https://phemex-docs.github.io/#$query-24-hours-ticker-for-all-$symbols       // inverse
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {array} $params extra parameters specific to the phemex api endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         */
+        $this->load_markets();
+        $market = null;
+        if ($symbols !== null) {
+            $first = $this->safe_value($symbols, 0);
+            $market = $this->market($first);
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params);
+        $query = $this->omit($params, 'type');
+        $defaultMethod = null;
+        if ($type === 'spot') {
+            $defaultMethod = 'v1GetMdSpotTicker24hrAll';
+        } elseif ($subType === 'inverse') {
+            $defaultMethod = 'v1GetMdTicker24hrAll';
+        } else {
+            $defaultMethod = 'v2GetMdV2Ticker24hrAll';
+        }
+        $method = $this->safe_string($this->options, 'fetchTickersMethod', $defaultMethod);
+        $response = $this->$method ($query);
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_tickers($result, $symbols);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -2447,7 +2486,7 @@ class phemex extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @param {string|null} $params->posSide either 'Hedged' or 'OneWay' or 'Merged'
+         * @param {string|null} $params->posSide either 'Merged' or 'Long' or 'Short'
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         if ($symbol === null) {
@@ -2516,7 +2555,7 @@ class phemex extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @param {string|null} $params->posSide either 'Hedged' or 'OneWay' or 'Merged'
+         * @param {string|null} $params->posSide either 'Merged' or 'Long' or 'Short'
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         if ($symbol === null) {
@@ -3688,6 +3727,7 @@ class phemex extends Exchange {
          * @return {array} response from the exchange
          */
         $this->check_required_argument('setPositionMode', $symbol, 'symbol');
+        $this->load_markets();
         $market = $this->market($symbol);
         if ($market['settle'] !== 'USDT') {
             throw new BadSymbol($this->id . ' setPositionMode() supports USDT settled markets only');
@@ -4097,9 +4137,72 @@ class phemex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        $this->check_required_symbol('fetchFundingRateHistory', $symbol);
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $isUsdtSettled = $market['settle'] === 'USDT';
+        if (!$market['swap']) {
+            throw new BadRequest($this->id . ' fetchFundingRateHistory() supports swap contracts only');
+        }
+        $customSymbol = null;
+        if ($isUsdtSettled) {
+            $customSymbol = '.' . $market['id'] . 'FR8H'; // phemex requires a custom $symbol for funding rate history
+        } else {
+            $customSymbol = '.' . $market['baseId'] . 'FR8H';
+        }
+        $request = array(
+            'symbol' => $customSymbol,
+        );
+        if ($since !== null) {
+            $request['start'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = null;
+        if ($isUsdtSettled) {
+            $response = $this->v2GetApiDataPublicDataFundingRateHistory (array_merge($request, $params));
+        } else {
+            $response = $this->v1GetApiDataPublicDataFundingRateHistory (array_merge($request, $params));
+        }
+        //
+        //    {
+        //        "code":"0",
+        //        "msg":"OK",
+        //        "data":{
+        //           "rows":array(
+        //              {
+        //                 "symbol":".BTCUSDTFR8H",
+        //                 "fundingRate":"0.0001",
+        //                 "fundingTime":"1682064000000",
+        //                 "intervalSeconds":"28800"
+        //              }
+        //           )
+        //        }
+        //    }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $rates = $this->safe_value($data, 'rows');
+        $result = array();
+        for ($i = 0; $i < count($rates); $i++) {
+            $item = $rates[$i];
+            $timestamp = $this->safe_integer($item, 'fundingTime');
+            $result[] = array(
+                'info' => $item,
+                'symbol' => $symbol,
+                'fundingRate' => $this->safe_number($item, 'fundingRate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            );
+        }
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         //
         //     array("code":30018,"msg":"phemex.data.size.uplimt","data":null)
@@ -4116,5 +4219,6 @@ class phemex extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

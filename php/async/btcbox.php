@@ -548,15 +548,15 @@ class btcbox extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // resort to defaultErrorHandler
+            return null; // resort to defaultErrorHandler
         }
         // typical error $response => array("result":false,"code":"401")
         if ($httpCode >= 400) {
-            return; // resort to defaultErrorHandler
+            return null; // resort to defaultErrorHandler
         }
         $result = $this->safe_value($response, 'result');
         if ($result === null || $result === true) {
-            return; // either public API (no error codes expected) or success
+            return null; // either public API (no error codes expected) or success
         }
         $code = $this->safe_value($response, 'code');
         $feedback = $this->id . ' ' . $body;
@@ -564,9 +564,9 @@ class btcbox extends Exchange {
         throw new ExchangeError($feedback); // unknown message
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
-        return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config, $context) {
-            $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config, $context));
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array ()) {
+        return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config) {
+            $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
             if (gettype($response) === 'string') {
                 // sometimes the exchange returns whitespace prepended to json
                 $response = $this->strip($response);

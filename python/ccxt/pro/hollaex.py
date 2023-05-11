@@ -127,7 +127,7 @@ class hollaex(ccxt.async_support.hollaex):
         trades = await self.watch_public(messageHash, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     def handle_trades(self, client: Client, message):
         #
@@ -181,7 +181,7 @@ class hollaex(ccxt.async_support.hollaex):
         trades = await self.watch_private(messageHash, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
     def handle_my_trades(self, client: Client, message, subscription=None):
         #
@@ -253,7 +253,7 @@ class hollaex(ccxt.async_support.hollaex):
         orders = await self.watch_private(messageHash, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_order(self, client: Client, message, subscription=None):
         #

@@ -936,7 +936,7 @@ class oceanex extends oceanex$1 {
         //     {"code":1011,"message":"This IP 'x.x.x.x' is not allowed","data":{}}
         //
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const errorCode = this.safeString(response, 'code');
         const message = this.safeString(response, 'message');
@@ -946,6 +946,7 @@ class oceanex extends oceanex$1 {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
 }
 

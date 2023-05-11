@@ -178,6 +178,7 @@ class coinex extends Exchange {
                         'order/market/trade/info' => 1,
                         'sub_account/balance' => 1,
                         'sub_account/transfer/history' => 40,
+                        'sub_account/auth/api' => 40,
                         'sub_account/auth/api/{user_auth_id}' => 40,
                     ),
                     'post' => array(
@@ -831,12 +832,12 @@ class coinex extends Exchange {
             $result = array();
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
-                $market = $this->safe_market($marketId, null, null, $marketType);
-                $symbol = $market['symbol'];
+                $marketInner = $this->safe_market($marketId, null, null, $marketType);
+                $symbol = $marketInner['symbol'];
                 $ticker = $this->parse_ticker(array(
                     'date' => $timestamp,
                     'ticker' => $tickers[$marketId],
-                ), $market);
+                ), $marketInner);
                 $ticker['symbol'] = $symbol;
                 $result[$symbol] = $ticker;
             }
@@ -1752,6 +1753,12 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http017_put_limit
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http018_put_market
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http019_put_limit_stop
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http020_put_market_stop
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http031_market_close
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http030_limit_close
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1765,6 +1772,7 @@ class coinex extends Exchange {
              * @param {string} $params->timeInForce "GTC", "IOC", "FOK", "PO"
              * @param {bool} $params->postOnly
              * @param {bool} $params->reduceOnly
+             * @param {bool|null} $params->position_id *required for reduce only orders* the position id to reduce
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1779,9 +1787,12 @@ class coinex extends Exchange {
             $positionId = $this->safe_integer_2($params, 'position_id', 'positionId'); // Required for closing $swap positions
             $timeInForceRaw = $this->safe_string($params, 'timeInForce'); // Spot => IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
             $reduceOnly = $this->safe_value($params, 'reduceOnly');
-            if ($reduceOnly !== null) {
+            if ($reduceOnly) {
                 if ($market['type'] !== 'swap') {
                     throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $market['type'] . ' orders, $reduceOnly orders are supported for $swap markets only');
+                }
+                if ($positionId === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a position_id/positionId parameter for $reduceOnly orders');
                 }
             }
             $method = null;
@@ -2739,7 +2750,7 @@ class coinex extends Exchange {
         $address = null;
         $tag = null;
         $partsLength = count($parts);
-        if ($partsLength > 1) {
+        if ($partsLength > 1 && $parts[0] !== 'cfx') {
             $address = $parts[0];
             $tag = $parts[1];
         } else {
@@ -3699,10 +3710,10 @@ class coinex extends Exchange {
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
                 if (mb_strpos($marketId, '_') === -1) { // skip _signprice and _indexprice
-                    $market = $this->safe_market($marketId, null, null, 'swap');
+                    $marketInner = $this->safe_market($marketId, null, null, 'swap');
                     $ticker = $tickers[$marketId];
                     $ticker['timestamp'] = $timestamp;
-                    $result[] = $this->parse_funding_rate($ticker, $market);
+                    $result[] = $this->parse_funding_rate($ticker, $marketInner);
                 }
             }
             return $this->filter_by_array($result, 'symbol', $symbols);
@@ -3821,12 +3832,12 @@ class coinex extends Exchange {
             for ($i = 0; $i < count($result); $i++) {
                 $entry = $result[$i];
                 $marketId = $this->safe_string($entry, 'market');
-                $symbol = $this->safe_symbol($marketId, $market, null, 'swap');
+                $symbolInner = $this->safe_symbol($marketId, $market, null, 'swap');
                 $timestamp = $this->safe_timestamp($entry, 'time');
                 $rates[] = array(
                     'info' => $entry,
-                    'symbol' => $symbol,
-                    'fundingRate' => $this->safe_string($entry, 'funding_rate'),
+                    'symbol' => $symbolInner,
+                    'fundingRate' => $this->safe_number($entry, 'funding_rate'),
                     'timestamp' => $timestamp,
                     'datetime' => $this->iso8601($timestamp),
                 );
@@ -4757,7 +4768,7 @@ class coinex extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         $code = $this->safe_string($response, 'code');
         $data = $this->safe_value($response, 'data');
@@ -4781,5 +4792,6 @@ class coinex extends Exchange {
             $ErrorClass = $this->safe_value($responseCodes, $code, '\\ccxt\\ExchangeError');
             throw new $ErrorClass($response['message']);
         }
+        return null;
     }
 }

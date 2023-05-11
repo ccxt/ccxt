@@ -778,6 +778,7 @@ class kucoin extends kucoin$1 {
                 'withdraw': isWithdrawEnabled,
                 'fee': fee,
                 'limits': this.limits,
+                'networks': {},
             };
         }
         return result;
@@ -1910,8 +1911,13 @@ class kucoin extends kucoin$1 {
         const stopTriggered = this.safeValue(order, 'stopTriggered', false);
         const isActive = this.safeValue(order, 'isActive');
         let status = undefined;
-        if (isActive === true) {
-            status = 'open';
+        if (isActive !== undefined) {
+            if (isActive === true) {
+                status = 'open';
+            }
+            else {
+                status = 'closed';
+            }
         }
         if (stop) {
             const responseStatus = this.safeString(order, 'status');
@@ -2742,8 +2748,8 @@ class kucoin extends kucoin$1 {
             for (let i = 0; i < accounts.length; i++) {
                 const balance = accounts[i];
                 const currencyId = this.safeString(balance, 'currency');
-                const code = this.safeCurrencyCode(currencyId);
-                result[code] = this.parseBalanceHelper(balance);
+                const codeInner = this.safeCurrencyCode(currencyId);
+                result[codeInner] = this.parseBalanceHelper(balance);
             }
         }
         else {
@@ -2752,12 +2758,12 @@ class kucoin extends kucoin$1 {
                 const balanceType = this.safeString(balance, 'type');
                 if (balanceType === type) {
                     const currencyId = this.safeString(balance, 'currency');
-                    const code = this.safeCurrencyCode(currencyId);
+                    const codeInner2 = this.safeCurrencyCode(currencyId);
                     const account = this.account();
                     account['total'] = this.safeString(balance, 'balance');
                     account['free'] = this.safeString(balance, 'available');
                     account['used'] = this.safeString(balance, 'holds');
-                    result[code] = account;
+                    result[codeInner2] = account;
                 }
             }
         }
@@ -3117,7 +3123,7 @@ class kucoin extends kucoin$1 {
         const items = this.safeValue(data, 'items');
         return this.parseLedger(items, currency, since, limit);
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
         const versions = this.safeValue(this.options, 'versions', {});
         const apiVersions = this.safeValue(versions, api, {});
         const methodVersions = this.safeValue(apiVersions, method, {});
@@ -3604,7 +3610,7 @@ class kucoin extends kucoin$1 {
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, body);
-            return;
+            return undefined;
         }
         //
         // bad
@@ -3618,6 +3624,7 @@ class kucoin extends kucoin$1 {
         this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
         this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
+        return undefined;
     }
 }
 

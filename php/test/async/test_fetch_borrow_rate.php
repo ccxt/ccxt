@@ -19,7 +19,7 @@ function test_fetch_borrow_rate($exchange, $code) {
         try {
             $borrow_rate = Async\await($exchange->fetch_borrow_rate($code));
         } catch(Exception $ex) {
-            $message = $ex->message;
+            $message = ((string) $ex);
             // for exchanges, atm, we don't have the correct lists of currencies, which currency is borrowable and which not. So, because of our predetermined list of test-currencies, some of them might not be borrowable, and thus throws exception. However, we shouldn't break tests for that specific exceptions, and skip those occasions.
             if (array_search('could not find the borrow rate for currency code', $message) < 0) {
                 throw new Error($message);

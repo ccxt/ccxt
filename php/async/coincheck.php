@@ -834,7 +834,7 @@ class coincheck extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         //
         //     array("success":false,"error":"disabled API Key")'
@@ -848,5 +848,6 @@ class coincheck extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
+        return null;
     }
 }

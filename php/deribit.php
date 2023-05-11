@@ -630,6 +630,8 @@ class deribit extends Exchange {
             $instrumentsResult = $this->safe_value($instrumentsResponse, 'result', array());
             for ($k = 0; $k < count($instrumentsResult); $k++) {
                 $market = $instrumentsResult[$k];
+                $kind = $this->safe_string($market, 'kind');
+                $isSpot = ($kind === 'spot');
                 $id = $this->safe_string($market, 'instrument_name');
                 $baseId = $this->safe_string($market, 'base_currency');
                 $quoteId = $this->safe_string($market, 'counter_currency');
@@ -637,7 +639,6 @@ class deribit extends Exchange {
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
                 $settle = $this->safe_currency_code($settleId);
-                $kind = $this->safe_string($market, 'kind');
                 $settlementPeriod = $this->safe_value($market, 'settlement_period');
                 $swap = ($settlementPeriod === 'perpetual');
                 $future = !$swap && (mb_strpos($kind, 'future') !== false);
@@ -652,8 +653,12 @@ class deribit extends Exchange {
                     $type = 'future';
                 } elseif ($option) {
                     $type = 'option';
+                } elseif ($isSpot) {
+                    $type = 'spot';
                 }
-                if (!$isComboMarket) {
+                if ($isSpot) {
+                    $symbol = $base . '/' . $quote;
+                } elseif (!$isComboMarket) {
                     $symbol = $base . '/' . $quote . ':' . $settle;
                     if ($option || $future) {
                         $symbol = $symbol . '-' . $this->yymmdd($expiry, '');
@@ -677,13 +682,13 @@ class deribit extends Exchange {
                     'quoteId' => $quoteId,
                     'settleId' => $settleId,
                     'type' => $type,
-                    'spot' => false,
+                    'spot' => $isSpot,
                     'margin' => false,
                     'swap' => $swap,
                     'future' => $future,
                     'option' => $option,
                     'active' => $this->safe_value($market, 'is_active'),
-                    'contract' => true,
+                    'contract' => !$isSpot,
                     'linear' => ($settle === $quote),
                     'inverse' => ($settle !== $quote),
                     'taker' => $this->safe_number($market, 'taker_commission'),
@@ -2602,7 +2607,7 @@ class deribit extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         //
         //     {
@@ -2625,5 +2630,6 @@ class deribit extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
+        return null;
     }
 }

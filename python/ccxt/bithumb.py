@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bithumb import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -22,7 +23,7 @@ from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 from ccxt.base.precise import Precise
 
 
-class bithumb(Exchange):
+class bithumb(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bithumb, self).describe(), {
@@ -915,7 +916,7 @@ class bithumb(Exchange):
             'address': address,
             'currency': currency['id'],
         }
-        if currency == 'XRP' or currency == 'XMR' or currency == 'EOS' or currency == 'STEEM':
+        if code == 'XRP' or code == 'XMR' or code == 'EOS' or code == 'STEEM':
             destination = self.safe_string(params, 'destination')
             if (tag is None) and (destination is None):
                 raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param')
@@ -995,7 +996,7 @@ class bithumb(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if 'status' in response:
             #
             #     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
@@ -1004,11 +1005,12 @@ class bithumb(Exchange):
             message = self.safe_string(response, 'message')
             if status is not None:
                 if status == '0000':
-                    return  # no error
+                    return None  # no error
                 elif message == '거래 진행중인 내역이 존재하지 않습니다':
                     # https://github.com/ccxt/ccxt/issues/9017
-                    return  # no error
+                    return None  # no error
                 feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions, status, feedback)
                 self.throw_exactly_matched_exception(self.exceptions, message, feedback)
                 raise ExchangeError(feedback)
+        return None

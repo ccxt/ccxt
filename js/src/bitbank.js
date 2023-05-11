@@ -879,7 +879,7 @@ export default class bitbank extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const success = this.safeInteger(response, 'success');
         const data = this.safeValue(response, 'data');
@@ -951,11 +951,12 @@ export default class bitbank extends Exchange {
             const message = this.safeString(errorMessages, code, 'Error');
             const ErrorClass = this.safeValue(errorClasses, code);
             if (ErrorClass !== undefined) {
-                throw new ErrorClass(message);
+                throw new errorClasses[code](message);
             }
             else {
                 throw new ExchangeError(this.id + ' ' + this.json(response));
             }
         }
+        return undefined;
     }
 }

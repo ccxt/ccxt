@@ -68,7 +68,7 @@ class gemini extends \ccxt\async\gemini {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($market['symbol'], $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
         }) ();
     }
 
@@ -223,7 +223,7 @@ class gemini extends \ccxt\async\gemini {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
         }) ();
     }
 
@@ -408,7 +408,7 @@ class gemini extends \ccxt\async\gemini {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
         }) ();
     }
 
@@ -645,7 +645,7 @@ class gemini extends \ccxt\async\gemini {
             'nonce' => $this->nonce(),
         );
         $b64 = base64_encode($this->json($payload));
-        $signature = $this->hmac($b64, $this->encode($this->secret), 'sha384', 'hex');
+        $signature = $this->hmac($this->encode($b64), $this->encode($this->secret), 'sha384', 'hex');
         $defaultOptions = array(
             'ws' => array(
                 'options' => array(

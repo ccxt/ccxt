@@ -1910,7 +1910,7 @@ class huobijp extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         if (is_array($response) && array_key_exists('status', $response)) {
             //
@@ -1927,5 +1927,6 @@ class huobijp extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+        return null;
     }
 }

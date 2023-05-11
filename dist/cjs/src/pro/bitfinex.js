@@ -69,7 +69,7 @@ class bitfinex extends bitfinex$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     async watchTicker(symbol, params = {}) {
         /**
@@ -476,7 +476,7 @@ class bitfinex extends bitfinex$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleOrders(client, message, subscription) {
         //

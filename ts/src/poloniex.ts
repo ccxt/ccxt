@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/poloniex.js';
-import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest } from './base/errors.js';
+import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest, CancelPending } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -246,6 +246,7 @@ export default class poloniex extends Exchange {
             'exceptions': {
                 'exact': {
                     // General
+                    '200': CancelPending, // { "orderId" : "173928661399957504", "clientOrderId" : "", "state" : "PENDING_CANCEL", "code" : 200, "message" : "" }
                     '500': ExchangeNotAvailable, // Internal System Error
                     '603': RequestTimeout, // Internal Request Timeout
                     '601': BadRequest, // Invalid Parameter
@@ -689,6 +690,7 @@ export default class poloniex extends Exchange {
                 'withdraw': undefined,
                 'fee': fee,
                 'precision': undefined,
+                'networks': {},
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -2080,9 +2082,11 @@ export default class poloniex extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'comment': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber (feeCostString),
+                'rate': undefined,
             },
         };
     }
@@ -2134,7 +2138,7 @@ export default class poloniex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //     {
@@ -2143,12 +2147,13 @@ export default class poloniex extends Exchange {
         //     }
         //
         if ('code' in response) {
-            const code = response['code'];
+            const codeInner = response['code'];
             const message = this.safeString (response, 'message');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeInner, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

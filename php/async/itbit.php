@@ -823,7 +823,7 @@ class itbit extends Exchange {
             $timestamp = $nonce;
             $authBody = ($method === 'POST') ? $body : '';
             $auth = array( $method, $url, $authBody, $nonce, $timestamp );
-            $message = $nonce . str_replace('\\/', '/', $this->json($auth));
+            $message = $nonce . $this->json($auth); // .replace ('\\/', '/');
             $hash = $this->hash($this->encode($message), 'sha256', 'binary');
             $binaryUrl = $this->encode($url);
             $binhash = $this->binary_concat($binaryUrl, $hash);
@@ -840,11 +840,12 @@ class itbit extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         $code = $this->safe_string($response, 'code');
         if ($code !== null) {
             throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
+        return null;
     }
 }

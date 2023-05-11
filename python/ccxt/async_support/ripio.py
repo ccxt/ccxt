@@ -1075,7 +1075,7 @@ class ripio(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         #      {"detail":"Authentication credentials were not provided."}
         #      {"status_code":400,"errors":{"pair":["Invalid pair FOOBAR"]},"message":"An error has occurred, please check the form."}
@@ -1099,3 +1099,4 @@ class ripio(Exchange):
                 # self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

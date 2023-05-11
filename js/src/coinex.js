@@ -172,6 +172,7 @@ export default class coinex extends Exchange {
                         'order/market/trade/info': 1,
                         'sub_account/balance': 1,
                         'sub_account/transfer/history': 40,
+                        'sub_account/auth/api': 40,
                         'sub_account/auth/api/{user_auth_id}': 40,
                     },
                     'post': {
@@ -813,12 +814,12 @@ export default class coinex extends Exchange {
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeMarket(marketId, undefined, undefined, marketType);
-            const symbol = market['symbol'];
+            const marketInner = this.safeMarket(marketId, undefined, undefined, marketType);
+            const symbol = marketInner['symbol'];
             const ticker = this.parseTicker({
                 'date': timestamp,
                 'ticker': tickers[marketId],
-            }, market);
+            }, marketInner);
             ticker['symbol'] = symbol;
             result[symbol] = ticker;
         }
@@ -1722,6 +1723,12 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#createOrder
          * @description create a trade order
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http017_put_limit
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http018_put_market
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http019_put_limit_stop
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http020_put_market_stop
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http031_market_close
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http030_limit_close
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1735,6 +1742,7 @@ export default class coinex extends Exchange {
          * @param {string} params.timeInForce "GTC", "IOC", "FOK", "PO"
          * @param {bool} params.postOnly
          * @param {bool} params.reduceOnly
+         * @param {bool|undefined} params.position_id *required for reduce only orders* the position id to reduce
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1749,9 +1757,12 @@ export default class coinex extends Exchange {
         const positionId = this.safeInteger2(params, 'position_id', 'positionId'); // Required for closing swap positions
         const timeInForceRaw = this.safeString(params, 'timeInForce'); // Spot: IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
         const reduceOnly = this.safeValue(params, 'reduceOnly');
-        if (reduceOnly !== undefined) {
+        if (reduceOnly) {
             if (market['type'] !== 'swap') {
                 throw new InvalidOrder(this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap markets only');
+            }
+            if (positionId === undefined) {
+                throw new ArgumentsRequired(this.id + ' createOrder() requires a position_id/positionId parameter for reduceOnly orders');
             }
         }
         let method = undefined;
@@ -2714,7 +2725,7 @@ export default class coinex extends Exchange {
         let address = undefined;
         let tag = undefined;
         const partsLength = parts.length;
-        if (partsLength > 1) {
+        if (partsLength > 1 && parts[0] !== 'cfx') {
             address = parts[0];
             tag = parts[1];
         }
@@ -3660,10 +3671,10 @@ export default class coinex extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             if (marketId.indexOf('_') === -1) { // skip _signprice and _indexprice
-                const market = this.safeMarket(marketId, undefined, undefined, 'swap');
+                const marketInner = this.safeMarket(marketId, undefined, undefined, 'swap');
                 const ticker = tickers[marketId];
                 ticker['timestamp'] = timestamp;
-                result.push(this.parseFundingRate(ticker, market));
+                result.push(this.parseFundingRate(ticker, marketInner));
             }
         }
         return this.filterByArray(result, 'symbol', symbols);
@@ -3779,12 +3790,12 @@ export default class coinex extends Exchange {
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString(entry, 'market');
-            const symbol = this.safeSymbol(marketId, market, undefined, 'swap');
+            const symbolInner = this.safeSymbol(marketId, market, undefined, 'swap');
             const timestamp = this.safeTimestamp(entry, 'time');
             rates.push({
                 'info': entry,
-                'symbol': symbol,
-                'fundingRate': this.safeString(entry, 'funding_rate'),
+                'symbol': symbolInner,
+                'fundingRate': this.safeNumber(entry, 'funding_rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
             });
@@ -4704,7 +4715,7 @@ export default class coinex extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const code = this.safeString(response, 'code');
         const data = this.safeValue(response, 'data');
@@ -4728,5 +4739,6 @@ export default class coinex extends Exchange {
             const ErrorClass = this.safeValue(responseCodes, code, ExchangeError);
             throw new ErrorClass(response['message']);
         }
+        return undefined;
     }
 }

@@ -141,8 +141,8 @@ export default class bitmex extends Exchange {
         network: string;
         info: any;
     }>;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}, context?: {}): any;
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
+    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

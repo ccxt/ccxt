@@ -788,6 +788,7 @@ class kucoin extends Exchange {
                     'withdraw' => $isWithdrawEnabled,
                     'fee' => $fee,
                     'limits' => $this->limits,
+                    'networks' => array(),
                 );
             }
             return $result;
@@ -1933,8 +1934,12 @@ class kucoin extends Exchange {
         $stopTriggered = $this->safe_value($order, 'stopTriggered', false);
         $isActive = $this->safe_value($order, 'isActive');
         $status = null;
-        if ($isActive === true) {
-            $status = 'open';
+        if ($isActive !== null) {
+            if ($isActive === true) {
+                $status = 'open';
+            } else {
+                $status = 'closed';
+            }
         }
         if ($stop) {
             $responseStatus = $this->safe_string($order, 'status');
@@ -2765,8 +2770,8 @@ class kucoin extends Exchange {
                 for ($i = 0; $i < count($accounts); $i++) {
                     $balance = $accounts[$i];
                     $currencyId = $this->safe_string($balance, 'currency');
-                    $code = $this->safe_currency_code($currencyId);
-                    $result[$code] = $this->parse_balance_helper($balance);
+                    $codeInner = $this->safe_currency_code($currencyId);
+                    $result[$codeInner] = $this->parse_balance_helper($balance);
                 }
             } else {
                 for ($i = 0; $i < count($data); $i++) {
@@ -2774,12 +2779,12 @@ class kucoin extends Exchange {
                     $balanceType = $this->safe_string($balance, 'type');
                     if ($balanceType === $type) {
                         $currencyId = $this->safe_string($balance, 'currency');
-                        $code = $this->safe_currency_code($currencyId);
+                        $codeInner2 = $this->safe_currency_code($currencyId);
                         $account = $this->account();
                         $account['total'] = $this->safe_string($balance, 'balance');
                         $account['free'] = $this->safe_string($balance, 'available');
                         $account['used'] = $this->safe_string($balance, 'holds');
-                        $result[$code] = $account;
+                        $result[$codeInner2] = $account;
                     }
                 }
             }
@@ -3144,7 +3149,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         $versions = $this->safe_value($this->options, 'versions', array());
         $apiVersions = $this->safe_value($versions, $api, array());
         $methodVersions = $this->safe_value($apiVersions, $method, array());
@@ -3633,7 +3638,7 @@ class kucoin extends Exchange {
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $body);
-            return;
+            return null;
         }
         //
         // bad
@@ -3647,5 +3652,6 @@ class kucoin extends Exchange {
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
+        return null;
     }
 }

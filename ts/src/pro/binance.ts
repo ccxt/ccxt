@@ -293,8 +293,10 @@ export default class binance extends binanceRest {
         //         ]
         //     }
         //
-        const index = client.url.indexOf ('/stream');
-        const marketType = (index >= 0) ? 'spot' : 'contract';
+        const isTestnetSpot = client.url.indexOf ('testnet') > 0;
+        const isSpotMainNet = client.url.indexOf ('/stream.binance.') > 0;
+        const isSpot = isTestnetSpot || isSpotMainNet;
+        const marketType = isSpot ? 'spot' : 'contract';
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
@@ -435,7 +437,7 @@ export default class binance extends binanceRest {
         if (this.newUpdates) {
             limit = trades.getLimit (market['symbol'], limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
     parseTrade (trade, market = undefined) {
@@ -668,7 +670,7 @@ export default class binance extends binanceRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0);
     }
 
     handleOHLCV (client: Client, message) {
@@ -1317,7 +1319,7 @@ export default class binance extends binanceRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     parseWsOrder (order, market = undefined) {
@@ -1453,6 +1455,7 @@ export default class binance extends binanceRest {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': undefined,
+            'reduceOnly': this.safeValue (order, 'R'),
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1594,7 +1597,7 @@ export default class binance extends binanceRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
     handleMyTrade (client: Client, message) {

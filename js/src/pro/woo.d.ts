@@ -21,33 +21,7 @@ export default class woo extends wooRest {
     authenticate(params?: {}): any;
     watchPrivate(messageHash: any, message: any, params?: {}): Promise<any>;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseWsOrder(order: any, market?: any): {
-        info: any;
-        symbol: any;
-        id: string;
-        clientOrderId: string;
-        timestamp: number;
-        datetime: string;
-        lastTradeTimestamp: number;
-        type: string;
-        timeInForce: any;
-        postOnly: any;
-        side: string;
-        price: number;
-        stopPrice: any;
-        triggerPrice: any;
-        amount: number;
-        cost: string;
-        average: any;
-        filled: number;
-        remaining: number;
-        status: any;
-        fee: {
-            cost: string;
-            currency: string;
-        };
-        trades: any;
-    };
+    parseWsOrder(order: any, market?: any): any;
     handleOrderUpdate(client: Client, message: any): void;
     handleOrder(client: Client, message: any): void;
     handleMessage(client: Client, message: any): any;

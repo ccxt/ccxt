@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.oceanex import ImplicitAPI
 from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
@@ -18,7 +19,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class oceanex(Exchange):
+class oceanex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(oceanex, self).describe(), {
@@ -881,7 +882,7 @@ class oceanex(Exchange):
         #     {"code":1011,"message":"This IP 'x.x.x.x' is not allowed","data":{}}
         #
         if response is None:
-            return
+            return None
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'message')
         if (errorCode is not None) and (errorCode != '0'):
@@ -889,3 +890,4 @@ class oceanex(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['codes'], errorCode, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             raise ExchangeError(feedback)
+        return None

@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.novadax import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -25,7 +26,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class novadax(Exchange):
+class novadax(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(novadax, self).describe(), {
@@ -1334,7 +1335,12 @@ class novadax(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fee': None,
+            'comment': None,
+            'fee': {
+                'currency': None,
+                'cost': None,
+                'rate': None,
+            },
         }
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -1419,7 +1425,7 @@ class novadax(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         #     {"code":"A10003","data":[],"message":"Authentication failed, Invalid accessKey."}
         #
@@ -1430,3 +1436,4 @@ class novadax(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None
