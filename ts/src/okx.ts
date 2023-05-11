@@ -5048,7 +5048,7 @@ export default class okx extends Exchange {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((leverage < 1) || (leverage > 125)) {
-            throw new BadRequest (this.id + ' setLeverage () leverage should be between 1 and 125');
+            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 125');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -5071,18 +5071,18 @@ export default class okx extends Exchange {
         };
         const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
         //
-        //    {
-        //        "code": "0",
-        //        "data": [
-        //            {
-        //                "instId": "BTC-USDT-SWAP",
-        //                "lever": "5",
-        //                "mgnMode": "isolated",
-        //                "posSide": "long"
-        //            }
-        //        ],
-        //        "msg": ""
-        //    }
+        //     {
+        //       "code": "0",
+        //       "data": [
+        //         {
+        //           "instId": "BTC-USDT-SWAP",
+        //           "lever": "5",
+        //           "mgnMode": "isolated",
+        //           "posSide": "long"
+        //         }
+        //       ],
+        //       "msg": ""
+        //     }
         //
         return response;
     }
@@ -5154,18 +5154,18 @@ export default class okx extends Exchange {
         };
         const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
         //
-        //    {
-        //        "code": "0",
-        //        "data": [
-        //            {
-        //                "instId": "BTC-USDT-SWAP",
-        //                "lever": "5",
-        //                "mgnMode": "isolated",
-        //                "posSide": "long"
-        //            }
-        //        ],
-        //        "msg": ""
-        //    }
+        //     {
+        //       "code": "0",
+        //       "data": [
+        //         {
+        //           "instId": "BTC-USDT-SWAP",
+        //           "lever": "5",
+        //           "mgnMode": "isolated",
+        //           "posSide": "long"
+        //         }
+        //       ],
+        //       "msg": ""
+        //     }
         //
         return response;
     }
