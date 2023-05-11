@@ -300,6 +300,18 @@ export interface DepositWithdrawFee {
     networks?: Dictionary<DepositWithdrawFeeNetwork>;
 }
 
+export interface TransferEntry {
+    info?: any;
+    id?: string;
+    timestamp?: number;
+    datetime?: string;
+    currency?: string;
+    amount?: number;
+    fromAccount?: string;
+    toAccount?: string;
+    status?: string;
+}
+
 export interface BorrowRate {
     currency?: string;
     rate?: number;

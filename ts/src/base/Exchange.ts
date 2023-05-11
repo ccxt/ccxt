@@ -141,7 +141,7 @@ import {
     Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances,
     Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int,
     OrderType, OrderSide, FundingRate, OpenInterest, Position, BorrowInterest, BorrowRate, LeverageTier,
-    LedgerEntry, DepositWithdrawFeeNetwork
+    LedgerEntry, DepositWithdrawFeeNetwork, TransferEntry
 } from './types';
 export {Market, Trade, Fee, Ticker} from './types'
 
@@ -1510,7 +1510,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchFundingRates() is not supported yet');
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}): Promise<{}> {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
         throw new NotSupported (this.id + ' transfer() is not supported yet');
     }
 

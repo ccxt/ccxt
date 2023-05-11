@@ -64,6 +64,16 @@ public partial class Exchange
         var res = await this.fetchFundingRates(symbols, parameters);
         return ((List<object>)res).Select(item => new FundingRate(item)).ToList<FundingRate>();
     }
+    public async Task<TransferEntry> Transfer(string code, object amount, object fromAccount, object toAccount, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
+        return new TransferEntry(res);
+    }
+    public async Task<Dictionary<string, object>> Withdraw(string code, object amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.withdraw(code, amount, address, tag, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     public async Task<DepositAddressResponse> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.createDepositAddress(code, parameters);

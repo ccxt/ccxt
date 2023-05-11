@@ -722,4 +722,31 @@ public partial class Exchange
             }
         }
     }
+
+    public struct TransferEntry
+    {
+        public Dictionary<string, object>? info;
+
+        public string? id;
+        public Int64? timestamp;
+        public string? datetime;
+        public string? currency;
+        public double? amount;
+        public string? fromAccount;
+        public string? toAccount;
+        public string? status;
+
+        public TransferEntry(object transfer)
+        {
+            info = SafeValue(transfer, "info") != null ? (Dictionary<string, object>)SafeValue(transfer, "info") : null;
+            id = SafeString(transfer, "id");
+            timestamp = SafeInteger(transfer, "timestamp");
+            datetime = SafeString(transfer, "datetime");
+            currency = SafeString(transfer, "currency");
+            amount = SafeFloat(transfer, "amount");
+            fromAccount = SafeString(transfer, "fromAccount");
+            toAccount = SafeString(transfer, "toAccount");
+            status = SafeString(transfer, "status");
+        }
+    }
 }
