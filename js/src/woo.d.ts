@@ -64,6 +64,7 @@ export default class woo extends Exchange {
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: any): {
+        info: any;
         id: string;
         txid: string;
         timestamp: number;
@@ -72,13 +73,15 @@ export default class woo extends Exchange {
         addressFrom: string;
         addressTo: string;
         tag: string;
+        tagFrom: any;
+        tagTo: any;
         type: string;
         amount: number;
         currency: any;
         status: string;
         updated: number;
+        comment: any;
         fee: any;
-        info: any;
     };
     parseTransactionStatus(status: any): string;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
@@ -106,6 +109,7 @@ export default class woo extends Exchange {
     };
     parseTransferStatus(status: any): string;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
+        info: any;
         id: string;
         txid: string;
         timestamp: number;
@@ -114,13 +118,15 @@ export default class woo extends Exchange {
         addressFrom: string;
         addressTo: string;
         tag: string;
+        tagFrom: any;
+        tagTo: any;
         type: string;
         amount: number;
         currency: any;
         status: string;
         updated: number;
+        comment: any;
         fee: any;
-        info: any;
     }>;
     repayMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: any): {
@@ -139,7 +145,7 @@ export default class woo extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
+    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     parseIncome(income: any, market?: any): {
         info: any;
         symbol: any;

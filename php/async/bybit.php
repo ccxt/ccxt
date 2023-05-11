@@ -244,6 +244,9 @@ class bybit extends Exchange {
                         'v5/spot-lever-token/info' => 1,
                         'v5/spot-lever-token/reference' => 1,
                         'v5/announcements/index' => 1,
+                        'v5/spot-cross-margin-trade/pledge-token' => 1,
+                        'v5/spot-cross-margin-trade/borrow-token' => 1,
+                        'v5/ins-loan/ensure-tokens-convert' => 1,
                     ),
                 ),
                 'private' => array(
@@ -398,6 +401,11 @@ class bybit extends Exchange {
                         // user
                         'v5/user/query-sub-members' => 10,
                         'v5/user/query-api' => 10,
+                        'v5/spot-cross-margin-trade/loan-info' => 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/account' => 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/orders' => 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/repay-history' => 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/ins-loan/ltv-convert' => 1,
                     ),
                     'post' => array(
                         // inverse swap
@@ -584,6 +592,9 @@ class bybit extends Exchange {
                         'v5/user/update-sub-api' => 10,
                         'v5/user/delete-api' => 10,
                         'v5/user/delete-sub-api' => 10,
+                        'v5/spot-cross-margin-trade/loan' => 2.5, // 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/repay' => 2.5, // 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/switch' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                     ),
                     'delete' => array(
                         // spot
@@ -1479,15 +1490,15 @@ class bybit extends Exchange {
             if ($paginationCursor !== null) {
                 while ($paginationCursor !== null) {
                     $params['cursor'] = $paginationCursor;
-                    $response = Async\await($this->publicGetDerivativesV3PublicInstrumentsInfo ($params));
-                    $data = $this->safe_value($response, 'result', array());
-                    $rawMarkets = $this->safe_value($data, 'list', array());
+                    $responseInner = Async\await($this->publicGetDerivativesV3PublicInstrumentsInfo ($params));
+                    $dataNew = $this->safe_value($responseInner, 'result', array());
+                    $rawMarkets = $this->safe_value($dataNew, 'list', array());
                     $rawMarketsLength = count($rawMarkets);
                     if ($rawMarketsLength === 0) {
                         break;
                     }
                     $markets = $this->array_concat($rawMarkets, $markets);
-                    $paginationCursor = $this->safe_string($data, 'nextPageCursor');
+                    $paginationCursor = $this->safe_string($dataNew, 'nextPageCursor');
                 }
             }
             //
@@ -3201,6 +3212,27 @@ class bybit extends Exchange {
         //         "positionIdx" => 2
         //     }
         //
+        //     {
+        //         "orderId":"0b3499a4-9691-40ec-b2b9-7d94ee0165ff",
+        //         "orderLinkId":"",
+        //         "mmp":false,
+        //         "symbol":"SOLPERP",
+        //         "orderType":"Market",
+        //         "side":"Buy",
+        //         "orderQty":"0.10000000",
+        //         "orderPrice":"23.030",
+        //         "iv":"0",
+        //         "timeInForce":"ImmediateOrCancel",
+        //         "orderStatus":"Created",
+        //         "createdAt":"1683380752146568",
+        //         "basePrice":"0.000",
+        //         "triggerPrice":"0.000",
+        //         "takeProfit":"0.000",
+        //         "stopLoss":"0.000",
+        //         "slTriggerBy":"UNKNOWN",
+        //         "tpTriggerBy":"UNKNOWN"
+        //     }
+        //
         $marketId = $this->safe_string($order, 'symbol');
         $marketType = 'contract';
         if ($market !== null) {
@@ -3214,11 +3246,16 @@ class bybit extends Exchange {
         }
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $market['symbol'];
-        $timestamp = $this->safe_integer($order, 'createdTime');
+        $timestamp = null;
+        if (is_array($order) && array_key_exists('createdTime', $order)) {
+            $timestamp = $this->safe_integer($order, 'createdTime');
+        } elseif (is_array($order) && array_key_exists('createdAt', $order)) {
+            $timestamp = $this->safe_integer_product($order, 'createdAt', 0.001);
+        }
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'orderType');
-        $price = $this->safe_string($order, 'price');
-        $amount = $this->safe_string($order, 'qty');
+        $price = $this->safe_string_2($order, 'price', 'orderPrice');
+        $amount = $this->safe_string_2($order, 'qty', 'orderQty');
         $cost = $this->safe_string($order, 'cumExecValue');
         $filled = $this->safe_string($order, 'cumExecQty');
         $remaining = $this->safe_string($order, 'leavesQty');
@@ -3241,6 +3278,8 @@ class bybit extends Exchange {
         $rawTimeInForce = $this->safe_string($order, 'timeInForce');
         $timeInForce = $this->parse_time_in_force($rawTimeInForce);
         $stopPrice = $this->omit_zero($this->safe_string($order, 'triggerPrice'));
+        $takeProfitPrice = $this->omit_zero($this->safe_string($order, 'takeProfit'));
+        $stopLossPrice = $this->omit_zero($this->safe_string($order, 'stopLoss'));
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -3257,6 +3296,8 @@ class bybit extends Exchange {
             'price' => $price,
             'stopPrice' => $stopPrice,
             'triggerPrice' => $stopPrice,
+            'takeProfitPrice' => $takeProfitPrice,
+            'stopLossPrice' => $stopLossPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => null,
@@ -3901,9 +3942,6 @@ class bybit extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            if ($type === 'market') {
-                throw new NotSupported($this->id . 'createOrder does not allow $market orders for ' . $symbol . ' markets');
-            }
             $lowerCaseType = strtolower($type);
             if (($price === null) && ($lowerCaseType === 'limit')) {
                 throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for limit orders');
@@ -3930,7 +3968,7 @@ class bybit extends Exchange {
             );
             $isMarket = $lowerCaseType === 'market';
             $isLimit = $lowerCaseType === 'limit';
-            if ($isLimit !== null) {
+            if ($isLimit) {
                 $request['orderPrice'] = $this->price_to_precision($symbol, $price);
             }
             $exchangeSpecificParam = $this->safe_string($params, 'time_in_force');
@@ -3984,8 +4022,12 @@ class bybit extends Exchange {
                 $request['orderLinkId'] = $this->uuid16();
             }
             $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit' ));
-            $method = $market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder';
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($market['option']) {
+                $response = Async\await($this->privatePostOptionUsdcOpenapiPrivateV1PlaceOrder (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder (array_merge($request, $params)));
+            }
             //
             //     {
             //         "retCode":0,
@@ -7226,22 +7268,24 @@ class bybit extends Exchange {
             $symbols = $this->market_symbols($symbols);
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $settle = $this->safe_string($params, 'settleCoin');
+            $paramsOmitted = null;
             if ($settle === null) {
-                list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $settle);
+                list($settle, $paramsOmitted) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $settle);
             }
             $isUsdcSettled = $settle === 'USDC';
-            list($subType, $query) = $this->handle_sub_type_and_params('fetchPositions', null, $params);
+            $subType = null;
+            list($subType, $paramsOmitted) = $this->handle_sub_type_and_params('fetchPositions', null, $paramsOmitted);
             $isInverse = $subType === 'inverse';
             $isLinearSettle = $isUsdcSettled || ($settle === 'USDT');
             if ($isInverse && $isLinearSettle) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions with inverse $subType requires $settle to not be USDT or USDC');
             }
             if (($enableUnifiedMargin || $enableUnifiedAccount) && !$isInverse) {
-                return Async\await($this->fetch_unified_positions($symbols, $query));
+                return Async\await($this->fetch_unified_positions($symbols, $params));
             } elseif ($isUsdcSettled) {
-                return Async\await($this->fetch_usdc_positions($symbols, $query));
+                return Async\await($this->fetch_usdc_positions($symbols, $paramsOmitted));
             } else {
-                return Async\await($this->fetch_derivatives_positions($symbols, $query));
+                return Async\await($this->fetch_derivatives_positions($symbols, $params));
             }
         }) ();
     }
@@ -7646,6 +7690,11 @@ class bybit extends Exchange {
             );
             if ($since !== null) {
                 $request['startTime'] = $since;
+            }
+            $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+            $params = $this->omit($params, array( 'till', 'until' ));
+            if ($until !== null) {
+                $request['endTime'] = $until;
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
@@ -8498,7 +8547,7 @@ class bybit extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         //
         //     {
@@ -8538,5 +8587,6 @@ class bybit extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
+        return null;
     }
 }

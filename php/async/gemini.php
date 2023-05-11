@@ -494,9 +494,9 @@ class gemini extends Exchange {
             }
             $promises = Async\await(Promise\all($promises));
             for ($i = 0; $i < count($promises); $i++) {
-                $response = $promises[$i];
-                $marketId = $this->safe_string_lower($response, 'symbol');
-                $result[$marketId] = $this->parse_market($response);
+                $responseInner = $promises[$i];
+                $marketId = $this->safe_string_lower($responseInner, 'symbol');
+                $result[$marketId] = $this->parse_market($responseInner);
             }
             return $this->to_array($result);
         }) ();
@@ -1627,7 +1627,7 @@ class gemini extends Exchange {
                 $feedback = $this->id . ' ' . $body;
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             }
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         //
         //     {
@@ -1638,14 +1638,15 @@ class gemini extends Exchange {
         //
         $result = $this->safe_string($response, 'result');
         if ($result === 'error') {
-            $reason = $this->safe_string($response, 'reason');
+            $reasonInner = $this->safe_string($response, 'reason');
             $message = $this->safe_string($response, 'message');
             $feedback = $this->id . ' ' . $message;
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $reason, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $reasonInner, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 
     public function create_deposit_address(string $code, $params = array ()) {

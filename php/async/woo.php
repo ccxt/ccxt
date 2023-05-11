@@ -335,7 +335,10 @@ class woo extends Exchange {
                 $symbol = $base . '/' . $quote;
                 $contractSize = null;
                 $linear = null;
-                if ($isSwap) {
+                $margin = true;
+                $contract = $isSwap;
+                if ($contract) {
+                    $margin = false;
                     $settleId = $this->safe_string($parts, 2);
                     $settle = $this->safe_currency_code($settleId);
                     $symbol = $base . '/' . $quote . ':' . $settle;
@@ -354,12 +357,12 @@ class woo extends Exchange {
                     'settleId' => $settleId,
                     'type' => $marketType,
                     'spot' => $isSpot,
-                    'margin' => true,
+                    'margin' => $margin,
                     'swap' => $isSwap,
                     'future' => false,
                     'option' => false,
                     'active' => null,
-                    'contract' => $isSwap,
+                    'contract' => $contract,
                     'linear' => $linear,
                     'inverse' => null,
                     'contractSize' => $contractSize,
@@ -1682,6 +1685,7 @@ class woo extends Exchange {
         $addressFrom = $this->safe_string($transaction, 'source_address');
         $timestamp = $this->safe_timestamp($transaction, 'created_time');
         return array(
+            'info' => $transaction,
             'id' => $this->safe_string_2($transaction, 'id', 'withdraw_id'),
             'txid' => $this->safe_string($transaction, 'tx_id'),
             'timestamp' => $timestamp,
@@ -1690,13 +1694,15 @@ class woo extends Exchange {
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
             'tag' => $this->safe_string($transaction, 'extra'),
+            'tagFrom' => null,
+            'tagTo' => null,
             'type' => $movementDirection,
             'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'updated' => $this->safe_timestamp($transaction, 'updated_time'),
+            'comment' => null,
             'fee' => $fee,
-            'info' => $transaction,
         );
     }
 
@@ -1993,7 +1999,7 @@ class woo extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         //
         //     400 Bad Request array("success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled.")
@@ -2005,6 +2011,7 @@ class woo extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         }
+        return null;
     }
 
     public function parse_income($income, $market = null) {

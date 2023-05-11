@@ -403,7 +403,7 @@ class btcalpha extends Exchange {
         $marketId = $this->safe_string($trade, 'pair');
         $market = $this->safe_market($marketId, $market, '_');
         $timestampRaw = $this->safe_string($trade, 'timestamp');
-        $timestamp = $this->parse_number(Precise::string_mul($timestampRaw, '1000000'));
+        $timestamp = $this->parse_to_int(Precise::string_mul($timestampRaw, '1000000'));
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
         $id = $this->safe_string($trade, 'id');
@@ -919,7 +919,7 @@ class btcalpha extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         //
         //     array("date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC")
@@ -936,7 +936,7 @@ class btcalpha extends Exchange {
             throw new DDoSProtection($feedback);
         }
         if ($code < 400) {
-            return;
+            return null;
         }
         throw new ExchangeError($feedback);
     }

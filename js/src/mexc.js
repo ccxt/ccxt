@@ -6,7 +6,7 @@
 
 // ---------------------------------------------------------------------------
 import Exchange from './abstract/mexc.js';
-import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError } from './base/errors.js';
+import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError, AccountSuspended } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -33,7 +33,7 @@ export default class mexc extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
-                'createDepositAddress': undefined,
+                'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'deposit': undefined,
@@ -501,7 +501,7 @@ export default class mexc extends Exchange {
                     '30010': InvalidOrder,
                     '30014': InvalidOrder,
                     '30016': InvalidOrder,
-                    '30018': InvalidOrder,
+                    '30018': AccountSuspended,
                     '30020': AuthenticationError,
                     '30021': BadRequest,
                     '30025': InvalidOrder,
@@ -613,6 +613,7 @@ export default class mexc extends Exchange {
             //
             return this.safeInteger(response, 'data');
         }
+        return undefined;
     }
     async fetchCurrencies(params = {}) {
         /**
@@ -1758,6 +1759,7 @@ export default class mexc extends Exchange {
         else if (market['swap']) {
             return await this.createSwapOrder(market, type, side, amount, price, marginMode, query);
         }
+        return undefined;
     }
     async createSpotOrder(market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         const symbol = market['symbol'];
@@ -2086,7 +2088,7 @@ export default class mexc extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument for spot market');
             }
-            const [marginMode, query] = this.handleMarginModeAndParams('fetchOrders', params);
+            const [marginMode, queryInner] = this.handleMarginModeAndParams('fetchOrders', params);
             let method = 'spotPrivateGetAllOrders';
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
@@ -2100,7 +2102,7 @@ export default class mexc extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const response = await this[method](this.extend(request, query));
+            const response = await this[method](this.extend(request, queryInner));
             //
             // spot
             //
@@ -2450,16 +2452,16 @@ export default class mexc extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
             }
-            const request = {
+            const requestInner = {
                 'symbol': market['id'],
             };
             const clientOrderId = this.safeString(params, 'clientOrderId');
             if (clientOrderId !== undefined) {
                 params = this.omit(query, 'clientOrderId');
-                request['origClientOrderId'] = clientOrderId;
+                requestInner['origClientOrderId'] = clientOrderId;
             }
             else {
-                request['orderId'] = id;
+                requestInner['orderId'] = id;
             }
             let method = 'spotPrivateDeleteOrder';
             if (marginMode !== undefined) {
@@ -2468,7 +2470,7 @@ export default class mexc extends Exchange {
                 }
                 method = 'spotPrivateDeleteMarginOrder';
             }
-            data = await this[method](this.extend(request, query));
+            data = await this[method](this.extend(requestInner, query));
             //
             // spot
             //
@@ -2850,6 +2852,8 @@ export default class mexc extends Exchange {
         const statuses = {
             'BUY': 'buy',
             'SELL': 'sell',
+            '1': 'buy',
+            '2': 'sell',
             // contracts v1 : TODO
         };
         return this.safeString(statuses, status, status);
@@ -2940,6 +2944,7 @@ export default class mexc extends Exchange {
             //
             return this.safeValue(response, 'data');
         }
+        return undefined;
     }
     async fetchAccounts(params = {}) {
         /**
@@ -3696,11 +3701,11 @@ export default class mexc extends Exchange {
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString(entry, 'symbol');
-            const symbol = this.safeSymbol(marketId);
+            const symbolInner = this.safeSymbol(marketId);
             const timestamp = this.safeInteger(entry, 'settleTime');
             rates.push({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': this.safeNumber(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
@@ -3872,24 +3877,70 @@ export default class mexc extends Exchange {
         const request = {
             'coin': currency['id'],
         };
+        const networkCode = this.safeString(params, 'network');
+        const networkId = this.networkCodeToId(networkCode, code);
+        if (networkId !== undefined) {
+            request['network'] = networkId;
+        }
+        params = this.omit(params, 'network');
         const response = await this.spotPrivateGetCapitalDepositAddress(this.extend(request, params));
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const depositAddress = response[i];
             const coin = this.safeString(depositAddress, 'coin');
-            const currency = this.currency(coin);
-            const networkId = this.safeString(depositAddress, 'network');
-            const network = this.safeNetwork(networkId);
+            const currencyInner = this.currency(coin);
+            const networkIdInner = this.safeString(depositAddress, 'network');
+            const network = this.safeNetwork(networkIdInner);
             const address = this.safeString(depositAddress, 'address', undefined);
             const tag = this.safeString2(depositAddress, 'tag', 'memo', undefined);
             result.push({
-                'currency': currency['id'],
+                'currency': currencyInner['id'],
                 'network': network,
                 'address': address,
                 'tag': tag,
             });
         }
         return result;
+    }
+    async createDepositAddress(code, params = {}) {
+        /**
+         * @method
+         * @name mexc3#createDepositAddress
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
+         * @description create a currency deposit address
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @param {string|undefined} params.network the blockchain network name
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'coin': currency['id'],
+        };
+        const networkCode = this.safeString(params, 'network');
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired(this.id + ' createDepositAddress requires a `network` parameter');
+        }
+        const networkId = this.networkCodeToId(networkCode, code);
+        if (networkId !== undefined) {
+            request['network'] = networkId;
+        }
+        params = this.omit(params, 'network');
+        const response = await this.spotPrivatePostCapitalDepositAddress(this.extend(request, params));
+        //     {
+        //        "coin": "EOS",
+        //        "network": "EOS",
+        //        "address": "zzqqqqqqqqqq",
+        //        "memo": "MX10068"
+        //     }
+        return {
+            'info': response,
+            'currency': this.safeString(response, 'coin'),
+            'network': this.safeString(response, 'network'),
+            'address': this.safeString(response, 'address'),
+            'tag': this.safeString(response, 'memo'),
+        };
     }
     async fetchDepositAddress(code, params = {}) {
         /**
@@ -4306,6 +4357,7 @@ export default class mexc extends Exchange {
         else if (marketType === 'swap') {
             throw new BadRequest(this.id + ' fetchTransfer() is not supported for ' + marketType);
         }
+        return undefined;
     }
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -4893,7 +4945,8 @@ export default class mexc extends Exchange {
         return [marginMode, params];
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const [section, access] = api;
+        const section = this.safeString(api, 0);
+        const access = this.safeString(api, 1);
         [path, params] = this.resolvePath(path, params);
         let url = undefined;
         if (section === 'spot') {
@@ -4958,7 +5011,7 @@ export default class mexc extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         // spot
         //     {"code":-1128,"msg":"Combination of optional parameters invalid.","_extend":null}
@@ -4972,7 +5025,7 @@ export default class mexc extends Exchange {
         //
         const success = this.safeValue(response, 'success', false); // v1
         if (success === true) {
-            return;
+            return undefined;
         }
         const responseCode = this.safeString(response, 'code', undefined);
         if ((responseCode !== undefined) && (responseCode !== '200') && (responseCode !== '0')) {
@@ -4981,5 +5034,6 @@ export default class mexc extends Exchange {
             this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);
             throw new ExchangeError(feedback);
         }
+        return undefined;
     }
 }

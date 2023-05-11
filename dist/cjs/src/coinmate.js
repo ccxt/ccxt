@@ -978,6 +978,7 @@ class coinmate extends coinmate$1 {
             }
             throw new errors.ExchangeError(this.id + ' ' + body);
         }
+        return undefined;
     }
 }
 

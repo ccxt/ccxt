@@ -306,11 +306,19 @@ class whitebit extends whitebit$1 {
             let symbol = base + '/' + quote;
             const swap = typeId === 'futures';
             const margin = isCollateral && !swap;
+            let contract = false;
+            const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec')));
+            const contractSize = amountPrecision;
+            let linear = undefined;
+            let inverse = undefined;
             if (swap) {
                 settleId = quoteId;
                 settle = this.safeCurrencyCode(settleId);
                 symbol = symbol + ':' + settle;
                 type = 'swap';
+                contract = true;
+                linear = true;
+                inverse = false;
             }
             else {
                 type = 'spot';
@@ -331,18 +339,18 @@ class whitebit extends whitebit$1 {
                 'future': false,
                 'option': false,
                 'active': active,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
+                'contract': contract,
+                'linear': linear,
+                'inverse': inverse,
                 'taker': this.safeNumber(market, 'makerFee'),
                 'maker': this.safeNumber(market, 'takerFee'),
-                'contractSize': undefined,
+                'contractSize': contractSize,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec'))),
+                    'amount': amountPrecision,
                     'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'moneyPrec'))),
                 },
                 'limits': {
@@ -934,14 +942,13 @@ class whitebit extends whitebit$1 {
             const keys = Object.keys(response);
             for (let i = 0; i < keys.length; i++) {
                 const marketId = keys[i];
-                const market = this.safeMarket(marketId, undefined, '_');
+                const marketNew = this.safeMarket(marketId, undefined, '_');
                 const rawTrades = this.safeValue(response, marketId, []);
-                const parsed = this.parseTrades(rawTrades, market, since, limit);
+                const parsed = this.parseTrades(rawTrades, marketNew, since, limit);
                 results = this.arrayConcat(results, parsed);
             }
             results = this.sortBy2(results, 'timestamp', 'id');
-            const tail = (since === undefined);
-            return this.filterBySinceLimit(results, since, limit, 'timestamp', tail);
+            return this.filterBySinceLimit(results, since, limit, 'timestamp');
         }
     }
     parseTrade(trade, market = undefined) {
@@ -1397,10 +1404,10 @@ class whitebit extends whitebit$1 {
         let results = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeMarket(marketId, undefined, '_');
+            const marketNew = this.safeMarket(marketId, undefined, '_');
             const orders = response[marketId];
             for (let j = 0; j < orders.length; j++) {
-                const order = this.parseOrder(orders[j], market);
+                const order = this.parseOrder(orders[j], marketNew);
                 results.push(this.extend(order, { 'status': 'closed' }));
             }
         }
@@ -2061,7 +2068,7 @@ class whitebit extends whitebit$1 {
             const request = '/' + 'api' + '/' + version + pathWithParams;
             body = this.json(this.extend({ 'request': request, 'nonce': nonce }, params));
             const payload = this.stringToBase64(body);
-            const signature = this.hmac(payload, secret, sha512.sha512);
+            const signature = this.hmac(this.encode(payload), secret, sha512.sha512);
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
@@ -2086,9 +2093,9 @@ class whitebit extends whitebit$1 {
             const message = this.safeString(response, 'message');
             // For these cases where we have a generic code variable error key
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
-            const code = this.safeInteger(response, 'code');
+            const codeNew = this.safeInteger(response, 'code');
             const hasErrorStatus = status !== undefined && status !== '200';
-            if (hasErrorStatus || code !== undefined) {
+            if (hasErrorStatus || codeNew !== undefined) {
                 const feedback = this.id + ' ' + body;
                 let errorInfo = message;
                 if (hasErrorStatus) {
@@ -2108,6 +2115,7 @@ class whitebit extends whitebit$1 {
                 throw new errors.ExchangeError(feedback);
             }
         }
+        return undefined;
     }
 }
 

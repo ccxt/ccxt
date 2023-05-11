@@ -823,10 +823,10 @@ export default class lbank extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const query = this.keysort (this.extend ({
+            const queryInner = this.keysort (this.extend ({
                 'api_key': this.apiKey,
             }, params));
-            const queryString = this.rawencode (query);
+            const queryString = this.rawencode (queryInner);
             const message = this.hash (this.encode (queryString), md5).toUpperCase ();
             const cacheSecretAsPem = this.safeValue (this.options, 'cacheSecretAsPem', true);
             let pem = undefined;
@@ -848,7 +848,7 @@ export default class lbank extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const success = this.safeString (response, 'result');
         if (success === 'false') {
@@ -895,5 +895,6 @@ export default class lbank extends Exchange {
             }, errorCode, ExchangeError);
             throw new ErrorClass (message);
         }
+        return undefined;
     }
 }

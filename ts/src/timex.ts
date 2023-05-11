@@ -368,7 +368,8 @@ export default class timex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, code, since, limit);
+        const currency = this.safeCurrency (code);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -403,7 +404,8 @@ export default class timex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, code, since, limit);
+        const currency = this.safeCurrency (code);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     getCurrencyByAddress (address) {
@@ -1330,6 +1332,7 @@ export default class timex extends Exchange {
                 'withdraw': { 'min': fee, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
             },
+            'networks': {},
         };
     }
 
@@ -1552,7 +1555,7 @@ export default class timex extends Exchange {
 
     handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (statusCode >= 400) {
             //
@@ -1571,5 +1574,6 @@ export default class timex extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 }

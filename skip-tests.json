@@ -10,7 +10,7 @@
     },
     "ascendex": {
         "skipMethods": {
-            "fetchTickers": "bid might be 0",
+        "fetchTickers": "bid might be 0",
             "fetchTicker": "same"
         }
     },
@@ -29,7 +29,9 @@
         }
     },
     "binance": {
+        "httpProxy": "http://51.83.140.52:11230",
         "skipWs": true,
+		"skipPhpAsync":true,
         "skipMethods": {
             "loadMarkets": "expiry not set for future markets",
             "fetchTickers": "some symbols i.e. BTC/USD4 might have bid-ask value 0",
@@ -43,6 +45,7 @@
         }
     },
     "binanceus": {
+		"skipPhpAsync":true,
         "skipMethods": {
             "loadMarkets": "expiry not set for future markets",
             "fetchTickers": "some symbols i.e. BTC/USD4 might have bid-ask value 0",
@@ -50,6 +53,8 @@
         }
     },
     "binancecoinm": {
+        "httpProxy": "http://51.83.140.52:11230",
+		"skipPhpAsync":true,
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": "expiry not set for future markets",
@@ -58,9 +63,13 @@
         }
     },
     "binanceusdm": {
+        "httpProxy": "http://51.83.140.52:11230",
+		"skipPhpAsync":true,
         "skipWs": true
     },
     "tokocrypto": {
+        "httpProxy": "http://51.83.140.52:11230",
+		"skipPhpAsync":true,
         "skipWs": true
     },
     "bitbank": {
@@ -144,8 +153,7 @@
             "fetchTicker": "same",
             "fetchOHLCV": "open might be greater than high"
         },
-        "skip": true,
-        "//": "update:spot markets doesnt work atm, need fix spot:true"
+        "skip": "update:spot markets doesnt work atm, need fix spot:true"
     },
     "bitopro": {
         "skipWs": true,
@@ -203,8 +211,7 @@
         }
     },
     "blockchaincom": {
-        "skip": true,
-        "//": "503 Service Unavailable",
+        "skip": "503 Service Unavailable",
         "skipMethods": {
             "loadMarkets": "taker key is missing from structure",
             "fetchCurrencies": "info key is missing",
@@ -221,12 +228,10 @@
             "fetchTicker": "same",
             "fetchOHLCV": "open might be greater than high"
         },
-		"skip": true,
-		"//": "request timeout"
+		"skip": "request timeout"
     },
     "bittrex": {
-		"skip": true,
-		"//": "request timeout",
+		"skip": "request timeout",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": "bid might be set to 0",
@@ -246,7 +251,9 @@
         "skipMethods": {
             "fetchCurrencies": "info key is missing",
             "fetchTickers": "open might be set to 0",
-            "fetchTicker": "same"
+            "fetchTicker": "same",
+            "fetchOrderBook": "bids[0][0] is not < asks[0][0]",
+            "fetchL2OrderBook": "same"
         }
     },
     "btcturk": {
@@ -255,6 +262,7 @@
         }
     },
     "btcmarkets": {
+        "skip": "04/05 under maintenance",
         "skipMethods": {
             "fetchCurrencies": "info key is missing",
             "fetchTickers": "high might be set to 0",
@@ -263,6 +271,8 @@
         }
     },
     "btctradeua": {
+        "skip": true,
+        "//": "25/04 exchange not available",
         "skipMethods": {
             "loadMarkets": "precision key has an null value, but is expected to have a value",
             "fetchCurrencies": "info key is missing",
@@ -271,6 +281,9 @@
         }
     },
     "bybit": {
+        "httpProxy": "http://51.83.140.52:11230",
+        "skipPhpAsync": true,
+        "//": "missing php async proxy",
         "skipMethods": {
             "fetchTickers": "returned symbol is not same as requested symbol. i.e. BTC/USDT:USDT vs BTC/USDT",
             "fetchTicker": "same"
@@ -289,8 +302,7 @@
             "fetchTicker": "same",
             "fetchTrades": "datetime is not same as timestamp"
         },
-        "skip": true,
-        "//": "private endpoints"
+        "skip": "private endpoints"
     },
     "coinbasepro": {
 		"skipPhpAsync":true,
@@ -317,15 +329,12 @@
         }
     },
     "buda": { 
-        "skip": true,
-        "//": "forbidden location"
+        "skip": "forbidden location"
     },
     "cdax": {
         "skipWs": true
     },
     "cex": {
-        "skip": true,
-        "//": "temporary unavailable, lets re-check from 16th april",
         "skipWs": true,
         "skipMethods": {
             "fetchOHLCV": "unexpected issue",
@@ -360,7 +369,7 @@
             "loadMarkets": "max is less than min",
             "fetchTickers": "timestamp might be of 1970-01-01T00:00:00.000Z",
             "fetchTicker": "same"
-        }
+    }
     },
     "currencycom": {
         "skipWs": true,
@@ -371,7 +380,6 @@
         }
     },
     "delta": {
-        "skip": true,
         "skipMethods": {
             "loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
             "fetchTickers": "quoteVolume >= baseVolume * low is incorrect, also quoteVolume <= baseVolume * high",
@@ -402,6 +410,7 @@
         }
     },
     "gemini": {
+        "skip": "temporary outage till 2023-04-22",
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": "info key is missing",
@@ -453,8 +462,7 @@
         }
     },
     "huobijp": {
-        "skip": true,
-        "//": "trade object does not include fee/s, causing many methods test to fail",
+        "skip": "trade object does not include fee/s, causing many methods test to fail",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": "quoteVolume <= baseVolume * high is failing",
@@ -488,8 +496,7 @@
         }
     },
     "idex": {
-		"skip": true,
-		"//": "rate limit exceeded",
+		"skip": "rate limit exceeded",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": "close key is undefined",
@@ -497,6 +504,7 @@
         }
     },
     "itbit": {
+        "skip": "endpoints return 'no healthy upstream', as of 27 apr 2023",
         "skipMethods": {
             "loadMarkets": "precision key has an null value, but is expected to have a value",
             "fetchCurrencies": "info key is missing",
@@ -519,8 +527,7 @@
         }
     },
     "kuna": {
-        "skip": true,
-        "//": "403 forbidden"
+        "skip": "403 forbidden"
     },
     "kucoin": {
         "skipMethods": {
@@ -541,8 +548,7 @@
         }
     },
     "lbank": {
-        "skip": true,
-        "//": "nothing returned, probably temporary issue",
+        "skip": "nothing returned, probably temporary issue",
         "skipMethods": {
             "fetchCurrencies": "info key is missing",
             "fetchTickers": "quoteVolume >= baseVolume * low is failing",
@@ -572,10 +578,10 @@
     },
     "mercado": {
         "skipMethods": {
-            "fetchOrderBook": "some bid might be lower than next bid",
-            "fetchL2OrderBook": "some bid might be lower than next bid",
-            "fetchTickers": "some bid might be lower than next bid",
-            "fetchTicker": "some bid might be lower than next bid",
+            "fetchOrderBook": "bid > ask",
+            "fetchL2OrderBook": "bid > ask",
+            "fetchTickers": "bid > ask",
+            "fetchTicker": "bid > ask",
             "fetchCurrencies": "info key is missing"
         }
     },
@@ -610,6 +616,7 @@
     "oceanex": {
         "skipMethods": {
             "fetchCurrencies": "info key is missing",
+            "fetchOrderBooks": "fetchOrderBooks returned 0 length",
             "fetchTickers": "high might be set to 0",
             "fetchTicker": "same"
         }
@@ -624,12 +631,12 @@
     },
     "phemex": {
         "skipMethods": {
-            "loadMarkets": "contractSize might be set to 0"
+            "loadMarkets": "contractSize might be set to 0",
+            "fetchTickers": "quoteVolume <= baseVolume * high"
         }
     },
     "okcoin": {
-        "skip": true,
-        "//": "502 Bad Gateway, probably location restricted, or might be temporary",
+        "skip": "502 Bad Gateway, probably location restricted, or might be temporary",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": "quoteVolume <= baseVolume * high is failing",
@@ -658,8 +665,7 @@
         }
     },
     "tidex": {
-        "skip": true,
-        "//": "exchange does not seem to respond"
+        "skip": "exchange does not seem to respond"
     },
     "krakenfutures": {
         "skipMethods": {
@@ -678,8 +684,7 @@
         }
     },
     "ripio": {
-        "skip": true,
-        "//": "503 Service Unavailable, might be location issue",
+        "skip": "503 Service Unavailable, might be location issue",
         "skipWs": true
     },
     "timex": {
@@ -710,8 +715,7 @@
 		"skipPhpAsync": true
 	},
     "wazirx": {
-        "skip":true,
-        "//": "ratelimit exceeded",
+        "skip":"ratelimit exceeded",
         "skipWs": true
     },
     "zaif": {
@@ -737,6 +741,7 @@
     },
     "yobit": {
         "skipMethods": {
+            "fetchTickers": "all tickers request exceedes max url length",
             "fetchCurrencies": "info key is missing"
         }
     },

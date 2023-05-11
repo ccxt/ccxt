@@ -51,6 +51,7 @@ interface Exchange {
     v2PublicGetFuturesCollateral(params?: {}): Promise<implicitReturnType>;
     v2PublicGetFuturesPricingData(params?: {}): Promise<implicitReturnType>;
     v2PublicGetFuturesTicker(params?: {}): Promise<implicitReturnType>;
+    v2PrivateDataGetOrderHist(params?: {}): Promise<implicitReturnType>;
     v2PrivateGetAccountInfo(params?: {}): Promise<implicitReturnType>;
     v2PrivateAccountGroupGetOrderHist(params?: {}): Promise<implicitReturnType>;
     v2PrivateAccountGroupGetFuturesPosition(params?: {}): Promise<implicitReturnType>;

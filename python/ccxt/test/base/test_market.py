@@ -78,7 +78,7 @@ def test_market(exchange, method, market):
     if market['contract']:
         assert market['linear'] != market['inverse'], 'market linear and inverse must not be the same' + log_text
     else:
-        assert (market['linear'] is None) and (market['inverse'] is None), 'market linear and inverse must be undefined when \"contract\" is true' + log_text
+        assert (market['linear'] is None) and (market['inverse'] is None), 'market linear and inverse must be undefined when \"contract\" is false' + log_text
     if market['option']:
         assert market['strike'] is not None, '\"strike\" must be defined when \"option\" is true' + log_text
         assert market['optionType'] is not None, '\"optionType\" must be defined when \"option\" is true' + log_text

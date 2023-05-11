@@ -1422,7 +1422,12 @@ class novadax extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'fee' => null,
+            'comment' => null,
+            'fee' => array(
+                'currency' => null,
+                'cost' => null,
+                'rate' => null,
+            ),
         );
     }
 
@@ -1519,7 +1524,7 @@ class novadax extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         //
         //     array("code":"A10003","data":array(),"message":"Authentication failed, Invalid accessKey.")
@@ -1532,5 +1537,6 @@ class novadax extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

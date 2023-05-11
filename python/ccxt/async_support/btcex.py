@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.btcex import ImplicitAPI
 from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
@@ -24,7 +25,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class btcex(Exchange):
+class btcex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(btcex, self).describe(), {
@@ -926,8 +927,8 @@ class btcex(Exchange):
             if (assetType == 'WALLET') or (assetType == 'SPOT'):
                 details = self.safe_value(currency, 'details')
                 if details is not None:
-                    for i in range(0, len(details)):
-                        detail = details[i]
+                    for j in range(0, len(details)):
+                        detail = details[j]
                         coinType = self.safe_string(detail, 'coin_type')
                         code = self.safe_currency_code(coinType)
                         account = self.safe_value(result, code, self.account())
@@ -2505,12 +2506,13 @@ class btcex(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to the default error handler
+            return None  # fallback to the default error handler
         error = self.safe_value(response, 'error')
         if error:
             feedback = self.id + ' ' + body
-            code = self.safe_string(error, 'code')
+            codeInner = self.safe_string(error, 'code')
             message = self.safe_string(error, 'message')
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeInner, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

@@ -2,6 +2,87 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.100 (2023-05-11)
+
+### 3.0.99 (2023-05-10)
+
+### 3.0.98 (2023-05-09)
+
+### 3.0.97 (2023-05-08)
+
+
+### Bug Fixes
+
+* **deribit:** fix [#17729](https://github.com/ccxt/ccxt/issues/17729) ([2a5d61a](https://github.com/ccxt/ccxt/commit/2a5d61af37235ca85f72bbbab2440685c68a4d39))
+
+### 3.0.96 (2023-05-06)
+
+### 3.0.95 (2023-05-06)
+
+### 3.0.94 (2023-05-05)
+
+
+### Bug Fixes
+
+* **whitebit:** signing ([08249c7](https://github.com/ccxt/ccxt/commit/08249c79b6a4680acf0da4f186aa2fc8ce10f6f1))
+
+### 3.0.93 (2023-05-05)
+
+### 3.0.92 (2023-05-04)
+
+### 3.0.91 (2023-05-04)
+
+### 3.0.90 (2023-05-03)
+
+### 3.0.89 (2023-05-02)
+
+### 3.0.88 (2023-05-02)
+
+### 3.0.87 (2023-05-02)
+
+### 3.0.86 (2023-05-01)
+
+### 3.0.85 (2023-05-01)
+
+### 3.0.84 (2023-04-30)
+
+### 3.0.83 (2023-04-29)
+
+### 3.0.82 (2023-04-28)
+
+
+### Bug Fixes
+
+* **phemex:** watchOrders auth flow ([5a53e1e](https://github.com/ccxt/ccxt/commit/5a53e1e91f4c33bf4c792ed8cbee90ab36f5cd1f))
+
+### 3.0.81 (2023-04-28)
+
+### 3.0.80 (2023-04-27)
+
+
+### Bug Fixes
+
+* **webpack:** webworkers usage ([bc63ad9](https://github.com/ccxt/ccxt/commit/bc63ad905c5db0c1b3ff1ad62e3eabeb48126c3a))
+
+### 3.0.79 (2023-04-27)
+
+### 3.0.78 (2023-04-26)
+
+### 3.0.77 (2023-04-25)
+
+### 3.0.76 (2023-04-24)
+
+
+### Features
+
+* **Deribit:** add spot markets ([d561ecf](https://github.com/ccxt/ccxt/commit/d561ecffb0e7f4ca894a6285f0aa1c3d2c097dcc))
+
+### 3.0.75 (2023-04-23)
+
+### 3.0.74 (2023-04-21)
+
+### 3.0.73 (2023-04-20)
+
 ### 3.0.72 (2023-04-19)
 
 

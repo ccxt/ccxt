@@ -6,6 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import binance from './binance.js';
+import { InvalidOrder } from './base/errors.js';
 //  ---------------------------------------------------------------------------
 export default class binanceusdm extends binance {
     describe() {
@@ -36,6 +37,14 @@ export default class binanceusdm extends binance {
                 'leverageBrackets': undefined,
                 'marginTypes': {},
                 'marginModes': {},
+            },
+            // https://binance-docs.github.io/apidocs/futures/en/#error-codes
+            'exceptions': {
+                'exact': {
+                    '-5021': InvalidOrder,
+                    '-5022': InvalidOrder,
+                    '-5028': InvalidOrder, // {"code":-5028,"msg":"Timestamp for this request is outside of the ME recvWindow."}
+                },
             },
         });
     }

@@ -773,8 +773,12 @@ class bigone extends Exchange {
             Async\await($this->load_markets());
             $type = $this->safe_string($params, 'type', '');
             $params = $this->omit($params, 'type');
-            $method = 'privateGet' . $this->capitalize($type) . 'Accounts';
-            $response = Async\await($this->$method ($params));
+            $response = null;
+            if ($type === 'funding' || $type === 'fund') {
+                $response = Async\await($this->privateGetFundAccounts ($params));
+            } else {
+                $response = Async\await($this->privateGetAccounts ($params));
+            }
             //
             //     {
             //         "code":0,
@@ -1555,7 +1559,7 @@ class bigone extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         //
         //      array("code":10013,"message":"Resource not found")
@@ -1570,5 +1574,6 @@ class bigone extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

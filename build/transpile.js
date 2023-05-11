@@ -250,6 +250,7 @@ class Transpiler {
             [ /\.isPostOnly\s/g, '.is_post_only'],
             [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
             [ /\.omitZero\s/g, '.omit_zero'],
+            [ /\.currencyStructure\s/g, '.currency_structure'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -747,7 +748,8 @@ class Transpiler {
     // one-time helpers
 
     createPythonClassDeclaration (className, baseClass) {
-        return 'class ' + className + '(' + baseClass + '):'
+        const mixin = (className === 'testMainClass') ? '' : ', ImplicitAPI'
+        return 'class ' + className + '(' + baseClass + mixin + '):'
     }
 
     createPythonHeader () {
@@ -765,16 +767,21 @@ class Transpiler {
         return header.concat (imports);
     }
 
-    createPythonClassImports (baseClass, async = false) {
+    createPythonClassImports (baseClass, className, async = false) {
         const baseClasses = {
             'Exchange': 'base.exchange',
         }
         async = (async ? '.async_support' : '')
 
-        return [
+        const imports = [
             (baseClass.indexOf ('ccxt.') === 0) ?
                 ('import ccxt' + async + ' as ccxt') :
-                ('from ccxt' + async + '.' + safeString (baseClasses, baseClass, baseClass) + ' import ' + baseClass)        ]
+                ('from ccxt' + async + '.' + safeString (baseClasses, baseClass, baseClass) + ' import ' + baseClass),
+        ]
+        if (className !== 'testMainClass') {
+            imports.push ('from ccxt.abstract.' + className + ' import ImplicitAPI')
+        }
+        return imports
     }
 
     createPythonClass (className, baseClass, body, methods, async = false) {
@@ -787,7 +794,7 @@ class Transpiler {
             libraries,
             errorImports,
             precisionImports
-        } = this.createPythonImports(baseClass, bodyAsString, async)
+        } = this.createPythonImports(baseClass, bodyAsString, className, async)
 
         let header = this.createPythonClassHeader (imports, bodyAsString)
 
@@ -811,7 +818,7 @@ class Transpiler {
         return result
     }
 
-    createPythonImports (baseClass, bodyAsString, async = false) {
+    createPythonImports (baseClass, bodyAsString, className, async = false) {
 
         async = (async ? '.async_support' : '')
 
@@ -824,7 +831,7 @@ class Transpiler {
             'sys': 'sys',
         }
 
-        const imports = this.createPythonClassImports (baseClass, async)
+        const imports = this.createPythonClassImports (baseClass, className, async)
 
         const libraries = []
 
@@ -846,6 +853,9 @@ class Transpiler {
         }
         if (bodyAsString.match (/: OrderType/)) {
             libraries.push ('from ccxt.base.types import OrderType')
+        }
+        if (bodyAsString.match (/: IndexType/)) {
+            libraries.push ('from ccxt.base.types import IndexType')
         }
         if (bodyAsString.match (/: Client/)) {
             libraries.push ('from ccxt.async_support.base.ws.client import Client')
@@ -1460,6 +1470,7 @@ class Transpiler {
                 'IndexType': 'int|string',
                 'Int': 'int',
                 'object': 'array',
+                'object[]': 'mixed',
                 'OrderType': 'string',
                 'OrderSide': 'string',
             }
@@ -2024,7 +2035,7 @@ class Transpiler {
 
     createBaseInitFile (pyPath, tests) {
         const finalPath = pyPath + '__init__.py';
-        const fileNames = tests.filter(t => t !== 'exportTests' && t !== 'test.sharedMethods').map(test => this.uncamelcaseName(test));
+        const fileNames = tests.filter(t => t !== 'test.sharedMethods').map(test => this.uncamelcaseName(test));
         const importNames = fileNames.map(testName => `from ccxt.test.base.${testName} import ${testName} # noqa E402`)
         const baseContent = [
             '',
@@ -2077,6 +2088,8 @@ class Transpiler {
 
         // ########### PHP ###########
         phpAsync = phpAsync.replace (/\<\?php(.*?)namespace ccxt\\async;/sg, '');
+        phpAsync = phpAsync.replace ('\nuse React\\Async;','').replace ('\nuse React\\Promise;', ''); // no longer needed, as hardcoded in top lines of test_async.php
+        phpAsync = phpAsync.replace ('(this,','($this,');
         const existinPhpBody = fs.readFileSync (files.phpFileAsync).toString ();
         const phpReform = (cont) => {
             let newContent = existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n' + cont + '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1];
@@ -2090,6 +2103,7 @@ class Transpiler {
         const phpRemovedStart = php.replace (/\<\?php(.*?)(?:namespace ccxt)/gs, '');
         let bodyPhpSync = phpReform (phpRemovedStart);
         bodyPhpSync = bodyPhpSync.replace (/ccxt(\\)+async/g, 'ccxt');
+        bodyPhpSync = bodyPhpSync.replace ('(this,','($this,');
         overwriteFile (files.phpFileSync, bodyPhpSync);
     }
 
@@ -2359,7 +2373,7 @@ class Transpiler {
             if (tsContent.indexOf (transpileFlagPhrase) > -1) {
                 log.magenta ('Transpiling from', tsFile.yellow)
                 const fileName = filenameWithExtenstion.replace ('.ts', '')
-                // temporary: avoid console.log with + (plos) because it may break in python. 
+                // temporary: avoid console.log with + (plos) because it may break in python.
                 if (tsContent.match ('console\.log \((.*?)\\+(.*?)\);')){
                     throw new Error ('console.log with +(plus) detected in ' + tsFile + '. Please use commas or string interpolation.');
                 }
@@ -2541,9 +2555,8 @@ function parallelizeTranspiling (exchanges, processes = undefined) {
     const processesNum = processes || os.cpus ().length
     log.bright.green ('starting ' + processesNum + ' new processes...')
     let isFirst = true
-    const increment = Math.ceil (exchanges.length / processesNum)
-    for (let i = 0; i < increment; i ++) {
-        const toProcess = exchanges.filter ((_, index) => index % increment === i)
+    for (let i = 0; i < processesNum; i ++) {
+        const toProcess = exchanges.filter ((_, index) => index % processesNum === i)
         const args = isFirst ? [ '--force' ] : [ '--child', '--force' ]
         isFirst = false
         fork (process.argv[1], toProcess.concat (args))

@@ -2749,7 +2749,7 @@ class coinbase extends coinbase$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         const feedback = this.id + ' ' + body;
         //
@@ -2793,6 +2793,7 @@ class coinbase extends coinbase$1 {
         if ((data === undefined) && (!advancedTrade)) {
             throw new errors.ExchangeError(this.id + ' failed due to a malformed response ' + this.json(response));
         }
+        return undefined;
     }
 }
 

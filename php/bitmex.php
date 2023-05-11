@@ -382,33 +382,49 @@ class bitmex extends Exchange {
             $id = $this->safe_string($market, 'symbol');
             $baseId = $this->safe_string($market, 'underlying');
             $quoteId = $this->safe_string($market, 'quoteCurrency');
-            $settleId = $this->safe_string($market, 'settlCurrency', '');
+            $settleId = $this->safe_string($market, 'settlCurrency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $settle = $this->safe_currency_code($settleId);
-            $basequote = $baseId . $quoteId;
-            $swap = ($id === $basequote);
             // 'positionCurrency' may be empty ("", currently returns for ETHUSD)
             // so let's take the settlCurrency first and then adjust if needed
-            $type = null;
-            $future = false;
-            $symbol = $base . '/' . $quote . ':' . $settle;
-            $expiryDatetime = $this->safe_string($market, 'expiry');
-            $expiry = $this->parse8601($expiryDatetime);
+            $typ = $this->safe_string($market, 'typ');
+            // Perpetual Contracts - FFWCSX
+            // Perpetual Contracts (FX underliers) - FFWCSF
+            // Spot - IFXXXP
+            // Futures - FFCCSX
+            // BitMEX Basket Index - MRBXXX
+            // BitMEX Crypto Index - MRCXXX
+            // BitMEX FX Index - MRFXXX
+            // BitMEX Lending/Premium Index - MRRXXX
+            // BitMEX Volatility Index - MRIXXX
+            $types = array(
+                'FFWCSX' => 'swap',
+                'FFWCSF' => 'swap',
+                'IFXXXP' => 'spot',
+                'FFCCSX' => 'future',
+            );
+            $type = $this->safe_string($types, $typ, $typ);
+            $swap = $type === 'swap';
+            $future = $type === 'future';
+            $spot = $type === 'spot';
+            $contract = $swap || $future;
+            $symbol = $base . '/' . $quote;
+            $contractSize = null;
+            if ($contract) {
+                $symbol = $symbol . ':' . $settle;
+                $multiplierString = Precise::string_abs($this->safe_string($market, 'multiplier'));
+                $contractSize = $this->parse_number($multiplierString);
+            }
             $inverse = $this->safe_value($market, 'isInverse');
             $status = $this->safe_string($market, 'state');
             $active = $status !== 'Unlisted';
-            $contract = true;
-            if ($swap) {
-                $type = 'swap';
-            } elseif ($expiry !== null) {
-                $future = true;
-                $type = 'future';
+            $expiry = null;
+            $expiryDatetime = null;
+            if ($future) {
+                $expiryDatetime = $this->safe_string($market, 'expiry');
+                $expiry = $this->parse8601($expiryDatetime);
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
-            } else {
-                $symbol = $base . '/' . $quote;
-                $active = false;
-                $contract = false;
             }
             $positionId = $this->safe_string_2($market, 'positionCurrency', 'underlying');
             $position = $this->safe_currency_code($positionId);
@@ -416,59 +432,61 @@ class bitmex extends Exchange {
             $maxOrderQty = $this->safe_number($market, 'maxOrderQty');
             $initMargin = $this->safe_string($market, 'initMargin', '1');
             $maxLeverage = $this->parse_number(Precise::string_div('1', $initMargin));
-            $multiplierString = Precise::string_abs($this->safe_string($market, 'multiplier'));
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => $settle,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => $settleId,
-                'type' => $type,
-                'spot' => false,
-                'margin' => false,
-                'swap' => $swap,
-                'future' => $future,
-                'option' => false,
-                'active' => $active,
-                'contract' => $contract,
-                'linear' => $contract ? !$inverse : null,
-                'inverse' => $contract ? $inverse : null,
-                'taker' => $this->safe_number($market, 'takerFee'),
-                'maker' => $this->safe_number($market, 'makerFee'),
-                'contractSize' => $this->parse_number($multiplierString),
-                'expiry' => $expiry,
-                'expiryDatetime' => $expiryDatetime,
-                'strike' => $this->safe_number($market, 'optionStrikePrice'),
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->safe_number($market, 'lotSize'),
-                    'price' => $this->safe_number($market, 'tickSize'),
-                    'quote' => $this->safe_number($market, 'tickSize'),
-                    'base' => $this->safe_number($market, 'tickSize'),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => $contract ? $this->parse_number('1') : null,
-                        'max' => $contract ? $maxLeverage : null,
+            // temporarily filter out unlisted markets to avoid $symbol conflicts
+            if ($active) {
+                $result[] = array(
+                    'id' => $id,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'settle' => $settle,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => $settleId,
+                    'type' => $type,
+                    'spot' => $spot,
+                    'margin' => false,
+                    'swap' => $swap,
+                    'future' => $future,
+                    'option' => false,
+                    'active' => $active,
+                    'contract' => $contract,
+                    'linear' => $contract ? !$inverse : null,
+                    'inverse' => $contract ? $inverse : null,
+                    'taker' => $this->safe_number($market, 'takerFee'),
+                    'maker' => $this->safe_number($market, 'makerFee'),
+                    'contractSize' => $contractSize,
+                    'expiry' => $expiry,
+                    'expiryDatetime' => $expiryDatetime,
+                    'strike' => $this->safe_number($market, 'optionStrikePrice'),
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $this->safe_number($market, 'lotSize'),
+                        'price' => $this->safe_number($market, 'tickSize'),
+                        'quote' => $this->safe_number($market, 'tickSize'),
+                        'base' => $this->safe_number($market, 'tickSize'),
                     ),
-                    'amount' => array(
-                        'min' => null,
-                        'max' => $positionIsQuote ? null : $maxOrderQty,
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => $contract ? $this->parse_number('1') : null,
+                            'max' => $contract ? $maxLeverage : null,
+                        ),
+                        'amount' => array(
+                            'min' => null,
+                            'max' => $positionIsQuote ? null : $maxOrderQty,
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => $this->safe_number($market, 'maxPrice'),
+                        ),
+                        'cost' => array(
+                            'min' => null,
+                            'max' => $positionIsQuote ? $maxOrderQty : null,
+                        ),
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => $this->safe_number($market, 'maxPrice'),
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => $positionIsQuote ? $maxOrderQty : null,
-                    ),
-                ),
-                'info' => $market,
-            );
+                    'info' => $market,
+                );
+            }
         }
         return $result;
     }
@@ -2693,7 +2711,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         $isAuthenticated = $this->check_required_credentials(false);
         $cost = $this->safe_value($config, 'cost', 1);
         if ($cost !== 1) { // trading endpoints
@@ -2708,7 +2726,7 @@ class bitmex extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         if ($code === 429) {
             throw new DDoSProtection($this->id . ' ' . $body);
@@ -2724,6 +2742,7 @@ class bitmex extends Exchange {
             }
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 
     public function nonce() {
