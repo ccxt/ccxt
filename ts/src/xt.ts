@@ -660,7 +660,10 @@ export default class xt extends Exchange {
         //                     {
         //                         "chain": "Bitcoin",
         //                         "depositEnabled": true,
-        //                         "withdrawEnabled": true
+        //                         "withdrawEnabled": true,
+        //                         "withdrawFeeAmount": 0.0009,
+        //                         "withdrawMinAmount": 0.0005,
+        //                         "depositFeeRate": 0
         //                     },
         //                 ]
         //             },
@@ -675,21 +678,32 @@ export default class xt extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const rawNetworks = this.safeValue (entry, 'supportChains', []);
             const networks = {};
-            let depositEnabled = undefined;
-            let withdrawEnabled = undefined;
+            let minWithdrawString = undefined;
+            let minWithdrawFeeString = undefined;
+            let active = false;
+            let deposit = false;
+            let withdraw = false;
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
                 const networkId = this.safeString (rawNetwork, 'chain');
                 const network = this.networkIdToCode (networkId);
-                depositEnabled = this.safeValue (rawNetwork, 'depositEnabled');
-                withdrawEnabled = this.safeValue (rawNetwork, 'withdrawEnabled');
+                const depositEnabled = this.safeValue (rawNetwork, 'depositEnabled');
+                deposit = (depositEnabled) ? depositEnabled : deposit;
+                const withdrawEnabled = this.safeValue (rawNetwork, 'withdrawEnabled');
+                withdraw = (withdrawEnabled) ? withdrawEnabled : withdraw;
+                const networkActive = depositEnabled && withdrawEnabled;
+                active = (networkActive) ? networkActive : active;
+                const withdrawFeeString = this.safeString (rawNetwork, 'withdrawFeeAmount');
+                minWithdrawFeeString = Precise.stringMin (withdrawFeeString, minWithdrawFeeString);
+                const minNetworkWithdrawString = this.safeString (rawNetwork, 'withdrawMinAmount');
+                minWithdrawString = Precise.stringMin (minNetworkWithdrawString, minWithdrawString);
                 networks[network] = {
                     'info': rawNetwork,
                     'id': networkId,
                     'network': network,
                     'name': undefined,
-                    'active': undefined,
-                    'fee': undefined,
+                    'active': networkActive,
+                    'fee': this.parseNumber (withdrawFeeString),
                     'precision': undefined,
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
@@ -699,7 +713,7 @@ export default class xt extends Exchange {
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': undefined,
+                            'min': this.parseNumber (minNetworkWithdrawString),
                             'max': undefined,
                         },
                         'deposit': {
@@ -714,11 +728,11 @@ export default class xt extends Exchange {
                 'id': currencyId,
                 'code': code,
                 'name': undefined,
-                'active': true,
-                'fee': undefined,
+                'active': active,
+                'fee': this.parseNumber (minWithdrawFeeString),
                 'precision': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'networks': networks,
                 'limits': {
                     'amount': {
@@ -726,7 +740,7 @@ export default class xt extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.parseNumber (minWithdrawString),
                         'max': undefined,
                     },
                     'deposit': {
