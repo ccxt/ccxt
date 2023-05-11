@@ -865,6 +865,11 @@ export default class cryptocom extends Exchange {
         if (since !== undefined) {
             request['start_ts'] = since;
         }
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
+        if (until !== undefined) {
+            request['end_ts'] = until;
+        }
         let response = undefined;
         if (market['spot']) {
             response = await this.v2PublicGetPublicGetCandlestick (this.extend (request, params));
