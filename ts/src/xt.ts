@@ -694,9 +694,13 @@ export default class xt extends Exchange {
                 const networkActive = depositEnabled && withdrawEnabled;
                 active = (networkActive) ? networkActive : active;
                 const withdrawFeeString = this.safeString (rawNetwork, 'withdrawFeeAmount');
-                minWithdrawFeeString = Precise.stringMin (withdrawFeeString, minWithdrawFeeString);
+                if (withdrawFeeString !== undefined) {
+                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? withdrawFeeString : Precise.stringMin (withdrawFeeString, minWithdrawFeeString);
+                }
                 const minNetworkWithdrawString = this.safeString (rawNetwork, 'withdrawMinAmount');
-                minWithdrawString = Precise.stringMin (minNetworkWithdrawString, minWithdrawString);
+                if (minNetworkWithdrawString !== undefined) {
+                    minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise.stringMin (minNetworkWithdrawString, minWithdrawString);
+                }
                 networks[network] = {
                     'info': rawNetwork,
                     'id': networkId,
