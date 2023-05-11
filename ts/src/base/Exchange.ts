@@ -427,19 +427,19 @@ export default class Exchange {
 
     describe () {
         return {
-            'alias': false,
+            'alias': false, // whether this exchange is an alias to another exchange
             'api': undefined,
-            'certified': false,
+            'certified': false, // if certified by the CCXT dev team
             'commonCurrencies': { // gets extended/overwritten in subclasses
                 'BCC': 'BCH',
                 'BCHABC': 'BCH',
                 'BCHSV': 'BSV',
                 'XBT': 'BTC',
             },
-            'countries': undefined, // milliseconds = seconds * 1000
-            'currencies': {}, // if certified by the CCXT dev team
-            'enableRateLimit': true, // if it is integrated with CCXT Pro for WebSocket support
-            'exceptions': undefined, // whether this exchange is an alias to another exchange
+            'countries': undefined,
+            'currencies': {}, // to be filled manually or by fetchMarkets
+            'enableRateLimit': true,
+            'exceptions': undefined,
             'fees': {
                 'funding': {
                     'deposit': {},
@@ -580,23 +580,23 @@ export default class Exchange {
                 'cost': { 'min': undefined, 'max': undefined },
                 'leverage': { 'min': undefined, 'max': undefined },
                 'price': { 'min': undefined, 'max': undefined },
-            }, // to be filled manually or by fetchMarkets
+            },
             'markets': undefined, // to be filled manually or by fetchMarkets
-            'name': undefined, // redefine if the exchange has.fetchOHLCV
+            'name': undefined,
             'paddingMode': NO_PADDING,
             'precisionMode': DECIMAL_PLACES,
-            'pro': false,
-            'rateLimit': 2000,
+            'pro': false, // if it is integrated with CCXT Pro for WebSocket support
+            'rateLimit': 2000, // milliseconds = seconds * 1000
             'requiredCredentials': {
                 'apiKey': true,
                 'login': false,
                 'password': false,
-                'privateKey': false,
+                'privateKey': false, // a "0x"-prefixed hexstring private key for a wallet
                 'secret': true,
-                'token': false, // 2-factor authentication (one-time password key)
-                'twofa': false, // a "0x"-prefixed hexstring private key for a wallet
-                'uid': false, // the wallet address "0x"-prefixed hexstring
-                'walletAddress': false, // reserved for HTTP auth in some cases
+                'token': false, // reserved for HTTP auth in some cases
+                'twofa': false, // 2-factor authentication (one-time password key)
+                'uid': false,
+                'walletAddress': false, // the wallet address "0x"-prefixed hexstring
             },
             'status': {
                 'eta': undefined,
@@ -604,7 +604,7 @@ export default class Exchange {
                 'updated': undefined,
                 'url': undefined,
             },
-            'timeframes': undefined,
+            'timeframes': undefined, // redefine if the exchange has.fetchOHLCV
             'urls': {
                 'api': undefined,
                 'doc': undefined,
@@ -1993,10 +1993,10 @@ export default class Exchange {
             'remaining': this.parseNumber (remaining),
             'side': side,
             'status': this.safeString (order, 'status'),
-            'stopPrice': triggerPrice,
+            'stopPrice': triggerPrice, // ! deprecated, use triggerPrice instead
             'symbol': symbol,
             'timeInForce': timeInForce,
-            'timestamp': timestamp,  // ! deprecated, use triggerPrice instead
+            'timestamp': timestamp,
             'trades': trades,
             'triggerPrice': triggerPrice,
             'type': this.safeString (order, 'type'),
