@@ -340,29 +340,37 @@ class Exchange(BaseExchange):
             return client.futures[message_hash]
         future = client.future(message_hash)
 
+        subscribed = client.subscriptions.get(subscribe_hash)
+
+        if not subscribed:
+            client.subscriptions[subscribe_hash] = subscription or True
+
         # base exchange self.open starts the aiohttp Session in an async context
         self.open()
         connected = client.connected if client.connected.done() \
             else asyncio.ensure_future(client.connect(self.session, backoff_delay))
 
         def after(fut):
-            if subscribe_hash not in client.subscriptions:
-                if subscribe_hash is not None:
-                    client.subscriptions[subscribe_hash] = subscription or True
-                # todo: decouple signing from subscriptions
-                options = self.safe_value(self.options, 'ws')
-                cost = self.safe_value(options, 'cost', 1)
-                if message:
-                    async def send_message():
-                        if self.enableRateLimit:
-                            await client.throttle(cost)
-                        try:
-                            await client.send(message)
-                        except ConnectionError as e:
-                            future.reject(e)
-                    asyncio.ensure_future(send_message())
+            # todo: decouple signing from subscriptions
+            options = self.safe_value(self.options, 'ws')
+            cost = self.safe_value(options, 'cost', 1)
+            if message:
+                async def send_message():
+                    if self.enableRateLimit:
+                        await client.throttle(cost)
+                    try:
+                        await client.send(message)
+                    except ConnectionError as e:
+                        del client.subscriptions[subscribe_hash]
+                        future.reject(e)
+                asyncio.ensure_future(send_message())
 
-        connected.add_done_callback(after)
+        if not subscribed:
+            try:
+                connected.add_done_callback(after)
+            except Exception as e:
+                del client.subscriptions[subscribe_hash]
+                future.reject(e)
 
         return future
 
