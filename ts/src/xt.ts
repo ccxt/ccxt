@@ -1145,7 +1145,7 @@ export default class xt extends Exchange {
         if (contract) {
             isActive = this.safeValue (market, 'isOpenApi', false);
         } else {
-            if ((state === 'ONLINE') && (this.safeValue (market, 'tradingEnabled')) && (this.safeValue (market, 'openapiEnabled')) {
+            if ((state === 'ONLINE') && (this.safeValue (market, 'tradingEnabled')) && (this.safeValue (market, 'openapiEnabled'))) {
                 isActive = true;
             }
         }
@@ -1338,6 +1338,9 @@ export default class xt extends Exchange {
         };
         let response = undefined;
         if (market['spot']) {
+            if (limit !== undefined) {
+                request['limit'] = Math.min (limit, 500);
+            }
             response = await this.publicSpotGetDepth (this.extend (request, params));
         } else {
             if (limit !== undefined) {
