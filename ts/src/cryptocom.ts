@@ -867,9 +867,9 @@ export default class cryptocom extends Exchange {
         }
         let response = undefined;
         if (market['spot']) {
-            response = this.v2PublicGetPublicGetCandlestick (this.extend (request, params));
+            response = await this.v2PublicGetPublicGetCandlestick (this.extend (request, params));
         } else if (market['contract']) {
-            response = this.derivativesPublicGetPublicGetCandlestick (this.extend (request, params));
+            response = await this.derivativesPublicGetPublicGetCandlestick (this.extend (request, params));
         }
         // {
         //     "code":0,
