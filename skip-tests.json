@@ -701,7 +701,15 @@
             "fetchTrades": "timestamp is in decimal seconds like 1234567890.123",
             "fetchTickers": {
                 "bid":"messed bid-ask",
-                "ask":"messed bid-ask"
+                "ask":"messed bid-ask",
+                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/262963390#L3138",
+                "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/262963390#L3138"
+            },
+            "fetchTicker": {
+                "bid":"same",
+                "ask":"same",
+                "quoteVolume": "same",
+                "baseVolume": "same"
             }
         }
     },
