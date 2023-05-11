@@ -108,7 +108,7 @@ class xt extends Exchange {
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'signIn' => false,
-                'transfer' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'precisionMode' => DECIMAL_PLACES,
@@ -118,6 +118,7 @@ class xt extends Exchange {
                     'spot' => 'https://sapi.xt.com',
                     'linear' => 'https://fapi.xt.com',
                     'inverse' => 'https://dapi.xt.com',
+                    'user' => 'https://api.xt.com',
                 ),
                 'www' => 'https://xt.com',
                 'referral' => 'https://www.xt.com/en/accounts/register?ref=9PTM9VW',
@@ -212,6 +213,8 @@ class xt extends Exchange {
                         'post' => array(
                             'order' => 0.2,
                             'withdraw' => 1,
+                            'balance/transfer' => 1,
+                            'balance/account/transfer' => 1,
                         ),
                         'delete' => array(
                             'batch-order' => 1,
@@ -301,6 +304,22 @@ class xt extends Exchange {
                             'future/user/v1/position/margin' => 1,
                             'future/user/v1/user/collection/add' => 1,
                             'future/user/v1/user/collection/cancel' => 1,
+                        ),
+                    ),
+                    'user' => array(
+                        'get' => array(
+                            'user/account' => 1,
+                            'user/account/api-key' => 1,
+                        ),
+                        'post' => array(
+                            'user/account' => 1,
+                            'user/account/api-key' => 1,
+                        ),
+                        'put' => array(
+                            'user/account/api-key' => 1,
+                        ),
+                        'delete' => array(
+                            'user/account/{apikeyId}' => 1,
                         ),
                     ),
                 ),
@@ -457,6 +476,33 @@ class xt extends Exchange {
                     'WITHDRAW_023' => '\\ccxt\\BadRequest', // Withdrawal amount must be less than {0}
                     'WITHDRAW_024' => '\\ccxt\\BadRequest', // Withdraw is not supported
                     'WITHDRAW_025' => '\\ccxt\\BadRequest', // Please create a FIO address in the deposit page
+                    'FUND_001' => '\\ccxt\\BadRequest', // Duplicate request (a bizId can only be requested once)
+                    'FUND_002' => '\\ccxt\\InsufficientFunds', // Insufficient account balance
+                    'FUND_003' => '\\ccxt\\BadRequest', // Transfer operations are not supported (for example, sub-accounts do not support financial transfers)
+                    'FUND_004' => '\\ccxt\\ExchangeError', // Unfreeze failed
+                    'FUND_005' => '\\ccxt\\PermissionDenied', // Transfer prohibited
+                    'FUND_014' => '\\ccxt\\BadRequest', // The transfer-in account id and transfer-out account ID cannot be the same
+                    'FUND_015' => '\\ccxt\\BadRequest', // From and to business types cannot be the same
+                    'FUND_016' => '\\ccxt\\BadRequest', // Leverage transfer, symbol cannot be empty
+                    'FUND_017' => '\\ccxt\\BadRequest', // Parameter error
+                    'FUND_018' => '\\ccxt\\BadRequest', // Invalid freeze record
+                    'FUND_019' => '\\ccxt\\BadRequest', // Freeze users not equal
+                    'FUND_020' => '\\ccxt\\BadRequest', // Freeze currency are not equal
+                    'FUND_021' => '\\ccxt\\BadRequest', // Operation not supported
+                    'FUND_022' => '\\ccxt\\BadRequest', // Freeze record does not exist
+                    'FUND_044' => '\\ccxt\\BadRequest', // The maximum length of the amount is 113 and cannot exceed the limit
+                    'TRANSFER_001' => '\\ccxt\\BadRequest', // Duplicate request (a bizId can only be requested once)
+                    'TRANSFER_002' => '\\ccxt\\InsufficientFunds', // Insufficient account balance
+                    'TRANSFER_003' => '\\ccxt\\BadRequest', // User not registered
+                    'TRANSFER_004' => '\\ccxt\\PermissionDenied', // The currency is not allowed to be transferred
+                    'TRANSFER_005' => '\\ccxt\\PermissionDenied', // The user’s currency is not allowed to be transferred
+                    'TRANSFER_006' => '\\ccxt\\PermissionDenied', // Transfer prohibited
+                    'TRANSFER_007' => '\\ccxt\\RequestTimeout', // Request timed out
+                    'TRANSFER_008' => '\\ccxt\\BadRequest', // Transferring to a leveraged account is abnormal
+                    'TRANSFER_009' => '\\ccxt\\BadRequest', // Departing from a leveraged account is abnormal
+                    'TRANSFER_010' => '\\ccxt\\PermissionDenied', // Leverage cleared, transfer prohibited
+                    'TRANSFER_011' => '\\ccxt\\PermissionDenied', // Leverage with borrowing, transfer prohibited
+                    'TRANSFER_012' => '\\ccxt\\PermissionDenied', // Currency transfer prohibited
                     'symbol_not_support_trading_via_api' => '\\ccxt\\BadSymbol', // array("returnCode":1,"msgInfo":"failure","error":array("code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"),"result":null)
                     'open_order_min_nominal_value_limit' => '\\ccxt\\InvalidOrder', // array("returnCode":1,"msgInfo":"failure","error":array("code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"),"result":null)
                 ),
@@ -484,6 +530,15 @@ class xt extends Exchange {
             'options' => array(
                 'adjustForTimeDifference' => false,
                 'timeDifference' => 0,
+                'accountsById' => array(
+                    'spot' => 'SPOT',
+                    'leverage' => 'LEVER',
+                    'finance' => 'FINANCE',
+                    'swap' => 'FUTURES_U',
+                    'future' => 'FUTURES_U',
+                    'linear' => 'FUTURES_U',
+                    'inverse' => 'FUTURES_C',
+                ),
                 'networks' => array(
                     'ERC20' => 'Ethereum',
                     'TRC20' => 'Tron',
@@ -4269,6 +4324,61 @@ class xt extends Exchange {
         ));
     }
 
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         * @see https://doc.xt.com/#transfersubTransferPost
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {string} $fromAccount account to transfer from -  spot, swap, leverage, finance
+         * @param {string} $toAccount account to transfer to - spot, swap, leverage, finance
+         * @param {array} $params extra parameters specific to the whitebit api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $accountsByType = $this->safe_value($this->options, 'accountsById');
+        $fromAccountId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toAccountId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        $amountString = $this->currency_to_precision($code, $amount);
+        $request = array(
+            'bizId' => $this->uuid(),
+            'currency' => $currency['id'],
+            'amount' => $amountString,
+            'from' => $fromAccountId,
+            'to' => $toAccountId,
+        );
+        $response = $this->privateSpotPostBalanceTransfer (array_merge($request, $params));
+        //
+        //   {
+        //       info => array( rc => '0', mc => 'SUCCESS', ma => array(), result => '226971333791398656' ),
+        //       id => '226971333791398656',
+        //       timestamp => null,
+        //       datetime => null,
+        //       $currency => null,
+        //       $amount => null,
+        //       $fromAccount => null,
+        //       $toAccount => null,
+        //       status => null
+        //   }
+        //
+        return $this->parse_transfer($response, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'result'),
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => null,
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => null,
+        );
+    }
+
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         //
         // spot => $error
@@ -4339,7 +4449,7 @@ class xt extends Exchange {
         $endpoint = $api[1];
         $request = '/' . $this->implode_params($path, $params);
         $payload = null;
-        if ($endpoint === 'spot') {
+        if (($endpoint === 'spot') || ($endpoint === 'user')) {
             if ($signed) {
                 $payload = '/' . $this->version . $request;
             } else {
@@ -4366,7 +4476,7 @@ class xt extends Exchange {
             $isUndefinedBody = (($method === 'GET') || ($path === 'order/{orderId}'));
             $body = $isUndefinedBody ? null : $this->json($body);
             $payloadString = null;
-            if ($endpoint === 'spot') {
+            if (($endpoint === 'spot') || ($endpoint === 'user')) {
                 $payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' . $this->apiKey . '&xt-validate-recvwindow=' . $recvWindow . '&xt-validate-t' . 'imestamp=' . $timestamp;
                 if ($isUndefinedBody) {
                     if ($urlencoded) {
