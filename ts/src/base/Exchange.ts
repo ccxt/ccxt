@@ -1223,24 +1223,27 @@ export default class Exchange {
         // (connection established successfully)
         if (!clientSubscription) {
             connected.then (() => {
-                    const options = this.safeValue (this.options, 'ws');
-                    const cost = this.safeValue (options, 'cost', 1);
-                    if (message) {
-                        if (this.enableRateLimit && client.throttle) {
-                            // add cost here |
-                            //               |
-                            //               V
-                            client.throttle (cost).then (() => {
-                                client.send (message);
-                            }).catch ((e) => { throw e });
-                        } else {
-                            client.send (message)
-                            .catch ((e) => { throw e });;
-                        }
+                const options = this.safeValue (this.options, 'ws');
+                const cost = this.safeValue (options, 'cost', 1);
+                if (message) {
+                    if (this.enableRateLimit && client.throttle) {
+                        // add cost here |
+                        //               |
+                        //               V
+                        client.throttle (cost).then (() => {
+                            client.send (message);
+                        }).catch ((e) => {
+                            throw e
+                        });
+                    } else {
+                        client.send (message).catch ((e) => {
+                            throw e
+                        });
                     }
-                }).catch ((e)=> {
-                    delete (client.subscriptions[subscribeHash])
-                    throw e
+                }
+            }).catch ((e) => {
+                delete (client.subscriptions[subscribeHash])
+                throw e
             });
         }
         return future;
