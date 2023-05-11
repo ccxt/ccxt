@@ -2936,6 +2936,10 @@ export default class bitget extends Exchange {
         /**
          * @method
          * @name bitget#fetchOpenOrders
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-list
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-open-order
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-plan-order-tpsl-list
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-order
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
@@ -2943,33 +2947,48 @@ export default class bitget extends Exchange {
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('fetchOpenOrders', symbol);
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const request = {};
         let marketType = undefined;
         let query = undefined;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
         [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        const request = {
-            'symbol': market['id'],
-        };
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'privateSpotPostTradeOpenOrders',
-            'swap': 'privateMixGetOrderCurrent',
-            'future': 'privateMixGetOrderCurrent',
-        });
+        let response = undefined;
         const stop = this.safeValue (query, 'stop');
         if (stop) {
+            this.checkRequiredSymbol ('fetchOpenOrders', symbol);
+            query = this.omit (query, 'stop');
             if (marketType === 'spot') {
-                method = 'privateSpotPostPlanCurrentPlan';
                 if (limit !== undefined) {
                     request['pageSize'] = limit;
                 }
+                response = await this.privateSpotPostPlanCurrentPlan (this.extend (request, query));
             } else {
-                method = 'privateMixGetPlanCurrentPlan';
+                response = await this.privateMixGetPlanCurrentPlan (this.extend (request, query));
             }
-            query = this.omit (query, 'stop');
+        } else {
+            if (marketType === 'spot') {
+                response = await this.privateSpotPostTradeOpenOrders (this.extend (request, query));
+            } else {
+                if (market === undefined) {
+                    let subType = undefined;
+                    [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', undefined, params);
+                    let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
+                    const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+                    if (sandboxMode) {
+                        productType = 'S' + productType;
+                    }
+                    request['productType'] = productType;
+                    response = await this.privateMixGetOrderMarginCoinCurrent (this.extend (request, query));
+                } else {
+                    response = await this.privateMixGetOrderCurrent (this.extend (request, query));
+                }
+            }
         }
-        let response = await this[method] (this.extend (request, query));
         //
         //  spot
         //     {
