@@ -985,6 +985,18 @@ export default class xt extends Exchange {
         //                 "min": "1"
         //             },
         //             {
+        //                 "filter": "PRICE",
+        //                 "min": null,
+        //                 "max": null,
+        //                 "tickSize": null
+        //             },
+        //             {
+        //                 "filter": "QUANTITY",
+        //                 "min": null,
+        //                 "max": null,
+        //                 "tickSize": null
+        //             },
+        //             {
         //                 "filter": "PROTECTION_LIMIT",
         //                 "buyMaxDeviation": "0.8",
         //                 "sellMaxDeviation": "4"
@@ -992,7 +1004,12 @@ export default class xt extends Exchange {
         //             {
         //                 "filter": "PROTECTION_MARKET",
         //                 "maxDeviation": "0.02"
-        //             }
+        //             },
+        //             {
+        //                  "filter": "PROTECTION_ONLINE",
+        //                  "durationSeconds": "300",
+        //                  "maxPriceMultiple": "5"
+        //             },
         //         ]
         //     }
         //
@@ -1061,11 +1078,24 @@ export default class xt extends Exchange {
         let symbol = base + '/' + quote;
         const filters = this.safeValue (market, 'filters', []);
         let minAmount = undefined;
+        let maxAmount = undefined;
+        let minCost = undefined;
+        let maxCost = undefined;
+        let minPrice = undefined;
+        let maxPrice = undefined;
         for (let i = 0; i < filters.length; i++) {
             const entry = filters[i];
             const filter = this.safeString (entry, 'filter');
-            if (filter === 'QUOTE_QTY') {
+            if (filter === 'QUANTITY') {
                 minAmount = this.safeNumber (entry, 'min');
+                maxAmount = this.safeNumber (entry, 'max');
+            }
+            if (filter === 'QUOTE_QTY') {
+                minCost = this.safeNumber (entry, 'min');
+            }
+            if (filter === 'PRICE') {
+                minPrice = this.safeNumber (entry, 'min');
+                maxPrice = this.safeNumber (entry, 'max');
             }
         }
         const underlyingType = this.safeString (market, 'underlyingType');
@@ -1104,14 +1134,20 @@ export default class xt extends Exchange {
                 swap = true;
             }
             minAmount = this.safeNumber (market, 'minQty');
+            minCost = this.safeNumber (market, 'minNotional');
+            maxCost = this.safeNumber (market, 'maxNotional');
+            minPrice = this.safeNumber (market, 'minPrice');
+            maxPrice = this.safeNumber (market, 'maxPrice');
             contract = true;
             spot = false;
         }
-        let isActive = true;
+        let isActive = false;
         if (contract) {
             isActive = this.safeValue (market, 'isOpenApi', false);
         } else {
-            isActive = (state === 'ONLINE') || (state === '0');
+            if ((state === 'ONLINE') && (this.safeValue (market, 'tradingEnabled')) && (this.safeValue (market, 'openapiEnabled')) {
+                isActive = true;
+            }
         }
         return {
             'id': id,
@@ -1150,15 +1186,15 @@ export default class xt extends Exchange {
                 },
                 'amount': {
                     'min': minAmount,
-                    'max': undefined,
+                    'max': maxAmount,
                 },
                 'price': {
-                    'min': this.safeNumber (market, 'minPrice'),
-                    'max': this.safeNumber (market, 'maxPrice'),
+                    'min': minPrice,
+                    'max': maxPrice,
                 },
                 'cost': {
-                    'min': this.safeNumber (market, 'minNotional'),
-                    'max': this.safeNumber (market, 'maxNotional'),
+                    'min': minCost,
+                    'max': maxCost,
                 },
             },
             'info': market,
