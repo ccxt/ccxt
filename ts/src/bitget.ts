@@ -2982,8 +2982,10 @@ export default class bitget extends Exchange {
                         productType = 'S' + productType;
                     }
                     request['productType'] = productType;
+                    response = await this.privateMixGetOrderMarginCoinCurrent (this.extend (request, query));
+                } else {
+                    response = await this.privateMixGetOrderCurrent (this.extend (request, query));
                 }
-                response = await this.privateMixGetOrderCurrent (this.extend (request, query));
             }
         }
         //
