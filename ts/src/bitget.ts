@@ -2948,7 +2948,7 @@ export default class bitget extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = { };
+        const request = {};
         let marketType = undefined;
         let query = undefined;
         let market = undefined;
