@@ -2291,6 +2291,7 @@ export default class okx extends Exchange {
          * @name okx#editOrder
          * @description edit a trade order
          * @see https://www.okx.com/docs-v5/en/#rest-api-trade-amend-order
+         * @see https://www.okx.com/docs-v5/en/#rest-api-trade-amend-algo-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -2317,10 +2318,10 @@ export default class okx extends Exchange {
         };
         const isStop = this.safeValue (params, 'stop');
         const tpTriggerPx = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
-        const tpOrdPx = this.safeValue2 (params, 'tpOrdPx', 'tpOrderPx', price);
+        const tpOrdPx = this.safeValue (params, 'tpOrdPx', price);
         const tpTriggerPxType = this.safeString (params, 'tpTriggerPxType');
         const slTriggerPx = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
-        const slOrdPx = this.safeValue2 (params, 'slOrdPx', 'slOrderPx', price);
+        const slOrdPx = this.safeValue (params, 'slOrdPx', price);
         const slTriggerPxType = this.safeString (params, 'slTriggerPxType');
         const conditional = (tpTriggerPx !== undefined) || (slTriggerPx !== undefined) || (type === 'conditional');
         const clientOrderId = this.safeStringN (params, [ 'clOrdId', 'clientOrderId', 'algoClOrdId' ]);
@@ -2335,19 +2336,19 @@ export default class okx extends Exchange {
             request['algoClOrdId'] = clientOrderId;
             request['algoId'] = id;
             if (tpTriggerPx !== undefined) {
-                request['newTpTriggerPx'] = this.amountToPrecision (symbol, tpTriggerPx);
+                request['newTpTriggerPx'] = this.priceToPrecision (symbol, tpTriggerPx);
             }
             if (tpOrdPx !== undefined) {
-                request['newTpOrdPx'] = this.amountToPrecision (symbol, tpOrdPx);
+                request['newTpOrdPx'] = this.priceToPrecision (symbol, tpOrdPx);
             }
             if (tpTriggerPxType !== undefined) {
                 request['newTpTriggerPxType'] = tpTriggerPxType;
             }
             if (slTriggerPx !== undefined) {
-                request['newSlTriggerPx'] = this.amountToPrecision (symbol, slTriggerPx);
+                request['newSlTriggerPx'] = this.priceToPrecision (symbol, slTriggerPx);
             }
             if (slOrdPx !== undefined) {
-                request['newSlOrdPx'] = this.amountToPrecision (symbol, slOrdPx);
+                request['newSlOrdPx'] = this.priceToPrecision (symbol, slOrdPx);
             }
             if (slTriggerPxType !== undefined) {
                 request['newSlTriggerPxType'] = slTriggerPxType;
