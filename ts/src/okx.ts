@@ -2316,12 +2316,12 @@ export default class okx extends Exchange {
         const request = {
             'instId': market['id'],
         };
-        const isStop = this.safeValue (params, 'stop');
-        const tpTriggerPx = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
-        const tpOrdPx = this.safeValue (params, 'tpOrdPx', price);
+        const isStop = this.safeString (params, 'stop');
+        const tpTriggerPx = this.safeString2 (params, 'takeProfitPrice', 'tpTriggerPx');
+        const tpOrdPx = this.safeString (params, 'tpOrdPx', price);
         const tpTriggerPxType = this.safeString (params, 'tpTriggerPxType');
-        const slTriggerPx = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
-        const slOrdPx = this.safeValue (params, 'slOrdPx', price);
+        const slTriggerPx = this.safeString2 (params, 'stopLossPrice', 'slTriggerPx');
+        const slOrdPx = this.safeString (params, 'slOrdPx', price);
         const slTriggerPxType = this.safeString (params, 'slTriggerPxType');
         const conditional = (tpTriggerPx !== undefined) || (slTriggerPx !== undefined) || (type === 'conditional');
         const clientOrderId = this.safeStringN (params, [ 'clOrdId', 'clientOrderId', 'algoClOrdId' ]);
@@ -2354,9 +2354,6 @@ export default class okx extends Exchange {
                 request['newSlTriggerPxType'] = slTriggerPxType;
             }
         } else {
-            if (!market['spot']) {
-                throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
-            }
             method = 'privatePostTradeAmendOrder';
             if (clientOrderId !== undefined) {
                 request['clOrdId'] = clientOrderId;
