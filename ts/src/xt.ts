@@ -5,9 +5,8 @@ import Exchange from './abstract/xt.js';
 import { Int } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import { AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
+import { AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { TimedOut } from './base/functions.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -499,7 +498,7 @@ export default class xt extends Exchange {
                     'TRANSFER_004': PermissionDenied, // The currency is not allowed to be transferred
                     'TRANSFER_005': PermissionDenied, // The user’s currency is not allowed to be transferred
                     'TRANSFER_006': PermissionDenied, // Transfer prohibited
-                    'TRANSFER_007': TimedOut, // Request timed out
+                    'TRANSFER_007': RequestTimeout, // Request timed out
                     'TRANSFER_008': BadRequest, // Transferring to a leveraged account is abnormal
                     'TRANSFER_009': BadRequest, // Departing from a leveraged account is abnormal
                     'TRANSFER_010': PermissionDenied, // Leverage cleared, transfer prohibited
