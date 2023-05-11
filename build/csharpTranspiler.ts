@@ -264,6 +264,8 @@ class NewTranspiler {
             'setP',
             'setM',
             'setL',
+            'transfer',
+            'withdraw',
             // 'load',
         ];
         const blacklistMethods = [

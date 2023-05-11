@@ -1514,7 +1514,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' transfer() is not supported yet');
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}): Promise<{}> {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}): Promise<Transaction> {
         throw new NotSupported (this.id + ' withdraw() is not supported yet');
     }
 

@@ -69,10 +69,10 @@ public partial class Exchange
         var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
         return new TransferEntry(res);
     }
-    public async Task<Dictionary<string, object>> Withdraw(string code, object amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, object amount, object address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Transaction(res);
     }
     public async Task<DepositAddressResponse> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
     {

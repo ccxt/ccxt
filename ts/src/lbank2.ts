@@ -1711,6 +1711,27 @@ export default class lbank2 extends Exchange {
         return {
             'info': result,
             'id': this.safeString (result, 'withdrawId'),
+            'txid': undefined,
+            'type': undefined,
+            'currency': undefined,
+            'network': undefined,
+            'amount': undefined,
+            'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'address': undefined,
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tag': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'updated': undefined,
+            'comment': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': undefined,
+                'rate': undefined,
+            },
         };
     }
 

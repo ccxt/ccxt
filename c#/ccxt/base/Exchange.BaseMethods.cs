@@ -338,6 +338,35 @@ public partial class Exchange
         };
     }
 
+    public virtual object currencyStructure()
+    {
+        return new Dictionary<string, object>() {
+            { "info", null },
+            { "id", null },
+            { "numericId", null },
+            { "code", null },
+            { "precision", null },
+            { "type", null },
+            { "name", null },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "fees", new Dictionary<string, object>() {} },
+            { "networks", new Dictionary<string, object>() {} },
+            { "limits", new Dictionary<string, object>() {
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+        };
+    }
+
     public virtual object setMarkets(object markets, object currencies = null)
     {
         object values = new List<object>() {};
@@ -368,6 +397,7 @@ public partial class Exchange
         this.ids = new List<object>(((Dictionary<string,object>)marketsSortedById).Keys);
         if (isTrue(!isEqual(currencies, null)))
         {
+            // currencies is always undefined when called in constructor but not when called from loadMarkets
             this.currencies = this.deepExtend(this.currencies, currencies);
         } else
         {
@@ -380,24 +410,20 @@ public partial class Exchange
                 object marketPrecision = this.safeValue(market, "precision", new Dictionary<string, object>() {});
                 if (isTrue(inOp(market, "base")))
                 {
-                    object currencyPrecision = this.safeValue2(marketPrecision, "base", "amount", defaultCurrencyPrecision);
-                    object currency = new Dictionary<string, object>() {
-                        { "id", this.safeString2(market, "baseId", "base") },
-                        { "numericId", this.safeInteger(market, "baseNumericId") },
-                        { "code", this.safeString(market, "base") },
-                        { "precision", currencyPrecision },
-                    };
+                    object currency = this.currencyStructure();
+                    ((Dictionary<string, object>)currency)["id"] = this.safeString2(market, "baseId", "base");
+                    ((Dictionary<string, object>)currency)["numericId"] = this.safeInteger(market, "baseNumericId");
+                    ((Dictionary<string, object>)currency)["code"] = this.safeString(market, "base");
+                    ((Dictionary<string, object>)currency)["precision"] = this.safeValue2(marketPrecision, "base", "amount", defaultCurrencyPrecision);
                     ((List<object>)baseCurrencies).Add(currency);
                 }
                 if (isTrue(inOp(market, "quote")))
                 {
-                    object currencyPrecision = this.safeValue2(marketPrecision, "quote", "price", defaultCurrencyPrecision);
-                    object currency = new Dictionary<string, object>() {
-                        { "id", this.safeString2(market, "quoteId", "quote") },
-                        { "numericId", this.safeInteger(market, "quoteNumericId") },
-                        { "code", this.safeString(market, "quote") },
-                        { "precision", currencyPrecision },
-                    };
+                    object currency = this.currencyStructure();
+                    ((Dictionary<string, object>)currency)["id"] = this.safeString2(market, "quoteId", "quote");
+                    ((Dictionary<string, object>)currency)["numericId"] = this.safeInteger(market, "quoteNumericId");
+                    ((Dictionary<string, object>)currency)["code"] = this.safeString(market, "quote");
+                    ((Dictionary<string, object>)currency)["precision"] = this.safeValue2(marketPrecision, "quote", "price", defaultCurrencyPrecision);
                     ((List<object>)quoteCurrencies).Add(currency);
                 }
             }
