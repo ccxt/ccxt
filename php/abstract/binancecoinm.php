@@ -535,6 +535,9 @@ abstract class binancecoinm extends \ccxt\binance {
     public function sapi_get_portfolio_interest_rate($params = array()) {
         return $this->request('portfolio/interest-rate', 'sapi', 'GET', $params, null, null, array("cost" => 0.6667));
     }
+    public function sapi_get_portfolio_asset_index_price($params = array()) {
+        return $this->request('portfolio/asset-index-price', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
     public function sapi_get_staking_productlist($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -1986,6 +1989,9 @@ abstract class binancecoinm extends \ccxt\binance {
     }
     public function sapiGetPortfolioInterestRate($params = array()) {
         return $this->request('portfolio/interest-rate', 'sapi', 'GET', $params, null, null, array("cost" => 0.6667));
+    }
+    public function sapiGetPortfolioAssetIndexPrice($params = array()) {
+        return $this->request('portfolio/asset-index-price', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
     public function sapiGetStakingProductList($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));

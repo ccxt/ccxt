@@ -246,6 +246,7 @@ class bybit extends Exchange {
                         'v5/announcements/index' => 1,
                         'v5/spot-cross-margin-trade/pledge-token' => 1,
                         'v5/spot-cross-margin-trade/borrow-token' => 1,
+                        'v5/ins-loan/ensure-tokens-convert' => 1,
                     ),
                 ),
                 'private' => array(
@@ -404,6 +405,7 @@ class bybit extends Exchange {
                         'v5/spot-cross-margin-trade/account' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/repay-history' => 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/ins-loan/ltv-convert' => 1,
                     ),
                     'post' => array(
                         // inverse swap
@@ -7688,6 +7690,11 @@ class bybit extends Exchange {
             );
             if ($since !== null) {
                 $request['startTime'] = $since;
+            }
+            $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+            $params = $this->omit($params, array( 'till', 'until' ));
+            if ($until !== null) {
+                $request['endTime'] = $until;
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;

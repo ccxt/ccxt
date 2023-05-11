@@ -177,6 +177,7 @@ interface Exchange {
     sapiGetPortfolioPmLoan(params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioInterestHistory(params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioInterestRate(params?: {}): Promise<implicitReturnType>;
+    sapiGetPortfolioAssetIndexPrice(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingProductList(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingPosition(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingStakingRecord(params?: {}): Promise<implicitReturnType>;
