@@ -152,7 +152,9 @@
         "skipMethods": {
             "loadMarkets": "linear and inverse values are same",
             "fetchTickers": {
-                "symbol": "something broken with symbol"
+                "symbol": "something broken with symbol",
+                "ask": "https://app.travis-ci.com/github/ccxt/ccxt/builds/262965121#L3179",
+                "bid": "same"
             }
         }
     },
