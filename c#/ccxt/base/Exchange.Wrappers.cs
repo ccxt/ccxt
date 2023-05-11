@@ -254,15 +254,21 @@ public partial class Exchange
         var res = await this.fetchTransactionFees(codes, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<string> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, DepositWithdrawFeeNetwork>> FetchDepositWithdrawFees(List<string> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return ((Dictionary<string, object>)res);
+        var keys = ((Dictionary<string, object>)res).Keys.ToList();
+        var result = new Dictionary<string, DepositWithdrawFeeNetwork>();
+        foreach (var key in keys)
+        {
+            result[key] = new DepositWithdrawFeeNetwork(((Dictionary<string,object>)res)[key]);
+        }
+        return result;
     }
-    public async Task<Dictionary<string, object>> FetchDepositWithdrawFee(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositWithdrawFeeNetwork> FetchDepositWithdrawFee(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFee(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositWithdrawFeeNetwork(res);
     }
     public async Task<object> FetchBorrowRate(string code, Dictionary<string, object> parameters = null)
     {

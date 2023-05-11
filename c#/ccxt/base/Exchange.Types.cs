@@ -685,4 +685,41 @@ public partial class Exchange
             fee = SafeValue(ledgerEntry, "fee") != null ? new Fee(SafeValue(ledgerEntry, "fee")) : null;
         }
     }
+
+    public struct DepositWithdrawFeeNetwork
+    {
+        public double? fee;
+        public bool? percentage;
+
+        public DepositWithdrawFeeNetwork(object depositWithdrawFeeNetwork)
+        {
+            var pct = SafeValue(depositWithdrawFeeNetwork, "percentage");
+            fee = SafeFloat(depositWithdrawFeeNetwork, "fee");
+            percentage = pct != null ? (bool)pct : null;
+        }
+    }
+
+    public struct DepositWithdrawFee
+    {
+        public Dictionary<string, object>? info;
+        public DepositWithdrawFeeNetwork? withdraw;
+        public DepositWithdrawFeeNetwork? deposit;
+        public Dictionary<string, DepositWithdrawFeeNetwork> networks;
+
+        public DepositWithdrawFee(object depositWithdrawFee)
+        {
+            info = SafeValue(depositWithdrawFee, "info") != null ? (Dictionary<string, object>)SafeValue(depositWithdrawFee, "info") : null;
+            withdraw = SafeValue(depositWithdrawFee, "withdraw") != null ? new DepositWithdrawFeeNetwork(SafeValue(depositWithdrawFee, "withdraw")) : null;
+            deposit = SafeValue(depositWithdrawFee, "deposit") != null ? new DepositWithdrawFeeNetwork(SafeValue(depositWithdrawFee, "deposit")) : null;
+            networks = new Dictionary<string, DepositWithdrawFeeNetwork>();
+            if (SafeValue(depositWithdrawFee, "networks") != null)
+            {
+                var networks2 = (Dictionary<string, object>)SafeValue(depositWithdrawFee, "networks");
+                foreach (var network in networks2)
+                {
+                    networks.Add(network.Key, new DepositWithdrawFeeNetwork(network.Value));
+                }
+            }
+        }
+    }
 }
