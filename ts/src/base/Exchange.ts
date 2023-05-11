@@ -1400,7 +1400,7 @@ export default class Exchange {
         const sinceIsDefined = this.valueIsDefined (since);
         const parsedArray = this.toArray (array) as any;
         if (sinceIsDefined) {
-            const result = [];
+            const result = [ ];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
                 if (entry[key] >= since) {
@@ -1418,7 +1418,7 @@ export default class Exchange {
         const parsedArray = this.toArray (array) as any;
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined) {
-            const result = [];
+            const result = [ ];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
                 const entryFiledEqualValue = entry[field] === value;
