@@ -1000,6 +1000,18 @@ class xt(Exchange, ImplicitAPI):
         #                 "min": "1"
         #             },
         #             {
+        #                 "filter": "PRICE",
+        #                 "min": null,
+        #                 "max": null,
+        #                 "tickSize": null
+        #             },
+        #             {
+        #                 "filter": "QUANTITY",
+        #                 "min": null,
+        #                 "max": null,
+        #                 "tickSize": null
+        #             },
+        #             {
         #                 "filter": "PROTECTION_LIMIT",
         #                 "buyMaxDeviation": "0.8",
         #                 "sellMaxDeviation": "4"
@@ -1007,7 +1019,12 @@ class xt(Exchange, ImplicitAPI):
         #             {
         #                 "filter": "PROTECTION_MARKET",
         #                 "maxDeviation": "0.02"
-        #             }
+        #             },
+        #             {
+        #                  "filter": "PROTECTION_ONLINE",
+        #                  "durationSeconds": "300",
+        #                  "maxPriceMultiple": "5"
+        #             },
         #         ]
         #     }
         #
@@ -1076,11 +1093,22 @@ class xt(Exchange, ImplicitAPI):
         symbol = base + '/' + quote
         filters = self.safe_value(market, 'filters', [])
         minAmount = None
+        maxAmount = None
+        minCost = None
+        maxCost = None
+        minPrice = None
+        maxPrice = None
         for i in range(0, len(filters)):
             entry = filters[i]
             filter = self.safe_string(entry, 'filter')
-            if filter == 'QUOTE_QTY':
+            if filter == 'QUANTITY':
                 minAmount = self.safe_number(entry, 'min')
+                maxAmount = self.safe_number(entry, 'max')
+            if filter == 'QUOTE_QTY':
+                minCost = self.safe_number(entry, 'min')
+            if filter == 'PRICE':
+                minPrice = self.safe_number(entry, 'min')
+                maxPrice = self.safe_number(entry, 'max')
         underlyingType = self.safe_string(market, 'underlyingType')
         linear = None
         inverse = None
@@ -1115,13 +1143,18 @@ class xt(Exchange, ImplicitAPI):
                 type = 'swap'
                 swap = True
             minAmount = self.safe_number(market, 'minQty')
+            minCost = self.safe_number(market, 'minNotional')
+            maxCost = self.safe_number(market, 'maxNotional')
+            minPrice = self.safe_number(market, 'minPrice')
+            maxPrice = self.safe_number(market, 'maxPrice')
             contract = True
             spot = False
-        isActive = True
+        isActive = False
         if contract:
             isActive = self.safe_value(market, 'isOpenApi', False)
         else:
-            isActive = (state == 'ONLINE') or (state == '0')
+            if (state == 'ONLINE') and (self.safe_value(market, 'tradingEnabled')) and (self.safe_value(market, 'openapiEnabled')):
+                isActive = True
         return {
             'id': id,
             'symbol': symbol,
@@ -1159,15 +1192,15 @@ class xt(Exchange, ImplicitAPI):
                 },
                 'amount': {
                     'min': minAmount,
-                    'max': None,
+                    'max': maxAmount,
                 },
                 'price': {
-                    'min': self.safe_number(market, 'minPrice'),
-                    'max': self.safe_number(market, 'maxPrice'),
+                    'min': minPrice,
+                    'max': maxPrice,
                 },
                 'cost': {
-                    'min': self.safe_number(market, 'minNotional'),
-                    'max': self.safe_number(market, 'maxNotional'),
+                    'min': minCost,
+                    'max': maxCost,
                 },
             },
             'info': market,
@@ -1301,6 +1334,8 @@ class xt(Exchange, ImplicitAPI):
         }
         response = None
         if market['spot']:
+            if limit is not None:
+                request['limit'] = min(limit, 500)
             response = await self.publicSpotGetDepth(self.extend(request, params))
         else:
             if limit is not None:

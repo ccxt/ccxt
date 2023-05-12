@@ -997,14 +997,31 @@ class xt extends Exchange {
         //                 "min" => "1"
         //             ),
         //             array(
+        //                 "filter" => "PRICE",
+        //                 "min" => null,
+        //                 "max" => null,
+        //                 "tickSize" => null
+        //             ),
+        //             array(
+        //                 "filter" => "QUANTITY",
+        //                 "min" => null,
+        //                 "max" => null,
+        //                 "tickSize" => null
+        //             ),
+        //             array(
         //                 "filter" => "PROTECTION_LIMIT",
         //                 "buyMaxDeviation" => "0.8",
         //                 "sellMaxDeviation" => "4"
         //             ),
-        //             {
+        //             array(
         //                 "filter" => "PROTECTION_MARKET",
         //                 "maxDeviation" => "0.02"
-        //             }
+        //             ),
+        //             array(
+        //                  "filter" => "PROTECTION_ONLINE",
+        //                  "durationSeconds" => "300",
+        //                  "maxPriceMultiple" => "5"
+        //             ),
         //         )
         //     }
         //
@@ -1073,11 +1090,24 @@ class xt extends Exchange {
         $symbol = $base . '/' . $quote;
         $filters = $this->safe_value($market, 'filters', array());
         $minAmount = null;
+        $maxAmount = null;
+        $minCost = null;
+        $maxCost = null;
+        $minPrice = null;
+        $maxPrice = null;
         for ($i = 0; $i < count($filters); $i++) {
             $entry = $filters[$i];
             $filter = $this->safe_string($entry, 'filter');
-            if ($filter === 'QUOTE_QTY') {
+            if ($filter === 'QUANTITY') {
                 $minAmount = $this->safe_number($entry, 'min');
+                $maxAmount = $this->safe_number($entry, 'max');
+            }
+            if ($filter === 'QUOTE_QTY') {
+                $minCost = $this->safe_number($entry, 'min');
+            }
+            if ($filter === 'PRICE') {
+                $minPrice = $this->safe_number($entry, 'min');
+                $maxPrice = $this->safe_number($entry, 'max');
             }
         }
         $underlyingType = $this->safe_string($market, 'underlyingType');
@@ -1116,14 +1146,20 @@ class xt extends Exchange {
                 $swap = true;
             }
             $minAmount = $this->safe_number($market, 'minQty');
+            $minCost = $this->safe_number($market, 'minNotional');
+            $maxCost = $this->safe_number($market, 'maxNotional');
+            $minPrice = $this->safe_number($market, 'minPrice');
+            $maxPrice = $this->safe_number($market, 'maxPrice');
             $contract = true;
             $spot = false;
         }
-        $isActive = true;
+        $isActive = false;
         if ($contract) {
             $isActive = $this->safe_value($market, 'isOpenApi', false);
         } else {
-            $isActive = ($state === 'ONLINE') || ($state === '0');
+            if (($state === 'ONLINE') && ($this->safe_value($market, 'tradingEnabled')) && ($this->safe_value($market, 'openapiEnabled'))) {
+                $isActive = true;
+            }
         }
         return array(
             'id' => $id,
@@ -1162,15 +1198,15 @@ class xt extends Exchange {
                 ),
                 'amount' => array(
                     'min' => $minAmount,
-                    'max' => null,
+                    'max' => $maxAmount,
                 ),
                 'price' => array(
-                    'min' => $this->safe_number($market, 'minPrice'),
-                    'max' => $this->safe_number($market, 'maxPrice'),
+                    'min' => $minPrice,
+                    'max' => $maxPrice,
                 ),
                 'cost' => array(
-                    'min' => $this->safe_number($market, 'minNotional'),
-                    'max' => $this->safe_number($market, 'maxNotional'),
+                    'min' => $minCost,
+                    'max' => $maxCost,
                 ),
             ),
             'info' => $market,
@@ -1310,6 +1346,9 @@ class xt extends Exchange {
         );
         $response = null;
         if ($market['spot']) {
+            if ($limit !== null) {
+                $request['limit'] = min ($limit, 500);
+            }
             $response = $this->publicSpotGetDepth (array_merge($request, $params));
         } else {
             if ($limit !== null) {
