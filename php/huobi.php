@@ -2891,12 +2891,15 @@ class huobi extends Exchange {
         /**
          * query for $balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} $params extra parameters specific to the huobi api endpoint
+         * @param {bool} $params->unified provide this parameter if you have a recent $account with unified $cross+$isolated $margin $account
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
          */
         $this->load_markets();
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $options = $this->safe_value($this->options, 'fetchBalance', array());
+        $isUnifiedAccount = $this->safe_value_2($params, 'isUnifiedAccount', 'unified', false);
+        $params = $this->omit($params, array( 'isUnifiedAccount', 'unified' ));
         $request = array();
         $method = null;
         $spot = ($type === 'spot');
@@ -2926,6 +2929,8 @@ class huobi extends Exchange {
                 $request['account-id'] = $accountId;
                 $method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
             }
+        } elseif ($isUnifiedAccount) {
+            $method = 'contractPrivateGetLinearSwapApiV3UnifiedAccountInfo';
         } elseif ($linear) {
             if ($isolated) {
                 $method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
@@ -3123,6 +3128,32 @@ class huobi extends Exchange {
                     $result[$code] = $this->parse_margin_balance_helper($balance, $code, $result);
                 }
                 $result = $this->safe_balance($result);
+            }
+        } elseif ($isUnifiedAccount) {
+            for ($i = 0; $i < count($data); $i++) {
+                $entry = $data[$i];
+                $marginAsset = $this->safe_string($entry, 'margin_asset');
+                $currencyCode = $this->safe_currency_code($marginAsset);
+                if ($isolated) {
+                    $isolated_swap = $this->safe_value($entry, 'isolated_swap', array());
+                    for ($j = 0; $j < count($isolated_swap); $j++) {
+                        $balance = $isolated_swap[$j];
+                        $marketId = $this->safe_string($balance, 'contract_code');
+                        $subBalance = array(
+                            'code' => $currencyCode,
+                            'free' => $this->safe_number($balance, 'margin_available'),
+                        );
+                        $symbol = $this->safe_symbol($marketId);
+                        $result[$symbol] = $subBalance;
+                        $result = $this->safe_balance($result);
+                    }
+                } else {
+                    $account = $this->account();
+                    $account['free'] = $this->safe_string($entry, 'margin_static');
+                    $account['used'] = $this->safe_string($entry, 'margin_frozen');
+                    $result[$currencyCode] = $account;
+                    $result = $this->safe_balance($result);
+                }
             }
         } elseif ($linear) {
             $first = $this->safe_value($data, 0, array());
