@@ -1,2 +1,2 @@
-declare function testFetchMarketLeverageTiers(exchange: any, symbol: any): Promise<void>;
+declare function testFetchMarketLeverageTiers(exchange: any, skippedProperties: any, symbol: any): Promise<void>;
 export default testFetchMarketLeverageTiers;

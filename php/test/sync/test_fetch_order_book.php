@@ -10,8 +10,8 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_order_book.php';
 
-function test_fetch_order_book($exchange, $symbol) {
+function test_fetch_order_book($exchange, $skipped_properties, $symbol) {
     $method = 'fetchOrderBook';
     $orderbook = $exchange->fetch_order_book($symbol);
-    test_order_book($exchange, $method, $orderbook, $symbol);
+    test_order_book($exchange, $skipped_properties, $method, $orderbook, $symbol);
 }

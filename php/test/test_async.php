@@ -169,7 +169,7 @@ class testMainClass extends baseMainTestClass {
                 'debug' => $this->debug,
                 'httpsAgent' => httpsAgent,
                 'enableRateLimit' => true,
-                'timeout' => 20000,
+                'timeout' => 30000,
             );
             $exchange = init_exchange ($exchangeId, $exchangeArgs);
             Async\await($this->import_files($exchange));
@@ -236,6 +236,10 @@ class testMainClass extends baseMainTestClass {
         $skippedSettingsForExchange = $exchange->safe_value($skippedSettings, $exchangeId, array());
         // others
         $skipReason = $exchange->safe_value($skippedSettingsForExchange, 'skip');
+        $timeout = $exchange->safe_value($skippedSettingsForExchange, 'timeout');
+        if ($timeout !== null) {
+            $exchange->timeout = $timeout;
+        }
         if ($skipReason !== null) {
             dump ('[SKIPPED] exchange', $exchangeId, $skipReason);
             exit_script ();

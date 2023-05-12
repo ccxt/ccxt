@@ -17,10 +17,10 @@ from ccxt.test.base import test_funding_rate_history  # noqa E402
 from ccxt.test.base import test_shared_methods  # noqa E402
 
 
-def test_fetch_funding_rate_history(exchange, symbol):
+def test_fetch_funding_rate_history(exchange, skipped_properties, symbol):
     method = 'fetchFundingRateHistory'
     funding_rates_history = exchange.fetch_funding_rate_history(symbol)
     assert isinstance(funding_rates_history, list), exchange.id + ' ' + method + ' ' + symbol + ' must return an array, returned ' + exchange.json(funding_rates_history)
     for i in range(0, len(funding_rates_history)):
-        test_funding_rate_history(exchange, method, funding_rates_history[i], symbol)
+        test_funding_rate_history(exchange, skipped_properties, method, funding_rates_history[i], symbol)
     test_shared_methods.assert_timestamp_order(exchange, method, symbol, funding_rates_history)

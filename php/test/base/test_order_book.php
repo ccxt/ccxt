@@ -10,18 +10,19 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/test_shared_methods.php';
 
-function test_order_book($exchange, $method, $entry, $symbol) {
+function test_order_book($exchange, $skipped_properties, $method, $entry, $symbol) {
     $format = array(
-        'bids' => [[$exchange->parse_number('1.23'), $exchange->parse_number('0.123')], [$exchange->parse_number('1.22'), $exchange->parse_number('0.543')]],
+        'symbol' => 'ETH/BTC',
         'asks' => [[$exchange->parse_number('1.24'), $exchange->parse_number('0.453')], [$exchange->parse_number('1.25'), $exchange->parse_number('0.157')]],
+        'bids' => [[$exchange->parse_number('1.23'), $exchange->parse_number('0.123')], [$exchange->parse_number('1.22'), $exchange->parse_number('0.543')]],
         'timestamp' => 1504224000000,
         'datetime' => '2017-09-01T00:00:00',
         'nonce' => 134234234,
     );
-    $empty_not_allowed_for = ['bids', 'asks'];
-    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
-    assert_timestamp($exchange, $method, $entry);
-    assert_symbol($exchange, $method, $entry, 'symbol', $symbol);
+    $empty_allowed_for = ['symbol', 'nonce', 'datetime', 'timestamp']; // todo: make timestamp required
+    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+    assert_timestamp($exchange, $skipped_properties, $method, $entry);
+    assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
     $log_text = log_template($exchange, $method, $entry);
     //
     $bids = $entry['bids'];
@@ -33,8 +34,8 @@ function test_order_book($exchange, $method, $entry, $symbol) {
             $next_bid_string = $exchange->safe_string($bids[$next_i], 0);
             assert(Precise::string_gt($current_bid_string, $next_bid_string), 'current bid should be > than the next one: ' . $current_bid_string . '>' . $next_bid_string . $log_text);
         }
-        assert_greater($exchange, $method, $bids[$i], 0, '0');
-        assert_greater($exchange, $method, $bids[$i], 1, '0');
+        assert_greater($exchange, $skipped_properties, $method, $bids[$i], 0, '0');
+        assert_greater($exchange, $skipped_properties, $method, $bids[$i], 1, '0');
     }
     $asks = $entry['asks'];
     $asks_length = count($asks);
@@ -45,8 +46,8 @@ function test_order_book($exchange, $method, $entry, $symbol) {
             $next_ask_string = $exchange->safe_string($asks[$next_i], 0);
             assert(Precise::string_lt($current_ask_string, $next_ask_string), 'current ask should be < than the next one: ' . $current_ask_string . '<' . $next_ask_string . $log_text);
         }
-        assert_greater($exchange, $method, $asks[$i], 0, '0');
-        assert_greater($exchange, $method, $asks[$i], 1, '0');
+        assert_greater($exchange, $skipped_properties, $method, $asks[$i], 0, '0');
+        assert_greater($exchange, $skipped_properties, $method, $asks[$i], 1, '0');
     }
     if ($bids_length && $asks_length) {
         $first_bid = $exchange->safe_string($bids[0], 0);

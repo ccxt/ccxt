@@ -204,7 +204,7 @@ class testMainClass(baseMainTestClass):
             'debug': self.debug,
             'httpsAgent': httpsAgent,
             'enableRateLimit': True,
-            'timeout': 20000,
+            'timeout': 30000,
         }
         exchange = init_exchange(exchangeId, exchangeArgs)
         await self.import_files(exchange)
@@ -241,10 +241,6 @@ class testMainClass(baseMainTestClass):
                     else:
                         finalValue = exchangeSettings[key]
                     set_exchange_prop(exchange, key, finalValue)
-            # support simple proxy
-            proxy = get_exchange_prop(exchange, 'httpProxy')
-            if proxy:
-                add_proxy(exchange, proxy)
         # credentials
         reqCreds = get_exchange_prop(exchange, 're' + 'quiredCredentials')  # dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
         objkeys = list(reqCreds.keys())
@@ -263,13 +259,18 @@ class testMainClass(baseMainTestClass):
         skippedSettingsForExchange = exchange.safe_value(skippedSettings, exchangeId, {})
         # others
         skipReason = exchange.safe_value(skippedSettingsForExchange, 'skip')
+        timeout = exchange.safe_value(skippedSettingsForExchange, 'timeout')
+        if timeout is not None:
+            exchange.timeout = timeout
         if skipReason is not None:
             dump('[SKIPPED] exchange', exchangeId, skipReason)
             exit_script()
         if exchange.alias:
             dump('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
-        #
+        proxy = exchange.safe_string(skippedSettingsForExchange, 'httpProxy')
+        if proxy is not None:
+            add_proxy(exchange, proxy)
         self.skippedMethods = exchange.safe_value(skippedSettingsForExchange, 'skipMethods', {})
         self.checkedPublicTests = {}
 
@@ -304,14 +305,14 @@ class testMainClass(baseMainTestClass):
             dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified)
         result = None
         try:
-            skippedProperties = exchange.safe_value(self.skippedMethods, methodName, [])
+            skippedProperties = exchange.safe_value(self.skippedMethods, methodName, {})
             result = await call_method(self.testFiles, methodNameInTest, exchange, skippedProperties, args)
             if isPublic:
                 self.checkedPublicTests[methodNameInTest] = True
         except Exception as e:
             isAuthError = (isinstance(e, AuthenticationError))
             if not (isPublic and isAuthError):
-                dump('ERROR:', exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified)
+                dump('[TEST_FAILURE]', exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified)
                 raise e
         return result
 
