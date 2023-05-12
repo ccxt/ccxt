@@ -4,41 +4,45 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// @ts-nocheck
-// ----------------------------------------------------------------------------
 import assert from 'assert';
 import testSharedMethods from './test.sharedMethods.js';
 import Precise from '../../../base/Precise.js';
-function testBalance(exchange, method, entry) {
+function testBalance(exchange, skippedProperties, method, entry) {
     const format = {
         'free': {},
         'used': {},
         'total': {},
         'info': {},
     };
-    const emptyNotAllowedFor = ['free', 'used', 'total'];
-    testSharedMethods.assertStructure(exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format);
     const logText = testSharedMethods.logTemplate(exchange, method, entry);
     //
-    const codes = Object.keys(entry['total']);
-    for (let i = 0; i < codes.length; i++) {
-        const code = codes[i];
-        testSharedMethods.assertCurrencyCode(exchange, method, entry, code);
+    const codesTotal = Object.keys(entry['total']);
+    const codesFree = Object.keys(entry['free']);
+    const codesUsed = Object.keys(entry['used']);
+    let allCodes = codesTotal.concat(codesFree);
+    allCodes = allCodes.concat(codesUsed);
+    const codesLength = codesTotal.length;
+    const freeLength = codesFree.length;
+    const usedLength = codesUsed.length;
+    assert((codesLength === freeLength) || (codesLength === usedLength), 'free and total and used codes have different lengths' + logText);
+    for (let i = 0; i < allCodes.length; i++) {
+        const code = allCodes[i];
+        testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, code);
+        assert(code in entry['total'], 'code ' + code + ' not in total' + logText);
+        assert(code in entry['free'], 'code ' + code + ' not in free' + logText);
+        assert(code in entry['used'], 'code ' + code + ' not in used' + logText);
         const total = exchange.safeString(entry['total'], code);
         const free = exchange.safeString(entry['free'], code);
         const used = exchange.safeString(entry['used'], code);
-        const totalDefined = total !== undefined;
-        const freeDefined = free !== undefined;
-        const usedDefined = used !== undefined;
-        if (totalDefined && freeDefined && usedDefined) {
-            const freeAndUsed = Precise.stringAdd(free, used);
-            assert(Precise.stringEq(total, freeAndUsed), 'free and used do not sum to total' + logText);
-        }
-        else {
-            assert(!totalDefined && freeDefined && usedDefined, 'value of "total" is missing from balance calculations' + logText);
-            assert(totalDefined && !freeDefined && usedDefined, 'value of "free" is missing from balance calculations' + logText);
-            assert(totalDefined && freeDefined && !usedDefined, 'value of "used" is missing from balance calculations' + logText);
-        }
+        assert(total !== undefined, 'total is undefined' + logText);
+        assert(free !== undefined, 'free is undefined' + logText);
+        assert(used !== undefined, 'used is undefined' + logText);
+        assert(Precise.stringGe(total, '0'), 'total is not positive' + logText);
+        assert(Precise.stringGe(free, '0'), 'free is not positive' + logText);
+        assert(Precise.stringGe(used, '0'), 'used is not positive' + logText);
+        const sumFreeUsed = Precise.stringAdd(free, used);
+        assert(Precise.stringEq(total, sumFreeUsed), 'free and used do not sum to total' + logText);
     }
 }
 export default testBalance;

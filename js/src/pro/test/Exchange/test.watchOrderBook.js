@@ -12,6 +12,7 @@ import errors from '../../../base/errors.js';
 export default async (exchange, symbol) => {
     // log (symbol.green, 'watching order book...')
     const method = 'watchOrderBook';
+    const skippedProperties = {};
     // we have to skip some exchanges here due to the frequency of trading or to other factors
     const skippedExchanges = [
         'cex',
@@ -36,7 +37,7 @@ export default async (exchange, symbol) => {
     while (now < ends) {
         try {
             response = await exchange[method](symbol);
-            testOrderBook(exchange, method, response, symbol);
+            testOrderBook(exchange, skippedProperties, method, response, symbol);
         }
         catch (e) {
             if (!(e instanceof errors.NetworkError)) {

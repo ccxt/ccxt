@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.101 (2023-05-12)
+
+
+### Bug Fixes
+
+* **coinbase:** fetchOrders, fetchOrdersByStatus, fix since ([fb444e5](https://github.com/ccxt/ccxt/commit/fb444e562784ec949a7b034909fd095ea9cc5b52))
+
 ### 3.0.100 (2023-05-11)
 
 ### 3.0.99 (2023-05-10)

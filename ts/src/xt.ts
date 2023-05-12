@@ -5,7 +5,7 @@ import Exchange from './abstract/xt.js';
 import { Int } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import { AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
+import { AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
@@ -401,6 +401,7 @@ export default class xt extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '400': NetworkError, // {"returnCode":1,"msgInfo":"failure","error":{"code":"400","msg":"Connection refused: /10.0.26.71:8080"},"result":null}
                     '404': ExchangeError, // interface does not exist
                     '429': RateLimitExceeded, // The request is too frequent, please control the request rate according to the speed limit requirement
                     '500': ExchangeError, // Service exception
@@ -715,7 +716,10 @@ export default class xt extends Exchange {
         //                     {
         //                         "chain": "Bitcoin",
         //                         "depositEnabled": true,
-        //                         "withdrawEnabled": true
+        //                         "withdrawEnabled": true,
+        //                         "withdrawFeeAmount": 0.0009,
+        //                         "withdrawMinAmount": 0.0005,
+        //                         "depositFeeRate": 0
         //                     },
         //                 ]
         //             },
@@ -730,21 +734,36 @@ export default class xt extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const rawNetworks = this.safeValue (entry, 'supportChains', []);
             const networks = {};
-            let depositEnabled = undefined;
-            let withdrawEnabled = undefined;
+            let minWithdrawString = undefined;
+            let minWithdrawFeeString = undefined;
+            let active = false;
+            let deposit = false;
+            let withdraw = false;
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
                 const networkId = this.safeString (rawNetwork, 'chain');
                 const network = this.networkIdToCode (networkId);
-                depositEnabled = this.safeValue (rawNetwork, 'depositEnabled');
-                withdrawEnabled = this.safeValue (rawNetwork, 'withdrawEnabled');
+                const depositEnabled = this.safeValue (rawNetwork, 'depositEnabled');
+                deposit = (depositEnabled) ? depositEnabled : deposit;
+                const withdrawEnabled = this.safeValue (rawNetwork, 'withdrawEnabled');
+                withdraw = (withdrawEnabled) ? withdrawEnabled : withdraw;
+                const networkActive = depositEnabled && withdrawEnabled;
+                active = (networkActive) ? networkActive : active;
+                const withdrawFeeString = this.safeString (rawNetwork, 'withdrawFeeAmount');
+                if (withdrawFeeString !== undefined) {
+                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? withdrawFeeString : Precise.stringMin (withdrawFeeString, minWithdrawFeeString);
+                }
+                const minNetworkWithdrawString = this.safeString (rawNetwork, 'withdrawMinAmount');
+                if (minNetworkWithdrawString !== undefined) {
+                    minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise.stringMin (minNetworkWithdrawString, minWithdrawString);
+                }
                 networks[network] = {
                     'info': rawNetwork,
                     'id': networkId,
                     'network': network,
                     'name': undefined,
-                    'active': undefined,
-                    'fee': undefined,
+                    'active': networkActive,
+                    'fee': this.parseNumber (withdrawFeeString),
                     'precision': undefined,
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
@@ -754,7 +773,7 @@ export default class xt extends Exchange {
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': undefined,
+                            'min': this.parseNumber (minNetworkWithdrawString),
                             'max': undefined,
                         },
                         'deposit': {
@@ -769,11 +788,11 @@ export default class xt extends Exchange {
                 'id': currencyId,
                 'code': code,
                 'name': undefined,
-                'active': true,
-                'fee': undefined,
+                'active': active,
+                'fee': this.parseNumber (minWithdrawFeeString),
                 'precision': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'networks': networks,
                 'limits': {
                     'amount': {
@@ -781,7 +800,7 @@ export default class xt extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.parseNumber (minWithdrawString),
                         'max': undefined,
                     },
                     'deposit': {
@@ -985,6 +1004,18 @@ export default class xt extends Exchange {
         //                 "min": "1"
         //             },
         //             {
+        //                 "filter": "PRICE",
+        //                 "min": null,
+        //                 "max": null,
+        //                 "tickSize": null
+        //             },
+        //             {
+        //                 "filter": "QUANTITY",
+        //                 "min": null,
+        //                 "max": null,
+        //                 "tickSize": null
+        //             },
+        //             {
         //                 "filter": "PROTECTION_LIMIT",
         //                 "buyMaxDeviation": "0.8",
         //                 "sellMaxDeviation": "4"
@@ -992,7 +1023,12 @@ export default class xt extends Exchange {
         //             {
         //                 "filter": "PROTECTION_MARKET",
         //                 "maxDeviation": "0.02"
-        //             }
+        //             },
+        //             {
+        //                  "filter": "PROTECTION_ONLINE",
+        //                  "durationSeconds": "300",
+        //                  "maxPriceMultiple": "5"
+        //             },
         //         ]
         //     }
         //
@@ -1061,11 +1097,24 @@ export default class xt extends Exchange {
         let symbol = base + '/' + quote;
         const filters = this.safeValue (market, 'filters', []);
         let minAmount = undefined;
+        let maxAmount = undefined;
+        let minCost = undefined;
+        let maxCost = undefined;
+        let minPrice = undefined;
+        let maxPrice = undefined;
         for (let i = 0; i < filters.length; i++) {
             const entry = filters[i];
             const filter = this.safeString (entry, 'filter');
-            if (filter === 'QUOTE_QTY') {
+            if (filter === 'QUANTITY') {
                 minAmount = this.safeNumber (entry, 'min');
+                maxAmount = this.safeNumber (entry, 'max');
+            }
+            if (filter === 'QUOTE_QTY') {
+                minCost = this.safeNumber (entry, 'min');
+            }
+            if (filter === 'PRICE') {
+                minPrice = this.safeNumber (entry, 'min');
+                maxPrice = this.safeNumber (entry, 'max');
             }
         }
         const underlyingType = this.safeString (market, 'underlyingType');
@@ -1104,14 +1153,20 @@ export default class xt extends Exchange {
                 swap = true;
             }
             minAmount = this.safeNumber (market, 'minQty');
+            minCost = this.safeNumber (market, 'minNotional');
+            maxCost = this.safeNumber (market, 'maxNotional');
+            minPrice = this.safeNumber (market, 'minPrice');
+            maxPrice = this.safeNumber (market, 'maxPrice');
             contract = true;
             spot = false;
         }
-        let isActive = true;
+        let isActive = false;
         if (contract) {
             isActive = this.safeValue (market, 'isOpenApi', false);
         } else {
-            isActive = (state === 'ONLINE') || (state === '0');
+            if ((state === 'ONLINE') && (this.safeValue (market, 'tradingEnabled')) && (this.safeValue (market, 'openapiEnabled'))) {
+                isActive = true;
+            }
         }
         return {
             'id': id,
@@ -1150,15 +1205,15 @@ export default class xt extends Exchange {
                 },
                 'amount': {
                     'min': minAmount,
-                    'max': undefined,
+                    'max': maxAmount,
                 },
                 'price': {
-                    'min': this.safeNumber (market, 'minPrice'),
-                    'max': this.safeNumber (market, 'maxPrice'),
+                    'min': minPrice,
+                    'max': maxPrice,
                 },
                 'cost': {
-                    'min': this.safeNumber (market, 'minNotional'),
-                    'max': this.safeNumber (market, 'maxNotional'),
+                    'min': minCost,
+                    'max': maxCost,
                 },
             },
             'info': market,
@@ -1302,6 +1357,9 @@ export default class xt extends Exchange {
         };
         let response = undefined;
         if (market['spot']) {
+            if (limit !== undefined) {
+                request['limit'] = Math.min (limit, 500);
+            }
             response = await this.publicSpotGetDepth (this.extend (request, params));
         } else {
             if (limit !== undefined) {

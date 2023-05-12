@@ -10,17 +10,24 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/test_shared_methods.php';
 
-function test_currency($exchange, $method, $entry) {
+function test_currency($exchange, $skipped_properties, $method, $entry) {
     $format = array(
-        'info' => array(),
         'id' => 'btc',
         'code' => 'BTC',
-        'name' => 'Bitcoin',
-        'withdraw' => true,
-        'deposit' => true,
-        'precision' => $exchange->parse_number('0.0001'),
-        'fee' => $exchange->parse_number('0.001'),
-        'limits' => array(
+    );
+    // todo: remove fee from empty
+    $empty_allowed_for = ['name', 'fee'];
+    // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
+    $is_native = $exchange->has['fetchCurrencies'] && $exchange->has['fetchCurrencies'] !== 'emulated';
+    if ($is_native) {
+        $format['info'] = array();
+        // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
+        $format['withdraw'] = true; // withdraw enabled
+        $format['deposit'] = true; // deposit enabled
+        $format['precision'] = $exchange->parse_number('0.0001'); // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
+        $format['fee'] = $exchange->parse_number('0.001');
+        $format['networks'] = array();
+        $format['limits'] = array(
             'withdraw' => array(
                 'min' => $exchange->parse_number('0.01'),
                 'max' => $exchange->parse_number('1000'),
@@ -29,19 +36,32 @@ function test_currency($exchange, $method, $entry) {
                 'min' => $exchange->parse_number('0.01'),
                 'max' => $exchange->parse_number('1000'),
             ),
-        ),
-    );
-    $empty_not_allowed_for = ['id', 'code'];
-    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
-    assert_currency_code($exchange, $method, $entry, $entry['code']);
+        );
+    }
+    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+    assert_currency_code($exchange, $skipped_properties, $method, $entry, $entry['code']);
     //
-    assert_greater($exchange, $method, $entry, 'precision', '0');
-    assert_greater_or_equal($exchange, $method, $entry, 'fee', '0');
-    $limits = $exchange->safe_value($entry, 'limits', array());
-    $withdraw_limits = $exchange->safe_value($limits, 'withdraw', array());
-    $deposit_limits = $exchange->safe_value($limits, 'deposit', array());
-    assert_greater_or_equal($exchange, $method, $withdraw_limits, 'min', '0');
-    assert_greater_or_equal($exchange, $method, $withdraw_limits, 'max', '0');
-    assert_greater_or_equal($exchange, $method, $deposit_limits, 'min', '0');
-    assert_greater_or_equal($exchange, $method, $deposit_limits, 'max', '0');
+    check_precision_accuracy($exchange, $skipped_properties, $method, $entry, 'precision');
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'fee', '0');
+    if (!(is_array($skipped_properties) && array_key_exists('limits', $skipped_properties))) {
+        $limits = $exchange->safe_value($entry, 'limits', array());
+        $withdraw_limits = $exchange->safe_value($limits, 'withdraw', array());
+        $deposit_limits = $exchange->safe_value($limits, 'deposit', array());
+        assert_greater_or_equal($exchange, $skipped_properties, $method, $withdraw_limits, 'min', '0');
+        assert_greater_or_equal($exchange, $skipped_properties, $method, $withdraw_limits, 'max', '0');
+        assert_greater_or_equal($exchange, $skipped_properties, $method, $deposit_limits, 'min', '0');
+        assert_greater_or_equal($exchange, $skipped_properties, $method, $deposit_limits, 'max', '0');
+        // max should be more than min (withdrawal limits)
+        $min_string_withdrawal = $exchange->safe_string($withdraw_limits, 'min');
+        if ($min_string_withdrawal !== null) {
+            assert_greater_or_equal($exchange, $skipped_properties, $method, $withdraw_limits, 'max', $min_string_withdrawal);
+        }
+        // max should be more than min (deposit limits)
+        $min_string_deposit = $exchange->safe_string($deposit_limits, 'min');
+        if ($min_string_deposit !== null) {
+            assert_greater_or_equal($exchange, $skipped_properties, $method, $deposit_limits, 'max', $min_string_deposit);
+        }
+        // check valid ID & CODE
+        assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $entry, $entry['id'], $entry['code']);
+    }
 }

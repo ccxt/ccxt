@@ -12,10 +12,10 @@ use React\Promise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_order_book.php';
 
-function test_fetch_l2_order_book($exchange, $symbol) {
-    return Async\async(function () use ($exchange, $symbol) {
+function test_fetch_l2_order_book($exchange, $skipped_properties, $symbol) {
+    return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchL2OrderBook';
         $order_book = Async\await($exchange->fetch_l2_order_book($symbol));
-        test_order_book($exchange, $method, $order_book, $symbol);
+        test_order_book($exchange, $skipped_properties, $method, $order_book, $symbol);
     }) ();
 }

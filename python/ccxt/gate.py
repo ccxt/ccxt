@@ -2524,6 +2524,7 @@ class gate(Exchange, ImplicitAPI):
             'margin': 'publicSpotGetTrades',
             'swap': 'publicFuturesGetSettleTrades',
             'future': 'publicDeliveryGetSettleTrades',
+            'option': 'publicOptionsGetTrades',
         })
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
@@ -2555,6 +2556,18 @@ class gate(Exchange, ImplicitAPI):
         #              create_time: "1634673380.182",
         #              contract: "ADA_USDT",
         #              price: "2.10486",
+        #         }
+        #     ]
+        #
+        # option
+        #
+        #     [
+        #         {
+        #             "size": -5,
+        #             "id": 25,
+        #             "create_time": 1682378573,
+        #             "contract": "ETH_USDT-20230526-2000-P",
+        #             "price": "209.1"
         #         }
         #     ]
         #
@@ -2757,6 +2770,16 @@ class gate(Exchange, ImplicitAPI):
         #         "size": 100,
         #         "price": "100.123",
         #         "role": "taker"
+        #     }
+        #
+        # option rest
+        #
+        #     {
+        #         "size": -5,
+        #         "id": 25,
+        #         "create_time": 1682378573,
+        #         "contract": "ETH_USDT-20230526-2000-P",
+        #         "price": "209.1"
         #     }
         #
         id = self.safe_string(trade, 'id')

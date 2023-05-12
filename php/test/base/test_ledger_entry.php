@@ -10,7 +10,7 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/test_shared_methods.php';
 
-function test_ledger_entry($exchange, $method, $entry, $requested_code, $now) {
+function test_ledger_entry($exchange, $skipped_properties, $method, $entry, $requested_code, $now) {
     $format = array(
         'info' => array(),
         'id' => 'x1234',
@@ -28,16 +28,16 @@ function test_ledger_entry($exchange, $method, $entry, $requested_code, $now) {
         'datetime' => '2021-11-30T00:00:00.000Z',
         'type' => 'deposit',
     );
-    $empty_not_allowed_for = ['id', 'currency', 'account', 'status', 'direction'];
-    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
-    assert_timestamp($exchange, $method, $entry, $now);
-    assert_currency_code($exchange, $method, $entry, $entry['currency'], $requested_code);
+    $empty_allowed_for = ['referenceId', 'referenceAccount', 'id'];
+    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+    assert_timestamp($exchange, $skipped_properties, $method, $entry, $now);
+    assert_currency_code($exchange, $skipped_properties, $method, $entry, $entry['currency'], $requested_code);
     //
-    assert_in_array($exchange, $method, $entry, 'direction', ['in', 'out']);
-    // testSharedMethods.assertInArray (exchange, method, entry, 'type', ['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee',  ]);
-    // testSharedMethods.assertInArray (exchange, method, entry, 'account', ['spot', 'swap', .. ]);
-    assert_greater_or_equal($exchange, $method, $entry, 'amount', '0');
-    assert_greater_or_equal($exchange, $method, $entry, 'before', '0');
-    assert_greater_or_equal($exchange, $method, $entry, 'after', '0');
-    assert_fee($exchange, $method, $entry['fee']);
+    assert_in_array($exchange, $skipped_properties, $method, $entry, 'direction', ['in', 'out']);
+    assert_in_array($exchange, $skipped_properties, $method, $entry, 'type', ['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee']);
+    // testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'account', ['spot', 'swap', .. ]); // todo
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'amount', '0');
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'before', '0');
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'after', '0');
+    assert_fee_structure($exchange, $skipped_properties, $method, $entry, 'fee');
 }

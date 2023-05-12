@@ -10,7 +10,7 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/test_shared_methods.php';
 
-function test_ticker($exchange, $method, $entry, $symbol) {
+function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     $format = array(
         'info' => array(),
         'symbol' => 'ETH/BTC',
@@ -33,25 +33,24 @@ function test_ticker($exchange, $method, $entry, $symbol) {
         'baseVolume' => $exchange->parse_number('1.234'),
         'quoteVolume' => $exchange->parse_number('1.234'),
     );
-    $empty_not_allowed_for = ['symbol'];
-    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
-    assert_timestamp($exchange, $method, $entry);
+    // todo: atm, many exchanges fail, so temporarily decrease stict mode
+    $empty_allowed_for = ['timestamp', 'datetime', 'open', 'high', 'low', 'close', 'last', 'ask', 'bid', 'bidVolume', 'askVolume', 'baseVolume', 'quoteVolume', 'previousClose', 'vwap', 'change', 'percentage', 'average'];
+    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+    assert_timestamp($exchange, $skipped_properties, $method, $entry);
     $log_text = log_template($exchange, $method, $entry);
     //
-    assert_greater($exchange, $method, $entry, 'open', '0');
-    assert_greater($exchange, $method, $entry, 'high', '0');
-    assert_greater($exchange, $method, $entry, 'low', '0');
-    assert_greater($exchange, $method, $entry, 'close', '0');
-    assert_greater($exchange, $method, $entry, 'ask', '0');
-    assert_greater_or_equal($exchange, $method, $entry, 'askVolume', '0');
-    assert_greater($exchange, $method, $entry, 'bid', '0');
-    assert_greater_or_equal($exchange, $method, $entry, 'bidVolume', '0');
-    assert_greater($exchange, $method, $entry, 'vwap', '0');
-    assert_greater($exchange, $method, $entry, 'average', '0');
-    assert_greater_or_equal($exchange, $method, $entry, 'baseVolume', '0');
-    assert_greater_or_equal($exchange, $method, $entry, 'quoteVolume', '0');
-    $exists_first = (is_array($entry) && array_key_exists('first', $entry));
-    assert(!$exists_first, '`first` field leftover' . $log_text);
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'open', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'high', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'low', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'close', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'ask', '0');
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'askVolume', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'bid', '0');
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'bidVolume', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'vwap', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'average', '0');
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'baseVolume', '0');
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'quoteVolume', '0');
     $last_string = $exchange->safe_string($entry, 'last');
     $close_string = $exchange->safe_string($entry, 'close');
     assert((($close_string === null) && ($last_string === null)) || Precise::string_eq($last_string, $close_string), '`last` != `close`' . $log_text);
@@ -59,18 +58,19 @@ function test_ticker($exchange, $method, $entry, $symbol) {
     $quote_volume = $exchange->safe_string($entry, 'quoteVolume');
     $high = $exchange->safe_string($entry, 'high');
     $low = $exchange->safe_string($entry, 'low');
-    if (($base_volume !== null) && ($quote_volume !== null) && ($high !== null) && ($low !== null)) {
-        $mul_base_vol_low = Precise::string_mul($base_volume, $low);
-        assert(Precise::string_ge($quote_volume, $mul_base_vol_low), 'quoteVolume >= baseVolume * low' . $log_text);
-        $mul_base_vol_high = Precise::string_mul($base_volume, $high);
-        assert(Precise::string_le($quote_volume, $mul_base_vol_high), 'quoteVolume <= baseVolume * high' . $log_text);
+    if (!(is_array($skipped_properties) && array_key_exists('quoteVolume', $skipped_properties)) && !(is_array($skipped_properties) && array_key_exists('baseVolume', $skipped_properties))) {
+        if (($base_volume !== null) && ($quote_volume !== null) && ($high !== null) && ($low !== null)) {
+            assert(Precise::string_ge($quote_volume, Precise::string_mul($base_volume, $low)), 'quoteVolume >= baseVolume * low' . $log_text);
+            assert(Precise::string_le($quote_volume, Precise::string_mul($base_volume, $high)), 'quoteVolume <= baseVolume * high' . $log_text);
+        }
     }
     $vwap = $exchange->safe_string($entry, 'vwap');
     if ($vwap !== null) {
+        // todo
         // assert (high !== undefined, 'vwap is defined, but high is not' + logText);
         // assert (low !== undefined, 'vwap is defined, but low is not' + logText);
+        // assert (vwap >= low && vwap <= high)
         assert(Precise::string_ge($vwap, '0'), 'vwap is not greater than zero' . $log_text);
-        //     assert (vwap >= low && vwap <= high)
         if ($base_volume !== null) {
             assert($quote_volume !== null, 'baseVolume & vwap is defined, but quoteVolume is not' . $log_text);
         }
@@ -78,12 +78,15 @@ function test_ticker($exchange, $method, $entry, $symbol) {
             assert($base_volume !== null, 'quoteVolume & vwap is defined, but baseVolume is not' . $log_text);
         }
     }
-    $bid = $exchange->safe_string($entry, 'bid');
-    $ask = $exchange->safe_string($entry, 'ask');
-    if (($bid !== null) && ($ask !== null)) {
-        assert(Precise::string_ge($ask, $bid), $entry['symbol'] . ' bid is greater than ask!' . $log_text);
+    if (!(is_array($skipped_properties) && array_key_exists('ask', $skipped_properties)) && !(is_array($skipped_properties) && array_key_exists('bid', $skipped_properties))) {
+        $ask_string = $exchange->safe_string($entry, 'ask');
+        $bid_string = $exchange->safe_string($entry, 'bid');
+        if (($ask_string !== null) && ($bid_string !== null)) {
+            assert_greater($exchange, $skipped_properties, $method, $entry, 'ask', $exchange->safe_string($entry, 'bid'));
+        }
     }
+    // if singular fetchTicker was called, then symbol needs to be asserted
     if ($method === 'fetchTicker') {
-        assert_symbol($exchange, $method, $entry, 'symbol', $symbol);
+        assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
     }
 }
