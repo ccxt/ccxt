@@ -93,16 +93,20 @@ function assertStructure (exchange, skippedProperties, method, entry, format, em
     }
 }
 
-function assertTimestamp (exchange, skippedProperties, method, entry, nowToCheck = undefined, keyName : any = 'timestamp') {
+function assertTimestamp (exchange, skippedProperties, method, entry, nowToCheck = undefined, keyNameOrIndex : any = 'timestamp') {
     const logText = logTemplate (exchange, method, entry);
-    const isDateTimeObject = typeof keyName === 'string';
+    const skipValue = exchange.safeValue (skippedProperties, keyNameOrIndex);
+    if (skipValue !== undefined) {
+        return; // skipped
+    }
+    const isDateTimeObject = typeof keyNameOrIndex === 'string';
     if (isDateTimeObject) {
-        assert ((keyName in entry), 'timestamp key ' + keyName + ' is missing from structure' + logText);
+        assert ((keyNameOrIndex in entry), 'timestamp key ' + keyNameOrIndex + ' is missing from structure' + logText);
     } else {
         // if index was provided (mostly from fetchOHLCV) then we check if it exists, as mandatory
-        assert (!(entry[keyName] === undefined), 'timestamp index ' + stringValue (keyName) + ' is undefined' + logText);
+        assert (!(entry[keyNameOrIndex] === undefined), 'timestamp index ' + stringValue (keyNameOrIndex) + ' is undefined' + logText);
     }
-    const ts = entry[keyName];
+    const ts = entry[keyNameOrIndex];
     if (ts !== undefined) {
         assert (typeof ts === 'number', 'timestamp is not numeric' + logText);
         assert (isInteger (ts), 'timestamp should be an integer' + logText);
