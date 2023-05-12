@@ -440,7 +440,7 @@ class probit(Exchange, ImplicitAPI):
                 currentActive = currentDeposit and currentWithdraw
                 if currentActive:
                     platform = network
-                precision = self.safe_string(network, 'precision')
+                precision = self.parse_precision(self.safe_string(network, 'precision'))
                 withdrawFee = self.safe_value(network, 'withdrawal_fee', [])
                 fee = self.safe_value(withdrawFee, 0, {})
                 networkList[networkCode] = {

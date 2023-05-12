@@ -15,8 +15,10 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import NetworkError
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
+from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
@@ -122,7 +124,7 @@ class xt(Exchange, ImplicitAPI):
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'signIn': False,
-                'transfer': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'precisionMode': DECIMAL_PLACES,
@@ -132,6 +134,7 @@ class xt(Exchange, ImplicitAPI):
                     'spot': 'https://sapi.xt.com',
                     'linear': 'https://fapi.xt.com',
                     'inverse': 'https://dapi.xt.com',
+                    'user': 'https://api.xt.com',
                 },
                 'www': 'https://xt.com',
                 'referral': 'https://www.xt.com/en/accounts/register?ref=9PTM9VW',
@@ -226,6 +229,8 @@ class xt(Exchange, ImplicitAPI):
                         'post': {
                             'order': 0.2,
                             'withdraw': 1,
+                            'balance/transfer': 1,
+                            'balance/account/transfer': 1,
                         },
                         'delete': {
                             'batch-order': 1,
@@ -317,6 +322,22 @@ class xt(Exchange, ImplicitAPI):
                             'future/user/v1/user/collection/cancel': 1,
                         },
                     },
+                    'user': {
+                        'get': {
+                            'user/account': 1,
+                            'user/account/api-key': 1,
+                        },
+                        'post': {
+                            'user/account': 1,
+                            'user/account/api-key': 1,
+                        },
+                        'put': {
+                            'user/account/api-key': 1,
+                        },
+                        'delete': {
+                            'user/account/{apikeyId}': 1,
+                        },
+                    },
                 },
             },
             'fees': {
@@ -395,6 +416,7 @@ class xt(Exchange, ImplicitAPI):
             },
             'exceptions': {
                 'exact': {
+                    '400': NetworkError,  # {"returnCode":1,"msgInfo":"failure","error":{"code":"400","msg":"Connection refused: /10.0.26.71:8080"},"result":null}
                     '404': ExchangeError,  # interface does not exist
                     '429': RateLimitExceeded,  # The request is too frequent, please control the request rate according to the speed limit requirement
                     '500': ExchangeError,  # Service exception
@@ -471,6 +493,33 @@ class xt(Exchange, ImplicitAPI):
                     'WITHDRAW_023': BadRequest,  # Withdrawal amount must be less than {0}
                     'WITHDRAW_024': BadRequest,  # Withdraw is not supported
                     'WITHDRAW_025': BadRequest,  # Please create a FIO address in the deposit page
+                    'FUND_001': BadRequest,  # Duplicate request(a bizId can only be requested once)
+                    'FUND_002': InsufficientFunds,  # Insufficient account balance
+                    'FUND_003': BadRequest,  # Transfer operations are not supported(for example, sub-accounts do not support financial transfers)
+                    'FUND_004': ExchangeError,  # Unfreeze failed
+                    'FUND_005': PermissionDenied,  # Transfer prohibited
+                    'FUND_014': BadRequest,  # The transfer-in account id and transfer-out account ID cannot be the same
+                    'FUND_015': BadRequest,  # From and to business types cannot be the same
+                    'FUND_016': BadRequest,  # Leverage transfer, symbol cannot be empty
+                    'FUND_017': BadRequest,  # Parameter error
+                    'FUND_018': BadRequest,  # Invalid freeze record
+                    'FUND_019': BadRequest,  # Freeze users not equal
+                    'FUND_020': BadRequest,  # Freeze currency are not equal
+                    'FUND_021': BadRequest,  # Operation not supported
+                    'FUND_022': BadRequest,  # Freeze record does not exist
+                    'FUND_044': BadRequest,  # The maximum length of the amount is 113 and cannot exceed the limit
+                    'TRANSFER_001': BadRequest,  # Duplicate request(a bizId can only be requested once)
+                    'TRANSFER_002': InsufficientFunds,  # Insufficient account balance
+                    'TRANSFER_003': BadRequest,  # User not registered
+                    'TRANSFER_004': PermissionDenied,  # The currency is not allowed to be transferred
+                    'TRANSFER_005': PermissionDenied,  # The user’s currency is not allowed to be transferred
+                    'TRANSFER_006': PermissionDenied,  # Transfer prohibited
+                    'TRANSFER_007': RequestTimeout,  # Request timed out
+                    'TRANSFER_008': BadRequest,  # Transferring to a leveraged account is abnormal
+                    'TRANSFER_009': BadRequest,  # Departing from a leveraged account is abnormal
+                    'TRANSFER_010': PermissionDenied,  # Leverage cleared, transfer prohibited
+                    'TRANSFER_011': PermissionDenied,  # Leverage with borrowing, transfer prohibited
+                    'TRANSFER_012': PermissionDenied,  # Currency transfer prohibited
                     'symbol_not_support_trading_via_api': BadSymbol,  # {"returnCode":1,"msgInfo":"failure","error":{"code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"},"result":null}
                     'open_order_min_nominal_value_limit': InvalidOrder,  # {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
                 },
@@ -498,6 +547,15 @@ class xt(Exchange, ImplicitAPI):
             'options': {
                 'adjustForTimeDifference': False,
                 'timeDifference': 0,
+                'accountsById': {
+                    'spot': 'SPOT',
+                    'leverage': 'LEVER',
+                    'finance': 'FINANCE',
+                    'swap': 'FUTURES_U',
+                    'future': 'FUTURES_U',
+                    'linear': 'FUTURES_U',
+                    'inverse': 'FUTURES_C',
+                },
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
@@ -666,7 +724,10 @@ class xt(Exchange, ImplicitAPI):
         #                     {
         #                         "chain": "Bitcoin",
         #                         "depositEnabled": True,
-        #                         "withdrawEnabled": True
+        #                         "withdrawEnabled": True,
+        #                         "withdrawFeeAmount": 0.0009,
+        #                         "withdrawMinAmount": 0.0005,
+        #                         "depositFeeRate": 0
         #                     },
         #                 ]
         #             },
@@ -681,21 +742,34 @@ class xt(Exchange, ImplicitAPI):
             code = self.safe_currency_code(currencyId)
             rawNetworks = self.safe_value(entry, 'supportChains', [])
             networks = {}
-            depositEnabled = None
-            withdrawEnabled = None
+            minWithdrawString = None
+            minWithdrawFeeString = None
+            active = False
+            deposit = False
+            withdraw = False
             for j in range(0, len(rawNetworks)):
                 rawNetwork = rawNetworks[j]
                 networkId = self.safe_string(rawNetwork, 'chain')
                 network = self.network_id_to_code(networkId)
                 depositEnabled = self.safe_value(rawNetwork, 'depositEnabled')
+                deposit = depositEnabled if (depositEnabled) else deposit
                 withdrawEnabled = self.safe_value(rawNetwork, 'withdrawEnabled')
+                withdraw = withdrawEnabled if (withdrawEnabled) else withdraw
+                networkActive = depositEnabled and withdrawEnabled
+                active = networkActive if (networkActive) else active
+                withdrawFeeString = self.safe_string(rawNetwork, 'withdrawFeeAmount')
+                if withdrawFeeString is not None:
+                    minWithdrawFeeString = withdrawFeeString if (minWithdrawFeeString is None) else Precise.string_min(withdrawFeeString, minWithdrawFeeString)
+                minNetworkWithdrawString = self.safe_string(rawNetwork, 'withdrawMinAmount')
+                if minNetworkWithdrawString is not None:
+                    minWithdrawString = minNetworkWithdrawString if (minWithdrawString is None) else Precise.string_min(minNetworkWithdrawString, minWithdrawString)
                 networks[network] = {
                     'info': rawNetwork,
                     'id': networkId,
                     'network': network,
                     'name': None,
-                    'active': None,
-                    'fee': None,
+                    'active': networkActive,
+                    'fee': self.parse_number(withdrawFeeString),
                     'precision': None,
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
@@ -705,7 +779,7 @@ class xt(Exchange, ImplicitAPI):
                             'max': None,
                         },
                         'withdraw': {
-                            'min': None,
+                            'min': self.parse_number(minNetworkWithdrawString),
                             'max': None,
                         },
                         'deposit': {
@@ -719,11 +793,11 @@ class xt(Exchange, ImplicitAPI):
                 'id': currencyId,
                 'code': code,
                 'name': None,
-                'active': True,
-                'fee': None,
+                'active': active,
+                'fee': self.parse_number(minWithdrawFeeString),
                 'precision': None,
-                'deposit': None,
-                'withdraw': None,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'networks': networks,
                 'limits': {
                     'amount': {
@@ -731,7 +805,7 @@ class xt(Exchange, ImplicitAPI):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': None,
+                        'min': self.parse_number(minWithdrawString),
                         'max': None,
                     },
                     'deposit': {
@@ -925,6 +999,18 @@ class xt(Exchange, ImplicitAPI):
         #                 "min": "1"
         #             },
         #             {
+        #                 "filter": "PRICE",
+        #                 "min": null,
+        #                 "max": null,
+        #                 "tickSize": null
+        #             },
+        #             {
+        #                 "filter": "QUANTITY",
+        #                 "min": null,
+        #                 "max": null,
+        #                 "tickSize": null
+        #             },
+        #             {
         #                 "filter": "PROTECTION_LIMIT",
         #                 "buyMaxDeviation": "0.8",
         #                 "sellMaxDeviation": "4"
@@ -932,7 +1018,12 @@ class xt(Exchange, ImplicitAPI):
         #             {
         #                 "filter": "PROTECTION_MARKET",
         #                 "maxDeviation": "0.02"
-        #             }
+        #             },
+        #             {
+        #                  "filter": "PROTECTION_ONLINE",
+        #                  "durationSeconds": "300",
+        #                  "maxPriceMultiple": "5"
+        #             },
         #         ]
         #     }
         #
@@ -1001,11 +1092,22 @@ class xt(Exchange, ImplicitAPI):
         symbol = base + '/' + quote
         filters = self.safe_value(market, 'filters', [])
         minAmount = None
+        maxAmount = None
+        minCost = None
+        maxCost = None
+        minPrice = None
+        maxPrice = None
         for i in range(0, len(filters)):
             entry = filters[i]
             filter = self.safe_string(entry, 'filter')
-            if filter == 'QUOTE_QTY':
+            if filter == 'QUANTITY':
                 minAmount = self.safe_number(entry, 'min')
+                maxAmount = self.safe_number(entry, 'max')
+            if filter == 'QUOTE_QTY':
+                minCost = self.safe_number(entry, 'min')
+            if filter == 'PRICE':
+                minPrice = self.safe_number(entry, 'min')
+                maxPrice = self.safe_number(entry, 'max')
         underlyingType = self.safe_string(market, 'underlyingType')
         linear = None
         inverse = None
@@ -1040,13 +1142,18 @@ class xt(Exchange, ImplicitAPI):
                 type = 'swap'
                 swap = True
             minAmount = self.safe_number(market, 'minQty')
+            minCost = self.safe_number(market, 'minNotional')
+            maxCost = self.safe_number(market, 'maxNotional')
+            minPrice = self.safe_number(market, 'minPrice')
+            maxPrice = self.safe_number(market, 'maxPrice')
             contract = True
             spot = False
-        isActive = True
+        isActive = False
         if contract:
             isActive = self.safe_value(market, 'isOpenApi', False)
         else:
-            isActive = (state == 'ONLINE') or (state == '0')
+            if (state == 'ONLINE') and (self.safe_value(market, 'tradingEnabled')) and (self.safe_value(market, 'openapiEnabled')):
+                isActive = True
         return {
             'id': id,
             'symbol': symbol,
@@ -1084,15 +1191,15 @@ class xt(Exchange, ImplicitAPI):
                 },
                 'amount': {
                     'min': minAmount,
-                    'max': None,
+                    'max': maxAmount,
                 },
                 'price': {
-                    'min': self.safe_number(market, 'minPrice'),
-                    'max': self.safe_number(market, 'maxPrice'),
+                    'min': minPrice,
+                    'max': maxPrice,
                 },
                 'cost': {
-                    'min': self.safe_number(market, 'minNotional'),
-                    'max': self.safe_number(market, 'maxNotional'),
+                    'min': minCost,
+                    'max': maxCost,
                 },
             },
             'info': market,
@@ -1226,6 +1333,8 @@ class xt(Exchange, ImplicitAPI):
         }
         response = None
         if market['spot']:
+            if limit is not None:
+                request['limit'] = min(limit, 500)
             response = self.publicSpotGetDepth(self.extend(request, params))
         else:
             if limit is not None:
@@ -4088,6 +4197,59 @@ class xt(Exchange, ImplicitAPI):
             'marginRatio': None,
         })
 
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        see https://doc.xt.com/#transfersubTransferPost
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from -  spot, swap, leverage, finance
+        :param str toAccount: account to transfer to - spot, swap, leverage, finance
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        accountsByType = self.safe_value(self.options, 'accountsById')
+        fromAccountId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toAccountId = self.safe_string(accountsByType, toAccount, toAccount)
+        amountString = self.currency_to_precision(code, amount)
+        request = {
+            'bizId': self.uuid(),
+            'currency': currency['id'],
+            'amount': amountString,
+            'from': fromAccountId,
+            'to': toAccountId,
+        }
+        response = self.privateSpotPostBalanceTransfer(self.extend(request, params))
+        #
+        #   {
+        #       info: {rc: '0', mc: 'SUCCESS', ma: [], result: '226971333791398656'},
+        #       id: '226971333791398656',
+        #       timestamp: None,
+        #       datetime: None,
+        #       currency: None,
+        #       amount: None,
+        #       fromAccount: None,
+        #       toAccount: None,
+        #       status: None
+        #   }
+        #
+        return self.parse_transfer(response, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'result'),
+            'timestamp': None,
+            'datetime': None,
+            'currency': None,
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': None,
+        }
+
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         #
         # spot: error
@@ -4156,7 +4318,7 @@ class xt(Exchange, ImplicitAPI):
         endpoint = api[1]
         request = '/' + self.implode_params(path, params)
         payload = None
-        if endpoint == 'spot':
+        if (endpoint == 'spot') or (endpoint == 'user'):
             if signed:
                 payload = '/' + self.version + request
             else:
@@ -4180,7 +4342,7 @@ class xt(Exchange, ImplicitAPI):
             isUndefinedBody = ((method == 'GET') or (path == 'order/{orderId}'))
             body = None if isUndefinedBody else self.json(body)
             payloadString = None
-            if endpoint == 'spot':
+            if (endpoint == 'spot') or (endpoint == 'user'):
                 payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp
                 if isUndefinedBody:
                     if urlencoded:
