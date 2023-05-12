@@ -52,7 +52,7 @@ export default class xt extends xtRest {
         const client = this.client (url);
         const accessToken = this.safeValue (client.subscriptions, 'accessToken');
         if (accessToken === undefined) {
-            const response = await this.privateWsPostV4WsToken (params);
+            const response = await this.privateSpotPostWsToken (params);
             //
             //    {
             //        "rc": 0,

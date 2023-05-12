@@ -218,6 +218,7 @@ export default class xt extends Exchange {
                             'withdraw': 1,
                             'balance/transfer': 1,
                             'balance/account/transfer': 1,
+                            'ws-token': 1,
                         },
                         'delete': {
                             'batch-order': 1,
