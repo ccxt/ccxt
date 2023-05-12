@@ -86,6 +86,7 @@ class baseMainTestClass():
 is_synchronous = 'async' not in os.path.basename(__file__)
 
 rootDir = current_dir + '/../../../'
+rootDirForSkips = current_dir + '/../../../'
 envVars = os.environ
 ext = 'py'
 httpsAgent = None
@@ -124,8 +125,8 @@ def io_file_read(path, decode=True):
         return content
 
 
-async def call_method(testFiles, methodName, exchange, args):
-    return await getattr(testFiles[methodName], methodName)(exchange, *args)
+async def call_method(testFiles, methodName, exchange, skippedProperties, args):
+    return await getattr(testFiles[methodName], methodName)(exchange, skippedProperties, *args)
 
 
 def exception_message(exc):
@@ -169,7 +170,8 @@ async def set_test_files(holderClass, properties):
 
 
 async def close(exchange):
-    await exchange.close()
+    if (hasattr(exchange, 'close')):
+        await exchange.close()
 
 # *********************************
 # ***** AUTO-TRANSPILER-START *****
@@ -239,6 +241,10 @@ class testMainClass(baseMainTestClass):
                     else:
                         finalValue = exchangeSettings[key]
                     set_exchange_prop(exchange, key, finalValue)
+            # support simple proxy
+            proxy = get_exchange_prop(exchange, 'httpProxy')
+            if proxy:
+                add_proxy(exchange, proxy)
         # credentials
         reqCreds = get_exchange_prop(exchange, 're' + 'quiredCredentials')  # dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
         objkeys = list(reqCreds.keys())
@@ -252,7 +258,7 @@ class testMainClass(baseMainTestClass):
                 if credentialValue:
                     set_exchange_prop(exchange, credential, credentialValue)
         # skipped tests
-        skippedFile = rootDir + 'skip-tests.json'
+        skippedFile = rootDirForSkips + 'skip-tests.json'
         skippedSettings = io_file_read(skippedFile)
         skippedSettingsForExchange = exchange.safe_value(skippedSettings, exchangeId, {})
         # others
@@ -263,9 +269,7 @@ class testMainClass(baseMainTestClass):
         if exchange.alias:
             dump('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
-        proxy = exchange.safe_string(skippedSettingsForExchange, 'httpProxy')
-        if proxy is not None:
-            add_proxy(exchange, proxy)
+        #
         self.skippedMethods = exchange.safe_value(skippedSettingsForExchange, 'skipMethods', {})
         self.checkedPublicTests = {}
 
@@ -280,14 +284,14 @@ class testMainClass(baseMainTestClass):
 
     async def test_method(self, methodName, exchange, args, isPublic):
         methodNameInTest = get_test_name(methodName)
-        # if self is a private test, and the implementation was already tested in public, then no need to re-test it in private test(exception is fetchCurrencies, because our approach in exchange)
+        # if self is a private test, and the implementation was already tested in public, then no need to re-test it in private test(exception is fetchCurrencies, because our approach in base exchange)
         if not isPublic and (methodNameInTest in self.checkedPublicTests) and (methodName != 'fetchCurrencies'):
             return
         skipMessage = None
         isFetchOhlcvEmulated = (methodName == 'fetchOHLCV' and exchange.has['fetchOHLCV'] == 'emulated')  # todo: remove emulation from base
         if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]) or isFetchOhlcvEmulated:
             skipMessage = '[INFO:UNSUPPORTED_TEST]'  # keep it aligned with the longest message
-        elif methodName in self.skippedMethods:
+        elif (methodName in self.skippedMethods) and (isinstance(self.skippedMethods[methodName], str)):
             skipMessage = '[INFO:SKIPPED_TEST]'
         elif not (methodNameInTest in self.testFiles):
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]'
@@ -300,7 +304,8 @@ class testMainClass(baseMainTestClass):
             dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified)
         result = None
         try:
-            result = await call_method(self.testFiles, methodNameInTest, exchange, args)
+            skippedProperties = exchange.safe_value(self.skippedMethods, methodName, [])
+            result = await call_method(self.testFiles, methodNameInTest, exchange, skippedProperties, args)
             if isPublic:
                 self.checkedPublicTests[methodNameInTest] = True
         except Exception as e:
