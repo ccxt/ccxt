@@ -2790,12 +2790,15 @@ class huobi(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict params: extra parameters specific to the huobi api endpoint
+        :param bool params['unified']: provide self parameter if you have a recent account with unified cross+isolated margin account
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
         options = self.safe_value(self.options, 'fetchBalance', {})
+        isUnifiedAccount = self.safe_value_2(params, 'isUnifiedAccount', 'unified', False)
+        params = self.omit(params, ['isUnifiedAccount', 'unified'])
         request = {}
         method = None
         spot = (type == 'spot')
@@ -2823,6 +2826,8 @@ class huobi(Exchange, ImplicitAPI):
                 accountId = self.fetch_account_id_by_type(type, params)
                 request['account-id'] = accountId
                 method = 'spotPrivateGetV1AccountAccountsAccountIdBalance'
+        elif isUnifiedAccount:
+            method = 'contractPrivateGetLinearSwapApiV3UnifiedAccountInfo'
         elif linear:
             if isolated:
                 method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo'
@@ -3014,6 +3019,29 @@ class huobi(Exchange, ImplicitAPI):
                     code = self.safe_currency_code(currencyId)
                     result[code] = self.parse_margin_balance_helper(balance, code, result)
                 result = self.safe_balance(result)
+        elif isUnifiedAccount:
+            for i in range(0, len(data)):
+                entry = data[i]
+                marginAsset = self.safe_string(entry, 'margin_asset')
+                currencyCode = self.safe_currency_code(marginAsset)
+                if isolated:
+                    isolated_swap = self.safe_value(entry, 'isolated_swap', {})
+                    for j in range(0, len(isolated_swap)):
+                        balance = isolated_swap[j]
+                        marketId = self.safe_string(balance, 'contract_code')
+                        subBalance = {
+                            'code': currencyCode,
+                            'free': self.safe_number(balance, 'margin_available'),
+                        }
+                        symbol = self.safe_symbol(marketId)
+                        result[symbol] = subBalance
+                        result = self.safe_balance(result)
+                else:
+                    account = self.account()
+                    account['free'] = self.safe_string(entry, 'margin_static')
+                    account['used'] = self.safe_string(entry, 'margin_frozen')
+                    result[currencyCode] = account
+                    result = self.safe_balance(result)
         elif linear:
             first = self.safe_value(data, 0, {})
             if isolated:

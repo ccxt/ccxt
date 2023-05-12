@@ -74,6 +74,8 @@ interface Exchange {
     privateSpotGetWithdrawHistory (params?: {}): Promise<implicitReturnType>;
     privateSpotPostOrder (params?: {}): Promise<implicitReturnType>;
     privateSpotPostWithdraw (params?: {}): Promise<implicitReturnType>;
+    privateSpotPostBalanceTransfer (params?: {}): Promise<implicitReturnType>;
+    privateSpotPostBalanceAccountTransfer (params?: {}): Promise<implicitReturnType>;
     privateSpotDeleteBatchOrder (params?: {}): Promise<implicitReturnType>;
     privateSpotDeleteOpenOrder (params?: {}): Promise<implicitReturnType>;
     privateSpotDeleteOrderOrderId (params?: {}): Promise<implicitReturnType>;
@@ -149,6 +151,12 @@ interface Exchange {
     privateInversePostFutureUserV1PositionMargin (params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureUserV1UserCollectionAdd (params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureUserV1UserCollectionCancel (params?: {}): Promise<implicitReturnType>;
+    privateUserGetUserAccount (params?: {}): Promise<implicitReturnType>;
+    privateUserGetUserAccountApiKey (params?: {}): Promise<implicitReturnType>;
+    privateUserPostUserAccount (params?: {}): Promise<implicitReturnType>;
+    privateUserPostUserAccountApiKey (params?: {}): Promise<implicitReturnType>;
+    privateUserPutUserAccountApiKey (params?: {}): Promise<implicitReturnType>;
+    privateUserDeleteUserAccountApikeyId (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

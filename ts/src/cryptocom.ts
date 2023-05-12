@@ -839,6 +839,8 @@ export default class cryptocom extends Exchange {
         /**
          * @method
          * @name cryptocom#fetchOHLCV
+         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-candlestick
+         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-candlestick
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -853,20 +855,27 @@ export default class cryptocom extends Exchange {
             'instrument_name': market['id'],
             'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'v2PublicGetPublicGetCandlestick',
-            'future': 'derivativesPublicGetPublicGetCandlestick',
-            'swap': 'derivativesPublicGetPublicGetCandlestick',
-        });
-        if (marketType !== 'spot') {
+        if (!market['spot']) {
             let reqLimit = 100;
             if (limit !== undefined) {
                 reqLimit = limit;
             }
             request['count'] = reqLimit;
         }
-        const response = await this[method] (this.extend (request, query));
+        if (since !== undefined) {
+            request['start_ts'] = since;
+        }
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
+        if (until !== undefined) {
+            request['end_ts'] = until;
+        }
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.v2PublicGetPublicGetCandlestick (this.extend (request, params));
+        } else if (market['contract']) {
+            response = await this.derivativesPublicGetPublicGetCandlestick (this.extend (request, params));
+        }
         // {
         //     "code":0,
         //     "method":"public/get-candlestick",

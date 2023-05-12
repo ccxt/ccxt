@@ -950,6 +950,12 @@ class Exchange {
             return client.futures[messageHash];
         }
         const future = client.future(messageHash);
+        // read and write subscription, this is done before connecting the client
+        // to avoid race conditions when other parts of the code read or write to the client.subscriptions
+        const clientSubscription = client.subscriptions[subscribeHash];
+        if (!clientSubscription) {
+            client.subscriptions[subscribeHash] = subscription || true;
+        }
         // we intentionally do not use await here to avoid unhandled exceptions
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
@@ -958,11 +964,8 @@ class Exchange {
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
         // (connection established successfully)
-        connected.then(() => {
-            if (!client.subscriptions[subscribeHash]) {
-                if (subscribeHash !== undefined) {
-                    client.subscriptions[subscribeHash] = subscription || true;
-                }
+        if (!clientSubscription) {
+            connected.then(() => {
                 const options = this.safeValue(this.options, 'ws');
                 const cost = this.safeValue(options, 'cost', 1);
                 if (message) {
@@ -979,8 +982,11 @@ class Exchange {
                             .catch((e) => { throw e; });
                     }
                 }
-            }
-        });
+            }).catch((e) => {
+                delete (client.subscriptions[subscribeHash]);
+                throw e;
+            });
+        }
         return future;
     }
     onConnected(client, message = undefined) {
@@ -1304,8 +1310,8 @@ class Exchange {
             'info': entry,
         };
     }
-    currencyStructure() {
-        return {
+    safeCurrencyStructure(currency) {
+        return this.extend({
             'info': undefined,
             'id': undefined,
             'numericId': undefined,
@@ -1329,7 +1335,7 @@ class Exchange {
                     'max': undefined,
                 },
             },
-        };
+        }, currency);
     }
     setMarkets(markets, currencies = undefined) {
         const values = [];
@@ -1368,19 +1374,21 @@ class Exchange {
                 const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber('1e-8');
                 const marketPrecision = this.safeValue(market, 'precision', {});
                 if ('base' in market) {
-                    const currency = this.currencyStructure();
-                    currency['id'] = this.safeString2(market, 'baseId', 'base');
-                    currency['numericId'] = this.safeInteger(market, 'baseNumericId');
-                    currency['code'] = this.safeString(market, 'base');
-                    currency['precision'] = this.safeValue2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision);
+                    const currency = this.safeCurrencyStructure({
+                        'id': this.safeString2(market, 'baseId', 'base'),
+                        'numericId': this.safeInteger(market, 'baseNumericId'),
+                        'code': this.safeString(market, 'base'),
+                        'precision': this.safeValue2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision),
+                    });
                     baseCurrencies.push(currency);
                 }
                 if ('quote' in market) {
-                    const currency = this.currencyStructure();
-                    currency['id'] = this.safeString2(market, 'quoteId', 'quote');
-                    currency['numericId'] = this.safeInteger(market, 'quoteNumericId');
-                    currency['code'] = this.safeString(market, 'quote');
-                    currency['precision'] = this.safeValue2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision);
+                    const currency = this.safeCurrencyStructure({
+                        'id': this.safeString2(market, 'quoteId', 'quote'),
+                        'numericId': this.safeInteger(market, 'quoteNumericId'),
+                        'code': this.safeString(market, 'quote'),
+                        'precision': this.safeValue2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
+                    });
                     quoteCurrencies.push(currency);
                 }
             }

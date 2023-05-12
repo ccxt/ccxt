@@ -823,6 +823,8 @@ class cryptocom(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://exchange-docs.crypto.com/derivatives/index.html#public-get-candlestick
+        see https://exchange-docs.crypto.com/spot/index.html#public-get-candlestick
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -837,18 +839,22 @@ class cryptocom(Exchange, ImplicitAPI):
             'instrument_name': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        marketType, query = self.handle_market_type_and_params('fetchOHLCV', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'v2PublicGetPublicGetCandlestick',
-            'future': 'derivativesPublicGetPublicGetCandlestick',
-            'swap': 'derivativesPublicGetPublicGetCandlestick',
-        })
-        if marketType != 'spot':
+        if not market['spot']:
             reqLimit = 100
             if limit is not None:
                 reqLimit = limit
             request['count'] = reqLimit
-        response = getattr(self, method)(self.extend(request, query))
+        if since is not None:
+            request['start_ts'] = since
+        until = self.safe_integer_2(params, 'until', 'till')
+        params = self.omit(params, ['until', 'till'])
+        if until is not None:
+            request['end_ts'] = until
+        response = None
+        if market['spot']:
+            response = self.v2PublicGetPublicGetCandlestick(self.extend(request, params))
+        elif market['contract']:
+            response = self.derivativesPublicGetPublicGetCandlestick(self.extend(request, params))
         # {
         #     "code":0,
         #     "method":"public/get-candlestick",

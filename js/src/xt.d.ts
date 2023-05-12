@@ -49,12 +49,12 @@ export default class xt extends Exchange {
                 max: any;
             };
             price: {
-                min: number;
-                max: number;
+                min: any;
+                max: any;
             };
             cost: {
-                min: number;
-                max: number;
+                min: any;
+                max: any;
             };
         };
         info: any;
@@ -263,6 +263,28 @@ export default class xt extends Exchange {
     fetchPosition(symbol: string, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     parsePosition(position: any, market?: any): any;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+        info: any;
+        id: string;
+        timestamp: any;
+        datetime: any;
+        currency: any;
+        amount: any;
+        fromAccount: any;
+        toAccount: any;
+        status: any;
+    }>;
+    parseTransfer(transfer: any, currency?: any): {
+        info: any;
+        id: string;
+        timestamp: any;
+        datetime: any;
+        currency: any;
+        amount: any;
+        fromAccount: any;
+        toAccount: any;
+        status: any;
+    };
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: any;

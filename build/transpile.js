@@ -251,6 +251,7 @@ class Transpiler {
             [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
             [ /\.omitZero\s/g, '.omit_zero'],
             [ /\.currencyStructure\s/g, '.currency_structure'],
+            [ /\.safeCurrencyStructure\s/g, '.safe_currency_structure'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -1787,7 +1788,7 @@ class Transpiler {
             "",
         ].join ("\n")
 
-        const python = this.getPythonPreamble (4) + pythonHeader + python2Body
+        const python = this.getPythonPreamble (4) + pythonHeader + python2Body + "\n"
         const php = this.getPHPPreamble (true, 3) + phpBody
 
         log.magenta ('→', pyFile.yellow)
@@ -1862,7 +1863,7 @@ class Transpiler {
             "",
         ].join ("\n")
 
-        const python = this.getPythonPreamble (4) + pythonHeader + python2Body
+        const python = this.getPythonPreamble (4) + pythonHeader + python2Body + "\n"
         const php = this.getPHPPreamble (true, 3) + phpHeader + phpBody
 
         log.magenta ('→', pyFile.yellow)
@@ -1952,7 +1953,7 @@ class Transpiler {
             "}",
         ].join ("\n")
 
-        const python = this.getPythonPreamble (4) + pythonHeader + python2Body
+        const python = this.getPythonPreamble (4) + pythonHeader + python2Body + "\n"
         const php = this.getPHPPreamble (true, 3) + phpHeader + phpBody
 
         log.magenta ('→', pyFile.yellow)
@@ -2104,6 +2105,7 @@ class Transpiler {
         let bodyPhpSync = phpReform (phpRemovedStart);
         bodyPhpSync = bodyPhpSync.replace (/ccxt(\\)+async/g, 'ccxt');
         bodyPhpSync = bodyPhpSync.replace ('(this,','($this,');
+        bodyPhpSync = bodyPhpSync.replace (/Async\\await\((.*?)\);/g, '$1;');
         overwriteFile (files.phpFileSync, bodyPhpSync);
     }
 
@@ -2183,26 +2185,46 @@ class Transpiler {
         ]));
 
         const flatResult = await this.webworkerTranspile (allFiles, fileConfig, parserConfig);
-        const replaceAsert = (str) => str.replace (/assert\((.*)\)(?!$)/g, 'assert $1');
+
+        const exchangeCamelCaseProps = (str) => {
+            // replace all snake_case exchange props to camelCase
+            return str.
+                replace (/precision_mode/g, 'precisionMode');
+        };
+
+        const pyFixes = (str) => {
+            str = str.replace (/assert\((.*)\)(?!$)/g, 'assert $1');
+            str = str.replace (/ == True/g, ' is True');
+            str = str.replace (/ == False/g, ' is False');
+            return exchangeCamelCaseProps(str);
+        }
+
+        const phpFixes = (str) => {
+            str = str.
+                replace (/\$exchange\[\$method\]/g, '$exchange->$method').
+                replace (/\$test_shared_methods\->/g, '').
+                replace (/TICK_SIZE/g, '\\ccxt\\TICK_SIZE').
+                replace (/Precise\->/g, 'Precise::');
+            return exchangeCamelCaseProps(str);
+        }
 
         for (let i = 0; i < flatResult.length; i++) {
             const result = flatResult[i];
             const test = tests[i];
-            const phpVarNameFix = (str) => {
-                return str.
-                    replace (/\$exchange\[\$method\]/g, '$exchange->$method').
-                    replace (/\$test_shared_methods\->/g, '').
-                    replace (/Precise\->/g, 'Precise::');
+            let phpAsync = phpFixes(result[0].content);
+            let phpSync = phpFixes(result[1].content);
+            let pythonSync = pyFixes (result[2].content);
+            let pythonAsync = pyFixes (result[3].content);
+            if (tests.base) {
+                phpAsync = '';
+                pythonAsync = '';
             }
-            const phpAsync = !tests.base ? phpVarNameFix(result[0].content) : '';
-            const phpSync = phpVarNameFix(result[1].content);
-            const pythonSync = replaceAsert (result[2].content);
-            const pythonAsync = !tests.base ? replaceAsert (result[3].content): '';
 
             const imports = result[0].imports;
 
             const usesPrecise = imports.find(x => x.name.includes('Precise'));
             const usesNumber = pythonAsync.indexOf ('numbers.') >= 0;
+            const usesTickSize = pythonAsync.indexOf ('TICK_SIZE') >= 0;
             const requiredSubTests  = imports.filter(x => x.name.includes('test')).map(x => x.name);
 
             let pythonHeaderSync = []
@@ -2210,6 +2232,10 @@ class Transpiler {
             let phpHeaderSync = []
             let phpHeaderAsync = []
 
+            if (usesTickSize) {
+                pythonHeaderSync.push ('from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402')
+                pythonHeaderAsync.push ('from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402')
+            }
             if (usesNumber) {
                 pythonHeaderSync.push ('import numbers  # noqa E402')
                 pythonHeaderAsync.push ('import numbers  # noqa E402')
@@ -2261,9 +2287,6 @@ class Transpiler {
             let phpPreambleSync = phpPreamble + phpHeaderSync.join ('\n') + "\n\n";
             phpPreambleSync = phpPreambleSync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;');
 
-            const finalPhpContentSync = phpPreambleSync + phpSync;
-            const finalPyContentSync = pythonPreambleSync + pythonSync;
-
             if (!test.base) {
                 let phpPreambleAsync = phpPreamble + phpHeaderAsync.join ('\n') + "\n\n";
                 phpPreambleAsync = phpPreambleAsync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;\nuse React\\\Async;\nuse React\\\Promise;');
@@ -2275,6 +2298,9 @@ class Transpiler {
                 log.magenta ('→', test.phpFileAsync.yellow)
                 overwriteFile (test.phpFileAsync, finalPhpContentAsync)
             }
+
+            const finalPhpContentSync = phpPreambleSync + phpSync;
+            const finalPyContentSync = pythonPreambleSync + pythonSync;
 
             log.magenta ('→', test.phpFile.yellow)
             overwriteFile (test.phpFile, finalPhpContentSync)

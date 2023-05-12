@@ -28,7 +28,6 @@ function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = 
 function number_to_string ($x) {
     return Exchange::number_to_string ($x);
 }
-
 // @ts-nocheck
 // eslint-disable-next-line
 
@@ -124,7 +123,7 @@ assert (decimal_to_precision ('12.3456', ROUND, 2, DECIMAL_PLACES) === '12.35');
 assert (decimal_to_precision ('12.3456', ROUND, 1, DECIMAL_PLACES) === '12.3');
 assert (decimal_to_precision ('12.3456', ROUND, 0, DECIMAL_PLACES) === '12');
 
-// todo => 
+// todo:
 // ['9.999',     ROUND,   3, DECIMAL_PLACES,    NO_PADDING,  '9.999'],
 // ['9.999',     ROUND,   2, DECIMAL_PLACES,    NO_PADDING,  '10'],
 // ['9.999',     ROUND,   2, DECIMAL_PLACES, PAD_WITH_ZERO,  '10.00'],

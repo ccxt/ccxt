@@ -1,2 +1,2 @@
-declare function testFetchBorrowRates(exchange: any): Promise<void>;
+declare function testFetchBorrowRates(exchange: any, skippedProperties: any): Promise<void>;
 export default testFetchBorrowRates;

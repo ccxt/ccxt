@@ -12,14 +12,14 @@ use React\Promise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_account.php';
 
-function test_fetch_accounts($exchange) {
-    return Async\async(function () use ($exchange) {
+function test_fetch_accounts($exchange, $skipped_properties) {
+    return Async\async(function () use ($exchange, $skipped_properties) {
         $method = 'fetchAccounts';
         $accounts = Async\await($exchange->fetch_accounts());
         assert(is_array($accounts), $exchange->id . ' ' . $method . ' must return an object. ' . $exchange->json($accounts));
         $account_values = is_array($accounts) ? array_values($accounts) : array();
         for ($i = 0; $i < count($account_values); $i++) {
-            test_account($exchange, $method, $accounts[$i]);
+            test_account($exchange, $skipped_properties, $method, $accounts[$i]);
         }
     }) ();
 }
