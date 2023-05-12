@@ -265,7 +265,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         let result = null;
         try {
-            const skippedProperties = exchange.safeValue (this.skippedMethods, methodName, []);
+            const skippedProperties = exchange.safeValue (this.skippedMethods, methodName, {});
             result = await callMethod (this.testFiles, methodNameInTest, exchange, skippedProperties, args);
             if (isPublic) {
                 this.checkedPublicTests[methodNameInTest] = true;
