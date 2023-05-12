@@ -74,6 +74,7 @@ interface Exchange {
     privateSpotGetWithdrawHistory (params?: {}): Promise<implicitReturnType>;
     privateSpotPostOrder (params?: {}): Promise<implicitReturnType>;
     privateSpotPostWithdraw (params?: {}): Promise<implicitReturnType>;
+    privateSpotPostWsToken (params?: {}): Promise<implicitReturnType>;
     privateSpotDeleteBatchOrder (params?: {}): Promise<implicitReturnType>;
     privateSpotDeleteOpenOrder (params?: {}): Promise<implicitReturnType>;
     privateSpotDeleteOrderOrderId (params?: {}): Promise<implicitReturnType>;
@@ -149,8 +150,6 @@ interface Exchange {
     privateInversePostFutureUserV1PositionMargin (params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureUserV1UserCollectionAdd (params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureUserV1UserCollectionCancel (params?: {}): Promise<implicitReturnType>;
-    privateInversePostFutureUserV1UserCollectionCancel (params?: {}): Promise<implicitReturnType>;
-    privateWsPostV4WsToken (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

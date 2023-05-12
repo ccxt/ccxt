@@ -213,6 +213,7 @@ export default class xt extends Exchange {
                         'post': {
                             'order': 0.2,
                             'withdraw': 1,
+                            'ws-token': 1,
                         },
                         'delete': {
                             'batch-order': 1,
@@ -302,11 +303,6 @@ export default class xt extends Exchange {
                             'future/user/v1/position/margin': 1,
                             'future/user/v1/user/collection/add': 1,
                             'future/user/v1/user/collection/cancel': 1,
-                        },
-                    },
-                    'ws': {
-                        'post': {
-                            '/v4/ws-token': 1,
                         },
                     },
                 },
