@@ -721,7 +721,10 @@ class xt extends Exchange {
             //                     array(
             //                         "chain" => "Bitcoin",
             //                         "depositEnabled" => true,
-            //                         "withdrawEnabled" => true
+            //                         "withdrawEnabled" => true,
+            //                         "withdrawFeeAmount" => 0.0009,
+            //                         "withdrawMinAmount" => 0.0005,
+            //                         "depositFeeRate" => 0
             //                     ),
             //                 )
             //             ),
@@ -736,21 +739,36 @@ class xt extends Exchange {
                 $code = $this->safe_currency_code($currencyId);
                 $rawNetworks = $this->safe_value($entry, 'supportChains', array());
                 $networks = array();
-                $depositEnabled = null;
-                $withdrawEnabled = null;
+                $minWithdrawString = null;
+                $minWithdrawFeeString = null;
+                $active = false;
+                $deposit = false;
+                $withdraw = false;
                 for ($j = 0; $j < count($rawNetworks); $j++) {
                     $rawNetwork = $rawNetworks[$j];
                     $networkId = $this->safe_string($rawNetwork, 'chain');
                     $network = $this->network_id_to_code($networkId);
                     $depositEnabled = $this->safe_value($rawNetwork, 'depositEnabled');
+                    $deposit = ($depositEnabled) ? $depositEnabled : $deposit;
                     $withdrawEnabled = $this->safe_value($rawNetwork, 'withdrawEnabled');
+                    $withdraw = ($withdrawEnabled) ? $withdrawEnabled : $withdraw;
+                    $networkActive = $depositEnabled && $withdrawEnabled;
+                    $active = ($networkActive) ? $networkActive : $active;
+                    $withdrawFeeString = $this->safe_string($rawNetwork, 'withdrawFeeAmount');
+                    if ($withdrawFeeString !== null) {
+                        $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $withdrawFeeString : Precise::string_min($withdrawFeeString, $minWithdrawFeeString);
+                    }
+                    $minNetworkWithdrawString = $this->safe_string($rawNetwork, 'withdrawMinAmount');
+                    if ($minNetworkWithdrawString !== null) {
+                        $minWithdrawString = ($minWithdrawString === null) ? $minNetworkWithdrawString : Precise::string_min($minNetworkWithdrawString, $minWithdrawString);
+                    }
                     $networks[$network] = array(
                         'info' => $rawNetwork,
                         'id' => $networkId,
                         'network' => $network,
                         'name' => null,
-                        'active' => null,
-                        'fee' => null,
+                        'active' => $networkActive,
+                        'fee' => $this->parse_number($withdrawFeeString),
                         'precision' => null,
                         'deposit' => $depositEnabled,
                         'withdraw' => $withdrawEnabled,
@@ -760,7 +778,7 @@ class xt extends Exchange {
                                 'max' => null,
                             ),
                             'withdraw' => array(
-                                'min' => null,
+                                'min' => $this->parse_number($minNetworkWithdrawString),
                                 'max' => null,
                             ),
                             'deposit' => array(
@@ -775,11 +793,11 @@ class xt extends Exchange {
                     'id' => $currencyId,
                     'code' => $code,
                     'name' => null,
-                    'active' => true,
-                    'fee' => null,
+                    'active' => $active,
+                    'fee' => $this->parse_number($minWithdrawFeeString),
                     'precision' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
                     'networks' => $networks,
                     'limits' => array(
                         'amount' => array(
@@ -787,7 +805,7 @@ class xt extends Exchange {
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => null,
+                            'min' => $this->parse_number($minWithdrawString),
                             'max' => null,
                         ),
                         'deposit' => array(

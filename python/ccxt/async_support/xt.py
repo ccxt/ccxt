@@ -723,7 +723,10 @@ class xt(Exchange, ImplicitAPI):
         #                     {
         #                         "chain": "Bitcoin",
         #                         "depositEnabled": True,
-        #                         "withdrawEnabled": True
+        #                         "withdrawEnabled": True,
+        #                         "withdrawFeeAmount": 0.0009,
+        #                         "withdrawMinAmount": 0.0005,
+        #                         "depositFeeRate": 0
         #                     },
         #                 ]
         #             },
@@ -738,21 +741,34 @@ class xt(Exchange, ImplicitAPI):
             code = self.safe_currency_code(currencyId)
             rawNetworks = self.safe_value(entry, 'supportChains', [])
             networks = {}
-            depositEnabled = None
-            withdrawEnabled = None
+            minWithdrawString = None
+            minWithdrawFeeString = None
+            active = False
+            deposit = False
+            withdraw = False
             for j in range(0, len(rawNetworks)):
                 rawNetwork = rawNetworks[j]
                 networkId = self.safe_string(rawNetwork, 'chain')
                 network = self.network_id_to_code(networkId)
                 depositEnabled = self.safe_value(rawNetwork, 'depositEnabled')
+                deposit = depositEnabled if (depositEnabled) else deposit
                 withdrawEnabled = self.safe_value(rawNetwork, 'withdrawEnabled')
+                withdraw = withdrawEnabled if (withdrawEnabled) else withdraw
+                networkActive = depositEnabled and withdrawEnabled
+                active = networkActive if (networkActive) else active
+                withdrawFeeString = self.safe_string(rawNetwork, 'withdrawFeeAmount')
+                if withdrawFeeString is not None:
+                    minWithdrawFeeString = withdrawFeeString if (minWithdrawFeeString is None) else Precise.string_min(withdrawFeeString, minWithdrawFeeString)
+                minNetworkWithdrawString = self.safe_string(rawNetwork, 'withdrawMinAmount')
+                if minNetworkWithdrawString is not None:
+                    minWithdrawString = minNetworkWithdrawString if (minWithdrawString is None) else Precise.string_min(minNetworkWithdrawString, minWithdrawString)
                 networks[network] = {
                     'info': rawNetwork,
                     'id': networkId,
                     'network': network,
                     'name': None,
-                    'active': None,
-                    'fee': None,
+                    'active': networkActive,
+                    'fee': self.parse_number(withdrawFeeString),
                     'precision': None,
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
@@ -762,7 +778,7 @@ class xt(Exchange, ImplicitAPI):
                             'max': None,
                         },
                         'withdraw': {
-                            'min': None,
+                            'min': self.parse_number(minNetworkWithdrawString),
                             'max': None,
                         },
                         'deposit': {
@@ -776,11 +792,11 @@ class xt(Exchange, ImplicitAPI):
                 'id': currencyId,
                 'code': code,
                 'name': None,
-                'active': True,
-                'fee': None,
+                'active': active,
+                'fee': self.parse_number(minWithdrawFeeString),
                 'precision': None,
-                'deposit': None,
-                'withdraw': None,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'networks': networks,
                 'limits': {
                     'amount': {
@@ -788,7 +804,7 @@ class xt(Exchange, ImplicitAPI):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': None,
+                        'min': self.parse_number(minWithdrawString),
                         'max': None,
                     },
                     'deposit': {
