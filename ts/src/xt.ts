@@ -5,7 +5,7 @@ import Exchange from './abstract/xt.js';
 import { Int } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import { AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
+import { AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
@@ -401,6 +401,7 @@ export default class xt extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '400': NetworkError, // {"returnCode":1,"msgInfo":"failure","error":{"code":"400","msg":"Connection refused: /10.0.26.71:8080"},"result":null}
                     '404': ExchangeError, // interface does not exist
                     '429': RateLimitExceeded, // The request is too frequent, please control the request rate according to the speed limit requirement
                     '500': ExchangeError, // Service exception
