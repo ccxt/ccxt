@@ -25,7 +25,7 @@ public partial class Exchange
 
     public object strip(object str)
     {
-        return str; //stub
+        return ((string)str).Trim(); //stub
     }
 
     public string capitalize(object str2)

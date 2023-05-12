@@ -338,9 +338,9 @@ public partial class Exchange
         };
     }
 
-    public virtual object currencyStructure()
+    public virtual object safeCurrencyStructure(object currency)
     {
-        return new Dictionary<string, object>() {
+        return this.extend(new Dictionary<string, object>() {
             { "info", null },
             { "id", null },
             { "numericId", null },
@@ -364,7 +364,7 @@ public partial class Exchange
                     { "max", null },
                 } },
             } },
-        };
+        }, currency);
     }
 
     public virtual object setMarkets(object markets, object currencies = null)
@@ -410,20 +410,22 @@ public partial class Exchange
                 object marketPrecision = this.safeValue(market, "precision", new Dictionary<string, object>() {});
                 if (isTrue(inOp(market, "base")))
                 {
-                    object currency = this.currencyStructure();
-                    ((Dictionary<string, object>)currency)["id"] = this.safeString2(market, "baseId", "base");
-                    ((Dictionary<string, object>)currency)["numericId"] = this.safeInteger(market, "baseNumericId");
-                    ((Dictionary<string, object>)currency)["code"] = this.safeString(market, "base");
-                    ((Dictionary<string, object>)currency)["precision"] = this.safeValue2(marketPrecision, "base", "amount", defaultCurrencyPrecision);
+                    object currency = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                        { "id", this.safeString2(market, "baseId", "base") },
+                        { "numericId", this.safeInteger(market, "baseNumericId") },
+                        { "code", this.safeString(market, "base") },
+                        { "precision", this.safeValue2(marketPrecision, "base", "amount", defaultCurrencyPrecision) },
+                    });
                     ((List<object>)baseCurrencies).Add(currency);
                 }
                 if (isTrue(inOp(market, "quote")))
                 {
-                    object currency = this.currencyStructure();
-                    ((Dictionary<string, object>)currency)["id"] = this.safeString2(market, "quoteId", "quote");
-                    ((Dictionary<string, object>)currency)["numericId"] = this.safeInteger(market, "quoteNumericId");
-                    ((Dictionary<string, object>)currency)["code"] = this.safeString(market, "quote");
-                    ((Dictionary<string, object>)currency)["precision"] = this.safeValue2(marketPrecision, "quote", "price", defaultCurrencyPrecision);
+                    object currency = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                        { "id", this.safeString2(market, "quoteId", "quote") },
+                        { "numericId", this.safeInteger(market, "quoteNumericId") },
+                        { "code", this.safeString(market, "quote") },
+                        { "precision", this.safeValue2(marketPrecision, "quote", "price", defaultCurrencyPrecision) },
+                    });
                     ((List<object>)quoteCurrencies).Add(currency);
                 }
             }
