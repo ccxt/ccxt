@@ -86,7 +86,20 @@ public static class Program
 
         var parameters = args[2..]
             .Where(x => !x.StartsWith("-"))
-            .Select(x => x.StartsWith("{") ? (dict)JsonHelper.Deserialize(x) : (object)x)
+            .Select(x =>
+            {
+                if (x.StartsWith("{"))
+                    return (dict)JsonHelper.Deserialize(x);
+                if (x == "null")
+                    return null;
+                if (x == "true")
+                    return true;
+                if (x == "false")
+                    return false;
+                if (Int64.TryParse(x, out var i))
+                    return i;
+                return (object)x;
+            })
             .ToList();
 
         var instance = Exchange.MagicallyCreateInstance(exchangeName);
