@@ -408,6 +408,7 @@ class xt extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    '400' => '\\ccxt\\NetworkError', // array("returnCode":1,"msgInfo":"failure","error":array("code":"400","msg":"Connection refused => /10.0.26.71:8080"),"result":null)
                     '404' => '\\ccxt\\ExchangeError', // interface does not exist
                     '429' => '\\ccxt\\RateLimitExceeded', // The request is too frequent, please control the request rate according to the speed limit requirement
                     '500' => '\\ccxt\\ExchangeError', // Service exception

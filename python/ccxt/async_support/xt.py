@@ -16,6 +16,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import NetworkError
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
@@ -416,6 +417,7 @@ class xt(Exchange, ImplicitAPI):
             },
             'exceptions': {
                 'exact': {
+                    '400': NetworkError,  # {"returnCode":1,"msgInfo":"failure","error":{"code":"400","msg":"Connection refused: /10.0.26.71:8080"},"result":null}
                     '404': ExchangeError,  # interface does not exist
                     '429': RateLimitExceeded,  # The request is too frequent, please control the request rate according to the speed limit requirement
                     '500': ExchangeError,  # Service exception

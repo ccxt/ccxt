@@ -399,6 +399,7 @@ class xt extends xt$1 {
             },
             'exceptions': {
                 'exact': {
+                    '400': errors.NetworkError,
                     '404': errors.ExchangeError,
                     '429': errors.RateLimitExceeded,
                     '500': errors.ExchangeError,

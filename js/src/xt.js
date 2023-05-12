@@ -8,7 +8,7 @@
 import Exchange from './abstract/xt.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import { AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
+import { AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class xt extends Exchange {
@@ -402,6 +402,7 @@ export default class xt extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '400': NetworkError,
                     '404': ExchangeError,
                     '429': RateLimitExceeded,
                     '500': ExchangeError,
