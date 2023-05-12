@@ -2404,7 +2404,7 @@ export default class coinbase extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['start_date'] = this.parse8601 (since);
+            request['start_date'] = this.iso8601 (since);
         }
         const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, params));
         //
@@ -2470,7 +2470,7 @@ export default class coinbase extends Exchange {
         }
         request['limit'] = limit;
         if (since !== undefined) {
-            request['start_date'] = this.parse8601 (since);
+            request['start_date'] = this.iso8601 (since);
         }
         const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, params));
         //

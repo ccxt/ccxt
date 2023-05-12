@@ -400,6 +400,7 @@ class xt extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    '400' => '\\ccxt\\NetworkError', // array("returnCode":1,"msgInfo":"failure","error":array("code":"400","msg":"Connection refused => /10.0.26.71:8080"),"result":null)
                     '404' => '\\ccxt\\ExchangeError', // interface does not exist
                     '429' => '\\ccxt\\RateLimitExceeded', // The request is too frequent, please control the request rate according to the speed limit requirement
                     '500' => '\\ccxt\\ExchangeError', // Service exception
@@ -710,7 +711,10 @@ class xt extends Exchange {
         //                     array(
         //                         "chain" => "Bitcoin",
         //                         "depositEnabled" => true,
-        //                         "withdrawEnabled" => true
+        //                         "withdrawEnabled" => true,
+        //                         "withdrawFeeAmount" => 0.0009,
+        //                         "withdrawMinAmount" => 0.0005,
+        //                         "depositFeeRate" => 0
         //                     ),
         //                 )
         //             ),
@@ -725,21 +729,36 @@ class xt extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $rawNetworks = $this->safe_value($entry, 'supportChains', array());
             $networks = array();
-            $depositEnabled = null;
-            $withdrawEnabled = null;
+            $minWithdrawString = null;
+            $minWithdrawFeeString = null;
+            $active = false;
+            $deposit = false;
+            $withdraw = false;
             for ($j = 0; $j < count($rawNetworks); $j++) {
                 $rawNetwork = $rawNetworks[$j];
                 $networkId = $this->safe_string($rawNetwork, 'chain');
                 $network = $this->network_id_to_code($networkId);
                 $depositEnabled = $this->safe_value($rawNetwork, 'depositEnabled');
+                $deposit = ($depositEnabled) ? $depositEnabled : $deposit;
                 $withdrawEnabled = $this->safe_value($rawNetwork, 'withdrawEnabled');
+                $withdraw = ($withdrawEnabled) ? $withdrawEnabled : $withdraw;
+                $networkActive = $depositEnabled && $withdrawEnabled;
+                $active = ($networkActive) ? $networkActive : $active;
+                $withdrawFeeString = $this->safe_string($rawNetwork, 'withdrawFeeAmount');
+                if ($withdrawFeeString !== null) {
+                    $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $withdrawFeeString : Precise::string_min($withdrawFeeString, $minWithdrawFeeString);
+                }
+                $minNetworkWithdrawString = $this->safe_string($rawNetwork, 'withdrawMinAmount');
+                if ($minNetworkWithdrawString !== null) {
+                    $minWithdrawString = ($minWithdrawString === null) ? $minNetworkWithdrawString : Precise::string_min($minNetworkWithdrawString, $minWithdrawString);
+                }
                 $networks[$network] = array(
                     'info' => $rawNetwork,
                     'id' => $networkId,
                     'network' => $network,
                     'name' => null,
-                    'active' => null,
-                    'fee' => null,
+                    'active' => $networkActive,
+                    'fee' => $this->parse_number($withdrawFeeString),
                     'precision' => null,
                     'deposit' => $depositEnabled,
                     'withdraw' => $withdrawEnabled,
@@ -749,7 +768,7 @@ class xt extends Exchange {
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => null,
+                            'min' => $this->parse_number($minNetworkWithdrawString),
                             'max' => null,
                         ),
                         'deposit' => array(
@@ -764,11 +783,11 @@ class xt extends Exchange {
                 'id' => $currencyId,
                 'code' => $code,
                 'name' => null,
-                'active' => true,
-                'fee' => null,
+                'active' => $active,
+                'fee' => $this->parse_number($minWithdrawFeeString),
                 'precision' => null,
-                'deposit' => null,
-                'withdraw' => null,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
                 'networks' => $networks,
                 'limits' => array(
                     'amount' => array(
@@ -776,7 +795,7 @@ class xt extends Exchange {
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => null,
+                        'min' => $this->parse_number($minWithdrawString),
                         'max' => null,
                     ),
                     'deposit' => array(
@@ -978,14 +997,31 @@ class xt extends Exchange {
         //                 "min" => "1"
         //             ),
         //             array(
+        //                 "filter" => "PRICE",
+        //                 "min" => null,
+        //                 "max" => null,
+        //                 "tickSize" => null
+        //             ),
+        //             array(
+        //                 "filter" => "QUANTITY",
+        //                 "min" => null,
+        //                 "max" => null,
+        //                 "tickSize" => null
+        //             ),
+        //             array(
         //                 "filter" => "PROTECTION_LIMIT",
         //                 "buyMaxDeviation" => "0.8",
         //                 "sellMaxDeviation" => "4"
         //             ),
-        //             {
+        //             array(
         //                 "filter" => "PROTECTION_MARKET",
         //                 "maxDeviation" => "0.02"
-        //             }
+        //             ),
+        //             array(
+        //                  "filter" => "PROTECTION_ONLINE",
+        //                  "durationSeconds" => "300",
+        //                  "maxPriceMultiple" => "5"
+        //             ),
         //         )
         //     }
         //
@@ -1054,11 +1090,24 @@ class xt extends Exchange {
         $symbol = $base . '/' . $quote;
         $filters = $this->safe_value($market, 'filters', array());
         $minAmount = null;
+        $maxAmount = null;
+        $minCost = null;
+        $maxCost = null;
+        $minPrice = null;
+        $maxPrice = null;
         for ($i = 0; $i < count($filters); $i++) {
             $entry = $filters[$i];
             $filter = $this->safe_string($entry, 'filter');
-            if ($filter === 'QUOTE_QTY') {
+            if ($filter === 'QUANTITY') {
                 $minAmount = $this->safe_number($entry, 'min');
+                $maxAmount = $this->safe_number($entry, 'max');
+            }
+            if ($filter === 'QUOTE_QTY') {
+                $minCost = $this->safe_number($entry, 'min');
+            }
+            if ($filter === 'PRICE') {
+                $minPrice = $this->safe_number($entry, 'min');
+                $maxPrice = $this->safe_number($entry, 'max');
             }
         }
         $underlyingType = $this->safe_string($market, 'underlyingType');
@@ -1097,14 +1146,20 @@ class xt extends Exchange {
                 $swap = true;
             }
             $minAmount = $this->safe_number($market, 'minQty');
+            $minCost = $this->safe_number($market, 'minNotional');
+            $maxCost = $this->safe_number($market, 'maxNotional');
+            $minPrice = $this->safe_number($market, 'minPrice');
+            $maxPrice = $this->safe_number($market, 'maxPrice');
             $contract = true;
             $spot = false;
         }
-        $isActive = true;
+        $isActive = false;
         if ($contract) {
             $isActive = $this->safe_value($market, 'isOpenApi', false);
         } else {
-            $isActive = ($state === 'ONLINE') || ($state === '0');
+            if (($state === 'ONLINE') && ($this->safe_value($market, 'tradingEnabled')) && ($this->safe_value($market, 'openapiEnabled'))) {
+                $isActive = true;
+            }
         }
         return array(
             'id' => $id,
@@ -1143,15 +1198,15 @@ class xt extends Exchange {
                 ),
                 'amount' => array(
                     'min' => $minAmount,
-                    'max' => null,
+                    'max' => $maxAmount,
                 ),
                 'price' => array(
-                    'min' => $this->safe_number($market, 'minPrice'),
-                    'max' => $this->safe_number($market, 'maxPrice'),
+                    'min' => $minPrice,
+                    'max' => $maxPrice,
                 ),
                 'cost' => array(
-                    'min' => $this->safe_number($market, 'minNotional'),
-                    'max' => $this->safe_number($market, 'maxNotional'),
+                    'min' => $minCost,
+                    'max' => $maxCost,
                 ),
             ),
             'info' => $market,
@@ -1291,6 +1346,9 @@ class xt extends Exchange {
         );
         $response = null;
         if ($market['spot']) {
+            if ($limit !== null) {
+                $request['limit'] = min ($limit, 500);
+            }
             $response = $this->publicSpotGetDepth (array_merge($request, $params));
         } else {
             if ($limit !== null) {

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.100'
+__version__ = '3.0.101'
 
 # -----------------------------------------------------------------------------
 
@@ -1852,8 +1852,8 @@ class Exchange(object):
             'info': entry,
         }
 
-    def currency_structure(self):
-        return {
+    def safe_currency_structure(self, currency: object):
+        return self.extend({
             'info': None,
             'id': None,
             'numericId': None,
@@ -1877,7 +1877,7 @@ class Exchange(object):
                     'max': None,
                 },
             },
-        }
+        }, currency)
 
     def set_markets(self, markets, currencies=None):
         values = []
@@ -1912,18 +1912,20 @@ class Exchange(object):
                 defaultCurrencyPrecision = 8 if (self.precisionMode == DECIMAL_PLACES) else self.parse_number('1e-8')
                 marketPrecision = self.safe_value(market, 'precision', {})
                 if 'base' in market:
-                    currency = self.currency_structure()
-                    currency['id'] = self.safe_string_2(market, 'baseId', 'base')
-                    currency['numericId'] = self.safe_integer(market, 'baseNumericId')
-                    currency['code'] = self.safe_string(market, 'base')
-                    currency['precision'] = self.safe_value_2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision)
+                    currency = self.safe_currency_structure({
+                        'id': self.safe_string_2(market, 'baseId', 'base'),
+                        'numericId': self.safe_integer(market, 'baseNumericId'),
+                        'code': self.safe_string(market, 'base'),
+                        'precision': self.safe_value_2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision),
+                    })
                     baseCurrencies.append(currency)
                 if 'quote' in market:
-                    currency = self.currency_structure()
-                    currency['id'] = self.safe_string_2(market, 'quoteId', 'quote')
-                    currency['numericId'] = self.safe_integer(market, 'quoteNumericId')
-                    currency['code'] = self.safe_string(market, 'quote')
-                    currency['precision'] = self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision)
+                    currency = self.safe_currency_structure({
+                        'id': self.safe_string_2(market, 'quoteId', 'quote'),
+                        'numericId': self.safe_integer(market, 'quoteNumericId'),
+                        'code': self.safe_string(market, 'quote'),
+                        'precision': self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
+                    })
                     quoteCurrencies.append(currency)
             baseCurrencies = self.sort_by(baseCurrencies, 'code')
             quoteCurrencies = self.sort_by(quoteCurrencies, 'code')
