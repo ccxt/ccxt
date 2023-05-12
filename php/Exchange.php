@@ -2037,6 +2037,10 @@ class Exchange {
         sleep($milliseconds / 1000);
     }
 
+    public function is_integer ($n) {
+        return isInt ($n);
+    }
+
     public function check_order_arguments ($market, $type, $side, $amount, $price, $params) {
         if ($price === null) {
             if ($type === 'limit') {

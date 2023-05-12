@@ -1050,6 +1050,10 @@ export default class Exchange {
         }
     }
 
+    isInteger (n) {
+        return Number.isInteger (n);
+    }
+
     checkOrderArguments (market, type, side, amount, price, params) {
         if (price === undefined) {
             if (type === 'limit') {

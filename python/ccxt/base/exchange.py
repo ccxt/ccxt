@@ -1594,6 +1594,9 @@ class Exchange(object):
             return None
         return string_number
 
+    def is_integer (self, n):
+        return isinstance(n, int)
+
     def check_order_arguments(self, market, type, side, amount, price, params):
         if price is None:
             if type == 'limit':
