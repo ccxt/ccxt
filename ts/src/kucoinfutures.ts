@@ -66,6 +66,7 @@ export default class kucoinfutures extends kucoin {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPosition': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
@@ -859,11 +860,81 @@ export default class kucoinfutures extends kucoin {
         return fees;
     }
 
+    async fetchPosition (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchPosition
+         * @see https://docs.kucoin.com/futures/#get-position-details
+         * @description fetch data on an open position
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.futuresPrivateGetPositions (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": [
+        //             {
+        //                 "id": "63b3599e6c41f50001c47d44",
+        //                 "symbol": "XBTUSDTM",
+        //                 "autoDeposit": false,
+        //                 "maintMarginReq": 0.004,
+        //                 "riskLimit": 25000,
+        //                 "realLeverage": 5.0,
+        //                 "crossMode": false,
+        //                 "delevPercentage": 0.57,
+        //                 "openingTimestamp": 1684000025528,
+        //                 "currentTimestamp": 1684000052160,
+        //                 "currentQty": 1,
+        //                 "currentCost": 26.821,
+        //                 "currentComm": 0.0160926,
+        //                 "unrealisedCost": 26.821,
+        //                 "realisedGrossCost": 0.0,
+        //                 "realisedCost": 0.0160926,
+        //                 "isOpen": true,
+        //                 "markPrice": 26821.13,
+        //                 "markValue": 26.82113,
+        //                 "posCost": 26.821,
+        //                 "posCross": 0.0,
+        //                 "posCrossMargin": 0.0,
+        //                 "posInit": 5.3642,
+        //                 "posComm": 0.01931112,
+        //                 "posCommCommon": 0.01931112,
+        //                 "posLoss": 0.0,
+        //                 "posMargin": 5.38351112,
+        //                 "posMaint": 0.12927722,
+        //                 "maintMargin": 5.38364112,
+        //                 "realisedGrossPnl": 0.0,
+        //                 "realisedPnl": -0.0160926,
+        //                 "unrealisedPnl": 1.3E-4,
+        //                 "unrealisedPnlPcnt": 0.0,
+        //                 "unrealisedRoePcnt": 0.0,
+        //                 "avgEntryPrice": 26821.0,
+        //                 "liquidationPrice": 21567.0,
+        //                 "bankruptPrice": 21456.0,
+        //                 "settleCurrency": "USDT",
+        //                 "isInverse": false,
+        //                 "maintainMargin": 0.004
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parsePosition (data[0], market);
+    }
+
     async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#fetchPositions
          * @description fetch all open positions
+         * @see https://docs.kucoin.com/futures/#get-position-list
          * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -987,7 +1058,7 @@ export default class kucoinfutures extends kucoin {
         const marginMode = crossMode ? 'cross' : 'isolated';
         return this.safePosition ({
             'info': position,
-            'id': undefined,
+            'id': this.safeString (position, 'id'),
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
