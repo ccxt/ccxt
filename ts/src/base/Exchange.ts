@@ -999,7 +999,12 @@ export default class Exchange {
         if (this.has['fetchCurrencies'] === true) {
             currencies = await this.fetchCurrencies ()
         }
-        const markets = await this.fetchMarkets (params)
+        let markets = undefined
+        if (typeof params['loadMarketsFromDisk'] !== 'string') {
+            markets = await this.fetchMarkets (params)
+        } else {
+            markets = await this.fetchMarketsFromDisk (params['loadMarketsFromDisk'])
+        }
         return this.setMarkets (markets, currencies)
     }
 
@@ -1031,6 +1036,10 @@ export default class Exchange {
         // currencies are returned as a dict
         // this is for historical reasons
         // and may be changed for consistency later
+        return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
+    }
+
+    private async fetchMarketsFromDisk (path) {
         return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
     }
 
