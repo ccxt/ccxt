@@ -9,7 +9,7 @@ async function testFetchDeposits (exchange, skippedProperties, code) {
     assert (Array.isArray (transactions), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json (transactions));
     const now = exchange.milliseconds ();
     for (let i = 0; i < transactions.length; i++) {
-        testTransaction (exchange, skippedProperties, method, transactions[i], code, now);
+        testDepositWithdrawal (exchange, skippedProperties, method, transactions[i], code, now);
     }
     testSharedMethods.assertTimestampOrder (exchange, method, code, transactions);
 }
