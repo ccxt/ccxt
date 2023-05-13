@@ -10,6 +10,7 @@ public partial class testMainClass : BaseTest
     public static SharedMethods testSharedMethods = new SharedMethods();
     public Exchange exchange = new Exchange();
     public string rootDir = Tests.ccxtBaseDir + "/";
+    public string rootDirForSkips = Tests.ccxtBaseDir + "/";
     public object skipMethods = null;
     public object skippedMethods = null;
     public object publicTests = null;
@@ -24,6 +25,8 @@ public partial class testMainClass : BaseTest
     public bool debug = Tests.debug;
     public static string httpsAgent = "";
     public static string ext = ".cs";
+
+    public static int TICK_SIZE = Exchange.TICK_SIZE;
 
     // public static object AuthenticationError = typeof(Exchange.AuthenticationError);
     public static Exchange initExchange(object exchangeId, object exchangeArgs = null)

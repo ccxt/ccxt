@@ -191,54 +191,71 @@ public partial class Exchange
         }
     }
 
+    public static bool isNumber(object number)
+    {
+        return Double.TryParse(number.ToString(), out _);
+    }
+
     public static bool isEqual(object a, object b)
     {
 
-        a = normalizeIntIfNeeded(a);
-        b = normalizeIntIfNeeded(b);
-
-        if (a == null && b == null)
+        try
         {
-            return true;
+
+            if (a == null && b == null)
+            {
+                return true;
+            }
+            else if (a == null || b == null)
+            {
+                return false;
+            }
+
+            if (a.GetType() != b.GetType() && (!isNumber(a) || !isNumber(b)))
+            {
+                return false;
+            }
+
+            // if (a.GetType() != b.GetType())
+            // {
+            //     return false;
+            // }
+
+            if (a.GetType() == typeof(Int64) || b.GetType() == typeof(Int64))
+            {
+                return Convert.ToInt64(a) == Convert.ToInt64(b);
+            }
+            else if (a.GetType() == typeof(int))
+            {
+                return (int)a == (int)b;
+            }
+            else if (a.GetType() == typeof(double) || b.GetType() == typeof(double))
+            {
+                return Convert.ToDouble(a) == Convert.ToDouble(b);
+            }
+            // else if (a.GetType() == typeof(double))
+            // {
+            //     return (double)a == (double)b;
+            // }
+            else if (a.GetType() == typeof(string))
+            {
+                return ((string)a) == ((string)b);
+            }
+            else if (a.GetType() == typeof(bool))
+            {
+                return ((bool)a) == ((bool)b);
+            }
+            else
+            {
+                return false;
+            }
         }
-        else if (a == null || b == null)
+        catch (Exception e)
         {
             return false;
         }
 
-        if (a.GetType() != b.GetType())
-        {
-            return false;
-        }
 
-        if (a.GetType() == typeof(Int64))
-        {
-            return (Int64)a == (Int64)b;
-        }
-        else if (a.GetType() == typeof(int))
-        {
-            return (int)a == (int)b;
-        }
-        else if (a.GetType() == typeof(double))
-        {
-            return (double)a == (double)b;
-        }
-        else if (a.GetType() == typeof(double))
-        {
-            return (double)a == (double)b;
-        }
-        else if (a.GetType() == typeof(string))
-        {
-            return ((string)a) == ((string)b);
-        }
-        else if (a.GetType() == typeof(bool))
-        {
-            return ((bool)a) == ((bool)b);
-        }
-        else
-        {
-            return false;
-        }
     }
 
     public static bool isGreaterThan(object a, object b)
@@ -299,14 +316,12 @@ public partial class Exchange
         {
             return null;
         }
-        if (a.GetType() != b.GetType())
-            return null;
 
         a = normalizeIntIfNeeded(a);
         b = normalizeIntIfNeeded(b);
 
-        if (a.GetType() == typeof(string) || a.GetType() == typeof(Int64) || a.GetType() == typeof(int))
-            return (Convert.ToInt64(a)) % (Convert.ToInt64(b));
+        if (a.GetType() == typeof(string) || a.GetType() == typeof(Int64) || a.GetType() == typeof(int) || a.GetType() == typeof(double))
+            return (Convert.ToDouble(a)) % (Convert.ToDouble(b));
 
         return null;
 
@@ -753,7 +768,10 @@ public partial class Exchange
         }
         else if (obj.GetType() == typeof(dict))
         {
-            return ((dict)obj).ContainsKey((string)key);
+            if (key.GetType() == typeof(string))
+                return ((dict)obj).ContainsKey((string)key);
+            else
+                return false;
         }
         else
         {

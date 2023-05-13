@@ -89,7 +89,7 @@ public partial class Exchange
     public string login { get; set; }
     public string proxy { get; set; }
     public string agent { get; set; }
-    public Int64 timeout { get; set; }
+    public object timeout { get; set; }
 
     public object last_response_headers { get; set; }
     public object last_json_response { get; set; }
@@ -355,5 +355,6 @@ public partial class Exchange
         this.markets = SafeValue(extendedProperties, "markets") as dict;
         this.rateLimit = SafeFloat(extendedProperties, "rateLimit", -1) ?? -1;
         this.status = SafeValue(extendedProperties, "status") as dict;
+        this.precisionMode = SafeInteger(extendedProperties, "precisionMode", this.precisionMode);
     }
 }

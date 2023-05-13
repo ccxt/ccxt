@@ -2,6 +2,7 @@ using System.Globalization;
 
 namespace Tests;
 using ccxt;
+
 using dict = System.Collections.Generic.Dictionary<string, object>;
 
 public class Helper
@@ -77,6 +78,10 @@ public partial class BaseTest
 {
 
     // bridges to make auxiliary methods available in tests
+    //
+
+    public static object mod(object a, object b) => Exchange.mod(a, b);
+
     public string decimalToPrecision(object a, object b, object c = null, object d = null, object e = null) => Exchange.DecimalToPrecision(a, b, c, d, e);
     public virtual string numberToString(object number) => Exchange.NumberToString(number);
     public static Task<List<object>> promiseAll(object a) => ccxt.Exchange.PromiseAll(a);
