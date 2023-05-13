@@ -151,14 +151,19 @@ class kucoinfutures extends kucoinfutures$1 {
                         'position': 1,
                         'positions': 4.44,
                         'funding-history': 4.44,
+                        'sub/api-key': 1,
                     },
                     'post': {
                         'withdrawals': 1,
                         'transfer-out': 1,
+                        'transfer-in': 1,
                         'orders': 1.33,
                         'position/margin/auto-deposit-status': 1,
                         'position/margin/deposit-margin': 1,
+                        'position/risk-limit-level/change': 1,
                         'bullet-private': 1,
+                        'sub/api-key': 1,
+                        'sub/api-key/update': 1,
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -166,6 +171,7 @@ class kucoinfutures extends kucoinfutures$1 {
                         'orders/{orderId}': 1,
                         'orders': 4.44,
                         'stopOrders': 1,
+                        'sub/api-key': 1,
                     },
                 },
                 'webFront': {
