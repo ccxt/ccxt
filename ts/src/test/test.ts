@@ -205,7 +205,6 @@ export default class testMainClass extends baseMainTestClass {
                 }
             }
         }
-
         // skipped tests
         const skippedFile = rootDirForSkips + 'skip-tests.json';
         const skippedSettings = ioFileRead (skippedFile);
