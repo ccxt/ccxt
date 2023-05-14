@@ -595,6 +595,7 @@ export default class bitget extends bitgetRest {
             marketId = market['id'];
             messageHash = messageHash + ':' + symbol;
         }
+        const isStop = this.safeValue (params, 'stop', false);
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         if ((type === 'spot') && (symbol === undefined)) {
@@ -613,9 +614,10 @@ export default class bitget extends bitgetRest {
             }
         }
         const instId = (type === 'spot') ? marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+        const channel = isStop ? 'ordersAlgo' : 'orders';
         const args = {
             'instType': instType,
-            'channel': 'orders',
+            'channel': channel,
             'instId': instId,
         };
         const orders = await this.watchPrivate (messageHash, subscriptionHash, args, params);
