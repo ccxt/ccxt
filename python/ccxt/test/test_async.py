@@ -194,11 +194,13 @@ class testMainClass(baseMainTestClass):
         self.privateTest = get_cli_arg_value('--private')
         self.privateTestOnly = get_cli_arg_value('--privateOnly')
         self.sandbox = get_cli_arg_value('--sandbox')
+        self.loadKeys = get_cli_arg_value('--loadKeys')
 
     async def init(self, exchangeId, symbol):
         self.parse_cli_args()
         symbolStr = symbol is not symbol if None else 'all'
-        print('\nTESTING ', ext, {'exchange': exchangeId, 'symbol': symbolStr}, '\n')
+        testingString = "\nTesting(" + ext + ") Exchange: " + exchangeId + ' Symbol:' + symbolStr + "\n"
+        print(testingString)
         exchangeArgs = {
             'verbose': self.verbose,
             'debug': self.debug,
@@ -242,17 +244,18 @@ class testMainClass(baseMainTestClass):
                         finalValue = exchangeSettings[key]
                     set_exchange_prop(exchange, key, finalValue)
         # credentials
-        reqCreds = get_exchange_prop(exchange, 're' + 'quiredCredentials')  # dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
-        objkeys = list(reqCreds.keys())
-        for i in range(0, len(objkeys)):
-            credential = objkeys[i]
-            isRequired = reqCreds[credential]
-            if isRequired and get_exchange_prop(exchange, credential) is None:
-                fullKey = exchangeId + '_' + credential
-                credentialEnvName = fullKey.upper()  # example: KRAKEN_APIKEY
-                credentialValue = envVars[credentialEnvName] if (credentialEnvName in envVars) else None
-                if credentialValue:
-                    set_exchange_prop(exchange, credential, credentialValue)
+        if self.loadKeys:
+            reqCreds = get_exchange_prop(exchange, 're' + 'quiredCredentials')  # dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
+            objkeys = list(reqCreds.keys())
+            for i in range(0, len(objkeys)):
+                credential = objkeys[i]
+                isRequired = reqCreds[credential]
+                if isRequired and get_exchange_prop(exchange, credential) is None:
+                    fullKey = exchangeId + '_' + credential
+                    credentialEnvName = fullKey.upper()  # example: KRAKEN_APIKEY
+                    credentialValue = envVars[credentialEnvName] if (credentialEnvName in envVars) else None
+                    if credentialValue:
+                        set_exchange_prop(exchange, credential, credentialValue)
         # skipped tests
         skippedFile = rootDirForSkips + 'skip-tests.json'
         skippedSettings = io_file_read(skippedFile)
@@ -261,7 +264,7 @@ class testMainClass(baseMainTestClass):
         skipReason = exchange.safe_value(skippedSettingsForExchange, 'skip')
         timeout = exchange.safe_value(skippedSettingsForExchange, 'timeout')
         if timeout is not None:
-            exchange.timeout = timeout
+            exchange.timeout = exchange.parseToInt(timeout)
         if skipReason is not None:
             dump('[SKIPPED] exchange', exchangeId, skipReason)
             exit_script()
@@ -274,7 +277,7 @@ class testMainClass(baseMainTestClass):
         self.skippedMethods = exchange.safe_value(skippedSettingsForExchange, 'skipMethods', {})
         self.checkedPublicTests = {}
 
-    def add_padding(self, message, size):
+    def add_padding(self, message: str, size):
         # has to be transpilable
         res = ''
         missingSpace = size - len(message) - 0  # - 0 is added just to trick transpile to treat the .length string for php
@@ -287,7 +290,7 @@ class testMainClass(baseMainTestClass):
         methodNameInTest = get_test_name(methodName)
         # if self is a private test, and the implementation was already tested in public, then no need to re-test it in private test(exception is fetchCurrencies, because our approach in base exchange)
         if not isPublic and (methodNameInTest in self.checkedPublicTests) and (methodName != 'fetchCurrencies'):
-            return
+            return None
         skipMessage = None
         isFetchOhlcvEmulated = (methodName == 'fetchOHLCV' and exchange.has['fetchOHLCV'] == 'emulated')  # todo: remove emulation from base
         if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]) or isFetchOhlcvEmulated:
@@ -299,7 +302,7 @@ class testMainClass(baseMainTestClass):
         if skipMessage:
             if self.info:
                 dump(self.add_padding(skipMessage, 25), exchange.id, methodNameInTest)
-            return
+            return None
         argsStringified = '(' + ','.join(args) + ')'
         if self.info:
             dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified)
