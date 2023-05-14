@@ -25,6 +25,7 @@ public partial class testMainClass : BaseTest
     public bool debug = Tests.debug;
     public static string httpsAgent = "";
     public static string ext = ".cs";
+    public bool loadKeys = false;
 
     public static int TICK_SIZE = Exchange.TICK_SIZE;
 
