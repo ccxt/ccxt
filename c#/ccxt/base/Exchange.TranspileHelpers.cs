@@ -788,7 +788,7 @@ public partial class Exchange
             return null;
         }
         var str = (string)str2;
-        var start = idx1 != null ? (int)idx1 : -1;
+        var start = idx1 != null ? Convert.ToInt32(idx1) : -1;
         if (idx2 == null)
         {
             if (start < 0)
@@ -804,7 +804,7 @@ public partial class Exchange
         }
         else
         {
-            var end = (int)idx2;
+            var end = Convert.ToInt32(idx2);
             if (start < 0)
             {
                 start = str.Length + start;

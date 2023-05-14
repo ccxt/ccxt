@@ -89,7 +89,7 @@ public partial class Exchange
     public string login { get; set; }
     public string proxy { get; set; }
     public string agent { get; set; }
-    public object timeout { get; set; }
+    public object timeout { get; set; } = 10000;
 
     public object last_response_headers { get; set; }
     public object last_json_response { get; set; }
@@ -359,5 +359,6 @@ public partial class Exchange
         this.commonCurrencies = SafeValue(extendedProperties, "commonCurrencies") as dict;
         var subVal = SafeValue(extendedProperties, "substituteCommonCurrencyCodes", true);
         this.substituteCommonCurrencyCodes = subVal != null ? (bool)subVal : true;
+        this.name = SafeString(extendedProperties, "name");
     }
 }

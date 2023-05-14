@@ -197,7 +197,14 @@ public partial class Exchange
             this.log("handleRestResponse:\n" + this.id + " " + method + " " + url + " " + httpStatusCode + " " + httpStatusText + "\nResponseHeaders:\n" + this.stringifyObject(responseHeaders) + "\nResponseBody:\n" + result + "\n");
         }
 
-        responseBody = JsonHelper.Deserialize(result);
+        try
+        {
+            responseBody = JsonHelper.Deserialize(result);
+        }
+        catch (Exception e)
+        {
+            responseBody = result; // if parsing fails, return the original result
+        }
 
         var res = handleErrors(httpStatusCode, httpStatusText, url, method, responseHeaders, result, responseBody, headers, body);
         if (res == null)
