@@ -1947,7 +1947,7 @@ public partial class Exchange
         {
             return currency;
         }
-        if (isTrue(isTrue(isTrue(isTrue((!isEqual(currency, null))) && isTrue((!isEqual(this.currencies_by_id, null)))) && isTrue((inOp(this.currencies_by_id, currencyId)))) && isTrue((!isEqual(getValue(this.currencies_by_id, currencyId), null)))))
+        if (isTrue(isTrue(isTrue((!isEqual(this.currencies_by_id, null))) && isTrue((inOp(this.currencies_by_id, currencyId)))) && isTrue((!isEqual(getValue(this.currencies_by_id, currencyId), null)))))
         {
             return getValue(this.currencies_by_id, currencyId);
         }

@@ -40,7 +40,7 @@ public partial class Exchange
 
     public List<object> ids { get; set; } = new list();
 
-    public bool substituteCommonCurrencyCodes { get; set; } = false;
+    public bool substituteCommonCurrencyCodes { get; set; } = true;
 
     public dict commonCurrencies { get; set; } = new dict();
 
@@ -356,5 +356,8 @@ public partial class Exchange
         this.rateLimit = SafeFloat(extendedProperties, "rateLimit", -1) ?? -1;
         this.status = SafeValue(extendedProperties, "status") as dict;
         this.precisionMode = SafeInteger(extendedProperties, "precisionMode", this.precisionMode);
+        this.commonCurrencies = SafeValue(extendedProperties, "commonCurrencies") as dict;
+        var subVal = SafeValue(extendedProperties, "substituteCommonCurrencyCodes", true);
+        this.substituteCommonCurrencyCodes = subVal != null ? (bool)subVal : true;
     }
 }
