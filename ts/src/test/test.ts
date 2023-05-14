@@ -27,6 +27,7 @@ class baseMainTestClass {
     debug = false;
     privateTest = false;
     privateTestOnly = false;
+    loadKeys = false;
     sandbox = false;
     skippedMethods = {};
     checkedPublicTests = {};
@@ -131,6 +132,7 @@ export default class testMainClass extends baseMainTestClass {
         this.privateTest = getCliArgValue ('--private');
         this.privateTestOnly = getCliArgValue ('--privateOnly');
         this.sandbox = getCliArgValue ('--sandbox');
+        this.loadKeys = getCliArgValue ('--loadKeys');
     }
 
     async init (exchangeId, symbol) {
@@ -187,20 +189,23 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         // credentials
-        const reqCreds = getExchangeProp (exchange, 're' + 'quiredCredentials'); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
-        const objkeys = Object.keys (reqCreds);
-        for (let i = 0; i < objkeys.length; i++) {
-            const credential = objkeys[i];
-            const isRequired = reqCreds[credential];
-            if (isRequired && getExchangeProp (exchange, credential) === undefined) {
-                const fullKey = exchangeId + '_' + credential;
-                const credentialEnvName = fullKey.toUpperCase (); // example: KRAKEN_APIKEY
-                const credentialValue = (credentialEnvName in envVars) ? envVars[credentialEnvName] : undefined;
-                if (credentialValue) {
-                    setExchangeProp (exchange, credential, credentialValue);
+        if (this.loadKeys) {
+            const reqCreds = getExchangeProp (exchange, 're' + 'quiredCredentials'); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
+            const objkeys = Object.keys (reqCreds);
+            for (let i = 0; i < objkeys.length; i++) {
+                const credential = objkeys[i];
+                const isRequired = reqCreds[credential];
+                if (isRequired && getExchangeProp (exchange, credential) === undefined) {
+                    const fullKey = exchangeId + '_' + credential;
+                    const credentialEnvName = fullKey.toUpperCase (); // example: KRAKEN_APIKEY
+                    const credentialValue = (credentialEnvName in envVars) ? envVars[credentialEnvName] : undefined;
+                    if (credentialValue) {
+                        setExchangeProp (exchange, credential, credentialValue);
+                    }
                 }
             }
         }
+
         // skipped tests
         const skippedFile = rootDirForSkips + 'skip-tests.json';
         const skippedSettings = ioFileRead (skippedFile);
@@ -209,7 +214,7 @@ export default class testMainClass extends baseMainTestClass {
         const skipReason = exchange.safeValue (skippedSettingsForExchange, 'skip');
         const timeout = exchange.safeValue (skippedSettingsForExchange, 'timeout');
         if (timeout !== undefined) {
-            exchange.timeout = timeout;
+            exchange.timeout = exchange.parseToInt (timeout);
         }
         if (skipReason !== undefined) {
             dump ('[SKIPPED] exchange', exchangeId, skipReason);
