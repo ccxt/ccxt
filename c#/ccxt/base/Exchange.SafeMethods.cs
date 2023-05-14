@@ -110,7 +110,7 @@ public partial class Exchange
 
     public object safeStringLower2(object obj, object key1, object key2, object defaultValue = null)
     {
-        var result = safeString2(obj, new List<object> { key1, key2 }, defaultValue);
+        var result = safeString2(obj, key1, key2, defaultValue);
         return result == null ? defaultValue : ((string)result).ToLower();
     }
 

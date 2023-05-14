@@ -472,17 +472,25 @@ public partial class Exchange
         // stub to implement later
     }
 
-    public virtual object parseNumber(object value, object number = null, object defaultValue = null)
+    public virtual object parseNumber(object value, object defaultValue = null)
     {
         if (value == null || (value.GetType() == typeof(string) && value.ToString().Trim() == ""))
             return defaultValue;
 
 
-        if (this.number.GetType() == typeof(float).GetType())
+        try
         {
-            return double.Parse(value.ToString(), CultureInfo.InvariantCulture);
+            return Convert.ToDouble(value, CultureInfo.InvariantCulture);
         }
-        return value;
+        catch (Exception e)
+        {
+            return defaultValue;
+        }
+        // if (this.number.GetType() == typeof(float).GetType())
+        // {
+        //     return double.Parse(value.ToString(), CultureInfo.InvariantCulture);
+        // }
+        // return value;
     }
 
     public object convertToBigInt(object value)
