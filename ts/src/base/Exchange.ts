@@ -1000,10 +1000,11 @@ export default class Exchange {
             currencies = await this.fetchCurrencies ()
         }
         let markets = undefined
-        if (typeof params['loadMarketsFromDisk'] !== 'string') {
+        const loadFromOutside = params && params['loadFromOutside']
+        if (typeof loadFromOutside !== 'object') {
             markets = await this.fetchMarkets (params)
         } else {
-            markets = await this.fetchMarketsFromDisk (params['loadMarketsFromDisk'])
+            markets = this.fetchMarketsFromOutside (loadFromOutside)
         }
         return this.setMarkets (markets, currencies)
     }
@@ -1039,8 +1040,8 @@ export default class Exchange {
         return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
     }
 
-    private async fetchMarketsFromDisk (path) {
-        return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
+    fetchMarketsFromOutside (markets: {}) {
+        return markets
     }
 
     checkRequiredDependencies () {
