@@ -7,7 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 
-class binanceusdm extends \ccxt\async\binance {
+class binanceusdm extends \ccxt\pro\binance {
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -19,6 +19,14 @@ class binanceusdm extends \ccxt\async\binance {
             'options' => array(
                 'fetchMarkets' => array( 'linear' ),
                 'defaultSubType' => 'linear',
+            ),
+            // https://binance-docs.github.io/apidocs/futures/en/#error-codes
+            'exceptions' => array(
+                'exact' => array(
+                    '-5021' => '\\ccxt\\InvalidOrder', // array("code":-5021,"msg":"Due to the order could not be filled immediately, the FOK order has been rejected.")
+                    '-5022' => '\\ccxt\\InvalidOrder', // array("code":-5022,"msg":"Due to the order could not be executed, the Post Only order will be rejected.")
+                    '-5028' => '\\ccxt\\InvalidOrder', // array("code":-5028,"msg":"Timestamp for this request is outside of the ME recvWindow.")
+                ),
             ),
         ));
     }
