@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.103 (2023-05-14)
+
+
+### Bug Fixes
+
+* **gate:** fix status for partial orders and canceled orders ([6218c59](https://github.com/ccxt/ccxt/commit/6218c59564e30ad738091c4d184870f3bc4eb482))
+
+### 3.0.102 (2023-05-13)
+
 ### 3.0.101 (2023-05-12)
 
 
