@@ -250,6 +250,7 @@ class Transpiler {
             [ /\.isPostOnly\s/g, '.is_post_only'],
             [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
             [ /\.omitZero\s/g, '.omit_zero'],
+            [ /\.currencyStructure\s/g, '.currency_structure'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -852,6 +853,9 @@ class Transpiler {
         }
         if (bodyAsString.match (/: OrderType/)) {
             libraries.push ('from ccxt.base.types import OrderType')
+        }
+        if (bodyAsString.match (/: IndexType/)) {
+            libraries.push ('from ccxt.base.types import IndexType')
         }
         if (bodyAsString.match (/: Client/)) {
             libraries.push ('from ccxt.async_support.base.ws.client import Client')
@@ -1466,6 +1470,7 @@ class Transpiler {
                 'IndexType': 'int|string',
                 'Int': 'int',
                 'object': 'array',
+                'object[]': 'mixed',
                 'OrderType': 'string',
                 'OrderSide': 'string',
             }

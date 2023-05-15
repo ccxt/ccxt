@@ -133,6 +133,9 @@ abstract class coinex extends \ccxt\Exchange {
     public function private_get_sub_account_transfer_history($params = array()) {
         return $this->request('sub_account/transfer/history', 'private', 'GET', $params, null, null, array("cost" => 40));
     }
+    public function private_get_sub_account_auth_api($params = array()) {
+        return $this->request('sub_account/auth/api', 'private', 'GET', $params, null, null, array("cost" => 40));
+    }
     public function private_get_sub_account_auth_api_user_auth_id($params = array()) {
         return $this->request('sub_account/auth/api/{user_auth_id}', 'private', 'GET', $params, null, null, array("cost" => 40));
     }
@@ -459,6 +462,9 @@ abstract class coinex extends \ccxt\Exchange {
     }
     public function privateGetSubAccountTransferHistory($params = array()) {
         return $this->request('sub_account/transfer/history', 'private', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function privateGetSubAccountAuthApi($params = array()) {
+        return $this->request('sub_account/auth/api', 'private', 'GET', $params, null, null, array("cost" => 40));
     }
     public function privateGetSubAccountAuthApiUserAuthId($params = array()) {
         return $this->request('sub_account/auth/api/{user_auth_id}', 'private', 'GET', $params, null, null, array("cost" => 40));

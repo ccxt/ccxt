@@ -27,6 +27,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             'countries': ['LX'],
             'rateLimit': 500,  # prev 1000
             'version': 'v3',
+            'pro': True,
             'has': {
                 'CORS': False,
                 'spot': True,

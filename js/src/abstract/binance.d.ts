@@ -177,6 +177,7 @@ interface Exchange {
     sapiGetPortfolioPmLoan(params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioInterestHistory(params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioInterestRate(params?: {}): Promise<implicitReturnType>;
+    sapiGetPortfolioAssetIndexPrice(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingProductList(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingPosition(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingStakingRecord(params?: {}): Promise<implicitReturnType>;
@@ -399,6 +400,7 @@ interface Exchange {
     fapiPrivateGetApiReferralTraderSummary(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetAdlQuantile(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetPmAccountInfo(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetOrderAmendment(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostBatchOrders(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionSideDual(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionMargin(params?: {}): Promise<implicitReturnType>;
@@ -411,6 +413,8 @@ interface Exchange {
     fapiPrivatePostApiReferralCustomization(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostApiReferralUserCustomization(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePutListenKey(params?: {}): Promise<implicitReturnType>;
+    fapiPrivatePutOrder(params?: {}): Promise<implicitReturnType>;
+    fapiPrivatePutBatchOrders(params?: {}): Promise<implicitReturnType>;
     fapiPrivateDeleteBatchOrders(params?: {}): Promise<implicitReturnType>;
     fapiPrivateDeleteOrder(params?: {}): Promise<implicitReturnType>;
     fapiPrivateDeleteAllOpenOrders(params?: {}): Promise<implicitReturnType>;

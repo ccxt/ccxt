@@ -51,6 +51,7 @@ interface Exchange {
     privateGetOrderMarketTradeInfo (params?: {}): Promise<implicitReturnType>;
     privateGetSubAccountBalance (params?: {}): Promise<implicitReturnType>;
     privateGetSubAccountTransferHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetSubAccountAuthApi (params?: {}): Promise<implicitReturnType>;
     privateGetSubAccountAuthApiUserAuthId (params?: {}): Promise<implicitReturnType>;
     privatePostBalanceCoinWithdraw (params?: {}): Promise<implicitReturnType>;
     privatePostContractBalanceTransfer (params?: {}): Promise<implicitReturnType>;

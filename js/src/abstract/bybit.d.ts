@@ -99,6 +99,7 @@ interface Exchange {
     publicGetV5AnnouncementsIndex(params?: {}): Promise<implicitReturnType>;
     publicGetV5SpotCrossMarginTradePledgeToken(params?: {}): Promise<implicitReturnType>;
     publicGetV5SpotCrossMarginTradeBorrowToken(params?: {}): Promise<implicitReturnType>;
+    publicGetV5InsLoanEnsureTokensConvert(params?: {}): Promise<implicitReturnType>;
     privateGetV2PrivateOrderList(params?: {}): Promise<implicitReturnType>;
     privateGetV2PrivateOrder(params?: {}): Promise<implicitReturnType>;
     privateGetV2PrivateStopOrderList(params?: {}): Promise<implicitReturnType>;
@@ -245,6 +246,7 @@ interface Exchange {
     privateGetV5SpotCrossMarginTradeAccount(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeOrders(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeRepayHistory(params?: {}): Promise<implicitReturnType>;
+    privateGetV5InsLoanLtvConvert(params?: {}): Promise<implicitReturnType>;
     privatePostV2PrivateOrderCreate(params?: {}): Promise<implicitReturnType>;
     privatePostV2PrivateOrderCancel(params?: {}): Promise<implicitReturnType>;
     privatePostV2PrivateOrderCancelAll(params?: {}): Promise<implicitReturnType>;

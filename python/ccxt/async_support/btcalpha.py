@@ -388,7 +388,7 @@ class btcalpha(Exchange, ImplicitAPI):
         marketId = self.safe_string(trade, 'pair')
         market = self.safe_market(marketId, market, '_')
         timestampRaw = self.safe_string(trade, 'timestamp')
-        timestamp = self.parse_number(Precise.string_mul(timestampRaw, '1000000'))
+        timestamp = self.parse_to_int(Precise.string_mul(timestampRaw, '1000000'))
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
         id = self.safe_string(trade, 'id')

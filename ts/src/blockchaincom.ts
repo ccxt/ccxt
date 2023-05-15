@@ -16,6 +16,7 @@ export default class blockchaincom extends Exchange {
             'countries': [ 'LX' ],
             'rateLimit': 500, // prev 1000
             'version': 'v3',
+            'pro': true,
             'has': {
                 'CORS': false,
                 'spot': true,

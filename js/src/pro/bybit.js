@@ -106,11 +106,6 @@ export default class bybit extends bybitRest {
                 'ping': this.ping,
                 'keepAlive': 20000,
             },
-            'exceptions': {
-                'ws': {
-                    'exact': {},
-                },
-            },
         });
     }
     requestId() {

@@ -103,11 +103,6 @@ class bybit extends bybit$1 {
                 'ping': this.ping,
                 'keepAlive': 20000,
             },
-            'exceptions': {
-                'ws': {
-                    'exact': {},
-                },
-            },
         });
     }
     requestId() {

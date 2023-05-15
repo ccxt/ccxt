@@ -23,6 +23,7 @@ class blockchaincom extends Exchange {
             'countries' => array( 'LX' ),
             'rateLimit' => 500, // prev 1000
             'version' => 'v3',
+            'pro' => true,
             'has' => array(
                 'CORS' => false,
                 'spot' => true,

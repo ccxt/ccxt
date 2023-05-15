@@ -250,6 +250,9 @@ export default class deribit extends deribitRest {
         };
         const request = this.deepExtend (message, params);
         const trades = await this.watch (url, channel, request, channel, request);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 

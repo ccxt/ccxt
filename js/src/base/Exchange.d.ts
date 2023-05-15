@@ -545,6 +545,31 @@ export default class Exchange {
         fee: any;
         info: object;
     };
+    currencyStructure(): {
+        info: any;
+        id: any;
+        numericId: any;
+        code: any;
+        precision: any;
+        type: any;
+        name: any;
+        active: any;
+        deposit: any;
+        withdraw: any;
+        fee: any;
+        fees: {};
+        networks: {};
+        limits: {
+            deposit: {
+                min: any;
+                max: any;
+            };
+            withdraw: {
+                min: any;
+                max: any;
+            };
+        };
+    };
     setMarkets(markets: any, currencies?: any): Dictionary<any>;
     safeBalance(balance: object): Balances;
     safeOrder(order: object, market?: object): any;

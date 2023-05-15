@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/mexc.js';
-import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError } from './base/errors.js';
+import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError, AccountSuspended } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -500,7 +500,7 @@ export default class mexc extends Exchange {
                     '30010': InvalidOrder, // no valid trade price
                     '30014': InvalidOrder, // invalid symbol
                     '30016': InvalidOrder, // trading disabled
-                    '30018': InvalidOrder, // market order is disabled
+                    '30018': AccountSuspended, // {"msg":"账号暂时不能下单，请联系客服","code":30018}
                     '30020': AuthenticationError, // no permission for the symbol
                     '30021': BadRequest, // invalid symbol
                     '30025': InvalidOrder, // no exist opponent order

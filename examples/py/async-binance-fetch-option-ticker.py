@@ -21,13 +21,16 @@ async def main():
     })
     await exchange.load_markets()
     market_id = 'ETH-221028-1700-C'
+    symbol = 'ETH/USDT:USDT-221028-1700-C'
     try:
-        response = await exchange.eapiPublicGetTicker({
-            # 'symbol': market_id,  # optional
-        })
+        response = await exchange.fetch_ticker(symbol)
+        # Implicit API:
+        # response = await exchange.eapiPublicGetTicker({
+        #     # 'symbol': market_id,  # optional
+        # })
         pprint(response)
     except Exception as e:
-        print('eapiPublicGetTicker() failed')
+        print('fetch_ticker() failed')
         print(e)
     await exchange.close()
 

@@ -6,7 +6,7 @@
 
 // ---------------------------------------------------------------------------
 import Exchange from './abstract/mexc.js';
-import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError } from './base/errors.js';
+import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError, AccountSuspended } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -501,7 +501,7 @@ export default class mexc extends Exchange {
                     '30010': InvalidOrder,
                     '30014': InvalidOrder,
                     '30016': InvalidOrder,
-                    '30018': InvalidOrder,
+                    '30018': AccountSuspended,
                     '30020': AuthenticationError,
                     '30021': BadRequest,
                     '30025': InvalidOrder,

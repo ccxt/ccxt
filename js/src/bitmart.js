@@ -619,8 +619,13 @@ export default class bitmart extends Exchange {
             const settleId = 'USDT'; // this is bitmart's ID for usdt
             const settle = this.safeCurrencyCode(settleId);
             const symbol = base + '/' + quote + ':' + settle;
-            const productType = this.safeNumber(market, 'product_type');
-            const expiry = this.safeInteger(market, 'expire_timestamp');
+            const productType = this.safeInteger(market, 'product_type');
+            const isSwap = (productType === 1);
+            const isFutures = (productType === 2);
+            let expiry = this.safeInteger(market, 'expire_timestamp');
+            if (!isFutures && (expiry === 0)) {
+                expiry = undefined;
+            }
             result.push({
                 'id': id,
                 'numericId': undefined,
@@ -631,11 +636,11 @@ export default class bitmart extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': 'swap',
+                'type': isSwap ? 'swap' : 'future',
                 'spot': false,
                 'margin': false,
-                'swap': (productType === 1),
-                'future': (productType === 2),
+                'swap': isSwap,
+                'future': isFutures,
                 'option': false,
                 'active': true,
                 'contract': true,

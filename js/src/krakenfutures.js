@@ -1916,7 +1916,7 @@ export default class krakenfutures extends Exchange {
         const currency = this.currency(code);
         let method = 'privatePostTransfer';
         const request = {
-            'amount': this.currencyToPrecision(code, amount),
+            'amount': amount,
         };
         if (fromAccount === 'spot') {
             throw new BadRequest(this.id + ' transfer does not yet support transfers from spot');

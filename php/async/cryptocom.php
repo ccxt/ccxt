@@ -849,6 +849,8 @@ class cryptocom extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-candlestick
+             * @see https://exchange-docs.crypto.com/spot/index.html#public-get-candlestick
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
@@ -863,20 +865,27 @@ class cryptocom extends Exchange {
                 'instrument_name' => $market['id'],
                 'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
-            list($marketType, $query) = $this->handle_market_type_and_params('fetchOHLCV', $market, $params);
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'v2PublicGetPublicGetCandlestick',
-                'future' => 'derivativesPublicGetPublicGetCandlestick',
-                'swap' => 'derivativesPublicGetPublicGetCandlestick',
-            ));
-            if ($marketType !== 'spot') {
+            if (!$market['spot']) {
                 $reqLimit = 100;
                 if ($limit !== null) {
                     $reqLimit = $limit;
                 }
                 $request['count'] = $reqLimit;
             }
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            if ($since !== null) {
+                $request['start_ts'] = $since;
+            }
+            $until = $this->safe_integer_2($params, 'until', 'till');
+            $params = $this->omit($params, array( 'until', 'till' ));
+            if ($until !== null) {
+                $request['end_ts'] = $until;
+            }
+            $response = null;
+            if ($market['spot']) {
+                $response = Async\await($this->v2PublicGetPublicGetCandlestick (array_merge($request, $params)));
+            } elseif ($market['contract']) {
+                $response = Async\await($this->derivativesPublicGetPublicGetCandlestick (array_merge($request, $params)));
+            }
             // {
             //     "code":0,
             //     "method":"public/get-candlestick",

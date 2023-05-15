@@ -2391,9 +2391,7 @@ class huobi extends huobi$1 {
             method = 'spotPrivateGetV1OrderMatchresults';
         }
         else {
-            if (symbol === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol for ' + marketType + ' orders');
-            }
+            this.checkRequiredSymbol('fetchMyTrades', symbol);
             request['contract'] = market['id'];
             request['trade_type'] = 0; // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
             if (since !== undefined) {
@@ -3276,9 +3274,7 @@ class huobi extends huobi$1 {
             }
         }
         else {
-            if (symbol === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol for ' + marketType + ' orders');
-            }
+            this.checkRequiredSymbol('fetchOrder', symbol);
             request['contract_code'] = market['id'];
             if (market['linear']) {
                 let marginMode = undefined;
@@ -3463,9 +3459,7 @@ class huobi extends huobi$1 {
     async fetchSpotOrdersByStates(states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const method = this.safeString(this.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
         if (method === 'spot_private_get_v1_order_orders') {
-            if (symbol === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
-            }
+            this.checkRequiredSymbol('fetchOrders', symbol);
         }
         await this.loadMarkets();
         let market = undefined;
@@ -3534,9 +3528,7 @@ class huobi extends huobi$1 {
         return await this.fetchSpotOrdersByStates('filled,partial-canceled,canceled', symbol, since, limit, params);
     }
     async fetchContractOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchContractOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchContractOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -3885,9 +3877,7 @@ class huobi extends huobi$1 {
             response = await this.spotPrivateGetV1OrderOpenOrders(this.extend(request, params));
         }
         else {
-            if (symbol === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol for ' + marketType + ' orders');
-            }
+            this.checkRequiredSymbol('fetchOpenOrders', symbol);
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
@@ -4814,6 +4804,8 @@ class huobi extends huobi$1 {
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the huobi api endpoint
+         * @param {bool|undefined} params.stop *contract only* if the order is a stop trigger order or not
+         * @param {bool|undefined} params.stopLossTakeProfit *contract only* if the order is a stop-loss or take-profit order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -4835,47 +4827,21 @@ class huobi extends huobi$1 {
         // 'pair': 'BTC-USDT',
         // 'contract_type': 'this_week', // swap, this_week, next_week, quarter, next_ quarter
         };
-        let method = undefined;
+        let response = undefined;
         if (marketType === 'spot') {
             const clientOrderId = this.safeString2(params, 'client-order-id', 'clientOrderId');
-            method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel';
             if (clientOrderId === undefined) {
                 request['order-id'] = id;
+                response = await this.spotPrivatePostV1OrderOrdersOrderIdSubmitcancel(this.extend(request, params));
             }
             else {
                 request['client-order-id'] = clientOrderId;
-                method = 'spotPrivatePostV1OrderOrdersSubmitCancelClientOrder';
                 params = this.omit(params, ['client-order-id', 'clientOrderId']);
+                response = await this.spotPrivatePostV1OrderOrdersSubmitCancelClientOrder(this.extend(request, params));
             }
         }
         else {
-            if (symbol === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol for ' + marketType + ' orders');
-            }
-            request['contract_code'] = market['id'];
-            if (market['linear']) {
-                let marginMode = undefined;
-                [marginMode, params] = this.handleMarginModeAndParams('cancelOrder', params);
-                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-                if (marginMode === 'isolated') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
-                }
-                else if (marginMode === 'cross') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
-                }
-            }
-            else if (market['inverse']) {
-                if (market['future']) {
-                    method = 'contractPrivatePostApiV1ContractCancel';
-                    request['symbol'] = market['settleId'];
-                }
-                else if (market['swap']) {
-                    method = 'contractPrivatePostSwapApiV1SwapCancel';
-                }
-            }
-            else {
-                throw new errors.NotSupported(this.id + ' cancelOrder() does not support ' + marketType + ' markets');
-            }
+            this.checkRequiredSymbol('cancelOrder', symbol);
             const clientOrderId = this.safeString2(params, 'client_order_id', 'clientOrderId');
             if (clientOrderId === undefined) {
                 request['order_id'] = id;
@@ -4884,25 +4850,87 @@ class huobi extends huobi$1 {
                 request['client_order_id'] = clientOrderId;
                 params = this.omit(params, ['client_order_id', 'clientOrderId']);
             }
+            if (market['future']) {
+                request['symbol'] = market['settleId'];
+            }
+            else {
+                request['contract_code'] = market['id'];
+            }
+            const stop = this.safeValue(params, 'stop');
+            const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
+            params = this.omit(params, ['stop', 'stopLossTakeProfit']);
+            if (market['linear']) {
+                let marginMode = undefined;
+                [marginMode, params] = this.handleMarginModeAndParams('cancelOrder', params);
+                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
+                if (marginMode === 'isolated') {
+                    if (stop) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerCancel(this.extend(request, params));
+                    }
+                    else if (stopLossTakeProfit) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapTpslCancel(this.extend(request, params));
+                    }
+                    else {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCancel(this.extend(request, params));
+                    }
+                }
+                else if (marginMode === 'cross') {
+                    if (stop) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel(this.extend(request, params));
+                    }
+                    else if (stopLossTakeProfit) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel(this.extend(request, params));
+                    }
+                    else {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossCancel(this.extend(request, params));
+                    }
+                }
+            }
+            else if (market['inverse']) {
+                if (market['swap']) {
+                    if (stop) {
+                        response = await this.contractPrivatePostSwapApiV1SwapTriggerCancel(this.extend(request, params));
+                    }
+                    else if (stopLossTakeProfit) {
+                        response = await this.contractPrivatePostSwapApiV1SwapTpslCancel(this.extend(request, params));
+                    }
+                    else {
+                        response = await this.contractPrivatePostSwapApiV1SwapCancel(this.extend(request, params));
+                    }
+                }
+                else if (market['future']) {
+                    if (stop) {
+                        response = await this.contractPrivatePostApiV1ContractTriggerCancel(this.extend(request, params));
+                    }
+                    else if (stopLossTakeProfit) {
+                        response = await this.contractPrivatePostApiV1ContractTpslCancel(this.extend(request, params));
+                    }
+                    else {
+                        response = await this.contractPrivatePostApiV1ContractCancel(this.extend(request, params));
+                    }
+                }
+            }
+            else {
+                throw new errors.NotSupported(this.id + ' cancelOrder() does not support ' + marketType + ' markets');
+            }
         }
-        const response = await this[method](this.extend(request, params));
         //
         // spot
         //
         //     {
-        //         'status': 'ok',
-        //         'data': '10138899000',
+        //         "status": "ok",
+        //         "data": "10138899000",
         //     }
         //
-        // linear swap cross margin
+        // future and swap
         //
         //     {
-        //         "status":"ok",
-        //         "data":{
-        //             "errors":[],
-        //             "successes":"924660854912552960"
+        //         "status": "ok",
+        //         "data": {
+        //             "errors": [],
+        //             "successes": "924660854912552960"
         //         },
-        //         "ts":1640504486089
+        //         "ts": 1640504486089
         //     }
         //
         return this.extend(this.parseOrder(response, market), {
@@ -4918,6 +4946,8 @@ class huobi extends huobi$1 {
          * @param {[string]} ids order ids
          * @param {string|undefined} symbol unified market symbol, default is undefined
          * @param {object} params extra parameters specific to the huobi api endpoint
+         * @param {bool|undefined} params.stop *contract only* if the orders are stop trigger orders or not
+         * @param {bool|undefined} params.stopLossTakeProfit *contract only* if the orders are stop-loss or take-profit orders
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -4929,7 +4959,7 @@ class huobi extends huobi$1 {
         [marketType, params] = this.handleMarketTypeAndParams('cancelOrders', market, params);
         const request = {
         // spot -----------------------------------------------------------
-        // 'order-ids': ids.jsoin (','), // max 50
+        // 'order-ids': ids.join (','), // max 50
         // 'client-order-ids': ids.join (','), // max 50
         // contracts ------------------------------------------------------
         // 'order_id': id, // comma separated, max 10
@@ -4937,58 +4967,31 @@ class huobi extends huobi$1 {
         // 'contract_code': market['id'],
         // 'symbol': market['settleId'],
         };
-        let method = undefined;
+        let response = undefined;
         if (marketType === 'spot') {
             let clientOrderIds = this.safeValue2(params, 'client-order-id', 'clientOrderId');
             clientOrderIds = this.safeValue2(params, 'client-order-ids', 'clientOrderIds', clientOrderIds);
             if (clientOrderIds === undefined) {
                 if (typeof clientOrderIds === 'string') {
-                    request['order-ids'] = ids;
+                    request['order-ids'] = [ids];
                 }
                 else {
-                    request['order-ids'] = ids.join(',');
+                    request['order-ids'] = ids;
                 }
             }
             else {
                 if (typeof clientOrderIds === 'string') {
-                    request['client-order-ids'] = clientOrderIds;
+                    request['client-order-ids'] = [clientOrderIds];
                 }
                 else {
-                    request['client-order-ids'] = clientOrderIds.join(',');
+                    request['client-order-ids'] = clientOrderIds;
                 }
                 params = this.omit(params, ['client-order-id', 'client-order-ids', 'clientOrderId', 'clientOrderIds']);
             }
-            method = 'spotPrivatePostV1OrderOrdersBatchcancel';
+            response = await this.spotPrivatePostV1OrderOrdersBatchcancel(this.extend(request, params));
         }
         else {
-            if (symbol === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol for ' + marketType + ' orders');
-            }
-            const marketInner = this.market(symbol);
-            request['contract_code'] = marketInner['id'];
-            if (marketInner['linear']) {
-                let marginMode = undefined;
-                [marginMode, params] = this.handleMarginModeAndParams('cancelOrders', params);
-                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-                if (marginMode === 'isolated') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
-                }
-                else if (marginMode === 'cross') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
-                }
-            }
-            else if (marketInner['inverse']) {
-                if (marketInner['future']) {
-                    method = 'contractPrivatePostApiV1ContractCancel';
-                    request['symbol'] = marketInner['settleId'];
-                }
-                else if (marketInner['swap']) {
-                    method = 'contractPrivatePostSwapApiV1SwapCancel';
-                }
-                else {
-                    throw new errors.NotSupported(this.id + ' cancelOrders() does not support ' + marketType + ' markets');
-                }
-            }
+            this.checkRequiredSymbol('cancelOrders', symbol);
             let clientOrderIds = this.safeString2(params, 'client_order_id', 'clientOrderId');
             clientOrderIds = this.safeString2(params, 'client_order_ids', 'clientOrderIds', clientOrderIds);
             if (clientOrderIds === undefined) {
@@ -4998,8 +5001,70 @@ class huobi extends huobi$1 {
                 request['client_order_id'] = clientOrderIds;
                 params = this.omit(params, ['client_order_id', 'client_order_ids', 'clientOrderId', 'clientOrderIds']);
             }
+            if (market['future']) {
+                request['symbol'] = market['settleId'];
+            }
+            else {
+                request['contract_code'] = market['id'];
+            }
+            const stop = this.safeValue(params, 'stop');
+            const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
+            params = this.omit(params, ['stop', 'stopLossTakeProfit']);
+            if (market['linear']) {
+                let marginMode = undefined;
+                [marginMode, params] = this.handleMarginModeAndParams('cancelOrders', params);
+                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
+                if (marginMode === 'isolated') {
+                    if (stop) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerCancel(this.extend(request, params));
+                    }
+                    else if (stopLossTakeProfit) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapTpslCancel(this.extend(request, params));
+                    }
+                    else {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCancel(this.extend(request, params));
+                    }
+                }
+                else if (marginMode === 'cross') {
+                    if (stop) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel(this.extend(request, params));
+                    }
+                    else if (stopLossTakeProfit) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel(this.extend(request, params));
+                    }
+                    else {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossCancel(this.extend(request, params));
+                    }
+                }
+            }
+            else if (market['inverse']) {
+                if (market['swap']) {
+                    if (stop) {
+                        response = await this.contractPrivatePostSwapApiV1SwapTriggerCancel(this.extend(request, params));
+                    }
+                    else if (stopLossTakeProfit) {
+                        response = await this.contractPrivatePostSwapApiV1SwapTpslCancel(this.extend(request, params));
+                    }
+                    else {
+                        response = await this.contractPrivatePostSwapApiV1SwapCancel(this.extend(request, params));
+                    }
+                }
+                else if (market['future']) {
+                    if (stop) {
+                        response = await this.contractPrivatePostApiV1ContractTriggerCancel(this.extend(request, params));
+                    }
+                    else if (stopLossTakeProfit) {
+                        response = await this.contractPrivatePostApiV1ContractTpslCancel(this.extend(request, params));
+                    }
+                    else {
+                        response = await this.contractPrivatePostApiV1ContractCancel(this.extend(request, params));
+                    }
+                }
+            }
+            else {
+                throw new errors.NotSupported(this.id + ' cancelOrders() does not support ' + marketType + ' markets');
+            }
         }
-        const response = await this[method](this.extend(request, params));
         //
         // spot
         //
@@ -5034,7 +5099,7 @@ class huobi extends huobi$1 {
         //         }
         //     }
         //
-        // contracts
+        // future and swap
         //
         //     {
         //         "status": "ok",
@@ -5060,6 +5125,8 @@ class huobi extends huobi$1 {
          * @description cancel all open orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the huobi api endpoint
+         * @param {bool|undefined} params.stop *contract only* if the orders are stop trigger orders or not
+         * @param {bool|undefined} params.stopLossTakeProfit *contract only* if the orders are stop-loss or take-profit orders
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -5083,45 +5150,79 @@ class huobi extends huobi$1 {
         // 'direction': 'buy': // buy, sell
         // 'offset': 'open', // open, close
         };
-        let method = undefined;
+        let response = undefined;
         if (marketType === 'spot') {
             if (symbol !== undefined) {
-                market = this.market(symbol);
                 request['symbol'] = market['id'];
             }
-            method = 'spotPrivatePostV1OrderOrdersBatchCancelOpenOrders';
+            response = await this.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders(this.extend(request, params));
         }
         else {
-            if (symbol === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol for ' + marketType + ' orders');
+            this.checkRequiredSymbol('cancelAllOrders', symbol);
+            if (market['future']) {
+                request['symbol'] = market['settleId'];
             }
-            const marketInner = this.market(symbol);
-            request['contract_code'] = marketInner['id'];
-            if (marketInner['linear']) {
+            request['contract_code'] = market['id'];
+            const stop = this.safeValue(params, 'stop');
+            const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
+            params = this.omit(params, ['stop', 'stopLossTakeProfit']);
+            if (market['linear']) {
                 let marginMode = undefined;
                 [marginMode, params] = this.handleMarginModeAndParams('cancelAllOrders', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCancelallall';
+                    if (stop) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerCancelall(this.extend(request, params));
+                    }
+                    else if (stopLossTakeProfit) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapTpslCancelall(this.extend(request, params));
+                    }
+                    else {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCancelall(this.extend(request, params));
+                    }
                 }
                 else if (marginMode === 'cross') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancelall';
+                    if (stop) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall(this.extend(request, params));
+                    }
+                    else if (stopLossTakeProfit) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall(this.extend(request, params));
+                    }
+                    else {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossCancelall(this.extend(request, params));
+                    }
                 }
             }
-            else if (marketInner['inverse']) {
-                if (marketType === 'future') {
-                    method = 'contractPrivatePostApiV1ContractCancelall';
-                    request['symbol'] = marketInner['settleId'];
+            else if (market['inverse']) {
+                if (market['swap']) {
+                    if (stop) {
+                        response = await this.contractPrivatePostSwapApiV1SwapTriggerCancelall(this.extend(request, params));
+                    }
+                    else if (stopLossTakeProfit) {
+                        response = await this.contractPrivatePostSwapApiV1SwapTpslCancelall(this.extend(request, params));
+                    }
+                    else {
+                        response = await this.contractPrivatePostSwapApiV1SwapCancelall(this.extend(request, params));
+                    }
                 }
-                else if (marketType === 'swap') {
-                    method = 'contractPrivatePostSwapApiV1SwapCancelall';
+                else if (market['future']) {
+                    if (stop) {
+                        response = await this.contractPrivatePostApiV1ContractTriggerCancelall(this.extend(request, params));
+                    }
+                    else if (stopLossTakeProfit) {
+                        response = await this.contractPrivatePostApiV1ContractTpslCancelall(this.extend(request, params));
+                    }
+                    else {
+                        response = await this.contractPrivatePostApiV1ContractCancelall(this.extend(request, params));
+                    }
                 }
-                else {
-                    throw new errors.NotSupported(this.id + ' cancelAllOrders() does not support ' + marketType + ' markets');
-                }
+            }
+            else {
+                throw new errors.NotSupported(this.id + ' cancelAllOrders() does not support ' + marketType + ' markets');
             }
         }
-        const response = await this[method](this.extend(request, params));
+        //
+        // spot
         //
         //     {
         //         code: 200,
@@ -5130,6 +5231,17 @@ class huobi extends huobi$1 {
         //             "failed-count": 0,
         //             "next-id": 5454600
         //         }
+        //     }
+        //
+        // future and swap
+        //
+        //     {
+        //         status: "ok",
+        //         data: {
+        //             errors: [],
+        //             successes: "1104754904426696704"
+        //         },
+        //         ts: "1683435723755"
         //     }
         //
         return response;
@@ -5784,9 +5896,7 @@ class huobi extends huobi$1 {
          * @param {object} params extra parameters specific to the huobi api endpoint
          * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -6343,9 +6453,7 @@ class huobi extends huobi$1 {
          * @param {object} params extra parameters specific to the huobi api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('setLeverage', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const [marketType, query] = this.handleMarketTypeAndParams('setLeverage', market, params);
@@ -7482,9 +7590,7 @@ class huobi extends huobi$1 {
         marginMode = (marginMode === undefined) ? 'cross' : marginMode;
         let method = undefined;
         if (marginMode === 'isolated') {
-            if (symbol === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' borrowMargin() requires a symbol argument for isolated margin');
-            }
+            this.checkRequiredSymbol('borrowMargin', symbol);
             const market = this.market(symbol);
             request['symbol'] = market['id'];
             method = 'privatePostMarginOrders';

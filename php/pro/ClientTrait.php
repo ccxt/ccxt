@@ -7,7 +7,6 @@ use ccxt\BaseError;
 use ccxt\ExchangeError;
 use React\Async;
 use React\EventLoop\Loop;
-use function React\Promise\resolve;
 
 trait ClientTrait {
 
@@ -92,13 +91,14 @@ trait ClientTrait {
             return $client->futures[$message_hash];
         }
         $future = $client->future($message_hash);
+        $subscribed = isset($client->subscriptions[$subscribe_hash]);
+        if (!$subscribed) {
+            $client->subscriptions[$subscribe_hash] = isset($subscription) ? $subscription : true;
+        }
         $connected = $client->connect($backoff_delay);
-        $connected->then(
-            function($result) use ($client, $message_hash, $message, $subscribe_hash, $subscription) {
-                if (!isset($client->subscriptions[$subscribe_hash])) {
-                    if ($subscribe_hash !== null) {
-                        $client->subscriptions[$subscribe_hash] = $subscription ?? true;
-                    }
+        if (!$subscribed) {
+            $connected->then(
+                function($result) use ($client, $message_hash, $message, $subscribe_hash, $subscription, $subscribed) {
                     // todo: add PHP async rate-limiting
                     // todo: decouple signing from subscriptions
                     $options = $this->safe_value($this->options, 'ws');
@@ -115,9 +115,13 @@ trait ClientTrait {
                             Async\await($client->send($message));
                         }
                     }
+                },
+                function($error) use ($client, $subscribe_hash) {
+                    unset($client->subscriptions[$subscribe_hash]);
+                    throw new ExchangeError($error);
                 }
-            }
-        );
+            );
+        }
         return $future;
     }
 
