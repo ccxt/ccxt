@@ -1,2 +1,2 @@
-declare function testFetchTradingFees(exchange: any): Promise<void>;
+declare function testFetchTradingFees(exchange: any, skippedProperties: any): Promise<void>;
 export default testFetchTradingFees;

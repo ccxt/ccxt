@@ -2,6 +2,73 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.104 (2023-05-15)
+
+
+### Bug Fixes
+
+* **phemex:** ping pong handling ([ae0aea8](https://github.com/ccxt/ccxt/commit/ae0aea856985609ebacdd0a375758575fb9e7743))
+
+### 3.0.103 (2023-05-14)
+
+
+### Bug Fixes
+
+* **gate:** fix status for partial orders and canceled orders ([6218c59](https://github.com/ccxt/ccxt/commit/6218c59564e30ad738091c4d184870f3bc4eb482))
+
+### 3.0.102 (2023-05-13)
+
+### 3.0.101 (2023-05-12)
+
+
+### Bug Fixes
+
+* **coinbase:** fetchOrders, fetchOrdersByStatus, fix since ([fb444e5](https://github.com/ccxt/ccxt/commit/fb444e562784ec949a7b034909fd095ea9cc5b52))
+
+### 3.0.100 (2023-05-11)
+
+### 3.0.99 (2023-05-10)
+
+### 3.0.98 (2023-05-09)
+
+### 3.0.97 (2023-05-08)
+
+
+### Bug Fixes
+
+* **deribit:** fix [#17729](https://github.com/ccxt/ccxt/issues/17729) ([2a5d61a](https://github.com/ccxt/ccxt/commit/2a5d61af37235ca85f72bbbab2440685c68a4d39))
+
+### 3.0.96 (2023-05-06)
+
+### 3.0.95 (2023-05-06)
+
+### 3.0.94 (2023-05-05)
+
+
+### Bug Fixes
+
+* **whitebit:** signing ([08249c7](https://github.com/ccxt/ccxt/commit/08249c79b6a4680acf0da4f186aa2fc8ce10f6f1))
+
+### 3.0.93 (2023-05-05)
+
+### 3.0.92 (2023-05-04)
+
+### 3.0.91 (2023-05-04)
+
+### 3.0.90 (2023-05-03)
+
+### 3.0.89 (2023-05-02)
+
+### 3.0.88 (2023-05-02)
+
+### 3.0.87 (2023-05-02)
+
+### 3.0.86 (2023-05-01)
+
+### 3.0.85 (2023-05-01)
+
+### 3.0.84 (2023-04-30)
+
 ### 3.0.83 (2023-04-29)
 
 ### 3.0.82 (2023-04-28)

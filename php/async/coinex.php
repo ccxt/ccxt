@@ -178,6 +178,7 @@ class coinex extends Exchange {
                         'order/market/trade/info' => 1,
                         'sub_account/balance' => 1,
                         'sub_account/transfer/history' => 40,
+                        'sub_account/auth/api' => 40,
                         'sub_account/auth/api/{user_auth_id}' => 40,
                     ),
                     'post' => array(
@@ -1135,7 +1136,7 @@ class coinex extends Exchange {
             //      }
             //
             $data = $this->safe_value($response, 'data', array());
-            return $this->parse_trading_fee($data);
+            return $this->parse_trading_fee($data, $market);
         }) ();
     }
 
@@ -1752,6 +1753,12 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http017_put_limit
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http018_put_market
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http019_put_limit_stop
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http020_put_market_stop
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http031_market_close
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http030_limit_close
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1765,6 +1772,7 @@ class coinex extends Exchange {
              * @param {string} $params->timeInForce "GTC", "IOC", "FOK", "PO"
              * @param {bool} $params->postOnly
              * @param {bool} $params->reduceOnly
+             * @param {bool|null} $params->position_id *required for reduce only orders* the position id to reduce
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1779,9 +1787,12 @@ class coinex extends Exchange {
             $positionId = $this->safe_integer_2($params, 'position_id', 'positionId'); // Required for closing $swap positions
             $timeInForceRaw = $this->safe_string($params, 'timeInForce'); // Spot => IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
             $reduceOnly = $this->safe_value($params, 'reduceOnly');
-            if ($reduceOnly !== null) {
+            if ($reduceOnly) {
                 if ($market['type'] !== 'swap') {
                     throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $market['type'] . ' orders, $reduceOnly orders are supported for $swap markets only');
+                }
+                if ($positionId === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a position_id/positionId parameter for $reduceOnly orders');
                 }
             }
             $method = null;
@@ -2739,7 +2750,7 @@ class coinex extends Exchange {
         $address = null;
         $tag = null;
         $partsLength = count($parts);
-        if ($partsLength > 1) {
+        if ($partsLength > 1 && $parts[0] !== 'cfx') {
             $address = $parts[0];
             $tag = $parts[1];
         } else {
@@ -3826,7 +3837,7 @@ class coinex extends Exchange {
                 $rates[] = array(
                     'info' => $entry,
                     'symbol' => $symbolInner,
-                    'fundingRate' => $this->safe_string($entry, 'funding_rate'),
+                    'fundingRate' => $this->safe_number($entry, 'funding_rate'),
                     'timestamp' => $timestamp,
                     'datetime' => $this->iso8601($timestamp),
                 );

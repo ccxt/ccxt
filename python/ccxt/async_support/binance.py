@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
@@ -36,7 +37,7 @@ from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
 
 
-class binance(Exchange):
+class binance(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(binance, self).describe(), {
@@ -53,7 +54,7 @@ class binance(Exchange):
                 'margin': True,
                 'swap': True,
                 'future': True,
-                'option': None,
+                'option': True,
                 'addMargin': True,
                 'borrowMargin': True,
                 'cancelAllOrders': True,
@@ -76,7 +77,7 @@ class binance(Exchange):
                 'fetchBorrowRateHistory': True,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
-                'fetchCanceledOrders': False,
+                'fetchCanceledOrders': 'emulated',
                 'fetchClosedOrder': False,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': True,
@@ -191,6 +192,7 @@ class binance(Exchange):
                     'public': 'https://api.binance.com/api/v3',
                     'private': 'https://api.binance.com/api/v3',
                     'v1': 'https://api.binance.com/api/v1',
+                    'papi': 'https://papi.binance.com/papi/v1',
                 },
                 'www': 'https://www.binance.com',
                 'referral': {
@@ -403,6 +405,7 @@ class binance(Exchange):
                         'portfolio/pmLoan': 3.3335,
                         'portfolio/interest-history': 0.6667,
                         'portfolio/interest-rate': 0.6667,
+                        'portfolio/asset-index-price': 0.1,
                         # staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -701,6 +704,7 @@ class binance(Exchange):
                         'apiReferral/traderSummary': 1,
                         'adlQuantile': 5,
                         'pmAccountInfo': 5,
+                        'orderAmendment': 1,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -718,6 +722,8 @@ class binance(Exchange):
                     },
                     'put': {
                         'listenKey': 1,
+                        'order': 1,
+                        'batchOrders': 5,
                     },
                     'delete': {
                         'batchOrders': 1,
@@ -830,6 +836,68 @@ class binance(Exchange):
                         'openOrders': 1,  # added on 2020-04-25 for canceling all open orders per symbol
                         'orderList': 1,  # oco
                         'order': 1,
+                    },
+                },
+                'papi': {
+                    'get': {
+                        'um/order': 1,  # 1
+                        'um/openOrder': 1,  # 1
+                        'um/openOrders': 1,  # 1
+                        'um/allOrders': 5,  # 5
+                        'cm/order': 1,  # 1
+                        'cm/openOrder': 1,  # 1
+                        'cm/openOrders': 1,  # 1
+                        'cm/allOrders': 20,  # 20
+                        'balance': 20,  # 20
+                        'account': 20,  # 20
+                        'margin/maxBorrowable': 5,  # 5
+                        'margin/maxWithdraw': 5,  # 5
+                        'um/positionRisk': 5,  # 5
+                        'cm/positionRisk': 1,  # 1
+                        'um/positionSide/dual': 30,  # 30
+                        'cm/positionSide/dual': 30,  # 30
+                        'um/userTrades': 5,  # 5
+                        'cm/userTrades': 20,  # 20
+                        'um/leverageBracket': 1,  # 1
+                        'cm/leverageBracket': 1,  # 1
+                        'margin/forceOrders': 1,  # 1
+                        'um/forceOrders': 20,  # 20
+                        'cm/forceOrders': 20,  # 20
+                        'um/apiTradingStatus': 1,  # 1
+                        'um/commissionRate': 20,  # 20
+                        'cm/commissionRate': 20,  # 20
+                        'margin/marginLoan': 0.0667,  # Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
+                        'margin/repayLoan': 0.0667,  # Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
+                        'margin/marginInterestHistory': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'portfolio/interest-history': 50,  # 50
+                    },
+                    'post': {
+                        'um/order': 1,  # 0
+                        'cm/order': 1,  # 0
+                        'margin/order': 0.0133,  # Weight(UID): 2 => cost = 0.006667 * 2 = 0.013334
+                        'marginLoan': 0.1333,  # Weight(UID): 20 => cost = 0.006667 * 20 = 0.13334
+                        'repayLoan': 0.1333,  # Weight(UID): 20 => cost = 0.006667 * 20 = 0.13334
+                        'margin/order/oco': 0.0400,  # Weight(UID): 6 => cost = 0.006667 * 6 = 0.040002
+                        'um/leverage': 1,  # 1
+                        'cm/leverage': 1,  # 1
+                        'um/positionSide/dual': 1,  # 1
+                        'cm/positionSide/dual': 1,  # 1
+                        'auto-collection': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'bnb-transfer': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'listenKey': 1,  # 1
+                    },
+                    'put': {
+                        'listenKey': 1,  # 1
+                    },
+                    'delete': {
+                        'um/order': 1,  # 1
+                        'um/allOpenOrders': 1,  # 1
+                        'cm/order': 1,  # 1
+                        'cm/allOpenOrders': 1,  # 1
+                        'margin/order': 1,  # Weight(IP): 10 => cost = 0.1 * 10 = 1
+                        'margin/allOpenOrders': 5,  # 5
+                        'margin/orderList': 2,  # 2
+                        'listenKey': 1,  # 1
                     },
                 },
             },
@@ -2647,6 +2715,7 @@ class binance(Exchange):
         #     }
         #
         # coinm
+        #
         #     {
         #         baseVolume: '214549.95171161',
         #         closeTime: '1621965286847',
@@ -2666,7 +2735,32 @@ class binance(Exchange):
         #         volume: '81990451',
         #         weightedAvgPrice: '38215.08713747'
         #     }
+        #
+        # eapi: fetchTicker, fetchTickers
+        #
+        #     {
+        #         "symbol": "ETH-230510-1825-C",
+        #         "priceChange": "-5.1",
+        #         "priceChangePercent": "-0.1854",
+        #         "lastPrice": "22.4",
+        #         "lastQty": "0",
+        #         "open": "27.5",
+        #         "high": "34.1",
+        #         "low": "22.4",
+        #         "volume": "6.83",
+        #         "amount": "201.44",
+        #         "bidPrice": "21.9",
+        #         "askPrice": "22.4",
+        #         "openTime": 1683614771898,
+        #         "closeTime": 1683695017784,
+        #         "firstTradeId": 12,
+        #         "tradeCount": 22,
+        #         "strikePrice": "1825",
+        #         "exercisePrice": "1845.95341176"
+        #     }
+        #
         # spot bidsAsks
+        #
         #     {
         #         "symbol":"ETHBTC",
         #         "bidPrice":"0.07466800",
@@ -2674,7 +2768,9 @@ class binance(Exchange):
         #         "askPrice":"0.07466900",
         #         "askQty":"10.93540000"
         #     }
+        #
         # usdm bidsAsks
+        #
         #     {
         #         "symbol":"BTCUSDT",
         #         "bidPrice":"21321.90",
@@ -2683,7 +2779,9 @@ class binance(Exchange):
         #         "askQty":"1.427",
         #         "time":"1673899207538"
         #     }
+        #
         # coinm bidsAsks
+        #
         #     {
         #         "symbol":"BTCUSD_PERP",
         #         "pair":"BTCUSD",
@@ -2711,19 +2809,19 @@ class binance(Exchange):
             quoteVolume = self.safe_string(ticker, 'volume')
         else:
             baseVolume = self.safe_string(ticker, 'volume')
-            quoteVolume = self.safe_string(ticker, 'quoteVolume')
+            quoteVolume = self.safe_string_2(ticker, 'quoteVolume', 'amount')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(ticker, 'highPrice'),
-            'low': self.safe_string(ticker, 'lowPrice'),
+            'high': self.safe_string_2(ticker, 'highPrice', 'high'),
+            'low': self.safe_string_2(ticker, 'lowPrice', 'low'),
             'bid': self.safe_string(ticker, 'bidPrice'),
             'bidVolume': self.safe_string(ticker, 'bidQty'),
             'ask': self.safe_string(ticker, 'askPrice'),
             'askVolume': self.safe_string(ticker, 'askQty'),
             'vwap': self.safe_string(ticker, 'weightedAvgPrice'),
-            'open': self.safe_string(ticker, 'openPrice'),
+            'open': self.safe_string_2(ticker, 'openPrice', 'open'),
             'close': last,
             'last': last,
             'previousClose': self.safe_string(ticker, 'prevClosePrice'),  # previous day close
@@ -2764,6 +2862,7 @@ class binance(Exchange):
         see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         # spot
         see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      # swap
         see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     # future
+        see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     # option
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -2774,7 +2873,9 @@ class binance(Exchange):
             'symbol': market['id'],
         }
         method = 'publicGetTicker24hr'
-        if market['linear']:
+        if market['option']:
+            method = 'eapiPublicGetTicker'
+        elif market['linear']:
             method = 'fapiPublicGetTicker24hr'
         elif market['inverse']:
             method = 'dapiPublicGetTicker24hr'
@@ -2917,18 +3018,25 @@ class binance(Exchange):
         see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         # spot
         see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      # swap
         see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     # future
+        see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     # option
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
+        type = None
+        market = None
+        if symbols is not None:
+            first = self.safe_string(symbols, 0)
+            market = self.market(first)
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('fetchTickers', None, params)
+        subType, params = self.handle_sub_type_and_params('fetchTickers', market, params)
         query = self.omit(params, 'type')
         defaultMethod = None
-        if self.is_linear(type, subType):
+        if type == 'option':
+            defaultMethod = 'eapiPublicGetTicker'
+        elif self.is_linear(type, subType):
             defaultMethod = 'fapiPublicGetTicker24hr'
         elif self.is_inverse(type, subType):
             defaultMethod = 'dapiPublicGetTicker24hr'
@@ -4018,7 +4126,7 @@ class binance(Exchange):
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param int|None limit: the maximum number of order structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -4129,7 +4237,7 @@ class binance(Exchange):
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param int|None limit: the maximum number of open orders structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -4183,12 +4291,34 @@ class binance(Exchange):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param int|None limit: the maximum number of order structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         orders = await self.fetch_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
+
+    async def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetches information on multiple canceled orders made by the user
+        see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+        see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
+        see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+        :param str symbol: unified market symbol of the market the orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of order structures to retrieve
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.check_required_symbol('fetchCanceledOrders', symbol)
+        await self.load_markets()
+        market = self.market(symbol)
+        if market['swap'] or market['future']:
+            raise NotSupported(self.id + ' fetchCanceledOrders() supports spot, margin and option markets only')
+        params = self.omit(params, 'type')
+        orders = await self.fetch_orders(symbol, since, None, params)
+        filteredOrders = self.filter_by(orders, 'status', 'canceled')
+        return self.filter_by_limit(filteredOrders, limit)
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
@@ -5064,7 +5194,7 @@ class binance(Exchange):
         fetch a history of internal transfers made on an account
         :param str|None code: unified currency code of the currency transferred
         :param int|None since: the earliest time in ms to fetch transfers for
-        :param int|None limit: the maximum number of  transfers structures to retrieve
+        :param int|None limit: the maximum number of transfers structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
@@ -7125,7 +7255,7 @@ class binance(Exchange):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         if ('noCoin' in config) and not ('coin' in params):
             return config['noCoin']
         elif ('noSymbol' in config) and not ('symbol' in params):
@@ -7142,7 +7272,7 @@ class binance(Exchange):
         return self.safe_value(config, 'cost', 1)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
-        response = await self.fetch2(path, api, method, params, headers, body, config, context)
+        response = await self.fetch2(path, api, method, params, headers, body, config)
         # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if (api == 'private') or (api == 'wapi'):
             self.options['hasAlreadyAuthenticatedSuccessfully'] = True

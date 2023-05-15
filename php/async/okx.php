@@ -256,6 +256,7 @@ class okx extends Exchange {
                         'trade/orders-algo-history' => 1,
                         'trade/order-algo' => 1,
                         'account/subaccount/balances' => 10,
+                        'account/subaccount/interest-limits' => 4,
                         'asset/subaccount/bills' => 5 / 3,
                         'users/subaccount/list' => 10,
                         'users/subaccount/apikey' => 10,
@@ -316,6 +317,7 @@ class okx extends Exchange {
                         'account/quick-margin-borrow-repay' => 4,
                         'account/activate-option' => 4,
                         'account/set-auto-loan' => 4,
+                        'account/subaccount/set-loan-allocation' => 4,
                         'asset/transfer' => 10,
                         'asset/withdrawal' => 5 / 3,
                         'asset/withdrawal-lightning' => 5,
@@ -327,6 +329,7 @@ class okx extends Exchange {
                         'trade/cancel-batch-orders' => 1 / 15,
                         'trade/amend-order' => 1 / 3,
                         'trade/amend-batch-orders' => 1 / 3,
+                        'trade/amend-algos' => 1,
                         'trade/close-position' => 1,
                         'trade/order-algo' => 1,
                         'trade/cancel-algos' => 1,
@@ -1838,7 +1841,7 @@ class okx extends Exchange {
             $data = $this->safe_value($response, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
                 $rate = $data[$i];
-                $timestamp = $this->safe_number($rate, 'fundingTime');
+                $timestamp = $this->safe_integer($rate, 'fundingTime');
                 $rates[] = array(
                     'info' => $rate,
                     'symbol' => $this->safe_symbol($this->safe_string($rate, 'instId')),

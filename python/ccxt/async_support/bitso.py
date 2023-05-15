@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.bitso import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -18,7 +19,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bitso(Exchange):
+class bitso(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitso, self).describe(), {
@@ -221,7 +222,8 @@ class bitso(Exchange):
         #     }
         #
         payload = self.safe_value(response, 'payload', [])
-        return self.parse_ledger(payload, code, since, limit)
+        currency = self.safe_currency(code)
+        return self.parse_ledger(payload, currency, since, limit)
 
     def parse_ledger_entry_type(self, type):
         types = {

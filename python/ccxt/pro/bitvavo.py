@@ -114,7 +114,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         trades = await self.watch_public('trades', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     def handle_trade(self, client: Client, message):
         #
@@ -174,7 +174,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         ohlcv = await self.watch(url, messageHash, message, messageHash)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -422,7 +422,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         orders = await self.watch(url, messageHash, request, messageHash)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -455,7 +455,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         trades = await self.watch(url, messageHash, request, messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
     def handle_order(self, client: Client, message):
         #

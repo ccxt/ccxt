@@ -397,7 +397,7 @@ export default class currencycom extends currencycomRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -445,7 +445,7 @@ export default class currencycom extends currencycomRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0);
     }
 
     handleDeltas (bookside, deltas) {

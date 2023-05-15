@@ -309,6 +309,8 @@ class lbank2 extends Exchange {
                     '3s' => true,
                     '5s' => true,
                 );
+                $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityAccuracy')));
+                $contractSize = $amountPrecision;
                 $ending = mb_substr($baseId, -2);
                 $isLeveragedProduct = $this->safe_value($productTypes, $ending, false);
                 if ($isLeveragedProduct) {
@@ -337,13 +339,13 @@ class lbank2 extends Exchange {
                     'contract' => $isLeveragedProduct,
                     'linear' => $linear, // all leveraged ETF products are in USDT
                     'inverse' => null,
-                    'contractSize' => null,
+                    'contractSize' => $isLeveragedProduct ? $contractSize : null,
                     'expiry' => null,
                     'expiryDatetime' => null,
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityAccuracy'))),
+                        'amount' => $amountPrecision,
                         'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'priceAccuracy'))),
                     ),
                     'limits' => array(

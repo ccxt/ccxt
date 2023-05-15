@@ -3126,7 +3126,7 @@ export default class kucoin extends Exchange {
         const items = this.safeValue(data, 'items');
         return this.parseLedger(items, currency, since, limit);
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
         const versions = this.safeValue(this.options, 'versions', {});
         const apiVersions = this.safeValue(versions, api, {});
         const methodVersions = this.safeValue(apiVersions, method, {});

@@ -35,7 +35,7 @@ class phemex extends phemex$1 {
                 'OHLCVLimit': 1000,
             },
             'streaming': {
-                'keepAlive': 20000,
+                'keepAlive': 10000,
             },
         });
     }
@@ -554,7 +554,7 @@ class phemex extends phemex$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -628,7 +628,7 @@ class phemex extends phemex$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0);
     }
     handleDelta(bookside, delta, market = undefined) {
         const bidAsk = this.customParseBidAsk(delta, 0, 1, market);
@@ -748,7 +748,7 @@ class phemex extends phemex$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
     }
     handleMyTrades(client, message) {
         //
@@ -910,7 +910,7 @@ class phemex extends phemex$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleOrders(client, message) {
         // spot update
@@ -1400,7 +1400,9 @@ class phemex extends phemex$1 {
         if (id in client.subscriptions) {
             const method = client.subscriptions[id];
             delete client.subscriptions[id];
-            return method.call(this, client, message);
+            if (method !== true) {
+                return method.call(this, client, message);
+            }
         }
         const method = this.safeString(message, 'method', '');
         if (('market24h' in message) || ('spot_market24h' in message) || (method.indexOf('perp_market24h_pack_p') >= 0)) {

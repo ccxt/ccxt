@@ -20,24 +20,16 @@ for (let color of Object.keys (colors)) {
 }
 
 let ascii = [
-    '                                                         ',
-    '                         :Siiiiiiiiiiir    rSiiiiiiiiiiS:',
-    '                         r&9hh&&&&&&&A5    SG99h&&&&&&GHr',
-    '                         ;hX32;::::::;,    i9X9S:;:::::;,',
-    '                         ;hX9S             ihXhr         ',
-    '                         ;hX32::::::,:,    i9X9i::::::,:.',
-    '                         rG999GGGGGGGAS    iG99hGGGGGGGAr',
-    '                         ;2S55SSSSSSS2r    r2555SSSSSSS2;',
-    '                                                         ',
-    '                                                         ',
-    '                         ;2S5s    ;2S2r    r2SS555555SS2;',
-    '                         rAh&2    sAhAS    SAGGh9999GGGAr',
-    '                         .:,::rrrs::::,    ,:,,;9X3X:,,:.',
-    '                              &A&H,            ,hX33     ',
-    '                         ,;:;;;;;r;;:;,        ,hX3X.    ',
-    '                         rHGAX    sAGA5        :&9h9.    ',
-    '                         :Ssir    ;isir        ,Siii     ',
-    '                                                         ',
+    '                                                                ',
+    '                                                                ',
+    '                     ██████╗   ██████╗  ██╗     ██╗  ████████╗  ',
+    '                    ██╔════╝  ██╔════╝   ╚██╗ ██╔╝   ╚══██╔══╝  ',
+    '                    ██║       ██║         ╚███╔╝        ██║     ',
+    '                    ██║       ██║         ██╔ ██╗       ██║     ',
+    '                    ╚██████╗  ╚██████╗  ██╔╝   ██╗      ██║     ',
+    '                      ╚════╝    ╚════╝  ╚═╝     ╚═╝     ╚═╝     ',
+    '                                                                ',
+    '                                                                ',
 ]
 
 async function getData () {

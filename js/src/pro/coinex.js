@@ -441,7 +441,7 @@ export default class coinex extends coinexRest {
         this.options['watchTradesSubscriptions'] = subscribedSymbols;
         const request = this.deepExtend(message, params);
         const trades = await this.watch(url, messageHash, request, subscriptionHash);
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -538,7 +538,7 @@ export default class coinex extends coinexRest {
         if (this.newUpdates) {
             limit = ohlcvs.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcvs, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcvs, since, limit, 0);
     }
     handleDelta(bookside, delta) {
         const bidAsk = this.parseBidAsk(delta, 0, 1);
@@ -633,7 +633,7 @@ export default class coinex extends coinexRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleOrders(client, message) {
         //

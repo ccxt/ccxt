@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.mercado import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -13,7 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class mercado(Exchange):
+class mercado(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(mercado, self).describe(), {

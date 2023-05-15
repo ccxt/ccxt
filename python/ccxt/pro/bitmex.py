@@ -543,7 +543,7 @@ class bitmex(ccxt.async_support.bitmex):
         trades = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     def authenticate(self, params={}):
         url = self.urls['api']['ws']
@@ -607,7 +607,7 @@ class bitmex(ccxt.async_support.bitmex):
         orders = await self.watch(url, messageHash, request, subscriptionHash)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_orders(self, client: Client, message):
         #
@@ -813,7 +813,7 @@ class bitmex(ccxt.async_support.bitmex):
         trades = await self.watch(url, messageHash, request, subscriptionHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
     def handle_my_trades(self, client: Client, message):
         #
@@ -950,7 +950,7 @@ class bitmex(ccxt.async_support.bitmex):
         ohlcv = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0)
 
     def handle_ohlcv(self, client: Client, message):
         #

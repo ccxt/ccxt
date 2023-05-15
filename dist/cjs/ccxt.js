@@ -138,6 +138,7 @@ var bitrue$1 = require('./src/pro/bitrue.js');
 var bitstamp$1 = require('./src/pro/bitstamp.js');
 var bittrex$1 = require('./src/pro/bittrex.js');
 var bitvavo$1 = require('./src/pro/bitvavo.js');
+var blockchaincom$1 = require('./src/pro/blockchaincom.js');
 var btcex$1 = require('./src/pro/btcex.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
@@ -159,6 +160,7 @@ var huobipro$1 = require('./src/pro/huobipro.js');
 var idex$1 = require('./src/pro/idex.js');
 var independentreserve$1 = require('./src/pro/independentreserve.js');
 var kraken$1 = require('./src/pro/kraken.js');
+var krakenfutures$1 = require('./src/pro/krakenfutures.js');
 var kucoin$1 = require('./src/pro/kucoin.js');
 var kucoinfutures$1 = require('./src/pro/kucoinfutures.js');
 var luno$1 = require('./src/pro/luno.js');
@@ -177,7 +179,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '3.0.83';
+const version = '3.0.104';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -308,6 +310,7 @@ const pro = {
     'bitstamp': bitstamp$1,
     'bittrex': bittrex$1,
     'bitvavo': bitvavo$1,
+    'blockchaincom': blockchaincom$1,
     'btcex': btcex$1,
     'bybit': bybit$1,
     'cex': cex$1,
@@ -329,6 +332,7 @@ const pro = {
     'idex': idex$1,
     'independentreserve': independentreserve$1,
     'kraken': kraken$1,
+    'krakenfutures': krakenfutures$1,
     'kucoin': kucoin$1,
     'kucoinfutures': kucoinfutures$1,
     'luno': luno$1,

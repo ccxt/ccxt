@@ -89,20 +89,18 @@ class bitget extends bitget$1 {
                 'withdraw': false,
             },
             'timeframes': {
-                '1m': '1m',
-                '3m': '3m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
+                '1m': '1min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
                 '1h': '1h',
-                '2h': '2h',
                 '4h': '4h',
-                '6h': '6h',
-                '12h': '12h',
-                '1d': '1d',
-                '3d': '3d',
-                '1w': '1w',
-                '1M': '1M',
+                '6h': '6Hutc',
+                '12h': '12Hutc',
+                '1d': '1Dutc',
+                '3d': '3Dutc',
+                '1w': '1Wutc',
+                '1M': '1Mutc',
             },
             'hostname': 'bitget.com',
             'urls': {
@@ -110,6 +108,7 @@ class bitget extends bitget$1 {
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'mix': 'https://api.{hostname}',
+                    'p2p': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
@@ -212,7 +211,9 @@ class bitget extends bitget$1 {
                             'plan/currentPlan': 2,
                             'plan/historyPlan': 2,
                             'position/singlePosition': 2,
+                            'position/singlePosition-v2': 2,
                             'position/allPosition': 2,
+                            'position/allPosition-v2': 2,
                             'trace/currentTrack': 2,
                             'trace/followerOrder': 2,
                             'trace/historyTrack': 2,
@@ -253,6 +254,14 @@ class bitget extends bitget$1 {
                             'trace/followerCloseByTrackingNo': 2,
                             'trace/followerCloseByAll': 2,
                             'trace/followerSetTpsl': 2,
+                        },
+                    },
+                    'p2p': {
+                        'get': {
+                            'merchant/merchantList': 1,
+                            'merchant/merchantInfo': 1,
+                            'merchant/advList': 1,
+                            'merchant/orderList': 1,
                         },
                     },
                 },
@@ -787,10 +796,10 @@ class bitget extends bitget$1 {
             'options': {
                 'timeframes': {
                     'spot': {
-                        '1m': '1m',
-                        '5m': '5m',
-                        '15m': '15m',
-                        '30m': '30m',
+                        '1m': '1min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
                         '1h': '1h',
                         '4h': '4h',
                         '6h': '6Hutc',
@@ -1000,7 +1009,7 @@ class bitget extends bitget$1 {
                 const year = '20' + expiryString.slice(0, 2);
                 const month = expiryString.slice(2, 4);
                 const day = expiryString.slice(4, 6);
-                expiryDatetime = year + '-' + month + '-' + day + 'T00:00:00Z';
+                expiryDatetime = year + '-' + month + '-' + day + 'T00:00:00.000Z';
                 expiry = this.parse8601(expiryDatetime);
                 type = 'future';
                 future = true;
@@ -2117,6 +2126,8 @@ class bitget extends bitget$1 {
          * @method
          * @name bitget#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-candle-data
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#candlestick-line-timeframe
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
@@ -2132,8 +2143,9 @@ class bitget extends bitget$1 {
         };
         const until = this.safeInteger2(params, 'until', 'till');
         if (limit === undefined) {
-            limit = 100;
+            limit = 1000;
         }
+        request['limit'] = limit;
         const marketType = market['spot'] ? 'spot' : 'swap';
         const timeframes = this.options['timeframes'][marketType];
         const selectedTimeframe = this.safeString(timeframes, timeframe, timeframe);
@@ -2155,11 +2167,11 @@ class bitget extends bitget$1 {
             request['granularity'] = selectedTimeframe;
             const now = this.milliseconds();
             if (since === undefined) {
-                request['startTime'] = now - (limit - 1) * (duration * 1000);
+                request['startTime'] = now - limit * (duration * 1000);
                 request['endTime'] = now;
             }
             else {
-                request['startTime'] = this.sum(since, duration * 1000);
+                request['startTime'] = since;
                 if (until !== undefined) {
                     request['endTime'] = until;
                 }
@@ -2911,6 +2923,10 @@ class bitget extends bitget$1 {
         /**
          * @method
          * @name bitget#fetchOpenOrders
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-list
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-open-order
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-plan-order-tpsl-list
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-order
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
@@ -2918,34 +2934,52 @@ class bitget extends bitget$1 {
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol('fetchOpenOrders', symbol);
         await this.loadMarkets();
-        const market = this.market(symbol);
+        const request = {};
         let marketType = undefined;
         let query = undefined;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['symbol'] = market['id'];
+        }
         [marketType, query] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
-        const request = {
-            'symbol': market['id'],
-        };
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'privateSpotPostTradeOpenOrders',
-            'swap': 'privateMixGetOrderCurrent',
-            'future': 'privateMixGetOrderCurrent',
-        });
+        let response = undefined;
         const stop = this.safeValue(query, 'stop');
         if (stop) {
+            this.checkRequiredSymbol('fetchOpenOrders', symbol);
+            query = this.omit(query, 'stop');
             if (marketType === 'spot') {
-                method = 'privateSpotPostPlanCurrentPlan';
                 if (limit !== undefined) {
                     request['pageSize'] = limit;
                 }
+                response = await this.privateSpotPostPlanCurrentPlan(this.extend(request, query));
             }
             else {
-                method = 'privateMixGetPlanCurrentPlan';
+                response = await this.privateMixGetPlanCurrentPlan(this.extend(request, query));
             }
-            query = this.omit(query, 'stop');
         }
-        let response = await this[method](this.extend(request, query));
+        else {
+            if (marketType === 'spot') {
+                response = await this.privateSpotPostTradeOpenOrders(this.extend(request, query));
+            }
+            else {
+                if (market === undefined) {
+                    let subType = undefined;
+                    [subType, params] = this.handleSubTypeAndParams('fetchOpenOrders', undefined, params);
+                    let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
+                    const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
+                    if (sandboxMode) {
+                        productType = 'S' + productType;
+                    }
+                    request['productType'] = productType;
+                    response = await this.privateMixGetOrderMarginCoinCurrent(this.extend(request, query));
+                }
+                else {
+                    response = await this.privateMixGetOrderCurrent(this.extend(request, query));
+                }
+            }
+        }
         //
         //  spot
         //     {
@@ -3471,7 +3505,7 @@ class bitget extends bitget$1 {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
         };
-        const response = await this.privateMixGetPositionSinglePosition(this.extend(request, params));
+        const response = await this.privateMixGetPositionSinglePositionV2(this.extend(request, params));
         //
         //     {
         //       code: '00000',
@@ -3528,7 +3562,7 @@ class bitget extends bitget$1 {
         const request = {
             'productType': productType,
         };
-        const response = await this.privateMixGetPositionAllPosition(this.extend(request, params));
+        const response = await this.privateMixGetPositionAllPositionV2(this.extend(request, params));
         //
         //     {
         //       code: '00000',
@@ -3727,7 +3761,7 @@ class bitget extends bitget$1 {
             rates.push({
                 'info': entry,
                 'symbol': symbolInner,
-                'fundingRate': this.safeString(entry, 'fundingRate'),
+                'fundingRate': this.safeNumber(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
             });
@@ -4360,7 +4394,16 @@ class bitget extends bitget$1 {
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
-        const pathPart = (endpoint === 'spot') ? '/api/spot/v1' : '/api/mix/v1';
+        let pathPart = '';
+        if (endpoint === 'spot') {
+            pathPart = '/api/spot/v1';
+        }
+        else if (endpoint === 'mix') {
+            pathPart = '/api/mix/v1';
+        }
+        else {
+            pathPart = '/api/p2p/v1';
+        }
         const request = '/' + this.implodeParams(path, params);
         const payload = pathPart + request;
         let url = this.implodeHostname(this.urls['api'][endpoint]) + payload;

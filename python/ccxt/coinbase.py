@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.coinbase import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -23,7 +24,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class coinbase(Exchange):
+class coinbase(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(coinbase, self).describe(), {
@@ -2276,7 +2277,7 @@ class coinbase(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['start_date'] = self.parse8601(since)
+            request['start_date'] = self.iso8601(since)
         response = self.v3PrivateGetBrokerageOrdersHistoricalBatch(self.extend(request, params))
         #
         #     {
@@ -2337,7 +2338,7 @@ class coinbase(Exchange):
             limit = 100
         request['limit'] = limit
         if since is not None:
-            request['start_date'] = self.parse8601(since)
+            request['start_date'] = self.iso8601(since)
         response = self.v3PrivateGetBrokerageOrdersHistoricalBatch(self.extend(request, params))
         #
         #     {

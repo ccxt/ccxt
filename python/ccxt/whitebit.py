@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.whitebit import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -24,7 +25,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class whitebit(Exchange):
+class whitebit(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(whitebit, self).describe(), {
@@ -321,11 +322,19 @@ class whitebit(Exchange):
             symbol = base + '/' + quote
             swap = typeId == 'futures'
             margin = isCollateral and not swap
+            contract = False
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'stockPrec')))
+            contractSize = amountPrecision
+            linear = None
+            inverse = None
             if swap:
                 settleId = quoteId
                 settle = self.safe_currency_code(settleId)
                 symbol = symbol + ':' + settle
                 type = 'swap'
+                contract = True
+                linear = True
+                inverse = False
             else:
                 type = 'spot'
             entry = {
@@ -344,18 +353,18 @@ class whitebit(Exchange):
                 'future': False,
                 'option': False,
                 'active': active,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
+                'contract': contract,
+                'linear': linear,
+                'inverse': inverse,
                 'taker': self.safe_number(market, 'makerFee'),
                 'maker': self.safe_number(market, 'takerFee'),
-                'contractSize': None,
+                'contractSize': contractSize,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'stockPrec'))),
+                    'amount': amountPrecision,
                     'price': self.parse_number(self.parse_precision(self.safe_string(market, 'moneyPrec'))),
                 },
                 'limits': {
@@ -920,8 +929,7 @@ class whitebit(Exchange):
                 parsed = self.parse_trades(rawTrades, marketNew, since, limit)
                 results = self.array_concat(results, parsed)
             results = self.sort_by_2(results, 'timestamp', 'id')
-            tail = (since is None)
-            return self.filter_by_since_limit(results, since, limit, 'timestamp', tail)
+            return self.filter_by_since_limit(results, since, limit, 'timestamp')
 
     def parse_trade(self, trade, market=None):
         #
@@ -1954,7 +1962,7 @@ class whitebit(Exchange):
             request = '/' + 'api' + '/' + version + pathWithParams
             body = self.json(self.extend({'request': request, 'nonce': nonce}, params))
             payload = self.string_to_base64(body)
-            signature = self.hmac(payload, secret, hashlib.sha512)
+            signature = self.hmac(self.encode(payload), secret, hashlib.sha512)
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': self.apiKey,

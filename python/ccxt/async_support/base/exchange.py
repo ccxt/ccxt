@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.83'
+__version__ = '3.0.104'
 
 # -----------------------------------------------------------------------------
 
@@ -340,29 +340,37 @@ class Exchange(BaseExchange):
             return client.futures[message_hash]
         future = client.future(message_hash)
 
+        subscribed = client.subscriptions.get(subscribe_hash)
+
+        if not subscribed:
+            client.subscriptions[subscribe_hash] = subscription or True
+
         # base exchange self.open starts the aiohttp Session in an async context
         self.open()
         connected = client.connected if client.connected.done() \
             else asyncio.ensure_future(client.connect(self.session, backoff_delay))
 
         def after(fut):
-            if subscribe_hash not in client.subscriptions:
-                if subscribe_hash is not None:
-                    client.subscriptions[subscribe_hash] = subscription or True
-                # todo: decouple signing from subscriptions
-                options = self.safe_value(self.options, 'ws')
-                cost = self.safe_value(options, 'cost', 1)
-                if message:
-                    async def send_message():
-                        if self.enableRateLimit:
-                            await client.throttle(cost)
-                        try:
-                            await client.send(message)
-                        except ConnectionError as e:
-                            future.reject(e)
-                    asyncio.ensure_future(send_message())
+            # todo: decouple signing from subscriptions
+            options = self.safe_value(self.options, 'ws')
+            cost = self.safe_value(options, 'cost', 1)
+            if message:
+                async def send_message():
+                    if self.enableRateLimit:
+                        await client.throttle(cost)
+                    try:
+                        await client.send(message)
+                    except ConnectionError as e:
+                        del client.subscriptions[subscribe_hash]
+                        future.reject(e)
+                asyncio.ensure_future(send_message())
 
-        connected.add_done_callback(after)
+        if not subscribed:
+            try:
+                connected.add_done_callback(after)
+            except Exception as e:
+                del client.subscriptions[subscribe_hash]
+                future.reject(e)
 
         return future
 
@@ -474,6 +482,49 @@ class Exchange(BaseExchange):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    def filter_by_limit(self, array: List[object], limit: Optional[int] = None, key: IndexType = 'timestamp'):
+        if self.valueIsDefined(limit):
+            arrayLength = len(array)
+            if arrayLength > 0:
+                ascending = True
+                if (key in array[0]):
+                    first = array[0][key]
+                    last = array[arrayLength - 1][key]
+                    if first is not None and last is not None:
+                        ascending = first < last  # True if array is sorted in ascending order based on 'timestamp'
+                array = self.arraySlice(array, -limit) if ascending else self.arraySlice(array, 0, limit)
+        return array
+
+    def filter_by_since_limit(self, array: List[object], since: Optional[int] = None, limit: Optional[int] = None, key: IndexType = 'timestamp'):
+        sinceIsDefined = self.valueIsDefined(since)
+        parsedArray = self.to_array(array)
+        if sinceIsDefined:
+            result = []
+            for i in range(0, len(parsedArray)):
+                entry = parsedArray[i]
+                if entry[key] >= since:
+                    result.append(entry)
+            return self.filterByLimit(result, limit, key)
+        return self.filterByLimit(parsedArray, limit, key)
+
+    def filter_by_value_since_limit(self, array: List[object], field: IndexType, value=None, since: Optional[int] = None, limit: Optional[int] = None, key='timestamp'):
+        valueIsDefined = self.valueIsDefined(value)
+        sinceIsDefined = self.valueIsDefined(since)
+        parsedArray = self.to_array(array)
+        # single-pass filter for both symbol and since
+        if valueIsDefined or sinceIsDefined:
+            result = []
+            for i in range(0, len(parsedArray)):
+                entry = parsedArray[i]
+                entryFiledEqualValue = entry[field] == value
+                firstCondition = entryFiledEqualValue if valueIsDefined else True
+                entryKeyGESince = entry[key] and since and (entry[key] >= since)
+                secondCondition = entryKeyGESince if sinceIsDefined else True
+                if firstCondition and secondCondition:
+                    result.append(entry)
+            return self.filterByLimit(result, limit, key)
+        return self.filterByLimit(parsedArray, limit, key)
+
     def sign(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None):
         return {}
 
@@ -574,7 +625,7 @@ class Exchange(BaseExchange):
             },
         }
 
-    def safe_ledger_entry(self, entry: object, currency: Optional[str] = None):
+    def safe_ledger_entry(self, entry: object, currency: Optional[object] = None):
         currency = self.safe_currency(None, currency)
         direction = self.safe_string(entry, 'direction')
         before = self.safe_string(entry, 'before')
@@ -613,6 +664,33 @@ class Exchange(BaseExchange):
             'info': entry,
         }
 
+    def safe_currency_structure(self, currency: object):
+        return self.extend({
+            'info': None,
+            'id': None,
+            'numericId': None,
+            'code': None,
+            'precision': None,
+            'type': None,
+            'name': None,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'fees': {},
+            'networks': {},
+            'limits': {
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+        }, currency)
+
     def set_markets(self, markets, currencies=None):
         values = []
         self.markets_by_id = {}
@@ -636,6 +714,7 @@ class Exchange(BaseExchange):
         self.symbols = list(marketsSortedBySymbol.keys())
         self.ids = list(marketsSortedById.keys())
         if currencies is not None:
+            # currencies is always None when called in constructor but not when called from loadMarkets
             self.currencies = self.deep_extend(self.currencies, currencies)
         else:
             baseCurrencies = []
@@ -645,22 +724,20 @@ class Exchange(BaseExchange):
                 defaultCurrencyPrecision = 8 if (self.precisionMode == DECIMAL_PLACES) else self.parse_number('1e-8')
                 marketPrecision = self.safe_value(market, 'precision', {})
                 if 'base' in market:
-                    currencyPrecision = self.safe_value_2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision)
-                    currency = {
+                    currency = self.safe_currency_structure({
                         'id': self.safe_string_2(market, 'baseId', 'base'),
                         'numericId': self.safe_integer(market, 'baseNumericId'),
                         'code': self.safe_string(market, 'base'),
-                        'precision': currencyPrecision,
-                    }
+                        'precision': self.safe_value_2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision),
+                    })
                     baseCurrencies.append(currency)
                 if 'quote' in market:
-                    currencyPrecision = self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision)
-                    currency = {
+                    currency = self.safe_currency_structure({
                         'id': self.safe_string_2(market, 'quoteId', 'quote'),
                         'numericId': self.safe_integer(market, 'quoteNumericId'),
                         'code': self.safe_string(market, 'quote'),
-                        'precision': currencyPrecision,
-                    }
+                        'precision': self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
+                    })
                     quoteCurrencies.append(currency)
             baseCurrencies = self.sort_by(baseCurrencies, 'code')
             quoteCurrencies = self.sort_by(quoteCurrencies, 'code')
@@ -952,8 +1029,7 @@ class Exchange(BaseExchange):
                 results.append(order)
         results = self.sort_by(results, 'timestamp')
         symbol = market['symbol'] if (market is not None) else None
-        tail = since is None
-        return self.filter_by_symbol_since_limit(results, symbol, since, limit, tail)
+        return self.filter_by_symbol_since_limit(results, symbol, since, limit)
 
     def calculate_fee(self, symbol: str, type: str, side: str, amount: float, price: float, takerOrMaker='taker', params={}):
         if type == 'market' and takerOrMaker == 'maker':
@@ -1455,8 +1531,7 @@ class Exchange(BaseExchange):
         for i in range(0, len(ohlcvs)):
             results.append(self.parse_ohlcv(ohlcvs[i], market))
         sorted = self.sort_by(results, 0)
-        tail = (since is None)
-        return self.filter_by_since_limit(sorted, since, limit, 0, tail)
+        return self.filter_by_since_limit(sorted, since, limit, 0)
 
     def parse_leverage_tiers(self, response, symbols: Optional[List[str]] = None, marketIdKey=None):
         # marketIdKey should only be None when response is a dictionary
@@ -1521,10 +1596,9 @@ class Exchange(BaseExchange):
             result.append(trade)
         result = self.sort_by_2(result, 'timestamp', 'id')
         symbol = market['symbol'] if (market is not None) else None
-        tail = (since is None)
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit, tail)
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
-    def parse_transactions(self, transactions, currency: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def parse_transactions(self, transactions, currency: Optional[object] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         transactions = self.to_array(transactions)
         result = []
         for i in range(0, len(transactions)):
@@ -1532,10 +1606,9 @@ class Exchange(BaseExchange):
             result.append(transaction)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
-        tail = (since is None)
-        return self.filter_by_currency_since_limit(result, code, since, limit, tail)
+        return self.filter_by_currency_since_limit(result, code, since, limit)
 
-    def parse_transfers(self, transfers, currency: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def parse_transfers(self, transfers, currency: Optional[object] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         transfers = self.to_array(transfers)
         result = []
         for i in range(0, len(transfers)):
@@ -1543,10 +1616,9 @@ class Exchange(BaseExchange):
             result.append(transfer)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
-        tail = (since is None)
-        return self.filter_by_currency_since_limit(result, code, since, limit, tail)
+        return self.filter_by_currency_since_limit(result, code, since, limit)
 
-    def parse_ledger(self, data, currency: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def parse_ledger(self, data, currency: Optional[object] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         result = []
         arrayData = self.to_array(data)
         for i in range(0, len(arrayData)):
@@ -1558,8 +1630,7 @@ class Exchange(BaseExchange):
                 result.append(self.extend(itemOrItems, params))
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
-        tail = (since is None)
-        return self.filter_by_currency_since_limit(result, code, since, limit, tail)
+        return self.filter_by_currency_since_limit(result, code, since, limit)
 
     def nonce(self):
         return self.seconds()
@@ -1594,16 +1665,16 @@ class Exchange(BaseExchange):
                 results.append(objects[i])
         return self.index_by(results, key) if indexed else results
 
-    async def fetch2(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None, config={}, context={}):
+    async def fetch2(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None, config={}):
         if self.enableRateLimit:
-            cost = self.calculate_rate_limiter_cost(api, method, path, params, config, context)
+            cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             await self.throttle(cost)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
-    async def request(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None, config={}, context={}):
-        return await self.fetch2(path, api, method, params, headers, body, config, context)
+    async def request(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None, config={}):
+        return await self.fetch2(path, api, method, params, headers, body, config)
 
     async def load_accounts(self, reload=False, params={}):
         if reload:
@@ -1789,6 +1860,7 @@ class Exchange(BaseExchange):
             time = await self.fetchTime(params)
             self.status = self.extend(self.status, {
                 'updated': time,
+                'info': time,
             })
         if not ('info' in self.status):
             self.status['info'] = None
@@ -1931,7 +2003,7 @@ class Exchange(BaseExchange):
         # raise NotSupported(self.id + ' handleErrors() not implemented yet')
         return None
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         return self.safe_value(config, 'cost', 1)
 
     async def fetch_ticker(self, symbol: str, params={}):
@@ -2204,11 +2276,11 @@ class Exchange(BaseExchange):
         currency = self.safe_currency(currencyId, currency)
         return currency['code']
 
-    def filter_by_symbol_since_limit(self, array, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
-        return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp', tail)
+    def filter_by_symbol_since_limit(self, array, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None):
+        return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp')
 
-    def filter_by_currency_since_limit(self, array, code=None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
-        return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
+    def filter_by_currency_since_limit(self, array, code=None, since: Optional[int] = None, limit: Optional[int] = None):
+        return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp')
 
     def parse_last_prices(self, pricesData, symbols: Optional[List[str]] = None, params={}):
         #

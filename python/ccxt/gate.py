@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.gate import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -28,7 +29,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class gate(Exchange):
+class gate(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(gate, self).describe(), {
@@ -2523,6 +2524,7 @@ class gate(Exchange):
             'margin': 'publicSpotGetTrades',
             'swap': 'publicFuturesGetSettleTrades',
             'future': 'publicDeliveryGetSettleTrades',
+            'option': 'publicOptionsGetTrades',
         })
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
@@ -2554,6 +2556,18 @@ class gate(Exchange):
         #              create_time: "1634673380.182",
         #              contract: "ADA_USDT",
         #              price: "2.10486",
+        #         }
+        #     ]
+        #
+        # option
+        #
+        #     [
+        #         {
+        #             "size": -5,
+        #             "id": 25,
+        #             "create_time": 1682378573,
+        #             "contract": "ETH_USDT-20230526-2000-P",
+        #             "price": "209.1"
         #         }
         #     ]
         #
@@ -2756,6 +2770,16 @@ class gate(Exchange):
         #         "size": 100,
         #         "price": "100.123",
         #         "role": "taker"
+        #     }
+        #
+        # option rest
+        #
+        #     {
+        #         "size": -5,
+        #         "id": 25,
+        #         "create_time": 1682378573,
+        #         "contract": "ETH_USDT-20230526-2000-P",
+        #         "price": "209.1"
         #     }
         #
         id = self.safe_string(trade, 'id')

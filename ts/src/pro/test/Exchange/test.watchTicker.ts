@@ -12,6 +12,7 @@ export default async (exchange, symbol) => {
     // log (symbol.green, 'watching ticker...')
 
     const method = 'watchTicker';
+    const skippedProperties = {};
 
     // we have to skip some exchanges here due to the frequency of trading
     const skippedExchanges = [
@@ -43,7 +44,7 @@ export default async (exchange, symbol) => {
 
             response = await exchange[method] (symbol);
 
-            testTicker (exchange, method, response, symbol);
+            testTicker (exchange, skippedProperties, method, response, symbol);
 
             now = Date.now ();
 
