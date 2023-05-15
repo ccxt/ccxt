@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.104 (2023-05-15)
+
+
+### Bug Fixes
+
+* **phemex:** ping pong handling ([ae0aea8](https://github.com/ccxt/ccxt/commit/ae0aea856985609ebacdd0a375758575fb9e7743))
+
 ### 3.0.103 (2023-05-14)
 
 
