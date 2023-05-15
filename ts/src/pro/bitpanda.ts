@@ -278,13 +278,14 @@ export default class bitpanda extends bitpandaRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
+        let messageHash = 'myTrades';
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbol = market['symbol'];
+            messageHash += ':' + symbol;
         }
         await this.authenticate (params);
         const url = this.urls['api']['ws'];
-        const messageHash = 'myTrades';
         const subscribeHash = 'ACCOUNT_HISTORY';
         const bpRemainingQuota = this.safeNumber (this.options, 'bp_remaining_quota', 200);
         const subscribe = {
@@ -297,11 +298,16 @@ export default class bitpanda extends bitpandaRest {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        const trades = await this.watch (url, messageHash, request, subscribeHash, request);
+        let trades = await this.watch (url, messageHash, request, subscribeHash, request);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        trades = this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        const numTrades = trades.length;
+        if (numTrades === 0) {
+            return await this.watchMyTrades (symbol, since, limit, params);
+        }
+        return trades;
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -433,13 +439,14 @@ export default class bitpanda extends bitpandaRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        let messageHash = 'orders';
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbol = market['symbol'];
+            messageHash += ':' + symbol;
         }
         await this.authenticate (params);
         const url = this.urls['api']['ws'];
-        const messageHash = 'orders';
         const subscribeHash = this.safeString (params, 'channel', 'ACCOUNT_HISTORY');
         const bpRemainingQuota = this.safeNumber (this.options, 'bp_remaining_quota', 200);
         const subscribe = {
@@ -452,11 +459,16 @@ export default class bitpanda extends bitpandaRest {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        const orders = await this.watch (url, messageHash, request, subscribeHash, request);
+        let orders = await this.watch (url, messageHash, request, subscribeHash, request);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        orders = this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        const numOrders = orders.length;
+        if (numOrders === 0) {
+            return await this.watchOrders (symbol, since, limit, params);
+        }
+        return orders;
     }
 
     handleTrading (client: Client, message) {
@@ -510,6 +522,7 @@ export default class bitpanda extends bitpandaRest {
         }
         const order = this.parseTradingOrder (message);
         this.orders.append (order);
+        client.resolve (this.orders, 'orders:' + order['symbol']);
         client.resolve (this.orders, 'orders');
     }
 
@@ -710,10 +723,15 @@ export default class bitpanda extends bitpandaRest {
         }
         for (let i = 0; i < rawOrders.length; i++) {
             const order = this.parseOrder (rawOrders[i]);
+            let symbol = this.safeString (order, 'symbol', '');
             this.orders.append (order);
+            client.resolve (this.orders, 'orders:' + symbol);
             const rawTrades = this.safeValue (rawOrders[i], 'trades', []);
             for (let ii = 0; ii < rawTrades.length; ii++) {
-                this.myTrades.append (this.parseTrade (rawTrades[ii]));
+                const trade = this.parseTrade (rawTrades[ii]);
+                symbol = this.safeString (trade, 'symbol', symbol);
+                this.myTrades.append (trade);
+                client.resolve (this.myTrades, 'myTrades:' + symbol);
             }
         }
         client.resolve (this.orders, 'orders');
@@ -950,6 +968,7 @@ export default class bitpanda extends bitpandaRest {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
+        let symbol = undefined;
         const update = this.safeValue (message, 'update', {});
         const updateType = this.safeString (update, 'type');
         if (updateType === 'ORDER_REJECTED' || updateType === 'ORDER_CLOSED' || updateType === 'STOP_ORDER_TRIGGERED') {
@@ -957,7 +976,7 @@ export default class bitpanda extends bitpandaRest {
             const datetime = this.safeString2 (update, 'time', 'timestamp');
             const previousOrderArray = this.filterByArray (this.orders, 'id', orderId, false);
             const previousOrder = this.safeValue (previousOrderArray, 0, {});
-            const symbol = previousOrder['symbol'];
+            symbol = previousOrder['symbol'];
             const filled = this.safeNumber (update, 'filled_amount');
             let status = this.parseWSOrderStatus (updateType);
             if (updateType === 'ORDER_CLOSED' && filled === 0) {
@@ -971,8 +990,11 @@ export default class bitpanda extends bitpandaRest {
                 'datetime': datetime,
             });
         } else {
-            this.orders.append (this.parseOrder (update));
+            const parsed = this.parseOrder (update);
+            symbol = this.safeString (parsed, 'symbol', '');
+            this.orders.append (parsed);
         }
+        client.resolve (this.orders, 'orders:' + symbol);
         client.resolve (this.orders, 'orders');
         // update balance
         const balanceKeys = [ 'locked', 'unlocked', 'spent', 'spent_on_fees', 'credited', 'deducted' ];
@@ -985,7 +1007,10 @@ export default class bitpanda extends bitpandaRest {
         client.resolve (this.balance, 'balance');
         // update trades
         if (updateType === 'TRADE_SETTLED') {
-            this.myTrades.append (this.parseTrade (update));
+            const parsed = this.parseTrade (update);
+            symbol = this.safeString (parsed, 'symbol', '');
+            this.myTrades.append (parsed);
+            client.resolve (this.myTrades, 'myTrades:' + symbol);
             client.resolve (this.myTrades, 'myTrades');
         }
     }
@@ -1089,7 +1114,7 @@ export default class bitpanda extends bitpandaRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0);
     }
 
     handleOHLCV (client: Client, message) {
@@ -1328,8 +1353,8 @@ export default class bitpanda extends bitpandaRest {
                 'type': 'AUTHENTICATE',
                 'api_token': this.apiKey,
             };
-            this.spawn (this.watch, url, messageHash, this.extend (request, params), messageHash);
+            this.watch (url, messageHash, this.extend (request, params), messageHash);
         }
-        return await future;
+        return future;
     }
 }
