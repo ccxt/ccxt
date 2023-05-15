@@ -47,6 +47,7 @@ public class Throttler
             if (floatTokens >= 0)
             {
                 this.config["tokens"] = floatTokens - cost;
+                await Task.Delay(0);
                 task.Start();
                 this.queue.Dequeue();
 

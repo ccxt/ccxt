@@ -236,17 +236,20 @@ public partial class Exchange
         return responseBody;
     }
 
-    public async virtual Task<object> fetch2(string path, string api, string method, dict headers, dict body, dict parameters, dict config, dict context = null)
-    {
-        if (this.enableRateLimit)
-        {
-            var cost = config["cost"]; // protect this call
-            await this.throttler.throttle(cost);
-        }
-        this.lastRestRequestTimestamp = this.milliseconds();
-        var request = this.sign(path, api, method, parameters, headers, body);
-        return await fetch(request["url"] as String, request["method"] as String, request["headers"] as dict, request["body"] as dict);
-    }
+    // public async virtual Task<object> fetch2(string path, string api, string method, dict headers, dict body, dict parameters, dict config, dict context = null)
+    // {
+    //     if (this.enableRateLimit)
+    //     {
+    //         var cost = config["cost"]; // protect this call
+    //         var now = this.milliseconds();
+    //         await this.throttler.throttle(cost);
+    //         var delay = this.milliseconds() - now;
+    //         Console.WriteLine("throttle delay: " + delay);
+    //     }
+    //     this.lastRestRequestTimestamp = this.milliseconds();
+    //     var request = this.sign(path, api, method, parameters, headers, body);
+    //     return await fetch(request["url"] as String, request["method"] as String, request["headers"] as dict, request["body"] as dict);
+    // }
 
     public object call(string implicitEndpoint, object parameters2)
     {
