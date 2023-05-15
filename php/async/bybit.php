@@ -1292,6 +1292,11 @@ class bybit extends Exchange {
                 $chains = $this->safe_value($currency, 'chains', array());
                 $networks = array();
                 $minPrecision = null;
+                $minWithdrawFeeString = null;
+                $minWithdrawString = null;
+                $minDepositString = null;
+                $deposit = false;
+                $withdraw = false;
                 for ($j = 0; $j < count($chains); $j++) {
                     $chain = $chains[$j];
                     $networkId = $this->safe_string($chain, 'chain');
@@ -1299,23 +1304,37 @@ class bybit extends Exchange {
                     $precision = $this->parse_number($this->parse_precision($this->safe_string($chain, 'minAccuracy')));
                     $minPrecision = ($minPrecision === null) ? $precision : min ($minPrecision, $precision);
                     $depositAllowed = $this->safe_integer($chain, 'chainDeposit') === 1;
+                    $deposit = ($depositAllowed) ? $depositAllowed : $deposit;
                     $withdrawAllowed = $this->safe_integer($chain, 'chainWithdraw') === 1;
+                    $withdraw = ($withdrawAllowed) ? $withdrawAllowed : $withdraw;
+                    $withdrawFeeString = $this->safe_string($chain, 'withdrawFee');
+                    if ($withdrawFeeString !== null) {
+                        $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $withdrawFeeString : Precise::string_min($withdrawFeeString, $minWithdrawFeeString);
+                    }
+                    $minNetworkWithdrawString = $this->safe_string($chain, 'withdrawMin');
+                    if ($minNetworkWithdrawString !== null) {
+                        $minWithdrawString = ($minWithdrawString === null) ? $minNetworkWithdrawString : Precise::string_min($minNetworkWithdrawString, $minWithdrawString);
+                    }
+                    $minNetworkDepositString = $this->safe_string($chain, 'depositMin');
+                    if ($minNetworkDepositString !== null) {
+                        $minDepositString = ($minDepositString === null) ? $minNetworkDepositString : Precise::string_min($minNetworkDepositString, $minDepositString);
+                    }
                     $networks[$networkCode] = array(
                         'info' => $chain,
                         'id' => $networkId,
                         'network' => $networkCode,
-                        'active' => null,
+                        'active' => $depositAllowed && $withdrawAllowed,
                         'deposit' => $depositAllowed,
                         'withdraw' => $withdrawAllowed,
-                        'fee' => $this->safe_number($chain, 'withdrawFee'),
+                        'fee' => $this->parse_number($withdrawFeeString),
                         'precision' => $precision,
                         'limits' => array(
                             'withdraw' => array(
-                                'min' => $this->safe_number($chain, 'withdrawMin'),
+                                'min' => $this->parse_number($minNetworkWithdrawString),
                                 'max' => null,
                             ),
                             'deposit' => array(
-                                'min' => $this->safe_number($chain, 'depositMin'),
+                                'min' => $this->parse_number($minNetworkDepositString),
                                 'max' => null,
                             ),
                         ),
@@ -1326,14 +1345,22 @@ class bybit extends Exchange {
                     'code' => $code,
                     'id' => $currencyId,
                     'name' => $name,
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
+                    'active' => $deposit && $withdraw,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
+                    'fee' => $this->parse_number($minWithdrawFeeString),
                     'precision' => $minPrecision,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->parse_number($minWithdrawString),
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $this->parse_number($minDepositString),
                             'max' => null,
                         ),
                     ),
