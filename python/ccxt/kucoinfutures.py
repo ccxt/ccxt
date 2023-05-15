@@ -82,6 +82,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPosition': True,
                 'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
@@ -831,9 +832,76 @@ class kucoinfutures(kucoin, ImplicitAPI):
             })
         return fees
 
+    def fetch_position(self, symbol: str, params={}):
+        """
+        see https://docs.kucoin.com/futures/#get-position-details
+        fetch data on an open position
+        :param str symbol: unified market symbol of the market the position is held in
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.futuresPrivateGetPositions(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": [
+        #             {
+        #                 "id": "63b3599e6c41f50001c47d44",
+        #                 "symbol": "XBTUSDTM",
+        #                 "autoDeposit": False,
+        #                 "maintMarginReq": 0.004,
+        #                 "riskLimit": 25000,
+        #                 "realLeverage": 5.0,
+        #                 "crossMode": False,
+        #                 "delevPercentage": 0.57,
+        #                 "openingTimestamp": 1684000025528,
+        #                 "currentTimestamp": 1684000052160,
+        #                 "currentQty": 1,
+        #                 "currentCost": 26.821,
+        #                 "currentComm": 0.0160926,
+        #                 "unrealisedCost": 26.821,
+        #                 "realisedGrossCost": 0.0,
+        #                 "realisedCost": 0.0160926,
+        #                 "isOpen": True,
+        #                 "markPrice": 26821.13,
+        #                 "markValue": 26.82113,
+        #                 "posCost": 26.821,
+        #                 "posCross": 0.0,
+        #                 "posCrossMargin": 0.0,
+        #                 "posInit": 5.3642,
+        #                 "posComm": 0.01931112,
+        #                 "posCommCommon": 0.01931112,
+        #                 "posLoss": 0.0,
+        #                 "posMargin": 5.38351112,
+        #                 "posMaint": 0.12927722,
+        #                 "maintMargin": 5.38364112,
+        #                 "realisedGrossPnl": 0.0,
+        #                 "realisedPnl": -0.0160926,
+        #                 "unrealisedPnl": 1.3E-4,
+        #                 "unrealisedPnlPcnt": 0.0,
+        #                 "unrealisedRoePcnt": 0.0,
+        #                 "avgEntryPrice": 26821.0,
+        #                 "liquidationPrice": 21567.0,
+        #                 "bankruptPrice": 21456.0,
+        #                 "settleCurrency": "USDT",
+        #                 "isInverse": False,
+        #                 "maintainMargin": 0.004
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_position(data[0], market)
+
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
+        see https://docs.kucoin.com/futures/#get-position-list
         :param [str]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the kucoinfutures api endpoint
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -955,7 +1023,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         marginMode = 'cross' if crossMode else 'isolated'
         return self.safe_position({
             'info': position,
-            'id': None,
+            'id': self.safe_string(position, 'id'),
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
