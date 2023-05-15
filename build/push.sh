@@ -39,10 +39,10 @@ echo "Pushing generated files back to GitHub..."
 LAST_COMMIT_MESSAGE="$(git log --no-merges -1 --pretty=%B)"
 git config --global user.email "travis@travis-ci.org"
 git config --global user.name "Travis CI"
-git add CHANGELOG.md dist/cjs/**/* dist/ccxt.bundle.cjs dist/ccxt.browser.js dist/ccxt.browser.min.js ts/ccxt.ts ts/src/abstract/*.ts js/**/** php/*.php php/abstract/*.php php/async/*.php php/async/abstract/*.php php/pro/*.php python/ccxt/async_support/*.py python/ccxt/*.py python/ccxt/abstract/*.py python/ccxt/pro/*.py wiki/* examples/py examples/php examples/js
-git add php/test/ php/pro/test/
-git add python/ccxt/test/ python/ccxt/pro/test/
-git add -f python/LICENSE.txt python/package.json python/README.md
+# git add CHANGELOG.md dist/cjs/**/* dist/ccxt.bundle.cjs dist/ccxt.browser.js dist/ccxt.browser.min.js ts/ccxt.ts ts/src/abstract/*.ts js/**/** php/*.php php/abstract/*.php php/async/*.php php/async/abstract/*.php php/pro/*.php python/ccxt/async_support/*.py python/ccxt/*.py python/ccxt/abstract/*.py python/ccxt/pro/*.py wiki/* examples/py examples/php examples/js
+# git add php/test/ php/pro/test/
+# git add python/ccxt/test/ python/ccxt/pro/test/
+# git add -f python/LICENSE.txt python/package.json python/README.md
 git add . -A
 git commit -m "${COMMIT_MESSAGE}" -m '[ci skip]' || exit 0
 if [ "$SHOULD_TAG" = "true" ]; then
