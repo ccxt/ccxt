@@ -173,7 +173,7 @@ public partial class Exchange
             response = await this.client.GetAsync(url);
             result = await response.Content.ReadAsStringAsync();
         }
-        else if (method == "POST")
+        else
         {
             contentType = contentType == "" ? "application/json" : contentType;
 #if NET7_0_OR_GREATER
@@ -182,7 +182,30 @@ public partial class Exchange
             var contentTypeHeader = contentType;
 #endif
             var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
-            response = await this.client.PostAsync(url, stringContent);
+            if (method == "POST")
+            {
+                response = await this.client.PostAsync(url, stringContent);
+            }
+            else if (method == "DELETE")
+            {
+                response = await this.client.DeleteAsync(url);
+            }
+            else if (method == "PUT")
+            {
+                response = await this.client.PutAsync(url, stringContent);
+            }
+            else if (method == "PATCH")
+            {
+                // workaround for the lack of putAsync
+                // https://github.com/RicoSuter/NSwag/issues/107
+                var methodInner = new HttpMethod("PATCH");
+                var request = new HttpRequestMessage(methodInner, url)
+                {
+                    Content = stringContent
+                };
+
+                response = await client.SendAsync(request);
+            }
             result = await response.Content.ReadAsStringAsync();
         }
 

@@ -50,8 +50,8 @@ public partial class Exchange
     {
         countmode2 = countmode2 ?? DECIMAL_PLACES;
         paddingMode = paddingMode ?? NO_PADDING;
-        var countMode = (int)countmode2;
-        var roundingMode = (int)roundingMode2;
+        var countMode = Convert.ToInt32(countmode2);
+        var roundingMode = Convert.ToInt32(roundingMode2);
         // Trace.Assert(precision != null);
         var numPrecisionDigits = Convert.ToDouble(numPrecisionDigits2, CultureInfo.InvariantCulture);
         if (countMode == TICK_SIZE)
