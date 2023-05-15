@@ -1,0 +1,28 @@
+from ccxt.base.types import Entry
+
+
+class ImplicitAPI:
+    public_get_order_book_pair = publicGetOrderBookPair = Entry('order-book/{pair}', 'public', 'GET', {})
+    public_get_tickers = publicGetTickers = Entry('tickers', 'public', 'GET', {})
+    public_get_tickers_pair = publicGetTickersPair = Entry('tickers/{pair}', 'public', 'GET', {})
+    public_get_trades_pair = publicGetTradesPair = Entry('trades/{pair}', 'public', 'GET', {})
+    public_get_provisioning_currencies = publicGetProvisioningCurrencies = Entry('provisioning/currencies', 'public', 'GET', {})
+    public_get_provisioning_trading_pairs = publicGetProvisioningTradingPairs = Entry('provisioning/trading-pairs', 'public', 'GET', {})
+    public_get_provisioning_limitations_and_fees = publicGetProvisioningLimitationsAndFees = Entry('provisioning/limitations-and-fees', 'public', 'GET', {})
+    public_get_trading_history_pair = publicGetTradingHistoryPair = Entry('trading-history/{pair}', 'public', 'GET', {})
+    private_get_accounts_balance = privateGetAccountsBalance = Entry('accounts/balance', 'private', 'GET', {})
+    private_get_orders_history = privateGetOrdersHistory = Entry('orders/history', 'private', 'GET', {})
+    private_get_orders_all_pair = privateGetOrdersAllPair = Entry('orders/all/{pair}', 'private', 'GET', {})
+    private_get_orders_trades_pair = privateGetOrdersTradesPair = Entry('orders/trades/{pair}', 'private', 'GET', {})
+    private_get_orders_pair_orderid = privateGetOrdersPairOrderId = Entry('orders/{pair}/{orderId}', 'private', 'GET', {})
+    private_get_wallet_withdraw_currency_serial = privateGetWalletWithdrawCurrencySerial = Entry('wallet/withdraw/{currency}/{serial}', 'private', 'GET', {})
+    private_get_wallet_withdraw_currency_id_id = privateGetWalletWithdrawCurrencyIdId = Entry('wallet/withdraw/{currency}/id/{id}', 'private', 'GET', {})
+    private_get_wallet_deposithistory_currency = privateGetWalletDepositHistoryCurrency = Entry('wallet/depositHistory/{currency}', 'private', 'GET', {})
+    private_get_wallet_withdrawhistory_currency = privateGetWalletWithdrawHistoryCurrency = Entry('wallet/withdrawHistory/{currency}', 'private', 'GET', {})
+    private_post_orders_pair = privatePostOrdersPair = Entry('orders/{pair}', 'private', 'POST', {})
+    private_post_orders_batch = privatePostOrdersBatch = Entry('orders/batch', 'private', 'POST', {})
+    private_post_wallet_withdraw_currency = privatePostWalletWithdrawCurrency = Entry('wallet/withdraw/{currency}', 'private', 'POST', {})
+    private_put_orders = privatePutOrders = Entry('orders', 'private', 'PUT', {})
+    private_delete_orders_pair_id = privateDeleteOrdersPairId = Entry('orders/{pair}/{id}', 'private', 'DELETE', {})
+    private_delete_orders_all = privateDeleteOrdersAll = Entry('orders/all', 'private', 'DELETE', {})
+    private_delete_orders_pair = privateDeleteOrdersPair = Entry('orders/{pair}', 'private', 'DELETE', {})

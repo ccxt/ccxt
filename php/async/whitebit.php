@@ -964,8 +964,7 @@ class whitebit extends Exchange {
                     $results = $this->array_concat($results, $parsed);
                 }
                 $results = $this->sort_by_2($results, 'timestamp', 'id');
-                $tail = ($since === null);
-                return $this->filter_by_since_limit($results, $since, $limit, 'timestamp', $tail);
+                return $this->filter_by_since_limit($results, $since, $limit, 'timestamp');
             }
         }) ();
     }
@@ -2106,7 +2105,7 @@ class whitebit extends Exchange {
             $request = '/' . 'api' . '/' . $version . $pathWithParams;
             $body = $this->json(array_merge(array( 'request' => $request, 'nonce' => $nonce ), $params));
             $payload = base64_encode($body);
-            $signature = $this->hmac($payload, $secret, 'sha512');
+            $signature = $this->hmac($this->encode($payload), $secret, 'sha512');
             $headers = array(
                 'Content-Type' => 'application/json',
                 'X-TXC-APIKEY' => $this->apiKey,

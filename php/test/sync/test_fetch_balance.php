@@ -10,8 +10,8 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_balance.php';
 
-function test_fetch_balance($exchange, $code, $symbol) {
+function test_fetch_balance($exchange, $skipped_properties, $code, $symbol) {
     $method = 'fetchBalance';
     $response = $exchange->fetch_balance();
-    test_balance($exchange, $method, $response);
+    test_balance($exchange, $skipped_properties, $method, $response);
 }

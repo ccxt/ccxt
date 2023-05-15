@@ -1797,8 +1797,8 @@ class coinbasepro extends coinbasepro$1 {
         }
         return undefined;
     }
-    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        const response = await this.fetch2(path, api, method, params, headers, body, config, context);
+    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
+        const response = await this.fetch2(path, api, method, params, headers, body, config);
         if (typeof response !== 'string') {
             if ('message' in response) {
                 throw new errors.ExchangeError(this.id + ' ' + this.json(response));

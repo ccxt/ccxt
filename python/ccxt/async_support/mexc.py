@@ -4,12 +4,14 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -23,7 +25,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class mexc(Exchange):
+class mexc(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(mexc, self).describe(), {
@@ -514,7 +516,7 @@ class mexc(Exchange):
                     '30010': InvalidOrder,  # no valid trade price
                     '30014': InvalidOrder,  # invalid symbol
                     '30016': InvalidOrder,  # trading disabled
-                    '30018': InvalidOrder,  # market order is disabled
+                    '30018': AccountSuspended,  # {"msg":"账号暂时不能下单，请联系客服","code":30018}
                     '30020': AuthenticationError,  # no permission for the symbol
                     '30021': BadRequest,  # invalid symbol
                     '30025': InvalidOrder,  # no exist opponent order
@@ -2687,6 +2689,8 @@ class mexc(Exchange):
         statuses = {
             'BUY': 'buy',
             'SELL': 'sell',
+            '1': 'buy',
+            '2': 'sell',
             # contracts v1 : TODO
         }
         return self.safe_string(statuses, status, status)

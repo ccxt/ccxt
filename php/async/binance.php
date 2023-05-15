@@ -37,7 +37,7 @@ class binance extends Exchange {
                 'margin' => true,
                 'swap' => true,
                 'future' => true,
-                'option' => null,
+                'option' => true,
                 'addMargin' => true,
                 'borrowMargin' => true,
                 'cancelAllOrders' => true,
@@ -60,7 +60,7 @@ class binance extends Exchange {
                 'fetchBorrowRateHistory' => true,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
-                'fetchCanceledOrders' => false,
+                'fetchCanceledOrders' => 'emulated',
                 'fetchClosedOrder' => false,
                 'fetchClosedOrders' => 'emulated',
                 'fetchCurrencies' => true,
@@ -175,6 +175,7 @@ class binance extends Exchange {
                     'public' => 'https://api.binance.com/api/v3',
                     'private' => 'https://api.binance.com/api/v3',
                     'v1' => 'https://api.binance.com/api/v1',
+                    'papi' => 'https://papi.binance.com/papi/v1',
                 ),
                 'www' => 'https://www.binance.com',
                 'referral' => array(
@@ -387,6 +388,7 @@ class binance extends Exchange {
                         'portfolio/pmLoan' => 3.3335,
                         'portfolio/interest-history' => 0.6667,
                         'portfolio/interest-rate' => 0.6667,
+                        'portfolio/asset-index-price' => 0.1,
                         // staking
                         'staking/productList' => 0.1,
                         'staking/position' => 0.1,
@@ -685,6 +687,7 @@ class binance extends Exchange {
                         'apiReferral/traderSummary' => 1,
                         'adlQuantile' => 5,
                         'pmAccountInfo' => 5,
+                        'orderAmendment' => 1,
                     ),
                     'post' => array(
                         'batchOrders' => 5,
@@ -702,6 +705,8 @@ class binance extends Exchange {
                     ),
                     'put' => array(
                         'listenKey' => 1,
+                        'order' => 1,
+                        'batchOrders' => 5,
                     ),
                     'delete' => array(
                         'batchOrders' => 1,
@@ -814,6 +819,68 @@ class binance extends Exchange {
                         'openOrders' => 1, // added on 2020-04-25 for canceling all open orders per symbol
                         'orderList' => 1, // oco
                         'order' => 1,
+                    ),
+                ),
+                'papi' => array(
+                    'get' => array(
+                        'um/order' => 1, // 1
+                        'um/openOrder' => 1, // 1
+                        'um/openOrders' => 1, // 1
+                        'um/allOrders' => 5, // 5
+                        'cm/order' => 1, // 1
+                        'cm/openOrder' => 1, // 1
+                        'cm/openOrders' => 1, // 1
+                        'cm/allOrders' => 20, // 20
+                        'balance' => 20, // 20
+                        'account' => 20, // 20
+                        'margin/maxBorrowable' => 5, // 5
+                        'margin/maxWithdraw' => 5, // 5
+                        'um/positionRisk' => 5, // 5
+                        'cm/positionRisk' => 1, // 1
+                        'um/positionSide/dual' => 30, // 30
+                        'cm/positionSide/dual' => 30, // 30
+                        'um/userTrades' => 5, // 5
+                        'cm/userTrades' => 20, // 20
+                        'um/leverageBracket' => 1, // 1
+                        'cm/leverageBracket' => 1, // 1
+                        'margin/forceOrders' => 1, // 1
+                        'um/forceOrders' => 20, // 20
+                        'cm/forceOrders' => 20, // 20
+                        'um/apiTradingStatus' => 1, // 1
+                        'um/commissionRate' => 20, // 20
+                        'cm/commissionRate' => 20, // 20
+                        'margin/marginLoan' => 0.0667, // Weight(UID) => 10 => cost = 0.006667 * 10 = 0.06667
+                        'margin/repayLoan' => 0.0667, // Weight(UID) => 10 => cost = 0.006667 * 10 = 0.06667
+                        'margin/marginInterestHistory' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
+                        'portfolio/interest-history' => 50, // 50
+                    ),
+                    'post' => array(
+                        'um/order' => 1, // 0
+                        'cm/order' => 1, // 0
+                        'margin/order' => 0.0133, // Weight(UID) => 2 => cost = 0.006667 * 2 = 0.013334
+                        'marginLoan' => 0.1333, // Weight(UID) => 20 => cost = 0.006667 * 20 = 0.13334
+                        'repayLoan' => 0.1333, // Weight(UID) => 20 => cost = 0.006667 * 20 = 0.13334
+                        'margin/order/oco' => 0.0400, // Weight(UID) => 6 => cost = 0.006667 * 6 = 0.040002
+                        'um/leverage' => 1, // 1
+                        'cm/leverage' => 1, // 1
+                        'um/positionSide/dual' => 1, // 1
+                        'cm/positionSide/dual' => 1, // 1
+                        'auto-collection' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
+                        'bnb-transfer' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
+                        'listenKey' => 1, // 1
+                    ),
+                    'put' => array(
+                        'listenKey' => 1, // 1
+                    ),
+                    'delete' => array(
+                        'um/order' => 1, // 1
+                        'um/allOpenOrders' => 1, // 1
+                        'cm/order' => 1, // 1
+                        'cm/allOpenOrders' => 1, // 1
+                        'margin/order' => 1, // Weight(IP) => 10 => cost = 0.1 * 10 = 1
+                        'margin/allOpenOrders' => 5, // 5
+                        'margin/orderList' => 2, // 2
+                        'listenKey' => 1, // 1
                     ),
                 ),
             ),
@@ -2714,6 +2781,7 @@ class binance extends Exchange {
         //     }
         //
         // coinm
+        //
         //     {
         //         $baseVolume => '214549.95171161',
         //         closeTime => '1621965286847',
@@ -2733,7 +2801,32 @@ class binance extends Exchange {
         //         volume => '81990451',
         //         weightedAvgPrice => '38215.08713747'
         //     }
+        //
+        // eapi => fetchTicker, fetchTickers
+        //
+        //     {
+        //         "symbol" => "ETH-230510-1825-C",
+        //         "priceChange" => "-5.1",
+        //         "priceChangePercent" => "-0.1854",
+        //         "lastPrice" => "22.4",
+        //         "lastQty" => "0",
+        //         "open" => "27.5",
+        //         "high" => "34.1",
+        //         "low" => "22.4",
+        //         "volume" => "6.83",
+        //         "amount" => "201.44",
+        //         "bidPrice" => "21.9",
+        //         "askPrice" => "22.4",
+        //         "openTime" => 1683614771898,
+        //         "closeTime" => 1683695017784,
+        //         "firstTradeId" => 12,
+        //         "tradeCount" => 22,
+        //         "strikePrice" => "1825",
+        //         "exercisePrice" => "1845.95341176"
+        //     }
+        //
         // spot bidsAsks
+        //
         //     {
         //         "symbol":"ETHBTC",
         //         "bidPrice":"0.07466800",
@@ -2741,7 +2834,9 @@ class binance extends Exchange {
         //         "askPrice":"0.07466900",
         //         "askQty":"10.93540000"
         //     }
+        //
         // usdm bidsAsks
+        //
         //     {
         //         "symbol":"BTCUSDT",
         //         "bidPrice":"21321.90",
@@ -2750,7 +2845,9 @@ class binance extends Exchange {
         //         "askQty":"1.427",
         //         "time":"1673899207538"
         //     }
+        //
         // coinm bidsAsks
+        //
         //     {
         //         "symbol":"BTCUSD_PERP",
         //         "pair":"BTCUSD",
@@ -2780,20 +2877,20 @@ class binance extends Exchange {
             $quoteVolume = $this->safe_string($ticker, 'volume');
         } else {
             $baseVolume = $this->safe_string($ticker, 'volume');
-            $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
+            $quoteVolume = $this->safe_string_2($ticker, 'quoteVolume', 'amount');
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_string($ticker, 'highPrice'),
-            'low' => $this->safe_string($ticker, 'lowPrice'),
+            'high' => $this->safe_string_2($ticker, 'highPrice', 'high'),
+            'low' => $this->safe_string_2($ticker, 'lowPrice', 'low'),
             'bid' => $this->safe_string($ticker, 'bidPrice'),
             'bidVolume' => $this->safe_string($ticker, 'bidQty'),
             'ask' => $this->safe_string($ticker, 'askPrice'),
             'askVolume' => $this->safe_string($ticker, 'askQty'),
             'vwap' => $this->safe_string($ticker, 'weightedAvgPrice'),
-            'open' => $this->safe_string($ticker, 'openPrice'),
+            'open' => $this->safe_string_2($ticker, 'openPrice', 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => $this->safe_string($ticker, 'prevClosePrice'), // previous day close
@@ -2839,6 +2936,7 @@ class binance extends Exchange {
              * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         // spot
              * @see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      // swap
              * @see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     // future
+             * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -2849,7 +2947,9 @@ class binance extends Exchange {
                 'symbol' => $market['id'],
             );
             $method = 'publicGetTicker24hr';
-            if ($market['linear']) {
+            if ($market['option']) {
+                $method = 'eapiPublicGetTicker';
+            } elseif ($market['linear']) {
                 $method = 'fapiPublicGetTicker24hr';
             } elseif ($market['inverse']) {
                 $method = 'dapiPublicGetTicker24hr';
@@ -3003,22 +3103,30 @@ class binance extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
              * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         // spot
              * @see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      // swap
              * @see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     // future
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
-            $defaultType = $this->safe_string_2($this->options, 'fetchTickers', 'defaultType', 'spot');
-            $type = $this->safe_string($params, 'type', $defaultType);
+            $type = null;
+            $market = null;
+            if ($symbols !== null) {
+                $first = $this->safe_string($symbols, 0);
+                $market = $this->market($first);
+            }
+            list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             $subType = null;
-            list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', null, $params);
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params);
             $query = $this->omit($params, 'type');
             $defaultMethod = null;
-            if ($this->is_linear($type, $subType)) {
+            if ($type === 'option') {
+                $defaultMethod = 'eapiPublicGetTicker';
+            } elseif ($this->is_linear($type, $subType)) {
                 $defaultMethod = 'fapiPublicGetTicker24hr';
             } elseif ($this->is_inverse($type, $subType)) {
                 $defaultMethod = 'dapiPublicGetTicker24hr';
@@ -4220,7 +4328,7 @@ class binance extends Exchange {
              * fetches information on multiple orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {int|null} $limit the maximum number of order structures to retrieve
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @param {string|null} $params->marginMode 'cross' or 'isolated', for spot margin trading
              * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -4338,7 +4446,7 @@ class binance extends Exchange {
              * fetch all unfilled currently open orders
              * @param {string|null} $symbol unified $market $symbol
              * @param {int|null} $since the earliest time in ms to fetch open orders for
-             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+             * @param {int|null} $limit the maximum number of open orders structures to retrieve
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @param {string|null} $params->marginMode 'cross' or 'isolated', for spot margin trading
              * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -4401,12 +4509,38 @@ class binance extends Exchange {
              * fetches information on multiple closed $orders made by the user
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int|null} $since the earliest time in ms to fetch $orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {int|null} $limit the maximum number of order structures to retrieve
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $orders = Async\await($this->fetch_orders($symbol, $since, $limit, $params));
             return $this->filter_by($orders, 'status', 'closed');
+        }) ();
+    }
+
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple canceled $orders made by the user
+             * @see https://binance-docs.github.io/apidocs/spot/en/#all-$orders-user_data
+             * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-$orders-user_data
+             * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+             * @param {string} $symbol unified $market $symbol of the $market the $orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch $orders for
+             * @param {int|null} $limit the maximum number of order structures to retrieve
+             * @param {array} $params extra parameters specific to the binance api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            $this->check_required_symbol('fetchCanceledOrders', $symbol);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if ($market['swap'] || $market['future']) {
+                throw new NotSupported($this->id . ' fetchCanceledOrders() supports spot, margin and option markets only');
+            }
+            $params = $this->omit($params, 'type');
+            $orders = Async\await($this->fetch_orders($symbol, $since, null, $params));
+            $filteredOrders = $this->filter_by($orders, 'status', 'canceled');
+            return $this->filter_by_limit($filteredOrders, $limit);
         }) ();
     }
 
@@ -5377,7 +5511,7 @@ class binance extends Exchange {
              * fetch a history of internal transfers made on an account
              * @param {string|null} $code unified $currency $code of the $currency transferred
              * @param {int|null} $since the earliest time in ms to fetch transfers for
-             * @param {int|null} $limit the maximum number of  transfers structures to retrieve
+             * @param {int|null} $limit the maximum number of transfers structures to retrieve
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
              */
@@ -7661,7 +7795,7 @@ class binance extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         if ((is_array($config) && array_key_exists('noCoin', $config)) && !(is_array($params) && array_key_exists('coin', $params))) {
             return $config['noCoin'];
         } elseif ((is_array($config) && array_key_exists('noSymbol', $config)) && !(is_array($params) && array_key_exists('symbol', $params))) {
@@ -7683,7 +7817,7 @@ class binance extends Exchange {
 
     public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
         return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config, $context) {
-            $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config, $context));
+            $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
             // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
             if (($api === 'private') || ($api === 'wapi')) {
                 $this->options['hasAlreadyAuthenticatedSuccessfully'] = true;

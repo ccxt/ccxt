@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -24,7 +25,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bybit(Exchange):
+class bybit(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bybit, self).describe(), {
@@ -253,6 +254,7 @@ class bybit(Exchange):
                         'v5/announcements/index': 1,
                         'v5/spot-cross-margin-trade/pledge-token': 1,
                         'v5/spot-cross-margin-trade/borrow-token': 1,
+                        'v5/ins-loan/ensure-tokens-convert': 1,
                     },
                 },
                 'private': {
@@ -411,6 +413,7 @@ class bybit(Exchange):
                         'v5/spot-cross-margin-trade/account': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/repay-history': 1,  # 50/s => cost = 50 / 50 = 1
+                        'v5/ins-loan/ltv-convert': 1,
                     },
                     'post': {
                         # inverse swap
@@ -1279,6 +1282,11 @@ class bybit(Exchange):
             chains = self.safe_value(currency, 'chains', [])
             networks = {}
             minPrecision = None
+            minWithdrawFeeString = None
+            minWithdrawString = None
+            minDepositString = None
+            deposit = False
+            withdraw = False
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
@@ -1286,23 +1294,34 @@ class bybit(Exchange):
                 precision = self.parse_number(self.parse_precision(self.safe_string(chain, 'minAccuracy')))
                 minPrecision = precision if (minPrecision is None) else min(minPrecision, precision)
                 depositAllowed = self.safe_integer(chain, 'chainDeposit') == 1
+                deposit = depositAllowed if (depositAllowed) else deposit
                 withdrawAllowed = self.safe_integer(chain, 'chainWithdraw') == 1
+                withdraw = withdrawAllowed if (withdrawAllowed) else withdraw
+                withdrawFeeString = self.safe_string(chain, 'withdrawFee')
+                if withdrawFeeString is not None:
+                    minWithdrawFeeString = withdrawFeeString if (minWithdrawFeeString is None) else Precise.string_min(withdrawFeeString, minWithdrawFeeString)
+                minNetworkWithdrawString = self.safe_string(chain, 'withdrawMin')
+                if minNetworkWithdrawString is not None:
+                    minWithdrawString = minNetworkWithdrawString if (minWithdrawString is None) else Precise.string_min(minNetworkWithdrawString, minWithdrawString)
+                minNetworkDepositString = self.safe_string(chain, 'depositMin')
+                if minNetworkDepositString is not None:
+                    minDepositString = minNetworkDepositString if (minDepositString is None) else Precise.string_min(minNetworkDepositString, minDepositString)
                 networks[networkCode] = {
                     'info': chain,
                     'id': networkId,
                     'network': networkCode,
-                    'active': None,
+                    'active': depositAllowed and withdrawAllowed,
                     'deposit': depositAllowed,
                     'withdraw': withdrawAllowed,
-                    'fee': self.safe_number(chain, 'withdrawFee'),
+                    'fee': self.parse_number(withdrawFeeString),
                     'precision': precision,
                     'limits': {
                         'withdraw': {
-                            'min': self.safe_number(chain, 'withdrawMin'),
+                            'min': self.parse_number(minNetworkWithdrawString),
                             'max': None,
                         },
                         'deposit': {
-                            'min': self.safe_number(chain, 'depositMin'),
+                            'min': self.parse_number(minNetworkDepositString),
                             'max': None,
                         },
                     },
@@ -1312,14 +1331,22 @@ class bybit(Exchange):
                 'code': code,
                 'id': currencyId,
                 'name': name,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
+                'active': deposit and withdraw,
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'fee': self.parse_number(minWithdrawFeeString),
                 'precision': minPrecision,
                 'limits': {
                     'amount': {
                         'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': self.parse_number(minWithdrawString),
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': self.parse_number(minDepositString),
                         'max': None,
                     },
                 },
@@ -3082,6 +3109,27 @@ class bybit(Exchange):
         #         "positionIdx": 2
         #     }
         #
+        #     {
+        #         "orderId":"0b3499a4-9691-40ec-b2b9-7d94ee0165ff",
+        #         "orderLinkId":"",
+        #         "mmp":false,
+        #         "symbol":"SOLPERP",
+        #         "orderType":"Market",
+        #         "side":"Buy",
+        #         "orderQty":"0.10000000",
+        #         "orderPrice":"23.030",
+        #         "iv":"0",
+        #         "timeInForce":"ImmediateOrCancel",
+        #         "orderStatus":"Created",
+        #         "createdAt":"1683380752146568",
+        #         "basePrice":"0.000",
+        #         "triggerPrice":"0.000",
+        #         "takeProfit":"0.000",
+        #         "stopLoss":"0.000",
+        #         "slTriggerBy":"UNKNOWN",
+        #         "tpTriggerBy":"UNKNOWN"
+        #     }
+        #
         marketId = self.safe_string(order, 'symbol')
         marketType = 'contract'
         if market is not None:
@@ -3092,11 +3140,15 @@ class bybit(Exchange):
                 marketType = 'spot'
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
-        timestamp = self.safe_integer(order, 'createdTime')
+        timestamp = None
+        if 'createdTime' in order:
+            timestamp = self.safe_integer(order, 'createdTime')
+        elif 'createdAt' in order:
+            timestamp = self.safe_integer_product(order, 'createdAt', 0.001)
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'orderType')
-        price = self.safe_string(order, 'price')
-        amount = self.safe_string(order, 'qty')
+        price = self.safe_string_2(order, 'price', 'orderPrice')
+        amount = self.safe_string_2(order, 'qty', 'orderQty')
         cost = self.safe_string(order, 'cumExecValue')
         filled = self.safe_string(order, 'cumExecQty')
         remaining = self.safe_string(order, 'leavesQty')
@@ -3117,6 +3169,8 @@ class bybit(Exchange):
         rawTimeInForce = self.safe_string(order, 'timeInForce')
         timeInForce = self.parse_time_in_force(rawTimeInForce)
         stopPrice = self.omit_zero(self.safe_string(order, 'triggerPrice'))
+        takeProfitPrice = self.omit_zero(self.safe_string(order, 'takeProfit'))
+        stopLossPrice = self.omit_zero(self.safe_string(order, 'stopLoss'))
         return self.safe_order({
             'info': order,
             'id': id,
@@ -3133,6 +3187,8 @@ class bybit(Exchange):
             'price': price,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'amount': amount,
             'cost': cost,
             'average': None,
@@ -3709,8 +3765,6 @@ class bybit(Exchange):
     def create_usdc_order(self, symbol: str, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        if type == 'market':
-            raise NotSupported(self.id + 'createOrder does not allow market orders for ' + symbol + ' markets')
         lowerCaseType = type.lower()
         if (price is None) and (lowerCaseType == 'limit'):
             raise ArgumentsRequired(self.id + ' createOrder requires a price argument for limit orders')
@@ -3736,7 +3790,7 @@ class bybit(Exchange):
         }
         isMarket = lowerCaseType == 'market'
         isLimit = lowerCaseType == 'limit'
-        if isLimit is not None:
+        if isLimit:
             request['orderPrice'] = self.price_to_precision(symbol, price)
         exchangeSpecificParam = self.safe_string(params, 'time_in_force')
         timeInForce = self.safe_string_lower(params, 'timeInForce')
@@ -3783,8 +3837,11 @@ class bybit(Exchange):
             # mandatory field for options
             request['orderLinkId'] = self.uuid16()
         params = self.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit'])
-        method = 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' if market['option'] else 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder'
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if market['option']:
+            response = self.privatePostOptionUsdcOpenapiPrivateV1PlaceOrder(self.extend(request, params))
+        else:
+            response = self.privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder(self.extend(request, params))
         #
         #     {
         #         "retCode":0,
@@ -7079,6 +7136,10 @@ class bybit(Exchange):
         }
         if since is not None:
             request['startTime'] = since
+        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        params = self.omit(params, ['till', 'until'])
+        if until is not None:
+            request['endTime'] = until
         if limit is not None:
             request['limit'] = limit
         response = self.publicGetV5MarketOpenInterest(self.extend(request, params))

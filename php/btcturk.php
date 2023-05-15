@@ -632,8 +632,7 @@ class btcturk extends Exchange {
             $results[] = $this->parse_ohlcv($ohlcv, $market);
         }
         $sorted = $this->sort_by($results, 0);
-        $tail = ($since === null);
-        return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
+        return $this->filter_by_since_limit($sorted, $since, $limit, 0);
     }
 
     public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {

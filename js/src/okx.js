@@ -249,6 +249,7 @@ export default class okx extends Exchange {
                         'trade/orders-algo-history': 1,
                         'trade/order-algo': 1,
                         'account/subaccount/balances': 10,
+                        'account/subaccount/interest-limits': 4,
                         'asset/subaccount/bills': 5 / 3,
                         'users/subaccount/list': 10,
                         'users/subaccount/apikey': 10,
@@ -309,6 +310,7 @@ export default class okx extends Exchange {
                         'account/quick-margin-borrow-repay': 4,
                         'account/activate-option': 4,
                         'account/set-auto-loan': 4,
+                        'account/subaccount/set-loan-allocation': 4,
                         'asset/transfer': 10,
                         'asset/withdrawal': 5 / 3,
                         'asset/withdrawal-lightning': 5,
@@ -320,6 +322,7 @@ export default class okx extends Exchange {
                         'trade/cancel-batch-orders': 1 / 15,
                         'trade/amend-order': 1 / 3,
                         'trade/amend-batch-orders': 1 / 3,
+                        'trade/amend-algos': 1,
                         'trade/close-position': 1,
                         'trade/order-algo': 1,
                         'trade/cancel-algos': 1,
@@ -1813,7 +1816,7 @@ export default class okx extends Exchange {
         const data = this.safeValue(response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const rate = data[i];
-            const timestamp = this.safeNumber(rate, 'fundingTime');
+            const timestamp = this.safeInteger(rate, 'fundingTime');
             rates.push({
                 'info': rate,
                 'symbol': this.safeSymbol(this.safeString(rate, 'instId')),

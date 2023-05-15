@@ -635,8 +635,7 @@ class btcturk extends btcturk$1 {
             results.push(this.parseOHLCV(ohlcv, market));
         }
         const sorted = this.sortBy(results, 0);
-        const tail = (since === undefined);
-        return this.filterBySinceLimit(sorted, since, limit, 0, tail);
+        return this.filterBySinceLimit(sorted, since, limit, 0);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**

@@ -448,11 +448,12 @@ class currencycom extends currencycom$1 {
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
             let symbol = base + '/' + quote;
-            const type = this.safeString(market, 'marketType');
-            const spot = (type === 'SPOT');
+            const typeRaw = this.safeString(market, 'marketType');
+            const spot = (typeRaw === 'SPOT');
             const futures = false;
-            const swap = (type === 'LEVERAGE');
-            const margin = swap; // as we decided to set
+            const swap = (typeRaw === 'LEVERAGE');
+            const type = swap ? 'swap' : 'spot';
+            const margin = undefined;
             if (swap) {
                 symbol = symbol.replace(this.options['leverage_markets_suffix'], '');
                 symbol += ':' + quote;

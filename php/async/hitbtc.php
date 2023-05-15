@@ -1391,7 +1391,7 @@ class hitbtc extends Exchange {
             $this->check_address($address);
             $tag = $this->safe_string($response, 'paymentId');
             return array(
-                'currency' => $currency,
+                'currency' => $code,
                 'address' => $address,
                 'tag' => $tag,
                 'info' => $response,

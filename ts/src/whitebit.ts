@@ -959,8 +959,7 @@ export default class whitebit extends Exchange {
                 results = this.arrayConcat (results, parsed);
             }
             results = this.sortBy2 (results, 'timestamp', 'id');
-            const tail = (since === undefined);
-            return this.filterBySinceLimit (results, since, limit, 'timestamp', tail) as any;
+            return this.filterBySinceLimit (results, since, limit, 'timestamp') as any;
         }
     }
 
@@ -2100,7 +2099,7 @@ export default class whitebit extends Exchange {
             const request = '/' + 'api' + '/' + version + pathWithParams;
             body = this.json (this.extend ({ 'request': request, 'nonce': nonce }, params));
             const payload = this.stringToBase64 (body);
-            const signature = this.hmac (payload, secret, sha512);
+            const signature = this.hmac (this.encode (payload), secret, sha512);
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,

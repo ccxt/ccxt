@@ -3082,7 +3082,7 @@ class kucoin extends Exchange {
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         $versions = $this->safe_value($this->options, 'versions', array());
         $apiVersions = $this->safe_value($versions, $api, array());
         $methodVersions = $this->safe_value($apiVersions, $method, array());

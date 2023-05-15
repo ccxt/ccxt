@@ -84,7 +84,7 @@ class upbit extends \ccxt\async\upbit {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
         }) ();
     }
 

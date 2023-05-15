@@ -216,7 +216,8 @@ export default class bitso extends Exchange {
         //     }
         //
         const payload = this.safeValue(response, 'payload', []);
-        return this.parseLedger(payload, code, since, limit);
+        const currency = this.safeCurrency(code);
+        return this.parseLedger(payload, currency, since, limit);
     }
     parseLedgerEntryType(type) {
         const types = {

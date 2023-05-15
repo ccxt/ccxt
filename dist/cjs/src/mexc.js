@@ -498,7 +498,7 @@ class mexc extends mexc$1 {
                     '30010': errors.InvalidOrder,
                     '30014': errors.InvalidOrder,
                     '30016': errors.InvalidOrder,
-                    '30018': errors.InvalidOrder,
+                    '30018': errors.AccountSuspended,
                     '30020': errors.AuthenticationError,
                     '30021': errors.BadRequest,
                     '30025': errors.InvalidOrder,
@@ -2847,6 +2847,8 @@ class mexc extends mexc$1 {
         const statuses = {
             'BUY': 'buy',
             'SELL': 'sell',
+            '1': 'buy',
+            '2': 'sell',
             // contracts v1 : TODO
         };
         return this.safeString(statuses, status, status);

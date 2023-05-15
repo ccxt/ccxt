@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.whitebit import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -24,7 +25,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class whitebit(Exchange):
+class whitebit(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(whitebit, self).describe(), {
@@ -928,8 +929,7 @@ class whitebit(Exchange):
                 parsed = self.parse_trades(rawTrades, marketNew, since, limit)
                 results = self.array_concat(results, parsed)
             results = self.sort_by_2(results, 'timestamp', 'id')
-            tail = (since is None)
-            return self.filter_by_since_limit(results, since, limit, 'timestamp', tail)
+            return self.filter_by_since_limit(results, since, limit, 'timestamp')
 
     def parse_trade(self, trade, market=None):
         #
@@ -1962,7 +1962,7 @@ class whitebit(Exchange):
             request = '/' + 'api' + '/' + version + pathWithParams
             body = self.json(self.extend({'request': request, 'nonce': nonce}, params))
             payload = self.string_to_base64(body)
-            signature = self.hmac(payload, secret, hashlib.sha512)
+            signature = self.hmac(self.encode(payload), secret, hashlib.sha512)
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': self.apiKey,

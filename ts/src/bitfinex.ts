@@ -888,7 +888,7 @@ export default class bitfinex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
-        const marketId = this.safeString (market, 'pair');
+        const marketId = this.safeString (ticker, 'pair');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last_price');

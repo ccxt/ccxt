@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.currencycom import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -23,7 +24,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class currencycom(Exchange):
+class currencycom(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(currencycom, self).describe(), {
@@ -455,11 +456,12 @@ class currencycom(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            type = self.safe_string(market, 'marketType')
-            spot = (type == 'SPOT')
+            typeRaw = self.safe_string(market, 'marketType')
+            spot = (typeRaw == 'SPOT')
             futures = False
-            swap = (type == 'LEVERAGE')
-            margin = swap  # decided to set
+            swap = (typeRaw == 'LEVERAGE')
+            type = 'swap' if swap else 'spot'
+            margin = None
             if swap:
                 symbol = symbol.replace(self.options['leverage_markets_suffix'], '')
                 symbol += ':' + quote

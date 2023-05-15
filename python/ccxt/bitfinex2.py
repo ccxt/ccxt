@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitfinex2 import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -29,7 +30,7 @@ from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 from ccxt.base.precise import Precise
 
 
-class bitfinex2(Exchange):
+class bitfinex2(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitfinex2, self).describe(), {
