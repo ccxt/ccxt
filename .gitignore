@@ -37,3 +37,5 @@ __pycache__
 *.log
 *.un~
 *.pyc
+bin/
+obj/
