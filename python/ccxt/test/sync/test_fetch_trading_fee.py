@@ -16,8 +16,8 @@ sys.path.append(root)
 from ccxt.test.base import test_trading_fee  # noqa E402
 
 
-def test_fetch_trading_fee(exchange, symbol):
+def test_fetch_trading_fee(exchange, skipped_properties, symbol):
     method = 'fetchTradingFee'
     fee = exchange.fetch_trading_fee(symbol)
     assert isinstance(fee, dict), exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(fee)
-    test_trading_fee(exchange, method, symbol, fee)
+    test_trading_fee(exchange, skipped_properties, method, symbol, fee)

@@ -555,10 +555,14 @@ class bitget(ccxt.async_support.bitget):
             symbol = market['symbol']
             marketId = market['id']
             messageHash = messageHash + ':' + symbol
+        isStop = self.safe_value(params, 'stop', False)
+        params = self.omit(params, 'stop')
         type = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
         if (type == 'spot') and (symbol is None):
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument for ' + type + ' markets.')
+        if isStop and type == 'spot':
+            raise NotSupported(self.id + ' watchOrders does not support stop orders for ' + type + ' markets.')
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         instType = None
         if type == 'spot':
@@ -570,9 +574,10 @@ class bitget(ccxt.async_support.bitget):
             else:
                 instType = 'SUMCBL'
         instId = marketId if (type == 'spot') else 'default'  # different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+        channel = 'ordersAlgo' if isStop else 'orders'
         args = {
             'instType': instType,
-            'channel': 'orders',
+            'channel': channel,
             'instId': instId,
         }
         orders = await self.watch_private(messageHash, subscriptionHash, args, params)
@@ -703,12 +708,38 @@ class bitget(ccxt.async_support.bitget):
         #        tgtCcy: 'USDT',
         #        uTime: 1656510642518
         #    }
+        # algo order
+        #    {
+        #        "actualPx":"50.000000000",
+        #        "actualSz":"0.000000000",
+        #        "cOid":"1041588152132243456",
+        #        "cTime":"1684059887917",
+        #        "eps":"api",
+        #        "hM":"double_hold",
+        #        "id":"1041588152132243457",
+        #        "instId":"LTCUSDT_UMCBL",
+        #        "key":"1041588152132243457",
+        #        "ordPx":"55.000000000",
+        #        "ordType":"limit",
+        #        "planType":"pl",
+        #        "posSide":"long",
+        #        "side":"buy",
+        #        "state":"not_trigger",
+        #        "sz":"0.100000000",
+        #        "tS":"open_long",
+        #        "tgtCcy":"USDT",
+        #        "triggerPx":"55.000000000",
+        #        "triggerPxType":"mark",
+        #        "triggerTime":"1684059887917",
+        #        "userId":"3704614084",
+        #        "version":1041588152090300400
+        #    }
         #
         marketId = self.safe_string(order, 'instId')
         market = self.safe_market(marketId, market)
-        id = self.safe_string(order, 'ordId')
-        clientOrderId = self.safe_string(order, 'clOrdId')
-        price = self.safe_string(order, 'px')
+        id = self.safe_string_2(order, 'ordId', 'id')
+        clientOrderId = self.safe_string_2(order, 'clOrdId', 'cOid')
+        price = self.safe_string_2(order, 'px', 'actualPx')
         filled = self.safe_string(order, 'fillSz')
         amount = self.safe_string(order, 'sz')
         cost = self.safe_string_2(order, 'notional', 'notionalUsd')
@@ -721,7 +752,7 @@ class bitget(ccxt.async_support.bitget):
             side = 'buy'
         elif (side == 'close_long') or (side == 'open_short'):
             side = 'sell'
-        rawStatus = self.safe_string(order, 'status', 'state')
+        rawStatus = self.safe_string_2(order, 'status', 'state')
         timeInForce = self.safe_string(order, 'force')
         status = self.parse_ws_order_status(rawStatus)
         orderFee = self.safe_value(order, 'orderFee', [])
@@ -734,6 +765,7 @@ class bitget(ccxt.async_support.bitget):
                 'cost': Precise.string_abs(feeAmount),
                 'currency': self.safe_currency_code(feeCurrency),
             }
+        stopPrice = self.safe_string(order, 'triggerPx')
         return self.safe_order({
             'info': order,
             'symbol': symbol,
@@ -747,8 +779,8 @@ class bitget(ccxt.async_support.bitget):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
-            'triggerPrice': None,
+            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -766,6 +798,7 @@ class bitget(ccxt.async_support.bitget):
             'full-fill': 'closed',
             'filled': 'closed',
             'cancelled': 'canceled',
+            'not_trigger': 'open',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1115,6 +1148,7 @@ class bitget(ccxt.async_support.bitget):
             'ticker': self.handle_ticker,
             'trade': self.handle_trades,
             'orders': self.handle_order,
+            'ordersAlgo': self.handle_order,
             'account': self.handle_balance,
         }
         arg = self.safe_value(message, 'arg', {})

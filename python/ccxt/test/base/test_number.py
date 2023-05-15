@@ -23,7 +23,6 @@ from ccxt.base.decimal_to_precision import number_to_string      # noqa F401
 from ccxt.base.exchange import Exchange                          # noqa F401
 from ccxt.base.precise import Precise                            # noqa F401
 
-
 # @ts-nocheck
 # eslint-disable-next-line
 
@@ -119,7 +118,7 @@ assert decimal_to_precision('12.3456', ROUND, 2, DECIMAL_PLACES) == '12.35'
 assert decimal_to_precision('12.3456', ROUND, 1, DECIMAL_PLACES) == '12.3'
 assert decimal_to_precision('12.3456', ROUND, 0, DECIMAL_PLACES) == '12'
 
-# todo: 
+# todo:
 # ['9.999',     ROUND,   3, DECIMAL_PLACES,    NO_PADDING,  '9.999'],
 # ['9.999',     ROUND,   2, DECIMAL_PLACES,    NO_PADDING,  '10'],
 # ['9.999',     ROUND,   2, DECIMAL_PLACES, PAD_WITH_ZERO,  '10.00'],

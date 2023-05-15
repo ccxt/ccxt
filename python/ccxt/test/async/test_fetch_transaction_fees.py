@@ -13,7 +13,7 @@ sys.path.append(root)
 # -*- coding: utf-8 -*-
 
 
-async def test_fetch_transaction_fees(exchange=None):
+async def test_fetch_transaction_fees(exchange, skipped_properties):
     # const method = 'fetchTransactionFees';
     # const fees = await exchange.fetchTransactionFees ();
     # const withdrawKeys = Object.keys (fees['withdraw']);

@@ -5,9 +5,24 @@ error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 ini_set('memory_limit', '512M');
 
-include_once 'vendor/autoload.php';
+define('rootDir', __DIR__ . '/../../');
+include_once rootDir .'/vendor/autoload.php';
 use React\Async;
 use React\Promise;
+
+assert_options (ASSERT_CALLBACK, function(){
+    $args = func_get_args();
+    try {
+        $file = $args[0];
+        $line = $args[1];
+        $message = $args[3];
+        var_dump("[ASSERT_ERROR] - $message [ $file : $line ]");
+    } catch (\Exception $exc) {
+        var_dump("[ASSERT_ERROR] -");
+        var_dump($args);
+    }
+    exit;
+});
 
 $filetered_args = array_filter(array_map (function ($x) { return stripos($x,'--')===false? $x : null;} , $argv));
 $exchangeId = array_key_exists(1, $filetered_args) ? $filetered_args[1] : null; // this should be different than JS
@@ -30,7 +45,7 @@ class baseMainTestClass {
 
 define ('is_synchronous', stripos(__FILE__, '_async') === false);
 
-define('rootDir', __DIR__ . '/../../');
+define('rootDirForSkips', __DIR__ . '/../../');
 define('envVars', $_ENV);
 define('ext', 'php');
 define('httpsAgent', null);
@@ -65,8 +80,8 @@ function io_file_read($path, $decode = true) {
     return $decode ? json_decode($content, true) : $content;
 }
 
-function call_method($testFiles, $methodName, $exchange, $args) {
-    return $testFiles[$methodName]($exchange, ... $args);
+function call_method($testFiles, $methodName, $exchange, $skippedProperties, $args) {
+    return $testFiles[$methodName]($exchange, $skippedProperties, ... $args);
 }
 
 function exception_message ($exc) {
@@ -152,7 +167,7 @@ class testMainClass extends baseMainTestClass {
             'debug' => $this->debug,
             'httpsAgent' => httpsAgent,
             'enableRateLimit' => true,
-            'timeout' => 20000,
+            'timeout' => 30000,
         );
         $exchange = init_exchange ($exchangeId, $exchangeArgs);
         $this->import_files($exchange);
@@ -211,11 +226,15 @@ class testMainClass extends baseMainTestClass {
             }
         }
         // skipped tests
-        $skippedFile = rootDir . 'skip-tests.json';
+        $skippedFile = rootDirForSkips . 'skip-tests.json';
         $skippedSettings = io_file_read ($skippedFile);
         $skippedSettingsForExchange = $exchange->safe_value($skippedSettings, $exchangeId, array());
         // others
         $skipReason = $exchange->safe_value($skippedSettingsForExchange, 'skip');
+        $timeout = $exchange->safe_value($skippedSettingsForExchange, 'timeout');
+        if ($timeout !== null) {
+            $exchange->timeout = $timeout;
+        }
         if ($skipReason !== null) {
             dump ('[SKIPPED] exchange', $exchangeId, $skipReason);
             exit_script ();
@@ -246,7 +265,7 @@ class testMainClass extends baseMainTestClass {
 
     public function test_method($methodName, $exchange, $args, $isPublic) {
         $methodNameInTest = get_test_name ($methodName);
-        // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in $exchange)
+        // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base $exchange)
         if (!$isPublic && (is_array($this->checkedPublicTests) && array_key_exists($methodNameInTest, $this->checkedPublicTests)) && ($methodName !== 'fetchCurrencies')) {
             return;
         }
@@ -254,7 +273,7 @@ class testMainClass extends baseMainTestClass {
         $isFetchOhlcvEmulated = ($methodName === 'fetchOHLCV' && $exchange->has['fetchOHLCV'] === 'emulated'); // todo => remove emulation from base
         if (($methodName !== 'loadMarkets') && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName]) || $isFetchOhlcvEmulated) {
             $skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
-        } elseif (is_array($this->skippedMethods) && array_key_exists($methodName, $this->skippedMethods)) {
+        } elseif ((is_array($this->skippedMethods) && array_key_exists($methodName, $this->skippedMethods)) && (gettype($this->skippedMethods[$methodName]) === 'string')) {
             $skipMessage = '[INFO:SKIPPED_TEST]';
         } elseif (!(is_array($this->testFiles) && array_key_exists($methodNameInTest, $this->testFiles))) {
             $skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
@@ -271,14 +290,15 @@ class testMainClass extends baseMainTestClass {
         }
         $result = null;
         try {
-            $result = call_method ($this->testFiles, $methodNameInTest, $exchange, $args);
+            $skippedProperties = $exchange->safe_value($this->skippedMethods, $methodName, array());
+            $result = call_method ($this->testFiles, $methodNameInTest, $exchange, $skippedProperties, $args);
             if ($isPublic) {
                 $this->checkedPublicTests[$methodNameInTest] = true;
             }
         } catch (Exception $e) {
             $isAuthError = ($e instanceof AuthenticationError);
             if (!($isPublic && $isAuthError)) {
-                dump ('ERROR:', exception_message ($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
+                dump ('[TEST_FAILURE]', exception_message ($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
                 throw $e;
             }
         }
@@ -700,4 +720,4 @@ class testMainClass extends baseMainTestClass {
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
 $promise = (new testMainClass())->init($exchangeId, $exchangeSymbol);
-Async\await($promise);
+$promise;

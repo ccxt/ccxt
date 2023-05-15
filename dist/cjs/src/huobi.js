@@ -2941,12 +2941,15 @@ class huobi extends huobi$1 {
          * @name huobi#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} params extra parameters specific to the huobi api endpoint
+         * @param {bool} params.unified provide this parameter if you have a recent account with unified cross+isolated margin account
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets();
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         const options = this.safeValue(this.options, 'fetchBalance', {});
+        const isUnifiedAccount = this.safeValue2(params, 'isUnifiedAccount', 'unified', false);
+        params = this.omit(params, ['isUnifiedAccount', 'unified']);
         const request = {};
         let method = undefined;
         const spot = (type === 'spot');
@@ -2978,6 +2981,9 @@ class huobi extends huobi$1 {
                 request['account-id'] = accountId;
                 method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
             }
+        }
+        else if (isUnifiedAccount) {
+            method = 'contractPrivateGetLinearSwapApiV3UnifiedAccountInfo';
         }
         else if (linear) {
             if (isolated) {
@@ -3180,6 +3186,34 @@ class huobi extends huobi$1 {
                     result[code] = this.parseMarginBalanceHelper(balance, code, result);
                 }
                 result = this.safeBalance(result);
+            }
+        }
+        else if (isUnifiedAccount) {
+            for (let i = 0; i < data.length; i++) {
+                const entry = data[i];
+                const marginAsset = this.safeString(entry, 'margin_asset');
+                const currencyCode = this.safeCurrencyCode(marginAsset);
+                if (isolated) {
+                    const isolated_swap = this.safeValue(entry, 'isolated_swap', {});
+                    for (let j = 0; j < isolated_swap.length; j++) {
+                        const balance = isolated_swap[j];
+                        const marketId = this.safeString(balance, 'contract_code');
+                        const subBalance = {
+                            'code': currencyCode,
+                            'free': this.safeNumber(balance, 'margin_available'),
+                        };
+                        const symbol = this.safeSymbol(marketId);
+                        result[symbol] = subBalance;
+                        result = this.safeBalance(result);
+                    }
+                }
+                else {
+                    const account = this.account();
+                    account['free'] = this.safeString(entry, 'margin_static');
+                    account['used'] = this.safeString(entry, 'margin_frozen');
+                    result[currencyCode] = account;
+                    result = this.safeBalance(result);
+                }
             }
         }
         else if (linear) {

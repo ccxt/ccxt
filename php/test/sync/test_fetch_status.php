@@ -10,8 +10,8 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_status.php';
 
-function test_fetch_status($exchange) {
+function test_fetch_status($exchange, $skipped_properties) {
     $method = 'fetchStatus';
     $status = $exchange->fetch_status();
-    test_status($exchange, $method, $status, $exchange->milliseconds());
+    test_status($exchange, $skipped_properties, $method, $status, $exchange->milliseconds());
 }

@@ -1136,7 +1136,7 @@ class coinex extends Exchange {
             //      }
             //
             $data = $this->safe_value($response, 'data', array());
-            return $this->parse_trading_fee($data);
+            return $this->parse_trading_fee($data, $market);
         }) ();
     }
 
