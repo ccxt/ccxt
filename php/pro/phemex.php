@@ -38,7 +38,7 @@ class phemex extends \ccxt\async\phemex {
                 'OHLCVLimit' => 1000,
             ),
             'streaming' => array(
-                'keepAlive' => 20000,
+                'keepAlive' => 10000,
             ),
         ));
     }
@@ -1424,7 +1424,9 @@ class phemex extends \ccxt\async\phemex {
         if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
             $method = $client->subscriptions[$id];
             unset($client->subscriptions[$id]);
-            return $method($client, $message);
+            if ($method !== true) {
+                return $method($client, $message);
+            }
         }
         $method = $this->safe_string($message, 'method', '');
         if ((is_array($message) && array_key_exists('market24h', $message)) || (is_array($message) && array_key_exists('spot_market24h', $message)) || (mb_strpos($method, 'perp_market24h_pack_p') !== false)) {

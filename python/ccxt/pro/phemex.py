@@ -40,7 +40,7 @@ class phemex(ccxt.async_support.phemex):
                 'OHLCVLimit': 1000,
             },
             'streaming': {
-                'keepAlive': 20000,
+                'keepAlive': 10000,
             },
         })
 
@@ -1339,7 +1339,8 @@ class phemex(ccxt.async_support.phemex):
         if id in client.subscriptions:
             method = client.subscriptions[id]
             del client.subscriptions[id]
-            return method(client, message)
+            if method is not True:
+                return method(client, message)
         method = self.safe_string(message, 'method', '')
         if ('market24h' in message) or ('spot_market24h' in message) or (method.find('perp_market24h_pack_p') >= 0):
             return self.handle_ticker(client, message)
