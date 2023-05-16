@@ -159,7 +159,7 @@ export default class bingx extends Exchange {
         });
     }
 
-    async fetchTime(params = {}) {
+    async fetchTime (params = {}) {
         /**
          * @method
          * @name bingx#fetchTime
@@ -178,8 +178,8 @@ export default class bingx extends Exchange {
         //      }
         //  }
         //
-        const data = this.safeValue(response, 'data');
-        return this.safeInteger(data, 'serverTime');
+        const data = this.safeValue (response, 'data');
+        return this.safeInteger (data, 'serverTime');
     }
 
     async fetchSpotMarkets (params) {
@@ -257,7 +257,7 @@ export default class bingx extends Exchange {
         const settle = this.safeCurrencyCode (currency);
         const pricePrecision = this.safeNumber (market, 'pricePrecision');
         const quantityPrecision = this.safeNumber (market, 'quantityPrecision');
-        const type = settle !== undefined ? 'swap' : 'spot';
+        const type = (settle !== undefined) ? 'swap' : 'spot';
         const spot = type === 'spot';
         const swap = type === 'swap';
         let symbol = base + '/' + quote;
@@ -333,9 +333,9 @@ export default class bingx extends Exchange {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         if (marketType === 'spot') {
-            return this.fetchSpotMarkets (params);
+            return await this.fetchSpotMarkets (params);
         } else if (marketType === 'swap') {
-            return this.fetchSwapMarkets (params);
+            return await this.fetchSwapMarkets (params);
         }
     }
 
@@ -524,7 +524,7 @@ export default class bingx extends Exchange {
             'id': id,
             'info': trade,
             'timestamp': time,
-            'datetime': this.iso8601(time),
+            'datetime': this.iso8601 (time),
             'symbol': market['symbol'],
             'order': id,
             'type': undefined,
@@ -624,7 +624,7 @@ export default class bingx extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 0, 1);
     }
 
-    async fetchFundingRate(symbol: string, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}) {
         /**
          * @method
          * @name bingx#fetchFundingRate
@@ -639,7 +639,7 @@ export default class bingx extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let response = await this.swapV2PublicGetQuotePremiumIndex (this.extend (request, params))
+        const response = await this.swapV2PublicGetQuotePremiumIndex (this.extend (request, params));
         //
         // {
         //     "code":0,
@@ -666,7 +666,7 @@ export default class bingx extends Exchange {
         return this.parseFundingRate (data, market);
     }
 
-    parseFundingRate(contract, market = undefined) {
+    parseFundingRate (contract, market = undefined) {
         //
         //     {
         //       "symbol": "BTC-USDT",
@@ -703,7 +703,7 @@ export default class bingx extends Exchange {
         };
     }
 
-    async fetchFundingRateHistory(symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bingx#fetchFundingRateHistory
@@ -765,7 +765,7 @@ export default class bingx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
-    async fetchOpenInterest(symbol: string, params = {}) {
+    async fetchOpenInterest (symbol: string, params = {}) {
         /**
          * @method
          * @name bingx#fetchOpenInterest
@@ -794,7 +794,7 @@ export default class bingx extends Exchange {
         return this.parseOpenInterest (data, market);
     }
 
-    parseOpenInterest(interest, market = undefined) {
+    parseOpenInterest (interest, market = undefined) {
         //
         //    {
         //        "openInterest": "3289641547.10",
@@ -816,7 +816,7 @@ export default class bingx extends Exchange {
         };
     }
 
-    async fetchTicker(symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bingx#fetchTicker
@@ -857,7 +857,7 @@ export default class bingx extends Exchange {
         return this.parseTicker (data, market);
     }
 
-    async fetchTickers(symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bingx#fetchTickers
@@ -868,7 +868,7 @@ export default class bingx extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols(symbols);
+        symbols = this.marketSymbols (symbols);
         const response = await this.swapV2PublicGetQuoteTicker (params);
         //
         //    {
@@ -893,21 +893,20 @@ export default class bingx extends Exchange {
         //    }
         //
         const tickers = this.safeValue (response, 'data');
-        const result = {'info': response};
+        const result = { 'info': response };
         for (let i = 0; i < tickers.length; i++) {
-            const ticker = this.parseTicker(tickers[i]);
+            const ticker = this.parseTicker (tickers[i]);
             const symbol = ticker['symbol'];
             if (symbols === undefined) {
                 result[symbol] = ticker;
-            }
-            else if (symbols.indexOf (symbol) >= 0) {
+            } else if (symbols.indexOf (symbol) >= 0) {
                 result[symbol] = ticker;
             }
         }
         return result;
     }
 
-    parseTicker(ticker, market = undefined) {
+    parseTicker (ticker, market = undefined) {
         //
         //    {
         //        "symbol": "BTC-USDT",
@@ -924,7 +923,7 @@ export default class bingx extends Exchange {
         //        "closeTime": 1672026648425
         //    }
         //
-        let marketId = this.safeString (ticker, 'symbol');
+        const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const open = this.safeString (ticker, 'openPrice');
         const high = this.safeString (ticker, 'highPrice');
@@ -974,8 +973,8 @@ export default class bingx extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            let query =  this.urlencode (params);
-            const signature = this.hmac(this.encode (query), this.encode (this.secret), sha256);
+            let query = this.urlencode (params);
+            const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
             query += '&' + 'signature=' + signature;
             headers = {
                 'X-BX-APIKEY': this.apiKey,
@@ -994,18 +993,18 @@ export default class bingx extends Exchange {
         //     "code": 80014,
         //     "msg": "Invalid parameters, err:Key: 'GetTickerRequest.Symbol' Error:Field validation for 'Symbol' failed on the 'len=0|endswith=-USDT' tag",
         //     "data": {
-        //    
+        //
         //     }
         // }
         //
-        const code = this.safeString(response, 'code');
-        const message = this.safeString(response, 'msg');
+        const code = this.safeString (response, 'code');
+        const message = this.safeString (response, 'msg');
         if (code !== '0') {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
-            this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
-            throw new ExchangeError(feedback); // unknown message
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback); // unknown message
         }
         return undefined;
     }
