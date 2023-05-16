@@ -406,9 +406,11 @@ export default class bitpanda extends bitpandaRest {
         const bidAsk = this.parseBidAsk (delta, 1, 2);
         const type = this.safeString (delta, 0);
         if (type === 'BUY') {
-            orderbook['bids'].storeArray (bidAsk);
+            const bids = orderbook['bids'];
+            bids.storeArray (bidAsk);
         } else if (type === 'SELL') {
-            orderbook['asks'].storeArray (bidAsk);
+            const asks = orderbook['asks'];
+            asks.storeArray (bidAsk);
         } else {
             throw new NotSupported (this.id + ' watchOrderBook () received unknown change type ' + this.json (delta));
         }
