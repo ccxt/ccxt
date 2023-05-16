@@ -1952,6 +1952,18 @@ export default class xt extends Exchange {
         //         "b": true
         //     }
         //
+        // spot: watchTrades
+        //
+        //    {
+        //        "s": "btc_usdt",                // symbol
+        //        "t": 1656043204763,             // time
+        //        "i": "6316559590087251233",     // tradeId
+        //        "oi": "6216559590087220004",    // orderId
+        //        "p": "30000",                   // trade price
+        //        "q": "3",                       // qty quantity
+        //        "v": "90000"                    // volume trade amount
+        //    }
+        //
         // swap and future: fetchTrades
         //
         //     {
@@ -1999,7 +2011,7 @@ export default class xt extends Exchange {
         const marketId = this.safeString2 (trade, 's', 'symbol');
         let marketType = (market !== undefined) ? market['type'] : undefined;
         if (marketType === undefined) {
-            marketType = ('b' in trade) || ('bizType' in trade) ? 'spot' : 'contract';
+            marketType = (('b' in trade) || ('bizType' in trade) || ('oi' in trade)) ? 'spot' : 'contract';
         }
         market = this.safeMarket (marketId, market, '_', marketType);
         const bidOrAsk = this.safeString (trade, 'm');
