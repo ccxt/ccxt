@@ -89,7 +89,7 @@ export default class xt extends xtRest {
             'params': [
                 name,
             ],
-            'id': this.milliseconds () + name,  // call back ID
+            'id': this.numberToString (this.milliseconds ()) + name,  // call back ID
         };
         if (access === 'private') {
             subscribe['listenKey'] = await this.getAccessToken ();
