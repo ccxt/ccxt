@@ -3,6 +3,9 @@
 import btcexRest from '../btcex.js';
 import { NotSupported, ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
+
 //  ---------------------------------------------------------------------------
 
 export default class btcex extends btcexRest {
@@ -93,7 +96,7 @@ export default class btcex extends btcexRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -125,7 +128,7 @@ export default class btcex extends btcexRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcex#watchOHLCV
@@ -163,10 +166,10 @@ export default class btcex extends btcexRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         "params": {
@@ -207,7 +210,7 @@ export default class btcex extends btcexRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name btcex#watchTicker
@@ -215,7 +218,7 @@ export default class btcex extends btcexRest {
          * @see https://docs.btcex.com/#ticker-instrument_name-interval
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the btcex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -240,7 +243,7 @@ export default class btcex extends btcexRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         "params": {
@@ -279,7 +282,7 @@ export default class btcex extends btcexRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcex#watchTrades
@@ -311,10 +314,10 @@ export default class btcex extends btcexRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -356,7 +359,7 @@ export default class btcex extends btcexRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bibox#fetchMyTrades
@@ -366,7 +369,7 @@ export default class btcex extends btcexRest {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the bibox api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a symbol argument');
@@ -392,10 +395,10 @@ export default class btcex extends btcexRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
-    handleMyTrades (client, message) {
+    handleMyTrades (client: Client, message) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -440,7 +443,7 @@ export default class btcex extends btcexRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcex#fetchOrders
@@ -450,7 +453,7 @@ export default class btcex extends btcexRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the btcex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + 'watchesOrders() requires a symbol');
@@ -477,10 +480,10 @@ export default class btcex extends btcexRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -519,7 +522,7 @@ export default class btcex extends btcexRest {
         client.resolve (this.orders, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcex#watchOrderBook
@@ -529,7 +532,7 @@ export default class btcex extends btcexRest {
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {objectConstructor} params extra parameters specific to the btcex api endpoint
          * @param {string|undefined} params.type accepts l2 or l3 for level 2 or level 3 order book
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -556,7 +559,7 @@ export default class btcex extends btcexRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         "params": {
@@ -650,7 +653,7 @@ export default class btcex extends btcexRest {
         }
     }
 
-    handleUser (client, message) {
+    handleUser (client: Client, message) {
         const params = this.safeValue (message, 'params');
         const fullChannel = this.safeString (params, 'channel');
         const sliceUser = fullChannel.slice (5);
@@ -668,7 +671,7 @@ export default class btcex extends btcexRest {
         throw new NotSupported (this.id + ' received an unsupported message: ' + this.json (message));
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         //     {
         //         id: '1',
@@ -683,7 +686,7 @@ export default class btcex extends btcexRest {
         throw new ExchangeError (this.id + ' error: ' + this.json (error));
     }
 
-    handleAuthenticate (client, message) {
+    handleAuthenticate (client: Client, message) {
         //
         //     {
         //         id: '1',
@@ -708,7 +711,7 @@ export default class btcex extends btcexRest {
         client.resolve (accessToken, 'authenticated');
     }
 
-    handleSubscription (client, message) {
+    handleSubscription (client: Client, message) {
         const channels = this.safeValue (message, 'result', []);
         for (let i = 0; i < channels.length; i++) {
             const fullChannel = channels[i];
@@ -723,11 +726,11 @@ export default class btcex extends btcexRest {
         }
     }
 
-    handlePong (client, message) {
+    handlePong (client: Client, message) {
         client.lastPong = this.milliseconds ();
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (message === 'PONG') {
             this.handlePong (client, message);
             return;

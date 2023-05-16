@@ -1,10 +1,13 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/ndax.js';
 import { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import totp from './base/functions/totp.js';
+import { Int, OrderSide } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 export default class ndax extends Exchange {
@@ -272,7 +275,7 @@ export default class ndax extends Exchange {
         let request = {
             'grant_type': 'client_credentials', // the only supported value
         };
-        const response = await (this as any).publicGetAuthenticate (this.extend (request, params));
+        const response = await this.publicGetAuthenticate (this.extend (request, params));
         //
         //     {
         //         "Authenticated":true,
@@ -294,9 +297,9 @@ export default class ndax extends Exchange {
             }
             this.options['pending2faToken'] = pending2faToken;
             request = {
-                'Code': this.oath (),
+                'Code': totp (this.twofa),
             } as any;
-            const response = await (this as any).publicGetAuthenticate2FA (this.extend (request, params));
+            const responseInner = await this.publicGetAuthenticate2FA (this.extend (request, params));
             //
             //     {
             //         "Authenticated": true,
@@ -304,9 +307,9 @@ export default class ndax extends Exchange {
             //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             //     }
             //
-            sessionToken = this.safeString (response, 'SessionToken');
+            sessionToken = this.safeString (responseInner, 'SessionToken');
             this.options['sessionToken'] = sessionToken;
-            return response;
+            return responseInner;
         }
         return response;
     }
@@ -323,7 +326,7 @@ export default class ndax extends Exchange {
         const request = {
             'omsId': omsId,
         };
-        const response = await (this as any).publicGetGetProducts (this.extend (request, params));
+        const response = await this.publicGetGetProducts (this.extend (request, params));
         //
         //     [
         //         {
@@ -370,6 +373,7 @@ export default class ndax extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -387,7 +391,7 @@ export default class ndax extends Exchange {
         const request = {
             'omsId': omsId,
         };
-        const response = await (this as any).publicGetGetInstruments (this.extend (request, params));
+        const response = await this.publicGetGetInstruments (this.extend (request, params));
         //
         //     [
         //         {
@@ -535,7 +539,7 @@ export default class ndax extends Exchange {
         return result as any;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchOrderBook
@@ -543,7 +547,7 @@ export default class ndax extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
@@ -554,7 +558,7 @@ export default class ndax extends Exchange {
             'InstrumentId': market['id'],
             'Depth': limit, // default 100
         };
-        const response = await (this as any).publicGetGetL2Snapshot (this.extend (request, params));
+        const response = await this.publicGetGetL2Snapshot (this.extend (request, params));
         //
         //     [
         //         [
@@ -647,14 +651,14 @@ export default class ndax extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name ndax#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
@@ -663,7 +667,7 @@ export default class ndax extends Exchange {
             'omsId': omsId,
             'InstrumentId': market['id'],
         };
-        const response = await (this as any).publicGetGetLevel1 (this.extend (request, params));
+        const response = await this.publicGetGetLevel1 (this.extend (request, params));
         //
         //     {
         //         "OMSId":1,
@@ -721,7 +725,7 @@ export default class ndax extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchOHLCV
@@ -756,7 +760,7 @@ export default class ndax extends Exchange {
                 request['ToDate'] = this.ymdhms (this.sum (since, duration * limit * 1000));
             }
         }
-        const response = await (this as any).publicGetGetTickerHistory (this.extend (request, params));
+        const response = await this.publicGetGetTickerHistory (this.extend (request, params));
         //
         //     [
         //         [1607299260000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299200000],
@@ -935,7 +939,7 @@ export default class ndax extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchTrades
@@ -956,7 +960,7 @@ export default class ndax extends Exchange {
         if (limit !== undefined) {
             request['Count'] = limit;
         }
-        const response = await (this as any).publicGetGetLastTrades (this.extend (request, params));
+        const response = await this.publicGetGetLastTrades (this.extend (request, params));
         //
         //     [
         //         [6913253,8,0.03340802,19116.08,2543425077,2543425482,1606935922416,0,1,0,0],
@@ -973,7 +977,7 @@ export default class ndax extends Exchange {
          * @name ndax#fetchAccounts
          * @description fetch all the accounts associated with a profile
          * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
         if (!this.login) {
             throw new AuthenticationError (this.id + ' fetchAccounts() requires exchange.login email credential');
@@ -985,7 +989,7 @@ export default class ndax extends Exchange {
             'UserId': this.uid,
             'UserName': this.login,
         };
-        const response = await (this as any).privateGetGetUserAccounts (this.extend (request, params));
+        const response = await this.privateGetGetUserAccounts (this.extend (request, params));
         //
         //     [ 449 ] // comma-separated list of account ids
         //
@@ -1040,7 +1044,7 @@ export default class ndax extends Exchange {
             'omsId': omsId,
             'AccountId': accountId,
         };
-        const response = await (this as any).privateGetGetAccountPositions (this.extend (request, params));
+        const response = await this.privateGetGetAccountPositions (this.extend (request, params));
         //
         //     [
         //         {
@@ -1150,7 +1154,7 @@ export default class ndax extends Exchange {
         };
     }
 
-    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchLedger
@@ -1159,7 +1163,7 @@ export default class ndax extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
          * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
@@ -1174,7 +1178,7 @@ export default class ndax extends Exchange {
         if (limit !== undefined) {
             request['Depth'] = limit;
         }
-        const response = await (this as any).privateGetGetAccountTransactions (this.extend (request, params));
+        const response = await this.privateGetGetAccountTransactions (this.extend (request, params));
         //
         //     [
         //         {
@@ -1307,7 +1311,7 @@ export default class ndax extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name ndax#createOrder
@@ -1318,7 +1322,7 @@ export default class ndax extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
@@ -1354,7 +1358,7 @@ export default class ndax extends Exchange {
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
         }
-        const response = await (this as any).privatePostSendOrder (this.extend (request, params));
+        const response = await this.privatePostSendOrder (this.extend (request, params));
         //
         //     {
         //         "status":"Accepted",
@@ -1365,7 +1369,7 @@ export default class ndax extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -1401,7 +1405,7 @@ export default class ndax extends Exchange {
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
         }
-        const response = await (this as any).privatePostCancelReplaceOrder (this.extend (request, params));
+        const response = await this.privatePostCancelReplaceOrder (this.extend (request, params));
         //
         //     {
         //         "replacementOrderId": 1234,
@@ -1413,7 +1417,7 @@ export default class ndax extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchMyTrades
@@ -1422,7 +1426,7 @@ export default class ndax extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
@@ -1454,7 +1458,7 @@ export default class ndax extends Exchange {
         if (limit !== undefined) {
             request['Depth'] = limit;
         }
-        const response = await (this as any).privateGetGetTradesHistory (this.extend (request, params));
+        const response = await this.privateGetGetTradesHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -1501,14 +1505,14 @@ export default class ndax extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name ndax#cancelAllOrders
          * @description cancel all open orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
@@ -1524,7 +1528,7 @@ export default class ndax extends Exchange {
             const market = this.market (symbol);
             request['IntrumentId'] = market['id'];
         }
-        const response = await (this as any).privatePostCancelAllOrders (this.extend (request, params));
+        const response = await this.privatePostCancelAllOrders (this.extend (request, params));
         //
         //     {
         //         "result":true,
@@ -1536,7 +1540,7 @@ export default class ndax extends Exchange {
         return response;
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name ndax#cancelOrder
@@ -1544,7 +1548,7 @@ export default class ndax extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
@@ -1567,7 +1571,7 @@ export default class ndax extends Exchange {
             request['OrderId'] = parseInt (id);
         }
         params = this.omit (params, [ 'clientOrderId', 'ClOrderId' ]);
-        const response = await (this as any).privatePostCancelOrder (this.extend (request, params));
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
         const order = this.parseOrder (response, market);
         return this.extend (order, {
             'id': id,
@@ -1575,7 +1579,7 @@ export default class ndax extends Exchange {
         });
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchOpenOrders
@@ -1584,7 +1588,7 @@ export default class ndax extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
@@ -1600,7 +1604,7 @@ export default class ndax extends Exchange {
             'omsId': omsId,
             'AccountId': accountId,
         };
-        const response = await (this as any).privateGetGetOpenOrders (this.extend (request, params));
+        const response = await this.privateGetGetOpenOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1654,7 +1658,7 @@ export default class ndax extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchOrders
@@ -1663,7 +1667,7 @@ export default class ndax extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
@@ -1695,7 +1699,7 @@ export default class ndax extends Exchange {
         if (limit !== undefined) {
             request['Depth'] = limit;
         }
-        const response = await (this as any).privateGetGetOrdersHistory (this.extend (request, params));
+        const response = await this.privateGetGetOrdersHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -1749,14 +1753,14 @@ export default class ndax extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchOrder
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
@@ -1773,7 +1777,7 @@ export default class ndax extends Exchange {
             'AccountId': accountId,
             'OrderId': parseInt (id),
         };
-        const response = await (this as any).privateGetGetOrderStatus (this.extend (request, params));
+        const response = await this.privateGetGetOrderStatus (this.extend (request, params));
         //
         //     {
         //         "Side":"Sell",
@@ -1825,7 +1829,7 @@ export default class ndax extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchOrderTrades
@@ -1835,7 +1839,7 @@ export default class ndax extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades to retrieve
          * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
@@ -1852,7 +1856,7 @@ export default class ndax extends Exchange {
             // 'AccountId': accountId,
             'OrderId': parseInt (id),
         };
-        const response = await (this as any).privatePostGetOrderHistoryByOrderId (this.extend (request, params));
+        const response = await this.privatePostGetOrderHistoryByOrderId (this.extend (request, params));
         //
         //     [
         //         {
@@ -1908,14 +1912,14 @@ export default class ndax extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name ndax#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
@@ -1930,7 +1934,7 @@ export default class ndax extends Exchange {
             'ProductId': currency['id'],
             'GenerateNewKey': false,
         };
-        const response = await (this as any).privateGetGetDepositInfo (this.extend (request, params));
+        const response = await this.privateGetGetDepositInfo (this.extend (request, params));
         //
         //     {
         //         "result":true,
@@ -1982,14 +1986,14 @@ export default class ndax extends Exchange {
         };
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name ndax#createDepositAddress
          * @description create a currency deposit address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         const request = {
             'GenerateNewKey': true,
@@ -1997,7 +2001,7 @@ export default class ndax extends Exchange {
         return await this.fetchDepositAddress (code, this.extend (request, params));
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchDeposits
@@ -2007,7 +2011,7 @@ export default class ndax extends Exchange {
          * @param {int|undefined} since not used by ndax fetchDeposits
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
@@ -2023,7 +2027,7 @@ export default class ndax extends Exchange {
             'omsId': omsId,
             'AccountId': accountId,
         };
-        const response = await (this as any).privateGetGetDeposits (this.extend (request, params));
+        const response = await this.privateGetGetDeposits (this.extend (request, params));
         //
         //    "[
         //        {
@@ -2058,7 +2062,7 @@ export default class ndax extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchWithdrawals
@@ -2067,7 +2071,7 @@ export default class ndax extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
@@ -2083,7 +2087,7 @@ export default class ndax extends Exchange {
             'omsId': omsId,
             'AccountId': accountId,
         };
-        const response = await (this as any).privateGetGetWithdraws (this.extend (request, params));
+        const response = await this.privateGetGetWithdraws (this.extend (request, params));
         //
         //     [
         //         {
@@ -2256,7 +2260,7 @@ export default class ndax extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name ndax#withdraw
@@ -2266,7 +2270,7 @@ export default class ndax extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         // this method required login, password and twofa key
@@ -2290,7 +2294,7 @@ export default class ndax extends Exchange {
             'AccountId': accountId,
             'ProductId': currency['id'],
         };
-        const withdrawTemplateTypesResponse = await (this as any).privateGetGetWithdrawTemplateTypes (withdrawTemplateTypesRequest);
+        const withdrawTemplateTypesResponse = await this.privateGetGetWithdrawTemplateTypes (withdrawTemplateTypesRequest);
         //
         //     {
         //         result: true,
@@ -2316,7 +2320,7 @@ export default class ndax extends Exchange {
             'TemplateType': templateName,
             'AccountProviderId': firstTemplateType['AccountProviderId'],
         };
-        const withdrawTemplateResponse = await (this as any).privateGetGetWithdrawTemplate (withdrawTemplateRequest);
+        const withdrawTemplateResponse = await this.privateGetGetWithdrawTemplate (withdrawTemplateRequest);
         //
         //     {
         //         result: true,
@@ -2345,10 +2349,10 @@ export default class ndax extends Exchange {
         };
         const withdrawRequest = {
             'TfaType': 'Google',
-            'TFaCode': this.oath (),
+            'TFaCode': totp (this.twofa),
             'Payload': this.json (withdrawPayload),
         };
-        const response = await (this as any).privatePostCreateWithdrawTicket (this.deepExtend (withdrawRequest, params));
+        const response = await this.privatePostCreateWithdrawTicket (this.deepExtend (withdrawRequest, params));
         return this.parseTransaction (response, currency);
     }
 
@@ -2364,7 +2368,7 @@ export default class ndax extends Exchange {
                 const auth = this.login + ':' + this.password;
                 const auth64 = this.stringToBase64 (auth);
                 headers = {
-                    'Authorization': 'Basic ' + this.decode (auth64),
+                    'Authorization': 'Basic ' + auth64,
                     // 'Content-Type': 'application/json',
                 };
             } else if (path === 'Authenticate2FA') {
@@ -2386,7 +2390,7 @@ export default class ndax extends Exchange {
             if (sessionToken === undefined) {
                 const nonce = this.nonce ().toString ();
                 const auth = nonce + this.uid + this.apiKey;
-                const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                 headers = {
                     'Nonce': nonce,
                     'APIKey': this.apiKey,
@@ -2415,7 +2419,7 @@ export default class ndax extends Exchange {
             throw new AuthenticationError (this.id + ' ' + body);
         }
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //     {"status":"Rejected","errormsg":"Not_Enough_Funds","errorcode":101}
@@ -2428,5 +2432,6 @@ export default class ndax extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 }

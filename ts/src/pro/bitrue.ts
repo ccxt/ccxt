@@ -3,6 +3,8 @@
 import bitrueRest from '../bitrue.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { ArgumentsRequired } from '../base/errors.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -17,7 +19,7 @@ export default class bitrue extends bitrueRest {
                 'watchTrades': false,
                 'watchMyTrades': false,
                 'watchOrders': true,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchOHLCV': false,
             },
             'urls': {
@@ -74,7 +76,7 @@ export default class bitrue extends bitrueRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //     {
         //         e: 'BALANCE',
@@ -168,7 +170,7 @@ export default class bitrue extends bitrueRest {
         this.balance = this.safeBalance (this.balance);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#watchOrders
@@ -178,7 +180,7 @@ export default class bitrue extends bitrueRest {
          * @param {int|undefined} since timestamp in ms of the earliest order
          * @param {int|undefined} limit the maximum amount of orders to return
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         if (symbol !== undefined) {
@@ -198,10 +200,10 @@ export default class bitrue extends bitrueRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         //
         //    {
         //        e: 'ORDER',
@@ -296,7 +298,7 @@ export default class bitrue extends bitrueRest {
         }, market);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrderBook() requires a symbol argument');
         }
@@ -318,7 +320,7 @@ export default class bitrue extends bitrueRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         "channel": "market_ethbtc_simple_depth_step0",
@@ -385,7 +387,7 @@ export default class bitrue extends bitrueRest {
         return this.safeString (statuses, status, status);
     }
 
-    handlePing (client, message) {
+    handlePing (client: Client, message) {
         this.spawn (this.pong, client, message);
     }
 
@@ -402,7 +404,7 @@ export default class bitrue extends bitrueRest {
         await client.send (pong);
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if ('channel' in message) {
             this.handleOrderBook (client, message);
         } else if ('ping' in message) {
@@ -425,7 +427,7 @@ export default class bitrue extends bitrueRest {
         if (listenKey === undefined) {
             let response = undefined;
             try {
-                response = await (this as any).openPrivatePostPoseidonApiV1ListenKey (params);
+                response = await this.openPrivatePostPoseidonApiV1ListenKey (params);
             } catch (error) {
                 this.options['listenKey'] = undefined;
                 this.options['listenKeyUrl'] = undefined;
@@ -456,7 +458,7 @@ export default class bitrue extends bitrueRest {
             'listenKey': listenKey,
         };
         try {
-            await (this as any).openPrivatePutPoseidonApiV1ListenKeyListenKey (this.extend (request, params));
+            await this.openPrivatePutPoseidonApiV1ListenKeyListenKey (this.extend (request, params));
             //
             // ಠ_ಠ
             //     {

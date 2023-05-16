@@ -1,4 +1,5 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bybit.js';
+import { Int, OrderSide } from './base/types.js';
 export default class bybit extends Exchange {
     describe(): any;
     nonce(): number;
@@ -11,10 +12,10 @@ export default class bybit extends Exchange {
     fetchSpotMarkets(params: any): Promise<any[]>;
     fetchDerivativesMarkets(params: any): Promise<any[]>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseFundingRate(ticker: any, market?: any): {
         info: any;
         symbol: any;
@@ -34,13 +35,13 @@ export default class bybit extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
-    fetchFundingRates(symbols?: any, params?: {}): Promise<any>;
-    fetchFundingRateHistory(symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
+    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     parseSpotTrade(trade: any, market?: any): import("./base/types.js").Trade;
     parseContractTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     parseOrderStatus(status: any): string;
@@ -48,55 +49,55 @@ export default class bybit extends Exchange {
     parseOrder(order: any, market?: any): any;
     parseContractOrder(order: any, market?: any): any;
     parseSpotOrder(order: any, market?: any): any;
-    fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    createUnifiedAccountOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    createSpotOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    createUnifiedMarginOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    createContractV3Order(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    createUsdcOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    editUnifiedAccountOrder(id: any, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<{
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
+    createUnifiedAccountOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createSpotOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createUnifiedMarginOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createContractV3Order(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createUsdcOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    editUnifiedAccountOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<{
         info: any;
         id: string;
     }>;
-    editUnifiedMarginOrder(id: any, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    editContractV3Order(id: any, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<{
+    editUnifiedMarginOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    editContractV3Order(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<{
         info: any;
         id: string;
     }>;
-    editOrder(id: any, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<any>;
-    cancelUnifiedAccountOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    cancelSpotOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    cancelUnifiedMarginOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    cancelUSDCOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    cancelDerivativesOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
-    cancelAllUnifiedAccountOrders(symbol?: any, params?: {}): Promise<any>;
-    cancelAllSpotOrders(symbol?: any, params?: {}): Promise<any>;
-    cancelAllUnifiedMarginOrders(symbol?: any, params?: {}): Promise<any>;
-    cancelAllUSDCOrders(symbol?: any, params?: {}): Promise<any>;
-    cancelAllDerivativesOrders(symbol?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    cancelAllOrders(symbol?: any, params?: {}): Promise<any>;
-    fetchUnifiedAccountOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchUnifiedMarginOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchDerivativesOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchSpotClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchCanceledOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchUnifiedAccountOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchSpotOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchUnifiedMarginOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchDerivativesOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchUSDCOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrderTrades(id: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchMyUnifiedTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchMySpotTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchMyUnifiedMarginTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchMyContractTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchMyUsdcTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<any>;
+    cancelUnifiedAccountOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    cancelSpotOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    cancelUnifiedMarginOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    cancelUSDCOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    cancelDerivativesOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    cancelAllUnifiedAccountOrders(symbol?: string, params?: {}): Promise<any>;
+    cancelAllSpotOrders(symbol?: string, params?: {}): Promise<any>;
+    cancelAllUnifiedMarginOrders(symbol?: string, params?: {}): Promise<any>;
+    cancelAllUSDCOrders(symbol?: string, params?: {}): Promise<any>;
+    cancelAllDerivativesOrders(symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
+    cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
+    fetchUnifiedAccountOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchUnifiedMarginOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchDerivativesOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchSpotClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchUnifiedAccountOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchSpotOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchUnifiedMarginOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchDerivativesOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchUSDCOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyUnifiedTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMySpotTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyUnifiedMarginTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyContractTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyUsdcTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseDepositAddress(depositAddress: any, currency?: any): {
         currency: string;
         address: string;
@@ -104,16 +105,16 @@ export default class bybit extends Exchange {
         network: string;
         info: any;
     };
-    fetchDepositAddressesByNetwork(code: any, params?: {}): Promise<{}>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
+    fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;
         tag: string;
         network: string;
         info: any;
     }>;
-    fetchDeposits(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchWithdrawals(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -135,7 +136,7 @@ export default class bybit extends Exchange {
         updated: number;
         fee: any;
     };
-    fetchLedger(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntry(item: any, currency?: any): {
         id: string;
         currency: any;
@@ -154,7 +155,7 @@ export default class bybit extends Exchange {
         info: any;
     };
     parseLedgerEntryType(type: any): string;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -174,42 +175,19 @@ export default class bybit extends Exchange {
         updated: number;
         fee: any;
     }>;
-    fetchPosition(symbol: any, params?: {}): Promise<any>;
-    fetchUnifiedPositions(symbols?: any, params?: {}): Promise<any>;
-    fetchUSDCPositions(symbols?: any, params?: {}): Promise<any>;
-    fetchDerivativesPositions(symbols?: any, params?: {}): Promise<any>;
-    fetchPositions(symbols?: any, params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): {
-        info: any;
-        id: any;
-        symbol: any;
-        timestamp: number;
-        datetime: string;
-        initialMargin: number;
-        initialMarginPercentage: number;
-        maintenanceMargin: number;
-        maintenanceMarginPercentage: number;
-        entryPrice: number;
-        notional: number;
-        leverage: number;
-        unrealizedPnl: number;
-        contracts: number;
-        contractSize: number;
-        marginRatio: number;
-        liquidationPrice: number;
-        markPrice: number;
-        collateral: number;
-        marginMode: string;
-        side: string;
-        percentage: number;
-    };
-    setMarginMode(marginMode: any, symbol?: any, params?: {}): Promise<any>;
-    setUnifiedMarginMode(marginMode: any, symbol?: any, params?: {}): Promise<any>;
-    setDerivativesMarginMode(marginMode: any, symbol?: any, params?: {}): Promise<any>;
-    setLeverage(leverage: any, symbol?: any, params?: {}): Promise<any>;
-    setPositionMode(hedged: any, symbol?: any, params?: {}): Promise<any>;
-    fetchDerivativesOpenInterestHistory(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    fetchOpenInterest(symbol: any, params?: {}): Promise<{
+    fetchPosition(symbol: string, params?: {}): Promise<any>;
+    fetchUnifiedPositions(symbols?: string[], params?: {}): Promise<any>;
+    fetchUSDCPositions(symbols?: string[], params?: {}): Promise<any>;
+    fetchDerivativesPositions(symbols?: string[], params?: {}): Promise<any>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    parsePosition(position: any, market?: any): any;
+    setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
+    setUnifiedMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
+    setDerivativesMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
+    setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
+    setPositionMode(hedged: any, symbol?: string, params?: {}): Promise<any>;
+    fetchDerivativesOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchOpenInterest(symbol: string, params?: {}): Promise<{
         symbol: any;
         openInterestAmount: any;
         openInterestValue: number;
@@ -217,7 +195,7 @@ export default class bybit extends Exchange {
         datetime: string;
         info: any;
     }>;
-    fetchOpenInterestHistory(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<object[]>;
+    fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseOpenInterest(interest: any, market?: any): {
         symbol: any;
         openInterestAmount: any;
@@ -226,7 +204,7 @@ export default class bybit extends Exchange {
         datetime: string;
         info: any;
     };
-    fetchBorrowRate(code: any, params?: {}): Promise<{
+    fetchBorrowRate(code: string, params?: {}): Promise<{
         currency: any;
         rate: number;
         period: number;
@@ -242,8 +220,8 @@ export default class bybit extends Exchange {
         datetime: string;
         info: any;
     };
-    fetchBorrowInterest(code?: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    parseBorrowInterest(info: any, market: any): {
+    fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseBorrowInterest(info: any, market?: any): {
         symbol: any;
         marginMode: string;
         currency: any;
@@ -254,10 +232,10 @@ export default class bybit extends Exchange {
         datetime: any;
         info: any;
     };
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
-    fetchTransfers(code?: any, since?: any, limit?: any, params?: {}): Promise<object[]>;
-    borrowMargin(code: any, amount: any, symbol?: any, params?: {}): Promise<any>;
-    repayMargin(code: any, amount: any, symbol?: any, params?: {}): Promise<any>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
+    fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    borrowMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
+    repayMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: any): {
         id: string;
         currency: string;
@@ -279,16 +257,16 @@ export default class bybit extends Exchange {
         toAccount: string;
         status: string;
     };
-    fetchDerivativesMarketLeverageTiers(symbol: any, params?: {}): Promise<any[]>;
-    fetchMarketLeverageTiers(symbol: any, params?: {}): Promise<any[]>;
-    parseMarketLeverageTiers(info: any, market: any): any[];
+    fetchDerivativesMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
+    fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
+    parseMarketLeverageTiers(info: any, market?: any): any[];
     parseTradingFee(fee: any, market?: any): {
         info: any;
         symbol: any;
         maker: number;
         taker: number;
     };
-    fetchTradingFee(symbol: any, params?: {}): Promise<{
+    fetchTradingFee(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: any;
         maker: number;

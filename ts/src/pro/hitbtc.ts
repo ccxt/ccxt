@@ -3,6 +3,8 @@
 
 import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -35,7 +37,7 @@ export default class hitbtc extends hitbtcRest {
         });
     }
 
-    async watchPublic (symbol, channel, timeframe = undefined, params = {}) {
+    async watchPublic (symbol: string, channel, timeframe = undefined, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
         const url = this.urls['api']['ws'];
@@ -57,7 +59,7 @@ export default class hitbtc extends hitbtcRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#watchOrderBook
@@ -65,13 +67,13 @@ export default class hitbtc extends hitbtcRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the hitbtc api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const orderbook = await this.watchPublic (symbol, 'orderbook', undefined, params);
         return orderbook.limit ();
     }
 
-    handleOrderBookSnapshot (client, message) {
+    handleOrderBookSnapshot (client: Client, message) {
         //
         //     {
         //         jsonrpc: "2.0",
@@ -110,7 +112,7 @@ export default class hitbtc extends hitbtcRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBookUpdate (client, message) {
+    handleOrderBookUpdate (client: Client, message) {
         //
         //     {
         //         jsonrpc: "2.0",
@@ -165,19 +167,19 @@ export default class hitbtc extends hitbtcRest {
         }
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name hitbtc#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the hitbtc api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         return await this.watchPublic (symbol, 'ticker', undefined, params);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         jsonrpc: '2.0',
@@ -207,7 +209,7 @@ export default class hitbtc extends hitbtcRest {
         client.resolve (result, messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#watchTrades
@@ -222,10 +224,10 @@ export default class hitbtc extends hitbtcRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         jsonrpc: '2.0',
@@ -276,7 +278,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#watchOHLCV
@@ -303,10 +305,10 @@ export default class hitbtc extends hitbtcRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         jsonrpc: '2.0',
@@ -361,14 +363,14 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    handleNotification (client, message) {
+    handleNotification (client: Client, message) {
         //
         //     { jsonrpc: '2.0', result: true, id: null }
         //
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         const methods = {
             'snapshotOrderbook': this.handleOrderBookSnapshot,
             'updateOrderbook': this.handleOrderBookUpdate,

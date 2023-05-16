@@ -4,7 +4,7 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/btcex.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
@@ -323,7 +323,9 @@ export default class btcex extends Exchange {
                 },
                 'createMarketBuyOrderRequiresPrice': true,
             },
-            'commonCurrencies': {},
+            'commonCurrencies': {
+                'ALT': 'ArchLoot',
+            },
         });
     }
     async fetchMarkets(params = {}) {
@@ -926,8 +928,8 @@ export default class btcex extends Exchange {
             if ((assetType === 'WALLET') || (assetType === 'SPOT')) {
                 const details = this.safeValue(currency, 'details');
                 if (details !== undefined) {
-                    for (let i = 0; i < details.length; i++) {
-                        const detail = details[i];
+                    for (let j = 0; j < details.length; j++) {
+                        const detail = details[j];
                         const coinType = this.safeString(detail, 'coin_type');
                         const code = this.safeCurrencyCode(coinType);
                         const account = this.safeValue(result, code, this.account());
@@ -1263,7 +1265,7 @@ export default class btcex extends Exchange {
          * @param {string|undefined} params.timeInForce 'GTC', 'IOC', 'FOK'
          * @param {bool|undefined} params.postOnly
          * @param {bool|undefined} params.reduceOnly
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.signIn();
         await this.loadMarkets();
@@ -1678,14 +1680,14 @@ export default class btcex extends Exchange {
         const notionalString = Precise.stringMul(markPrice, size);
         const unrealisedPnl = this.safeString(position, 'floating_profit_loss');
         const initialMarginString = this.safeString(position, 'initial_margin');
-        const percentage = Precise.stringMul(Precise.stringDiv(unrealisedPnl, initialMarginString), '100');
         const marginType = this.safeString(position, 'margin_type');
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(Precise.stringDiv(initialMarginString, notionalString)),
             'maintenanceMargin': this.parseNumber(maintenanceMarginString),
@@ -1699,11 +1701,12 @@ export default class btcex extends Exchange {
             'marginRatio': this.parseNumber(riskLevel),
             'liquidationPrice': this.safeNumber(position, 'liquid_price'),
             'markPrice': this.parseNumber(markPrice),
+            'lastPrice': undefined,
             'collateral': this.parseNumber(collateral),
             'marginType': marginType,
             'side': side,
-            'percentage': this.parseNumber(percentage),
-        };
+            'percentage': undefined,
+        });
     }
     async fetchPosition(symbol, params = {}) {
         await this.signIn();
@@ -1980,7 +1983,7 @@ export default class btcex extends Exchange {
          * @description fetch the set leverage for a market
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the btcex api endpoint
-         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure}
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
         await this.signIn();
         await this.loadMarkets();
@@ -2014,7 +2017,7 @@ export default class btcex extends Exchange {
          * @description retrieve information on the maximum leverage, for different trade sizes for a single market
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the btcex api endpoint
-         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
+         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2047,7 +2050,7 @@ export default class btcex extends Exchange {
         const data = this.safeValue(response, 'result', []);
         return this.parseMarketLeverageTiers(data, market);
     }
-    parseMarketLeverageTiers(info, market) {
+    parseMarketLeverageTiers(info, market = undefined) {
         //
         //     [
         //         {
@@ -2085,7 +2088,7 @@ export default class btcex extends Exchange {
          * @description retrieve information on the maximum leverage, for different trade sizes
          * @param {[string]|undefined} symbols a list of unified market symbols
          * @param {object} params extra parameters specific to the btcex api endpoint
-         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets();
         const response = await this.publicGetGetPerpetualLeverageBracketAll(params);
@@ -2240,7 +2243,7 @@ export default class btcex extends Exchange {
          * @see https://docs.btcex.com/#contracts
          * @param {[string]} symbols unified market symbols
          * @param {object} params extra parameters specific to the btcex api endpoint
-         * @returns {[object]} an array of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         * @returns {[object]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -2304,7 +2307,7 @@ export default class btcex extends Exchange {
          * @see https://docs.btcex.com/#contracts
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the btcex api endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2411,7 +2414,7 @@ export default class btcex extends Exchange {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the btcex api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.signIn();
         await this.loadMarkets();
@@ -2469,7 +2472,7 @@ export default class btcex extends Exchange {
          * @see https://docs.btcex.com/#contracts
          * @param {string} symbol unified CCXT market symbol
          * @param {object} params extra parameters specific to the btcex api endpoint
-         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2599,16 +2602,17 @@ export default class btcex extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to the default error handler
+            return undefined; // fallback to the default error handler
         }
         const error = this.safeValue(response, 'error');
         if (error) {
             const feedback = this.id + ' ' + body;
-            const code = this.safeString(error, 'code');
+            const codeInner = this.safeString(error, 'code');
             const message = this.safeString(error, 'message');
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeInner, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }

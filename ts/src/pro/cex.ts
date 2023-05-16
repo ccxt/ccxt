@@ -4,6 +4,9 @@ import cexRest from '../cex.js';
 import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -64,7 +67,7 @@ export default class cex extends cexRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //     {
         //         e: 'get-balance',
@@ -104,7 +107,7 @@ export default class cex extends cexRest {
         client.resolve (this.balance, 'balance');
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cex#watchTrades
@@ -146,10 +149,10 @@ export default class cex extends cexRest {
         for (let i = 0; i < trades.length; i++) {
             trades[i]['symbol'] = symbol;
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
-    handleTradesSnapshot (client, message) {
+    handleTradesSnapshot (client: Client, message) {
         //
         //     {
         //         e: 'history',
@@ -204,7 +207,7 @@ export default class cex extends cexRest {
         }, market);
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: Client, message) {
         //
         //     {
         //         e: 'history-update',
@@ -225,7 +228,7 @@ export default class cex extends cexRest {
         client.resolve (this.trades, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name cex#watchTicker
@@ -234,7 +237,7 @@ export default class cex extends cexRest {
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the cex api endpoint
          * @param {string|undefined} params.method public or private
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -264,7 +267,7 @@ export default class cex extends cexRest {
         return await this.watch (url, messageHash, request, subscriptionHash);
     }
 
-    async watchTickers (symbols = undefined, params = {}) {
+    async watchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name cex#watchTickers
@@ -272,7 +275,7 @@ export default class cex extends cexRest {
          * @description watches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the cex api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -298,7 +301,7 @@ export default class cex extends cexRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         e: 'tick',
@@ -384,7 +387,7 @@ export default class cex extends cexRest {
         }, market);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cex#watchOrders
@@ -420,10 +423,10 @@ export default class cex extends cexRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cex#watchMyTrades
@@ -456,10 +459,10 @@ export default class cex extends cexRest {
         };
         const request = this.deepExtend (message, params);
         const orders = await this.watch (url, messageHash, request, subscriptionHash, request);
-        return this.filterBySymbolSinceLimit (orders, market['symbol'], since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, market['symbol'], since, limit);
     }
 
-    handleTransaction (client, message) {
+    handleTransaction (client: Client, message) {
         const data = this.safeValue (message, 'data');
         const symbol2 = this.safeString (data, 'symbol2');
         if (symbol2 === undefined) {
@@ -469,7 +472,7 @@ export default class cex extends cexRest {
         this.handleMyTrades (client, message);
     }
 
-    handleMyTrades (client, message) {
+    handleMyTrades (client: Client, message) {
         //
         //     {
         //         e: 'tx',
@@ -588,7 +591,7 @@ export default class cex extends cexRest {
         return this.safeTrade (parsedTrade, market);
     }
 
-    handleOrderUpdate (client, message) {
+    handleOrderUpdate (client: Client, message) {
         //
         //  partialExecution
         //     {
@@ -827,7 +830,7 @@ export default class cex extends cexRest {
         return this.fromPrecision (amount, scale);
     }
 
-    handleOrdersSnapshot (client, message) {
+    handleOrdersSnapshot (client: Client, message) {
         //
         //     {
         //         e: 'open-orders',
@@ -865,7 +868,7 @@ export default class cex extends cexRest {
         }
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cex#watchOrderBook
@@ -874,7 +877,7 @@ export default class cex extends cexRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the cex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         await this.authenticate ();
@@ -900,7 +903,7 @@ export default class cex extends cexRest {
         return orderbook.limit ();
     }
 
-    handleOrderBookSnapshot (client, message) {
+    handleOrderBookSnapshot (client: Client, message) {
         //
         //     {
         //         e: 'order-book-subscribe',
@@ -950,7 +953,7 @@ export default class cex extends cexRest {
         return symbol;
     }
 
-    handleOrderBookUpdate (client, message) {
+    handleOrderBookUpdate (client: Client, message) {
         //
         //     {
         //         e: 'md_update',
@@ -997,7 +1000,7 @@ export default class cex extends cexRest {
         }
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cex#watchOHLCV
@@ -1026,10 +1029,10 @@ export default class cex extends cexRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0);
     }
 
-    handleInitOHLCV (client, message) {
+    handleInitOHLCV (client: Client, message) {
         //
         //     {
         //         e: 'init-ohlcv-data',
@@ -1067,7 +1070,7 @@ export default class cex extends cexRest {
         client.resolve (stored, messageHash);
     }
 
-    handleOHLCV24 (client, message) {
+    handleOHLCV24 (client: Client, message) {
         //
         //     {
         //         e: 'ohlcv24',
@@ -1078,7 +1081,7 @@ export default class cex extends cexRest {
         return message;
     }
 
-    handleOHLCV1m (client, message) {
+    handleOHLCV1m (client: Client, message) {
         //
         //     {
         //         e: 'ohlcv1m',
@@ -1111,7 +1114,7 @@ export default class cex extends cexRest {
         client.resolve (stored, messageHash);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         e: 'ohlcv',
@@ -1143,7 +1146,7 @@ export default class cex extends cexRest {
         }
     }
 
-    handleConnected (client, message) {
+    handleConnected (client: Client, message) {
         //
         //     {
         //         "e": "connected"
@@ -1152,7 +1155,7 @@ export default class cex extends cexRest {
         return message;
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         //     {
         //         e: 'get-balance',
@@ -1164,7 +1167,7 @@ export default class cex extends cexRest {
         throw new ExchangeError (this.id + ' ' + this.json (message));
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         const ok = this.safeString (message, 'ok');
         if (ok === 'error') {
             return this.handleErrorMessage (client, message);
@@ -1195,7 +1198,7 @@ export default class cex extends cexRest {
         return message;
     }
 
-    handleAuthenticationMessage (client, message) {
+    handleAuthenticationMessage (client: Client, message) {
         //
         //     {
         //         "e": "auth",
@@ -1222,7 +1225,7 @@ export default class cex extends cexRest {
             this.checkRequiredCredentials ();
             const nonce = this.seconds ().toString ();
             const auth = nonce + this.apiKey;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             const request = {
                 'e': 'auth',
                 'auth': {

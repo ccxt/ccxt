@@ -5,6 +5,8 @@ import krakenRest from '../kraken.js';
 import { BadSymbol, BadRequest, ExchangeError, NotSupported, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -56,7 +58,7 @@ export default class kraken extends krakenRest {
         });
     }
 
-    handleTicker (client, message, subscription) {
+    handleTicker (client: Client, message, subscription) {
         //
         //     [
         //         0, // channelID
@@ -81,26 +83,26 @@ export default class kraken extends krakenRest {
         const market = this.safeValue (this.options['marketsByWsName'], wsName);
         const symbol = market['symbol'];
         const ticker = message[1];
-        const vwap = this.safeFloat (ticker['p'], 0);
+        const vwap = this.safeString (ticker['p'], 0);
         let quoteVolume = undefined;
-        const baseVolume = this.safeFloat (ticker['v'], 0);
+        const baseVolume = this.safeString (ticker['v'], 0);
         if (baseVolume !== undefined && vwap !== undefined) {
-            quoteVolume = baseVolume * vwap;
+            quoteVolume = Precise.stringMul (baseVolume, vwap);
         }
-        const last = this.safeFloat (ticker['c'], 0);
+        const last = this.safeString (ticker['c'], 0);
         const timestamp = this.milliseconds ();
-        const result = {
+        const result = this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker['h'], 0),
-            'low': this.safeFloat (ticker['l'], 0),
-            'bid': this.safeFloat (ticker['b'], 0),
-            'bidVolume': this.safeFloat (ticker['b'], 2),
-            'ask': this.safeFloat (ticker['a'], 0),
-            'askVolume': this.safeFloat (ticker['a'], 2),
+            'high': this.safeString (ticker['h'], 0),
+            'low': this.safeString (ticker['l'], 0),
+            'bid': this.safeString (ticker['b'], 0),
+            'bidVolume': this.safeString (ticker['b'], 2),
+            'ask': this.safeString (ticker['a'], 0),
+            'askVolume': this.safeString (ticker['a'], 2),
             'vwap': vwap,
-            'open': this.safeFloat (ticker['o'], 0),
+            'open': this.safeString (ticker['o'], 0),
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -110,7 +112,7 @@ export default class kraken extends krakenRest {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        });
         // todo add support for multiple tickers (may be tricky)
         // kraken confirms multi-pair subscriptions separately one by one
         // trigger correct watchTickers calls upon receiving any of symbols
@@ -118,7 +120,7 @@ export default class kraken extends krakenRest {
         client.resolve (result, messageHash);
     }
 
-    handleTrades (client, message, subscription) {
+    handleTrades (client: Client, message, subscription) {
         //
         //     [
         //         0, // channelID
@@ -149,7 +151,7 @@ export default class kraken extends krakenRest {
         client.resolve (stored, messageHash);
     }
 
-    handleOHLCV (client, message, subscription) {
+    handleOHLCV (client: Client, message, subscription) {
         //
         //     [
         //         216, // channelID
@@ -230,19 +232,19 @@ export default class kraken extends krakenRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name kraken#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         return await this.watchPublic ('ticker', symbol, params);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchTrades
@@ -260,10 +262,10 @@ export default class kraken extends krakenRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchOrderBook
@@ -271,7 +273,7 @@ export default class kraken extends krakenRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const name = 'book';
         const request = {};
@@ -288,7 +290,7 @@ export default class kraken extends krakenRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchOHLCV
@@ -324,7 +326,7 @@ export default class kraken extends krakenRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0);
     }
 
     async loadMarkets (reload = false, params = {}) {
@@ -358,7 +360,7 @@ export default class kraken extends krakenRest {
         return await this.watch (url, event);
     }
 
-    handleHeartbeat (client, message) {
+    handleHeartbeat (client: Client, message) {
         //
         // every second (approx) if no other updates are sent
         //
@@ -368,7 +370,7 @@ export default class kraken extends krakenRest {
         client.resolve (message, event);
     }
 
-    handleOrderBook (client, message, subscription) {
+    handleOrderBook (client: Client, message, subscription) {
         //
         // first message (snapshot)
         //
@@ -525,19 +527,16 @@ export default class kraken extends krakenRest {
     handleDeltas (bookside, deltas, timestamp = undefined) {
         for (let j = 0; j < deltas.length; j++) {
             const delta = deltas[j];
-            const price = parseFloat (delta[0]);
-            const amount = parseFloat (delta[1]);
+            const price = this.parseNumber (delta[0]);
+            const amount = this.parseNumber (delta[1]);
             const oldTimestamp = timestamp ? timestamp : 0;
-            const calcMul = delta[2] * 1000;
-            const calcStr = this.numberToString (calcMul);
-            const calc = this.numberToString (parseFloat (calcStr));
-            timestamp = Math.max (oldTimestamp, parseInt (calc));
+            timestamp = Math.max (oldTimestamp, this.parseToInt (parseFloat (delta[2]) * 1000));
             bookside.store (price, amount);
         }
         return timestamp;
     }
 
-    handleSystemStatus (client, message) {
+    handleSystemStatus (client: Client, message) {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -559,7 +558,7 @@ export default class kraken extends krakenRest {
         const authenticated = 'authenticated';
         let subscription = this.safeValue (client.subscriptions, authenticated);
         if (subscription === undefined) {
-            const response = await (this as any).privatePostGetWebSocketsToken (params);
+            const response = await this.privatePostGetWebSocketsToken (params);
             //
             //     {
             //         "error":[],
@@ -575,7 +574,7 @@ export default class kraken extends krakenRest {
         return this.safeString (subscription, 'token');
     }
 
-    async watchPrivate (name, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchPrivate (name, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const token = await this.authenticate ();
         const subscriptionHash = name;
@@ -599,10 +598,10 @@ export default class kraken extends krakenRest {
         if (this.newUpdates) {
             limit = result.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchMyTrades
@@ -611,12 +610,12 @@ export default class kraken extends krakenRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         return await this.watchPrivate ('ownTrades', symbol, since, limit, params);
     }
 
-    handleMyTrades (client, message, subscription = undefined) {
+    handleMyTrades (client: Client, message, subscription = undefined) {
         //
         //     [
         //         [
@@ -766,7 +765,7 @@ export default class kraken extends krakenRest {
         };
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchOrders
@@ -776,12 +775,12 @@ export default class kraken extends krakenRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.watchPrivate ('openOrders', symbol, since, limit, params);
     }
 
-    handleOrders (client, message, subscription = undefined) {
+    handleOrders (client: Client, message, subscription = undefined) {
         //
         //     [
         //         [
@@ -1034,7 +1033,7 @@ export default class kraken extends krakenRest {
         });
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         // public
         //
@@ -1068,7 +1067,7 @@ export default class kraken extends krakenRest {
         // }
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         //     {
         //         errorMessage: 'Currency pair not in ISO 4217-A3 format foobar',
@@ -1098,7 +1097,7 @@ export default class kraken extends krakenRest {
         return true;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (Array.isArray (message)) {
             const channelId = this.safeString (message, 0);
             const subscription = this.safeValue (client.subscriptions, channelId, {});

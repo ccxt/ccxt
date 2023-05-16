@@ -5,10 +5,14 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/idex.js';
 import { TICK_SIZE, PAD_WITH_ZERO, ROUND, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
+import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
+import { ecdsa } from './base/functions/crypto.js';
 // ---------------------------------------------------------------------------
 export default class idex extends Exchange {
     describe() {
@@ -16,12 +20,10 @@ export default class idex extends Exchange {
             'id': 'idex',
             'name': 'IDEX',
             'countries': ['US'],
-            // public data endpoints 5 requests a second => 1000ms / 5 = 200ms between requests roughly (without Authentication)
-            // all endpoints 10 requests a second => (1000ms / rateLimit) / 10 => 1 / 2 (with Authentication)
-            'rateLimit': 200,
+            'rateLimit': 1000,
             'version': 'v3',
             'pro': true,
-            'certified': true,
+            'certified': false,
             'requiresWeb3': true,
             'has': {
                 'CORS': undefined,
@@ -128,20 +130,20 @@ export default class idex extends Exchange {
                         'user': 1,
                         'wallets': 1,
                         'balances': 1,
-                        'orders': 1,
-                        'fills': 1,
+                        'orders': 0.1,
+                        'fills': 0.1,
                         'deposits': 1,
                         'withdrawals': 1,
                         'wsToken': 1,
                     },
                     'post': {
                         'wallets': 1,
-                        'orders': 1,
-                        'orders/test': 1,
+                        'orders': 0.1,
+                        'orders/test': 0.1,
                         'withdrawals': 1,
                     },
                     'delete': {
-                        'orders': 1,
+                        'orders': 0.1,
                     },
                 },
             },
@@ -318,7 +320,7 @@ export default class idex extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -354,7 +356,7 @@ export default class idex extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         // [
@@ -604,7 +606,7 @@ export default class idex extends Exchange {
          * @name idex#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -651,7 +653,7 @@ export default class idex extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -824,7 +826,7 @@ export default class idex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -890,7 +892,7 @@ export default class idex extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'orderId': id,
@@ -906,7 +908,7 @@ export default class idex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'closed': false,
@@ -922,7 +924,7 @@ export default class idex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'closed': true,
@@ -1107,7 +1109,7 @@ export default class idex extends Exchange {
             this.base16ToBinary(noPrefix),
         ];
         const binary = this.binaryConcatArray(byteArray);
-        const hash = this.hash(binary, 'keccak', 'hex');
+        const hash = this.hash(binary, keccak, 'hex');
         const signature = this.signMessageString(hash, this.privateKey);
         // {
         //   address: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
@@ -1135,7 +1137,7 @@ export default class idex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -1232,23 +1234,23 @@ export default class idex extends Exchange {
             this.numberToBE(orderVersion, 1),
             this.base16ToBinary(nonce),
             this.base16ToBinary(walletBytes),
-            this.stringToBinary(this.encode(market['id'])),
+            this.encode(market['id']),
             this.numberToBE(typeEnum, 1),
             this.numberToBE(sideEnum, 1),
-            this.stringToBinary(this.encode(amountString)),
+            this.encode(amountString),
             this.numberToBE(amountEnum, 1),
         ];
         if (limitOrder) {
-            const encodedPrice = this.stringToBinary(this.encode(priceString));
+            const encodedPrice = this.encode(priceString);
             byteArray.push(encodedPrice);
         }
         if (type in stopLossTypeEnums) {
-            const encodedPrice = this.stringToBinary(this.encode(stopPriceString || priceString));
+            const encodedPrice = this.encode(stopPriceString || priceString);
             byteArray.push(encodedPrice);
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
-            byteArray.push(this.stringToBinary(this.encode(clientOrderId)));
+            byteArray.push(this.encode(clientOrderId));
         }
         const after = [
             this.numberToBE(timeInForceEnum, 1),
@@ -1257,7 +1259,7 @@ export default class idex extends Exchange {
         ];
         const allBytes = this.arrayConcat(byteArray, after);
         const binary = this.binaryConcatArray(allBytes);
-        const hash = this.hash(binary, 'keccak', 'hex');
+        const hash = this.hash(binary, keccak, 'hex');
         const signature = this.signMessageString(hash, this.privateKey);
         const request = {
             'parameters': {
@@ -1332,7 +1334,7 @@ export default class idex extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkRequiredCredentials();
@@ -1344,12 +1346,12 @@ export default class idex extends Exchange {
         const byteArray = [
             this.base16ToBinary(nonce),
             this.base16ToBinary(walletBytes),
-            this.stringToBinary(this.encode(currency['id'])),
-            this.stringToBinary(this.encode(amountString)),
+            this.encode(currency['id']),
+            this.encode(amountString),
             this.numberToBE(1, 1), // bool set to true
         ];
         const binary = this.binaryConcatArray(byteArray);
-        const hash = this.hash(binary, 'keccak', 'hex');
+        const hash = this.hash(binary, keccak, 'hex');
         const signature = this.signMessageString(hash, this.privateKey);
         const request = {
             'parameters': {
@@ -1382,7 +1384,7 @@ export default class idex extends Exchange {
          * @description cancel all open orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -1403,11 +1405,11 @@ export default class idex extends Exchange {
             this.base16ToBinary(walletBytes),
         ];
         if (market !== undefined) {
-            byteArray.push(this.stringToBinary(this.encode(market['id'])));
+            byteArray.push(this.encode(market['id']));
             request['parameters']['market'] = market['id'];
         }
         const binary = this.binaryConcatArray(byteArray);
-        const hash = this.hash(binary, 'keccak', 'hex');
+        const hash = this.hash(binary, keccak, 'hex');
         const signature = this.signMessageString(hash, this.privateKey);
         request['signature'] = signature;
         // [ { orderId: '688336f0-ec50-11ea-9842-b332f8a34d0e' } ]
@@ -1422,7 +1424,7 @@ export default class idex extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -1435,10 +1437,10 @@ export default class idex extends Exchange {
         const byteArray = [
             this.base16ToBinary(nonce),
             this.base16ToBinary(walletBytes),
-            this.stringToBinary(this.encode(id)),
+            this.encode(id),
         ];
         const binary = this.binaryConcatArray(byteArray);
-        const hash = this.hash(binary, 'keccak', 'hex');
+        const hash = this.hash(binary, keccak, 'hex');
         const signature = this.signMessageString(hash, this.privateKey);
         const request = {
             'parameters': {
@@ -1463,6 +1465,7 @@ export default class idex extends Exchange {
         if (errorCode !== undefined) {
             throw new ExchangeError(this.id + ' ' + message);
         }
+        return undefined;
     }
     async fetchDeposit(id, code = undefined, params = {}) {
         /**
@@ -1472,7 +1475,7 @@ export default class idex extends Exchange {
          * @param {string} id deposit id
          * @param {string|undefined} code not used by idex fetchDeposit ()
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         const nonce = this.uuidv1();
@@ -1493,12 +1496,12 @@ export default class idex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         params = this.extend({
             'method': 'privateGetDeposits',
         }, params);
-        return this.fetchTransactionsHelper(code, since, limit, params);
+        return await this.fetchTransactionsHelper(code, since, limit, params);
     }
     async fetchTime(params = {}) {
         /**
@@ -1522,7 +1525,7 @@ export default class idex extends Exchange {
          * @param {string} id withdrawal id
          * @param {string|undefined} code not used by idex.fetchWithdrawal
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         const nonce = this.uuidv1();
@@ -1543,12 +1546,12 @@ export default class idex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         params = this.extend({
             'method': 'privateGetWithdrawals',
         }, params);
-        return this.fetchTransactionsHelper(code, since, limit, params);
+        return await this.fetchTransactionsHelper(code, since, limit, params);
     }
     async fetchTransactionsHelper(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1672,7 +1675,7 @@ export default class idex extends Exchange {
             'fee': fee,
         };
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
         const hasApiKey = (this.apiKey !== undefined);
         const hasSecret = (this.secret !== undefined);
         const hasWalletAddress = (this.walletAddress !== undefined);
@@ -1711,8 +1714,39 @@ export default class idex extends Exchange {
             else {
                 payload = body;
             }
-            headers['IDEX-HMAC-Signature'] = this.hmac(this.encode(payload), this.encode(this.secret), 'sha256', 'hex');
+            headers['IDEX-HMAC-Signature'] = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'hex');
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+    remove0xPrefix(hexData) {
+        if (hexData.slice(0, 2) === '0x') {
+            return hexData.slice(2);
+        }
+        else {
+            return hexData;
+        }
+    }
+    hashMessage(message) {
+        // takes a hex encoded message
+        const binaryMessage = this.base16ToBinary(this.remove0xPrefix(message));
+        const prefix = this.encode('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength);
+        return '0x' + this.hash(this.binaryConcat(prefix, binaryMessage), keccak, 'hex');
+    }
+    signHash(hash, privateKey) {
+        const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
+        return {
+            'r': '0x' + signature['r'],
+            's': '0x' + signature['s'],
+            'v': 27 + signature['v'],
+        };
+    }
+    signMessage(message, privateKey) {
+        return this.signHash(this.hashMessage(message), privateKey.slice(-64));
+    }
+    signMessageString(message, privateKey) {
+        // still takes the input as a hex string
+        // same as above but returns a string instead of an object
+        const signature = this.signMessage(message, privateKey);
+        return signature['r'] + this.remove0xPrefix(signature['s']) + this.binaryToBase16(this.numberToBE(signature['v'], 1));
     }
 }

@@ -8,6 +8,7 @@
 import idexRest from '../idex.js';
 import { InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { Precise } from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 export default class idex extends idexRest {
     describe() {
@@ -69,7 +70,7 @@ export default class idex extends idexRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -104,34 +105,34 @@ export default class idex extends idexRest {
         const symbol = this.safeSymbol(marketId);
         const messageHash = type + ':' + marketId;
         const timestamp = this.safeInteger(data, 't');
-        const close = this.safeFloat(data, 'c');
-        const percentage = this.safeFloat(data, 'P');
+        const close = this.safeString(data, 'c');
+        const percentage = this.safeString(data, 'P');
         let change = undefined;
         if ((percentage !== undefined) && (close !== undefined)) {
-            change = close * percentage;
+            change = Precise.stringMul(close, percentage);
         }
-        const ticker = {
+        const ticker = this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'high': this.safeFloat(data, 'h'),
-            'low': this.safeFloat(data, 'l'),
-            'bid': this.safeFloat(data, 'b'),
+            'high': this.safeString(data, 'h'),
+            'low': this.safeString(data, 'l'),
+            'bid': this.safeString(data, 'b'),
             'bidVolume': undefined,
-            'ask': this.safeFloat(data, 'a'),
+            'ask': this.safeString(data, 'a'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeFloat(data, 'o'),
+            'open': this.safeString(data, 'o'),
             'close': close,
             'last': close,
             'previousClose': undefined,
             'change': change,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeFloat(data, 'v'),
-            'quoteVolume': this.safeFloat(data, 'q'),
+            'baseVolume': this.safeString(data, 'v'),
+            'quoteVolume': this.safeString(data, 'q'),
             'info': message,
-        };
+        });
         client.resolve(ticker, messageHash);
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
@@ -158,7 +159,7 @@ export default class idex extends idexRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     handleTrade(client, message) {
         const type = this.safeString(message, 'type');
@@ -255,7 +256,7 @@ export default class idex extends idexRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0);
     }
     handleOHLCV(client, message) {
         // { type: 'candles',
@@ -406,7 +407,7 @@ export default class idex extends idexRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -510,7 +511,7 @@ export default class idex extends idexRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const name = 'orders';
@@ -528,7 +529,7 @@ export default class idex extends idexRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(orders, since, limit, 'timestamp');
     }
     handleOrder(client, message) {
         // {
@@ -653,7 +654,7 @@ export default class idex extends idexRest {
         if (this.newUpdates) {
             limit = transactions.getLimit(code, limit);
         }
-        return this.filterBySinceLimit(transactions, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(transactions, since, limit, 'timestamp');
     }
     handleTransaction(client, message) {
         // Update Speed: Real time, updates on any deposit or withdrawal of the wallet

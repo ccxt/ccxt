@@ -5,9 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/kuna.js';
 import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ---------------------------------------------------------------------------
 export default class kuna extends Exchange {
     describe() {
@@ -342,8 +343,8 @@ export default class kuna extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/9868
                 const slicedId = id.slice(1);
                 const index = slicedId.indexOf(quoteId);
-                const slice = slicedId.slice(index);
-                if ((index > 0) && (slice === quoteId)) {
+                const slicePart = slicedId.slice(index);
+                if ((index > 0) && (slicePart === quoteId)) {
                     // usd gets matched before usdt in usdtusd USDT/USD
                     // https://github.com/ccxt/ccxt/issues/9868
                     const baseId = id[0] + slicedId.replace(quoteId, '');
@@ -410,7 +411,7 @@ export default class kuna extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the kuna api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -459,7 +460,7 @@ export default class kuna extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the kuna api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -481,7 +482,7 @@ export default class kuna extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the kuna api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -499,7 +500,7 @@ export default class kuna extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {int|undefined} limit max number of orders to return, default is undefined
          * @param {object} params extra parameters specific to the kuna api endpoint
-         * @returns {object} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
+         * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
          */
         return await this.fetchOrderBook(symbol, limit, params);
     }
@@ -665,7 +666,7 @@ export default class kuna extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the kuna api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -689,7 +690,7 @@ export default class kuna extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol not used by kuna cancelOrder ()
          * @param {object} params extra parameters specific to the kuna api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -751,7 +752,7 @@ export default class kuna extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol not used by kuna fetchOrder
          * @param {object} params extra parameters specific to the kuna api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -769,7 +770,7 @@ export default class kuna extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the kuna api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -794,7 +795,7 @@ export default class kuna extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the kuna api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
@@ -877,12 +878,12 @@ export default class kuna extends Exchange {
             else {
                 this.checkRequiredCredentials();
                 const nonce = this.nonce().toString();
-                const query = this.encodeParams(this.extend({
+                const queryInner = this.encodeParams(this.extend({
                     'access_key': this.apiKey,
                     'tonce': nonce,
                 }, params));
-                const auth = method + '|' + request + '|' + query;
-                const signed = this.hmac(this.encode(auth), this.encode(this.secret));
+                const auth = method + '|' + request + '|' + queryInner;
+                const signed = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 const suffix = query + '&signature=' + signed;
                 if (method === 'GET') {
                     url += '?' + suffix;
@@ -897,7 +898,7 @@ export default class kuna extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (code === 400) {
             const error = this.safeValue(response, 'error');
@@ -906,5 +907,6 @@ export default class kuna extends Exchange {
             this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
             // fallback to default error handler
         }
+        return undefined;
     }
 }

@@ -62,7 +62,7 @@ export default class luno extends lunoRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     handleTrades(client, message, subscription) {
         //
@@ -102,7 +102,7 @@ export default class luno extends lunoRest {
         this.trades[symbol] = stored;
         client.resolve(this.trades[symbol], messageHash);
     }
-    parseTrade(trade, market) {
+    parseTrade(trade, market = undefined) {
         //
         // watchTrades (public)
         //
@@ -140,7 +140,7 @@ export default class luno extends lunoRest {
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {objectConstructor} params extra parameters specific to the luno api endpoint
          * @param {string|undefined} params.type accepts l2 or l3 for level 2 or level 3 order book
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.checkRequiredCredentials();
         await this.loadMarkets();

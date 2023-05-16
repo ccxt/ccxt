@@ -8,6 +8,7 @@
 import ascendexRest from '../ascendex.js';
 import { AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class ascendex extends ascendexRest {
     describe() {
@@ -99,7 +100,7 @@ export default class ascendex extends ascendexRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0);
     }
     handleOHLCV(client, message) {
         //
@@ -159,7 +160,7 @@ export default class ascendex extends ascendexRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     handleTrades(client, message) {
         //
@@ -206,7 +207,7 @@ export default class ascendex extends ascendexRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the ascendex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -479,7 +480,7 @@ export default class ascendex extends ascendexRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the ascendex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -508,7 +509,7 @@ export default class ascendex extends ascendexRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleOrder(client, message) {
         //
@@ -917,16 +918,16 @@ export default class ascendex extends ascendexRest {
         //
         //     { m: 'ping', hp: 3 }
         //
-        await client.send({ 'op': 'pong', 'hp': this.safeInteger(message, 'hp') });
-    }
-    async handlePing(client, message) {
         try {
-            await this.spawn(this.pong, client, message);
+            await client.send({ 'op': 'pong', 'hp': this.safeInteger(message, 'hp') });
         }
         catch (e) {
             const error = new NetworkError(this.id + ' handlePing failed with error ' + this.json(e));
             client.reset(error);
         }
+    }
+    handlePing(client, message) {
+        this.spawn(this.pong, client, message);
     }
     authenticate(url, params = {}) {
         this.checkRequiredCredentials();
@@ -941,7 +942,7 @@ export default class ascendex extends ascendexRest {
             const version = this.safeString(urlParts, partsLength - 2);
             const auth = timestamp + '+' + version + '/' + path;
             const secret = this.base64ToBinary(this.secret);
-            const signature = this.hmac(this.encode(auth), secret, 'sha256', 'base64');
+            const signature = this.hmac(this.encode(auth), secret, sha256, 'base64');
             const request = {
                 'op': 'auth',
                 'id': this.nonce().toString(),
