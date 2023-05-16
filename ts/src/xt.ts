@@ -2022,7 +2022,7 @@ export default class xt extends Exchange {
         const marketId = this.safeString2 (trade, 's', 'symbol');
         let marketType = (market !== undefined) ? market['type'] : undefined;
         if (marketType === undefined) {
-            marketType = (('b' in trade) || ('bizType' in trade) || ('oi' in trade)) ? 'spot' : 'contract';
+            marketType = 'b' in trade || 'bizType' in trade || 'oi' in trade ? 'spot' : 'contract';
         }
         market = this.safeMarket (marketId, market, '_', marketType);
         const bidOrAsk = this.safeString (trade, 'm');
