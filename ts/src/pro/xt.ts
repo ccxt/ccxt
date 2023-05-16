@@ -422,7 +422,7 @@ export default class xt extends xtRest {
         const messageHash = this.safeString (message, 'event');
         if (marketId !== undefined) {
             const market = this.market (marketId);
-            const symbol = market['id'];
+            const symbol = market['symbol'];
             const asks = this.safeValue (data, 'a');
             const bids = this.safeValue (data, 'b');
             let orderbook = this.safeValue (this.orderbooks, symbol);
