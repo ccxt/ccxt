@@ -452,8 +452,93 @@ export default class xt extends xtRest {
         }
     }
 
+    parseWsOrderTrade (trade, market = undefined) {
+        //
+        //    {
+        //        "s": "btc_usdt",                // symbol
+        //        "t": 1656043204763,             // time happened time
+        //        "i": "6216559590087220004",     // orderId,
+        //        "ci": "test123",                // clientOrderId
+        //        "st": "PARTIALLY_FILLED",       // state
+        //        "sd": "BUY",                    // side BUY/SELL
+        //        "eq": "2",                      // executedQty executed quantity
+        //        "ap": "30000",                  // avg price
+        //        "f": "0.002"                    // fee
+        //    }
+        //
+        const marketId = this.safeString (trade, 's');
+        market = this.safeMarket (marketId, market, undefined, 'spot');
+        const timestamp = this.safeString (trade, 't');
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeStringN (trade, [ 'i', 'tradeId', 'execId' ]),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': this.safeString (trade, 'i'),
+            'type': this.safeStringLower (trade, 'orderType'),
+            'side': this.safeString (trade, 'sd'),
+            'takerOrMaker': undefined,
+            'price': undefined,
+            'amount': undefined,
+            'cost': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': undefined,
+                'rate': undefined,
+            },
+        }, market);
+    }
+
+    parseWsOrder (order, market = undefined) {
+        //
+        //    {
+        //        "s": "btc_usdt",                // symbol
+        //        "t": 1656043204763,             // time happened time
+        //        "i": "6216559590087220004",     // orderId,
+        //        "ci": "test123",                // clientOrderId
+        //        "st": "PARTIALLY_FILLED",       // state
+        //        "sd": "BUY",                    // side BUY/SELL
+        //        "eq": "2",                      // executedQty executed quantity
+        //        "ap": "30000",                  // avg price
+        //        "f": "0.002"                    // fee
+        //    }
+        //
+        const marketId = this.safeString (order, 'i');
+        market = this.safeMarket (marketId, market, undefined, 'spot');
+        const timestamp = this.safeString (order, 't');
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString (order, 'i'),
+            'clientOrderId': this.safeString (order, 'ci'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': market['symbol'],
+            'type': market['type'],
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': this.safeString (order, 'sd'),
+            'price': this.safeNumber (order, 'price'),
+            'stopPrice': undefined,
+            'stopLoss': undefined,
+            'takeProfit': undefined,
+            'amount': undefined,
+            'filled': this.safeString (order, 'eq'),
+            'remaining': undefined,
+            'cost': undefined,
+            'average': this.safeString (order, 'ap'),
+            'status': this.parseOrderStatus (this.safeString (order, 'st')),
+            'fee': {
+                'currency': undefined,
+                'cost': this.safeNumber (order, 'f'),
+            },
+            'trades': undefined,
+        }, market);
+    }
+
     handleOrder (client: Client, message) {
-        // TODO
+        //
         //    {
         //        "topic": "order",
         //        "event": "order",
@@ -476,21 +561,20 @@ export default class xt extends xtRest {
             orders = new ArrayCacheBySymbolById (limit);
             this.orders = orders;
         }
-        const order = this.safeValue (message, 'order');
-        if (order !== undefined) {
-            const marketId = this.safeStringLower (order, 'instrument');
-            const messageHash = 'orders';
-            const symbol = this.safeSymbol (marketId);
-            const orderId = this.safeString (order, 'order_id');
+        const order = this.safeValue (message, 'data', {});
+        const marketId = this.safeStringLower (order, 's');
+        if (marketId !== undefined) {
+            const market = this.market (marketId);
+            const symbol = market['symbol'];
+            const orderId = this.safeString (order, 'i');
             const previousOrders = this.safeValue (orders.hashmap, symbol, {});
             const previousOrder = this.safeValue (previousOrders, orderId);
             if (previousOrder === undefined) {
-                const parsed = this.parseOrder (order);
+                const parsed = this.parseWsOrder (order, market);
                 orders.append (parsed);
-                client.resolve (orders, messageHash);
-                client.resolve (orders, messageHash + ':' + symbol);
+                client.resolve (orders, 'order');
             } else {
-                const trade = this.parseTrade (order);
+                const trade = this.parseWsOrderTrade (order);
                 if (previousOrder['trades'] === undefined) {
                     previousOrder['trades'] = [];
                 }
@@ -528,24 +612,7 @@ export default class xt extends xtRest {
                 }
                 // update the newUpdates count
                 orders.append (this.safeOrder (previousOrder));
-                client.resolve (orders, messageHash + ':' + symbol);
-                client.resolve (orders, messageHash);
-            }
-        } else {
-            const isCancel = this.safeValue (message, 'is_cancel');
-            if (isCancel) {
-                // get order without symbol
-                for (let i = 0; i < orders.length; i++) {
-                    const order = orders[i];
-                    if (order['id'] === message['order_id']) {
-                        orders[i] = this.extend (order, {
-                            'status': 'canceled',
-                        });
-                        client.resolve (orders, 'orders');
-                        client.resolve (orders, 'orders:' + order['symbol']);
-                        break;
-                    }
-                }
+                client.resolve (orders, 'order');
             }
         }
         return message;
