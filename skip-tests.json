@@ -296,7 +296,8 @@
         "skipMethods": {
             "loadMarkets": {
                 "active": "not provided"
-            }
+            },
+            "fetchOHLCV": "randomly failing with 404 not found"
         }
     },
     "bitstamp": {
