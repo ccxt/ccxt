@@ -258,6 +258,7 @@
         }
     },
     "bitpanda": {
+        "skipWs": true,
         "skipMethods": {
             "fetchOrderBook": "some bid might be lower than next bid",
             "fetchL2OrderBook": "same",
