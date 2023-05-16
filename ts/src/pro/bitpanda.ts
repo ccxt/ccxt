@@ -92,7 +92,7 @@ export default class bitpanda extends bitpandaRest {
         const url = this.urls['api']['ws'];
         const messageHash = 'balance';
         const subscribeHash = 'ACCOUNT_HISTORY';
-        const bpRemainingQuota = this.safeNumber (this.options, 'bp_remaining_quota', 200);
+        const bpRemainingQuota = this.safeInteger (this.options, 'bp_remaining_quota', 200);
         const subscribe = {
             'type': 'SUBSCRIBE',
             'bp_remaining_quota': bpRemainingQuota,
@@ -287,7 +287,7 @@ export default class bitpanda extends bitpandaRest {
         await this.authenticate (params);
         const url = this.urls['api']['ws'];
         const subscribeHash = 'ACCOUNT_HISTORY';
-        const bpRemainingQuota = this.safeNumber (this.options, 'bp_remaining_quota', 200);
+        const bpRemainingQuota = this.safeInteger (this.options, 'bp_remaining_quota', 200);
         const subscribe = {
             'type': 'SUBSCRIBE',
             'bp_remaining_quota': bpRemainingQuota,
@@ -448,7 +448,7 @@ export default class bitpanda extends bitpandaRest {
         await this.authenticate (params);
         const url = this.urls['api']['ws'];
         const subscribeHash = this.safeString (params, 'channel', 'ACCOUNT_HISTORY');
-        const bpRemainingQuota = this.safeNumber (this.options, 'bp_remaining_quota', 200);
+        const bpRemainingQuota = this.safeInteger (this.options, 'bp_remaining_quota', 200);
         const subscribe = {
             'type': 'SUBSCRIBE',
             'bp_remaining_quota': bpRemainingQuota,
