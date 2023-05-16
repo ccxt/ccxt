@@ -3096,7 +3096,7 @@ export default class bybit extends Exchange {
         //                     "total": "0.001143855"
         //                 },
         //                 {
-        //                     "free": "200.00005568",
+        //                     "free": "200.00005561",
         //                     "interest": "0.0008391",
         //                     "loan": "200",
         //                     "locked": "0",
