@@ -431,6 +431,7 @@ export default class xt extends Exchange {
                     'ORDER_004': InvalidOrder, // no transaction
                     'ORDER_005': InvalidOrder, // Order not exist
                     'ORDER_006': InvalidOrder, // Too many open orders
+                    'ORDER_007': PermissionDenied, // The sub-account has no transaction authority
                     'ORDER_F0101': InvalidOrder, // Trigger Price Filter - Min
                     'ORDER_F0102': InvalidOrder, // Trigger Price Filter - Max
                     'ORDER_F0103': InvalidOrder, // Trigger Price Filter - Step Value
