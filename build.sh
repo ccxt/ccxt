@@ -12,7 +12,7 @@ fi
 ##### DETECT CHANGES #####
 rest_pattern='ts\/src\/([A-Za-z0-9_-]+).ts' # \w not working for some reason
 ws_pattern='ts\/src\/pro\/([A-Za-z0-9_-]+)\.ts'
-diff=$(git diff upstream/master --name-only) # todo change to origin here
+diff=$(git diff origin/master --name-only)
 
 readarray -t y <<<"$diff"
 
