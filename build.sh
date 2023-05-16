@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-build_all_and_exit () {
+build_all_and_test_base () {
   npm run force-build
   npm run test-base
   npm run test-base-ws
@@ -10,7 +10,7 @@ build_all_and_exit () {
 ### CHECK IF THIS IS A PR ###
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
   echo "not a PR, will build everything"
-  build_all_and_exit
+  build_all_and_test_base
 fi
 
 ##### DETECT CHANGES #####
@@ -22,7 +22,7 @@ readarray -t y <<<"$diff"
 
 REST_EXCHANGES=()
 WS_EXCHANGES=()
-test_all=false
+transpile_all=false
 for file in "${y[@]}"; do
   if [[ "$file" =~ $rest_pattern ]]; then
     modified_exchange="${BASH_REMATCH[1]}"
@@ -33,8 +33,8 @@ for file in "${y[@]}"; do
   else
     if [[ "$file" != "build.sh" && "$file" != ".travis.yml" ]]; then
       echo "detected non derived file: $file, will build all"
-      unset $test_all
-      test_all=true
+      unset $transpile_all
+      transpile_all=true
       break
     fi
   fi
@@ -42,8 +42,8 @@ done
 ##### END DETECT CHANGES #####
 
 ### RUN REGULAR BUILD SCRIPT AND EXIT IF NEEDED ###
-if [[ "$test_all" = true ]]; then
-  build_all_and_exit
+if [[ "$transpile_all" = true ]]; then
+  build_all_and_test_base
 fi
 
 ### BUILD SPECIFIC EXCHANGES ###
