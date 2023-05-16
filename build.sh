@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 
-### CHECK IF THIS IS A PR ###
-if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-  echo "not a PR, will build everything"
+build_all_and_exit () {
   npm run force-build
   npm run test-base
   npm run test-base-ws
   exit
+}
+
+### CHECK IF THIS IS A PR ###
+if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+  echo "not a PR, will build everything"
+  build_all_and_exit
 fi
 
 ##### DETECT CHANGES #####
@@ -39,8 +43,7 @@ done
 
 ### RUN REGULAR BUILD SCRIPT AND EXIT IF NEEDED ###
 if [[ "$test_all" = true ]]; then
-  npm run force-build
-  exit
+  build_all_and_exit
 fi
 
 ### BUILD SPECIFIC EXCHANGES ###
