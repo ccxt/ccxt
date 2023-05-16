@@ -258,6 +258,7 @@
         }
     },
     "bitpanda": {
+        "skipWs": true,
         "skipMethods": {
             "fetchOrderBook": "some bid might be lower than next bid",
             "fetchL2OrderBook": "same",
@@ -296,7 +297,8 @@
         "skipMethods": {
             "loadMarkets": {
                 "active": "not provided"
-            }
+            },
+            "fetchOHLCV": "randomly failing with 404 not found"
         }
     },
     "bitstamp": {

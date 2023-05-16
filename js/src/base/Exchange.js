@@ -1115,7 +1115,7 @@ export default class Exchange {
                     const first = array[0][key];
                     const last = array[arrayLength - 1][key];
                     if (first !== undefined && last !== undefined) {
-                        ascending = first < last; // true if array is sorted in ascending order based on 'timestamp'
+                        ascending = first <= last; // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
                 array = ascending ? this.arraySlice(array, -limit) : this.arraySlice(array, 0, limit);
