@@ -1386,6 +1386,7 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#withdraw
          * @description make a withdrawal
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#withdraw-v2
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -1410,7 +1411,7 @@ export default class bitget extends Exchange {
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        const response = await this.privateSpotPostWalletWithdrawal (this.extend (request, params));
+        const response = await this.privateSpotPostWalletWithdrawalV2 (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
@@ -4259,7 +4260,7 @@ export default class bitget extends Exchange {
         /**
          * @method
          * @name bitget#transfer
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#transfer
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#transfer-v2
          * @description transfer currency internally between wallets on the same account
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
@@ -4287,7 +4288,7 @@ export default class bitget extends Exchange {
             'amount': amount,
             'coin': currency['info']['coinName'],
         };
-        const response = await this.privateSpotPostWalletTransfer (this.extend (request, params));
+        const response = await this.privateSpotPostWalletTransferV2 (this.extend (request, params));
         //
         //    {
         //        "code": "00000",
