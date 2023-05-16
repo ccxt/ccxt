@@ -430,6 +430,7 @@ class xt extends Exchange {
                     'ORDER_004' => '\\ccxt\\InvalidOrder', // no transaction
                     'ORDER_005' => '\\ccxt\\InvalidOrder', // Order not exist
                     'ORDER_006' => '\\ccxt\\InvalidOrder', // Too many open orders
+                    'ORDER_007' => '\\ccxt\\PermissionDenied', // The sub-account has no transaction authority
                     'ORDER_F0101' => '\\ccxt\\InvalidOrder', // Trigger Price Filter - Min
                     'ORDER_F0102' => '\\ccxt\\InvalidOrder', // Trigger Price Filter - Max
                     'ORDER_F0103' => '\\ccxt\\InvalidOrder', // Trigger Price Filter - Step Value
@@ -3657,12 +3658,14 @@ class xt extends Exchange {
         //         "id" => 950898
         //     }
         //
+        $type = (is_array($transaction) && array_key_exists('fromAddr', $transaction)) ? 'deposit' : 'withdraw';
         $timestamp = $this->safe_integer($transaction, 'createdTime');
         $address = $this->safe_string($transaction, 'address');
         $memo = $this->safe_string($transaction, 'memo');
         $currencyCode = $this->safe_currency_code($this->safe_string($transaction, 'currency'), $currency);
         $fee = $this->safe_number($transaction, 'fee');
         $feeCurrency = ($fee !== null) ? $currencyCode : null;
+        $networkId = $this->safe_string($transaction, 'chain');
         return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'id'),
@@ -3676,10 +3679,10 @@ class xt extends Exchange {
             'tagFrom' => null,
             'tagTo' => null,
             'tag' => $memo,
-            'type' => null,
+            'type' => $type,
             'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $currencyCode,
-            'network' => $this->safe_string($transaction, 'chain'),
+            'network' => $this->network_id_to_code($networkId, $currencyCode),
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'comment' => $memo,
             'fee' => array(

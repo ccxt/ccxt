@@ -429,6 +429,7 @@ class xt extends xt$1 {
                     'ORDER_004': errors.InvalidOrder,
                     'ORDER_005': errors.InvalidOrder,
                     'ORDER_006': errors.InvalidOrder,
+                    'ORDER_007': errors.PermissionDenied,
                     'ORDER_F0101': errors.InvalidOrder,
                     'ORDER_F0102': errors.InvalidOrder,
                     'ORDER_F0103': errors.InvalidOrder,
@@ -3736,12 +3737,14 @@ class xt extends xt$1 {
         //         "id": 950898
         //     }
         //
+        const type = ('fromAddr' in transaction) ? 'deposit' : 'withdraw';
         const timestamp = this.safeInteger(transaction, 'createdTime');
         const address = this.safeString(transaction, 'address');
         const memo = this.safeString(transaction, 'memo');
         const currencyCode = this.safeCurrencyCode(this.safeString(transaction, 'currency'), currency);
         const fee = this.safeNumber(transaction, 'fee');
         const feeCurrency = (fee !== undefined) ? currencyCode : undefined;
+        const networkId = this.safeString(transaction, 'chain');
         return {
             'info': transaction,
             'id': this.safeString(transaction, 'id'),
@@ -3755,10 +3758,10 @@ class xt extends xt$1 {
             'tagFrom': undefined,
             'tagTo': undefined,
             'tag': memo,
-            'type': undefined,
+            'type': type,
             'amount': this.safeNumber(transaction, 'amount'),
             'currency': currencyCode,
-            'network': this.safeString(transaction, 'chain'),
+            'network': this.networkIdToCode(networkId, currencyCode),
             'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
             'comment': memo,
             'fee': {
