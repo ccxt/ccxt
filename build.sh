@@ -1,8 +1,17 @@
 #!/usr/bin/env bash
 
+### CHECK IF THIS IS A PR ###
+if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+  echo "not a PR, will build everything"
+  npm run force-build
+  npm run test-base
+  npm run test-base-ws
+  exit
+fi
+
 ##### DETECT CHANGES #####
 rest_pattern='ts\/src\/([A-Za-z0-9_-]+).ts' # \w not working for some reason
-ws_pattern='ts\/src\/pro\/([A-Za-z0-9_-]+)\.ts' # \w not working for some reason
+ws_pattern='ts\/src\/pro\/([A-Za-z0-9_-]+)\.ts'
 diff=$(git diff upstream/master --name-only) # todo change to origin here
 
 readarray -t y <<<"$diff"
@@ -35,8 +44,8 @@ if [[ "$test_all" = true ]]; then
 fi
 
 ### BUILD SPECIFIC EXCHANGES ###
-echo "REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[@]}"
 npm run pre-transpile
+echo "REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[@]}"
 for exchange in "${REST_EXCHANGES[@]}"; do
   node build/transpile.js $exchange --force --child
 done
