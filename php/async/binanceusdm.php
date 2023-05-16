@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\binanceusdm as binance;
 use React\Async;
 
 class binanceusdm extends binance {
@@ -39,17 +40,25 @@ class binanceusdm extends binance {
                 'marginTypes' => array(),
                 'marginModes' => array(),
             ),
+            // https://binance-docs.github.io/apidocs/futures/en/#error-codes
+            'exceptions' => array(
+                'exact' => array(
+                    '-5021' => '\\ccxt\\InvalidOrder', // array("code":-5021,"msg":"Due to the order could not be filled immediately, the FOK order has been rejected.")
+                    '-5022' => '\\ccxt\\InvalidOrder', // array("code":-5022,"msg":"Due to the order could not be executed, the Post Only order will be rejected.")
+                    '-5028' => '\\ccxt\\InvalidOrder', // array("code":-5028,"msg":"Timestamp for this request is outside of the ME recvWindow.")
+                ),
+            ),
         ));
     }
 
-    public function transfer_in($code, $amount, $params = array ()) {
+    public function transfer_in(string $code, $amount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $params) {
             // transfer from spot wallet to usdm futures wallet
             return Async\await($this->futuresTransfer ($code, $amount, 1, $params));
         }) ();
     }
 
-    public function transfer_out($code, $amount, $params = array ()) {
+    public function transfer_out(string $code, $amount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $params) {
             // transfer from usdm futures wallet to spot wallet
             return Async\await($this->futuresTransfer ($code, $amount, 2, $params));

@@ -5,9 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/novadax.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance, ArgumentsRequired, AccountNotEnabled } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { md5 } from './static_dependencies/noble-hashes/md5.js';
 //  ---------------------------------------------------------------------------
 export default class novadax extends Exchange {
     describe() {
@@ -1394,7 +1396,12 @@ export default class novadax extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'fee': undefined,
+            'comment': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': undefined,
+                'rate': undefined,
+            },
         };
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1474,7 +1481,7 @@ export default class novadax extends Exchange {
             let queryString = undefined;
             if (method === 'POST') {
                 body = this.json(query);
-                queryString = this.hash(this.encode(body), 'md5');
+                queryString = this.hash(this.encode(body), md5);
                 headers['Content-Type'] = 'application/json';
             }
             else {
@@ -1484,13 +1491,13 @@ export default class novadax extends Exchange {
                 queryString = this.urlencode(this.keysort(query));
             }
             const auth = method + "\n" + request + "\n" + queryString + "\n" + timestamp; // eslint-disable-line quotes
-            headers['X-Nova-Signature'] = this.hmac(this.encode(auth), this.encode(this.secret));
+            headers['X-Nova-Signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //     {"code":"A10003","data":[],"message":"Authentication failed, Invalid accessKey."}
@@ -1503,5 +1510,6 @@ export default class novadax extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }

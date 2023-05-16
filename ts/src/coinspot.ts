@@ -1,9 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/coinspot.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -170,7 +172,7 @@ export default class coinspot extends Exchange {
          */
         await this.loadMarkets ();
         const method = this.safeString (this.options, 'fetchBalance', 'private_post_my_balances');
-        const response = await (this as any)[method] (params);
+        const response = await this[method] (params);
         //
         // read-write api keys
         //
@@ -190,7 +192,7 @@ export default class coinspot extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinspot#fetchOrderBook
@@ -205,7 +207,7 @@ export default class coinspot extends Exchange {
         const request = {
             'cointype': market['id'],
         };
-        const orderbook = await (this as any).privatePostOrders (this.extend (request, params));
+        const orderbook = await this.privatePostOrders (this.extend (request, params));
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
@@ -245,7 +247,7 @@ export default class coinspot extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name coinspot#fetchTicker
@@ -256,7 +258,7 @@ export default class coinspot extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await (this as any).publicGetLatest (params);
+        const response = await this.publicGetLatest (params);
         let id = market['id'];
         id = id.toLowerCase ();
         const prices = this.safeValue (response, 'prices');
@@ -287,7 +289,7 @@ export default class coinspot extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetLatest (params);
+        const response = await this.publicGetLatest (params);
         //
         //    {
         //        "status": "ok",
@@ -320,7 +322,7 @@ export default class coinspot extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinspot#fetchTrades
@@ -336,7 +338,7 @@ export default class coinspot extends Exchange {
         const request = {
             'cointype': market['id'],
         };
-        const response = await (this as any).privatePostOrdersHistory (this.extend (request, params));
+        const response = await this.privatePostOrdersHistory (this.extend (request, params));
         //
         //     {
         //         "status":"ok",
@@ -385,7 +387,7 @@ export default class coinspot extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name coinspot#createOrder
@@ -413,7 +415,7 @@ export default class coinspot extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinspot#cancelOrder
@@ -444,7 +446,7 @@ export default class coinspot extends Exchange {
             headers = {
                 'Content-Type': 'application/json',
                 'key': this.apiKey,
-                'sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+                'sign': this.hmac (this.encode (body), this.encode (this.secret), sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

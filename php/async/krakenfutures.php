@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\krakenfutures as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -23,6 +24,7 @@ class krakenfutures extends Exchange {
             'version' => 'v3',
             'userAgent' => null,
             'rateLimit' => 600,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => false,
@@ -68,8 +70,8 @@ class krakenfutures extends Exchange {
             ),
             'urls' => array(
                 'test' => array(
-                    'public' => 'https://demo-futures.kraken.com/derivatives',
-                    'private' => 'https://demo-futures.kraken.com/derivatives',
+                    'public' => 'https://demo-futures.kraken.com/derivatives/api/',
+                    'private' => 'https://demo-futures.kraken.com/derivatives/api/',
                     'www' => 'https://demo-futures.kraken.com',
                 ),
                 'logo' => 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -299,7 +301,7 @@ class krakenfutures extends Exchange {
                 $symbol = $id;
                 $split = explode('_', $id);
                 $splitMarket = $this->safe_string($split, 1);
-                $baseId = str_replace('usd', '', $splitMarket);
+                $baseId = mb_substr($splitMarket, 0, strlen($splitMarket) - 3 - 0);
                 $quoteId = 'usd'; // always USD
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
@@ -308,8 +310,9 @@ class krakenfutures extends Exchange {
                 $settleId = null;
                 $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'contractValueTradePrecision', '0')));
                 $pricePrecision = $this->safe_number($market, 'tickSize');
-                $contract = ($swap || $future);
-                if ($contract) {
+                $contract = ($swap || $future || $index);
+                $swapOrFutures = ($swap || $future);
+                if ($swapOrFutures) {
                     $exchangeType = $this->safe_string($market, 'type');
                     if ($exchangeType === 'futures_inverse') {
                         $settle = $base;
@@ -393,7 +396,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * Fetches a list of open orders in a $market
@@ -443,7 +446,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetTickers ($params));
@@ -555,7 +558,7 @@ class krakenfutures extends Exchange {
         ));
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -626,7 +629,7 @@ class krakenfutures extends Exchange {
         );
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @descriptions Fetch a $history of filled trades that this account has made
@@ -794,7 +797,7 @@ class krakenfutures extends Exchange {
         ));
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * Create an order on the exchange
@@ -808,19 +811,23 @@ class krakenfutures extends Exchange {
              * @param {bool|null} $params->postOnly Set if you wish to make a $postOnly order, Default false
              * @param {string|null} $params->triggerSignal If placing a stp or take_profit, the signal used for trigger, One of => 'mark', 'index', 'last', last is market $price
              * @param {string|null} $params->cliOrdId UUID The order identity that is specified from the user, It must be globally unique
+             * @param {string|null} $params->clientOrderId UUID The order identity that is specified from the user, It must be globally unique
              */
             Async\await($this->load_markets());
             $type = $this->safe_string($params, 'orderType', $type);
             $timeInForce = $this->safe_string($params, 'timeInForce');
             $stopPrice = $this->safe_string($params, 'stopPrice');
-            $postOnly = $this->safe_string($params, 'postOnly');
+            $postOnly = false;
+            list($postOnly, $params) = $this->handle_post_only($type === 'market', $type === 'post', $params);
+            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'cliOrdId');
+            $params = $this->omit($params, array( 'clientOrderId', 'cliOrdId' ));
             if (($type === 'stp' || $type === 'take_profit') && $stopPrice === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder requires $params->stopPrice when $type is ' . $type);
             }
-            if ($stopPrice !== null) {
+            if ($stopPrice !== null && $type !== 'take_profit') {
                 $type = 'stp';
             } elseif ($postOnly) {
-                $type = 'postOnly';
+                $type = 'post';
             } elseif ($timeInForce === 'ioc') {
                 $type = 'ioc';
             } elseif ($type === 'limit') {
@@ -836,6 +843,9 @@ class krakenfutures extends Exchange {
             );
             if ($price !== null) {
                 $request['limitPrice'] = $price;
+            }
+            if ($clientOrderId !== null) {
+                $request['cliOrdId'] = $clientOrderId;
             }
             $response = Async\await($this->privatePostSendorder (array_merge($request, $params)));
             //
@@ -875,7 +885,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * Edit an open $order on the exchange
@@ -906,7 +916,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * @param {string} $id Order $id
@@ -926,7 +936,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * Cancels all orders on the exchange, including trigger orders
@@ -943,7 +953,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * Gets all open $orders, including trigger $orders, for an account from the exchange api
@@ -1339,7 +1349,7 @@ class krakenfutures extends Exchange {
         ));
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = null;
@@ -1594,7 +1604,7 @@ class krakenfutures extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             $this->check_required_symbol('fetchFundingRateHistory', $symbol);
             Async\await($this->load_markets());
@@ -1636,7 +1646,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * Fetches current contract trading positions
@@ -1668,7 +1678,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function parse_positions($response, $symbols = null, $params = array ()) {
+    public function parse_positions($response, ?array $symbols = null, $params = array ()) {
         $result = array();
         $positions = $this->safe_value($response, 'openPositions');
         for ($i = 0; $i < count($positions); $i++) {
@@ -1734,7 +1744,7 @@ class krakenfutures extends Exchange {
         );
     }
 
-    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetInstruments ($params));
@@ -1902,7 +1912,7 @@ class krakenfutures extends Exchange {
         }
     }
 
-    public function transfer_out($code, $amount, $params = array ()) {
+    public function transfer_out(string $code, $amount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * transfer from futures wallet to spot wallet
@@ -1915,7 +1925,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfers currencies between sub-accounts
@@ -1930,7 +1940,7 @@ class krakenfutures extends Exchange {
             $currency = $this->currency($code);
             $method = 'privatePostTransfer';
             $request = array(
-                'amount' => $this->currency_to_precision($code, $amount),
+                'amount' => $amount,
             );
             if ($fromAccount === 'spot') {
                 throw new BadRequest($this->id . ' $transfer does not yet support transfers from spot');
@@ -1964,14 +1974,14 @@ class krakenfutures extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         if ($code === 429) {
             throw new DDoSProtection($this->id . ' ' . $body);
         }
         $message = $this->safe_string($response, 'error');
         if ($message === null) {
-            return;
+            return null;
         }
         $feedback = $this->id . ' ' . $body;
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
@@ -2001,7 +2011,11 @@ class krakenfutures extends Exchange {
         }
         $url = $this->urls['api'][$api] . $query;
         if ($api === 'private' || $access === 'private') {
-            $auth = $postData . '/api/' . $endpoint; // 1
+            $auth = $postData . '/api/';
+            if ($api !== 'private') {
+                $auth .= $api . '/';
+            }
+            $auth .= $endpoint; // 1
             $hash = $this->hash($this->encode($auth), 'sha256', 'binary'); // 2
             $secret = base64_decode($this->secret); // 3
             $signature = $this->hmac($hash, $secret, 'sha512', 'base64'); // 4-5

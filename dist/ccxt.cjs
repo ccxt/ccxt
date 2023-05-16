@@ -1,4 +1,4 @@
-const ccxt = require('./ccxt.bundle.cjs');
+const ccxt = require('./cjs/ccxt.js');
 
 // this is needed because we use default and named exports
 // in the esm version

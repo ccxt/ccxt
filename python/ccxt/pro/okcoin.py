@@ -6,6 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.async_support.base.ws.client import Client
+from typing import Optional
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AuthenticationError
 
@@ -66,7 +68,7 @@ class okcoin(ccxt.async_support.okcoin):
         }
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -80,9 +82,9 @@ class okcoin(ccxt.async_support.okcoin):
         trades = await self.subscribe('trade', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -99,9 +101,9 @@ class okcoin(ccxt.async_support.okcoin):
         trades = await self.subscribe(orderType, symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
-    def handle_orders(self, client, message, subscription=None):
+    def handle_orders(self, client: Client, message, subscription=None):
         #
         # {
         #     table: 'spot/order',
@@ -160,7 +162,7 @@ class okcoin(ccxt.async_support.okcoin):
                 messageHash = table + ':' + keys[i]
                 client.resolve(self.orders, messageHash)
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -169,7 +171,7 @@ class okcoin(ccxt.async_support.okcoin):
         """
         return await self.subscribe('ticker', symbol, params)
 
-    def handle_trade(self, client, message):
+    def handle_trade(self, client: Client, message):
         #
         #     {
         #         table: 'spot/trade',
@@ -201,7 +203,7 @@ class okcoin(ccxt.async_support.okcoin):
             client.resolve(stored, messageHash)
         return message
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         table: 'spot/ticker',
@@ -235,7 +237,7 @@ class okcoin(ccxt.async_support.okcoin):
             client.resolve(ticker, messageHash)
         return message
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -252,9 +254,9 @@ class okcoin(ccxt.async_support.okcoin):
         ohlcv = await self.subscribe(name, symbol, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         table: "spot/candle60s",
@@ -297,7 +299,7 @@ class okcoin(ccxt.async_support.okcoin):
             messageHash = table + ':' + marketId
             client.resolve(stored, messageHash)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -319,7 +321,7 @@ class okcoin(ccxt.async_support.okcoin):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book_message(self, client, message, orderbook):
+    def handle_order_book_message(self, client: Client, message, orderbook):
         #
         #     {
         #         instrument_id: "BTC-USDT",
@@ -346,7 +348,7 @@ class okcoin(ccxt.async_support.okcoin):
         orderbook['datetime'] = self.iso8601(timestamp)
         return orderbook
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         # first message(snapshot)
         #
@@ -506,7 +508,7 @@ class okcoin(ccxt.async_support.okcoin):
         query = self.omit(params, ['currency', 'code', 'instrument_id', 'symbol', 'type'])
         return await self.watch(url, messageHash, self.deep_extend(request, query), subscriptionHash)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         # spot
         #
@@ -555,7 +557,7 @@ class okcoin(ccxt.async_support.okcoin):
             self.balance[type] = self.safe_balance(newBalance)
             client.resolve(self.balance[type], table)
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         #     {"event":"subscribe","channel":"spot/depth:BTC-USDT"}
         #
@@ -563,7 +565,7 @@ class okcoin(ccxt.async_support.okcoin):
         # client.subscriptions[channel] = message
         return message
 
-    def handle_authenticate(self, client, message):
+    def handle_authenticate(self, client: Client, message):
         #
         #     {event: 'login', success: True}
         #
@@ -575,11 +577,11 @@ class okcoin(ccxt.async_support.okcoin):
         # instead it requires custom text-based ping-pong
         return 'ping'
 
-    def handle_pong(self, client, message):
+    def handle_pong(self, client: Client, message):
         client.lastPong = self.milliseconds()
         return message
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         #
         #     {event: 'error', message: 'Invalid sign', errorCode: 30013}
         #     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
@@ -602,7 +604,7 @@ class okcoin(ccxt.async_support.okcoin):
                 return False
         return message
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         if not self.handle_error_message(client, message):
             return
         #

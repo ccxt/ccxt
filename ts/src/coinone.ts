@@ -1,10 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/coinone.js';
 import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -143,7 +145,7 @@ export default class coinone extends Exchange {
         const request = {
             'currency': 'all',
         };
-        const response = await (this as any).publicGetTicker (request);
+        const response = await this.publicGetTicker (request);
         //
         //    {
         //        "result": "success",
@@ -259,11 +261,11 @@ export default class coinone extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostAccountBalance (params);
+        const response = await this.privatePostAccountBalance (params);
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchOrderBook
@@ -279,7 +281,7 @@ export default class coinone extends Exchange {
             'currency': market['id'],
             'format': 'json',
         };
-        const response = await (this as any).publicGetOrderbook (this.extend (request, params));
+        const response = await this.publicGetOrderbook (this.extend (request, params));
         const timestamp = this.safeTimestamp (response, 'timestamp');
         return this.parseOrderBook (response, market['symbol'], timestamp, 'bid', 'ask', 'price', 'qty');
     }
@@ -299,7 +301,7 @@ export default class coinone extends Exchange {
             'currency': 'all',
             'format': 'json',
         };
-        const response = await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
         const result = {};
         const ids = Object.keys (response);
         const timestamp = this.safeTimestamp (response, 'timestamp');
@@ -314,7 +316,7 @@ export default class coinone extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name coinone#fetchTicker
@@ -329,7 +331,7 @@ export default class coinone extends Exchange {
             'currency': market['id'],
             'format': 'json',
         };
-        const response = await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
         return this.parseTicker (response, market);
     }
 
@@ -451,7 +453,7 @@ export default class coinone extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchTrades
@@ -468,7 +470,7 @@ export default class coinone extends Exchange {
             'currency': market['id'],
             'format': 'json',
         };
-        const response = await (this as any).publicGetTrades (this.extend (request, params));
+        const response = await this.publicGetTrades (this.extend (request, params));
         //
         //     {
         //         "result": "success",
@@ -489,7 +491,7 @@ export default class coinone extends Exchange {
         return this.parseTrades (completeOrders, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name coinone#createOrder
@@ -515,7 +517,7 @@ export default class coinone extends Exchange {
             'qty': amount,
         };
         const method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
-        const response = await (this as any)[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "result": "success",
@@ -526,7 +528,7 @@ export default class coinone extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchOrder
@@ -544,7 +546,7 @@ export default class coinone extends Exchange {
             'order_id': id,
             'currency': market['id'],
         };
-        const response = await (this as any).privatePostOrderOrderInfo (this.extend (request, params));
+        const response = await this.privatePostOrderOrderInfo (this.extend (request, params));
         //
         //     {
         //         "result": "success",
@@ -675,7 +677,7 @@ export default class coinone extends Exchange {
         }, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchOpenOrders
@@ -696,7 +698,7 @@ export default class coinone extends Exchange {
         const request = {
             'currency': market['id'],
         };
-        const response = await (this as any).privatePostOrderLimitOrders (this.extend (request, params));
+        const response = await this.privatePostOrderLimitOrders (this.extend (request, params));
         //
         //     {
         //         "result": "success",
@@ -718,7 +720,7 @@ export default class coinone extends Exchange {
         return this.parseOrders (limitOrders, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchMyTrades
@@ -737,7 +739,7 @@ export default class coinone extends Exchange {
         const request = {
             'currency': market['id'],
         };
-        const response = await (this as any).privatePostOrderCompleteOrders (this.extend (request, params));
+        const response = await this.privatePostOrderCompleteOrders (this.extend (request, params));
         //
         // despite the name of the endpoint it returns trades which may have a duplicate orderId
         // https://github.com/ccxt/ccxt/pull/7067
@@ -762,7 +764,7 @@ export default class coinone extends Exchange {
         return this.parseTrades (completeOrders, market, since, limit);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinone#cancelOrder
@@ -791,7 +793,7 @@ export default class coinone extends Exchange {
             'is_ask': isAsk,
             'currency': this.marketId (symbol),
         };
-        const response = await (this as any).privatePostOrderCancel (this.extend (request, params));
+        const response = await this.privatePostOrderCancel (this.extend (request, params));
         //
         //     {
         //         "result": "success",
@@ -811,7 +813,7 @@ export default class coinone extends Exchange {
          * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostAccountDepositAddress (params);
+        const response = await this.privatePostAccountDepositAddress (params);
         //
         //     {
         //         result: 'success',
@@ -879,9 +881,9 @@ export default class coinone extends Exchange {
                 'nonce': nonce,
             }, params));
             const payload = this.stringToBase64 (json);
-            body = this.decode (payload);
+            body = payload;
             const secret = this.secret.toUpperCase ();
-            const signature = this.hmac (payload, this.encode (secret), 'sha512');
+            const signature = this.hmac (payload, this.encode (secret), sha512);
             headers = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,
@@ -893,7 +895,7 @@ export default class coinone extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if ('result' in response) {
             const result = response['result'];
@@ -909,5 +911,6 @@ export default class coinone extends Exchange {
         } else {
             throw new ExchangeError (this.id + ' ' + body);
         }
+        return undefined;
     }
 }

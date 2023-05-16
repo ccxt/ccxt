@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/cex.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class cex extends Exchange {
     describe() {
@@ -560,6 +561,7 @@ export default class cex extends Exchange {
                 return [];
             }
         }
+        return undefined;
     }
     parseTicker(ticker, market = undefined) {
         const timestamp = this.safeTimestamp(ticker, 'timestamp');
@@ -876,7 +878,7 @@ export default class cex extends Exchange {
                 feeRate = this.safeNumber(order, 'tradingFeeTaker', feeRate);
             }
             if (feeRate) {
-                feeRate /= 100.0; // convert to mathematically-correct percentage coefficients: 1.0 = 100%
+                feeRate = feeRate / 100.0; // convert to mathematically-correct percentage coefficients: 1.0 = 100%
             }
             if ((baseFee in order) || (baseTakerFee in order)) {
                 const baseFeeCost = this.safeNumber2(order, baseFee, baseTakerFee);
@@ -1411,7 +1413,7 @@ export default class cex extends Exchange {
             const quoteId = this.safeString(order, 'symbol2');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
-            const symbol = base + '/' + quote;
+            const symbolInner = base + '/' + quote;
             const side = this.safeString(order, 'type');
             const baseAmount = this.safeNumber(order, 'a:' + baseId + ':cds');
             const quoteAmount = this.safeNumber(order, 'a:' + quoteId + ':cds');
@@ -1454,7 +1456,7 @@ export default class cex extends Exchange {
                 'datetime': this.iso8601(timestamp),
                 'lastUpdated': this.parse8601(lastTxTime),
                 'status': status,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'side': side,
                 'price': price,
                 'amount': orderAmount,
@@ -1562,7 +1564,7 @@ export default class cex extends Exchange {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             const auth = nonce + this.uid + this.apiKey;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             body = this.json(this.extend({
                 'key': this.apiKey,
                 'signature': signature.toUpperCase(),
@@ -1579,7 +1581,7 @@ export default class cex extends Exchange {
             return response; // public endpoints may return []-arrays
         }
         if (body === 'true') {
-            return;
+            return undefined;
         }
         if (response === undefined) {
             throw new NullResponse(this.id + ' returned ' + this.json(response));
@@ -1587,7 +1589,7 @@ export default class cex extends Exchange {
         if ('e' in response) {
             if ('ok' in response) {
                 if (response['ok'] === 'ok') {
-                    return;
+                    return undefined;
                 }
             }
         }
@@ -1598,5 +1600,6 @@ export default class cex extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new ExchangeError(feedback);
         }
+        return undefined;
     }
 }

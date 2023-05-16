@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/woo.js';
 import { ArgumentsRequired, AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ---------------------------------------------------------------------------
 export default class woo extends Exchange {
     describe() {
@@ -143,6 +144,8 @@ export default class woo extends Exchange {
                             'funding_rate_history': 1,
                             'futures': 1,
                             'futures/{symbol}': 1,
+                            'orderbook/{symbol}': 1,
+                            'kline': 1,
                         },
                     },
                     'private': {
@@ -151,8 +154,6 @@ export default class woo extends Exchange {
                             'order/{oid}': 1,
                             'client/order/{client_order_id}': 1,
                             'orders': 1,
-                            'orderbook/{symbol}': 1,
-                            'kline': 1,
                             'client/trade/{tid}': 1,
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
@@ -207,9 +208,9 @@ export default class woo extends Exchange {
                         },
                         'put': {
                             'order/{oid}': 2,
-                            'order/client/{oid}': 2,
+                            'order/client/{client_order_id}': 2,
                             'algo/order/{oid}': 2,
-                            'algo/order/client/{oid}': 2,
+                            'algo/order/client/{client_order_id}': 2,
                         },
                         'delete': {
                             'algo/order/{oid}': 1,
@@ -331,7 +332,10 @@ export default class woo extends Exchange {
             let symbol = base + '/' + quote;
             let contractSize = undefined;
             let linear = undefined;
-            if (isSwap) {
+            let margin = true;
+            const contract = isSwap;
+            if (contract) {
+                margin = false;
                 settleId = this.safeString(parts, 2);
                 settle = this.safeCurrencyCode(settleId);
                 symbol = base + '/' + quote + ':' + settle;
@@ -350,12 +354,12 @@ export default class woo extends Exchange {
                 'settleId': settleId,
                 'type': marketType,
                 'spot': isSpot,
-                'margin': true,
+                'margin': margin,
                 'swap': isSwap,
                 'future': false,
                 'option': false,
                 'active': undefined,
-                'contract': isSwap,
+                'contract': contract,
                 'linear': linear,
                 'inverse': undefined,
                 'contractSize': contractSize,
@@ -823,9 +827,8 @@ export default class woo extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'oid': id,
-            // 'quantity': this.amountToPrecision (symbol, amount),
-            // 'price': this.priceToPrecision (symbol, price),
+        // 'quantity': this.amountToPrecision (symbol, amount),
+        // 'price': this.priceToPrecision (symbol, price),
         };
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(symbol, price);
@@ -833,7 +836,20 @@ export default class woo extends Exchange {
         if (amount !== undefined) {
             request['quantity'] = this.amountToPrecision(symbol, amount);
         }
-        const response = await this.v3PrivatePutOrderOid(this.extend(request, params));
+        const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
+        const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
+        const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
+        let method = undefined;
+        if (isByClientOrder) {
+            method = 'v3PrivatePutOrderClientClientOrderId';
+            request['client_order_id'] = clientOrderIdExchangeSpecific;
+            params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
+        }
+        else {
+            method = 'v3PrivatePutOrderOid';
+            request['oid'] = id;
+        }
+        const response = await this[method](this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -865,13 +881,16 @@ export default class woo extends Exchange {
         await this.loadMarkets();
         const request = {};
         const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
-        const clientOrderIdExchangeSpecific = this.safeString2(params, 'client_order_id', clientOrderIdUnified);
+        const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
+        let method = undefined;
         if (isByClientOrder) {
+            method = 'v1PrivateDeleteClientOrder';
             request['client_order_id'] = clientOrderIdExchangeSpecific;
             params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         }
         else {
+            method = 'v1PrivateDeleteOrder';
             request['order_id'] = id;
         }
         let market = undefined;
@@ -879,7 +898,7 @@ export default class woo extends Exchange {
             market = this.market(symbol);
         }
         request['symbol'] = market['id'];
-        const response = await this.v1PrivateDeleteOrder(this.extend(request, params));
+        const response = await this[method](this.extend(request, params));
         //
         // { success: true, status: 'CANCEL_SENT' }
         //
@@ -1133,7 +1152,7 @@ export default class woo extends Exchange {
             limit = Math.min(limit, 1000);
             request['max_level'] = limit;
         }
-        const response = await this.v1PrivateGetOrderbookSymbol(this.extend(request, params));
+        const response = await this.v1PublicGetOrderbookSymbol(this.extend(request, params));
         //
         // {
         //   success: true,
@@ -1174,7 +1193,7 @@ export default class woo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const response = await this.v1PrivateGetKline(this.extend(request, params));
+        const response = await this.v1PublicGetKline(this.extend(request, params));
         // {
         //     success: true,
         //     rows: [
@@ -1636,6 +1655,7 @@ export default class woo extends Exchange {
         const addressFrom = this.safeString(transaction, 'source_address');
         const timestamp = this.safeTimestamp(transaction, 'created_time');
         return {
+            'info': transaction,
             'id': this.safeString2(transaction, 'id', 'withdraw_id'),
             'txid': this.safeString(transaction, 'tx_id'),
             'timestamp': timestamp,
@@ -1644,13 +1664,15 @@ export default class woo extends Exchange {
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'tag': this.safeString(transaction, 'extra'),
+            'tagFrom': undefined,
+            'tagTo': undefined,
             'type': movementDirection,
             'amount': this.safeNumber(transaction, 'amount'),
             'currency': code,
             'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
             'updated': this.safeTimestamp(transaction, 'updated_time'),
+            'comment': undefined,
             'fee': fee,
-            'info': transaction,
         };
     }
     parseTransactionStatus(status) {
@@ -1935,13 +1957,13 @@ export default class woo extends Exchange {
                 auth += '|' + ts;
                 headers['content-type'] = 'application/x-www-form-urlencoded';
             }
-            headers['x-api-signature'] = this.hmac(this.encode(auth), this.encode(this.secret), 'sha256');
+            headers['x-api-signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
@@ -1953,6 +1975,7 @@ export default class woo extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         }
+        return undefined;
     }
     parseIncome(income, market = undefined) {
         //
@@ -2290,12 +2313,13 @@ export default class woo extends Exchange {
         const unrealisedPnl = Precise.stringMul(priceDifference, size);
         size = Precise.stringAbs(size);
         const notional = Precise.stringMul(size, markPrice);
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMargin': undefined,
@@ -2309,12 +2333,13 @@ export default class woo extends Exchange {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber(position, 'estLiqPrice'),
             'markPrice': this.parseNumber(markPrice),
+            'lastPrice': undefined,
             'collateral': undefined,
             'marginMode': 'cross',
             'marginType': undefined,
             'side': side,
             'percentage': undefined,
-        };
+        });
     }
     defaultNetworkCodeForCurrency(code) {
         const currencyItem = this.currency(code);

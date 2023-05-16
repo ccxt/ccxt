@@ -5,10 +5,12 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/deribit.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import totp from './base/functions/totp.js';
 //  ---------------------------------------------------------------------------
 export default class deribit extends Exchange {
     describe() {
@@ -633,6 +635,8 @@ export default class deribit extends Exchange {
             const instrumentsResult = this.safeValue(instrumentsResponse, 'result', []);
             for (let k = 0; k < instrumentsResult.length; k++) {
                 const market = instrumentsResult[k];
+                const kind = this.safeString(market, 'kind');
+                const isSpot = (kind === 'spot');
                 const id = this.safeString(market, 'instrument_name');
                 const baseId = this.safeString(market, 'base_currency');
                 const quoteId = this.safeString(market, 'counter_currency');
@@ -640,7 +644,6 @@ export default class deribit extends Exchange {
                 const base = this.safeCurrencyCode(baseId);
                 const quote = this.safeCurrencyCode(quoteId);
                 const settle = this.safeCurrencyCode(settleId);
-                const kind = this.safeString(market, 'kind');
                 const settlementPeriod = this.safeValue(market, 'settlement_period');
                 const swap = (settlementPeriod === 'perpetual');
                 const future = !swap && (kind.indexOf('future') >= 0);
@@ -657,7 +660,13 @@ export default class deribit extends Exchange {
                 else if (option) {
                     type = 'option';
                 }
-                if (!isComboMarket) {
+                else if (isSpot) {
+                    type = 'spot';
+                }
+                if (isSpot) {
+                    symbol = base + '/' + quote;
+                }
+                else if (!isComboMarket) {
                     symbol = base + '/' + quote + ':' + settle;
                     if (option || future) {
                         symbol = symbol + '-' + this.yymmdd(expiry, '');
@@ -681,13 +690,13 @@ export default class deribit extends Exchange {
                     'quoteId': quoteId,
                     'settleId': settleId,
                     'type': type,
-                    'spot': false,
+                    'spot': isSpot,
                     'margin': false,
                     'swap': swap,
                     'future': future,
                     'option': option,
                     'active': this.safeValue(market, 'is_active'),
-                    'contract': true,
+                    'contract': !isSpot,
                     'linear': (settle === quote),
                     'inverse': (settle !== quote),
                     'taker': this.safeNumber(market, 'taker_commission'),
@@ -2255,14 +2264,14 @@ export default class deribit extends Exchange {
         const initialMarginString = this.safeString(position, 'initial_margin');
         const notionalString = this.safeString(position, 'size_currency');
         const maintenanceMarginString = this.safeString(position, 'maintenance_margin');
-        const percentage = Precise.stringMul(Precise.stringDiv(unrealizedPnl, initialMarginString), '100');
         const currentTime = this.milliseconds();
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': currentTime,
             'datetime': this.iso8601(currentTime),
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(Precise.stringMul(Precise.stringDiv(initialMarginString, notionalString), '100')),
             'maintenanceMargin': this.parseNumber(maintenanceMarginString),
@@ -2276,11 +2285,12 @@ export default class deribit extends Exchange {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber(position, 'estimated_liquidation_price'),
             'markPrice': this.safeNumber(position, 'mark_price'),
+            'lastPrice': undefined,
             'collateral': undefined,
             'marginMode': undefined,
             'side': side,
-            'percentage': this.parseNumber(percentage),
-        };
+            'percentage': undefined,
+        });
     }
     async fetchPosition(symbol, params = {}) {
         /**
@@ -2597,7 +2607,7 @@ export default class deribit extends Exchange {
             // 'tfa': '123456', // if enabled
         };
         if (this.twofa !== undefined) {
-            request['tfa'] = this.oath();
+            request['tfa'] = totp(this.twofa);
         }
         const response = await this.privateGetWithdraw(this.extend(request, params));
         return this.parseTransaction(response, currency);
@@ -2622,7 +2632,7 @@ export default class deribit extends Exchange {
             }
             const requestData = method + "\n" + request + "\n" + requestBody + "\n"; // eslint-disable-line quotes
             const auth = timestamp + "\n" + nonce + "\n" + requestData; // eslint-disable-line quotes
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha256');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             headers = {
                 'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
             };
@@ -2632,7 +2642,7 @@ export default class deribit extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {
@@ -2655,5 +2665,6 @@ export default class deribit extends Exchange {
             this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }

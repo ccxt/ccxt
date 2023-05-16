@@ -4,7 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.btcbox import ImplicitAPI
+import hashlib
 import json
+from ccxt.base.types import OrderSide
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
@@ -17,7 +21,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class btcbox(Exchange):
+class btcbox(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(btcbox, self).describe(), {
@@ -150,7 +154,7 @@ class btcbox(Exchange):
         response = await self.privatePostBalance(params)
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -194,7 +198,7 @@ class btcbox(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -245,7 +249,7 @@ class btcbox(Exchange):
             'fee': None,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -274,7 +278,7 @@ class btcbox(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -302,7 +306,7 @@ class btcbox(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -391,7 +395,7 @@ class btcbox(Exchange):
             'average': None,
         }, market)
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -422,7 +426,7 @@ class btcbox(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def fetch_orders_by_type(self, type, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders_by_type(self, type, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         # a special case for btcbox – default symbol is BTC/JPY
         if symbol is None:
@@ -453,7 +457,7 @@ class btcbox(Exchange):
                 orders[i]['status'] = 'open'
         return orders
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -464,7 +468,7 @@ class btcbox(Exchange):
         """
         return await self.fetch_orders_by_type('all', symbol, since, limit, params)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -491,8 +495,8 @@ class btcbox(Exchange):
                 'nonce': nonce,
             }, params)
             request = self.urlencode(query)
-            secret = self.hash(self.encode(self.secret))
-            query['signature'] = self.hmac(self.encode(request), self.encode(secret))
+            secret = self.hash(self.encode(self.secret), 'sha256')
+            query['signature'] = self.hmac(self.encode(request), self.encode(secret), hashlib.sha256)
             body = self.urlencode(query)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -501,20 +505,20 @@ class btcbox(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # resort to defaultErrorHandler
+            return None  # resort to defaultErrorHandler
         # typical error response: {"result":false,"code":"401"}
         if httpCode >= 400:
-            return  # resort to defaultErrorHandler
+            return None  # resort to defaultErrorHandler
         result = self.safe_value(response, 'result')
         if result is None or result is True:
-            return  # either public API(no error codes expected) or success
+            return None  # either public API(no error codes expected) or success
         code = self.safe_value(response, 'code')
         feedback = self.id + ' ' + body
         self.throw_exactly_matched_exception(self.exceptions, code, feedback)
         raise ExchangeError(feedback)  # unknown message
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
-        response = await self.fetch2(path, api, method, params, headers, body, config, context)
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}):
+        response = await self.fetch2(path, api, method, params, headers, body, config)
         if isinstance(response, str):
             # sometimes the exchange returns whitespace prepended to json
             response = self.strip(response)

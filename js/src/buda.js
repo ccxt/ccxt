@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/buda.js';
 import { AddressPending, AuthenticationError, ExchangeError, NotSupported, PermissionDenied, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 export default class buda extends Exchange {
     describe() {
@@ -755,12 +756,12 @@ export default class buda extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
-        side = (side === 'buy') ? 'Bid' : 'Ask';
+        const requestSide = (side === 'buy') ? 'Bid' : 'Ask';
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
             'price_type': type,
-            'type': side,
+            'type': requestSide,
             'amount': this.amountToPrecision(symbol, amount),
         };
         if (type === 'limit') {
@@ -910,9 +911,9 @@ export default class buda extends Exchange {
         for (let i = 1; i < receiveAddresses.length; i++) {
             const receiveAddress = receiveAddresses[i];
             if (receiveAddress['ready']) {
-                const address = receiveAddress['address'];
-                this.checkAddress(address);
-                addressPool.push(address);
+                const addressInner = receiveAddress['address'];
+                this.checkAddress(addressInner);
+                addressPool.push(addressInner);
             }
         }
         const addressPoolLength = addressPool.length;
@@ -1098,11 +1099,11 @@ export default class buda extends Exchange {
             const components = [method, '/api/' + this.version + '/' + request];
             if (body) {
                 const base64Body = this.stringToBase64(body);
-                components.push(this.decode(base64Body));
+                components.push(base64Body);
             }
             components.push(nonce);
             const message = components.join(' ');
-            const signature = this.hmac(this.encode(message), this.encode(this.secret), 'sha384');
+            const signature = this.hmac(this.encode(message), this.encode(this.secret), sha384);
             headers = {
                 'X-SBTC-APIKEY': this.apiKey,
                 'X-SBTC-SIGNATURE': signature,
@@ -1114,7 +1115,7 @@ export default class buda extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if (code >= 400) {
             const errorCode = this.safeString(response, 'code');
@@ -1125,5 +1126,6 @@ export default class buda extends Exchange {
                 throw new ExchangeError(feedback);
             }
         }
+        return undefined;
     }
 }

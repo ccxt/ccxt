@@ -5,9 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bkex.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ---------------------------------------------------------------------------
 export default class bkex extends Exchange {
     describe() {
@@ -1798,11 +1799,11 @@ export default class bkex extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = this.safeString(entry, 'symbol');
-            const symbol = this.safeSymbol(marketId);
+            const symbolInner = this.safeSymbol(marketId);
             const timestamp = this.safeInteger(entry, 'time');
             rates.push({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': this.safeNumber(entry, 'rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
@@ -1848,7 +1849,7 @@ export default class bkex extends Exchange {
         const data = this.safeValue(response, 'data', []);
         return this.parseMarketLeverageTiers(data, market);
     }
-    parseMarketLeverageTiers(info, market) {
+    parseMarketLeverageTiers(info, market = undefined) {
         //
         //     [
         //         {
@@ -1892,7 +1893,7 @@ export default class bkex extends Exchange {
         }
         if (signed) {
             this.checkRequiredCredentials();
-            const signature = this.hmac(this.encode(paramsSortedEncoded), this.encode(this.secret), 'sha256');
+            const signature = this.hmac(this.encode(paramsSortedEncoded), this.encode(this.secret), sha256);
             headers = {
                 'Cache-Control': 'no-cache',
                 'Content-type': 'application/x-www-form-urlencoded',
@@ -1907,7 +1908,7 @@ export default class bkex extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         // success
@@ -1941,7 +1942,7 @@ export default class bkex extends Exchange {
         //
         const message = this.safeValue(response, 'msg');
         if (message === 'success') {
-            return;
+            return undefined;
         }
         const responseCode = this.safeString(response, 'code');
         if (responseCode !== '0') {
@@ -1950,5 +1951,6 @@ export default class bkex extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             throw new ExchangeError(feedback);
         }
+        return undefined;
     }
 }

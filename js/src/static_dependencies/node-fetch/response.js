@@ -119,7 +119,10 @@ export default class Response extends Body {
         if (!headers.has('content-type')) {
             headers.set('content-type', 'application/json');
         }
-        return new Response(body, Object.assign(Object.assign({}, init), { headers }));
+        return new Response(body, {
+            ...init,
+            headers
+        });
     }
     get [Symbol.toStringTag]() {
         return 'Response';

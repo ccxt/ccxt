@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bit2c.js';
 import { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported, OrderNotFound } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 export default class bit2c extends Exchange {
     describe() {
@@ -867,7 +868,7 @@ export default class bit2c extends Exchange {
             else {
                 body = auth;
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha512', 'base64');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512, 'base64');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,
@@ -878,7 +879,7 @@ export default class bit2c extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     { "error" : "please approve new terms of use on site." }
@@ -895,5 +896,6 @@ export default class bit2c extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], error, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }

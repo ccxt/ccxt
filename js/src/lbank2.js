@@ -5,10 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/lbank2.js';
 import { ExchangeError, InvalidAddress, DuplicateOrderId, ArgumentsRequired, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
+import { md5 } from './static_dependencies/noble-hashes/md5.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { rsa } from './base/functions/rsa.js';
 //  ---------------------------------------------------------------------------
 export default class lbank2 extends Exchange {
     describe() {
@@ -306,6 +309,8 @@ export default class lbank2 extends Exchange {
                 '3s': true,
                 '5s': true,
             };
+            const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityAccuracy')));
+            const contractSize = amountPrecision;
             const ending = baseId.slice(-2);
             const isLeveragedProduct = this.safeValue(productTypes, ending, false);
             if (isLeveragedProduct) {
@@ -334,13 +339,13 @@ export default class lbank2 extends Exchange {
                 'contract': isLeveragedProduct,
                 'linear': linear,
                 'inverse': undefined,
-                'contractSize': undefined,
+                'contractSize': isLeveragedProduct ? contractSize : undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityAccuracy'))),
+                    'amount': amountPrecision,
                     'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'priceAccuracy'))),
                 },
                 'limits': {
@@ -821,11 +826,11 @@ export default class lbank2 extends Exchange {
             for (let i = 0; i < balances.length; i++) {
                 const item = balances[i];
                 const currencyId = this.safeString(item, 'asset');
-                const code = this.safeCurrencyCode(currencyId);
+                const codeInner = this.safeCurrencyCode(currencyId);
                 const account = this.account();
                 account['free'] = this.safeString(item, 'free');
                 account['used'] = this.safeString(item, 'locked');
-                result[code] = account;
+                result[codeInner] = account;
             }
             return this.safeBalance(result);
         }
@@ -835,14 +840,15 @@ export default class lbank2 extends Exchange {
             for (let i = 0; i < data.length; i++) {
                 const item = data[i];
                 const currencyId = this.safeString(item, 'coin');
-                const code = this.safeCurrencyCode(currencyId);
+                const codeInner = this.safeCurrencyCode(currencyId);
                 const account = this.account();
                 account['free'] = this.safeString(item, 'usableAmt');
                 account['used'] = this.safeString(item, 'freezeAmt');
-                result[code] = account;
+                result[codeInner] = account;
             }
             return this.safeBalance(result);
         }
+        return undefined;
     }
     async fetchBalance(params = {}) {
         /**
@@ -1290,12 +1296,12 @@ export default class lbank2 extends Exchange {
         params = this.omit(params, 'start_date');
         const request = {
             'symbol': market['id'],
-            // 'start_date': String Start time yyyy-mm-dd, the maximum is today, the default is yesterday
-            // 'end_date': String Finish time yyyy-mm-dd, the maximum is today, the default is today
+            // 'start_date' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
+            // 'end_date' Finish time yyyy-mm-dd, the maximum is today, the default is today
             // 'The start': and end date of the query window is up to 2 days
-            // 'from': String Initial transaction number inquiring
-            // 'direct': String inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
-            // 'size': String Query the number of defaults to 100
+            // 'from' Initial transaction number inquiring
+            // 'direct' inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
+            // 'size' Query the number of defaults to 100
         };
         if (limit !== undefined) {
             request['size'] = limit;
@@ -2026,17 +2032,17 @@ export default class lbank2 extends Exchange {
             const canWithdraw = this.safeValue(item, 'canWithDraw');
             if (canWithdraw === 'true') {
                 const currencyId = this.safeString(item, 'assetCode');
-                const code = this.safeCurrencyCode(currencyId);
+                const codeInner = this.safeCurrencyCode(currencyId);
                 const chain = this.safeString(item, 'chain');
                 let network = this.safeString(this.options['inverse-networks'], chain, chain);
                 if (network === undefined) {
-                    network = code;
+                    network = codeInner;
                 }
                 const fee = this.safeString(item, 'fee');
-                if (withdrawFees[code] === undefined) {
-                    withdrawFees[code] = {};
+                if (withdrawFees[codeInner] === undefined) {
+                    withdrawFees[codeInner] = {};
                 }
-                withdrawFees[code][network] = this.parseNumber(fee);
+                withdrawFees[codeInner][network] = this.parseNumber(fee);
             }
         }
         return {
@@ -2284,7 +2290,7 @@ export default class lbank2 extends Exchange {
                 'timestamp': timestamp,
             }, query)));
             const encoded = this.encode(auth);
-            const hash = this.hash(encoded);
+            const hash = this.hash(encoded, md5);
             const uppercaseHash = hash.toUpperCase();
             let sign = undefined;
             if (signatureMethod === 'RSA') {
@@ -2300,10 +2306,10 @@ export default class lbank2 extends Exchange {
                 else {
                     pem = this.convertSecretToPem(this.encode(this.secret));
                 }
-                sign = this.rsa(uppercaseHash, pem);
+                sign = rsa(uppercaseHash, pem, sha256);
             }
             else if (signatureMethod === 'HmacSHA256') {
-                sign = this.hmac(this.encode(uppercaseHash), this.encode(this.secret));
+                sign = this.hmac(this.encode(uppercaseHash), this.encode(this.secret), sha256);
             }
             query['sign'] = sign;
             body = this.urlencode(this.keysort(query));
@@ -2331,7 +2337,7 @@ export default class lbank2 extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const success = this.safeString(response, 'result');
         if (success === 'false') {
@@ -2443,5 +2449,6 @@ export default class lbank2 extends Exchange {
             }, errorCode, ExchangeError);
             throw new ErrorClass(message);
         }
+        return undefined;
     }
 }

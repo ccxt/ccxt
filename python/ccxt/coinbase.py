@@ -4,6 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.coinbase import ImplicitAPI
+import hashlib
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -19,7 +24,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class coinbase(Exchange):
+class coinbase(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(coinbase, self).describe(), {
@@ -487,7 +492,7 @@ class coinbase(Exchange):
             'info': account,
         }
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -555,7 +560,7 @@ class coinbase(Exchange):
             'info': response,
         }
 
-    def fetch_my_sells(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_sells(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch sells
         :param str|None symbol: not used by coinbase fetchMySells()
@@ -571,7 +576,7 @@ class coinbase(Exchange):
         sells = self.v2PrivateGetAccountsAccountIdSells(self.extend(request, query))
         return self.parse_trades(sells['data'], None, since, limit)
 
-    def fetch_my_buys(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_buys(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch buys
         :param str|None symbol: not used by coinbase fetchMyBuys()
@@ -587,14 +592,14 @@ class coinbase(Exchange):
         buys = self.v2PrivateGetAccountsAccountIdBuys(self.extend(request, query))
         return self.parse_trades(buys['data'], None, since, limit)
 
-    def fetch_transactions_with_method(self, method, code=None, since=None, limit=None, params={}):
+    def fetch_transactions_with_method(self, method, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         request = self.prepare_account_request_with_currency_code(code, limit, params)
         self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_transactions(response['data'], None, since, limit)
 
-    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -606,7 +611,7 @@ class coinbase(Exchange):
         # fiat only, for crypto transactions use fetchLedger
         return self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params)
 
-    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1135,7 +1140,7 @@ class coinbase(Exchange):
             }
         return result
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1147,7 +1152,7 @@ class coinbase(Exchange):
             return self.fetch_tickers_v3(symbols, params)
         return self.fetch_tickers_v2(symbols, params)
 
-    def fetch_tickers_v2(self, symbols=None, params={}):
+    def fetch_tickers_v2(self, symbols: Optional[List[str]] = None, params={}):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {
@@ -1180,7 +1185,7 @@ class coinbase(Exchange):
             result[symbol] = self.parse_ticker(rates[baseId], market)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def fetch_tickers_v3(self, symbols=None, params={}):
+    def fetch_tickers_v3(self, symbols: Optional[List[str]] = None, params={}):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.v3PrivateGetBrokerageProducts(params)
@@ -1231,7 +1236,7 @@ class coinbase(Exchange):
             result[symbol] = self.parse_ticker(entry, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -1243,7 +1248,7 @@ class coinbase(Exchange):
             return self.fetch_ticker_v3(symbol, params)
         return self.fetch_ticker_v2(symbol, params)
 
-    def fetch_ticker_v2(self, symbol, params={}):
+    def fetch_ticker_v2(self, symbol: str, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = self.extend({
@@ -1271,7 +1276,7 @@ class coinbase(Exchange):
         }
         return self.parse_ticker(bidAskLast, market)
 
-    def fetch_ticker_v3(self, symbol, params={}):
+    def fetch_ticker_v3(self, symbol: str, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1283,20 +1288,26 @@ class coinbase(Exchange):
         #     {
         #         "trades": [
         #             {
-        #                 "trade_id": "10209805",
-        #                 "product_id": "BTC-USDT",
-        #                 "price": "19381.27",
-        #                 "size": "0.1",
-        #                 "time": "2023-01-13T20:35:41.865970Z",
+        #                 "trade_id": "518078013",
+        #                 "product_id": "BTC-USD",
+        #                 "price": "28208.1",
+        #                 "size": "0.00659179",
+        #                 "time": "2023-04-04T23:05:34.492746Z",
         #                 "side": "BUY",
         #                 "bid": "",
         #                 "ask": ""
         #             }
-        #         ]
+        #         ],
+        #         "best_bid": "28208.61",
+        #         "best_ask": "28208.62"
         #     }
         #
         data = self.safe_value(response, 'trades', [])
-        return self.parse_ticker(data[0], market)
+        ticker = self.parse_ticker(data[0], market)
+        return self.extend(ticker, {
+            'bid': self.safe_number(response, 'best_bid'),
+            'ask': self.safe_number(response, 'best_ask'),
+        })
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -1463,7 +1474,7 @@ class coinbase(Exchange):
         #
         return self.parse_balance(response, params)
 
-    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -1817,7 +1828,7 @@ class coinbase(Exchange):
                 return account['id']
         return None
 
-    def prepare_account_request(self, limit=None, params={}):
+    def prepare_account_request(self, limit: Optional[int] = None, params={}):
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         if accountId is None:
             raise ArgumentsRequired(self.id + ' prepareAccountRequest() method requires an account_id(or accountId) parameter')
@@ -1828,7 +1839,7 @@ class coinbase(Exchange):
             request['limit'] = limit
         return request
 
-    def prepare_account_request_with_currency_code(self, code=None, limit=None, params={}):
+    def prepare_account_request_with_currency_code(self, code: Optional[str] = None, limit: Optional[int] = None, params={}):
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         if accountId is None:
             if code is None:
@@ -1843,7 +1854,7 @@ class coinbase(Exchange):
             request['limit'] = limit
         return request
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
@@ -2139,7 +2150,7 @@ class coinbase(Exchange):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
@@ -2152,7 +2163,7 @@ class coinbase(Exchange):
         orders = self.cancel_orders([id], symbol, params)
         return self.safe_value(orders, 0, {})
 
-    def cancel_orders(self, ids, symbol=None, params={}):
+    def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
         """
         cancel multiple orders
         see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
@@ -2187,7 +2198,7 @@ class coinbase(Exchange):
                 raise BadRequest(self.id + ' cancelOrders() has failed, check your arguments and parameters')
         return self.parse_orders(orders, market)
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorder
@@ -2246,7 +2257,7 @@ class coinbase(Exchange):
         order = self.safe_value(response, 'order', {})
         return self.parse_order(order, market)
 
-    def fetch_orders(self, symbol=None, since=None, limit=100, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=100, params={}):
         """
         fetches information on multiple orders made by the user
         see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
@@ -2266,7 +2277,7 @@ class coinbase(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['start_date'] = self.parse8601(since)
+            request['start_date'] = self.iso8601(since)
         response = self.v3PrivateGetBrokerageOrdersHistoricalBatch(self.extend(request, params))
         #
         #     {
@@ -2313,7 +2324,7 @@ class coinbase(Exchange):
         orders = self.safe_value(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
+    def fetch_orders_by_status(self, status, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
         market = None
         if symbol is not None:
@@ -2327,7 +2338,7 @@ class coinbase(Exchange):
             limit = 100
         request['limit'] = limit
         if since is not None:
-            request['start_date'] = self.parse8601(since)
+            request['start_date'] = self.iso8601(since)
         response = self.v3PrivateGetBrokerageOrdersHistoricalBatch(self.extend(request, params))
         #
         #     {
@@ -2374,7 +2385,7 @@ class coinbase(Exchange):
         orders = self.safe_value(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on all currently open orders
         see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
@@ -2386,7 +2397,7 @@ class coinbase(Exchange):
         """
         return self.fetch_orders_by_status('OPEN', symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
@@ -2398,7 +2409,7 @@ class coinbase(Exchange):
         """
         return self.fetch_orders_by_status('FILLED', symbol, since, limit, params)
 
-    def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
         see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
@@ -2410,7 +2421,7 @@ class coinbase(Exchange):
         """
         return self.fetch_orders_by_status('CANCELLED', symbol, since, limit, params)
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getcandles
@@ -2475,7 +2486,7 @@ class coinbase(Exchange):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades
@@ -2512,7 +2523,7 @@ class coinbase(Exchange):
         trades = self.safe_value(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfills
@@ -2596,7 +2607,7 @@ class coinbase(Exchange):
                     auth = nonce + method + savedPath + payload
                 else:
                     auth = nonce + method + fullPath + payload
-                signature = self.hmac(self.encode(auth), self.encode(self.secret))
+                signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
                 headers = {
                     'CB-ACCESS-KEY': self.apiKey,
                     'CB-ACCESS-SIGN': signature,
@@ -2607,7 +2618,7 @@ class coinbase(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         feedback = self.id + ' ' + body
         #
         #    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}
@@ -2644,3 +2655,4 @@ class coinbase(Exchange):
         data = self.safe_value(response, 'data')
         if (data is None) and (not advancedTrade):
             raise ExchangeError(self.id + ' failed due to a malformed response ' + self.json(response))
+        return None

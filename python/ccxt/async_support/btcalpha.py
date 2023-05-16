@@ -4,6 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.btcalpha import ImplicitAPI
+import hashlib
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -13,7 +18,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class btcalpha(Exchange):
+class btcalpha(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(btcalpha, self).describe(), {
@@ -230,7 +235,7 @@ class btcalpha(Exchange):
             })
         return result
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         see https://btc-alpha.github.io/api-docs/#tickers
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -258,7 +263,7 @@ class btcalpha(Exchange):
         #
         return self.parse_tickers(response, symbols)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         see https://btc-alpha.github.io/api-docs/#tickers
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -328,7 +333,7 @@ class btcalpha(Exchange):
             'quoteVolume': self.safe_string(ticker, 'vol'),
         }, market)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -383,7 +388,7 @@ class btcalpha(Exchange):
         marketId = self.safe_string(trade, 'pair')
         market = self.safe_market(marketId, market, '_')
         timestampRaw = self.safe_string(trade, 'timestamp')
-        timestamp = self.parse_number(Precise.string_mul(timestampRaw, '1000000'))
+        timestamp = self.parse_to_int(Precise.string_mul(timestampRaw, '1000000'))
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
         id = self.safe_string(trade, 'id')
@@ -404,7 +409,7 @@ class btcalpha(Exchange):
             'fee': None,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -424,7 +429,7 @@ class btcalpha(Exchange):
         trades = await self.publicGetExchanges(self.extend(request, params))
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -450,7 +455,7 @@ class btcalpha(Exchange):
         #
         return self.parse_transactions(response, currency, since, limit, {'type': 'deposit'})
 
-    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -553,7 +558,7 @@ class btcalpha(Exchange):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='5m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -684,7 +689,7 @@ class btcalpha(Exchange):
             'average': None,
         }, market)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -713,7 +718,7 @@ class btcalpha(Exchange):
             'amount': self.parse_number(amount),
         })
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -727,7 +732,7 @@ class btcalpha(Exchange):
         response = await self.privatePostOrderCancel(self.extend(request, params))
         return response
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by btcalpha fetchOrder
@@ -741,7 +746,7 @@ class btcalpha(Exchange):
         order = await self.privateGetOrderId(self.extend(request, params))
         return self.parse_order(order)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -761,7 +766,7 @@ class btcalpha(Exchange):
         orders = await self.privateGetOrdersOwn(self.extend(request, params))
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -775,7 +780,7 @@ class btcalpha(Exchange):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -789,7 +794,7 @@ class btcalpha(Exchange):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -831,13 +836,13 @@ class btcalpha(Exchange):
             elif len(query):
                 url += '?' + query
             headers['X-KEY'] = self.apiKey
-            headers['X-SIGN'] = self.hmac(self.encode(payload), self.encode(self.secret))
+            headers['X-SIGN'] = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
             headers['X-NONCE'] = str(self.nonce())
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
         #
@@ -851,5 +856,5 @@ class btcalpha(Exchange):
         elif code == 429:
             raise DDoSProtection(feedback)
         if code < 400:
-            return
+            return None
         raise ExchangeError(feedback)

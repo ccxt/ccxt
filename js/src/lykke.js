@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/lykke.js';
 import { NotSupported, ExchangeError, BadRequest, InsufficientFunds, InvalidOrder, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -247,6 +247,7 @@ export default class lykke extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -540,7 +541,7 @@ export default class lykke extends Exchange {
         const timestamp = this.safeInteger(orderbook, 'timestamp');
         return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'p', 'v');
     }
-    parseTrade(trade, market) {
+    parseTrade(trade, market = undefined) {
         //
         //  public fetchTrades
         //
@@ -1265,7 +1266,7 @@ export default class lykke extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const error = this.safeValue(response, 'error', {});
         const errorCode = this.safeString(error, 'code');
@@ -1276,5 +1277,6 @@ export default class lykke extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new ExchangeError(feedback);
         }
+        return undefined;
     }
 }

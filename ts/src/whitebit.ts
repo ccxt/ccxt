@@ -1,10 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/whitebit.js';
 import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired, AuthenticationError, OrderNotFound, PermissionDenied, InsufficientFunds, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -266,7 +268,7 @@ export default class whitebit extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const markets = await (this as any).v4PublicGetMarkets ();
+        const markets = await this.v4PublicGetMarkets ();
         //
         //    [
         //        {
@@ -307,11 +309,19 @@ export default class whitebit extends Exchange {
             let symbol = base + '/' + quote;
             const swap = typeId === 'futures';
             const margin = isCollateral && !swap;
+            let contract = false;
+            const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'stockPrec')));
+            const contractSize = amountPrecision;
+            let linear = undefined;
+            let inverse = undefined;
             if (swap) {
                 settleId = quoteId;
                 settle = this.safeCurrencyCode (settleId);
                 symbol = symbol + ':' + settle;
                 type = 'swap';
+                contract = true;
+                linear = true;
+                inverse = false;
             } else {
                 type = 'spot';
             }
@@ -331,18 +341,18 @@ export default class whitebit extends Exchange {
                 'future': false,
                 'option': false,
                 'active': active,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
+                'contract': contract,
+                'linear': linear,
+                'inverse': inverse,
                 'taker': this.safeNumber (market, 'makerFee'),
                 'maker': this.safeNumber (market, 'takerFee'),
-                'contractSize': undefined,
+                'contractSize': contractSize,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'stockPrec'))),
+                    'amount': amountPrecision,
                     'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'moneyPrec'))),
                 },
                 'limits': {
@@ -378,7 +388,7 @@ export default class whitebit extends Exchange {
          * @param {object} params extra parameters specific to the whitebit api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).v4PublicGetAssets (params);
+        const response = await this.v4PublicGetAssets (params);
         //
         //      "BTC": {
         //          "name": "Bitcoin",
@@ -439,7 +449,7 @@ export default class whitebit extends Exchange {
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).v4PublicGetFee (params);
+        const response = await this.v4PublicGetFee (params);
         //
         //      {
         //          "1INCH":{
@@ -494,7 +504,7 @@ export default class whitebit extends Exchange {
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).v4PublicGetFee (params);
+        const response = await this.v4PublicGetFee (params);
         //
         //    {
         //        "1INCH": {
@@ -642,7 +652,7 @@ export default class whitebit extends Exchange {
          * @param {object} params extra parameters specific to the whitebit api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
-        const response = await (this as any).v4PublicGetAssets (params);
+        const response = await this.v4PublicGetAssets (params);
         //
         //      {
         //          '1INCH': {
@@ -681,7 +691,7 @@ export default class whitebit extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name whitebit#fetchTicker
@@ -695,7 +705,7 @@ export default class whitebit extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).v1PublicGetTicker (this.extend (request, params));
+        const response = await this.v1PublicGetTicker (this.extend (request, params));
         //
         //      {
         //         "success":true,
@@ -782,7 +792,7 @@ export default class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await (this as any).v4PublicGetTicker (params);
+        const response = await this.v4PublicGetTicker (params);
         //
         //      "BCH_RUB": {
         //          "base_id":1831,
@@ -806,7 +816,7 @@ export default class whitebit extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchOrderBook
@@ -824,7 +834,7 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['depth'] = limit; // default = 50, maximum = 100
         }
-        const response = await (this as any).v4PublicGetOrderbookMarket (this.extend (request, params));
+        const response = await this.v4PublicGetOrderbookMarket (this.extend (request, params));
         //
         //      {
         //          "timestamp": 1594391413,
@@ -848,7 +858,7 @@ export default class whitebit extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchTrades
@@ -864,7 +874,7 @@ export default class whitebit extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).v4PublicGetTradesMarket (this.extend (request, params));
+        const response = await this.v4PublicGetTradesMarket (this.extend (request, params));
         //
         //      [
         //          {
@@ -880,7 +890,7 @@ export default class whitebit extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchMyTrades
@@ -898,7 +908,7 @@ export default class whitebit extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        const response = await (this as any).v4PrivatePostTradeAccountExecutedHistory (this.extend (request, params));
+        const response = await this.v4PrivatePostTradeAccountExecutedHistory (this.extend (request, params));
         //
         // when no symbol is provided
         //
@@ -943,14 +953,13 @@ export default class whitebit extends Exchange {
             const keys = Object.keys (response);
             for (let i = 0; i < keys.length; i++) {
                 const marketId = keys[i];
-                const market = this.safeMarket (marketId, undefined, '_');
+                const marketNew = this.safeMarket (marketId, undefined, '_');
                 const rawTrades = this.safeValue (response, marketId, []);
-                const parsed = this.parseTrades (rawTrades, market, since, limit);
+                const parsed = this.parseTrades (rawTrades, marketNew, since, limit);
                 results = this.arrayConcat (results, parsed);
             }
             results = this.sortBy2 (results, 'timestamp', 'id');
-            const tail = (since === undefined);
-            return this.filterBySinceLimit (results, since, limit, 'timestamp', tail) as any;
+            return this.filterBySinceLimit (results, since, limit, 'timestamp') as any;
         }
     }
 
@@ -1035,7 +1044,7 @@ export default class whitebit extends Exchange {
         }, market);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchOHLCV
@@ -1068,7 +1077,7 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1440);
         }
-        const response = await (this as any).v1PublicGetKline (this.extend (request, params));
+        const response = await this.v1PublicGetKline (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -1114,7 +1123,7 @@ export default class whitebit extends Exchange {
          * @param {object} params extra parameters specific to the whitebit api endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
-        const response = await (this as any).v4PublicGetPing (params);
+        const response = await this.v4PublicGetPing (params);
         //
         //      [
         //          "pong"
@@ -1138,7 +1147,7 @@ export default class whitebit extends Exchange {
          * @param {object} params extra parameters specific to the whitebit api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).v4PublicGetTime (params);
+        const response = await this.v4PublicGetTime (params);
         //
         //     {
         //         "time":1635467280514
@@ -1147,7 +1156,7 @@ export default class whitebit extends Exchange {
         return this.safeInteger (response, 'time');
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#createOrder
@@ -1226,7 +1235,7 @@ export default class whitebit extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#cancelOrder
@@ -1245,7 +1254,7 @@ export default class whitebit extends Exchange {
             'market': market['id'],
             'orderId': parseInt (id),
         };
-        return await (this as any).v4PrivatePostOrderCancel (this.extend (request, params));
+        return await this.v4PrivatePostOrderCancel (this.extend (request, params));
     }
 
     parseBalance (response) {
@@ -1320,7 +1329,7 @@ export default class whitebit extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchOpenOrders
@@ -1342,7 +1351,7 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 100);
         }
-        const response = await (this as any).v4PrivatePostOrders (this.extend (request, params));
+        const response = await this.v4PrivatePostOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1366,7 +1375,7 @@ export default class whitebit extends Exchange {
         return this.parseOrders (response, market, since, limit, { 'status': 'open' });
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchClosedOrders
@@ -1388,7 +1397,7 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 100); // default 50 max 100
         }
-        const response = await (this as any).v4PrivatePostTradeAccountOrderHistory (this.extend (request, params));
+        const response = await this.v4PrivatePostTradeAccountOrderHistory (this.extend (request, params));
         //
         //     {
         //         "BTC_USDT": [
@@ -1410,10 +1419,10 @@ export default class whitebit extends Exchange {
         let results = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeMarket (marketId, undefined, '_');
+            const marketNew = this.safeMarket (marketId, undefined, '_');
             const orders = response[marketId];
             for (let j = 0; j < orders.length; j++) {
-                const order = this.parseOrder (orders[j], market);
+                const order = this.parseOrder (orders[j], marketNew);
                 results.push (this.extend (order, { 'status': 'closed' }));
             }
         }
@@ -1529,7 +1538,7 @@ export default class whitebit extends Exchange {
         }, market);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchOrderTrades
@@ -1553,7 +1562,7 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 100);
         }
-        const response = await (this as any).v4PrivatePostTradeAccountOrder (this.extend (request, params));
+        const response = await this.v4PrivatePostTradeAccountOrder (this.extend (request, params));
         //
         //     {
         //         "records": [
@@ -1577,7 +1586,7 @@ export default class whitebit extends Exchange {
         return this.parseTrades (data, market);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name whitebit#fetchDepositAddress
@@ -1609,7 +1618,7 @@ export default class whitebit extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an uniqueId when the ticker is fiat');
             }
         }
-        const response = await (this as any)[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         // fiat
         //
@@ -1670,13 +1679,13 @@ export default class whitebit extends Exchange {
         const request = {
             'leverage': leverage,
         };
-        return await (this as any).v4PrivatePostCollateralAccountLeverage (this.extend (request, params));
+        return await this.v4PrivatePostCollateralAccountLeverage (this.extend (request, params));
         //     {
         //         "leverage": 5
         //     }
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name whitebit#transfer
@@ -1701,14 +1710,14 @@ export default class whitebit extends Exchange {
             'from': fromAccountId,
             'to': toAccountId,
         };
-        const response = await (this as any).v4PrivatePostMainAccountTransfer (this.extend (request, params));
+        const response = await this.v4PrivatePostMainAccountTransfer (this.extend (request, params));
         //
         //    []
         //
         return this.parseTransfer (response, currency);
     }
 
-    parseTransfer (transfer, currency) {
+    parseTransfer (transfer, currency = undefined) {
         //
         //    []
         //
@@ -1725,7 +1734,7 @@ export default class whitebit extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#withdraw
@@ -1759,7 +1768,7 @@ export default class whitebit extends Exchange {
             }
             request['provider'] = provider;
         }
-        const response = await (this as any).v4PrivatePostMainAccountWithdraw (this.extend (request, params));
+        const response = await this.v4PrivatePostMainAccountWithdraw (this.extend (request, params));
         //
         // empty array with a success status
         // go to deposit/withdraw history and check you request status by uniqueId
@@ -1853,7 +1862,7 @@ export default class whitebit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchDeposit (id, code = undefined, params = {}) {
+    async fetchDeposit (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchDeposit
@@ -1875,7 +1884,7 @@ export default class whitebit extends Exchange {
             currency = this.currency (code);
             request['ticker'] = currency['id'];
         }
-        const response = await (this as any).v4PrivatePostMainAccountHistory (this.extend (request, params));
+        const response = await this.v4PrivatePostMainAccountHistory (this.extend (request, params));
         //
         //     {
         //         "limit": 100,
@@ -1918,7 +1927,7 @@ export default class whitebit extends Exchange {
         return this.parseTransaction (first, currency);
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchDeposits
@@ -1943,7 +1952,7 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 100);
         }
-        const response = await (this as any).v4PrivatePostMainAccountHistory (this.extend (request, params));
+        const response = await this.v4PrivatePostMainAccountHistory (this.extend (request, params));
         //
         //     {
         //         "limit": 100,
@@ -1985,7 +1994,7 @@ export default class whitebit extends Exchange {
         return this.parseTransactions (records, currency, since, limit);
     }
 
-    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchBorrowInterest
@@ -2005,7 +2014,7 @@ export default class whitebit extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        const response = await (this as any).v4PrivatePostCollateralAccountPositionsOpen (this.extend (request, params));
+        const response = await this.v4PrivatePostCollateralAccountPositionsOpen (this.extend (request, params));
         //
         //     [
         //         {
@@ -2086,15 +2095,15 @@ export default class whitebit extends Exchange {
         if (accessibility === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            const secret = this.stringToBinary (this.encode (this.secret));
+            const secret = this.encode (this.secret);
             const request = '/' + 'api' + '/' + version + pathWithParams;
             body = this.json (this.extend ({ 'request': request, 'nonce': nonce }, params));
             const payload = this.stringToBase64 (body);
-            const signature = this.hmac (payload, secret, 'sha512');
+            const signature = this.hmac (this.encode (payload), secret, sha512);
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
-                'X-TXC-PAYLOAD': this.decode (payload),
+                'X-TXC-PAYLOAD': payload,
                 'X-TXC-SIGNATURE': signature,
             };
         }
@@ -2116,9 +2125,9 @@ export default class whitebit extends Exchange {
             const message = this.safeString (response, 'message');
             // For these cases where we have a generic code variable error key
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
-            const code = this.safeInteger (response, 'code');
+            const codeNew = this.safeInteger (response, 'code');
             const hasErrorStatus = status !== undefined && status !== '200';
-            if (hasErrorStatus || code !== undefined) {
+            if (hasErrorStatus || codeNew !== undefined) {
                 const feedback = this.id + ' ' + body;
                 let errorInfo = message;
                 if (hasErrorStatus) {
@@ -2137,5 +2146,6 @@ export default class whitebit extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
+        return undefined;
     }
 }

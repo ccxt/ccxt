@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\whitebit as Exchange;
 
 class whitebit extends Exchange {
 
@@ -305,11 +306,19 @@ class whitebit extends Exchange {
             $symbol = $base . '/' . $quote;
             $swap = $typeId === 'futures';
             $margin = $isCollateral && !$swap;
+            $contract = false;
+            $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'stockPrec')));
+            $contractSize = $amountPrecision;
+            $linear = null;
+            $inverse = null;
             if ($swap) {
                 $settleId = $quoteId;
                 $settle = $this->safe_currency_code($settleId);
                 $symbol = $symbol . ':' . $settle;
                 $type = 'swap';
+                $contract = true;
+                $linear = true;
+                $inverse = false;
             } else {
                 $type = 'spot';
             }
@@ -329,18 +338,18 @@ class whitebit extends Exchange {
                 'future' => false,
                 'option' => false,
                 'active' => $active,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
+                'contract' => $contract,
+                'linear' => $linear,
+                'inverse' => $inverse,
                 'taker' => $this->safe_number($market, 'makerFee'),
                 'maker' => $this->safe_number($market, 'takerFee'),
-                'contractSize' => null,
+                'contractSize' => $contractSize,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'stockPrec'))),
+                    'amount' => $amountPrecision,
                     'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'moneyPrec'))),
                 ),
                 'limits' => array(
@@ -671,7 +680,7 @@ class whitebit extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
@@ -759,7 +768,7 @@ class whitebit extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
@@ -792,7 +801,7 @@ class whitebit extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -832,7 +841,7 @@ class whitebit extends Exchange {
         return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
@@ -862,7 +871,7 @@ class whitebit extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
@@ -923,14 +932,13 @@ class whitebit extends Exchange {
             $keys = is_array($response) ? array_keys($response) : array();
             for ($i = 0; $i < count($keys); $i++) {
                 $marketId = $keys[$i];
-                $market = $this->safe_market($marketId, null, '_');
+                $marketNew = $this->safe_market($marketId, null, '_');
                 $rawTrades = $this->safe_value($response, $marketId, array());
-                $parsed = $this->parse_trades($rawTrades, $market, $since, $limit);
+                $parsed = $this->parse_trades($rawTrades, $marketNew, $since, $limit);
                 $results = $this->array_concat($results, $parsed);
             }
             $results = $this->sort_by_2($results, 'timestamp', 'id');
-            $tail = ($since === null);
-            return $this->filter_by_since_limit($results, $since, $limit, 'timestamp', $tail);
+            return $this->filter_by_since_limit($results, $since, $limit, 'timestamp');
         }
     }
 
@@ -1015,7 +1023,7 @@ class whitebit extends Exchange {
         ), $market);
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -1121,7 +1129,7 @@ class whitebit extends Exchange {
         return $this->safe_integer($response, 'time');
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1198,7 +1206,7 @@ class whitebit extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1288,7 +1296,7 @@ class whitebit extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
@@ -1332,7 +1340,7 @@ class whitebit extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit, array( 'status' => 'open' ));
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed $orders made by the user
          * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
@@ -1374,10 +1382,10 @@ class whitebit extends Exchange {
         $results = array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $market = $this->safe_market($marketId, null, '_');
+            $marketNew = $this->safe_market($marketId, null, '_');
             $orders = $response[$marketId];
             for ($j = 0; $j < count($orders); $j++) {
-                $order = $this->parse_order($orders[$j], $market);
+                $order = $this->parse_order($orders[$j], $marketNew);
                 $results[] = array_merge($order, array( 'status' => 'closed' ));
             }
         }
@@ -1493,7 +1501,7 @@ class whitebit extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
          * @param {string} $id order $id
@@ -1539,7 +1547,7 @@ class whitebit extends Exchange {
         return $this->parse_trades($data, $market);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this $account
          * @param {string} $code unified $currency $code
@@ -1610,7 +1618,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a market
          * @param {float} $leverage the rate of $leverage
@@ -1634,7 +1642,7 @@ class whitebit extends Exchange {
         //     }
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-main-v4.md#transfer-between-main-and-trade-balances
@@ -1664,7 +1672,7 @@ class whitebit extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function parse_transfer($transfer, $currency) {
+    public function parse_transfer($transfer, $currency = null) {
         //
         //    array()
         //
@@ -1681,7 +1689,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1807,7 +1815,7 @@ class whitebit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit($id, $code = null, $params = array ()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch information on a deposit
          * @param {string} $id deposit $id
@@ -1870,7 +1878,7 @@ class whitebit extends Exchange {
         return $this->parse_transaction($first, $currency);
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code
@@ -1935,7 +1943,7 @@ class whitebit extends Exchange {
         return $this->parse_transactions($records, $currency, $since, $limit);
     }
 
-    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the $interest owed by the user for borrowing currency for margin trading
          * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-trade-v4.md#open-positions
@@ -2038,11 +2046,11 @@ class whitebit extends Exchange {
             $request = '/' . 'api' . '/' . $version . $pathWithParams;
             $body = $this->json(array_merge(array( 'request' => $request, 'nonce' => $nonce ), $params));
             $payload = base64_encode($body);
-            $signature = $this->hmac($payload, $secret, 'sha512');
+            $signature = $this->hmac($this->encode($payload), $secret, 'sha512');
             $headers = array(
                 'Content-Type' => 'application/json',
                 'X-TXC-APIKEY' => $this->apiKey,
-                'X-TXC-PAYLOAD' => $this->decode($payload),
+                'X-TXC-PAYLOAD' => $payload,
                 'X-TXC-SIGNATURE' => $signature,
             );
         }
@@ -2064,9 +2072,9 @@ class whitebit extends Exchange {
             $message = $this->safe_string($response, 'message');
             // For these cases where we have a generic $code variable error key
             // array("code":0,"message":"Validation failed","errors":array("amount":["Amount must be greater than 0"]))
-            $code = $this->safe_integer($response, 'code');
+            $codeNew = $this->safe_integer($response, 'code');
             $hasErrorStatus = $status !== null && $status !== '200';
-            if ($hasErrorStatus || $code !== null) {
+            if ($hasErrorStatus || $codeNew !== null) {
                 $feedback = $this->id . ' ' . $body;
                 $errorInfo = $message;
                 if ($hasErrorStatus) {
@@ -2085,5 +2093,6 @@ class whitebit extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+        return null;
     }
 }

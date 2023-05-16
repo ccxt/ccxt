@@ -4,6 +4,10 @@
 import ascendexRest from '../ascendex.js';
 import { AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
+
 //  ---------------------------------------------------------------------------
 
 export default class ascendex extends ascendexRest {
@@ -72,7 +76,7 @@ export default class ascendex extends ascendexRest {
         return await this.watch (url, messageHash, message, channel);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#watchOHLCV
@@ -99,10 +103,10 @@ export default class ascendex extends ascendexRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         // {
         //     "m": "bar",
@@ -139,7 +143,7 @@ export default class ascendex extends ascendexRest {
         return message;
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#watchTrades
@@ -161,10 +165,10 @@ export default class ascendex extends ascendexRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         // {
         //     m: 'trades',
@@ -202,7 +206,7 @@ export default class ascendex extends ascendexRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#watchOrderBook
@@ -222,7 +226,7 @@ export default class ascendex extends ascendexRest {
         return orderbook.limit ();
     }
 
-    async watchOrderBookSnapshot (symbol, limit = undefined, params = {}) {
+    async watchOrderBookSnapshot (symbol: string, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const action = 'depth-snapshot-realtime';
@@ -238,7 +242,7 @@ export default class ascendex extends ascendexRest {
         return orderbook.limit ();
     }
 
-    handleOrderBookSnapshot (client, message) {
+    handleOrderBookSnapshot (client: Client, message) {
         //
         // {
         //     m: 'depth',
@@ -276,7 +280,7 @@ export default class ascendex extends ascendexRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //   {
         //       m: 'depth',
@@ -320,7 +324,7 @@ export default class ascendex extends ascendexRest {
         }
     }
 
-    handleOrderBookMessage (client, message, orderbook) {
+    handleOrderBookMessage (client: Client, message, orderbook) {
         //
         // {
         //     "m":"depth",
@@ -380,7 +384,7 @@ export default class ascendex extends ascendexRest {
         return await this.watchPrivate (channel, messageHash, query);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         // cash account
         //
@@ -477,7 +481,7 @@ export default class ascendex extends ascendexRest {
         client.resolve (this.safeBalance (result), messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#watchOrders
@@ -515,10 +519,10 @@ export default class ascendex extends ascendexRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         //
         // spot order
         // {
@@ -683,7 +687,7 @@ export default class ascendex extends ascendexRest {
         }, market);
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         // {
         //     m: 'disconnected',
@@ -717,7 +721,7 @@ export default class ascendex extends ascendexRest {
         }
     }
 
-    handleAuthenticate (client, message) {
+    handleAuthenticate (client: Client, message) {
         //
         //     { m: 'auth', id: '1647605234', code: 0 }
         //
@@ -725,7 +729,7 @@ export default class ascendex extends ascendexRest {
         client.resolve (message, messageHash);
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
@@ -901,7 +905,7 @@ export default class ascendex extends ascendexRest {
         return message;
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     { m: 'sub', ch: 'bar:BTC/USDT', code: 0 }
         //
@@ -914,7 +918,7 @@ export default class ascendex extends ascendexRest {
         return message;
     }
 
-    handleOrderBookSubscription (client, message) {
+    handleOrderBookSubscription (client: Client, message) {
         const channel = this.safeString (message, 'ch');
         const parts = channel.split (':');
         const marketId = parts[1];
@@ -930,16 +934,16 @@ export default class ascendex extends ascendexRest {
         //
         //     { m: 'ping', hp: 3 }
         //
-        await client.send ({ 'op': 'pong', 'hp': this.safeInteger (message, 'hp') });
-    }
-
-    async handlePing (client, message) {
         try {
-            await this.spawn (this.pong, client, message);
+            await client.send ({ 'op': 'pong', 'hp': this.safeInteger (message, 'hp') });
         } catch (e) {
             const error = new NetworkError (this.id + ' handlePing failed with error ' + this.json (e));
             client.reset (error);
         }
+    }
+
+    handlePing (client: Client, message) {
+        this.spawn (this.pong, client, message);
     }
 
     authenticate (url, params = {}) {
@@ -955,7 +959,7 @@ export default class ascendex extends ascendexRest {
             const version = this.safeString (urlParts, partsLength - 2);
             const auth = timestamp + '+' + version + '/' + path;
             const secret = this.base64ToBinary (this.secret);
-            const signature = this.hmac (this.encode (auth), secret, 'sha256', 'base64');
+            const signature = this.hmac (this.encode (auth), secret, sha256, 'base64');
             const request = {
                 'op': 'auth',
                 'id': this.nonce ().toString (),

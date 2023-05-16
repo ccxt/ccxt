@@ -1,10 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/coinfalcon.js';
 import { ExchangeError, AuthenticationError, RateLimitExceeded, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -136,7 +138,7 @@ export default class coinfalcon extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetMarkets (params);
+        const response = await this.publicGetMarkets (params);
         //
         //    {
         //        "data": [
@@ -260,7 +262,7 @@ export default class coinfalcon extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name coinfalcon#fetchTicker
@@ -285,7 +287,7 @@ export default class coinfalcon extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await (this as any).publicGetMarkets (params);
+        const response = await this.publicGetMarkets (params);
         //
         //     {
         //         "data":[
@@ -315,7 +317,7 @@ export default class coinfalcon extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinfalcon#fetchOrderBook
@@ -331,7 +333,7 @@ export default class coinfalcon extends Exchange {
             'market': market['id'],
             'level': '3',
         };
-        const response = await (this as any).publicGetMarketsMarketOrders (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrderBook (data, market['symbol'], undefined, 'bids', 'asks', 'price', 'size');
     }
@@ -396,7 +398,7 @@ export default class coinfalcon extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinfalcon#fetchMyTrades
@@ -421,7 +423,7 @@ export default class coinfalcon extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetUserTrades (this.extend (request, params));
+        const response = await this.privateGetUserTrades (this.extend (request, params));
         //
         //      {
         //          "data": [
@@ -444,7 +446,7 @@ export default class coinfalcon extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinfalcon#fetchTrades
@@ -463,7 +465,7 @@ export default class coinfalcon extends Exchange {
         if (since !== undefined) {
             request['since'] = this.iso8601 (since);
         }
-        const response = await (this as any).publicGetMarketsMarketTrades (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
         //
         //      {
         //          "data":[
@@ -490,7 +492,7 @@ export default class coinfalcon extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetUserFees (params);
+        const response = await this.privateGetUserFees (params);
         //
         //    {
         //        data: {
@@ -545,7 +547,7 @@ export default class coinfalcon extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetUserAccounts (params);
+        const response = await this.privateGetUserAccounts (params);
         return this.parseBalance (response);
     }
 
@@ -568,7 +570,7 @@ export default class coinfalcon extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name coinfalcon#fetchDepositAddress
@@ -582,7 +584,7 @@ export default class coinfalcon extends Exchange {
         const request = {
             'currency': this.safeStringLower (currency, 'id'),
         };
-        const response = await (this as any).privateGetAccountDepositAddress (this.extend (request, params));
+        const response = await this.privateGetAccountDepositAddress (this.extend (request, params));
         //
         //     {
         //         data: {
@@ -664,7 +666,7 @@ export default class coinfalcon extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name coinfalcon#createOrder
@@ -690,12 +692,12 @@ export default class coinfalcon extends Exchange {
             request['price'] = price.toString ();
         }
         request['operation_type'] = type + '_order';
-        const response = await (this as any).privatePostUserOrders (this.extend (request, params));
+        const response = await this.privatePostUserOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinfalcon#cancelOrder
@@ -709,13 +711,13 @@ export default class coinfalcon extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await (this as any).privateDeleteUserOrdersId (this.extend (request, params));
+        const response = await this.privateDeleteUserOrdersId (this.extend (request, params));
         const market = this.market (symbol);
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinfalcon#fetchOrder
@@ -728,12 +730,12 @@ export default class coinfalcon extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await (this as any).privateGetUserOrdersId (this.extend (request, params));
+        const response = await this.privateGetUserOrdersId (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinfalcon#fetchOpenOrders
@@ -755,13 +757,13 @@ export default class coinfalcon extends Exchange {
             request['since_time'] = this.iso8601 (since);
         }
         // TODO: test status=all if it works for closed orders too
-        const response = await (this as any).privateGetUserOrders (this.extend (request, params));
+        const response = await this.privateGetUserOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         const orders = this.filterByArray (data, 'status', [ 'pending', 'open', 'partially_filled' ], false);
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinfalcon#fetchDeposits
@@ -788,7 +790,7 @@ export default class coinfalcon extends Exchange {
         if (since !== undefined) {
             request['since_time'] = this.iso8601 (since);
         }
-        const response = await (this as any).privateGetAccountDeposits (this.extend (request, params));
+        const response = await this.privateGetAccountDeposits (this.extend (request, params));
         //
         //     data: [
         //         {
@@ -808,7 +810,7 @@ export default class coinfalcon extends Exchange {
         return this.parseTransactions (transactions, currency, undefined, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinfalcon#fetchWithdrawals
@@ -835,7 +837,7 @@ export default class coinfalcon extends Exchange {
         if (since !== undefined) {
             request['since_time'] = this.iso8601 (since);
         }
-        const response = await (this as any).privateGetAccountWithdrawals (this.extend (request, params));
+        const response = await this.privateGetAccountWithdrawals (this.extend (request, params));
         //
         //     data: [
         //         {
@@ -856,7 +858,7 @@ export default class coinfalcon extends Exchange {
         return this.parseTransactions (transactions, currency, undefined, limit);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinfalcon#withdraw
@@ -881,7 +883,7 @@ export default class coinfalcon extends Exchange {
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        const response = await (this as any).privatePostAccountWithdraw (this.extend (request, params));
+        const response = await this.privatePostAccountWithdraw (this.extend (request, params));
         //
         //     data: [
         //         {
@@ -1007,7 +1009,7 @@ export default class coinfalcon extends Exchange {
             if (body) {
                 payload += '|' + body;
             }
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret));
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
             headers = {
                 'CF-API-KEY': this.apiKey,
                 'CF-API-TIMESTAMP': seconds,
@@ -1021,7 +1023,7 @@ export default class coinfalcon extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (code < 400) {
-            return;
+            return undefined;
         }
         const ErrorClass = this.safeValue ({
             '401': AuthenticationError,

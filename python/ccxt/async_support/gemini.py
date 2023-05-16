@@ -4,8 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.gemini import ImplicitAPI
 import asyncio
 import hashlib
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -23,7 +27,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class gemini(Exchange):
+class gemini(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(gemini, self).describe(), {
@@ -476,9 +480,9 @@ class gemini(Exchange):
             #
         promises = await asyncio.gather(*promises)
         for i in range(0, len(promises)):
-            response = promises[i]
-            marketId = self.safe_string_lower(response, 'symbol')
-            result[marketId] = self.parse_market(response)
+            responseInner = promises[i]
+            marketId = self.safe_string_lower(responseInner, 'symbol')
+            result[marketId] = self.parse_market(responseInner)
         return self.to_array(result)
 
     def parse_market(self, response):
@@ -543,7 +547,7 @@ class gemini(Exchange):
             'info': response,
         }
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -562,7 +566,7 @@ class gemini(Exchange):
         response = await self.publicGetV1BookSymbol(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
-    async def fetch_ticker_v1(self, symbol, params={}):
+    async def fetch_ticker_v1(self, symbol: str, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -583,7 +587,7 @@ class gemini(Exchange):
         #
         return self.parse_ticker(response, market)
 
-    async def fetch_ticker_v2(self, symbol, params={}):
+    async def fetch_ticker_v2(self, symbol: str, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -605,7 +609,7 @@ class gemini(Exchange):
         #
         return self.parse_ticker(response, market)
 
-    async def fetch_ticker_v1_and_v2(self, symbol, params={}):
+    async def fetch_ticker_v1_and_v2(self, symbol: str, params={}):
         tickerA = await self.fetch_ticker_v1(symbol, params)
         tickerB = await self.fetch_ticker_v2(symbol, params)
         return self.deep_extend(tickerA, {
@@ -618,7 +622,7 @@ class gemini(Exchange):
             'info': tickerB['info'],
         })
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -719,7 +723,7 @@ class gemini(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -807,7 +811,7 @@ class gemini(Exchange):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         see https://docs.gemini.com/rest-api/#trade-history
@@ -1079,7 +1083,7 @@ class gemini(Exchange):
             'trades': None,
         }, market)
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1116,7 +1120,7 @@ class gemini(Exchange):
         #
         return self.parse_order(response)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -1157,7 +1161,7 @@ class gemini(Exchange):
             market = self.market(symbol)  # throws on non-existent symbol
         return self.parse_orders(response, market, since, limit)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://docs.gemini.com/rest-api/#new-order
@@ -1242,7 +1246,7 @@ class gemini(Exchange):
         #
         return self.parse_order(response)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1281,7 +1285,7 @@ class gemini(Exchange):
         #
         return self.parse_order(response)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1304,7 +1308,7 @@ class gemini(Exchange):
         response = await self.privatePostV1Mytrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1358,7 +1362,7 @@ class gemini(Exchange):
             return self.milliseconds()
         return self.seconds()
 
-    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: not used by gemini.fetchTransactions
@@ -1455,7 +1459,7 @@ class gemini(Exchange):
             'info': depositAddress,
         }
 
-    async def fetch_deposit_addresses_by_network(self, code, params={}):
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}):
         await self.load_markets()
         currency = self.currency(code)
         network = self.safe_string(params, 'network')
@@ -1488,11 +1492,11 @@ class gemini(Exchange):
             }, query)
             payload = self.json(request)
             payload = self.string_to_base64(payload)
-            signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384)
             headers = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': self.apiKey,
-                'X-GEMINI-PAYLOAD': self.decode(payload),
+                'X-GEMINI-PAYLOAD': payload,
                 'X-GEMINI-SIGNATURE': signature,
             }
         else:
@@ -1508,7 +1512,7 @@ class gemini(Exchange):
             if isinstance(body, str):
                 feedback = self.id + ' ' + body
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {
         #         "result": "error",
@@ -1518,15 +1522,16 @@ class gemini(Exchange):
         #
         result = self.safe_string(response, 'result')
         if result == 'error':
-            reason = self.safe_string(response, 'reason')
+            reasonInner = self.safe_string(response, 'reason')
             message = self.safe_string(response, 'message')
             feedback = self.id + ' ' + message
-            self.throw_exactly_matched_exception(self.exceptions['exact'], reason, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], reasonInner, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -1548,7 +1553,7 @@ class gemini(Exchange):
             'info': response,
         }
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for

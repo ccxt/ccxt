@@ -1,9 +1,11 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bkex.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -276,8 +278,8 @@ export default class bkex extends Exchange {
          * @returns {[object]} an array of objects representing market data
          */
         let promises = [
-            (this as any).publicSpotGetCommonSymbols (params),
-            (this as any).publicSwapGetMarketSymbols (params),
+            this.publicSpotGetCommonSymbols (params),
+            this.publicSwapGetMarketSymbols (params),
         ];
         promises = await Promise.all (promises);
         const spotMarkets = promises[0];
@@ -398,7 +400,7 @@ export default class bkex extends Exchange {
          * @param {object} params extra parameters specific to the bkex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).publicSpotGetCommonCurrencys (params);
+        const response = await this.publicSpotGetCommonCurrencys (params);
         //
         // {
         //     "code": "0",
@@ -458,7 +460,7 @@ export default class bkex extends Exchange {
          * @param {object} params extra parameters specific to the bkex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicSpotGetCommonTimestamp (params);
+        const response = await this.publicSpotGetCommonTimestamp (params);
         //
         // {
         //     "code": '0',
@@ -478,7 +480,7 @@ export default class bkex extends Exchange {
          * @param {object} params extra parameters specific to the bkex api endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
-        const response = await (this as any).publicSpotGetCommonTimestamp (params);
+        const response = await this.publicSpotGetCommonTimestamp (params);
         //
         //     {
         //         "code": '0',
@@ -499,7 +501,7 @@ export default class bkex extends Exchange {
         };
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchOHLCV
@@ -607,7 +609,7 @@ export default class bkex extends Exchange {
         ];
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bkex#fetchTicker
@@ -824,7 +826,7 @@ export default class bkex extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchOrderBook
@@ -894,7 +896,7 @@ export default class bkex extends Exchange {
         return this.parseOrderBook (data, market['symbol'], timestamp, 'bid', 'ask');
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchTrades
@@ -1033,7 +1035,7 @@ export default class bkex extends Exchange {
          */
         await this.loadMarkets ();
         const query = this.omit (params, 'type');
-        const response = await (this as any).privateSpotGetUAccountBalance (query);
+        const response = await this.privateSpotGetUAccountBalance (query);
         //
         // {
         //     "code": "0",
@@ -1073,7 +1075,7 @@ export default class bkex extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bkex#fetchDepositAddress
@@ -1087,7 +1089,7 @@ export default class bkex extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).privateSpotGetUWalletAddress (this.extend (request, params));
+        const response = await this.privateSpotGetUWalletAddress (this.extend (request, params));
         // NOTE: You can only retrieve addresses of already generated wallets - so should already have generated that COIN deposit address in UI. Otherwise, it seems from API you can't create/obtain addresses for those coins.
         //
         // {
@@ -1122,7 +1124,7 @@ export default class bkex extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchDeposits
@@ -1149,7 +1151,7 @@ export default class bkex extends Exchange {
         if (limit !== undefined) {
             request['Size'] = limit; // Todo: id api-docs, 'size' is incorrectly required to be in Uppercase
         }
-        const response = await (this as any).privateSpotGetUWalletDepositRecord (this.extend (request, params));
+        const response = await this.privateSpotGetUWalletDepositRecord (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -1180,7 +1182,7 @@ export default class bkex extends Exchange {
         return this.parseTransactions (dataInner, currency, since, limit, params);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchWithdrawals
@@ -1207,7 +1209,7 @@ export default class bkex extends Exchange {
         if (limit !== undefined) {
             request['Size'] = limit; // Todo: id api-docs, 'size' is incorrectly required to be in Uppercase
         }
-        const response = await (this as any).privateSpotGetUWalletWithdrawRecord (this.extend (request, params));
+        const response = await this.privateSpotGetUWalletWithdrawRecord (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -1291,7 +1293,7 @@ export default class bkex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bkex#createOrder
@@ -1316,7 +1318,7 @@ export default class bkex extends Exchange {
         if ((type !== 'market') && (price !== undefined)) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await (this as any).privateSpotPostUOrderCreate (this.extend (request, params));
+        const response = await this.privateSpotPostUOrderCreate (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -1328,7 +1330,7 @@ export default class bkex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bkex#cancelOrder
@@ -1343,7 +1345,7 @@ export default class bkex extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response = await (this as any).privateSpotPostUOrderCancel (this.extend (request, params));
+        const response = await this.privateSpotPostUOrderCancel (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -1371,7 +1373,7 @@ export default class bkex extends Exchange {
         const request = {
             'orders': this.json (ids),
         };
-        const response = await (this as any).privateSpotPostUOrderBatchCancel (this.extend (request, params));
+        const response = await this.privateSpotPostUOrderBatchCancel (this.extend (request, params));
         // {
         //     "code": 0,
         //     "msg": "success",
@@ -1387,7 +1389,7 @@ export default class bkex extends Exchange {
         return this.parseOrders (results, market, undefined, undefined, params);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchOpenOrders
@@ -1409,7 +1411,7 @@ export default class bkex extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // Todo: id api-docs, 'size' is incorrectly required to be in Uppercase
         }
-        const response = await (this as any).privateSpotGetUOrderOpenOrders (this.extend (request, params));
+        const response = await this.privateSpotGetUOrderOpenOrders (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -1446,7 +1448,7 @@ export default class bkex extends Exchange {
         return this.parseOrders (innerData, market, since, limit, params);
     }
 
-    async fetchOpenOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchOpenOrder
@@ -1459,7 +1461,7 @@ export default class bkex extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response = await (this as any).privateSpotGetUOrderOpenOrderDetail (this.extend (request, params));
+        const response = await this.privateSpotGetUOrderOpenOrderDetail (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -1487,7 +1489,7 @@ export default class bkex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchClosedOrders
@@ -1512,7 +1514,7 @@ export default class bkex extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await (this as any).privateSpotGetUOrderHistoryOrders (this.extend (request, params));
+        const response = await this.privateSpotGetUOrderHistoryOrders (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -1661,7 +1663,7 @@ export default class bkex extends Exchange {
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicSpotGetCommonCurrencys (params);
+        const response = await this.publicSpotGetCommonCurrencys (params);
         //
         //      {
         //          "msg": "success",
@@ -1739,7 +1741,7 @@ export default class bkex extends Exchange {
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicSpotGetCommonCurrencys (params);
+        const response = await this.publicSpotGetCommonCurrencys (params);
         //
         //    {
         //        "msg": "success",
@@ -1790,7 +1792,7 @@ export default class bkex extends Exchange {
         return result;
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchFundingRateHistory
@@ -1810,7 +1812,7 @@ export default class bkex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicSwapGetMarketFundingRate (this.extend (request, params));
+        const response = await this.publicSwapGetMarketFundingRate (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1829,11 +1831,11 @@ export default class bkex extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = this.safeString (entry, 'symbol');
-            const symbol = this.safeSymbol (marketId);
+            const symbolInner = this.safeSymbol (marketId);
             const timestamp = this.safeInteger (entry, 'time');
             rates.push ({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': this.safeNumber (entry, 'rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
@@ -1843,7 +1845,7 @@ export default class bkex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
-    async fetchMarketLeverageTiers (symbol, params = {}) {
+    async fetchMarketLeverageTiers (symbol: string, params = {}) {
         /**
          * @method
          * @name bkex#fetchMarketLeverageTiers
@@ -1861,7 +1863,7 @@ export default class bkex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicSwapGetMarketRiskLimit (this.extend (request, params));
+        const response = await this.publicSwapGetMarketRiskLimit (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1881,7 +1883,7 @@ export default class bkex extends Exchange {
         return this.parseMarketLeverageTiers (data, market);
     }
 
-    parseMarketLeverageTiers (info, market) {
+    parseMarketLeverageTiers (info, market = undefined) {
         //
         //     [
         //         {
@@ -1926,7 +1928,7 @@ export default class bkex extends Exchange {
         }
         if (signed) {
             this.checkRequiredCredentials ();
-            const signature = this.hmac (this.encode (paramsSortedEncoded), this.encode (this.secret), 'sha256');
+            const signature = this.hmac (this.encode (paramsSortedEncoded), this.encode (this.secret), sha256);
             headers = {
                 'Cache-Control': 'no-cache',
                 'Content-type': 'application/x-www-form-urlencoded',
@@ -1942,7 +1944,7 @@ export default class bkex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         // success
@@ -1976,7 +1978,7 @@ export default class bkex extends Exchange {
         //
         const message = this.safeValue (response, 'msg');
         if (message === 'success') {
-            return;
+            return undefined;
         }
         const responseCode = this.safeString (response, 'code');
         if (responseCode !== '0') {
@@ -1985,5 +1987,6 @@ export default class bkex extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 }

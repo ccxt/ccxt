@@ -5,9 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/wavesexchange.js';
 import { ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder, AccountSuspended, ExchangeError, DuplicateOrderId, OrderNotFound, BadSymbol, ExchangeNotAvailable, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
+import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
+import { eddsa } from './base/functions/crypto.js';
 //  ---------------------------------------------------------------------------
 export default class wavesexchange extends Exchange {
     describe() {
@@ -352,7 +354,7 @@ export default class wavesexchange extends Exchange {
     }
     setSandboxMode(enabled) {
         this.options['messagePrefix'] = enabled ? 'T' : 'W';
-        return super.setSandboxMode(enabled);
+        super.setSandboxMode(enabled);
     }
     async getFeesForAsset(symbol, side, amount, price, params = {}) {
         await this.loadMarkets();
@@ -722,10 +724,10 @@ export default class wavesexchange extends Exchange {
             // W for production, T for testnet
             const defaultMessagePrefix = this.safeString(this.options, 'messagePrefix', 'W');
             const message = defaultMessagePrefix + ':' + clientId + ':' + seconds;
-            const messageHex = this.binaryToBase16(this.stringToBinary(this.encode(message)));
+            const messageHex = this.binaryToBase16(this.encode(message));
             const payload = prefix + messageHex;
             const hexKey = this.binaryToBase16(this.base58ToBinary(this.secret));
-            const signature = this.eddsa(payload, hexKey, 'ed25519');
+            const signature = eddsa(payload, hexKey, ed25519);
             const request = {
                 'grant_type': 'password',
                 'scope': 'general',
@@ -742,6 +744,7 @@ export default class wavesexchange extends Exchange {
             this.options['accessToken'] = this.safeString(response, 'access_token');
             return this.options['accessToken'];
         }
+        return undefined;
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -1106,15 +1109,15 @@ export default class wavesexchange extends Exchange {
                 const request = {
                     'publicKey': this.apiKey,
                 };
-                const response = await this.nodeGetAddressesPublicKeyPublicKey(this.extend(request, request));
-                const address = this.safeString(response, 'address');
+                const responseInner = await this.nodeGetAddressesPublicKeyPublicKey(this.extend(request, request));
+                const addressInner = this.safeString(response, 'address');
                 return {
-                    'address': address,
+                    'address': addressInner,
                     'code': code,
                     'currency': code,
                     'network': network,
                     'tag': undefined,
-                    'info': response,
+                    'info': responseInner,
                 };
             }
             else {
@@ -1349,7 +1352,7 @@ export default class wavesexchange extends Exchange {
             this.getAssetBytes(matcherFeeAssetId),
         ];
         const binary = this.binaryConcatArray(byteArray);
-        const signature = this.eddsa(this.binaryToBase16(binary), this.binaryToBase16(this.base58ToBinary(this.secret)), 'ed25519');
+        const signature = eddsa(this.binaryToBase16(binary), this.binaryToBase16(this.base58ToBinary(this.secret)), ed25519);
         const assetPair = {
             'amountAsset': amountAsset,
             'priceAsset': priceAsset,
@@ -1478,7 +1481,7 @@ export default class wavesexchange extends Exchange {
         ];
         const binary = this.binaryConcatArray(byteArray);
         const hexSecret = this.binaryToBase16(this.base58ToBinary(this.secret));
-        const signature = this.eddsa(this.binaryToBase16(binary), hexSecret, 'ed25519');
+        const signature = eddsa(this.binaryToBase16(binary), hexSecret, ed25519);
         const request = {
             'Timestamp': timestamp.toString(),
             'Signature': signature,
@@ -1513,7 +1516,7 @@ export default class wavesexchange extends Exchange {
         ];
         const binary = this.binaryConcatArray(byteArray);
         const hexSecret = this.binaryToBase16(this.base58ToBinary(this.secret));
-        const signature = this.eddsa(this.binaryToBase16(binary), hexSecret, 'ed25519');
+        const signature = eddsa(this.binaryToBase16(binary), hexSecret, ed25519);
         const request = {
             'Accept': 'application/json',
             'Timestamp': timestamp.toString(),
@@ -1838,10 +1841,10 @@ export default class wavesexchange extends Exchange {
         }
         const nonStandardAssets = assetIds.length;
         if (nonStandardAssets) {
-            const request = {
+            const requestInner = {
                 'ids': assetIds,
             };
-            const response = await this.publicGetAssets(request);
+            const response = await this.publicGetAssets(requestInner);
             const data = this.safeValue(response, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const entry = data[i];
@@ -1861,7 +1864,7 @@ export default class wavesexchange extends Exchange {
         ];
         const binary = this.binaryConcatArray(byteArray);
         const hexSecret = this.binaryToBase16(this.base58ToBinary(this.secret));
-        const signature = this.eddsa(this.binaryToBase16(binary), hexSecret, 'ed25519');
+        const signature = eddsa(this.binaryToBase16(binary), hexSecret, ed25519);
         const matcherRequest = {
             'publicKey': this.apiKey,
             'signature': signature,
@@ -2189,8 +2192,8 @@ export default class wavesexchange extends Exchange {
         const success = this.safeValue(response, 'success', true);
         const Exception = this.safeValue(this.exceptions, errorCode);
         if (Exception !== undefined) {
-            const message = this.safeString(response, 'message');
-            throw new Exception(this.id + ' ' + message);
+            const messageInner = this.safeString(response, 'message');
+            throw new Exception(this.id + ' ' + messageInner);
         }
         const message = this.safeString(response, 'message');
         if (message === 'Validation Error') {
@@ -2199,6 +2202,7 @@ export default class wavesexchange extends Exchange {
         if (!success) {
             throw new ExchangeError(this.id + ' ' + body);
         }
+        return undefined;
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         /**
@@ -2256,8 +2260,8 @@ export default class wavesexchange extends Exchange {
                 'currency': code,
             };
             const withdrawAddress = await this.privateGetWithdrawAddressesCurrencyAddress(withdrawAddressRequest);
-            const currency = this.safeValue(withdrawAddress, 'currency');
-            const allowedAmount = this.safeValue(currency, 'allowed_amount');
+            const currencyInner = this.safeValue(withdrawAddress, 'currency');
+            const allowedAmount = this.safeValue(currencyInner, 'allowed_amount');
             const minimum = this.safeNumber(allowedAmount, 'min');
             if (amount <= minimum) {
                 throw new BadRequest(this.id + ' ' + code + ' withdraw failed, amount ' + amount.toString() + ' must be greater than the minimum allowed amount of ' + minimum.toString());
@@ -2307,7 +2311,7 @@ export default class wavesexchange extends Exchange {
         ];
         const binary = this.binaryConcatArray(byteArray);
         const hexSecret = this.binaryToBase16(this.base58ToBinary(this.secret));
-        const signature = this.eddsa(this.binaryToBase16(binary), hexSecret, 'ed25519');
+        const signature = eddsa(this.binaryToBase16(binary), hexSecret, ed25519);
         const request = {
             'senderPublicKey': this.apiKey,
             'amount': amountInteger,

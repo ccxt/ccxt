@@ -5,9 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/oceanex.js';
 import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { jwt } from './base/functions/rsa.js';
 //  ---------------------------------------------------------------------------
 export default class oceanex extends Exchange {
     describe() {
@@ -642,15 +644,12 @@ export default class oceanex extends Exchange {
          * @param {object} params extra parameters specific to the oceanex api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        let ids = id;
-        if (!Array.isArray(id)) {
-            ids = [id];
-        }
         await this.loadMarkets();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
+        const ids = [id];
         const request = { 'ids': ids };
         const response = await this.privateGetOrders(this.extend(request, params));
         const data = this.safeValue(response, 'data');
@@ -929,7 +928,7 @@ export default class oceanex extends Exchange {
             // to set the private key:
             // const fs = require ('fs')
             // exchange.secret = fs.readFileSync ('oceanex.pem', 'utf8')
-            const jwt_token = this.jwt(request, this.encode(this.secret), 'RS256');
+            const jwt_token = jwt(request, this.encode(this.secret), sha256, true);
             url += '?user_jwt=' + jwt_token;
         }
         headers = { 'Content-Type': 'application/json' };
@@ -940,7 +939,7 @@ export default class oceanex extends Exchange {
         //     {"code":1011,"message":"This IP 'x.x.x.x' is not allowed","data":{}}
         //
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const errorCode = this.safeString(response, 'code');
         const message = this.safeString(response, 'message');
@@ -950,5 +949,6 @@ export default class oceanex extends Exchange {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             throw new ExchangeError(feedback);
         }
+        return undefined;
     }
 }

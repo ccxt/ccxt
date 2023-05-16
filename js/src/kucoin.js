@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/kucoin.js';
 import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class kucoin extends Exchange {
     describe() {
@@ -187,7 +188,14 @@ export default class kucoin extends Exchange {
                         'stop-order/{orderId}': 1,
                         'stop-order': 1,
                         'stop-order/queryOrderByClientOid': 1,
-                        'trade-fees': 1.3333, // 45/3s = 15/s => cost = 20 / 15 = 1.333
+                        'trade-fees': 1.3333,
+                        'hf/accounts/ledgers': 3.33,
+                        'hf/orders/active': 2,
+                        'hf/orders/active/symbols': 20,
+                        'hf/orders/done': 2,
+                        'hf/orders/{orderId}': 1,
+                        'hf/orders/client-order/{clientOid}': 2,
+                        'hf/fills': 6.67, // 9 times/3s = 3/s => cost = 20 / 3 = 6.67
                     },
                     'post': {
                         'accounts': 1,
@@ -211,6 +219,11 @@ export default class kucoin extends Exchange {
                         'sub/user': 1,
                         'sub/api-key': 1,
                         'sub/api-key/update': 1,
+                        'hf/orders': 0.4,
+                        'hf/orders/sync': 1.33,
+                        'hf/orders/multi': 20,
+                        'hf/orders/multi/sync': 20,
+                        'hf/orders/alter': 1, // 60 times/3s = 20/s => cost = 20/20 = 1
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -222,6 +235,12 @@ export default class kucoin extends Exchange {
                         'stop-order/{orderId}': 1,
                         'stop-order/cancel': 1,
                         'sub/api-key': 1,
+                        'hf/orders/{orderId}': 0.4,
+                        'hf/orders/sync/{orderId}': 0.4,
+                        'hf/orders/client-order/{clientOid}': 0.4,
+                        'hf/orders/sync/client-order/{clientOid}': 0.4,
+                        'hf/orders/cancel/{orderId}': 1,
+                        'hf/orders': 20, // 3 times/3s = 1/s => cost = 20 / 1 = 20
                     },
                 },
                 'futuresPublic': {
@@ -438,12 +457,32 @@ export default class kucoin extends Exchange {
                             'market/orderbook/level2': 'v3',
                             'market/orderbook/level3': 'v3',
                             'market/orderbook/level{level}': 'v3',
-                            'deposit-addresses': 'v1', // 'v1' for fetchDepositAddress, 'v2' for fetchDepositAddressesByNetwork
+                            'deposit-addresses': 'v1',
+                            'hf/accounts/ledgers': 'v1',
+                            'hf/orders/active': 'v1',
+                            'hf/orders/active/symbols': 'v1',
+                            'hf/orders/done': 'v1',
+                            'hf/orders/{orderId}': 'v1',
+                            'hf/orders/client-order/{clientOid}': 'v1',
+                            'hf/fills': 'v1',
                         },
                         'POST': {
                             'accounts/inner-transfer': 'v2',
                             'accounts/sub-transfer': 'v2',
-                            'accounts': 'v2',
+                            'accounts': 'v1',
+                            'hf/orders': 'v1',
+                            'hf/orders/sync': 'v1',
+                            'hf/orders/multi': 'v1',
+                            'hf/orders/multi/sync': 'v1',
+                            'hf/orders/alter': 'v1',
+                        },
+                        'DELETE': {
+                            'hf/orders/{orderId}': 'v1',
+                            'hf/orders/sync/{orderId}': 'v1',
+                            'hf/orders/client-order/{clientOid}': 'v1',
+                            'hf/orders/sync/client-order/{clientOid}': 'v1',
+                            'hf/orders/cancel/{orderId}': 'v1',
+                            'hf/orders': 'v1',
                         },
                     },
                     'futuresPrivate': {
@@ -485,6 +524,7 @@ export default class kucoin extends Exchange {
                     'future': 'contract',
                     'swap': 'contract',
                     'mining': 'pool',
+                    'hf': 'trade_hf',
                 },
                 'networks': {
                     'Native': 'bech32',
@@ -741,6 +781,7 @@ export default class kucoin extends Exchange {
                 'withdraw': isWithdrawEnabled,
                 'fee': fee,
                 'limits': this.limits,
+                'networks': {},
             };
         }
         return result;
@@ -846,7 +887,7 @@ export default class kucoin extends Exchange {
         const networkCode = this.safeStringUpper(params, 'network');
         const network = this.networkCodeToId(networkCode, code);
         if (network !== undefined) {
-            request['chain'] = network;
+            request['chain'] = network.toLowerCase();
             params = this.omit(params, ['network']);
         }
         const response = await this.privateGetWithdrawalsQuotas(this.extend(request, params));
@@ -1507,6 +1548,11 @@ export default class kucoin extends Exchange {
                 request['marginModel'] = 'isolated';
             }
         }
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(type === 'market', false, params);
+        if (postOnly) {
+            request['postOnly'] = true;
+        }
         const response = await this[method](this.extend(request, params));
         //
         //     {
@@ -1868,8 +1914,13 @@ export default class kucoin extends Exchange {
         const stopTriggered = this.safeValue(order, 'stopTriggered', false);
         const isActive = this.safeValue(order, 'isActive');
         let status = undefined;
-        if (isActive === true) {
-            status = 'open';
+        if (isActive !== undefined) {
+            if (isActive === true) {
+                status = 'open';
+            }
+            else {
+                status = 'closed';
+            }
         }
         if (stop) {
             const responseStatus = this.safeString(order, 'status');
@@ -2700,8 +2751,8 @@ export default class kucoin extends Exchange {
             for (let i = 0; i < accounts.length; i++) {
                 const balance = accounts[i];
                 const currencyId = this.safeString(balance, 'currency');
-                const code = this.safeCurrencyCode(currencyId);
-                result[code] = this.parseBalanceHelper(balance);
+                const codeInner = this.safeCurrencyCode(currencyId);
+                result[codeInner] = this.parseBalanceHelper(balance);
             }
         }
         else {
@@ -2710,12 +2761,12 @@ export default class kucoin extends Exchange {
                 const balanceType = this.safeString(balance, 'type');
                 if (balanceType === type) {
                     const currencyId = this.safeString(balance, 'currency');
-                    const code = this.safeCurrencyCode(currencyId);
+                    const codeInner2 = this.safeCurrencyCode(currencyId);
                     const account = this.account();
                     account['total'] = this.safeString(balance, 'balance');
                     account['free'] = this.safeString(balance, 'available');
                     account['used'] = this.safeString(balance, 'holds');
-                    result[code] = account;
+                    result[codeInner2] = account;
                 }
             }
         }
@@ -3075,7 +3126,7 @@ export default class kucoin extends Exchange {
         const items = this.safeValue(data, 'items');
         return this.parseLedger(items, currency, since, limit);
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
         const versions = this.safeValue(this.options, 'versions', {});
         const apiVersions = this.safeValue(versions, api, {});
         const methodVersions = this.safeValue(apiVersions, method, {});
@@ -3109,7 +3160,7 @@ export default class kucoin extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privateGetMarginTradeLast(this.extend(request, params));
+        const response = await this.publicGetMarginTradeLast(this.extend(request, params));
         //
         //     {
         //         "code": "200000",
@@ -3126,7 +3177,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        return this.parseBorrowRateHistory(data, code);
+        return this.parseBorrowRateHistory(data, code, since, limit);
     }
     parseBorrowRateHistory(response, code, since, limit) {
         const result = [];
@@ -3537,14 +3588,14 @@ export default class kucoin extends Exchange {
             }, headers);
             const apiKeyVersion = this.safeString(headers, 'KC-API-KEY-VERSION');
             if (apiKeyVersion === '2') {
-                const passphrase = this.hmac(this.encode(this.password), this.encode(this.secret), 'sha256', 'base64');
+                const passphrase = this.hmac(this.encode(this.password), this.encode(this.secret), sha256, 'base64');
                 headers['KC-API-PASSPHRASE'] = passphrase;
             }
             else {
                 headers['KC-API-PASSPHRASE'] = this.password;
             }
             const payload = timestamp + method + endpoint + endpart;
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha256', 'base64');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'base64');
             headers['KC-API-SIGN'] = signature;
             let partner = this.safeValue(this.options, 'partner', {});
             partner = isFuturePrivate ? this.safeValue(partner, 'future', partner) : this.safeValue(partner, 'spot', partner);
@@ -3552,7 +3603,7 @@ export default class kucoin extends Exchange {
             const partnerSecret = this.safeString2(partner, 'secret', 'key');
             if ((partnerId !== undefined) && (partnerSecret !== undefined)) {
                 const partnerPayload = timestamp + partnerId + this.apiKey;
-                const partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), 'sha256', 'base64');
+                const partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), sha256, 'base64');
                 headers['KC-API-PARTNER-SIGN'] = partnerSignature;
                 headers['KC-API-PARTNER'] = partnerId;
             }
@@ -3562,7 +3613,7 @@ export default class kucoin extends Exchange {
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, body);
-            return;
+            return undefined;
         }
         //
         // bad
@@ -3576,5 +3627,6 @@ export default class kucoin extends Exchange {
         this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
         this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
+        return undefined;
     }
 }

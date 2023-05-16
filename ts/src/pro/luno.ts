@@ -2,6 +2,8 @@
 
 import lunoRest from '../luno.js';
 import { ArrayCache } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -33,7 +35,7 @@ export default class luno extends lunoRest {
         });
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name luno#watchTrades
@@ -62,10 +64,10 @@ export default class luno extends lunoRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
-    handleTrades (client, message, subscription) {
+    handleTrades (client: Client, message, subscription) {
         //
         //     {
         //         sequence: '110980825',
@@ -104,7 +106,7 @@ export default class luno extends lunoRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         //
         // watchTrades (public)
         //
@@ -134,7 +136,7 @@ export default class luno extends lunoRest {
         }, market);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name luno#watchOrderBook
@@ -162,7 +164,7 @@ export default class luno extends lunoRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message, subscription) {
+    handleOrderBook (client: Client, message, subscription) {
         //
         //     {
         //         "sequence": "24352",
@@ -315,7 +317,7 @@ export default class luno extends lunoRest {
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (message === '') {
             return;
         }

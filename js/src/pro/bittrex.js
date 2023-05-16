@@ -8,6 +8,8 @@
 import bittrexRest from '../bittrex.js';
 import { InvalidNonce, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
+import { inflateSync as inflate } from '../static_dependencies/fflake/browser.js';
 //  ---------------------------------------------------------------------------
 export default class bittrex extends bittrexRest {
     describe() {
@@ -70,7 +72,7 @@ export default class bittrex extends bittrexRest {
         const timestamp = this.milliseconds();
         const uuid = this.uuid();
         const auth = timestamp.toString() + uuid;
-        const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha512');
+        const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
         const args = [this.apiKey, timestamp, uuid, signature];
         const method = 'Authenticate';
         return this.makeRequest(requestId, method, args);
@@ -216,7 +218,7 @@ export default class bittrex extends bittrexRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     async subscribeToOrders(authentication, params = {}) {
         const messageHash = 'order';
@@ -391,7 +393,7 @@ export default class bittrex extends bittrexRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0);
     }
     async subscribeToOHLCV(negotiation, symbol, timeframe = '1m', params = {}) {
         await this.loadMarkets();
@@ -460,7 +462,7 @@ export default class bittrex extends bittrexRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     async subscribeToTrades(negotiation, symbol, params = {}) {
         await this.loadMarkets();
@@ -526,7 +528,7 @@ export default class bittrex extends bittrexRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
     }
     async subscribeToMyTrades(authentication, params = {}) {
         const messageHash = 'execution';
@@ -861,7 +863,7 @@ export default class bittrex extends bittrexRest {
                 else {
                     const A = this.safeValue(M[i], 'A', []);
                     for (let k = 0; k < A.length; k++) {
-                        const inflated = this.inflate64(A[k]);
+                        const inflated = this.decode(inflate(this.base64ToBinary(A[k])));
                         const update = JSON.parse(inflated);
                         method.call(this, client, update);
                     }

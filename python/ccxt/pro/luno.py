@@ -5,6 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
+from ccxt.async_support.base.ws.client import Client
+from typing import Optional
 
 
 class luno(ccxt.async_support.luno):
@@ -35,7 +37,7 @@ class luno(ccxt.async_support.luno):
             },
         })
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         see https://www.luno.com/en/developers/api#tag/Streaming-API
@@ -61,9 +63,9 @@ class luno(ccxt.async_support.luno):
         trades = await self.watch(url, messageHash, request, subscriptionHash, subscription)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
-    def handle_trades(self, client, message, subscription):
+    def handle_trades(self, client: Client, message, subscription):
         #
         #     {
         #         sequence: '110980825',
@@ -98,7 +100,7 @@ class luno(ccxt.async_support.luno):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         #
         # watchTrades(public)
         #
@@ -127,7 +129,7 @@ class luno(ccxt.async_support.luno):
             'fee': None,
         }, market)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -152,7 +154,7 @@ class luno(ccxt.async_support.luno):
         orderbook = await self.watch(url, messageHash, request, subscriptionHash, subscription)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message, subscription):
+    def handle_order_book(self, client: Client, message, subscription):
         #
         #     {
         #         "sequence": "24352",
@@ -292,7 +294,7 @@ class luno(ccxt.async_support.luno):
             bidsOrderSide.storeArray(0, 0, orderId)
         return message
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         if message == '':
             return
         subscriptions = list(client.subscriptions.values())

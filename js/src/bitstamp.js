@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitstamp.js';
 import { AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, OnMaintenance, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class bitstamp extends Exchange {
     describe() {
@@ -528,6 +529,7 @@ export default class bitstamp extends Exchange {
                     'max': undefined,
                 },
             },
+            'networks': {},
         };
     }
     async fetchMarketsFromCache(params = {}) {
@@ -838,7 +840,8 @@ export default class bitstamp extends Exchange {
         }
         const feeCostString = this.safeString(trade, 'fee');
         const feeCurrency = market['quote'];
-        priceString = this.safeString(trade, rawMarketId, priceString);
+        const priceId = (rawMarketId !== undefined) ? rawMarketId : market['marketId'];
+        priceString = this.safeString(trade, priceId, priceString);
         amountString = this.safeString(trade, market['baseId'], amountString);
         costString = this.safeString(trade, market['quoteId'], costString);
         symbol = market['symbol'];
@@ -2029,14 +2032,14 @@ export default class bitstamp extends Exchange {
             }
             const authBody = body ? body : '';
             const auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             headers['X-Auth-Signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //     {"error": "No permission found"} // fetchDepositAddress returns this on apiKeys that don't have the permission required
@@ -2063,12 +2066,12 @@ export default class bitstamp extends Exchange {
                     }
                 }
             }
-            const reason = this.safeValue(response, 'reason', {});
-            if (typeof reason === 'string') {
-                errors.push(reason);
+            const reasonInner = this.safeValue(response, 'reason', {});
+            if (typeof reasonInner === 'string') {
+                errors.push(reasonInner);
             }
             else {
-                const all = this.safeValue(reason, '__all__', []);
+                const all = this.safeValue(reasonInner, '__all__', []);
                 for (let i = 0; i < all.length; i++) {
                     errors.push(all[i]);
                 }
@@ -2085,5 +2088,6 @@ export default class bitstamp extends Exchange {
             }
             throw new ExchangeError(feedback);
         }
+        return undefined;
     }
 }

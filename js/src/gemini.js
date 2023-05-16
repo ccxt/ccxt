@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/gemini.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, RateLimitExceeded, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 export default class gemini extends Exchange {
     describe() {
@@ -480,9 +481,9 @@ export default class gemini extends Exchange {
         }
         promises = await Promise.all(promises);
         for (let i = 0; i < promises.length; i++) {
-            const response = promises[i];
-            const marketId = this.safeStringLower(response, 'symbol');
-            result[marketId] = this.parseMarket(response);
+            const responseInner = promises[i];
+            const marketId = this.safeStringLower(responseInner, 'symbol');
+            result[marketId] = this.parseMarket(responseInner);
         }
         return this.toArray(result);
     }
@@ -1560,11 +1561,11 @@ export default class gemini extends Exchange {
             }, query);
             let payload = this.json(request);
             payload = this.stringToBase64(payload);
-            const signature = this.hmac(payload, this.encode(this.secret), 'sha384');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
             headers = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': this.apiKey,
-                'X-GEMINI-PAYLOAD': this.decode(payload),
+                'X-GEMINI-PAYLOAD': payload,
                 'X-GEMINI-SIGNATURE': signature,
             };
         }
@@ -1585,7 +1586,7 @@ export default class gemini extends Exchange {
                 const feedback = this.id + ' ' + body;
                 this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             }
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {
@@ -1596,14 +1597,15 @@ export default class gemini extends Exchange {
         //
         const result = this.safeString(response, 'result');
         if (result === 'error') {
-            const reason = this.safeString(response, 'reason');
+            const reasonInner = this.safeString(response, 'reason');
             const message = this.safeString(response, 'message');
             const feedback = this.id + ' ' + message;
-            this.throwExactlyMatchedException(this.exceptions['exact'], reason, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], reasonInner, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
     async createDepositAddress(code, params = {}) {
         /**

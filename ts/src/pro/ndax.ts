@@ -3,6 +3,8 @@
 
 import ndaxRest from '../ndax.js';
 import { ArrayCache } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -38,7 +40,7 @@ export default class ndax extends ndaxRest {
         return requestId;
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name ndax#watchTicker
@@ -69,7 +71,7 @@ export default class ndax extends ndaxRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         const payload = this.safeValue (message, 'o', {});
         //
         //     {
@@ -105,7 +107,7 @@ export default class ndax extends ndaxRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#watchTrades
@@ -140,10 +142,10 @@ export default class ndax extends ndaxRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         const payload = this.safeValue (message, 'o', []);
         //
         // initial snapshot
@@ -188,7 +190,7 @@ export default class ndax extends ndaxRest {
         }
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#watchOHLCV
@@ -225,10 +227,10 @@ export default class ndax extends ndaxRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         m: 1,
@@ -269,7 +271,7 @@ export default class ndax extends ndaxRest {
                 const duration = parseInt (interval) * 1000;
                 const timestamp = this.safeInteger (ohlcv, 0);
                 const parsed = [
-                    parseInt (((timestamp / duration) * duration).toString ()),
+                    this.parseToInt ((timestamp / duration) * duration),
                     this.safeFloat (ohlcv, 3),
                     this.safeFloat (ohlcv, 1),
                     this.safeFloat (ohlcv, 2),
@@ -320,7 +322,7 @@ export default class ndax extends ndaxRest {
         }
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#watchOrderBook
@@ -366,7 +368,7 @@ export default class ndax extends ndaxRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         m: 3,
@@ -442,7 +444,7 @@ export default class ndax extends ndaxRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBookSubscription (client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message, subscription) {
         //
         //     {
         //         m: 1,
@@ -477,7 +479,7 @@ export default class ndax extends ndaxRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     {
         //         m: 1,
@@ -499,7 +501,7 @@ export default class ndax extends ndaxRest {
         }
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         //
         //     {
         //         "m": 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error

@@ -4,11 +4,15 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.independentreserve import ImplicitAPI
+import hashlib
+from ccxt.base.types import OrderSide
+from typing import Optional
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class independentreserve(Exchange):
+class independentreserve(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(independentreserve, self).describe(), {
@@ -233,7 +237,7 @@ class independentreserve(Exchange):
         response = await self.privatePostGetAccounts(params)
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -297,7 +301,7 @@ class independentreserve(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -432,7 +436,7 @@ class independentreserve(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -448,7 +452,7 @@ class independentreserve(Exchange):
             market = self.market(symbol)
         return self.parse_order(response, market)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -472,7 +476,7 @@ class independentreserve(Exchange):
         data = self.safe_value(response, 'Data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -496,7 +500,7 @@ class independentreserve(Exchange):
         data = self.safe_value(response, 'Data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=50, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=50, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -556,7 +560,7 @@ class independentreserve(Exchange):
             'fee': None,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -617,7 +621,7 @@ class independentreserve(Exchange):
             }
         return result
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -648,7 +652,7 @@ class independentreserve(Exchange):
             'id': response['OrderGuid'],
         }, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -681,7 +685,7 @@ class independentreserve(Exchange):
                 value = str(params[key])
                 auth.append(key + '=' + value)
             message = ','.join(auth)
-            signature = self.hmac(self.encode(message), self.encode(self.secret))
+            signature = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha256)
             query = self.ordered({})
             query['apiKey'] = self.apiKey
             query['nonce'] = nonce

@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/ace.js';
 import { ArgumentsRequired, BadRequest, AuthenticationError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class ace extends Exchange {
     describe() {
@@ -606,7 +607,7 @@ export default class ace extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const response = await this.privatePostV2OrderOrder(this.extend(request, params), params);
+        const response = await this.privatePostV2OrderOrder(this.extend(request, params));
         //
         //     {
         //         "attachment": "15697850529570392100421100482693",
@@ -709,7 +710,7 @@ export default class ace extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.privatePostV2OrderGetOrderList(this.extend(request, params), params);
+        const response = await this.privatePostV2OrderGetOrderList(this.extend(request, params));
         const orders = this.safeValue(response, 'attachment');
         //
         //     {
@@ -878,7 +879,7 @@ export default class ace extends Exchange {
         if (trades === undefined) {
             return trades;
         }
-        return await this.parseTrades(trades, market, since, limit);
+        return this.parseTrades(trades, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1018,7 +1019,7 @@ export default class ace extends Exchange {
                 const key = sortedDataKeys[i];
                 auth += this.safeString(data, key);
             }
-            const signature = this.hash(this.encode(auth), 'sha256', 'hex');
+            const signature = this.hash(this.encode(auth), sha256, 'hex');
             data['signKey'] = signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -1041,7 +1042,7 @@ export default class ace extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to the default error handler
+            return undefined; // fallback to the default error handler
         }
         const feedback = this.id + ' ' + body;
         const status = this.safeNumber(response, 'status', 200);
@@ -1049,5 +1050,6 @@ export default class ace extends Exchange {
             this.throwExactlyMatchedException(this.exceptions['exact'], status, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], status, feedback);
         }
+        return undefined;
     }
 }

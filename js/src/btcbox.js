@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/btcbox.js';
 import { ExchangeError, InsufficientFunds, InvalidOrder, AuthenticationError, PermissionDenied, InvalidNonce, OrderNotFound, DDoSProtection } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class btcbox extends Exchange {
     describe() {
@@ -516,8 +517,8 @@ export default class btcbox extends Exchange {
                 'nonce': nonce,
             }, params);
             const request = this.urlencode(query);
-            const secret = this.hash(this.encode(this.secret));
-            query['signature'] = this.hmac(this.encode(request), this.encode(secret));
+            const secret = this.hash(this.encode(this.secret), sha256);
+            query['signature'] = this.hmac(this.encode(request), this.encode(secret), sha256);
             body = this.urlencode(query);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -527,23 +528,23 @@ export default class btcbox extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // resort to defaultErrorHandler
+            return undefined; // resort to defaultErrorHandler
         }
         // typical error response: {"result":false,"code":"401"}
         if (httpCode >= 400) {
-            return; // resort to defaultErrorHandler
+            return undefined; // resort to defaultErrorHandler
         }
         const result = this.safeValue(response, 'result');
         if (result === undefined || result === true) {
-            return; // either public API (no error codes expected) or success
+            return undefined; // either public API (no error codes expected) or success
         }
         const code = this.safeValue(response, 'code');
         const feedback = this.id + ' ' + body;
         this.throwExactlyMatchedException(this.exceptions, code, feedback);
         throw new ExchangeError(feedback); // unknown message
     }
-    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        let response = await this.fetch2(path, api, method, params, headers, body, config, context);
+    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
+        let response = await this.fetch2(path, api, method, params, headers, body, config);
         if (typeof response === 'string') {
             // sometimes the exchange returns whitespace prepended to json
             response = this.strip(response);

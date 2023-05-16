@@ -4,6 +4,9 @@
 import exmoRest from '../exmo.js';
 import { NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -66,7 +69,7 @@ export default class exmo extends exmoRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //  spot
         //     {
@@ -204,7 +207,7 @@ export default class exmo extends exmoRest {
         }
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name exmo#watchTicker
@@ -229,7 +232,7 @@ export default class exmo extends exmoRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //  spot
         //      {
@@ -261,7 +264,7 @@ export default class exmo extends exmoRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name exmo#watchTrades
@@ -286,10 +289,10 @@ export default class exmo extends exmoRest {
         };
         const request = this.deepExtend (message, params);
         const trades = await this.watch (url, messageHash, request, messageHash, request);
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //      {
         //          ts: 1654206084001,
@@ -327,7 +330,7 @@ export default class exmo extends exmoRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name exmo#watchTrades
@@ -359,10 +362,10 @@ export default class exmo extends exmoRest {
         };
         const request = this.deepExtend (message, query);
         const trades = await this.watch (url, messageHash, request, messageHash, request);
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
-    handleMyTrades (client, message) {
+    handleMyTrades (client: Client, message) {
         //
         //  spot
         //     {
@@ -456,7 +459,7 @@ export default class exmo extends exmoRest {
         client.resolve (myTrades, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name exmo#watchOrderBook
@@ -484,7 +487,7 @@ export default class exmo extends exmoRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         "ts": 1574427585174,
@@ -556,7 +559,7 @@ export default class exmo extends exmoRest {
         }
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         //
         // {
         //     ts: 1654206362552,
@@ -609,7 +612,7 @@ export default class exmo extends exmoRest {
         throw new NotSupported (this.id + ' received an unsupported message: ' + this.json (message));
     }
 
-    handleSubscribed (client, message) {
+    handleSubscribed (client: Client, message) {
         //
         // {
         //     method: 'subscribe',
@@ -620,7 +623,7 @@ export default class exmo extends exmoRest {
         return message;
     }
 
-    handleInfo (client, message) {
+    handleInfo (client: Client, message) {
         //
         // {
         //     ts: 1654215731659,
@@ -633,7 +636,7 @@ export default class exmo extends exmoRest {
         return message;
     }
 
-    handleAuthenticationMessage (client, message) {
+    handleAuthenticationMessage (client: Client, message) {
         //
         //     {
         //         method: 'login',
@@ -658,7 +661,7 @@ export default class exmo extends exmoRest {
             this.checkRequiredCredentials ();
             const requestId = this.requestId ();
             const signData = this.apiKey + time.toString ();
-            const sign = this.hmac (this.encode (signData), this.encode (this.secret), 'sha512', 'base64');
+            const sign = this.hmac (this.encode (signData), this.encode (this.secret), sha512, 'base64');
             const request = {
                 'method': 'login',
                 'id': requestId,

@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/btcturk.js';
 import { BadRequest, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class btcturk extends Exchange {
     describe() {
@@ -637,8 +638,7 @@ export default class btcturk extends Exchange {
             results.push(this.parseOHLCV(ohlcv, market));
         }
         const sorted = this.sortBy(results, 0);
-        const tail = (since === undefined);
-        return this.filterBySinceLimit(sorted, since, limit, 0, tail);
+        return this.filterBySinceLimit(sorted, since, limit, 0);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
@@ -769,7 +769,7 @@ export default class btcturk extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
-    parseOrder(order, market) {
+    parseOrder(order, market = undefined) {
         //
         // fetchOrders / fetchOpenOrders
         //     {
@@ -900,7 +900,7 @@ export default class btcturk extends Exchange {
             headers = {
                 'X-PCK': this.apiKey,
                 'X-Stamp': nonce,
-                'X-Signature': this.hmac(this.encode(auth), secret, 'sha256', 'base64'),
+                'X-Signature': this.hmac(this.encode(auth), secret, sha256, 'base64'),
                 'Content-Type': 'application/json',
             };
         }
@@ -914,5 +914,6 @@ export default class btcturk extends Exchange {
         if ((errorCode !== '0') && (errorCode !== 'SUCCESS')) {
             throw new ExchangeError(this.id + ' ' + output);
         }
+        return undefined;
     }
 }

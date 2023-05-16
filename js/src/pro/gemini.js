@@ -8,6 +8,7 @@
 import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { ExchangeError } from '../base/errors.js';
+import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 export default class gemini extends geminiRest {
     describe() {
@@ -67,7 +68,7 @@ export default class gemini extends geminiRest {
         if (this.newUpdates) {
             limit = trades.getLimit(market['symbol'], limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     parseWsTrade(trade, market = undefined) {
         //
@@ -218,7 +219,7 @@ export default class gemini extends geminiRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0);
     }
     handleOHLCV(client, message) {
         //
@@ -398,7 +399,7 @@ export default class gemini extends geminiRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleHeartbeat(client, message) {
         //
@@ -626,8 +627,8 @@ export default class gemini extends geminiRest {
             'request': request,
             'nonce': this.nonce(),
         };
-        const b64 = this.stringToBase64(this.encode(this.json(payload)));
-        const signature = this.hmac(b64, this.encode(this.secret), 'sha384', 'hex');
+        const b64 = this.stringToBase64(this.json(payload));
+        const signature = this.hmac(this.encode(b64), this.encode(this.secret), sha384, 'hex');
         const defaultOptions = {
             'ws': {
                 'options': {
@@ -639,7 +640,7 @@ export default class gemini extends geminiRest {
         const originalHeaders = this.options['ws']['options']['headers'];
         const headers = {
             'X-GEMINI-APIKEY': this.apiKey,
-            'X-GEMINI-PAYLOAD': this.decode(b64),
+            'X-GEMINI-PAYLOAD': b64,
             'X-GEMINI-SIGNATURE': signature,
         };
         this.options['ws']['options']['headers'] = headers;

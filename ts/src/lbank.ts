@@ -1,10 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/lbank.js';
 import { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { md5 } from './static_dependencies/noble-hashes/md5.js';
+import { rsa } from './base/functions/rsa.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -147,7 +151,7 @@ export default class lbank extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetAccuracy (params);
+        const response = await this.publicGetAccuracy (params);
         //
         //    [
         //        {
@@ -276,7 +280,7 @@ export default class lbank extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name lbank#fetchTicker
@@ -290,7 +294,7 @@ export default class lbank extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
         // {
         //     "symbol":"btc_usdt",
         //     "ticker":{
@@ -320,7 +324,7 @@ export default class lbank extends Exchange {
         const request = {
             'symbol': 'all',
         };
-        const response = await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const ticker = this.parseTicker (response[i]);
@@ -330,7 +334,7 @@ export default class lbank extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchOrderBook (symbol, limit = 60, params = {}) {
+    async fetchOrderBook (symbol: string, limit = 60, params = {}) {
         /**
          * @method
          * @name lbank#fetchOrderBook
@@ -350,7 +354,7 @@ export default class lbank extends Exchange {
             'symbol': market['id'],
             'size': size,
         };
-        const response = await (this as any).publicGetDepth (this.extend (request, params));
+        const response = await this.publicGetDepth (this.extend (request, params));
         return this.parseOrderBook (response, market['symbol']);
     }
 
@@ -385,7 +389,7 @@ export default class lbank extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchTrades
@@ -403,12 +407,12 @@ export default class lbank extends Exchange {
             'size': 100,
         };
         if (since !== undefined) {
-            request['time'] = parseInt (since);
+            request['time'] = since;
         }
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await (this as any).publicGetTrades (this.extend (request, params));
+        const response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -433,7 +437,7 @@ export default class lbank extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit = 1000, params = {}) {
         /**
          * @method
          * @name lbank#fetchOHLCV
@@ -460,7 +464,7 @@ export default class lbank extends Exchange {
             'size': limit,
             'time': this.parseToInt (since / 1000),
         };
-        const response = await (this as any).publicGetKline (this.extend (request, params));
+        const response = await this.publicGetKline (this.extend (request, params));
         //
         //     [
         //         [1590969600,0.02451657,0.02452675,0.02443701,0.02447814,238.38210000],
@@ -503,7 +507,7 @@ export default class lbank extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostUserInfo (params);
+        const response = await this.privatePostUserInfo (params);
         //
         //     {
         //         "result":"true",
@@ -593,7 +597,7 @@ export default class lbank extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name lbank#createOrder
@@ -618,7 +622,7 @@ export default class lbank extends Exchange {
         } else {
             order['price'] = price;
         }
-        const response = await (this as any).privatePostCreateOrder (this.extend (order, params));
+        const response = await this.privatePostCreateOrder (this.extend (order, params));
         order = this.omit (order, 'type');
         order['order_id'] = response['order_id'];
         order['type'] = side;
@@ -628,7 +632,7 @@ export default class lbank extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name lbank#cancelOrder
@@ -644,11 +648,11 @@ export default class lbank extends Exchange {
             'symbol': market['id'],
             'order_id': id,
         };
-        const response = await (this as any).privatePostCancelOrder (this.extend (request, params));
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
         return response;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchOrder
@@ -664,7 +668,7 @@ export default class lbank extends Exchange {
             'symbol': market['id'],
             'order_id': id,
         };
-        const response = await (this as any).privatePostOrdersInfo (this.extend (request, params));
+        const response = await this.privatePostOrdersInfo (this.extend (request, params));
         const data = this.safeValue (response, 'orders', []);
         const orders = this.parseOrders (data, market);
         const numOrders = orders.length;
@@ -675,7 +679,7 @@ export default class lbank extends Exchange {
         }
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchOrders
@@ -696,12 +700,12 @@ export default class lbank extends Exchange {
             'current_page': 1,
             'page_length': limit,
         };
-        const response = await (this as any).privatePostOrdersInfoHistory (this.extend (request, params));
+        const response = await this.privatePostOrdersInfoHistory (this.extend (request, params));
         const data = this.safeValue (response, 'orders', []);
         return this.parseOrders (data, undefined, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchClosedOrders
@@ -724,7 +728,7 @@ export default class lbank extends Exchange {
         return this.filterBySymbolSinceLimit (allOrders, symbol, since, limit) as any;
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name lbank#withdraw
@@ -749,7 +753,7 @@ export default class lbank extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        const response = (this as any).privatePostWithdraw (this.extend (request, params));
+        const response = this.privatePostWithdraw (this.extend (request, params));
         //
         //     {
         //         'result': 'true',
@@ -819,11 +823,11 @@ export default class lbank extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const query = this.keysort (this.extend ({
+            const queryInner = this.keysort (this.extend ({
                 'api_key': this.apiKey,
             }, params));
-            const queryString = this.rawencode (query);
-            const message = this.hash (this.encode (queryString)).toUpperCase ();
+            const queryString = this.rawencode (queryInner);
+            const message = this.hash (this.encode (queryString), md5).toUpperCase ();
             const cacheSecretAsPem = this.safeValue (this.options, 'cacheSecretAsPem', true);
             let pem = undefined;
             if (cacheSecretAsPem) {
@@ -835,7 +839,7 @@ export default class lbank extends Exchange {
             } else {
                 pem = this.convertSecretToPem (this.secret);
             }
-            query['sign'] = this.rsa (message, pem, 'RS256');
+            query['sign'] = rsa (message, pem, sha256);
             body = this.urlencode (query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
         }
@@ -844,7 +848,7 @@ export default class lbank extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const success = this.safeString (response, 'result');
         if (success === 'false') {
@@ -891,5 +895,6 @@ export default class lbank extends Exchange {
             }, errorCode, ExchangeError);
             throw new ErrorClass (message);
         }
+        return undefined;
     }
 }

@@ -1,10 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/gemini.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, RateLimitExceeded, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -293,7 +295,7 @@ export default class gemini extends Exchange {
         let retry = 0;
         while (retry < maxRetries) {
             try {
-                response = await (this as any).webGetRestApi (params);
+                response = await this.webGetRestApi (params);
                 break;
             } catch (e) {
                 retry = retry + 1;
@@ -426,14 +428,14 @@ export default class gemini extends Exchange {
                 'symbol': marketId,
             };
             // don't use Promise.all here, for some reason the exchange can't handle it and crashes
-            const rawResponse = await (this as any).publicGetV1SymbolsDetailsSymbol (this.extend (request, params));
+            const rawResponse = await this.publicGetV1SymbolsDetailsSymbol (this.extend (request, params));
             result.push (this.parseMarket (rawResponse));
         }
         return result;
     }
 
     async fetchMarketsFromAPI (params = {}) {
-        const response = await (this as any).publicGetV1Symbols (params);
+        const response = await this.publicGetV1Symbols (params);
         //
         //     [
         //         "btcusd",
@@ -481,9 +483,9 @@ export default class gemini extends Exchange {
         }
         promises = await Promise.all (promises);
         for (let i = 0; i < promises.length; i++) {
-            const response = promises[i];
-            const marketId = this.safeStringLower (response, 'symbol');
-            result[marketId] = this.parseMarket (response);
+            const responseInner = promises[i];
+            const marketId = this.safeStringLower (responseInner, 'symbol');
+            result[marketId] = this.parseMarket (responseInner);
         }
         return this.toArray (result);
     }
@@ -552,7 +554,7 @@ export default class gemini extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchOrderBook
@@ -571,17 +573,17 @@ export default class gemini extends Exchange {
             request['limit_bids'] = limit;
             request['limit_asks'] = limit;
         }
-        const response = await (this as any).publicGetV1BookSymbol (this.extend (request, params));
+        const response = await this.publicGetV1BookSymbol (this.extend (request, params));
         return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
-    async fetchTickerV1 (symbol, params = {}) {
+    async fetchTickerV1 (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetV1PubtickerSymbol (this.extend (request, params));
+        const response = await this.publicGetV1PubtickerSymbol (this.extend (request, params));
         //
         //     {
         //         "bid":"9117.95",
@@ -597,13 +599,13 @@ export default class gemini extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickerV2 (symbol, params = {}) {
+    async fetchTickerV2 (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetV2TickerSymbol (this.extend (request, params));
+        const response = await this.publicGetV2TickerSymbol (this.extend (request, params));
         //
         //     {
         //         "symbol":"BTCUSD",
@@ -620,7 +622,7 @@ export default class gemini extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickerV1AndV2 (symbol, params = {}) {
+    async fetchTickerV1AndV2 (symbol: string, params = {}) {
         const tickerA = await this.fetchTickerV1 (symbol, params);
         const tickerB = await this.fetchTickerV2 (symbol, params);
         return this.deepExtend (tickerA, {
@@ -634,7 +636,7 @@ export default class gemini extends Exchange {
         });
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name gemini#fetchTicker
@@ -752,7 +754,7 @@ export default class gemini extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetV1Pricefeed (params);
+        const response = await this.publicGetV1Pricefeed (params);
         //
         //     [
         //         {
@@ -834,7 +836,7 @@ export default class gemini extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchTrades
@@ -857,7 +859,7 @@ export default class gemini extends Exchange {
         if (since !== undefined) {
             request['timestamp'] = since;
         }
-        const response = await (this as any).publicGetV1TradesSymbol (this.extend (request, params));
+        const response = await this.publicGetV1TradesSymbol (this.extend (request, params));
         //
         //     [
         //         {
@@ -897,7 +899,7 @@ export default class gemini extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostV1Notionalvolume (params);
+        const response = await this.privatePostV1Notionalvolume (params);
         //
         //      {
         //          "web_maker_fee_bps": 25,
@@ -956,7 +958,7 @@ export default class gemini extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostV1Balances (params);
+        const response = await this.privatePostV1Balances (params);
         return this.parseBalance (response);
     }
 
@@ -1126,7 +1128,7 @@ export default class gemini extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchOrder
@@ -1139,7 +1141,7 @@ export default class gemini extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privatePostV1OrderStatus (this.extend (request, params));
+        const response = await this.privatePostV1OrderStatus (this.extend (request, params));
         //
         //      {
         //          "order_id":"106028543717",
@@ -1166,7 +1168,7 @@ export default class gemini extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchOpenOrders
@@ -1178,7 +1180,7 @@ export default class gemini extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostV1Orders (params);
+        const response = await this.privatePostV1Orders (params);
         //
         //      [
         //          {
@@ -1211,7 +1213,7 @@ export default class gemini extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name gemini#createOrder
@@ -1280,7 +1282,7 @@ export default class gemini extends Exchange {
                 request['options'] = [ options ];
             }
         }
-        const response = await (this as any).privatePostV1OrderNew (this.extend (request, params));
+        const response = await this.privatePostV1OrderNew (this.extend (request, params));
         //
         //      {
         //          "order_id":"106027397702",
@@ -1307,7 +1309,7 @@ export default class gemini extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name gemini#cancelOrder
@@ -1321,7 +1323,7 @@ export default class gemini extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privatePostV1OrderCancel (this.extend (request, params));
+        const response = await this.privatePostV1OrderCancel (this.extend (request, params));
         //
         //      {
         //          "order_id":"106028543717",
@@ -1349,7 +1351,7 @@ export default class gemini extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchMyTrades
@@ -1374,11 +1376,11 @@ export default class gemini extends Exchange {
         if (since !== undefined) {
             request['timestamp'] = this.parseToInt (since / 1000);
         }
-        const response = await (this as any).privatePostV1Mytrades (this.extend (request, params));
+        const response = await this.privatePostV1Mytrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name gemini#withdraw
@@ -1399,7 +1401,7 @@ export default class gemini extends Exchange {
             'amount': amount,
             'address': address,
         };
-        const response = await (this as any).privatePostV1WithdrawCurrency (this.extend (request, params));
+        const response = await this.privatePostV1WithdrawCurrency (this.extend (request, params));
         //
         //   for BTC
         //     {
@@ -1438,7 +1440,7 @@ export default class gemini extends Exchange {
         return this.seconds ();
     }
 
-    async fetchTransactions (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchTransactions
@@ -1457,7 +1459,7 @@ export default class gemini extends Exchange {
         if (since !== undefined) {
             request['timestamp'] = since;
         }
-        const response = await (this as any).privatePostV1Transfers (this.extend (request, params));
+        const response = await this.privatePostV1Transfers (this.extend (request, params));
         return this.parseTransactions (response);
     }
 
@@ -1544,7 +1546,7 @@ export default class gemini extends Exchange {
         };
     }
 
-    async fetchDepositAddressesByNetwork (code, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const network = this.safeString (params, 'network');
@@ -1559,7 +1561,7 @@ export default class gemini extends Exchange {
         const request = {
             'network': networkId,
         };
-        const response = await (this as any).privatePostV1AddressesNetwork (this.extend (request, params));
+        const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
         const results = this.parseDepositAddresses (response, [ currency['code'] ], false, { 'network': networkCode, 'currency': code });
         return this.groupBy (results, 'network');
     }
@@ -1580,11 +1582,11 @@ export default class gemini extends Exchange {
             }, query);
             let payload = this.json (request);
             payload = this.stringToBase64 (payload);
-            const signature = this.hmac (payload, this.encode (this.secret), 'sha384');
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384);
             headers = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': this.apiKey,
-                'X-GEMINI-PAYLOAD': this.decode (payload),
+                'X-GEMINI-PAYLOAD': payload,
                 'X-GEMINI-SIGNATURE': signature,
             };
         } else {
@@ -1605,7 +1607,7 @@ export default class gemini extends Exchange {
                 const feedback = this.id + ' ' + body;
                 this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             }
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {
@@ -1616,17 +1618,18 @@ export default class gemini extends Exchange {
         //
         const result = this.safeString (response, 'result');
         if (result === 'error') {
-            const reason = this.safeString (response, 'reason');
+            const reasonInner = this.safeString (response, 'reason');
             const message = this.safeString (response, 'message');
             const feedback = this.id + ' ' + message;
-            this.throwExactlyMatchedException (this.exceptions['exact'], reason, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], reasonInner, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name gemini#createDepositAddress
@@ -1640,7 +1643,7 @@ export default class gemini extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).privatePostV1DepositCurrencyNewAddress (this.extend (request, params));
+        const response = await this.privatePostV1DepositCurrencyNewAddress (this.extend (request, params));
         const address = this.safeString (response, 'address');
         this.checkAddress (address);
         return {
@@ -1651,7 +1654,7 @@ export default class gemini extends Exchange {
         };
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchOHLCV
@@ -1670,7 +1673,7 @@ export default class gemini extends Exchange {
             'timeframe': timeframeId,
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetV2CandlesSymbolTimeframe (this.extend (request, params));
+        const response = await this.publicGetV2CandlesSymbolTimeframe (this.extend (request, params));
         //
         //     [
         //         [1591515000000,0.02509,0.02509,0.02509,0.02509,0],

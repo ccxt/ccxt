@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/luno.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -583,7 +583,7 @@ export default class luno extends Exchange {
         // }
         return this.parseTicker(response, market);
     }
-    parseTrade(trade, market) {
+    parseTrade(trade, market = undefined) {
         //
         // fetchTrades (public)
         //
@@ -851,8 +851,14 @@ export default class luno extends Exchange {
         };
         return await this.privatePostStoporder(this.extend(request, params));
     }
-    async fetchLedgerByEntries(code = undefined, entry = -1, limit = 1, params = {}) {
+    async fetchLedgerByEntries(code = undefined, entry = undefined, limit = undefined, params = {}) {
         // by default without entry number or limit number, return most recent entry
+        if (entry === undefined) {
+            entry = -1;
+        }
+        if (limit === undefined) {
+            limit = 1;
+        }
         const since = undefined;
         const request = {
             'min_row': entry,
@@ -1012,18 +1018,19 @@ export default class luno extends Exchange {
             this.checkRequiredCredentials();
             const auth = this.stringToBase64(this.apiKey + ':' + this.secret);
             headers = {
-                'Authorization': 'Basic ' + this.decode(auth),
+                'Authorization': 'Basic ' + auth,
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const error = this.safeValue(response, 'error');
         if (error !== undefined) {
             throw new ExchangeError(this.id + ' ' + this.json(response));
         }
+        return undefined;
     }
 }

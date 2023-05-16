@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/paymium.js';
 import { ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class paymium extends Exchange {
     describe() {
@@ -240,7 +241,7 @@ export default class paymium extends Exchange {
         //
         return this.parseTicker(ticker, market);
     }
-    parseTrade(trade, market) {
+    parseTrade(trade, market = undefined) {
         const timestamp = this.safeTimestamp(trade, 'created_at_int');
         const id = this.safeString(trade, 'uuid');
         market = this.safeMarket(undefined, market);
@@ -564,17 +565,18 @@ export default class paymium extends Exchange {
                     url += '?' + queryString;
                 }
             }
-            headers['Api-Signature'] = this.hmac(this.encode(auth), this.encode(this.secret));
+            headers['Api-Signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const errors = this.safeValue(response, 'errors');
         if (errors !== undefined) {
             throw new ExchangeError(this.id + ' ' + this.json(response));
         }
+        return undefined;
     }
 }

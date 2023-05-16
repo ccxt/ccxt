@@ -6,8 +6,9 @@
 
 //  ---------------------------------------------------------------------------
 import huobiRest from '../huobi.js';
-import { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError, } from '../base/errors.js';
+import { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class huobi extends huobiRest {
     describe() {
@@ -201,7 +202,7 @@ export default class huobi extends huobiRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     handleTrades(client, message) {
         //
@@ -266,7 +267,7 @@ export default class huobi extends huobiRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0);
     }
     handleOHLCV(client, message) {
         //
@@ -685,7 +686,7 @@ export default class huobi extends huobiRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
     }
     getOrderChannelAndMessageHash(type, subType, market = undefined, params = {}) {
         let messageHash = undefined;
@@ -777,7 +778,7 @@ export default class huobi extends huobiRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(orders, since, limit, 'timestamp');
     }
     handleOrder(client, message) {
         //
@@ -2139,7 +2140,7 @@ export default class huobi extends huobiRest {
             signatureParams = this.keysort(signatureParams);
             const auth = this.urlencode(signatureParams);
             const payload = ['GET', hostname, relativePath, auth].join("\n"); // eslint-disable-line quotes
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha256', 'base64');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'base64');
             let request = undefined;
             if (type === 'spot') {
                 const params = {

@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bithumb.js';
 import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 export default class bithumb extends Exchange {
     describe() {
@@ -162,6 +163,7 @@ export default class bithumb extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'ALT': 'ArchLoot',
                 'FTC': 'FTC2',
                 'SOC': 'Soda Coin',
             },
@@ -956,7 +958,7 @@ export default class bithumb extends Exchange {
             'address': address,
             'currency': currency['id'],
         };
-        if (currency === 'XRP' || currency === 'XMR' || currency === 'EOS' || currency === 'STEEM') {
+        if (code === 'XRP' || code === 'XMR' || code === 'EOS' || code === 'STEEM') {
             const destination = this.safeString(params, 'destination');
             if ((tag === undefined) && (destination === undefined)) {
                 throw new ArgumentsRequired(this.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param');
@@ -1030,8 +1032,8 @@ export default class bithumb extends Exchange {
             }, query));
             const nonce = this.nonce().toString();
             const auth = endpoint + "\0" + body + "\0" + nonce; // eslint-disable-line quotes
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha512');
-            const signature64 = this.decode(this.stringToBase64(signature));
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
+            const signature64 = this.stringToBase64(signature);
             headers = {
                 'Accept': 'application/json',
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -1044,7 +1046,7 @@ export default class bithumb extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('status' in response) {
             //
@@ -1054,11 +1056,11 @@ export default class bithumb extends Exchange {
             const message = this.safeString(response, 'message');
             if (status !== undefined) {
                 if (status === '0000') {
-                    return; // no error
+                    return undefined; // no error
                 }
                 else if (message === '거래 진행중인 내역이 존재하지 않습니다') {
                     // https://github.com/ccxt/ccxt/issues/9017
-                    return; // no error
+                    return undefined; // no error
                 }
                 const feedback = this.id + ' ' + body;
                 this.throwExactlyMatchedException(this.exceptions, status, feedback);
@@ -1066,5 +1068,6 @@ export default class bithumb extends Exchange {
                 throw new ExchangeError(feedback);
             }
         }
+        return undefined;
     }
 }

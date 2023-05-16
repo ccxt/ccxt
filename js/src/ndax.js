@@ -5,10 +5,12 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/ndax.js';
 import { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import totp from './base/functions/totp.js';
 // ---------------------------------------------------------------------------
 export default class ndax extends Exchange {
     describe() {
@@ -296,9 +298,9 @@ export default class ndax extends Exchange {
             }
             this.options['pending2faToken'] = pending2faToken;
             request = {
-                'Code': this.oath(),
+                'Code': totp(this.twofa),
             };
-            const response = await this.publicGetAuthenticate2FA(this.extend(request, params));
+            const responseInner = await this.publicGetAuthenticate2FA(this.extend(request, params));
             //
             //     {
             //         "Authenticated": true,
@@ -306,9 +308,9 @@ export default class ndax extends Exchange {
             //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             //     }
             //
-            sessionToken = this.safeString(response, 'SessionToken');
+            sessionToken = this.safeString(responseInner, 'SessionToken');
             this.options['sessionToken'] = sessionToken;
-            return response;
+            return responseInner;
         }
         return response;
     }
@@ -371,6 +373,7 @@ export default class ndax extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -2321,7 +2324,7 @@ export default class ndax extends Exchange {
         };
         const withdrawRequest = {
             'TfaType': 'Google',
-            'TFaCode': this.oath(),
+            'TFaCode': totp(this.twofa),
             'Payload': this.json(withdrawPayload),
         };
         const response = await this.privatePostCreateWithdrawTicket(this.deepExtend(withdrawRequest, params));
@@ -2338,7 +2341,7 @@ export default class ndax extends Exchange {
                 const auth = this.login + ':' + this.password;
                 const auth64 = this.stringToBase64(auth);
                 headers = {
-                    'Authorization': 'Basic ' + this.decode(auth64),
+                    'Authorization': 'Basic ' + auth64,
                     // 'Content-Type': 'application/json',
                 };
             }
@@ -2362,7 +2365,7 @@ export default class ndax extends Exchange {
             if (sessionToken === undefined) {
                 const nonce = this.nonce().toString();
                 const auth = nonce + this.uid + this.apiKey;
-                const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+                const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = {
                     'Nonce': nonce,
                     'APIKey': this.apiKey,
@@ -2392,7 +2395,7 @@ export default class ndax extends Exchange {
             throw new AuthenticationError(this.id + ' ' + body);
         }
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //     {"status":"Rejected","errormsg":"Not_Enough_Funds","errorcode":101}
@@ -2405,5 +2408,6 @@ export default class ndax extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             throw new ExchangeError(feedback);
         }
+        return undefined;
     }
 }

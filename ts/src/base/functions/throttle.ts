@@ -4,7 +4,8 @@
 
 import { now, sleep } from './time.js';
 /*  ------------------------------------------------------------------------ */
-class Throttle {
+
+class Throttler {
     constructor (config) {
         this.config = {
             'refillRate': 1.0,
@@ -42,9 +43,8 @@ class Throttle {
             }
         }
     }
-}
-function throttle (config) {
-    function inner (cost = undefined) {
+
+    throttle (cost = undefined) {
         let resolver;
         const promise = new Promise ((resolve, reject) => {
             resolver = resolve;
@@ -60,16 +60,10 @@ function throttle (config) {
         }
         return promise;
     }
-    const instance = new Throttle (config);
-    const bound = inner.bind (instance);
-    // useful for inspecting the tokenBucket
-    bound.config = instance.config;
-    bound.queue = instance.queue;
-    return bound;
 }
 
 export {
-    throttle,
+    Throttler,
 };
 
 // ----------------------------------------

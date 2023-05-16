@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/hitbtc.js';
 import { BadSymbol, PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, RequestTimeout, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
@@ -226,6 +226,9 @@ export default class hitbtc extends Exchange {
                     'spot': 'trading',
                     'trade': 'trading',
                     'trading': 'trading',
+                },
+                'withdraw': {
+                    'includeFee': false,
                 },
             },
             'commonCurrencies': {
@@ -496,6 +499,7 @@ export default class hitbtc extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -1349,7 +1353,7 @@ export default class hitbtc extends Exchange {
         this.checkAddress(address);
         const tag = this.safeString(response, 'paymentId');
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': tag,
             'info': response,
@@ -1438,6 +1442,11 @@ export default class hitbtc extends Exchange {
             request['currency'] += network; // when network the currency need to be changed to currency + network
             params = this.omit(params, 'network');
         }
+        const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
+        const includeFee = this.safeValue(withdrawOptions, 'includeFee', false);
+        if (includeFee) {
+            request['includeFee'] = true;
+        }
         const response = await this.privatePostAccountCryptoWithdraw(this.extend(request, params));
         //
         //     {
@@ -1469,10 +1478,10 @@ export default class hitbtc extends Exchange {
             else if (Object.keys(query).length) {
                 body = this.json(query);
             }
-            const payload = this.encode(this.apiKey + ':' + this.secret);
+            const payload = this.apiKey + ':' + this.secret;
             const auth = this.stringToBase64(payload);
             headers = {
-                'Authorization': 'Basic ' + this.decode(auth),
+                'Authorization': 'Basic ' + auth,
                 'Content-Type': 'application/json',
             };
         }
@@ -1481,7 +1490,7 @@ export default class hitbtc extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (code >= 400) {
             const feedback = this.id + ' ' + body;
@@ -1492,7 +1501,7 @@ export default class hitbtc extends Exchange {
             // fallback to default error handler on rate limit errors
             // {"code":429,"message":"Too many requests","description":"Too many requests"}
             if (code === 429) {
-                return;
+                return undefined;
             }
             // {"error":{"code":20002,"message":"Order not found","description":""}}
             if (body[0] === '{') {
@@ -1507,5 +1516,6 @@ export default class hitbtc extends Exchange {
             }
             throw new ExchangeError(feedback);
         }
+        return undefined;
     }
 }

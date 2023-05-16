@@ -1,10 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/btctradeua.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -128,7 +130,7 @@ export default class btctradeua extends Exchange {
          * @param {object} params extra parameters specific to the btctradeua api endpoint
          * @returns response from exchange
          */
-        return await (this as any).privatePostAuth (params);
+        return await this.privatePostAuth (params);
     }
 
     parseBalance (response) {
@@ -154,11 +156,11 @@ export default class btctradeua extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostBalance (params);
+        const response = await this.privatePostBalance (params);
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btctradeua#fetchOrderBook
@@ -173,8 +175,8 @@ export default class btctradeua extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const bids = await (this as any).publicGetTradesBuySymbol (this.extend (request, params));
-        const asks = await (this as any).publicGetTradesSellSymbol (this.extend (request, params));
+        const bids = await this.publicGetTradesBuySymbol (this.extend (request, params));
+        const asks = await this.publicGetTradesSellSymbol (this.extend (request, params));
         const orderbook = {
             'bids': [],
             'asks': [],
@@ -253,7 +255,7 @@ export default class btctradeua extends Exchange {
         return this.safeTicker (result, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name btctradeua#fetchTicker
@@ -267,7 +269,7 @@ export default class btctradeua extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetJapanStatHighSymbol (this.extend (request, params));
+        const response = await this.publicGetJapanStatHighSymbol (this.extend (request, params));
         const ticker = this.safeValue (response, 'trades');
         //
         // {
@@ -285,17 +287,28 @@ export default class btctradeua extends Exchange {
     convertMonthNameToString (cyrillic) {
         const months = {
             'Jan': '01',
+            'January': '01',
             'Feb': '02',
+            'February': '02',
             'Mar': '03',
+            'March': '03',
             'Apr': '04',
+            'April': '04',
             'May': '05',
             'Jun': '06',
+            'June': '06',
             'Jul': '07',
+            'July': '07',
             'Aug': '08',
+            'August': '08',
             'Sept': '09',
+            'September': '09',
             'Oct': '10',
+            'October': '10',
             'Nov': '11',
+            'November': '11',
             'Dec': '12',
+            'December': '12',
         };
         return this.safeString (months, cyrillic);
     }
@@ -377,7 +390,7 @@ export default class btctradeua extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btctradeua#fetchTrades
@@ -393,7 +406,7 @@ export default class btctradeua extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetDealsSymbol (this.extend (request, params));
+        const response = await this.publicGetDealsSymbol (this.extend (request, params));
         // they report each trade twice (once for both of the two sides of the fill)
         // deduplicate trades for that reason
         const trades = [];
@@ -406,7 +419,7 @@ export default class btctradeua extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name btctradeua#createOrder
@@ -434,7 +447,7 @@ export default class btctradeua extends Exchange {
         return this[method] (this.extend (request, params));
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name btctradeua#cancelOrder
@@ -447,7 +460,7 @@ export default class btctradeua extends Exchange {
         const request = {
             'id': id,
         };
-        return await (this as any).privatePostRemoveOrderId (this.extend (request, params));
+        return await this.privatePostRemoveOrderId (this.extend (request, params));
     }
 
     parseOrder (order, market = undefined) {
@@ -483,7 +496,7 @@ export default class btctradeua extends Exchange {
         }, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btctradeua#fetchOpenOrders
@@ -502,7 +515,7 @@ export default class btctradeua extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).privatePostMyOrdersSymbol (this.extend (request, params));
+        const response = await this.privatePostMyOrdersSymbol (this.extend (request, params));
         const orders = this.safeValue (response, 'your_open_orders');
         return this.parseOrders (orders, market, since, limit);
     }
@@ -528,7 +541,7 @@ export default class btctradeua extends Exchange {
             const auth = body + this.secret;
             headers = {
                 'public-key': this.apiKey,
-                'api-sign': this.hash (this.encode (auth), 'sha256'),
+                'api-sign': this.hash (this.encode (auth), sha256),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }

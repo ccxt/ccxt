@@ -1,8 +1,9 @@
-
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/tidex.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
+import { Int, OrderSide } from './base/types.js';
 
 export default class tidex extends Exchange {
     describe () {
@@ -167,7 +168,7 @@ export default class tidex extends Exchange {
          * @param {object} params extra parameters specific to the tidex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).webGetCurrency (params);
+        const response = await this.webGetCurrency (params);
         //
         //     [
         //         {
@@ -253,7 +254,7 @@ export default class tidex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetInfo (params);
+        const response = await this.publicGetInfo (params);
         //
         //     {
         //         "server_time":1615861869,
@@ -367,7 +368,7 @@ export default class tidex extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostGetInfoExt (params);
+        const response = await this.privatePostGetInfoExt (params);
         //
         //     {
         //         "success":1,
@@ -397,7 +398,7 @@ export default class tidex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name tidex#fetchOrderBook
@@ -415,7 +416,7 @@ export default class tidex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 150, max = 2000
         }
-        const response = await (this as any).publicGetDepthPair (this.extend (request, params));
+        const response = await this.publicGetDepthPair (this.extend (request, params));
         const market_id_in_reponse = (market['id'] in response);
         if (!market_id_in_reponse) {
             throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
@@ -424,7 +425,7 @@ export default class tidex extends Exchange {
         return this.parseOrderBook (orderbook, symbol);
     }
 
-    async fetchOrderBooks (symbols: string[] = undefined, limit = undefined, params = {}) {
+    async fetchOrderBooks (symbols: string[] = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name tidex#fetchOrderBooks
@@ -453,7 +454,7 @@ export default class tidex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 150, max = 2000
         }
-        const response = await (this as any).publicGetDepthPair (this.extend (request, params));
+        const response = await this.publicGetDepthPair (this.extend (request, params));
         const result = {};
         ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
@@ -516,23 +517,23 @@ export default class tidex extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let ids = this.ids;
+        let ids = undefined;
         if (symbols === undefined) {
-            const numIds = ids.length;
-            ids = ids.join ('-');
+            const numIds = this.ids.length;
+            ids = this.ids.join ('-');
             // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
             if (ids.length > this.options['fetchTickersMaxLength']) {
                 const maxLength = this.safeInteger (this.options, 'fetchTickersMaxLength', 2048);
                 throw new ArgumentsRequired (this.id + ' fetchTickers() has ' + numIds.toString () + ' markets exceeding max URL length for this endpoint (' + maxLength.toString () + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers');
             }
         } else {
-            ids = this.marketIds (symbols);
-            ids = ids.join ('-');
+            const newIds = this.marketIds (symbols);
+            ids = newIds.join ('-');
         }
         const request = {
             'pair': ids,
         };
-        const response = await (this as any).publicGetTickerPair (this.extend (request, params));
+        const response = await this.publicGetTickerPair (this.extend (request, params));
         const result = {};
         const keys = Object.keys (response);
         for (let i = 0; i < keys.length; i++) {
@@ -544,7 +545,7 @@ export default class tidex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name tidex#fetchTicker
@@ -613,7 +614,7 @@ export default class tidex extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name tidex#fetchTrades
@@ -632,7 +633,7 @@ export default class tidex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetTradesPair (this.extend (request, params));
+        const response = await this.publicGetTradesPair (this.extend (request, params));
         if (Array.isArray (response)) {
             const numElements = response.length;
             if (numElements === 0) {
@@ -642,7 +643,7 @@ export default class tidex extends Exchange {
         return this.parseTrades (response[market['id']], market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name tidex#createOrder
@@ -668,7 +669,7 @@ export default class tidex extends Exchange {
             'amount': this.amountToPrecision (symbol, amount),
             'rate': this.priceToPrecision (symbol, price),
         };
-        const response = await (this as any).privatePostTrade (this.extend (request, params));
+        const response = await this.privatePostTrade (this.extend (request, params));
         let id = undefined;
         let status = 'open';
         let filledString = '0.0';
@@ -707,7 +708,7 @@ export default class tidex extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name tidex#cancelOrder
@@ -721,7 +722,7 @@ export default class tidex extends Exchange {
         const request = {
             'order_id': parseInt (id),
         };
-        return await (this as any).privatePostCancelOrder (this.extend (request, params));
+        return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
     parseOrderStatus (status) {
@@ -776,7 +777,7 @@ export default class tidex extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name tidex#fetchOrder
@@ -789,14 +790,14 @@ export default class tidex extends Exchange {
         const request = {
             'order_id': parseInt (id),
         };
-        const response = await (this as any).privatePostOrderInfo (this.extend (request, params));
+        const response = await this.privatePostOrderInfo (this.extend (request, params));
         id = id.toString ();
         const result = this.safeValue (response, 'return', {});
         const order = this.safeValue (result, id);
         return this.parseOrder (this.extend ({ 'id': id }, order));
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name tidex#fetchOpenOrders
@@ -814,7 +815,7 @@ export default class tidex extends Exchange {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        const response = await (this as any).privatePostActiveOrders (this.extend (request, params));
+        const response = await this.privatePostActiveOrders (this.extend (request, params));
         //
         //     {
         //         "success":1,
@@ -841,7 +842,7 @@ export default class tidex extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name tidex#fetchMyTrades
@@ -870,17 +871,17 @@ export default class tidex extends Exchange {
             request['pair'] = market['id'];
         }
         if (limit !== undefined) {
-            request['count'] = parseInt (limit);
+            request['count'] = limit;
         }
         if (since !== undefined) {
             request['since'] = this.parseToInt (since / 1000);
         }
-        const response = await (this as any).privatePostTradeHistory (this.extend (request, params));
+        const response = await this.privatePostTradeHistory (this.extend (request, params));
         const trades = this.safeValue (response, 'return', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name tidex#withdraw
@@ -904,7 +905,7 @@ export default class tidex extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        const response = await (this as any).privatePostCreateWithdraw (this.extend (request, params));
+        const response = await this.privatePostCreateWithdraw (this.extend (request, params));
         //
         //     {
         //         "success":1,
@@ -987,7 +988,7 @@ export default class tidex extends Exchange {
                 'nonce': nonce,
                 'method': path,
             }, query));
-            const signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
+            const signature = this.hmac (this.encode (body), this.encode (this.secret), sha512);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
@@ -1018,7 +1019,7 @@ export default class tidex extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('success' in response) {
             //
@@ -1065,5 +1066,6 @@ export default class tidex extends Exchange {
                 throw new ExchangeError (feedback); // unknown message
             }
         }
+        return undefined;
     }
 }

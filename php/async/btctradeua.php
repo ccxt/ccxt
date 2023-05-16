@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\btctradeua as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
@@ -162,7 +163,7 @@ class btctradeua extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -257,7 +258,7 @@ class btctradeua extends Exchange {
         return $this->safe_ticker($result, $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -289,17 +290,28 @@ class btctradeua extends Exchange {
     public function convert_month_name_to_string($cyrillic) {
         $months = array(
             'Jan' => '01',
+            'January' => '01',
             'Feb' => '02',
+            'February' => '02',
             'Mar' => '03',
+            'March' => '03',
             'Apr' => '04',
+            'April' => '04',
             'May' => '05',
             'Jun' => '06',
+            'June' => '06',
             'Jul' => '07',
+            'July' => '07',
             'Aug' => '08',
+            'August' => '08',
             'Sept' => '09',
+            'September' => '09',
             'Oct' => '10',
+            'October' => '10',
             'Nov' => '11',
+            'November' => '11',
             'Dec' => '12',
+            'December' => '12',
         );
         return $this->safe_string($months, $cyrillic);
     }
@@ -381,7 +393,7 @@ class btctradeua extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -410,7 +422,7 @@ class btctradeua extends Exchange {
         }) ();
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -438,7 +450,7 @@ class btctradeua extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -487,7 +499,7 @@ class btctradeua extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open $orders

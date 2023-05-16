@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitso.js';
 import { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadRequest, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class bitso extends Exchange {
     describe() {
@@ -152,9 +153,6 @@ export default class bitso extends Exchange {
                         'bitcoin_withdrawal',
                         'debit_card_withdrawal',
                         'ether_withdrawal',
-                        'ripple_withdrawal',
-                        'bcash_withdrawal',
-                        'litecoin_withdrawal',
                         'orders',
                         'phone_number',
                         'phone_verification',
@@ -218,7 +216,8 @@ export default class bitso extends Exchange {
         //     }
         //
         const payload = this.safeValue(response, 'payload', []);
-        return this.parseLedger(payload, code, since, limit);
+        const currency = this.safeCurrency(code);
+        return this.parseLedger(payload, currency, since, limit);
     }
     parseLedgerEntryType(type) {
         const types = {
@@ -681,7 +680,7 @@ export default class bitso extends Exchange {
         const payload = this.safeValue(response, 'payload', []);
         return this.parseOHLCVs(payload, market, timeframe, since, limit);
     }
-    parseOHLCV(ohlcv, market = undefined, timeframe = '1m') {
+    parseOHLCV(ohlcv, market = undefined) {
         //
         //     {
         //         "bucket_start_time":1648219140000,
@@ -1687,7 +1686,7 @@ export default class bitso extends Exchange {
                     request += body;
                 }
             }
-            const signature = this.hmac(this.encode(request), this.encode(this.secret));
+            const signature = this.hmac(this.encode(request), this.encode(this.secret), sha256);
             const auth = this.apiKey + ':' + nonce + ':' + signature;
             headers = {
                 'Authorization': 'Bitso ' + auth,
@@ -1698,7 +1697,7 @@ export default class bitso extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('success' in response) {
             //
@@ -1724,5 +1723,6 @@ export default class bitso extends Exchange {
                 throw new ExchangeError(feedback);
             }
         }
+        return undefined;
     }
 }

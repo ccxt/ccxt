@@ -5,9 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bittrex.js';
 import { ArgumentsRequired, BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 export default class bittrex extends Exchange {
     describe() {
@@ -1403,7 +1404,7 @@ export default class bittrex extends Exchange {
             request['currencySymbol'] = currency['id'];
         }
         if (since !== undefined) {
-            const startDate = parseInt((since / 1000).toString()) * 1000;
+            const startDate = this.parseToInt(since / 1000) * 1000;
             request['startDate'] = this.iso8601(startDate);
         }
         if (limit !== undefined) {
@@ -1488,7 +1489,7 @@ export default class bittrex extends Exchange {
             request['currencySymbol'] = currency['id'];
         }
         if (since !== undefined) {
-            const startDate = parseInt((since / 1000).toString()) * 1000;
+            const startDate = this.parseToInt(since / 1000) * 1000;
             request['startDate'] = this.iso8601(startDate);
         }
         if (limit !== undefined) {
@@ -2092,14 +2093,14 @@ export default class bittrex extends Exchange {
                     url += '?' + this.rawencode(params);
                 }
             }
-            const contentHash = this.hash(this.encode(hashString), 'sha512', 'hex');
+            const contentHash = this.hash(this.encode(hashString), sha512, 'hex');
             const timestamp = this.milliseconds().toString();
             let auth = timestamp + url + method + contentHash;
             const subaccountId = this.safeValue(this.options, 'subaccountId');
             if (subaccountId !== undefined) {
                 auth += subaccountId;
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha512');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
             headers = {
                 'Api-Key': this.apiKey,
                 'Api-Timestamp': timestamp,
@@ -2127,7 +2128,7 @@ export default class bittrex extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     { success: false, message: "message" }
@@ -2136,16 +2137,16 @@ export default class bittrex extends Exchange {
             const feedback = this.id + ' ' + body;
             let success = this.safeValue(response, 'success');
             if (success === undefined) {
-                const code = this.safeString(response, 'code');
-                if ((code === 'NOT_FOUND') && (url.indexOf('addresses') >= 0)) {
+                const codeInner = this.safeString(response, 'code');
+                if ((codeInner === 'NOT_FOUND') && (url.indexOf('addresses') >= 0)) {
                     throw new InvalidAddress(feedback);
                 }
-                if (code !== undefined) {
-                    this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
-                    this.throwBroadlyMatchedException(this.exceptions['broad'], code, feedback);
+                if (codeInner !== undefined) {
+                    this.throwExactlyMatchedException(this.exceptions['exact'], codeInner, feedback);
+                    this.throwBroadlyMatchedException(this.exceptions['broad'], codeInner, feedback);
                 }
                 // throw new ExchangeError (this.id + ' malformed response ' + this.json (response));
-                return;
+                return undefined;
             }
             if (typeof success === 'string') {
                 // bleutrade uses string instead of boolean
@@ -2206,5 +2207,6 @@ export default class bittrex extends Exchange {
                 throw new ExchangeError(feedback);
             }
         }
+        return undefined;
     }
 }

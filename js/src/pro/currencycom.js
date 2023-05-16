@@ -8,6 +8,7 @@
 import currencycomRest from '../currencycom.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class currencycom extends currencycomRest {
     describe() {
@@ -319,7 +320,7 @@ export default class currencycom extends currencycomRest {
             'correlationId': requestId,
             'payload': payload,
         }, params);
-        request['payload']['signature'] = this.hmac(this.encode(auth), this.encode(this.secret));
+        request['payload']['signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
         const subscription = this.extend(request, {
             'messageHash': messageHash,
         });
@@ -382,7 +383,7 @@ export default class currencycom extends currencycomRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -428,7 +429,7 @@ export default class currencycom extends currencycomRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0);
     }
     handleDeltas(bookside, deltas) {
         const prices = Object.keys(deltas);

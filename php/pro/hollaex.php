@@ -54,7 +54,7 @@ class hollaex extends \ccxt\async\hollaex {
         ));
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -71,7 +71,7 @@ class hollaex extends \ccxt\async\hollaex {
         }) ();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         "topic":"orderbook",
@@ -113,7 +113,7 @@ class hollaex extends \ccxt\async\hollaex {
         $client->resolve ($orderbook, $messageHash);
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -131,11 +131,11 @@ class hollaex extends \ccxt\async\hollaex {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         topic => 'trade',
@@ -171,7 +171,7 @@ class hollaex extends \ccxt\async\hollaex {
         $client->resolve ($stored, $channel);
     }
 
-    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
@@ -193,11 +193,11 @@ class hollaex extends \ccxt\async\hollaex {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
         }) ();
     }
 
-    public function handle_my_trades($client, $message, $subscription = null) {
+    public function handle_my_trades(Client $client, $message, $subscription = null) {
         //
         // {
         //     "topic":"usertrade",
@@ -253,7 +253,7 @@ class hollaex extends \ccxt\async\hollaex {
         }
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -275,11 +275,11 @@ class hollaex extends \ccxt\async\hollaex {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
         }) ();
     }
 
-    public function handle_order($client, $message, $subscription = null) {
+    public function handle_order(Client $client, $message, $subscription = null) {
         //
         //     {
         //         topic => 'order',
@@ -387,7 +387,7 @@ class hollaex extends \ccxt\async\hollaex {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         //     {
         //         topic => 'wallet',
@@ -452,7 +452,7 @@ class hollaex extends \ccxt\async\hollaex {
             }
             $url = $this->urls['api']['ws'];
             $auth = 'CONNECT' . '/stream' . $expires;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $authParams = array(
                 'api-key' => $this->apiKey,
                 'api-signature' => $signature,
@@ -468,7 +468,7 @@ class hollaex extends \ccxt\async\hollaex {
         }) ();
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         //     array( $error => 'Bearer or HMAC authentication required' )
         //     array( $error => 'Error => wrong input' )
@@ -487,7 +487,7 @@ class hollaex extends \ccxt\async\hollaex {
         return $message;
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         // pong
         //
@@ -600,17 +600,17 @@ class hollaex extends \ccxt\async\hollaex {
         return array( 'op' => 'ping' );
     }
 
-    public function handle_pong($client, $message) {
+    public function handle_pong(Client $client, $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function on_error($client, $error) {
+    public function on_error(Client $client, $error) {
         $this->options['ws-expires'] = null;
         $this->on_error($client, $error);
     }
 
-    public function on_close($client, $error) {
+    public function on_close(Client $client, $error) {
         $this->options['ws-expires'] = null;
         $this->on_close($client, $error);
     }

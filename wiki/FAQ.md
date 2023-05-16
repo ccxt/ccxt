@@ -74,5 +74,5 @@ Thus, if it is fixed in JS, it is fixed in Python pip and PHP Composer as well. 
 
 More about it here:
 
-- https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support
-- https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files
+- https://docs.ccxt.com/#/CONTRIBUTING?id=multilanguage-support
+- https://docs.ccxt.com/#/CONTRIBUTING?id=transpiled-generated-files

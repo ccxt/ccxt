@@ -10,7 +10,7 @@
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint"],
   "extends": ["eslint:recommended", "airbnb-base", "plugin:import/typescript"],
-  "ignorePatterns": ["base/functions/*", "static_dependencies/*", "pro/bridge/*"],
+  "ignorePatterns": ["base/functions/*", "static_dependencies/*", "pro/bridge/*", "abstract/*"],
   "rules": {
     "import/no-unresolved":"off", // tmp until typescript decides to properly resolve names
     "import/named": "off",
@@ -47,7 +47,7 @@
     "no-nested-ternary": "error",
     "eqeqeq": "error",
     "quotes": ["error", "single", { "avoidEscape": true }],
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^(symbol|price|tag|side|since|limit|params|market|timeframe|api|path|code|currency|statusCode|statusText|url|method|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type|priceKey|amountKey|networkCode|marginMode|subscription|message|client)" }],
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^(exchange|headers|body|account|info|symbol|price|tag|side|since|limit|params|market|timeframe|api|path|code|currency|statusCode|statusText|url|method|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type|priceKey|amountKey|networkCode|marginMode|subscription|message|client)" }],
     "new-parens": "error",
     "new-cap": ["error"],
     "no-var": "error",
