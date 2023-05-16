@@ -54,6 +54,6 @@ for exchange in "${REST_EXCHANGES[@]}"; do
 done
 echo "WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[@]}"
 for exchange in "${WS_EXCHANGES[@]}"; do
-  node build/transpileWs.js $exchange --force --child
+  node build/transpileWS.js $exchange --force --child
 done
 npm run post-transpile
