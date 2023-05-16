@@ -221,8 +221,9 @@ export default class bitpanda extends bitpandaRest {
             const marketId = this.safeString (ticker, 'instrument');
             const symbol = this.safeSymbol (marketId);
             this.tickers[symbol] = this.parseWSTicker (ticker);
-            this.tickers[symbol]['timestamp'] = this.parse8601 (datetime);
-            this.tickers[symbol]['datetime'] = datetime;
+            const timestamp = this.parse8601 (datetime);
+            this.tickers[symbol]['timestamp'] = timestamp;
+            this.tickers[symbol]['datetime'] = this.iso8601 (timestamp);
             client.resolve (this.tickers[symbol], 'ticker.' + symbol);
         }
         client.resolve (this.tickers, 'tickers');
