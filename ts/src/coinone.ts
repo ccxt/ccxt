@@ -551,31 +551,24 @@ export default class coinone extends Exchange {
         //     {
         //         "result": "success",
         //         "errorCode": "0",
-        //         "status": "live",
-        //         "info": {
-        //                     "result": "success",
-        //                     "errorCode": "0",
-        //                     "orderId": "0e3019f2-1e4d-11e9-9ec7-00e04c3600d7",
-        //                     "baseCurrency": "KRW",
-        //                     "targetCurrency": "BTC",
-        //                     "price": "10011000.0",
-        //                     "originalQty": "3.0",
-        //                     "executedQty": "0.62",
-        //                     "canceledQty": "1.125",
-        //                     "remainQty": "1.255",
-        //                     "status": "partially_filled",
-        //                     "side": "bid",
-        //                     "orderedAt": 1499340941,
-        //                     "updatedAt": 1499341142,
-        //                     "feeRate": "0.002",
-        //                     "fee": "0.00124",
-        //                     "averageExecutedPrice": "10011000.0"
-        //                 }
+        //         "orderId": "0e3019f2-1e4d-11e9-9ec7-00e04c3600d7",
+        //         "baseCurrency": "KRW",
+        //         "targetCurrency": "BTC",
+        //         "price": "10011000.0",
+        //         "originalQty": "3.0",
+        //         "executedQty": "0.62",
+        //         "canceledQty": "1.125",
+        //         "remainQty": "1.255",
+        //         "status": "partially_filled",
+        //         "side": "bid",
+        //         "orderedAt": 1499340941,
+        //         "updatedAt": 1499341142,
+        //         "feeRate": "0.002",
+        //         "fee": "0.00124",
+        //         "averageExecutedPrice": "10011000.0"
         //     }
         //
-        const info = this.safeValue (response, 'info', {});
-        info['status'] = this.safeString (info, 'status');
-        return this.parseOrder (info, market);
+        return this.parseOrder (response, market);
     }
 
     parseOrderStatus (status) {
