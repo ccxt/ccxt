@@ -393,7 +393,7 @@ export default class bitpanda extends bitpandaRest {
         }
         storedOrderBook['nonce'] = timestamp;
         storedOrderBook['timestamp'] = timestamp;
-        storedOrderBook['datetime'] = this.iso8601 (dateTime);
+        storedOrderBook['datetime'] = this.iso8601 (timestamp);
         this.orderbooks[symbol] = storedOrderBook;
         client.resolve (storedOrderBook, channel);
     }
