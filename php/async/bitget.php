@@ -1395,6 +1395,7 @@ class bitget extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#withdraw-v2
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -1404,22 +1405,24 @@ class bitget extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             $this->check_address($address);
-            $chain = $this->safe_string($params, 'chain');
+            $chain = $this->safe_string_2($params, 'chain', 'network');
+            $params = $this->omit($params, array( 'network' ));
             if ($chain === null) {
                 throw new ArgumentsRequired($this->id . ' withdraw() requires a $chain parameter');
             }
             Async\await($this->load_markets());
             $currency = $this->currency($code);
+            $networkId = $this->network_code_to_id($chain);
             $request = array(
                 'coin' => $currency['code'],
                 'address' => $address,
-                'chain' => $chain,
+                'chain' => $networkId,
                 'amount' => $amount,
             );
             if ($tag !== null) {
                 $request['tag'] = $tag;
             }
-            $response = Async\await($this->privateSpotPostWalletWithdrawal (array_merge($request, $params)));
+            $response = Async\await($this->privateSpotPostWalletWithdrawalV2 (array_merge($request, $params)));
             //
             //     {
             //         "code" => "00000",
@@ -4272,7 +4275,7 @@ class bitget extends Exchange {
     public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
-             * @see https://bitgetlimited.github.io/apidoc/en/spot/#transfer
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#transfer-v2
              * transfer $currency internally between wallets on the same account
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
@@ -4300,7 +4303,7 @@ class bitget extends Exchange {
                 'amount' => $amount,
                 'coin' => $currency['info']['coinName'],
             );
-            $response = Async\await($this->privateSpotPostWalletTransfer (array_merge($request, $params)));
+            $response = Async\await($this->privateSpotPostWalletTransferV2 (array_merge($request, $params)));
             //
             //    {
             //        "code" => "00000",

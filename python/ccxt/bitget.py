@@ -1369,6 +1369,7 @@ class bitget(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
+        see https://bitgetlimited.github.io/apidoc/en/spot/#withdraw-v2
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -1378,20 +1379,22 @@ class bitget(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.check_address(address)
-        chain = self.safe_string(params, 'chain')
+        chain = self.safe_string_2(params, 'chain', 'network')
+        params = self.omit(params, ['network'])
         if chain is None:
             raise ArgumentsRequired(self.id + ' withdraw() requires a chain parameter')
         self.load_markets()
         currency = self.currency(code)
+        networkId = self.network_code_to_id(chain)
         request = {
             'coin': currency['code'],
             'address': address,
-            'chain': chain,
+            'chain': networkId,
             'amount': amount,
         }
         if tag is not None:
             request['tag'] = tag
-        response = self.privateSpotPostWalletWithdrawal(self.extend(request, params))
+        response = self.privateSpotPostWalletWithdrawalV2(self.extend(request, params))
         #
         #     {
         #         "code": "00000",
@@ -3997,7 +4000,7 @@ class bitget(Exchange, ImplicitAPI):
 
     def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
-        see https://bitgetlimited.github.io/apidoc/en/spot/#transfer
+        see https://bitgetlimited.github.io/apidoc/en/spot/#transfer-v2
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
         :param float amount: amount to transfer
@@ -4024,7 +4027,7 @@ class bitget(Exchange, ImplicitAPI):
             'amount': amount,
             'coin': currency['info']['coinName'],
         }
-        response = self.privateSpotPostWalletTransfer(self.extend(request, params))
+        response = self.privateSpotPostWalletTransferV2(self.extend(request, params))
         #
         #    {
         #        "code": "00000",
