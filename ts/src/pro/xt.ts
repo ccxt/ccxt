@@ -561,33 +561,18 @@ export default class xt extends xtRest {
         return message;
     }
 
-    parseWsBalance (response: object) {
-        //
-        //    {
-        //        "a": "123",           // accountId
-        //        "t": 1656043204763,   // time happened time
-        //        "c": "btc",           // currency
-        //        "b": "123",           // balance available balance
-        //        "f": "11",            // frozen
-        //        "z": "SPOT",          // bizType [SPOT,LEVER]
-        //        "s": "btc_usdt"       // symbol
-        //    }
-        //
-    }
-
     handleBalance (client: Client, message) {
         //
         //    {
-        //        "topic": "balance",
-        //        "event": "balance",
-        //        "data": {
-        //            "a": "123",           // accountId
-        //            "t": 1656043204763,   // time happened time
-        //            "c": "btc",           // currency
-        //            "b": "123",           // balance available balance
-        //            "f": "11",            // frozen
-        //            "z": "SPOT",          // bizType [SPOT,LEVER]
-        //            "s": "btc_usdt"       // symbol
+        //        topic: 'balance',
+        //        event: 'balance',
+        //        data: {
+        //            a: 3513677381884,
+        //            t: 1684250056775,
+        //            c: 'usdt',
+        //            b: '7.71000000',
+        //            f: '0.00000000',
+        //            z: 'SPOT'
         //        }
         //    }
         //
@@ -599,7 +584,8 @@ export default class xt extends xtRest {
         const used = this.safeString (data, 'f');
         account['free'] = free;
         account['used'] = used;
-        this.balance[code] = this.safeBalance (account);
+        this.balance[code] = account;
+        this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, 'balance');
     }
 
