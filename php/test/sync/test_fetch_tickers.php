@@ -10,7 +10,7 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_ticker.php';
 
-function test_fetch_tickers($exchange, $symbol) {
+function test_fetch_tickers($exchange, $skipped_properties, $symbol) {
     $method = 'fetchTickers';
     // log ('fetching all tickers at once...')
     $tickers = null;
@@ -25,6 +25,6 @@ function test_fetch_tickers($exchange, $symbol) {
     $values = is_array($tickers) ? array_values($tickers) : array();
     for ($i = 0; $i < count($values); $i++) {
         $ticker = $values[$i];
-        test_ticker($exchange, $method, $ticker, $checked_symbol);
+        test_ticker($exchange, $skipped_properties, $method, $ticker, $checked_symbol);
     }
 }

@@ -16,7 +16,7 @@ sys.path.append(root)
 from ccxt.test.base import test_shared_methods  # noqa E402
 
 
-def test_trade(exchange, method, entry, symbol, now):
+def test_trade(exchange, skipped_properties, method, entry, symbol, now):
     format = {
         'info': {},
         'id': '12345-67890:09876/54321',
@@ -32,14 +32,18 @@ def test_trade(exchange, method, entry, symbol, now):
         'fees': [],
         'fee': {},
     }
-    # todo: add takeOrMaker as mandatory set
+    # todo: add takeOrMaker as mandatory (atm, many exchanges fail)
     # removed side because some public endpoints return trades without side
-    empty_not_allowed_for = ['price', 'amount', 'cost']
-    test_shared_methods.assert_structure(exchange, method, entry, format, empty_not_allowed_for)
-    test_shared_methods.assert_timestamp(exchange, method, entry, now)
-    test_shared_methods.assert_symbol(exchange, method, entry, 'symbol', symbol)
+    empty_allowed_for = ['fees', 'fee', 'symbol', 'order', 'id', 'takerOrMaker']
+    test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
+    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry, now)
+    test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, 'symbol', symbol)
     #
-    test_shared_methods.assert_in_array(exchange, method, entry, 'side', ['buy', 'sell'])
-    test_shared_methods.assert_in_array(exchange, method, entry, 'takerOrMaker', ['taker', 'maker'])
-    test_shared_methods.assert_fee(exchange, method, entry['fee'])
-    test_shared_methods.assert_fees(exchange, method, entry['fees'])
+    test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'side', ['buy', 'sell'])
+    test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'takerOrMaker', ['taker', 'maker'])
+    test_shared_methods.assert_fee_structure(exchange, skipped_properties, method, entry, 'fee')
+    if not ('fees' in skipped_properties):
+        # todo: remove undefined check
+        if entry['fees'] is not None:
+            for i in range(0, len(entry['fees'])):
+                test_shared_methods.assert_fee_structure(exchange, skipped_properties, method, entry['fees'], i)

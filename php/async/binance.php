@@ -175,6 +175,7 @@ class binance extends Exchange {
                     'public' => 'https://api.binance.com/api/v3',
                     'private' => 'https://api.binance.com/api/v3',
                     'v1' => 'https://api.binance.com/api/v1',
+                    'papi' => 'https://papi.binance.com/papi/v1',
                 ),
                 'www' => 'https://www.binance.com',
                 'referral' => array(
@@ -818,6 +819,68 @@ class binance extends Exchange {
                         'openOrders' => 1, // added on 2020-04-25 for canceling all open orders per symbol
                         'orderList' => 1, // oco
                         'order' => 1,
+                    ),
+                ),
+                'papi' => array(
+                    'get' => array(
+                        'um/order' => 1, // 1
+                        'um/openOrder' => 1, // 1
+                        'um/openOrders' => 1, // 1
+                        'um/allOrders' => 5, // 5
+                        'cm/order' => 1, // 1
+                        'cm/openOrder' => 1, // 1
+                        'cm/openOrders' => 1, // 1
+                        'cm/allOrders' => 20, // 20
+                        'balance' => 20, // 20
+                        'account' => 20, // 20
+                        'margin/maxBorrowable' => 5, // 5
+                        'margin/maxWithdraw' => 5, // 5
+                        'um/positionRisk' => 5, // 5
+                        'cm/positionRisk' => 1, // 1
+                        'um/positionSide/dual' => 30, // 30
+                        'cm/positionSide/dual' => 30, // 30
+                        'um/userTrades' => 5, // 5
+                        'cm/userTrades' => 20, // 20
+                        'um/leverageBracket' => 1, // 1
+                        'cm/leverageBracket' => 1, // 1
+                        'margin/forceOrders' => 1, // 1
+                        'um/forceOrders' => 20, // 20
+                        'cm/forceOrders' => 20, // 20
+                        'um/apiTradingStatus' => 1, // 1
+                        'um/commissionRate' => 20, // 20
+                        'cm/commissionRate' => 20, // 20
+                        'margin/marginLoan' => 0.0667, // Weight(UID) => 10 => cost = 0.006667 * 10 = 0.06667
+                        'margin/repayLoan' => 0.0667, // Weight(UID) => 10 => cost = 0.006667 * 10 = 0.06667
+                        'margin/marginInterestHistory' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
+                        'portfolio/interest-history' => 50, // 50
+                    ),
+                    'post' => array(
+                        'um/order' => 1, // 0
+                        'cm/order' => 1, // 0
+                        'margin/order' => 0.0133, // Weight(UID) => 2 => cost = 0.006667 * 2 = 0.013334
+                        'marginLoan' => 0.1333, // Weight(UID) => 20 => cost = 0.006667 * 20 = 0.13334
+                        'repayLoan' => 0.1333, // Weight(UID) => 20 => cost = 0.006667 * 20 = 0.13334
+                        'margin/order/oco' => 0.0400, // Weight(UID) => 6 => cost = 0.006667 * 6 = 0.040002
+                        'um/leverage' => 1, // 1
+                        'cm/leverage' => 1, // 1
+                        'um/positionSide/dual' => 1, // 1
+                        'cm/positionSide/dual' => 1, // 1
+                        'auto-collection' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
+                        'bnb-transfer' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
+                        'listenKey' => 1, // 1
+                    ),
+                    'put' => array(
+                        'listenKey' => 1, // 1
+                    ),
+                    'delete' => array(
+                        'um/order' => 1, // 1
+                        'um/allOpenOrders' => 1, // 1
+                        'cm/order' => 1, // 1
+                        'cm/allOpenOrders' => 1, // 1
+                        'margin/order' => 1, // Weight(IP) => 10 => cost = 0.1 * 10 = 1
+                        'margin/allOpenOrders' => 5, // 5
+                        'margin/orderList' => 2, // 2
+                        'listenKey' => 1, // 1
                     ),
                 ),
             ),
