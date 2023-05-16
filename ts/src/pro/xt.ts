@@ -352,44 +352,34 @@ export default class xt extends xtRest {
     }
 
     handleTrade (client: Client, message) {
-        // TODO
         //
         //    {
-        //        "topic": "trade",
-        //        "event": "trade@btc_usdt",
-        //        "data": {
-        //            "s": "btc_usdt",          // symbol
-        //            "i": 6316559590087222000, // trade id
-        //            "t": 1655992403617,       // trade time
-        //            "p": "43000",             // trade price
-        //            "q": "0.21",              // qty，trade quantity
-        //            "b": true                 // whether is buyerMaker or not
+        //        topic: 'trade',
+        //        event: 'trade@btc_usdt',
+        //        data: {
+        //            s: 'btc_usdt',
+        //            i: '228825383103928709',
+        //            t: 1684258222702,
+        //            p: '27003.65',
+        //            q: '0.000796',
+        //            b: true
         //        }
         //    }
         //
-        const channel = this.safeString (message, 'feed');
-        const marketId = this.safeStringLower (message, 'product_id');
+        const data = this.safeValue (message, 'data');
+        const marketId = this.safeStringLower (data, 's');
         if (marketId !== undefined) {
             const market = this.market (marketId);
             const symbol = market['symbol'];
-            const messageHash = 'trade:' + symbol;
+            const messageHash = this.safeString (message, 'event');
             let tradesArray = this.safeValue (this.trades, symbol);
             if (tradesArray === undefined) {
                 const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
                 tradesArray = new ArrayCache (tradesLimit);
                 this.trades[symbol] = tradesArray;
             }
-            if (channel === 'trade_snapshot') {
-                const trades = this.safeValue (message, 'trades', []);
-                for (let i = 0; i < trades.length; i++) {
-                    const item = trades[i];
-                    const trade = this.parseTrade (item);
-                    tradesArray.append (trade);
-                }
-            } else {
-                const trade = this.parseTrade (message);
-                tradesArray.append (trade);
-            }
+            const trade = this.parseTrade (data);
+            tradesArray.append (trade);
             client.resolve (tradesArray, messageHash);
         }
         return message;

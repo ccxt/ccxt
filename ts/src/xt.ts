@@ -1952,7 +1952,7 @@ export default class xt extends Exchange {
         //         "b": true
         //     }
         //
-        // spot: watchTrades
+        // spot: watchMyTrades
         //
         //    {
         //        "s": "btc_usdt",                // symbol
@@ -1962,6 +1962,17 @@ export default class xt extends Exchange {
         //        "p": "30000",                   // trade price
         //        "q": "3",                       // qty quantity
         //        "v": "90000"                    // volume trade amount
+        //    }
+        //
+        // spot: watchTrades
+        //
+        //    {
+        //        s: 'btc_usdt',
+        //        i: '228825383103928709',
+        //        t: 1684258222702,
+        //        p: '27003.65',
+        //        q: '0.000796',
+        //        b: true
         //    }
         //
         // swap and future: fetchTrades
