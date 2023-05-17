@@ -431,6 +431,7 @@ export default class xt extends Exchange {
                     'ORDER_004': InvalidOrder, // no transaction
                     'ORDER_005': InvalidOrder, // Order not exist
                     'ORDER_006': InvalidOrder, // Too many open orders
+                    'ORDER_007': PermissionDenied, // The sub-account has no transaction authority
                     'ORDER_F0101': InvalidOrder, // Trigger Price Filter - Min
                     'ORDER_F0102': InvalidOrder, // Trigger Price Filter - Max
                     'ORDER_F0103': InvalidOrder, // Trigger Price Filter - Step Value
@@ -3708,12 +3709,14 @@ export default class xt extends Exchange {
         //         "id": 950898
         //     }
         //
+        const type = ('fromAddr' in transaction) ? 'deposit' : 'withdraw';
         const timestamp = this.safeInteger (transaction, 'createdTime');
         const address = this.safeString (transaction, 'address');
         const memo = this.safeString (transaction, 'memo');
         const currencyCode = this.safeCurrencyCode (this.safeString (transaction, 'currency'), currency);
         const fee = this.safeNumber (transaction, 'fee');
         const feeCurrency = (fee !== undefined) ? currencyCode : undefined;
+        const networkId = this.safeString (transaction, 'chain');
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'id'),
@@ -3727,10 +3730,10 @@ export default class xt extends Exchange {
             'tagFrom': undefined,
             'tagTo': undefined,
             'tag': memo,
-            'type': undefined,
+            'type': type,
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': currencyCode,
-            'network': this.safeString (transaction, 'chain'),
+            'network': this.networkIdToCode (networkId, currencyCode),
             'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'comment': memo,
             'fee': {

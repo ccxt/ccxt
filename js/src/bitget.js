@@ -111,6 +111,7 @@ export default class bitget extends Exchange {
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'mix': 'https://api.{hostname}',
+                    'user': 'https://api.{hostname}',
                     'p2p': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
@@ -257,6 +258,20 @@ export default class bitget extends Exchange {
                             'trace/followerCloseByTrackingNo': 2,
                             'trace/followerCloseByAll': 2,
                             'trace/followerSetTpsl': 2,
+                        },
+                    },
+                    'user': {
+                        'get': {
+                            'fee/query': 2,
+                            'sub/virtual-list': 2,
+                            'sub/virtual-api-list': 2,
+                        },
+                        'post': {
+                            'sub/virtual-create': 4,
+                            'sub/virtual-modify': 4,
+                            'sub/virtual-api-batch-create': 4,
+                            'sub/virtual-api-create': 4,
+                            'sub/virtual-api-modify': 4,
                         },
                     },
                     'p2p': {
@@ -1380,6 +1395,7 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#withdraw
          * @description make a withdrawal
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#withdraw-v2
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -1389,22 +1405,24 @@ export default class bitget extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         this.checkAddress(address);
-        const chain = this.safeString(params, 'chain');
+        const chain = this.safeString2(params, 'chain', 'network');
+        params = this.omit(params, ['network']);
         if (chain === undefined) {
             throw new ArgumentsRequired(this.id + ' withdraw() requires a chain parameter');
         }
         await this.loadMarkets();
         const currency = this.currency(code);
+        const networkId = this.networkCodeToId(chain);
         const request = {
             'coin': currency['code'],
             'address': address,
-            'chain': chain,
+            'chain': networkId,
             'amount': amount,
         };
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        const response = await this.privateSpotPostWalletWithdrawal(this.extend(request, params));
+        const response = await this.privateSpotPostWalletWithdrawalV2(this.extend(request, params));
         //
         //     {
         //         "code": "00000",
@@ -4230,7 +4248,7 @@ export default class bitget extends Exchange {
         /**
          * @method
          * @name bitget#transfer
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#transfer
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#transfer-v2
          * @description transfer currency internally between wallets on the same account
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
@@ -4259,7 +4277,7 @@ export default class bitget extends Exchange {
             'amount': amount,
             'coin': currency['info']['coinName'],
         };
-        const response = await this.privateSpotPostWalletTransfer(this.extend(request, params));
+        const response = await this.privateSpotPostWalletTransferV2(this.extend(request, params));
         //
         //    {
         //        "code": "00000",
@@ -4403,6 +4421,9 @@ export default class bitget extends Exchange {
         }
         else if (endpoint === 'mix') {
             pathPart = '/api/mix/v1';
+        }
+        else if (endpoint === 'user') {
+            pathPart = '/api/user/v1';
         }
         else {
             pathPart = '/api/p2p/v1';
