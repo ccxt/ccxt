@@ -108,6 +108,7 @@ class bitget extends bitget$1 {
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'mix': 'https://api.{hostname}',
+                    'user': 'https://api.{hostname}',
                     'p2p': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
@@ -254,6 +255,20 @@ class bitget extends bitget$1 {
                             'trace/followerCloseByTrackingNo': 2,
                             'trace/followerCloseByAll': 2,
                             'trace/followerSetTpsl': 2,
+                        },
+                    },
+                    'user': {
+                        'get': {
+                            'fee/query': 2,
+                            'sub/virtual-list': 2,
+                            'sub/virtual-api-list': 2,
+                        },
+                        'post': {
+                            'sub/virtual-create': 4,
+                            'sub/virtual-modify': 4,
+                            'sub/virtual-api-batch-create': 4,
+                            'sub/virtual-api-create': 4,
+                            'sub/virtual-api-modify': 4,
                         },
                     },
                     'p2p': {
@@ -4403,6 +4418,9 @@ class bitget extends bitget$1 {
         }
         else if (endpoint === 'mix') {
             pathPart = '/api/mix/v1';
+        }
+        else if (endpoint === 'user') {
+            pathPart = '/api/user/v1';
         }
         else {
             pathPart = '/api/p2p/v1';

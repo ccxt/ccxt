@@ -134,6 +134,7 @@ class bitget(Exchange, ImplicitAPI):
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'mix': 'https://api.{hostname}',
+                    'user': 'https://api.{hostname}',
                     'p2p': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
@@ -280,6 +281,20 @@ class bitget(Exchange, ImplicitAPI):
                             'trace/followerCloseByTrackingNo': 2,
                             'trace/followerCloseByAll': 2,
                             'trace/followerSetTpsl': 2,
+                        },
+                    },
+                    'user': {
+                        'get': {
+                            'fee/query': 2,
+                            'sub/virtual-list': 2,
+                            'sub/virtual-api-list': 2,
+                        },
+                        'post': {
+                            'sub/virtual-create': 4,
+                            'sub/virtual-modify': 4,
+                            'sub/virtual-api-batch-create': 4,
+                            'sub/virtual-api-create': 4,
+                            'sub/virtual-api-modify': 4,
                         },
                     },
                     'p2p': {
@@ -4164,6 +4179,8 @@ class bitget(Exchange, ImplicitAPI):
             pathPart = '/api/spot/v1'
         elif endpoint == 'mix':
             pathPart = '/api/mix/v1'
+        elif endpoint == 'user':
+            pathPart = '/api/user/v1'
         else:
             pathPart = '/api/p2p/v1'
         request = '/' + self.implode_params(path, params)
