@@ -346,6 +346,30 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_mix_post_trace_followersettpsl($params = array()) {
         return $this->request('trace/followerSetTpsl', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function private_user_get_fee_query($params = array()) {
+        return $this->request('fee/query', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_user_get_sub_virtual_list($params = array()) {
+        return $this->request('sub/virtual-list', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_user_get_sub_virtual_api_list($params = array()) {
+        return $this->request('sub/virtual-api-list', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_user_post_sub_virtual_create($params = array()) {
+        return $this->request('sub/virtual-create', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_user_post_sub_virtual_modify($params = array()) {
+        return $this->request('sub/virtual-modify', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_user_post_sub_virtual_api_batch_create($params = array()) {
+        return $this->request('sub/virtual-api-batch-create', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_user_post_sub_virtual_api_create($params = array()) {
+        return $this->request('sub/virtual-api-create', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_user_post_sub_virtual_api_modify($params = array()) {
+        return $this->request('sub/virtual-api-modify', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
+    }
     public function private_p2p_get_merchant_merchantlist($params = array()) {
         return $this->request('merchant/merchantList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -696,6 +720,30 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function privateMixPostTraceFollowerSetTpsl($params = array()) {
         return $this->request('trace/followerSetTpsl', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateUserGetFeeQuery($params = array()) {
+        return $this->request('fee/query', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateUserGetSubVirtualList($params = array()) {
+        return $this->request('sub/virtual-list', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateUserGetSubVirtualApiList($params = array()) {
+        return $this->request('sub/virtual-api-list', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateUserPostSubVirtualCreate($params = array()) {
+        return $this->request('sub/virtual-create', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privateUserPostSubVirtualModify($params = array()) {
+        return $this->request('sub/virtual-modify', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privateUserPostSubVirtualApiBatchCreate($params = array()) {
+        return $this->request('sub/virtual-api-batch-create', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privateUserPostSubVirtualApiCreate($params = array()) {
+        return $this->request('sub/virtual-api-create', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privateUserPostSubVirtualApiModify($params = array()) {
+        return $this->request('sub/virtual-api-modify', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function privateP2pGetMerchantMerchantList($params = array()) {
         return $this->request('merchant/merchantList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 1));

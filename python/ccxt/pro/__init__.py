@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '3.0.104'
+__version__ = '3.0.106'
 
 # ----------------------------------------------------------------------------
 
@@ -26,6 +26,7 @@ from ccxt.pro.bitget import bitget                                        # noqa
 from ccxt.pro.bitmart import bitmart                                      # noqa: F401
 from ccxt.pro.bitmex import bitmex                                        # noqa: F401
 from ccxt.pro.bitopro import bitopro                                      # noqa: F401
+from ccxt.pro.bitpanda import bitpanda                                    # noqa: F401
 from ccxt.pro.bitrue import bitrue                                        # noqa: F401
 from ccxt.pro.bitstamp import bitstamp                                    # noqa: F401
 from ccxt.pro.bittrex import bittrex                                      # noqa: F401
@@ -84,6 +85,7 @@ exchanges = [
     'bitmart',
     'bitmex',
     'bitopro',
+    'bitpanda',
     'bitrue',
     'bitstamp',
     'bittrex',

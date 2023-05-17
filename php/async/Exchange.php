@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.0.104';
+$version = '3.0.106';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.104';
+    const VERSION = '3.0.106';
 
     public $browser;
     public $marketsLoading = null;
@@ -279,7 +279,7 @@ class Exchange extends \ccxt\Exchange {
                     $first = $array[0][$key];
                     $last = $array[$arrayLength - 1][$key];
                     if ($first !== null && $last !== null) {
-                        $ascending = $first < $last;  // true if $array is sorted in $ascending order based on 'timestamp'
+                        $ascending = $first <= $last;  // true if $array is sorted in $ascending order based on 'timestamp'
                     }
                 }
                 $array = $ascending ? $this->arraySlice ($array, -$limit) : $this->arraySlice ($array, 0, $limit);
