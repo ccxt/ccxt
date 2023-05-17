@@ -15,7 +15,7 @@ export default class bingx extends Exchange {
             'id': 'bingx',
             'name': 'BingX',
             'countries': [ 'US' ], // North America, Canada, the EU, Hong Kong and Taiwan
-            // cheapest is 60 requests a minute = 1 requests per second on average => ( 1000ms / 1) = 1000 ms between requests on average 
+            // cheapest is 60 requests a minute = 1 requests per second on average => ( 1000ms / 1) = 1000 ms between requests on average
             'rateLimit': 1000,
             'version': 'v1',
             'certified': true,
@@ -85,8 +85,8 @@ export default class bingx extends Exchange {
                             'asset/transfer': 3,
                             'capital/deposit/hisrec': 3,
                             'capital/withdraw/history': 3,
-                        }
-                    }
+                        },
+                    },
                 },
                 'swap': {
                     'v2': {
@@ -128,7 +128,7 @@ export default class bingx extends Exchange {
                                 'trade/order': 3,
                                 'trade/batchOrders': 3,
                                 'trade/allOpenOrders': 3,
-                            }
+                            },
                         },
                     },
                 },
@@ -999,17 +999,83 @@ export default class bingx extends Exchange {
          * @method
          * @name cryptocom#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://bingx-api.github.io/docs/spot/trade-interface.html#query-assets
+         * @see https://bingx-api.github.io/docs/swapV2/account-api.html#_1-get-perpetual-futures-account-asset-information
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'v2PrivatePostPrivateGetAccountSummary',
-            'swap': 'derivativesPrivatePostPrivateUserBalance',
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotV1PrivateGetAccountBalance',
+            'swap': 'swapV2PrivateGetUserBalance',
         });
+        const request = {
+            'timestamp': this.nonce (),
+        };
+        const response = await this[method] (this.extend (request, marketTypeQuery));
+        // spot
+        //
+        //  {
+        //      "code": 0,
+        //      "msg": "",
+        //      "ttl": 1,
+        //      "data": {
+        //          "balances": [
+        //              {
+        //                  "asset": "USDT",
+        //                  "free": "16.73971130673954",
+        //                  "locked": "0"
+        //              }
+        //          ]
+        //      }
+        //  }
+        //
+        // swap
+        //
+        // {
+        //     "code": 0,
+        //     "msg": "",
+        //     "data": {
+        //       "balance": {
+        //         "asset": "USDT",
+        //         "balance": "15.6128",
+        //         "equity": "15.6128",
+        //         "unrealizedProfit": "0.0000",
+        //         "realisedProfit": "0.0000",
+        //         "availableMargin": "15.6128",
+        //         "usedMargin": "0.0000",
+        //         "freezedMargin": "0.0000"
+        //       }
+        //     }
+        // }
+        //
+        return this.parseBalance (response);
+    }
 
-        return undefined;
+    parseBalance (response) {
+        const data = this.safeValue (response, 'data');
+        const balances = this.safeValue2 (data, 'balance', 'balances');
+        const result = { 'info': response };
+        if (Array.isArray (balances)) {
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const currencyId = this.safeString (balance, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'free');
+                account['used'] = this.safeString (balance, 'locked');
+                result[code] = account;
+            }
+        } else {
+            const currencyId = this.safeString (balances, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balances, 'availableMargin');
+            account['used'] = this.safeString (balances, 'usedMargin');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1019,24 +1085,33 @@ export default class bingx extends Exchange {
         let url = this.implodeHostname (this.urls['api'][type]);
         url += '/' + version + '/';
         path = this.implodeParams (path, params);
+        url += path;
         params = this.omit (params, this.extractParams (path));
         params = this.keysort (params);
         if (access === 'public') {
-            url += path;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-        } else {
+        } else if (access === 'private') {
             this.checkRequiredCredentials ();
             let query = this.urlencode (params);
             const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
-            query += '&' + 'signature=' + signature;
+            if (Object.keys (params).length) {
+                query = '?' + query + '&';
+            } else {
+                query += '?';
+            }
+            query += 'signature=' + signature;
             headers = {
                 'X-BX-APIKEY': this.apiKey,
             };
             url += query;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    nonce () {
+        return this.milliseconds ();
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
