@@ -526,7 +526,7 @@ export default class bitmex extends Exchange {
                 const id = this.safeString (market, 'symbol');
                 const baseId = this.safeString (market, 'underlying');
                 const quoteId = this.safeString (market, 'quoteCurrency');
-                const settleId = this.safeString (market, 'settlCurrency', '');
+                const settleId = this.safeString (market, 'settlCurrency');
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
                 const settle = this.safeCurrencyCode (settleId);
@@ -568,60 +568,63 @@ export default class bitmex extends Exchange {
                 const initMargin = this.safeString (market, 'initMargin', '1');
                 const maxLeverage = this.parseNumber (Precise.stringDiv ('1', initMargin));
                 const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier'));
-                result.push ({
-                    'id': id,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'settle': settle,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
-                    'settleId': settleId,
-                    'type': type,
-                    'spot': false,
-                    'margin': false,
-                    'swap': swap,
-                    'future': future,
-                    'option': false,
-                    'prediction': prediction,
-                    'index': index,
-                    'active': active,
-                    'contract': contract,
-                    'linear': contract ? !inverse : undefined,
-                    'inverse': contract ? inverse : undefined,
-                    'taker': this.safeNumber (market, 'takerFee'),
-                    'maker': this.safeNumber (market, 'makerFee'),
-                    'contractSize': this.parseNumber (multiplierString),
-                    'expiry': expiry,
-                    'expiryDatetime': expiryDatetime,
-                    'strike': this.safeNumber (market, 'optionStrikePrice'),
-                    'optionType': undefined,
-                    'precision': {
-                        'amount': this.safeNumber (market, 'lotSize'),
-                        'price': this.safeNumber (market, 'tickSize'),
-                        'quote': this.safeNumber (market, 'tickSize'),
-                        'base': this.safeNumber (market, 'tickSize'),
-                    },
-                    'limits': {
-                        'leverage': {
-                            'min': contract ? this.parseNumber ('1') : undefined,
-                            'max': contract ? maxLeverage : undefined,
+                // temporarily filter out unlisted markets to avoid symbol conflicts
+                if (active) {
+                    result.push ({
+                        'id': id,
+                        'symbol': symbol,
+                        'base': base,
+                        'quote': quote,
+                        'settle': settle,
+                        'baseId': baseId,
+                        'quoteId': quoteId,
+                        'settleId': settleId,
+                        'type': type,
+                        'spot': false,
+                        'margin': false,
+                        'swap': swap,
+                        'future': future,
+                        'option': false,
+                        'prediction': prediction,
+                        'index': index,
+                        'active': active,
+                        'contract': contract,
+                        'linear': contract ? !inverse : undefined,
+                        'inverse': contract ? inverse : undefined,
+                        'taker': this.safeNumber (market, 'takerFee'),
+                        'maker': this.safeNumber (market, 'makerFee'),
+                        'contractSize': this.parseNumber (multiplierString),
+                        'expiry': expiry,
+                        'expiryDatetime': expiryDatetime,
+                        'strike': this.safeNumber (market, 'optionStrikePrice'),
+                        'optionType': undefined,
+                        'precision': {
+                            'amount': this.safeNumber (market, 'lotSize'),
+                            'price': this.safeNumber (market, 'tickSize'),
+                            'quote': this.safeNumber (market, 'tickSize'),
+                            'base': this.safeNumber (market, 'tickSize'),
                         },
-                        'amount': {
-                            'min': undefined,
-                            'max': positionIsQuote ? undefined : maxOrderQty,
+                        'limits': {
+                            'leverage': {
+                                'min': contract ? this.parseNumber ('1') : undefined,
+                                'max': contract ? maxLeverage : undefined,
+                            },
+                            'amount': {
+                                'min': undefined,
+                                'max': positionIsQuote ? undefined : maxOrderQty,
+                            },
+                            'price': {
+                                'min': undefined,
+                                'max': this.safeNumber (market, 'maxPrice'),
+                            },
+                            'cost': {
+                                'min': undefined,
+                                'max': positionIsQuote ? maxOrderQty : undefined,
+                            },
                         },
-                        'price': {
-                            'min': undefined,
-                            'max': this.safeNumber (market, 'maxPrice'),
-                        },
-                        'cost': {
-                            'min': undefined,
-                            'max': positionIsQuote ? maxOrderQty : undefined,
-                        },
-                    },
-                    'info': market,
-                });
+                        'info': market,
+                    });
+                }
             }
             return result;
         }
@@ -3033,7 +3036,7 @@ export default class bitmex extends Exchange {
         //
         return {
             'currency': code,
-            'address': response.replace ('"', '').replace ('"', ''),  // Done twice because some languages only replace the first instance
+            'address': (response.replace ('"', '')).replace ('"', ''),  // Done twice because some languages only replace the first instance
             'tag': undefined,
             'network': this.networkIdToCode (networkId).toUpperCase (),
             'info': response,
