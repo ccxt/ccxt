@@ -112,6 +112,7 @@ export default class bitget extends Exchange {
                     'mix': 'https://api.{hostname}',
                     'user': 'https://api.{hostname}',
                     'p2p': 'https://api.{hostname}',
+                    'broker': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
@@ -285,6 +286,26 @@ export default class bitget extends Exchange {
                             'merchant/merchantInfo': 2, // 10 times/1s (UID) => 20/10 = 2
                             'merchant/advList': 2, // 10 times/1s (UID) => 20/10 = 2
                             'merchant/orderList': 2, // 10 times/1s (UID) => 20/10 = 2
+                        },
+                    },
+                    'broker': {
+                        'get': {
+                            'account/info': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'account/sub-list': 20, // 1 times/1s (UID) => 20/1 = 20
+                            'account/sub-email': 20, // 1 times/1s (UID) => 20/1 = 20
+                            'account/sub-spot-assets': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'account/sub-future-assets': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'account/sub-api-list': 2, // 10 times/1s (UID) => 20/10 = 2
+                        },
+                        'post': {
+                            'account/sub-create': 20, // 1 times/1s (UID) => 20/1 = 20
+                            'account/sub-modify': 20, // 1 times/1s (UID) => 20/1 = 20
+                            'account/sub-modify-email': 20, // 1 times/1s (UID) => 20/1 = 20
+                            'account/sub-address': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'account/sub-withdrawal': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'account/sub-auto-transfer': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'account/sub-api-create': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'account/sub-api-modify': 2, // 10 times/1s (UID) => 20/10 = 2
                         },
                     },
                 },
@@ -4461,6 +4482,8 @@ export default class bitget extends Exchange {
             pathPart = '/api/mix/v1';
         } else if (endpoint === 'user') {
             pathPart = '/api/user/v1';
+        } else if (endpoint === 'broker') {
+            pathPart = '/api/broker/v1';
         } else {
             pathPart = '/api/p2p/v1';
         }
