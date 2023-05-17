@@ -1275,11 +1275,11 @@ export default class bitmex extends Exchange {
             currency = this.currency (code);
         }
         const precision = this.safeString (currency, 'precision');
-        let amount = this.safeString (item, 'amount');
-        if (amount !== undefined) {
-            amount = Precise.stringMul (amount, precision);
+        let amountString = this.safeString (item, 'amount');
+        if (amountString !== undefined) {
+            amountString = Precise.stringMul (amountString, precision);
         }
-        amount = this.parseNumber (amount);
+        let amount = this.parseNumber (amountString);
         let timestamp = this.parse8601 (this.safeString (item, 'transactTime'));
         if (timestamp === undefined) {
             // https://github.com/ccxt/ccxt/issues/6047
@@ -1295,14 +1295,14 @@ export default class bitmex extends Exchange {
             'cost': this.parseNumber (feeCost),
             'currency': code,
         };
-        let after = this.safeString (item, 'walletBalance');
-        if (after !== undefined) {
-            after = Precise.stringMul (after, precision);
+        let afterString = this.safeString (item, 'walletBalance');
+        if (afterString !== undefined) {
+            afterString = Precise.stringMul (afterString, precision);
         }
-        after = this.parseNumber (after);
+        const after = this.parseNumber (afterString);
         const before = this.sum (after, -amount);
         let direction = undefined;
-        if (amount < 0) {
+        if (Precise.stringLt (amountString, '0')) {
             direction = 'out';
             amount = Math.abs (amount);
         } else {
