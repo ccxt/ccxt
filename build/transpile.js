@@ -230,6 +230,7 @@ class Transpiler {
             [ /\.safeOrder\s/g, '.safe_order'],
             [ /\.safeTicker\s/g, '.safe_ticker'],
             [ /\.roundTimeframe\s/g, '.round_timeframe'],
+            [ /\.replaceAllOccurences\s/g, '.replace_all_occurences'],
             [ /\.calculateRateLimiterCost\s/g, '.calculate_rate_limiter_cost' ],
             [ /\.findBroadlyMatchedKey\s/g, '.find_broadly_matched_key' ],
             [ /\.throwBroadlyMatchedException\s/g, '.throw_broadly_matched_exception' ],
