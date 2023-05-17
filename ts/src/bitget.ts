@@ -127,12 +127,12 @@ export default class bitget extends Exchange {
                     'spot': {
                         'get': {
                             'public/time': 1,
-                            'public/currencies': 1,
+                            'public/currencies': 6.6667, // 3 times/1s (IP) => 20/3 = 6.6667
                             'public/products': 1,
                             'public/product': 1,
                             'market/ticker': 1,
                             'market/tickers': 1,
-                            'market/fills': 1,
+                            'market/fills': 2, // 10 times/1s (IP) => 20/10 = 2
                             'market/fills-history': 2,
                             'market/candles': 1,
                             'market/depth': 1,
@@ -145,7 +145,9 @@ export default class bitget extends Exchange {
                             'market/depth': 1,
                             'market/ticker': 1,
                             'market/tickers': 1,
+                            'market/contract-vip-level': 2,
                             'market/fills': 1,
+                            'market/fills-history': 2,
                             'market/candles': 1,
                             'market/index': 1,
                             'market/funding-time': 1,
@@ -154,8 +156,6 @@ export default class bitget extends Exchange {
                             'market/open-interest': 1,
                             'market/mark-price': 1,
                             'market/symbol-leverage': 1,
-                            'market/contract-vip-level': 2,
-                            'market/fills-history': 2,
                             'market/queryPositionLever': 1,
                         },
                     },
@@ -163,84 +163,88 @@ export default class bitget extends Exchange {
                 'private': {
                     'spot': {
                         'get': {
-                            'account/getInfo': 20,
-                            'account/assets': 2,
-                            'account/transferRecords': 4,
                             'wallet/deposit-address': 4,
-                            'wallet/withdrawal-inner': 4,
                             'wallet/withdrawal-list': 1,
                             'wallet/deposit-list': 1,
+                            'account/getInfo': 20,
+                            'account/assets': 2,
+                            'account/transferRecords': 1, // 20 times/1s (UID) => 20/20 = 1
                         },
                         'post': {
-                            'account/bills': 2,
+                            'wallet/transfer': 4,
+                            'wallet/transfer-v2': 4,
+                            'wallet/subTransfer': 10,
+                            'wallet/withdrawal': 4,
+                            'wallet/withdrawal-v2': 4,
+                            'wallet/withdrawal-inner': 4,
+                            'wallet/withdrawal-inner-v2': 4,
                             'account/sub-account-spot-assets': 200,
+                            'account/bills': 2,
                             'trade/orders': 2,
                             'trade/batch-orders': 4,
                             'trade/cancel-order': 2,
+                            'trade/cancel-order-v2': 2,
+                            'trade/cancel-symbol-order': 2,
                             'trade/cancel-batch-orders': 4,
                             'trade/cancel-batch-orders-v2': 4,
                             'trade/orderInfo': 1,
                             'trade/open-orders': 1,
                             'trade/history': 1,
                             'trade/fills': 1,
-                            'trade/cancel-order-v2': 2,
-                            'trade/cancel-symbol-order': 2,
-                            'wallet/transfer': 4,
-                            'wallet/withdrawal': 4,
-                            'wallet/subTransfer': 10,
-                            'wallet/transfer-v2': 4,
-                            'wallet/withdrawal-v2': 4,
-                            'wallet/withdrawal-inner-v2': 4,
                             'plan/placePlan': 1,
                             'plan/modifyPlan': 1,
                             'plan/cancelPlan': 1,
                             'plan/currentPlan': 1,
                             'plan/historyPlan': 1,
+                            'plan/batchCancelPlan': 2, // 10 times/1s (UID) => 20/10 = 2
                         },
                     },
                     'mix': {
                         'get': {
                             'account/account': 2,
                             'account/accounts': 2,
-                            'account/accountBill': 2,
-                            'account/accountBusinessBill': 4,
-                            'account/open-count': 1,
-                            'order/current': 2,
-                            'order/history': 2,
-                            'order/detail': 2,
-                            'order/fills': 2,
-                            'order/historyProductType': 8,
-                            'order/allFills': 2,
-                            'plan/currentPlan': 2,
-                            'plan/historyPlan': 2,
                             'position/singlePosition': 2,
                             'position/singlePosition-v2': 2,
-                            'position/allPosition': 2,
-                            'position/allPosition-v2': 2,
+                            'position/allPosition': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'position/allPosition-v2': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'account/accountBill': 2,
+                            'account/accountBusinessBill': 4,
+                            'order/current': 1, // 20 times/1s (UID) => 20/20 = 1
+                            'order/marginCoinCurrent': 1, // 20 times/1s (UID) => 20/20 = 1
+                            'order/history': 2,
+                            'order/historyProductType': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'order/detail': 2,
+                            'order/fills': 2,
+                            'order/allFills': 2,
+                            'plan/currentPlan': 1, // 20 times/1s (UID) => 20/20 = 1
+                            'plan/historyPlan': 2,
                             'trace/currentTrack': 2,
                             'trace/followerOrder': 2,
+                            'trace/followerHistoryOrders': 2,
                             'trace/historyTrack': 2,
-                            'trace/summary': 2,
-                            'trace/profitSettleTokenIdGroup': 2,
-                            'trace/profitDateGroupList': 2,
+                            'trace/summary': 1, // 20 times/1s (UID) => 20/20 = 1
+                            'trace/profitSettleTokenIdGroup': 1, // 20 times/1s (UID) => 20/20 = 1
+                            'trace/profitDateGroupList': 1, // 20 times/1s (UID) => 20/20 = 1
                             'trade/profitDateList': 2,
-                            'trace/waitProfitDateList': 2,
-                            'trace/traderSymbols': 2,
+                            'trace/waitProfitDateList': 1, // 20 times/1s (UID) => 20/20 = 1
+                            'trace/traderSymbols': 1, // 20 times/1s (UID) => 20/20 = 1
                             'trace/traderList': 2,
+                            'trace/traderDetail': 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/queryTraceConfig': 2,
-                            'order/marginCoinCurrent': 2,
                         },
                         'post': {
-                            'account/setLeverage': 8,
-                            'account/setMargin': 8,
-                            'account/setMarginMode': 8,
-                            'account/setPositionMode': 8,
+                            'account/sub-account-contract-assets': 200, // 0.1 times/1s (UID) => 20/0.1 = 200
+                            'account/open-count': 1,
+                            'account/setLeverage': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'account/setMargin': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'account/setMarginMode': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'account/setPositionMode': 4, // 5 times/1s (UID) => 20/5 = 4
                             'order/placeOrder': 2,
                             'order/batch-orders': 2,
                             'order/cancel-order': 2,
-                            'order/cancel-all-orders': 2,
                             'order/cancel-batch-orders': 2,
                             'order/cancel-symbol-orders': 2,
+                            'order/cancel-all-orders': 2,
                             'plan/placePlan': 2,
                             'plan/modifyPlan': 2,
                             'plan/modifyPlanPreset': 2,
@@ -249,14 +253,16 @@ export default class bitget extends Exchange {
                             'plan/placePositionsTPSL': 2,
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
-                            'plan/cancelAllPlan': 2,
                             'plan/cancelSymbolPlan': 2,
+                            'plan/cancelAllPlan': 2,
                             'trace/closeTrackOrder': 2,
+                            'trace/modifyTPSL': 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/setUpCopySymbols': 2,
                             'trace/followerSetBatchTraceConfig': 2,
                             'trace/followerCloseByTrackingNo': 2,
                             'trace/followerCloseByAll': 2,
                             'trace/followerSetTpsl': 2,
+                            'trace/cancelCopyTrader': 4, // 5 times/1s (UID) => 20/5 = 4
                         },
                     },
                     'user': {
@@ -268,17 +274,17 @@ export default class bitget extends Exchange {
                         'post': {
                             'sub/virtual-create': 4,
                             'sub/virtual-modify': 4,
-                            'sub/virtual-api-batch-create': 4,
+                            'sub/virtual-api-batch-create': 20, // 1 times/1s (UID) => 20/1 = 20
                             'sub/virtual-api-create': 4,
                             'sub/virtual-api-modify': 4,
                         },
                     },
                     'p2p': {
                         'get': {
-                            'merchant/merchantList': 1,
-                            'merchant/merchantInfo': 1,
-                            'merchant/advList': 1,
-                            'merchant/orderList': 1,
+                            'merchant/merchantList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'merchant/merchantInfo': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'merchant/advList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'merchant/orderList': 2, // 10 times/1s (UID) => 20/10 = 2
                         },
                     },
                 },
