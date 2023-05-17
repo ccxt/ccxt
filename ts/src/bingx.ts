@@ -15,7 +15,8 @@ export default class bingx extends Exchange {
             'id': 'bingx',
             'name': 'BingX',
             'countries': [ 'US' ], // North America, Canada, the EU, Hong Kong and Taiwan
-            'rateLimit': 16.666,
+            // cheapest is 60 requests a minute = 1 requests per second on average => ( 1000ms / 1) = 1000 ms between requests on average 
+            'rateLimit': 1000,
             'version': 'v1',
             'certified': true,
             'pro': true,
@@ -35,6 +36,7 @@ export default class bingx extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchBalance': true,
             },
             'hostname': 'bingx.com',
             'urls': {
@@ -62,37 +64,71 @@ export default class bingx extends Exchange {
                                 'common/symbols': 3,
                                 'market/trades': 3,
                                 'market/depth': 3,
+                                'trade/query': 3,
+                                'trade/openOrders': 3,
                             },
                         },
                         'private': {
                             'get': {
+                                'trade/historyOrders': 3,
+                                'account/balance': 3,
                             },
                             'post': {
+                                'trade/order': 3,
+                                'trade/cancel': 3,
                             },
                         },
                     },
+                    'v3': {
+                        'private': {
+                            'get/asset/transfer': 3,
+                            'asset/transfer': 3,
+                            'capital/deposit/hisrec': 3,
+                            'capital/withdraw/history': 3,
+                        }
+                    }
                 },
                 'swap': {
                     'v2': {
                         'public': {
                             'get': {
                                 'server/time': 3,
-                                'quote/contracts': 3,
-                                'quote/price': 3,
-                                'quote/depth': 3,
-                                'quote/trades': 3,
-                                'quote/premiumIndex': 3,
-                                'quote/fundingRate': 3,
-                                'quote/klines': 3,
-                                'quote/openInterest': 3,
-                                'quote/ticker': 3,
-                            },
-                            'post': {
+                                'quote/contracts': 1,
+                                'quote/price': 1,
+                                'quote/depth': 1,
+                                'quote/trades': 1,
+                                'quote/premiumIndex': 1,
+                                'quote/fundingRate': 1,
+                                'quote/klines': 1,
+                                'quote/openInterest': 1,
+                                'quote/ticker': 1,
                             },
                         },
                         'private': {
-                            'post': {
+                            'get': {
+                                'user/balance': 3,
+                                'user/positions': 3,
+                                'user/income': 3,
+                                'trade/openOrders': 3,
+                                'trade/order': 3,
+                                'trade/marginType': 3,
+                                'trade/leverage': 3,
+                                'trade/forceOrders': 3,
+                                'trade/allOrders': 3,
                             },
+                            'post': {
+                                'trade/order': 3,
+                                'trade/batchOrders': 3,
+                                'trade/closeAllPositions': 3,
+                                'trade/marginType': 3,
+                                'trade/leverage': 3,
+                                'trade/positionMargin': 3,
+                            },
+                            'delete': {
+                                'trade/order': 3,
+                                'trade/batchOrders': 3,
+                                'trade/allOpenOrders': 3,
+                            }
                         },
                     },
                 },
@@ -100,9 +136,9 @@ export default class bingx extends Exchange {
                     'v1': {
                         'private': {
                             'get': {
-                                'allPosition': 1,
-                                'allOrders': 1,
-                                'balance': 1,
+                                'allPosition': 3,
+                                'allOrders': 3,
+                                'balance': 3,
                             },
                         },
                     },
@@ -956,6 +992,24 @@ export default class bingx extends Exchange {
             'quoteVolume': quoteVolume,
             'info': ticker,
         }, market);
+    }
+
+    async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        await this.loadMarkets ();
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let method = this.getSupportedMapping (marketType, {
+            'spot': 'v2PrivatePostPrivateGetAccountSummary',
+            'swap': 'derivativesPrivatePostPrivateUserBalance',
+        });
+
+        return undefined;
     }
 
     sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
