@@ -24,7 +24,10 @@ export default class xt extends xtRest {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://stream.xt.com',
+                    'ws': {
+                        'spot': 'wss://stream.xt.com',
+                        'swap': 'wss://fstream.xt.com/ws/market',
+                    },
                 },
             },
             'options': {
@@ -39,16 +42,17 @@ export default class xt extends xtRest {
         });
     }
 
-    async getAccessToken (params = {}) {
+    async getAccessToken (marketType: string, params = {}) {
         /**
          * @ignore
          * @method
          * @description required for private endpoints
+         * @param marketType spot or swap
          * @see https://doc.xt.com/#websocket_privategetToken
          * @returns {string} accessToken
          */
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws'] + '/private';
+        const url = this.urls['api']['ws'][marketType] + '/private';
         const client = this.client (url);
         const accessToken = this.safeValue (client.subscriptions, 'accessToken');
         if (accessToken === undefined) {
@@ -70,20 +74,26 @@ export default class xt extends xtRest {
         return client.subscriptions['accessToken'];
     }
 
-    async subscribe (name: string, access: string, symbol: string = undefined, params = {}) {
+    async subscribe (name: string, access: string, methodName: string, market: object = undefined, params = {}) {
         /**
          * @ignore
          * @method
          * @description Connects to a websocket channel
          * @see https://doc.xt.com/#websocket_privaterequestFormat
-         * @param {String} name name of the channel
-         * @param {String} access public or private
-         * @param {String|undefined} symbol CCXT market symbol
-         * @param {Object} params extra parameters specific to the xt api
-         * @returns {Object} data from the websocket stream
+         * @param {string} name name of the channel
+         * @param {string} access public or private
+         * @param {string} methodName the name of the CCXT class method
+         * @param {object|undefined} market CCXT market
+         * @param {object} params extra parameters specific to the xt api
+         * @returns {object} data from the websocket stream
          */
         await this.loadMarkets ();
-        const url = this.urls['api']['ws'] + '/' + access;
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params);
+        let url = this.urls['api']['ws'][marketType];
+        if (marketType === 'spot') {
+            url = url + '/' + access;
+        }
         const subscribe = {
             'method': 'subscribe',
             'params': [
@@ -92,7 +102,7 @@ export default class xt extends xtRest {
             'id': this.numberToString (this.milliseconds ()) + name,  // call back ID
         };
         if (access === 'private') {
-            subscribe['listenKey'] = await this.getAccessToken ();
+            subscribe['listenKey'] = await this.getAccessToken (marketType);
         }
         const messageHash = name;
         const request = this.extend (subscribe, params);
@@ -111,7 +121,7 @@ export default class xt extends xtRest {
          */
         const market = this.market (symbol);
         const name = 'ticker@' + market['id'];
-        return await this.subscribe (name, 'public', symbol, params);
+        return await this.subscribe (name, 'public', 'watchTicker', market, params);
     }
 
     async watchTickers (symbols: string[] = undefined, params = {}) {
@@ -125,7 +135,7 @@ export default class xt extends xtRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const name = 'tickers';
-        return await this.subscribe (name, 'public', undefined, params);
+        return await this.subscribe (name, 'public', 'watchTickers', undefined, params);
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -143,7 +153,7 @@ export default class xt extends xtRest {
          */
         const market = this.market (symbol);
         const name = 'kline@' + market['id'] + ',' + timeframe;
-        return await this.subscribe (name, 'public', symbol, params);
+        return await this.subscribe (name, 'public', 'watchOHLCV', market, params);
     }
 
     async watchTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -161,7 +171,7 @@ export default class xt extends xtRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'trade@' + market['id'];
-        const trades = await this.subscribe (name, 'public', symbol, params);
+        const trades = await this.subscribe (name, 'public', 'watchTrades', market, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -188,7 +198,7 @@ export default class xt extends xtRest {
         if (levels !== undefined) {
             name = 'depth@' + market['id'] + ',' + levels;
         }
-        const orderbook = await this.subscribe (name, 'public', symbol, params);
+        const orderbook = await this.subscribe (name, 'public', 'watchOrderBook', market, params);
         return orderbook.limit ();
     }
 
@@ -198,7 +208,7 @@ export default class xt extends xtRest {
          * @name xt#watchOrders
          * @description watches information on multiple orders made by the user
          * @see https://doc.xt.com/#websocket_privateorderChange
-         * @param {string|undefined} symbol not used by xt watchOrders
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since not used by xt watchOrders
          * @param {int|undefined} limit the maximum number of orders to return
          * @param {object} params extra parameters specific to the xt api endpoint
@@ -206,7 +216,11 @@ export default class xt extends xtRest {
          */
         await this.loadMarkets ();
         const name = 'order';
-        const orders = await this.subscribe (name, 'private', undefined, params);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const orders = await this.subscribe (name, 'private', 'watchOrders', market, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -227,7 +241,11 @@ export default class xt extends xtRest {
          */
         await this.loadMarkets ();
         const name = 'trade';
-        const trades = await this.subscribe (name, 'private', undefined, params);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const trades = await this.subscribe (name, 'private', 'watchMyTrades', market, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -245,10 +263,12 @@ export default class xt extends xtRest {
          */
         await this.loadMarkets ();
         const name = 'balance';
-        return await this.subscribe (name, 'private', undefined, params);
+        return await this.subscribe (name, 'private', 'watchBalance', undefined, params);
     }
 
     handleTicker (client: Client, message) {
+        //
+        // spot
         //
         //    {
         //        topic: 'ticker',
@@ -265,6 +285,24 @@ export default class xt extends xtRest {
         //           q: '6372.601573',         // quantity
         //           v: '184086075.2772391'    // volume
         //        }
+        //    }
+        //
+        // swap
+        //
+        //    {
+        //        "topic": "ticker",
+        //        "event": "ticker@btc_usdt",
+        //        "data": {
+        //            "s":"btc_index",  // trading pair
+        //            "o":"49000",      // opening price
+        //            "c":"50000",      // closing price
+        //            "h":"0.1",        // highest price
+        //            "l":"0.1",        // lowest price
+        //            "a":"0.1",        // volume
+        //            "v":"0.1",        // turnover
+        //            "ch":"0.21",      // quote change
+        //            "t":123124124     // timestamp
+        //       }
         //    }
         //
         const data = this.safeValue (message, 'data');
