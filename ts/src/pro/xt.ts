@@ -205,7 +205,7 @@ export default class xt extends xtRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const name = 'open_orders';
+        const name = 'order';
         const orders = await this.subscribe (name, 'private', undefined, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
