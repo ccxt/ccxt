@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\bkex as Exchange;
 
 class bkex extends Exchange {
 
@@ -93,8 +94,6 @@ class bkex extends Exchange {
                 'fetchTransfers' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
-                'privateAPI' => true,
-                'publicAPI' => true,
                 'reduceMargin' => null,
                 'setLeverage' => null,
                 'setMarginMode' => null,
@@ -280,6 +279,7 @@ class bkex extends Exchange {
             $this->publicSpotGetCommonSymbols ($params),
             $this->publicSwapGetMarketSymbols ($params),
         );
+        $promises = $promises;
         $spotMarkets = $promises[0];
         //
         //     {
@@ -470,7 +470,7 @@ class bkex extends Exchange {
         /**
          * the latest known information on the availability of the exchange API
          * @param {array} $params extra parameters specific to the bkex api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure status structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
          */
         $response = $this->publicSpotGetCommonTimestamp ($params);
         //
@@ -493,7 +493,7 @@ class bkex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-1
@@ -503,7 +503,7 @@ class bkex extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the bkex api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -599,14 +599,14 @@ class bkex extends Exchange {
         );
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-2
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-$ticker-data
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} $params extra parameters specific to the bkex api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -665,14 +665,14 @@ class bkex extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-2
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-ticker-data
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the bkex api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         $request = array();
@@ -812,7 +812,7 @@ class bkex extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-4
@@ -820,7 +820,7 @@ class bkex extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {array} $params extra parameters specific to the bkex api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -880,7 +880,7 @@ class bkex extends Exchange {
         return $this->parse_order_book($data, $market['symbol'], $timestamp, 'bid', 'ask');
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-5
@@ -1055,12 +1055,12 @@ class bkex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
          * @param {array} $params extra parameters specific to the bkex api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1102,14 +1102,14 @@ class bkex extends Exchange {
         );
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string} $code unified $currency $code
          * @param {int|null} $since the earliest time in ms to fetch deposits for
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
          * @param {array} $params extra parameters specific to the bkex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchDeposits() requires $code argument');
@@ -1158,14 +1158,14 @@ class bkex extends Exchange {
         return $this->parse_transactions($dataInner, $currency, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified $currency $code
          * @param {int|null} $since the earliest time in ms to fetch withdrawals for
          * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
          * @param {array} $params extra parameters specific to the bkex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires $code argument');
@@ -1267,7 +1267,7 @@ class bkex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1276,7 +1276,7 @@ class bkex extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the bkex api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1302,13 +1302,13 @@ class bkex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
          * @param {string|null} $symbol unified $symbol of the $market the order was made in
          * @param {array} $params extra parameters specific to the bkex api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = ($symbol !== null) ? $this->market($symbol) : null;
@@ -1326,13 +1326,13 @@ class bkex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
          * @param {[string]} $ids order $ids
          * @param {string|null} $symbol unified $market $symbol, default is null
          * @param {array} $params extra parameters specific to the bkex api endpoint
-         * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if (gettype($ids) !== 'array' || array_keys($ids) !== array_keys(array_keys($ids))) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() $ids argument should be an array');
@@ -1357,14 +1357,14 @@ class bkex extends Exchange {
         return $this->parse_orders($results, $market, null, null, $params);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the bkex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
@@ -1414,13 +1414,13 @@ class bkex extends Exchange {
         return $this->parse_orders($innerData, $market, $since, $limit, $params);
     }
 
-    public function fetch_open_order($id, $symbol = null, $params = array ()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an open order by it's $id
          * @param {string} $id order $id
          * @param {string|null} $symbol unified $market $symbol, default is null
          * @param {array} $params extra parameters specific to the bkex api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $request = array(
             'orderId' => $id,
@@ -1453,14 +1453,14 @@ class bkex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the bkex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
@@ -1620,7 +1620,7 @@ class bkex extends Exchange {
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-2
          * @param {[string]|null} $codes list of unified currency $codes
          * @param {array} $params extra parameters specific to the bkex api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
          */
         $this->load_markets();
         $response = $this->publicSpotGetCommonCurrencys ($params);
@@ -1696,7 +1696,7 @@ class bkex extends Exchange {
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-2
          * @param {[string]|null} $codes list of unified currency $codes
          * @param {array} $params extra parameters specific to the bkex api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
          */
         $this->load_markets();
         $response = $this->publicSpotGetCommonCurrencys ($params);
@@ -1750,7 +1750,7 @@ class bkex extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-fundingRate
          * fetches historical funding rate prices
@@ -1787,11 +1787,11 @@ class bkex extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             $marketId = $this->safe_string($entry, 'symbol');
-            $symbol = $this->safe_symbol($marketId);
+            $symbolInner = $this->safe_symbol($marketId);
             $timestamp = $this->safe_integer($entry, 'time');
             $rates[] = array(
                 'info' => $entry,
-                'symbol' => $symbol,
+                'symbol' => $symbolInner,
                 'fundingRate' => $this->safe_number($entry, 'rate'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
@@ -1801,13 +1801,13 @@ class bkex extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function fetch_market_leverage_tiers($symbol, $params = array ()) {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
         /**
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-riskLimit
          * retrieve information on the maximum leverage, for different trade sizes for a single $market
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the bkex api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1837,7 +1837,7 @@ class bkex extends Exchange {
         return $this->parse_market_leverage_tiers($data, $market);
     }
 
-    public function parse_market_leverage_tiers($info, $market) {
+    public function parse_market_leverage_tiers($info, $market = null) {
         //
         //     array(
         //         array(
@@ -1898,7 +1898,7 @@ class bkex extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         //
         // success
@@ -1932,7 +1932,7 @@ class bkex extends Exchange {
         //
         $message = $this->safe_value($response, 'msg');
         if ($message === 'success') {
-            return;
+            return null;
         }
         $responseCode = $this->safe_string($response, 'code');
         if ($responseCode !== '0') {
@@ -1941,5 +1941,6 @@ class bkex extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }
