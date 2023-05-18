@@ -532,11 +532,11 @@ export default class xt extends xtRest {
         //        "topic": "trade",
         //        "event": "trade@btc_usdt",
         //        "data": {
-        //            "s":"btc_index",  // trading pair
-        //            "p":"50000",      // price
-        //            "a":"0.1"         // Quantity
-        //            "m": "BID"        // Deal side  BID:Buy ASK:Sell
-        //            "t":123124124     // timestamp
+        //            "s": "btc_index",  // trading pair
+        //            "p": "50000",      // price
+        //            "a": "0.1"         // Quantity
+        //            "m": "BID"         // Deal side  BID:Buy ASK:Sell
+        //            "t": 123124124     // timestamp
         //        }
         //    }
         //
@@ -946,12 +946,12 @@ export default class xt extends xtRest {
         //        "topic": "trade",
         //        "event": "trade@123456",
         //        "data": {
-        //                "orderId": "12312312",       // Order ID
-        //                "price": "34244",            // Price
-        //                "quantity": "123",           // Quantity
-        //                "marginUnfrozen": "123",     // Quantity of unfrozen margin
-        //                "timestamp": 1731231231      // Timestamp
-        //           }
+        //            "orderId": "12312312",           // Order ID
+        //            "price": "34244",                // Price
+        //            "quantity": "123",               // Quantity
+        //            "marginUnfrozen": "123",         // Quantity of unfrozen margin
+        //            "timestamp": 1731231231          // Timestamp
+        //        }
         //    }
         //
         const data = this.safeValue (message, 'data', {});
@@ -963,7 +963,7 @@ export default class xt extends xtRest {
         }
         const parsedTrade = this.parseTrade (data);
         stored.append (parsedTrade);
-        client.resolve (stored, 'trade:spot');
+        client.resolve (stored, 'trade:' + parsedTrade['type']);
     }
 
     handleMessage (client, message) {
@@ -973,7 +973,6 @@ export default class xt extends xtRest {
         } else if (event !== undefined) {
             const topic = this.safeString (message, 'topic');
             const methods = {
-                'trade': this.handleMyTrades,
                 'kline': this.handleOHLCV,
                 'depth': this.handleOrderBook,
                 'depth_update': this.handleOrderBook,
@@ -984,10 +983,14 @@ export default class xt extends xtRest {
                 'balance': this.handleBalance,
                 'order': this.handleOrder,
             };
-            const splitEvent = event.split ('@');
             let method = this.safeValue (methods, topic);
-            if ((splitEvent.length > 1) && (topic === 'trade')) {
-                method = this.handleTrade;
+            if (topic === 'trade') {
+                const data = this.safeValue (message, 'data');
+                if (('oi' in data) || ('orderId' in data)) {
+                    method = this.handleMyTrades;
+                } else {
+                    method = this.handleTrade;
+                }
             }
             if (method !== undefined) {
                 return method.call (this, client, message);
