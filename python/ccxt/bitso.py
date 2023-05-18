@@ -1022,7 +1022,7 @@ class bitso(Exchange, ImplicitAPI):
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'original_amount')
         remaining = self.safe_string(order, 'unfilled_amount')
-        clientOrderId = self.safe_string(order, 'origin_id')
+        clientOrderId = self.safe_string(order, 'client_id')
         return self.safe_order({
             'info': order,
             'id': id,
