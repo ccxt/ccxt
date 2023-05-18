@@ -123,6 +123,8 @@ export default class xt extends xtRest {
          * @name xt#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://doc.xt.com/#websocket_publictickerRealTime
+         * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
+         * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the xt api endpoint
          * @param {string} params.method 'agg_ticker' (swap only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
@@ -142,6 +144,8 @@ export default class xt extends xtRest {
          * @name xt#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://doc.xt.com/#websocket_publicallTicker
+         * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
+         * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
          * @param {string} symbol not used by xt watchTickers
          * @param {object} params extra parameters specific to the xt api endpoint
          * @param {string} params.method 'agg_tickers' (swap only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
@@ -159,6 +163,7 @@ export default class xt extends xtRest {
          * @name hitbtc#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @see https://doc.xt.com/#websocket_publicsymbolKline
+         * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
          * @param {int|undefined} since not used by xt watchOHLCV
@@ -177,6 +182,7 @@ export default class xt extends xtRest {
          * @name xt#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @see https://doc.xt.com/#websocket_publicdealRecord
+         * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
@@ -200,6 +206,8 @@ export default class xt extends xtRest {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://doc.xt.com/#websocket_publiclimitDepth
          * @see https://doc.xt.com/#websocket_publicincreDepth
+         * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
+         * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit not used by xt watchOrderBook
          * @param {object} params extra parameters specific to the xt api endpoint
@@ -223,6 +231,7 @@ export default class xt extends xtRest {
          * @name xt#watchOrders
          * @description watches information on multiple orders made by the user
          * @see https://doc.xt.com/#websocket_privateorderChange
+         * @see https://doc.xt.com/#futures_user_websocket_v2order
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since not used by xt watchOrders
          * @param {int|undefined} limit the maximum number of orders to return
@@ -248,6 +257,7 @@ export default class xt extends xtRest {
          * @name xt#watchMyTrades
          * @description watches information on multiple trades made by the user
          * @see https://doc.xt.com/#websocket_privateorderDeal
+         * @see https://doc.xt.com/#futures_user_websocket_v2trade
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
@@ -273,6 +283,7 @@ export default class xt extends xtRest {
          * @name xt#watchOrders
          * @description watches information on multiple orders made by the user
          * @see https://doc.xt.com/#websocket_privatebalanceChange
+         * @see https://doc.xt.com/#futures_user_websocket_v2balance
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {[object]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
