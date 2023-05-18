@@ -82,7 +82,7 @@ done
 npm run post-transpile
 
 ### RUN SPECIFIC TESTS ###
-if [![${REST_EXCHANGES[@]}] && ![${REST_EXCHANGES[@]}] ]; then
+if [ -z ${REST_EXCHANGES[@]} ] && [ -z ${WS_EXCHANGES[@]} ]; then
   echo "no exchanges to test, exiting"
   exit
 fi
