@@ -311,7 +311,8 @@ export default class coinex extends Exchange {
         //                  "can_withdraw": true,
         //                  "deposit_least_amount": "4.9",
         //                  "withdraw_least_amount": "4.9",
-        //                  "withdraw_tx_fee": "4.9"
+        //                  "withdraw_tx_fee": "4.9",
+        //                  "explorer_asset_url": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7"
         //             },
         //             ...
         //         },
