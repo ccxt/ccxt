@@ -113,12 +113,14 @@ export default class bitget extends Exchange {
                     'user': 'https://api.{hostname}',
                     'p2p': 'https://api.{hostname}',
                     'broker': 'https://api.{hostname}',
+                    'margin': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
                     'https://bitgetlimited.github.io/apidoc/en/mix',
                     'https://bitgetlimited.github.io/apidoc/en/spot',
                     'https://bitgetlimited.github.io/apidoc/en/broker',
+                    'https://bitgetlimited.github.io/apidoc/en/margin',
                 ],
                 'fees': 'https://www.bitget.cc/zh-CN/rate?tab=1',
                 'referral': 'https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j',
@@ -158,6 +160,17 @@ export default class bitget extends Exchange {
                             'market/mark-price': 1,
                             'market/symbol-leverage': 1,
                             'market/queryPositionLever': 1,
+                        },
+                    },
+                    'margin': {
+                        'get': {
+                            'cross/public/interestRateAndLimit': 2, // 10 times/1s (IP) => 20/10 = 2
+                            'isolated/public/interestRateAndLimit': 2, // 10 times/1s (IP) => 20/10 = 2
+                            'cross/public/tierData': 2, // 10 times/1s (IP) => 20/10 = 2
+                            'isolated/public/tierData': 2, // 10 times/1s (IP) => 20/10 = 2
+                            'public/currencies': 1, // 20 times/1s (IP) => 20/20 = 1
+                            'cross/account/assets': 2, // 10 times/1s (IP) => 20/10 = 2
+                            'isolated/account/assets': 2, // 10 times/1s (IP) => 20/10 = 2
                         },
                     },
                 },
@@ -306,6 +319,46 @@ export default class bitget extends Exchange {
                             'account/sub-auto-transfer': 4, // 5 times/1s (UID) => 20/5 = 4
                             'account/sub-api-create': 2, // 10 times/1s (UID) => 20/10 = 2
                             'account/sub-api-modify': 2, // 10 times/1s (UID) => 20/10 = 2
+                        },
+                    },
+                    'margin': {
+                        'get': {
+                            'cross/account/riskRate': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/account/maxTransferOutAmount': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/account/maxTransferOutAmount': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/order/openOrders': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/order/history': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/order/fills': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/loan/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/repay/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/interest/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/liquidation/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/fin/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/order/openOrders': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/order/history': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/order/fills': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/loan/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/repay/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/interest/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/liquidation/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/fin/list': 2, // 10 times/1s (UID) => 20/10 = 2
+                        },
+                        'post': {
+                            'cross/account/borrow': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/account/borrow': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/account/repay': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/account/repay': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/account/riskRate': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/account/maxBorrowableAmount': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/account/maxBorrowableAmount': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/order/placeOrder': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'isolated/order/batchPlaceOrder': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'isolated/order/cancelOrder': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/order/batchCancelOrder': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/order/placeOrder': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/order/batchPlaceOrder': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/order/cancelOrder': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/order/batchCancelOrder': 2, // 10 times/1s (UID) => 20/10 = 2
                         },
                     },
                 },
@@ -4484,6 +4537,8 @@ export default class bitget extends Exchange {
             pathPart = '/api/user/v1';
         } else if (endpoint === 'broker') {
             pathPart = '/api/broker/v1';
+        } else if (endpoint === 'margin') {
+            pathPart = '/api/margin/v1';
         } else {
             pathPart = '/api/p2p/v1';
         }
