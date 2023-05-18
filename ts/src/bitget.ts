@@ -211,6 +211,25 @@ export default class bitget extends Exchange {
                             'plan/currentPlan': 1,
                             'plan/historyPlan': 1,
                             'plan/batchCancelPlan': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/order/orderCurrentList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/order/orderHistoryList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/order/closeTrackingOrder': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/order/updateTpsl': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/order/followerEndOrder': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/order/spotInfoList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/config/getTraderSettings': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/config/getFollowerSettings': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/user/myTraders': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/config/setFollowerConfig': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/user/myFollowers': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/config/setProductCode': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/user/removeTrader': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/profit/totalProfitInfo': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/profit/totalProfitList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/profit/profitHisList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/profit/profitHisDetailList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/profit/waitProfitDetailList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/user/getTraderInfo': 2, // 10 times/1s (UID) => 20/10 = 2
                         },
                     },
                     'mix': {
