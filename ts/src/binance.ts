@@ -2138,7 +2138,7 @@ export default class binance extends Exchange {
         let contract = ('contractType' in market);
         let expiry = this.safeInteger2 (market, 'deliveryDate', 'expiryDate');
         let settleId = this.safeString (market, 'marginAsset');
-        if ((contractType === 'PERPETUAL') || (expiry === 4133404800000)) { // some swap markets do not have contract type,  eg: BTCST
+        if ((contractType === 'PERPETUAL') || (expiry === 4133404800000)) { // some swap markets do not have contract type, eg: BTCST
             expiry = undefined;
             swap = true;
         } else if (underlying !== undefined) {
