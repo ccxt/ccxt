@@ -490,7 +490,8 @@ export default class xt extends xtRest {
         const marketId = this.safeString (data, 's');
         if (marketId !== undefined) {
             const timeframe = this.safeString (data, 'i');
-            const market = this.market (marketId);
+            const marketType = ('ch' in data) ? 'swap' : 'spot';
+            const market = this.safeMarket (marketId, undefined, undefined, marketType);
             const symbol = market['symbol'];
             const parsed = this.parseOHLCV (data, market);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
@@ -502,7 +503,6 @@ export default class xt extends xtRest {
             }
             stored.append (parsed);
             const event = this.safeString (message, 'event');
-            const marketType = ('ch' in data) ? 'swap' : 'spot';
             const messageHash = event + ':' + marketType;
             client.resolve (stored, messageHash);
         }
@@ -543,17 +543,18 @@ export default class xt extends xtRest {
         const data = this.safeValue (message, 'data');
         const marketId = this.safeStringLower (data, 's');
         if (marketId !== undefined) {
-            const market = this.market (marketId);
+            const trade = this.parseTrade (data);
+            const market = this.safeMarket (marketId, undefined, undefined, trade['type']);
             const symbol = market['symbol'];
-            const messageHash = this.safeString (message, 'event');
+            const event = this.safeString (message, 'event');
             let tradesArray = this.safeValue (this.trades, symbol);
             if (tradesArray === undefined) {
                 const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
                 tradesArray = new ArrayCache (tradesLimit);
                 this.trades[symbol] = tradesArray;
             }
-            const trade = this.parseTrade (data);
             tradesArray.append (trade);
+            const messageHash = event + ':' + trade['type'];
             client.resolve (tradesArray, messageHash);
         }
         return message;
@@ -608,8 +609,8 @@ export default class xt extends xtRest {
         //
         const data = this.safeValue (message, 'data');
         const marketId = this.safeString (data, 's');
-        const messageHash = this.safeString (message, 'event');
         if (marketId !== undefined) {
+            const event = this.safeString (message, 'event');
             const marketType = ('id' in data) ? 'swap' : 'spot';
             const market = this.safeMarket (marketId, undefined, undefined, marketType);
             const symbol = market['symbol'];
@@ -638,7 +639,7 @@ export default class xt extends xtRest {
                     orderbook['bids'].store (price, quantity);
                 }
             }
-            client.resolve (orderbook, messageHash);
+            client.resolve (orderbook, event + ':' + marketType);
         }
     }
 
@@ -870,7 +871,7 @@ export default class xt extends xtRest {
                 }
                 // update the newUpdates count
                 orders.append (this.safeOrder (previousOrder));
-                client.resolve (orders, 'order');
+                client.resolve (orders, 'order:' + marketType);
             }
         }
         return message;
@@ -937,6 +938,20 @@ export default class xt extends xtRest {
         //            "q": "3",                       // qty quantity
         //            "v": "90000"                    // volume trade amount
         //        }
+        //    }
+        //
+        // swap
+        //
+        //    {
+        //        "topic": "trade",
+        //        "event": "trade@123456",
+        //        "data": {
+        //                "orderId": "12312312",       // Order ID
+        //                "price": "34244",            // Price
+        //                "quantity": "123",           // Quantity
+        //                "marginUnfrozen": "123",     // Quantity of unfrozen margin
+        //                "timestamp": 1731231231      // Timestamp
+        //           }
         //    }
         //
         const data = this.safeValue (message, 'data', {});
