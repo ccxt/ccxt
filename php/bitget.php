@@ -2999,6 +2999,10 @@ class bitget extends Exchange {
         //       }
         //     }
         //
+        // $response will be string after filled, see => ccxt/ccxt#17900
+        if (gettype($response) === 'string') {
+            $response = json_decode($response, $as_associative_array = true);
+        }
         $data = $this->safe_value($response, 'data');
         $first = $this->safe_value($data, 0, $data);
         return $this->parse_order($first, $market);
