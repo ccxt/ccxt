@@ -43,28 +43,30 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 fi
 
 ##### DETECT CHANGES #####
-diff=$(git diff origin/master --name-only)
+diff=$(git diff upstream/master --name-only)
 
-is_critical_change=$(grep -q -E 'Client(Trait)?\.php$|Exchange\.php$|/test|/base|^build|static_dependencies|^run-tests|package(-lock)?\.json$' <<< "$diff")
-
-if [ "$is_critical_change" ]; then
+critical_pattern='Client(Trait)?\.php$|Exchange\.php$|\/test|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|ccxt\.ts$'
+if [[ "$diff" =~ $critical_pattern ]]; then
   echo "detected critical change, will build/test everything"
   build_and_test_all
 fi
 
+echo "detected non-critical change, will build/test specific exchanges"
+exit
 readarray -t y <<<"$diff"
 rest_pattern='ts\/src\/([A-Za-z0-9_-]+).ts' # \w not working for some reason
 ws_pattern='ts\/src\/pro\/([A-Za-z0-9_-]+)\.ts'
 
 REST_EXCHANGES=()
 WS_EXCHANGES=()
-transpile_all=false
+for file in "${y[@]}"; do
   if [[ "$file" =~ $rest_pattern ]]; then
     modified_exchange="${BASH_REMATCH[1]}"
     REST_EXCHANGES+=($modified_exchange)
   elif [[ "$file" =~ $ws_pattern ]]; then
     modified_exchange="${BASH_REMATCH[1]}"
     WS_EXCHANGES+=($modified_exchange)
+  fi
 done
 
 ### BUILD SPECIFIC EXCHANGES ###
