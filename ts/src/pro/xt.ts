@@ -617,6 +617,7 @@ export default class xt extends xtRest {
             const asks = this.safeValue (data, 'a');
             const bids = this.safeValue (data, 'b');
             let orderbook = this.safeValue (this.orderbooks, symbol);
+            const messageHash = event + ':' + marketType;
             if (orderbook === undefined) {
                 const subscription = this.safeValue (client.subscriptions, messageHash, {});
                 const limit = this.safeInteger (subscription, 'limit');
@@ -639,7 +640,7 @@ export default class xt extends xtRest {
                     orderbook['bids'].store (price, quantity);
                 }
             }
-            client.resolve (orderbook, event + ':' + marketType);
+            client.resolve (orderbook, messageHash);
         }
     }
 
