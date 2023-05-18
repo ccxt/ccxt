@@ -46,7 +46,7 @@ fi
 diff=$(git diff upstream/master --name-only)
 diff=$(echo "$diff" | sed -e "s/^build.sh//") # temporarily remove build.sh from diff
 
-critical_pattern='Client(Trait)?\.php$|Exchange\.php$|\/test|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|ccxt\.ts$'
+critical_pattern='Client(Trait)?\.php$|Exchange\.php$|\/test|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json$|ccxt\.ts$|__init__.py$'
 if [[ "$diff" =~ $critical_pattern ]]; then
   echo "detected critical change, will build/test everything"
   build_and_test_all
