@@ -21,12 +21,13 @@ export default class xt extends xtRest {
                 'watchBalance': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
+                'watchPositions': undefined, // TODO https://doc.xt.com/#futures_user_websocket_v2position
             },
             'urls': {
                 'api': {
                     'ws': {
                         'spot': 'wss://stream.xt.com',
-                        'swap': 'wss://fstream.xt.com/ws/market',
+                        'swap': 'wss://fstream.xt.com/ws',
                     },
                 },
             },
@@ -86,6 +87,7 @@ export default class xt extends xtRest {
          * @method
          * @description Connects to a websocket channel
          * @see https://doc.xt.com/#websocket_privaterequestFormat
+         * @see https://doc.xt.com/#futures_market_websocket_v2base
          * @param {string} name name of the channel
          * @param {string} access public or private
          * @param {string} methodName the name of the CCXT class method
@@ -96,10 +98,10 @@ export default class xt extends xtRest {
         await this.loadMarkets ();
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params);
-        let url = this.urls['api']['ws'][marketType];
-        if (marketType === 'spot') {
-            url = url + '/' + access;
+        if (marketType !== 'spot') {
+            access = (access === 'private') ? 'user' : 'market';
         }
+        const url = this.urls['api']['ws'][marketType] + '/' + access;
         const subscribe = {
             'method': 'subscribe',
             'params': [
@@ -110,7 +112,7 @@ export default class xt extends xtRest {
         if (access === 'private') {
             subscribe['listenKey'] = await this.getAccessToken (marketType);
         }
-        const messageHash = name;
+        const messageHash = name + ':' + marketType;
         const request = this.extend (subscribe, params);
         return await this.watch (url, messageHash, request, messageHash);
     }
@@ -306,15 +308,37 @@ export default class xt extends xtRest {
         //        "topic": "ticker",
         //        "event": "ticker@btc_usdt",
         //        "data": {
-        //            "s":"btc_index",  // trading pair
-        //            "o":"49000",      // opening price
-        //            "c":"50000",      // closing price
-        //            "h":"0.1",        // highest price
-        //            "l":"0.1",        // lowest price
-        //            "a":"0.1",        // volume
-        //            "v":"0.1",        // turnover
-        //            "ch":"0.21",      // quote change
-        //            "t":123124124     // timestamp
+        //            "s": "btc_index",  // trading pair
+        //            "o": "49000",      // opening price
+        //            "c": "50000",      // closing price
+        //            "h": "0.1",        // highest price
+        //            "l": "0.1",        // lowest price
+        //            "a": "0.1",        // volume
+        //            "v": "0.1",        // turnover
+        //            "ch": "0.21",      // quote change
+        //            "t": 123124124     // timestamp
+        //       }
+        //    }
+        //
+        // agg_ticker (swap)
+        //
+        //    {
+        //        "topic": "agg_ticker",
+        //        "event": "agg_ticker@btc_usdt",
+        //        "data": {
+        //            "s": "btc_index",          // trading pair
+        //            "o": "49000",              // opening price
+        //            "c": "50000",              // closing price
+        //            "h": "0.1",                // highest price
+        //            "l": "0.1",                // lowest price
+        //            "a": "0.1",                // volume
+        //            "v": "0.1",                // turnover
+        //            "ch": "0.21",              // quote change
+        //            "i": "0.21" ,              // index price
+        //            "m": "0.21",               // mark price
+        //            "bp": "0.21",              // bid price
+        //            "ap": "0.21" ,             // ask price
+        //            "t": 123124124             // timestamp
         //       }
         //    }
         //
@@ -324,13 +348,17 @@ export default class xt extends xtRest {
             const ticker = this.parseTicker (data);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            const messageHash = this.safeString (message, 'event');
+            const event = this.safeString (message, 'event');
+            const market = this.market (symbol);
+            const messageHash = event + ':' + market['type'];
             client.resolve (ticker, messageHash);
         }
         return message;
     }
 
     handleTickers (client: Client, message) {
+        //
+        // spot
         //
         //    {
         //        topic: 'tickers',
@@ -352,18 +380,66 @@ export default class xt extends xtRest {
         //        ]
         //    }
         //
+        // swap
+        //
+        //    {
+        //        "topic": "tickers",
+        //        "event": "tickers",
+        //        "data": [
+        //            {
+        //                "s": "btc_index",  // trading pair
+        //                "o": "49000",      // opening price
+        //                "c": "50000",      // closing price
+        //                "h": "0.1",        // highest price
+        //                "l": "0.1",        // lowest price
+        //                "a": "0.1",        // volume
+        //                "v": "0.1",        // turnover
+        //                "ch": "0.21",      // quote change
+        //                "t": 123124124     // timestamp
+        //            }
+        //        ]
+        //    }
+        //
+        // agg_ticker (swap)
+        //
+        //    {
+        //        "topic": "agg_tickers",
+        //        "event": "agg_tickers",
+        //        "data": [
+        //            {
+        //                "s": "btc_index",          // trading pair
+        //                "o": "49000",              // opening price
+        //                "c": "50000",              // closing price
+        //                "h": "0.1",                // highest price
+        //                "l": "0.1",                // lowest price
+        //                "a": "0.1",                // volume
+        //                "v": "0.1",                // turnover
+        //                "ch": "0.21",              // quote change
+        //                "i": "0.21" ,              // index price
+        //                "m": "0.21",               // mark price
+        //                "bp": "0.21",              // bid price
+        //                "ap": "0.21" ,             // ask price
+        //                "t": 123124124             // timestamp
+        //            }
+        //        ]
+        //    }
+        //
         const data = this.safeValue (message, 'data', []);
+        const firstTicker = this.safeValue (message, 0);
+        const marketType = ('cv' in firstTicker) || ('aq' in firstTicker) ? 'spot' : 'swap';
         for (let i = 0; i < data.length; i++) {
             const tickerData = data[i];
             const ticker = this.parseTicker (tickerData);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
         }
-        client.resolve (this.tickers, 'tickers');
+        client.resolve (this.tickers, 'tickers:' + marketType);
         return message;
     }
 
     handleOHLCV (client: Client, message) {
+        //
+        // spot
         //
         //    {
         //        "topic": "kline",
@@ -381,11 +457,28 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
+        // swap
+        //
+        //    {
+        //        "topic": "kline",
+        //        "event": "kline@btc_usdt,5m",
+        //        "data": {
+        //            "s": "btc_index",      // trading pair
+        //            "o": "49000",          // opening price
+        //            "c": "50000",          // closing price
+        //            "h": "0.1",            // highest price
+        //            "l": "0.1",            // lowest price
+        //            "a": "0.1",            // volume
+        //            "v": "0.1",            // turnover
+        //            "ch": "0.21",          // quote change
+        //            "t": 123124124         // timestamp
+        //        }
+        //    }
+        //
         const data = this.safeValue (message, 'data', {});
-        const messageHash = this.safeString (message, 'event');
-        const timeframe = this.safeString (data, 'i');
         const marketId = this.safeString (data, 's');
         if (marketId !== undefined) {
+            const timeframe = this.safeString (data, 'i');
             const market = this.market (marketId);
             const symbol = market['symbol'];
             const parsed = this.parseOHLCV (data, market);
@@ -397,12 +490,17 @@ export default class xt extends xtRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);
+            const event = this.safeString (message, 'event');
+            const marketType = ('ch' in data) ? 'swap' : 'spot';
+            const messageHash = event + ':' + marketType;
             client.resolve (stored, messageHash);
         }
         return message;
     }
 
     handleTrade (client: Client, message) {
+        //
+        // spot
         //
         //    {
         //        topic: 'trade',
@@ -414,6 +512,20 @@ export default class xt extends xtRest {
         //            p: '27003.65',
         //            q: '0.000796',
         //            b: true
+        //        }
+        //    }
+        //
+        // swap
+        //
+        //    {
+        //        "topic": "trade",
+        //        "event": "trade@btc_usdt",
+        //        "data": {
+        //            "s":"btc_index",  // trading pair
+        //            "p":"50000",      // price
+        //            "a":"0.1"         // Quantity
+        //            "m": "BID"        // Deal side  BID:Buy ASK:Sell
+        //            "t":123124124     // timestamp
         //        }
         //    }
         //
@@ -437,6 +549,8 @@ export default class xt extends xtRest {
     }
 
     handleOrderBook (client: Client, message) {
+        //
+        // spot
         //
         //    {
         //        "topic": "depth",
@@ -465,6 +579,19 @@ export default class xt extends xtRest {
         //                    "0.5"
         //                ]
         //            ]
+        //        }
+        //    }
+        //
+        // swap
+        //
+        //    {
+        //        "topic": "depth",
+        //        "event": "depth@btc_usdt,20",
+        //        "data": {
+        //            "id": "1234",                              // lastUpdateId
+        //            "s": "btc_index",                          // trading pair
+        //            "a": [["50000","0.1"],["50001","0.2"]],    // ask sell order queue,[price, quantity]
+        //            "b": [["49999","0.1"],["48888","0.2"]]     // bid buy queue
         //        }
         //    }
         //
@@ -590,6 +717,8 @@ export default class xt extends xtRest {
 
     handleOrder (client: Client, message) {
         //
+        // spot
+        //
         //    {
         //        "topic": "order",
         //        "event": "order",
@@ -604,6 +733,29 @@ export default class xt extends xtRest {
         //            "ap": "30000",                  // avg price
         //            "f": "0.002"                    // fee
         //        }
+        //    }
+        //
+        // swap
+        //
+        //    {
+        //        "topic": "order",
+        //        "event": "order@123456",
+        //        "data": {
+        //             "symbol": "btc_usdt",                    // Trading pair
+        //             "orderId": "1234",                       // Order Id
+        //             "origQty": "34244",                      // Original Quantity
+        //             "avgPrice": "123",                       // Quantity
+        //             "price": "1111",                         // Average price
+        //             "executedQty": "34244",                  // Volume (Cont)
+        //             "orderSide": "BUY",                      // BUY, SELL
+        //             "positionSide": "LONG",                  // LONG, SHORT
+        //             "marginFrozen": "123",                   // Occupied margin
+        //             "sourceType": "default",                 // DEFAULT:normal order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
+        //             "sourceId" : "1231231",                  // Triggering conditions ID
+        //             "state": "",                             // state:NEW：New order (unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
+        //             "createTime": 1731231231,                // CreateTime
+        //             "clientOrderId": "204788317630342726"
+        //           }
         //    }
         //
         let orders = this.orders;
@@ -671,6 +823,8 @@ export default class xt extends xtRest {
 
     handleBalance (client: Client, message) {
         //
+        // spot
+        //
         //    {
         //        topic: 'balance',
         //        event: 'balance',
@@ -682,6 +836,21 @@ export default class xt extends xtRest {
         //            f: '0.00000000',
         //            z: 'SPOT'
         //        }
+        //    }
+        //
+        // swap
+        //
+        //    {
+        //        "topic": "balance",
+        //        "event": "balance@123456",
+        //        "data": {
+        //             "coin": "usdt",
+        //             "underlyingType": 1,             // 1:Coin-M,2:USDT-M
+        //             "walletBalance": "123",          // Balance
+        //             "openOrderMarginFrozen": "123",  // Frozen order
+        //             "isolatedMargin": "213",         // Isolated Margin
+        //             "crossedMargin": "0"             // Crossed Margin
+        //           }
         //    }
         //
         const data = this.safeValue (message, 'data', {});
@@ -722,7 +891,7 @@ export default class xt extends xtRest {
         }
         const parsedTrade = this.parseTrade (data);
         stored.append (parsedTrade);
-        client.resolve (stored, 'trade');
+        client.resolve (stored, 'trade:spot');
     }
 
     handleMessage (client, message) {
