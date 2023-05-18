@@ -447,6 +447,7 @@ class xt(Exchange, ImplicitAPI):
                     'ORDER_004': InvalidOrder,  # no transaction
                     'ORDER_005': InvalidOrder,  # Order not exist
                     'ORDER_006': InvalidOrder,  # Too many open orders
+                    'ORDER_007': PermissionDenied,  # The sub-account has no transaction authority
                     'ORDER_F0101': InvalidOrder,  # Trigger Price Filter - Min
                     'ORDER_F0102': InvalidOrder,  # Trigger Price Filter - Max
                     'ORDER_F0103': InvalidOrder,  # Trigger Price Filter - Step Value
@@ -3519,12 +3520,14 @@ class xt(Exchange, ImplicitAPI):
         #         "id": 950898
         #     }
         #
+        type = 'deposit' if ('fromAddr' in transaction) else 'withdraw'
         timestamp = self.safe_integer(transaction, 'createdTime')
         address = self.safe_string(transaction, 'address')
         memo = self.safe_string(transaction, 'memo')
         currencyCode = self.safe_currency_code(self.safe_string(transaction, 'currency'), currency)
         fee = self.safe_number(transaction, 'fee')
         feeCurrency = currencyCode if (fee is not None) else None
+        networkId = self.safe_string(transaction, 'chain')
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'id'),
@@ -3538,10 +3541,10 @@ class xt(Exchange, ImplicitAPI):
             'tagFrom': None,
             'tagTo': None,
             'tag': memo,
-            'type': None,
+            'type': type,
             'amount': self.safe_number(transaction, 'amount'),
             'currency': currencyCode,
-            'network': self.safe_string(transaction, 'chain'),
+            'network': self.network_id_to_code(networkId, currencyCode),
             'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
             'comment': memo,
             'fee': {
