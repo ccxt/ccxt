@@ -519,7 +519,7 @@ export default class binance extends binanceRest {
         //         f: 'GTC',
         //         q: '0.001',
         //         p: '0',
-        //         ap: '33468.46001',
+        //         ap: '33468.46000',
         //         sp: '0',
         //         x: 'TRADE',
         //         X: 'FILLED',

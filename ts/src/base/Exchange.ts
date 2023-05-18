@@ -1225,7 +1225,7 @@ export default class Exchange {
 
     onConnected (client, message = undefined) {
         // for user hooks
-        // console.log ('Connected to:', client.url)
+        // console.log ('Connected to', client.url)
     }
 
     onError (client, error) {
