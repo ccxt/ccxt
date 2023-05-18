@@ -4,6 +4,9 @@ import { Exchange } from './base/Exchange.js';
 import { Precise } from './base/Precise.js';
 import { ExchangeError, ArgumentsRequired, InvalidNonce, BadSymbol } from './base/errors.js';
 import { DECIMAL_PLACES, TRUNCATE } from './base/functions/number.js';
+import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
+import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
+import { ecdsa } from './base/functions/crypto.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1009,7 +1012,8 @@ export default class deepwaters extends Exchange {
             }
             const message = method + '/rest/v1' + path.toLowerCase () + timestamp + nonce + bodyString;
             // calculate signature
-            const signature = this.signHash (this.hash (message, 'keccak'), this.secret);
+            const hash = this.hash (this.encode (message), keccak);
+            const signature = this.signHash (hash, this.secret);
             signature.v = signature.v - 27;
             let vByte = signature.v.toString (16);
             if (vByte.length === 1) {
@@ -1028,6 +1032,15 @@ export default class deepwaters extends Exchange {
             return { 'url': url, 'method': method, 'body': bodyString, 'headers': headers };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    signHash (hash, privateKey) {
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        return {
+            'r': '0x' + signature['r'],
+            's': '0x' + signature['s'],
+            'v': 27 + signature['v'],
+        };
     }
 
     async loadNonce () {
@@ -1148,10 +1161,6 @@ export default class deepwaters extends Exchange {
          * @returns {int} the current integer timestamp in milliseconds from the deepwaters server
          */
         const response = await (this as any).publicGetTime ();
-        const success = this.safeValue (response, 'success', false);
-        if (!success) {
-            return this.handleError (response);
-        }
         const timestampMicros = this.safeValue (response, 'timestampMicros');
         const timestamp = this.parseNumber (Precise.stringDiv (timestampMicros, '1000', 0));
         return timestamp;
