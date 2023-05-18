@@ -44,6 +44,7 @@ fi
 
 ##### DETECT CHANGES #####
 diff=$(git diff upstream/master --name-only)
+diff=$(echo "$diff" | sed -e "s/^build.sh//") # temporarily remove build.sh from diff
 
 critical_pattern='Client(Trait)?\.php$|Exchange\.php$|\/test|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|ccxt\.ts$'
 if [[ "$diff" =~ $critical_pattern ]]; then
