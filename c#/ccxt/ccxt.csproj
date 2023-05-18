@@ -11,7 +11,7 @@
   <PropertyGroup>
     <PackageId>ccxt</PackageId>
     <Authors>Carlos, Kroitor, Carlo</Authors>
-    <PackageVersion>0.0.1</PackageVersion>
+    <PackageVersion>0.0.1-beta</PackageVersion>
     <AssemblyVersion>0.0.1</AssemblyVersion>
     <FileVersion>0.0.1</FileVersion>
     <Description>Cryptocurrency trading API with support for more than 100 bitcoin/altcoin</Description>
