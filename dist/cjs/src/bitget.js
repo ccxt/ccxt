@@ -2980,7 +2980,7 @@ class bitget extends bitget$1 {
             'symbol': market['id'],
             'orderId': id,
         };
-        const response = await this[method](this.extend(request, query));
+        let response = await this[method](this.extend(request, query));
         // spot
         //     {
         //       code: '00000',
@@ -3032,6 +3032,10 @@ class bitget extends bitget$1 {
         //       }
         //     }
         //
+        // response will be string after filled, see: ccxt/ccxt#17900
+        if (typeof response === 'string') {
+            response = JSON.parse(response);
+        }
         const data = this.safeValue(response, 'data');
         const first = this.safeValue(data, 0, data);
         return this.parseOrder(first, market);

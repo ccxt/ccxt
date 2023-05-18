@@ -2900,6 +2900,9 @@ class bitget(Exchange, ImplicitAPI):
         #       }
         #     }
         #
+        # response will be string after filled, see: ccxt/ccxt#17900
+        if isinstance(response, str):
+            response = json.loads(response)
         data = self.safe_value(response, 'data')
         first = self.safe_value(data, 0, data)
         return self.parse_order(first, market)
