@@ -34,6 +34,12 @@ export default class xt extends xtRest {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
+                'watchTicker': {
+                    'method': 'ticker',  // agg_ticker (swap only)
+                },
+                'watchTickers': {
+                    'method': 'tickers',  // agg_tickers (swap only)
+                },
             },
             'streaming': {
                 'keepAlive': 30000,
@@ -117,10 +123,14 @@ export default class xt extends xtRest {
          * @see https://doc.xt.com/#websocket_publictickerRealTime
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the xt api endpoint
+         * @param {string} params.method 'agg_ticker' (swap only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const market = this.market (symbol);
-        const name = 'ticker@' + market['id'];
+        const options = this.safeValue (this.options, 'watchTicker');
+        const defaultMethod = this.safeString (options, 'method', 'ticker');
+        const method = this.safeString (params, 'method', defaultMethod);
+        const name = method + '@' + market['id'];
         return await this.subscribe (name, 'public', 'watchTicker', market, params);
     }
 
@@ -132,9 +142,12 @@ export default class xt extends xtRest {
          * @see https://doc.xt.com/#websocket_publicallTicker
          * @param {string} symbol not used by xt watchTickers
          * @param {object} params extra parameters specific to the xt api endpoint
+         * @param {string} params.method 'agg_tickers' (swap only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        const name = 'tickers';
+        const options = this.safeValue (this.options, 'watchTickers');
+        const defaultMethod = this.safeString (options, 'method', 'tickers');
+        const name = this.safeString (params, 'method', defaultMethod);
         return await this.subscribe (name, 'public', 'watchTickers', undefined, params);
     }
 
