@@ -633,36 +633,56 @@ export default class xt extends xtRest {
     parseWsOrderTrade (trade, market = undefined) {
         //
         //    {
-        //        "s": "btc_usdt",                // symbol
-        //        "t": 1656043204763,             // time happened time
-        //        "i": "6216559590087220004",     // orderId,
-        //        "ci": "test123",                // clientOrderId
-        //        "st": "PARTIALLY_FILLED",       // state
-        //        "sd": "BUY",                    // side BUY/SELL
-        //        "eq": "2",                      // executedQty executed quantity
-        //        "ap": "30000",                  // avg price
-        //        "f": "0.002"                    // fee
+        //        "s": "btc_usdt",                         // symbol
+        //        "t": 1656043204763,                      // time happened time
+        //        "i": "6216559590087220004",              // orderId,
+        //        "ci": "test123",                         // clientOrderId
+        //        "st": "PARTIALLY_FILLED",                // state
+        //        "sd": "BUY",                             // side BUY/SELL
+        //        "eq": "2",                               // executedQty executed quantity
+        //        "ap": "30000",                           // avg price
+        //        "f": "0.002"                             // fee
+        //    }
+        //
+        // swap
+        //
+        //    {
+        //        "symbol": "btc_usdt",                    // Trading pair
+        //        "orderId": "1234",                       // Order Id
+        //        "origQty": "34244",                      // Original Quantity
+        //        "avgPrice": "123",                       // Quantity
+        //        "price": "1111",                         // Average price
+        //        "executedQty": "34244",                  // Volume (Cont)
+        //        "orderSide": "BUY",                      // BUY, SELL
+        //        "positionSide": "LONG",                  // LONG, SHORT
+        //        "marginFrozen": "123",                   // Occupied margin
+        //        "sourceType": "default",                 // DEFAULT:normal order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
+        //        "sourceId" : "1231231",                  // Triggering conditions ID
+        //        "state": "",                             // state:NEW：New order (unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
+        //        "createTime": 1731231231,                // CreateTime
+        //        "clientOrderId": "204788317630342726"
         //    }
         //
         const marketId = this.safeString (trade, 's');
-        market = this.safeMarket (marketId, market, undefined, 'spot');
+        const marketType = ('symbol' in trade) ? 'swap' : 'spot';
+        market = this.safeMarket (marketId, market, undefined, marketType);
         const timestamp = this.safeString (trade, 't');
         return this.safeTrade ({
             'info': trade,
-            'id': this.safeStringN (trade, [ 'i', 'tradeId', 'execId' ]),
+            'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'order': this.safeString (trade, 'i'),
-            'type': this.safeStringLower (trade, 'orderType'),
-            'side': this.safeString (trade, 'sd'),
+            'order': this.safeString (trade, 'i', 'orderId'),
+            'type': this.parseOrderStatus (this.safeString (trade, 'st', 'state')),
+            'side': this.safeStringLower (trade, 'sd', 'orderSide'),
             'takerOrMaker': undefined,
-            'price': undefined,
-            'amount': undefined,
+            'price': this.safeNumber (trade, 'price'),
+            'amount': this.safeString (trade, 'origQty'),
             'cost': undefined,
             'fee': {
                 'currency': undefined,
-                'cost': undefined,
+                'cost': this.safeNumber (trade, 'f'),
                 'rate': undefined,
             },
         }, market);
@@ -670,25 +690,47 @@ export default class xt extends xtRest {
 
     parseWsOrder (order, market = undefined) {
         //
+        // spot
+        //
         //    {
-        //        "s": "btc_usdt",                // symbol
-        //        "t": 1656043204763,             // time happened time
-        //        "i": "6216559590087220004",     // orderId,
-        //        "ci": "test123",                // clientOrderId
-        //        "st": "PARTIALLY_FILLED",       // state
-        //        "sd": "BUY",                    // side BUY/SELL
-        //        "eq": "2",                      // executedQty executed quantity
-        //        "ap": "30000",                  // avg price
-        //        "f": "0.002"                    // fee
+        //        "s": "btc_usdt",                         // symbol
+        //        "t": 1656043204763,                      // time happened time
+        //        "i": "6216559590087220004",              // orderId,
+        //        "ci": "test123",                         // clientOrderId
+        //        "st": "PARTIALLY_FILLED",                // state
+        //        "sd": "BUY",                             // side BUY/SELL
+        //        "eq": "2",                               // executedQty executed quantity
+        //        "ap": "30000",                           // avg price
+        //        "f": "0.002"                             // fee
         //    }
         //
-        const marketId = this.safeString (order, 'i');
-        market = this.safeMarket (marketId, market, undefined, 'spot');
-        const timestamp = this.safeString (order, 't');
+        // swap
+        //
+        //    {
+        //        "symbol": "btc_usdt",                    // Trading pair
+        //        "orderId": "1234",                       // Order Id
+        //        "origQty": "34244",                      // Original Quantity
+        //        "avgPrice": "123",                       // Quantity
+        //        "price": "1111",                         // Average price
+        //        "executedQty": "34244",                  // Volume (Cont)
+        //        "orderSide": "BUY",                      // BUY, SELL
+        //        "positionSide": "LONG",                  // LONG, SHORT
+        //        "marginFrozen": "123",                   // Occupied margin
+        //        "sourceType": "default",                 // DEFAULT:normal order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
+        //        "sourceId" : "1231231",                  // Triggering conditions ID
+        //        "state": "",                             // state:NEW：New order (unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
+        //        "createTime": 1731231231,                // CreateTime
+        //        "clientOrderId": "204788317630342726"
+        //    }
+        //
+        const marketId = this.safeString2 (order, 's', 'symbol');
+        const marketType = ('symbol' in order) ? 'swap' : 'spot';
+        market = this.safeMarket (marketId, market, undefined, marketType);
+        const timestamp = this.safeInteger2 (order, 't', 'createTime');
         return this.safeOrder ({
             'info': order,
-            'id': this.safeString (order, 'i'),
-            'clientOrderId': this.safeString (order, 'ci'),
+            'id': this.safeString2 (order, 'i', 'orderId'),
+            'clientOrderId': this.safeString2 (order, 'ci', 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -696,17 +738,17 @@ export default class xt extends xtRest {
             'type': market['type'],
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': this.safeString (order, 'sd'),
+            'side': this.safeStringLower2 (order, 'sd', 'orderSide'),
             'price': this.safeNumber (order, 'price'),
             'stopPrice': undefined,
             'stopLoss': undefined,
             'takeProfit': undefined,
-            'amount': undefined,
-            'filled': this.safeString (order, 'eq'),
+            'amount': this.safeString (order, 'origQty'),
+            'filled': this.safeString2 (order, 'eq', 'executedQty'),
             'remaining': undefined,
             'cost': undefined,
-            'average': this.safeString (order, 'ap'),
-            'status': this.parseOrderStatus (this.safeString (order, 'st')),
+            'average': this.safeString2 (order, 'ap', 'avgPrice'),
+            'status': this.parseOrderStatus (this.safeString (order, 'st', 'state')),
             'fee': {
                 'currency': undefined,
                 'cost': this.safeNumber (order, 'f'),
@@ -765,11 +807,12 @@ export default class xt extends xtRest {
             this.orders = orders;
         }
         const order = this.safeValue (message, 'data', {});
-        const marketId = this.safeStringLower (order, 's');
+        const marketId = this.safeString2 (order, 's', 'symbol');
         if (marketId !== undefined) {
-            const market = this.market (marketId);
+            const marketType = ('symbol' in order) ? 'swap' : 'spot';
+            const market = this.safeMarket (marketId, undefined, undefined, marketType);
             const symbol = market['symbol'];
-            const orderId = this.safeString (order, 'i');
+            const orderId = this.safeString (order, 'i', 'orderId');
             const previousOrders = this.safeValue (orders.hashmap, symbol, {});
             const previousOrder = this.safeValue (previousOrders, orderId);
             if (previousOrder === undefined) {
