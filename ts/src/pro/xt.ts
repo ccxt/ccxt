@@ -43,7 +43,7 @@ export default class xt extends xtRest {
                 },
             },
             'streaming': {
-                'keepAlive': 5000,
+                'keepAlive': 30000,
             },
             'accessToken': undefined,
         });
@@ -599,7 +599,8 @@ export default class xt extends xtRest {
         const marketId = this.safeString (data, 's');
         const messageHash = this.safeString (message, 'event');
         if (marketId !== undefined) {
-            const market = this.market (marketId);
+            const marketType = ('id' in data) ? 'swap' : 'spot';
+            const market = this.safeMarket (marketId, undefined, undefined, marketType);
             const symbol = market['symbol'];
             const asks = this.safeValue (data, 'a');
             const bids = this.safeValue (data, 'b');
