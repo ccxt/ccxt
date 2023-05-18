@@ -97,6 +97,14 @@ export default class deepwaters extends Exchange {
                 'apiKey': true,
                 'secret': true,
             },
+            'options': {
+                'networksById': {
+                    'ETHEREUM_MAINNET': 'ETH',
+                    'BINANCE_SMART_CHAIN_MAINNET': 'BSC',
+                    'POLYGON_MAINNET': 'MATIC',
+                    'AVALANCHE_C_CHAIN': 'AVAX',
+                },
+            },
             'api': {
                 'public': {
                     'get': [
@@ -346,6 +354,16 @@ export default class deepwaters extends Exchange {
             const code = this.safeString (currency, 'rootSymbol');
             const name = this.safeString (currency, 'name');
             const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'uiDecimals')));
+            const chainName = this.safeString (currency, 'chainName');
+            const chainId = this.safeString (currency, 'chainID');
+            const networkCode = this.networkIdToCode (chainName);
+            const network = {
+                'id': chainId,
+                'name': chainName,
+                'network': networkCode,
+                'active': true,
+            };
+            const networks = [ network ];
             result[code] = {
                 'id': id,
                 'code': code,
@@ -355,6 +373,7 @@ export default class deepwaters extends Exchange {
                 'withdraw': true,
                 'fee': undefined,
                 'precision': precision,
+                'networks': networks,
                 'limits': {
                     'amount': {
                         'min': precision,
