@@ -43,7 +43,7 @@ export default class xt extends xtRest {
                 },
             },
             'streaming': {
-                'keepAlive': 30000,
+                'keepAlive': 5000,
             },
             'accessToken': undefined,
         });
@@ -859,8 +859,10 @@ export default class xt extends xtRest {
         const account = this.account ();
         const free = this.safeString (data, 'b');
         const used = this.safeString (data, 'f');
+        const total = this.safeString (data, 'walletBalance');
         account['free'] = free;
         account['used'] = used;
+        account['total'] = total;
         this.balance[code] = account;
         this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, 'balance');
@@ -906,7 +908,9 @@ export default class xt extends xtRest {
                 'depth': this.handleOrderBook,
                 'depth_update': this.handleOrderBook,
                 'ticker': this.handleTicker,
+                'agg_ticker': this.handleTicker,
                 'tickers': this.handleTickers,
+                'agg_tickers': this.handleTickers,
                 'balance': this.handleBalance,
                 'order': this.handleOrder,
             };
