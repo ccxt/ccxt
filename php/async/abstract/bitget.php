@@ -11,7 +11,7 @@ abstract class bitget extends \ccxt\async\Exchange {
         return $this->request('public/time', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_spot_get_public_currencies($params = array()) {
-        return $this->request('public/currencies', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('public/currencies', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 6.6667));
     }
     public function public_spot_get_public_products($params = array()) {
         return $this->request('public/products', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -26,7 +26,7 @@ abstract class bitget extends \ccxt\async\Exchange {
         return $this->request('market/tickers', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_spot_get_market_fills($params = array()) {
-        return $this->request('market/fills', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('market/fills', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function public_spot_get_market_fills_history($params = array()) {
         return $this->request('market/fills-history', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 2));
@@ -52,8 +52,14 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function public_mix_get_market_tickers($params = array()) {
         return $this->request('market/tickers', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_mix_get_market_contract_vip_level($params = array()) {
+        return $this->request('market/contract-vip-level', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function public_mix_get_market_fills($params = array()) {
         return $this->request('market/fills', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_mix_get_market_fills_history($params = array()) {
+        return $this->request('market/fills-history', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function public_mix_get_market_candles($params = array()) {
         return $this->request('market/candles', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
@@ -79,14 +85,38 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function public_mix_get_market_symbol_leverage($params = array()) {
         return $this->request('market/symbol-leverage', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_mix_get_market_contract_vip_level($params = array()) {
-        return $this->request('market/contract-vip-level', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function public_mix_get_market_fills_history($params = array()) {
-        return $this->request('market/fills-history', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
     public function public_mix_get_market_querypositionlever($params = array()) {
         return $this->request('market/queryPositionLever', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_margin_get_cross_public_interestrateandlimit($params = array()) {
+        return $this->request('cross/public/interestRateAndLimit', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function public_margin_get_isolated_public_interestrateandlimit($params = array()) {
+        return $this->request('isolated/public/interestRateAndLimit', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function public_margin_get_cross_public_tierdata($params = array()) {
+        return $this->request('cross/public/tierData', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function public_margin_get_isolated_public_tierdata($params = array()) {
+        return $this->request('isolated/public/tierData', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function public_margin_get_public_currencies($params = array()) {
+        return $this->request('public/currencies', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_margin_get_cross_account_assets($params = array()) {
+        return $this->request('cross/account/assets', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function public_margin_get_isolated_account_assets($params = array()) {
+        return $this->request('isolated/account/assets', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_get_wallet_deposit_address($params = array()) {
+        return $this->request('wallet/deposit-address', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_spot_get_wallet_withdrawal_list($params = array()) {
+        return $this->request('wallet/withdrawal-list', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_spot_get_wallet_deposit_list($params = array()) {
+        return $this->request('wallet/deposit-list', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_spot_get_account_getinfo($params = array()) {
         return $this->request('account/getInfo', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 20));
@@ -95,25 +125,34 @@ abstract class bitget extends \ccxt\async\Exchange {
         return $this->request('account/assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_spot_get_account_transferrecords($params = array()) {
-        return $this->request('account/transferRecords', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 4));
+        return $this->request('account/transferRecords', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_spot_get_wallet_deposit_address($params = array()) {
-        return $this->request('wallet/deposit-address', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 4));
+    public function private_spot_post_wallet_transfer($params = array()) {
+        return $this->request('wallet/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
     }
-    public function private_spot_get_wallet_withdrawal_inner($params = array()) {
-        return $this->request('wallet/withdrawal-inner', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 4));
+    public function private_spot_post_wallet_transfer_v2($params = array()) {
+        return $this->request('wallet/transfer-v2', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
     }
-    public function private_spot_get_wallet_withdrawal_list($params = array()) {
-        return $this->request('wallet/withdrawal-list', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    public function private_spot_post_wallet_subtransfer($params = array()) {
+        return $this->request('wallet/subTransfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 10));
     }
-    public function private_spot_get_wallet_deposit_list($params = array()) {
-        return $this->request('wallet/deposit-list', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    public function private_spot_post_wallet_withdrawal($params = array()) {
+        return $this->request('wallet/withdrawal', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
     }
-    public function private_spot_post_account_bills($params = array()) {
-        return $this->request('account/bills', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    public function private_spot_post_wallet_withdrawal_v2($params = array()) {
+        return $this->request('wallet/withdrawal-v2', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_spot_post_wallet_withdrawal_inner($params = array()) {
+        return $this->request('wallet/withdrawal-inner', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_spot_post_wallet_withdrawal_inner_v2($params = array()) {
+        return $this->request('wallet/withdrawal-inner-v2', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function private_spot_post_account_sub_account_spot_assets($params = array()) {
         return $this->request('account/sub-account-spot-assets', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 200));
+    }
+    public function private_spot_post_account_bills($params = array()) {
+        return $this->request('account/bills', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function private_spot_post_trade_orders($params = array()) {
         return $this->request('trade/orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
@@ -123,6 +162,12 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function private_spot_post_trade_cancel_order($params = array()) {
         return $this->request('trade/cancel-order', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trade_cancel_order_v2($params = array()) {
+        return $this->request('trade/cancel-order-v2', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trade_cancel_symbol_order($params = array()) {
+        return $this->request('trade/cancel-symbol-order', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function private_spot_post_trade_cancel_batch_orders($params = array()) {
         return $this->request('trade/cancel-batch-orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
@@ -142,30 +187,6 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_spot_post_trade_fills($params = array()) {
         return $this->request('trade/fills', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_spot_post_trade_cancel_order_v2($params = array()) {
-        return $this->request('trade/cancel-order-v2', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
-    }
-    public function private_spot_post_trade_cancel_symbol_order($params = array()) {
-        return $this->request('trade/cancel-symbol-order', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
-    }
-    public function private_spot_post_wallet_transfer($params = array()) {
-        return $this->request('wallet/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
-    }
-    public function private_spot_post_wallet_withdrawal($params = array()) {
-        return $this->request('wallet/withdrawal', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
-    }
-    public function private_spot_post_wallet_subtransfer($params = array()) {
-        return $this->request('wallet/subTransfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 10));
-    }
-    public function private_spot_post_wallet_transfer_v2($params = array()) {
-        return $this->request('wallet/transfer-v2', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
-    }
-    public function private_spot_post_wallet_withdrawal_v2($params = array()) {
-        return $this->request('wallet/withdrawal-v2', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
-    }
-    public function private_spot_post_wallet_withdrawal_inner_v2($params = array()) {
-        return $this->request('wallet/withdrawal-inner-v2', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
-    }
     public function private_spot_post_plan_placeplan($params = array()) {
         return $this->request('plan/placePlan', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -181,44 +202,71 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_spot_post_plan_historyplan($params = array()) {
         return $this->request('plan/historyPlan', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_spot_post_plan_batchcancelplan($params = array()) {
+        return $this->request('plan/batchCancelPlan', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_order_ordercurrentlist($params = array()) {
+        return $this->request('trace/order/orderCurrentList', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_order_orderhistorylist($params = array()) {
+        return $this->request('trace/order/orderHistoryList', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_order_closetrackingorder($params = array()) {
+        return $this->request('trace/order/closeTrackingOrder', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_order_updatetpsl($params = array()) {
+        return $this->request('trace/order/updateTpsl', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_order_followerendorder($params = array()) {
+        return $this->request('trace/order/followerEndOrder', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_order_spotinfolist($params = array()) {
+        return $this->request('trace/order/spotInfoList', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_config_gettradersettings($params = array()) {
+        return $this->request('trace/config/getTraderSettings', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_config_getfollowersettings($params = array()) {
+        return $this->request('trace/config/getFollowerSettings', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_user_mytraders($params = array()) {
+        return $this->request('trace/user/myTraders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_config_setfollowerconfig($params = array()) {
+        return $this->request('trace/config/setFollowerConfig', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_user_myfollowers($params = array()) {
+        return $this->request('trace/user/myFollowers', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_config_setproductcode($params = array()) {
+        return $this->request('trace/config/setProductCode', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_user_removetrader($params = array()) {
+        return $this->request('trace/user/removeTrader', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_profit_totalprofitinfo($params = array()) {
+        return $this->request('trace/profit/totalProfitInfo', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_profit_totalprofitlist($params = array()) {
+        return $this->request('trace/profit/totalProfitList', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_profit_profithislist($params = array()) {
+        return $this->request('trace/profit/profitHisList', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_profit_profithisdetaillist($params = array()) {
+        return $this->request('trace/profit/profitHisDetailList', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_profit_waitprofitdetaillist($params = array()) {
+        return $this->request('trace/profit/waitProfitDetailList', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_trace_user_gettraderinfo($params = array()) {
+        return $this->request('trace/user/getTraderInfo', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function private_mix_get_account_account($params = array()) {
         return $this->request('account/account', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_mix_get_account_accounts($params = array()) {
         return $this->request('account/accounts', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function private_mix_get_account_accountbill($params = array()) {
-        return $this->request('account/accountBill', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function private_mix_get_account_accountbusinessbill($params = array()) {
-        return $this->request('account/accountBusinessBill', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 4));
-    }
-    public function private_mix_get_account_open_count($params = array()) {
-        return $this->request('account/open-count', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function private_mix_get_order_current($params = array()) {
-        return $this->request('order/current', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function private_mix_get_order_history($params = array()) {
-        return $this->request('order/history', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function private_mix_get_order_detail($params = array()) {
-        return $this->request('order/detail', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function private_mix_get_order_fills($params = array()) {
-        return $this->request('order/fills', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function private_mix_get_order_historyproducttype($params = array()) {
-        return $this->request('order/historyProductType', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 8));
-    }
-    public function private_mix_get_order_allfills($params = array()) {
-        return $this->request('order/allFills', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function private_mix_get_plan_currentplan($params = array()) {
-        return $this->request('plan/currentPlan', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function private_mix_get_plan_historyplan($params = array()) {
-        return $this->request('plan/historyPlan', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_mix_get_position_singleposition($params = array()) {
         return $this->request('position/singlePosition', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
@@ -227,10 +275,43 @@ abstract class bitget extends \ccxt\async\Exchange {
         return $this->request('position/singlePosition-v2', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_mix_get_position_allposition($params = array()) {
-        return $this->request('position/allPosition', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('position/allPosition', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_mix_get_position_allposition_v2($params = array()) {
-        return $this->request('position/allPosition-v2', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('position/allPosition-v2', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_mix_get_account_accountbill($params = array()) {
+        return $this->request('account/accountBill', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_get_account_accountbusinessbill($params = array()) {
+        return $this->request('account/accountBusinessBill', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_mix_get_order_current($params = array()) {
+        return $this->request('order/current', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_mix_get_order_margincoincurrent($params = array()) {
+        return $this->request('order/marginCoinCurrent', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_mix_get_order_history($params = array()) {
+        return $this->request('order/history', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_get_order_historyproducttype($params = array()) {
+        return $this->request('order/historyProductType', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_mix_get_order_detail($params = array()) {
+        return $this->request('order/detail', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_get_order_fills($params = array()) {
+        return $this->request('order/fills', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_get_order_allfills($params = array()) {
+        return $this->request('order/allFills', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_get_plan_currentplan($params = array()) {
+        return $this->request('plan/currentPlan', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_mix_get_plan_historyplan($params = array()) {
+        return $this->request('plan/historyPlan', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_mix_get_trace_currenttrack($params = array()) {
         return $this->request('trace/currentTrack', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
@@ -238,47 +319,56 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_mix_get_trace_followerorder($params = array()) {
         return $this->request('trace/followerOrder', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function private_mix_get_trace_followerhistoryorders($params = array()) {
+        return $this->request('trace/followerHistoryOrders', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_mix_get_trace_historytrack($params = array()) {
         return $this->request('trace/historyTrack', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_mix_get_trace_summary($params = array()) {
-        return $this->request('trace/summary', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('trace/summary', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_mix_get_trace_profitsettletokenidgroup($params = array()) {
-        return $this->request('trace/profitSettleTokenIdGroup', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('trace/profitSettleTokenIdGroup', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_mix_get_trace_profitdategrouplist($params = array()) {
-        return $this->request('trace/profitDateGroupList', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('trace/profitDateGroupList', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_mix_get_trade_profitdatelist($params = array()) {
         return $this->request('trade/profitDateList', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_mix_get_trace_waitprofitdatelist($params = array()) {
-        return $this->request('trace/waitProfitDateList', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('trace/waitProfitDateList', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_mix_get_trace_tradersymbols($params = array()) {
-        return $this->request('trace/traderSymbols', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('trace/traderSymbols', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_mix_get_trace_traderlist($params = array()) {
         return $this->request('trace/traderList', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function private_mix_get_trace_traderdetail($params = array()) {
+        return $this->request('trace/traderDetail', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_mix_get_trace_querytraceconfig($params = array()) {
         return $this->request('trace/queryTraceConfig', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
-    public function private_mix_get_order_margincoincurrent($params = array()) {
-        return $this->request('order/marginCoinCurrent', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    public function private_mix_post_account_sub_account_contract_assets($params = array()) {
+        return $this->request('account/sub-account-contract-assets', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 200));
+    }
+    public function private_mix_post_account_open_count($params = array()) {
+        return $this->request('account/open-count', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_mix_post_account_setleverage($params = array()) {
-        return $this->request('account/setLeverage', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 8));
+        return $this->request('account/setLeverage', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function private_mix_post_account_setmargin($params = array()) {
-        return $this->request('account/setMargin', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 8));
+        return $this->request('account/setMargin', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function private_mix_post_account_setmarginmode($params = array()) {
-        return $this->request('account/setMarginMode', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 8));
+        return $this->request('account/setMarginMode', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function private_mix_post_account_setpositionmode($params = array()) {
-        return $this->request('account/setPositionMode', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 8));
+        return $this->request('account/setPositionMode', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function private_mix_post_order_placeorder($params = array()) {
         return $this->request('order/placeOrder', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
@@ -289,14 +379,14 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_mix_post_order_cancel_order($params = array()) {
         return $this->request('order/cancel-order', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
-    public function private_mix_post_order_cancel_all_orders($params = array()) {
-        return $this->request('order/cancel-all-orders', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
-    }
     public function private_mix_post_order_cancel_batch_orders($params = array()) {
         return $this->request('order/cancel-batch-orders', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function private_mix_post_order_cancel_symbol_orders($params = array()) {
         return $this->request('order/cancel-symbol-orders', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_order_cancel_all_orders($params = array()) {
+        return $this->request('order/cancel-all-orders', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function private_mix_post_plan_placeplan($params = array()) {
         return $this->request('plan/placePlan', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
@@ -322,14 +412,17 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_mix_post_plan_cancelplan($params = array()) {
         return $this->request('plan/cancelPlan', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
-    public function private_mix_post_plan_cancelallplan($params = array()) {
-        return $this->request('plan/cancelAllPlan', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
-    }
     public function private_mix_post_plan_cancelsymbolplan($params = array()) {
         return $this->request('plan/cancelSymbolPlan', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function private_mix_post_plan_cancelallplan($params = array()) {
+        return $this->request('plan/cancelAllPlan', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function private_mix_post_trace_closetrackorder($params = array()) {
         return $this->request('trace/closeTrackOrder', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_trace_modifytpsl($params = array()) {
+        return $this->request('trace/modifyTPSL', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function private_mix_post_trace_setupcopysymbols($params = array()) {
         return $this->request('trace/setUpCopySymbols', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
@@ -345,6 +438,9 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function private_mix_post_trace_followersettpsl($params = array()) {
         return $this->request('trace/followerSetTpsl', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_trace_cancelcopytrader($params = array()) {
+        return $this->request('trace/cancelCopyTrader', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function private_user_get_fee_query($params = array()) {
         return $this->request('fee/query', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
@@ -362,7 +458,7 @@ abstract class bitget extends \ccxt\async\Exchange {
         return $this->request('sub/virtual-modify', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function private_user_post_sub_virtual_api_batch_create($params = array()) {
-        return $this->request('sub/virtual-api-batch-create', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
+        return $this->request('sub/virtual-api-batch-create', array('private', 'user'), 'POST', $params, null, null, array("cost" => 20));
     }
     public function private_user_post_sub_virtual_api_create($params = array()) {
         return $this->request('sub/virtual-api-create', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
@@ -371,22 +467,166 @@ abstract class bitget extends \ccxt\async\Exchange {
         return $this->request('sub/virtual-api-modify', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function private_p2p_get_merchant_merchantlist($params = array()) {
-        return $this->request('merchant/merchantList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('merchant/merchantList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_p2p_get_merchant_merchantinfo($params = array()) {
-        return $this->request('merchant/merchantInfo', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('merchant/merchantInfo', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_p2p_get_merchant_advlist($params = array()) {
-        return $this->request('merchant/advList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('merchant/advList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_p2p_get_merchant_orderlist($params = array()) {
-        return $this->request('merchant/orderList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('merchant/orderList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_broker_get_account_info($params = array()) {
+        return $this->request('account/info', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_broker_get_account_sub_list($params = array()) {
+        return $this->request('account/sub-list', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function private_broker_get_account_sub_email($params = array()) {
+        return $this->request('account/sub-email', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function private_broker_get_account_sub_spot_assets($params = array()) {
+        return $this->request('account/sub-spot-assets', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_broker_get_account_sub_future_assets($params = array()) {
+        return $this->request('account/sub-future-assets', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_broker_get_account_sub_api_list($params = array()) {
+        return $this->request('account/sub-api-list', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_broker_post_account_sub_create($params = array()) {
+        return $this->request('account/sub-create', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function private_broker_post_account_sub_modify($params = array()) {
+        return $this->request('account/sub-modify', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function private_broker_post_account_sub_modify_email($params = array()) {
+        return $this->request('account/sub-modify-email', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function private_broker_post_account_sub_address($params = array()) {
+        return $this->request('account/sub-address', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_broker_post_account_sub_withdrawal($params = array()) {
+        return $this->request('account/sub-withdrawal', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_broker_post_account_sub_auto_transfer($params = array()) {
+        return $this->request('account/sub-auto-transfer', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_broker_post_account_sub_api_create($params = array()) {
+        return $this->request('account/sub-api-create', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_broker_post_account_sub_api_modify($params = array()) {
+        return $this->request('account/sub-api-modify', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_cross_account_riskrate($params = array()) {
+        return $this->request('cross/account/riskRate', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_cross_account_maxtransferoutamount($params = array()) {
+        return $this->request('cross/account/maxTransferOutAmount', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_isolated_account_maxtransferoutamount($params = array()) {
+        return $this->request('isolated/account/maxTransferOutAmount', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_isolated_order_openorders($params = array()) {
+        return $this->request('isolated/order/openOrders', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_isolated_order_history($params = array()) {
+        return $this->request('isolated/order/history', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_isolated_order_fills($params = array()) {
+        return $this->request('isolated/order/fills', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_isolated_loan_list($params = array()) {
+        return $this->request('isolated/loan/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_isolated_repay_list($params = array()) {
+        return $this->request('isolated/repay/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_isolated_interest_list($params = array()) {
+        return $this->request('isolated/interest/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_isolated_liquidation_list($params = array()) {
+        return $this->request('isolated/liquidation/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_isolated_fin_list($params = array()) {
+        return $this->request('isolated/fin/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_cross_order_openorders($params = array()) {
+        return $this->request('cross/order/openOrders', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_cross_order_history($params = array()) {
+        return $this->request('cross/order/history', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_cross_order_fills($params = array()) {
+        return $this->request('cross/order/fills', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_cross_loan_list($params = array()) {
+        return $this->request('cross/loan/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_cross_repay_list($params = array()) {
+        return $this->request('cross/repay/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_cross_interest_list($params = array()) {
+        return $this->request('cross/interest/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_cross_liquidation_list($params = array()) {
+        return $this->request('cross/liquidation/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_get_cross_fin_list($params = array()) {
+        return $this->request('cross/fin/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_post_cross_account_borrow($params = array()) {
+        return $this->request('cross/account/borrow', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_post_isolated_account_borrow($params = array()) {
+        return $this->request('isolated/account/borrow', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_post_cross_account_repay($params = array()) {
+        return $this->request('cross/account/repay', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_post_isolated_account_repay($params = array()) {
+        return $this->request('isolated/account/repay', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_post_isolated_account_riskrate($params = array()) {
+        return $this->request('isolated/account/riskRate', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_post_cross_account_maxborrowableamount($params = array()) {
+        return $this->request('cross/account/maxBorrowableAmount', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_post_isolated_account_maxborrowableamount($params = array()) {
+        return $this->request('isolated/account/maxBorrowableAmount', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_post_isolated_order_placeorder($params = array()) {
+        return $this->request('isolated/order/placeOrder', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_margin_post_isolated_order_batchplaceorder($params = array()) {
+        return $this->request('isolated/order/batchPlaceOrder', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_margin_post_isolated_order_cancelorder($params = array()) {
+        return $this->request('isolated/order/cancelOrder', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_post_isolated_order_batchcancelorder($params = array()) {
+        return $this->request('isolated/order/batchCancelOrder', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_post_cross_order_placeorder($params = array()) {
+        return $this->request('cross/order/placeOrder', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_post_cross_order_batchplaceorder($params = array()) {
+        return $this->request('cross/order/batchPlaceOrder', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_post_cross_order_cancelorder($params = array()) {
+        return $this->request('cross/order/cancelOrder', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_margin_post_cross_order_batchcancelorder($params = array()) {
+        return $this->request('cross/order/batchCancelOrder', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function publicSpotGetPublicTime($params = array()) {
         return $this->request('public/time', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicSpotGetPublicCurrencies($params = array()) {
-        return $this->request('public/currencies', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('public/currencies', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 6.6667));
     }
     public function publicSpotGetPublicProducts($params = array()) {
         return $this->request('public/products', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -401,7 +641,7 @@ abstract class bitget extends \ccxt\async\Exchange {
         return $this->request('market/tickers', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicSpotGetMarketFills($params = array()) {
-        return $this->request('market/fills', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('market/fills', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function publicSpotGetMarketFillsHistory($params = array()) {
         return $this->request('market/fills-history', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 2));
@@ -427,8 +667,14 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function publicMixGetMarketTickers($params = array()) {
         return $this->request('market/tickers', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function publicMixGetMarketContractVipLevel($params = array()) {
+        return $this->request('market/contract-vip-level', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function publicMixGetMarketFills($params = array()) {
         return $this->request('market/fills', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicMixGetMarketFillsHistory($params = array()) {
+        return $this->request('market/fills-history', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function publicMixGetMarketCandles($params = array()) {
         return $this->request('market/candles', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
@@ -454,14 +700,38 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function publicMixGetMarketSymbolLeverage($params = array()) {
         return $this->request('market/symbol-leverage', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function publicMixGetMarketContractVipLevel($params = array()) {
-        return $this->request('market/contract-vip-level', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function publicMixGetMarketFillsHistory($params = array()) {
-        return $this->request('market/fills-history', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
     public function publicMixGetMarketQueryPositionLever($params = array()) {
         return $this->request('market/queryPositionLever', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicMarginGetCrossPublicInterestRateAndLimit($params = array()) {
+        return $this->request('cross/public/interestRateAndLimit', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function publicMarginGetIsolatedPublicInterestRateAndLimit($params = array()) {
+        return $this->request('isolated/public/interestRateAndLimit', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function publicMarginGetCrossPublicTierData($params = array()) {
+        return $this->request('cross/public/tierData', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function publicMarginGetIsolatedPublicTierData($params = array()) {
+        return $this->request('isolated/public/tierData', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function publicMarginGetPublicCurrencies($params = array()) {
+        return $this->request('public/currencies', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicMarginGetCrossAccountAssets($params = array()) {
+        return $this->request('cross/account/assets', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function publicMarginGetIsolatedAccountAssets($params = array()) {
+        return $this->request('isolated/account/assets', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotGetWalletDepositAddress($params = array()) {
+        return $this->request('wallet/deposit-address', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateSpotGetWalletWithdrawalList($params = array()) {
+        return $this->request('wallet/withdrawal-list', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateSpotGetWalletDepositList($params = array()) {
+        return $this->request('wallet/deposit-list', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateSpotGetAccountGetInfo($params = array()) {
         return $this->request('account/getInfo', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 20));
@@ -470,25 +740,34 @@ abstract class bitget extends \ccxt\async\Exchange {
         return $this->request('account/assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateSpotGetAccountTransferRecords($params = array()) {
-        return $this->request('account/transferRecords', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 4));
+        return $this->request('account/transferRecords', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateSpotGetWalletDepositAddress($params = array()) {
-        return $this->request('wallet/deposit-address', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 4));
+    public function privateSpotPostWalletTransfer($params = array()) {
+        return $this->request('wallet/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
     }
-    public function privateSpotGetWalletWithdrawalInner($params = array()) {
-        return $this->request('wallet/withdrawal-inner', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 4));
+    public function privateSpotPostWalletTransferV2($params = array()) {
+        return $this->request('wallet/transfer-v2', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
     }
-    public function privateSpotGetWalletWithdrawalList($params = array()) {
-        return $this->request('wallet/withdrawal-list', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    public function privateSpotPostWalletSubTransfer($params = array()) {
+        return $this->request('wallet/subTransfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 10));
     }
-    public function privateSpotGetWalletDepositList($params = array()) {
-        return $this->request('wallet/deposit-list', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    public function privateSpotPostWalletWithdrawal($params = array()) {
+        return $this->request('wallet/withdrawal', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
     }
-    public function privateSpotPostAccountBills($params = array()) {
-        return $this->request('account/bills', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    public function privateSpotPostWalletWithdrawalV2($params = array()) {
+        return $this->request('wallet/withdrawal-v2', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privateSpotPostWalletWithdrawalInner($params = array()) {
+        return $this->request('wallet/withdrawal-inner', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privateSpotPostWalletWithdrawalInnerV2($params = array()) {
+        return $this->request('wallet/withdrawal-inner-v2', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function privateSpotPostAccountSubAccountSpotAssets($params = array()) {
         return $this->request('account/sub-account-spot-assets', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 200));
+    }
+    public function privateSpotPostAccountBills($params = array()) {
+        return $this->request('account/bills', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function privateSpotPostTradeOrders($params = array()) {
         return $this->request('trade/orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
@@ -498,6 +777,12 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function privateSpotPostTradeCancelOrder($params = array()) {
         return $this->request('trade/cancel-order', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTradeCancelOrderV2($params = array()) {
+        return $this->request('trade/cancel-order-v2', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTradeCancelSymbolOrder($params = array()) {
+        return $this->request('trade/cancel-symbol-order', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function privateSpotPostTradeCancelBatchOrders($params = array()) {
         return $this->request('trade/cancel-batch-orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
@@ -517,30 +802,6 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function privateSpotPostTradeFills($params = array()) {
         return $this->request('trade/fills', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privateSpotPostTradeCancelOrderV2($params = array()) {
-        return $this->request('trade/cancel-order-v2', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
-    }
-    public function privateSpotPostTradeCancelSymbolOrder($params = array()) {
-        return $this->request('trade/cancel-symbol-order', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
-    }
-    public function privateSpotPostWalletTransfer($params = array()) {
-        return $this->request('wallet/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
-    }
-    public function privateSpotPostWalletWithdrawal($params = array()) {
-        return $this->request('wallet/withdrawal', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
-    }
-    public function privateSpotPostWalletSubTransfer($params = array()) {
-        return $this->request('wallet/subTransfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 10));
-    }
-    public function privateSpotPostWalletTransferV2($params = array()) {
-        return $this->request('wallet/transfer-v2', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
-    }
-    public function privateSpotPostWalletWithdrawalV2($params = array()) {
-        return $this->request('wallet/withdrawal-v2', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
-    }
-    public function privateSpotPostWalletWithdrawalInnerV2($params = array()) {
-        return $this->request('wallet/withdrawal-inner-v2', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 4));
-    }
     public function privateSpotPostPlanPlacePlan($params = array()) {
         return $this->request('plan/placePlan', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -556,44 +817,71 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function privateSpotPostPlanHistoryPlan($params = array()) {
         return $this->request('plan/historyPlan', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
+    public function privateSpotPostPlanBatchCancelPlan($params = array()) {
+        return $this->request('plan/batchCancelPlan', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceOrderOrderCurrentList($params = array()) {
+        return $this->request('trace/order/orderCurrentList', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceOrderOrderHistoryList($params = array()) {
+        return $this->request('trace/order/orderHistoryList', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceOrderCloseTrackingOrder($params = array()) {
+        return $this->request('trace/order/closeTrackingOrder', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceOrderUpdateTpsl($params = array()) {
+        return $this->request('trace/order/updateTpsl', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceOrderFollowerEndOrder($params = array()) {
+        return $this->request('trace/order/followerEndOrder', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceOrderSpotInfoList($params = array()) {
+        return $this->request('trace/order/spotInfoList', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceConfigGetTraderSettings($params = array()) {
+        return $this->request('trace/config/getTraderSettings', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceConfigGetFollowerSettings($params = array()) {
+        return $this->request('trace/config/getFollowerSettings', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceUserMyTraders($params = array()) {
+        return $this->request('trace/user/myTraders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceConfigSetFollowerConfig($params = array()) {
+        return $this->request('trace/config/setFollowerConfig', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceUserMyFollowers($params = array()) {
+        return $this->request('trace/user/myFollowers', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceConfigSetProductCode($params = array()) {
+        return $this->request('trace/config/setProductCode', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceUserRemoveTrader($params = array()) {
+        return $this->request('trace/user/removeTrader', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceProfitTotalProfitInfo($params = array()) {
+        return $this->request('trace/profit/totalProfitInfo', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceProfitTotalProfitList($params = array()) {
+        return $this->request('trace/profit/totalProfitList', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceProfitProfitHisList($params = array()) {
+        return $this->request('trace/profit/profitHisList', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceProfitProfitHisDetailList($params = array()) {
+        return $this->request('trace/profit/profitHisDetailList', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceProfitWaitProfitDetailList($params = array()) {
+        return $this->request('trace/profit/waitProfitDetailList', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostTraceUserGetTraderInfo($params = array()) {
+        return $this->request('trace/user/getTraderInfo', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function privateMixGetAccountAccount($params = array()) {
         return $this->request('account/account', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateMixGetAccountAccounts($params = array()) {
         return $this->request('account/accounts', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function privateMixGetAccountAccountBill($params = array()) {
-        return $this->request('account/accountBill', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function privateMixGetAccountAccountBusinessBill($params = array()) {
-        return $this->request('account/accountBusinessBill', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 4));
-    }
-    public function privateMixGetAccountOpenCount($params = array()) {
-        return $this->request('account/open-count', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function privateMixGetOrderCurrent($params = array()) {
-        return $this->request('order/current', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function privateMixGetOrderHistory($params = array()) {
-        return $this->request('order/history', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function privateMixGetOrderDetail($params = array()) {
-        return $this->request('order/detail', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function privateMixGetOrderFills($params = array()) {
-        return $this->request('order/fills', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function privateMixGetOrderHistoryProductType($params = array()) {
-        return $this->request('order/historyProductType', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 8));
-    }
-    public function privateMixGetOrderAllFills($params = array()) {
-        return $this->request('order/allFills', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function privateMixGetPlanCurrentPlan($params = array()) {
-        return $this->request('plan/currentPlan', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
-    }
-    public function privateMixGetPlanHistoryPlan($params = array()) {
-        return $this->request('plan/historyPlan', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateMixGetPositionSinglePosition($params = array()) {
         return $this->request('position/singlePosition', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
@@ -602,10 +890,43 @@ abstract class bitget extends \ccxt\async\Exchange {
         return $this->request('position/singlePosition-v2', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateMixGetPositionAllPosition($params = array()) {
-        return $this->request('position/allPosition', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('position/allPosition', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 4));
     }
     public function privateMixGetPositionAllPositionV2($params = array()) {
-        return $this->request('position/allPosition-v2', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('position/allPosition-v2', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateMixGetAccountAccountBill($params = array()) {
+        return $this->request('account/accountBill', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixGetAccountAccountBusinessBill($params = array()) {
+        return $this->request('account/accountBusinessBill', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateMixGetOrderCurrent($params = array()) {
+        return $this->request('order/current', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateMixGetOrderMarginCoinCurrent($params = array()) {
+        return $this->request('order/marginCoinCurrent', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateMixGetOrderHistory($params = array()) {
+        return $this->request('order/history', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixGetOrderHistoryProductType($params = array()) {
+        return $this->request('order/historyProductType', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateMixGetOrderDetail($params = array()) {
+        return $this->request('order/detail', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixGetOrderFills($params = array()) {
+        return $this->request('order/fills', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixGetOrderAllFills($params = array()) {
+        return $this->request('order/allFills', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixGetPlanCurrentPlan($params = array()) {
+        return $this->request('plan/currentPlan', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateMixGetPlanHistoryPlan($params = array()) {
+        return $this->request('plan/historyPlan', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateMixGetTraceCurrentTrack($params = array()) {
         return $this->request('trace/currentTrack', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
@@ -613,47 +934,56 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function privateMixGetTraceFollowerOrder($params = array()) {
         return $this->request('trace/followerOrder', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function privateMixGetTraceFollowerHistoryOrders($params = array()) {
+        return $this->request('trace/followerHistoryOrders', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function privateMixGetTraceHistoryTrack($params = array()) {
         return $this->request('trace/historyTrack', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateMixGetTraceSummary($params = array()) {
-        return $this->request('trace/summary', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('trace/summary', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateMixGetTraceProfitSettleTokenIdGroup($params = array()) {
-        return $this->request('trace/profitSettleTokenIdGroup', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('trace/profitSettleTokenIdGroup', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateMixGetTraceProfitDateGroupList($params = array()) {
-        return $this->request('trace/profitDateGroupList', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('trace/profitDateGroupList', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateMixGetTradeProfitDateList($params = array()) {
         return $this->request('trade/profitDateList', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateMixGetTraceWaitProfitDateList($params = array()) {
-        return $this->request('trace/waitProfitDateList', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('trace/waitProfitDateList', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateMixGetTraceTraderSymbols($params = array()) {
-        return $this->request('trace/traderSymbols', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('trace/traderSymbols', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateMixGetTraceTraderList($params = array()) {
         return $this->request('trace/traderList', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function privateMixGetTraceTraderDetail($params = array()) {
+        return $this->request('trace/traderDetail', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function privateMixGetTraceQueryTraceConfig($params = array()) {
         return $this->request('trace/queryTraceConfig', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
-    public function privateMixGetOrderMarginCoinCurrent($params = array()) {
-        return $this->request('order/marginCoinCurrent', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
+    public function privateMixPostAccountSubAccountContractAssets($params = array()) {
+        return $this->request('account/sub-account-contract-assets', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 200));
+    }
+    public function privateMixPostAccountOpenCount($params = array()) {
+        return $this->request('account/open-count', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function privateMixPostAccountSetLeverage($params = array()) {
-        return $this->request('account/setLeverage', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 8));
+        return $this->request('account/setLeverage', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function privateMixPostAccountSetMargin($params = array()) {
-        return $this->request('account/setMargin', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 8));
+        return $this->request('account/setMargin', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function privateMixPostAccountSetMarginMode($params = array()) {
-        return $this->request('account/setMarginMode', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 8));
+        return $this->request('account/setMarginMode', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function privateMixPostAccountSetPositionMode($params = array()) {
-        return $this->request('account/setPositionMode', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 8));
+        return $this->request('account/setPositionMode', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function privateMixPostOrderPlaceOrder($params = array()) {
         return $this->request('order/placeOrder', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
@@ -664,14 +994,14 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function privateMixPostOrderCancelOrder($params = array()) {
         return $this->request('order/cancel-order', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
-    public function privateMixPostOrderCancelAllOrders($params = array()) {
-        return $this->request('order/cancel-all-orders', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
-    }
     public function privateMixPostOrderCancelBatchOrders($params = array()) {
         return $this->request('order/cancel-batch-orders', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function privateMixPostOrderCancelSymbolOrders($params = array()) {
         return $this->request('order/cancel-symbol-orders', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostOrderCancelAllOrders($params = array()) {
+        return $this->request('order/cancel-all-orders', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function privateMixPostPlanPlacePlan($params = array()) {
         return $this->request('plan/placePlan', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
@@ -697,14 +1027,17 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function privateMixPostPlanCancelPlan($params = array()) {
         return $this->request('plan/cancelPlan', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
-    public function privateMixPostPlanCancelAllPlan($params = array()) {
-        return $this->request('plan/cancelAllPlan', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
-    }
     public function privateMixPostPlanCancelSymbolPlan($params = array()) {
         return $this->request('plan/cancelSymbolPlan', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function privateMixPostPlanCancelAllPlan($params = array()) {
+        return $this->request('plan/cancelAllPlan', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function privateMixPostTraceCloseTrackOrder($params = array()) {
         return $this->request('trace/closeTrackOrder', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostTraceModifyTPSL($params = array()) {
+        return $this->request('trace/modifyTPSL', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function privateMixPostTraceSetUpCopySymbols($params = array()) {
         return $this->request('trace/setUpCopySymbols', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
@@ -720,6 +1053,9 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function privateMixPostTraceFollowerSetTpsl($params = array()) {
         return $this->request('trace/followerSetTpsl', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostTraceCancelCopyTrader($params = array()) {
+        return $this->request('trace/cancelCopyTrader', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function privateUserGetFeeQuery($params = array()) {
         return $this->request('fee/query', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
@@ -737,7 +1073,7 @@ abstract class bitget extends \ccxt\async\Exchange {
         return $this->request('sub/virtual-modify', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function privateUserPostSubVirtualApiBatchCreate($params = array()) {
-        return $this->request('sub/virtual-api-batch-create', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
+        return $this->request('sub/virtual-api-batch-create', array('private', 'user'), 'POST', $params, null, null, array("cost" => 20));
     }
     public function privateUserPostSubVirtualApiCreate($params = array()) {
         return $this->request('sub/virtual-api-create', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
@@ -746,15 +1082,159 @@ abstract class bitget extends \ccxt\async\Exchange {
         return $this->request('sub/virtual-api-modify', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function privateP2pGetMerchantMerchantList($params = array()) {
-        return $this->request('merchant/merchantList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('merchant/merchantList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateP2pGetMerchantMerchantInfo($params = array()) {
-        return $this->request('merchant/merchantInfo', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('merchant/merchantInfo', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateP2pGetMerchantAdvList($params = array()) {
-        return $this->request('merchant/advList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('merchant/advList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateP2pGetMerchantOrderList($params = array()) {
-        return $this->request('merchant/orderList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('merchant/orderList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateBrokerGetAccountInfo($params = array()) {
+        return $this->request('account/info', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateBrokerGetAccountSubList($params = array()) {
+        return $this->request('account/sub-list', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function privateBrokerGetAccountSubEmail($params = array()) {
+        return $this->request('account/sub-email', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function privateBrokerGetAccountSubSpotAssets($params = array()) {
+        return $this->request('account/sub-spot-assets', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateBrokerGetAccountSubFutureAssets($params = array()) {
+        return $this->request('account/sub-future-assets', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateBrokerGetAccountSubApiList($params = array()) {
+        return $this->request('account/sub-api-list', array('private', 'broker'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateBrokerPostAccountSubCreate($params = array()) {
+        return $this->request('account/sub-create', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function privateBrokerPostAccountSubModify($params = array()) {
+        return $this->request('account/sub-modify', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function privateBrokerPostAccountSubModifyEmail($params = array()) {
+        return $this->request('account/sub-modify-email', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function privateBrokerPostAccountSubAddress($params = array()) {
+        return $this->request('account/sub-address', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateBrokerPostAccountSubWithdrawal($params = array()) {
+        return $this->request('account/sub-withdrawal', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateBrokerPostAccountSubAutoTransfer($params = array()) {
+        return $this->request('account/sub-auto-transfer', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privateBrokerPostAccountSubApiCreate($params = array()) {
+        return $this->request('account/sub-api-create', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateBrokerPostAccountSubApiModify($params = array()) {
+        return $this->request('account/sub-api-modify', array('private', 'broker'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetCrossAccountRiskRate($params = array()) {
+        return $this->request('cross/account/riskRate', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetCrossAccountMaxTransferOutAmount($params = array()) {
+        return $this->request('cross/account/maxTransferOutAmount', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetIsolatedAccountMaxTransferOutAmount($params = array()) {
+        return $this->request('isolated/account/maxTransferOutAmount', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetIsolatedOrderOpenOrders($params = array()) {
+        return $this->request('isolated/order/openOrders', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetIsolatedOrderHistory($params = array()) {
+        return $this->request('isolated/order/history', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetIsolatedOrderFills($params = array()) {
+        return $this->request('isolated/order/fills', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetIsolatedLoanList($params = array()) {
+        return $this->request('isolated/loan/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetIsolatedRepayList($params = array()) {
+        return $this->request('isolated/repay/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetIsolatedInterestList($params = array()) {
+        return $this->request('isolated/interest/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetIsolatedLiquidationList($params = array()) {
+        return $this->request('isolated/liquidation/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetIsolatedFinList($params = array()) {
+        return $this->request('isolated/fin/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetCrossOrderOpenOrders($params = array()) {
+        return $this->request('cross/order/openOrders', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetCrossOrderHistory($params = array()) {
+        return $this->request('cross/order/history', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetCrossOrderFills($params = array()) {
+        return $this->request('cross/order/fills', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetCrossLoanList($params = array()) {
+        return $this->request('cross/loan/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetCrossRepayList($params = array()) {
+        return $this->request('cross/repay/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetCrossInterestList($params = array()) {
+        return $this->request('cross/interest/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetCrossLiquidationList($params = array()) {
+        return $this->request('cross/liquidation/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginGetCrossFinList($params = array()) {
+        return $this->request('cross/fin/list', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginPostCrossAccountBorrow($params = array()) {
+        return $this->request('cross/account/borrow', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginPostIsolatedAccountBorrow($params = array()) {
+        return $this->request('isolated/account/borrow', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginPostCrossAccountRepay($params = array()) {
+        return $this->request('cross/account/repay', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginPostIsolatedAccountRepay($params = array()) {
+        return $this->request('isolated/account/repay', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginPostIsolatedAccountRiskRate($params = array()) {
+        return $this->request('isolated/account/riskRate', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginPostCrossAccountMaxBorrowableAmount($params = array()) {
+        return $this->request('cross/account/maxBorrowableAmount', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginPostIsolatedAccountMaxBorrowableAmount($params = array()) {
+        return $this->request('isolated/account/maxBorrowableAmount', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginPostIsolatedOrderPlaceOrder($params = array()) {
+        return $this->request('isolated/order/placeOrder', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privateMarginPostIsolatedOrderBatchPlaceOrder($params = array()) {
+        return $this->request('isolated/order/batchPlaceOrder', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privateMarginPostIsolatedOrderCancelOrder($params = array()) {
+        return $this->request('isolated/order/cancelOrder', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginPostIsolatedOrderBatchCancelOrder($params = array()) {
+        return $this->request('isolated/order/batchCancelOrder', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginPostCrossOrderPlaceOrder($params = array()) {
+        return $this->request('cross/order/placeOrder', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginPostCrossOrderBatchPlaceOrder($params = array()) {
+        return $this->request('cross/order/batchPlaceOrder', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginPostCrossOrderCancelOrder($params = array()) {
+        return $this->request('cross/order/cancelOrder', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMarginPostCrossOrderBatchCancelOrder($params = array()) {
+        return $this->request('cross/order/batchCancelOrder', array('private', 'margin'), 'POST', $params, null, null, array("cost" => 2));
     }
 }

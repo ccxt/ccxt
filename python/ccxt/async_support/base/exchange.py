@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.106'
+__version__ = '3.0.107'
 
 # -----------------------------------------------------------------------------
 
@@ -2196,6 +2196,15 @@ class Exchange(BaseExchange):
             return fee
         else:
             return self.decimal_to_precision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
+
+    def is_tick_precision(self):
+        return self.precisionMode == TICK_SIZE
+
+    def is_decimal_precision(self):
+        return self.precisionMode == DECIMAL_PLACES
+
+    def is_significant_precision(self):
+        return self.precisionMode == SIGNIFICANT_DIGITS
 
     def safe_number(self, obj: object, key: IndexType, defaultNumber: Optional[float] = None):
         value = self.safe_string(obj, key)
