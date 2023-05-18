@@ -4,7 +4,7 @@ import { Exchange } from './base/Exchange.js';
 import { Precise } from './base/Precise.js';
 import { ExchangeError, ArgumentsRequired, InvalidNonce, BadSymbol } from './base/errors.js';
 import { DECIMAL_PLACES, TRUNCATE } from './base/functions/number.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
+import { keccak_256 } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
 
@@ -100,28 +100,28 @@ export default class deepwaters extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'assets/',
-                        'pairs/',
-                        'pairs/{pair}/orderbook/',
-                        'time/',
+                        'assets',
+                        'pairs',
+                        'pairs/{pair}/orderbook',
+                        'time',
                     ],
                 },
                 'private': {
                     'get': [
-                        'customer/',
+                        'customer',
                         'customer/api-key-status',
-                        'orders/',
-                        'orders/by-venue-order-id/{id}/',
-                        'orders/by-customer-object-id/{id}/',
-                        'trades/',
+                        'orders',
+                        'orders/by-venue-order-id/{id}',
+                        'orders/by-customer-object-id/{id}',
+                        'trades',
                     ],
                     'post': [
-                        'orders/',
+                        'orders',
                     ],
                     'delete': [
                         'orders',
-                        'orders/by-customer-object-id/{id}/',
-                        'orders/by-venue-order-id/{id}/',
+                        'orders/by-customer-object-id/{id}',
+                        'orders/by-venue-order-id/{id}',
                     ],
                 },
             },
@@ -1012,7 +1012,7 @@ export default class deepwaters extends Exchange {
             }
             const message = method + '/rest/v1' + path.toLowerCase () + timestamp + nonce + bodyString;
             // calculate signature
-            const hash = this.hash (this.encode (message), keccak);
+            const hash = this.hash (this.encode (message), keccak_256);
             const signature = this.signHash (hash, this.secret);
             signature.v = signature.v - 27;
             let vByte = signature.v.toString (16);
