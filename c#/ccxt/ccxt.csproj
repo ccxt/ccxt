@@ -11,9 +11,10 @@
   <PropertyGroup>
     <PackageId>ccxt</PackageId>
     <Authors>Carlos, Kroitor, Carlo</Authors>
-    <PackageVersion>0.0.1-beta</PackageVersion>
-    <AssemblyVersion>0.0.1</AssemblyVersion>
-    <FileVersion>0.0.1</FileVersion>
+    <PackageVersion>0.0.2-beta</PackageVersion>
+    <AssemblyVersion>0.0.2</AssemblyVersion>
+    <FileVersion>0.0.2</FileVersion>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>Cryptocurrency trading API with support for more than 100 bitcoin/altcoin</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageTags>Binance C# .Net CryptoCurrency Exchange API wrapper Rest API</PackageTags>
@@ -31,6 +32,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="img/ccxt.png" Pack="true" PackagePath=""/>
+    <None Include="../../README.md" Pack="true" PackagePath=""/>
 </ItemGroup>
 
 </Project>
