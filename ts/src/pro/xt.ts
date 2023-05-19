@@ -574,8 +574,8 @@ export default class xt extends xtRest {
         const marketId = this.safeStringLower (data, 's');
         if (marketId !== undefined) {
             const trade = this.parseTrade (data);
-            const tradeType = trade['contract'] ? 'contract' : 'spot';
-            const market = this.safeMarket (marketId, undefined, undefined, tradeType);
+            const market = this.market (trade['symbol']);
+            const tradeType = market['contract'] ? 'contract' : 'spot';
             const symbol = market['symbol'];
             const event = this.safeString (message, 'event');
             let tradesArray = this.safeValue (this.trades, symbol);
@@ -631,18 +631,33 @@ export default class xt extends xtRest {
         //        "topic": "depth",
         //        "event": "depth@btc_usdt,20",
         //        "data": {
-        //            "id": "1234",                              // lastUpdateId
-        //            "s": "btc_index",                          // trading pair
-        //            "a": [["50000","0.1"],["50001","0.2"]],    // ask sell order queue,[price, quantity]
-        //            "b": [["49999","0.1"],["48888","0.2"]]     // bid buy queue
+        //            s: "btc_usdt",
+        //            pu: "548111455664",
+        //            fu: "548111455665",
+        //            u: "548111455667",
+        //            a: [
+        //                [
+        //                    "26841.5",
+        //                    "50210",
+        //                ],
+        //            ],
+        //            b: [
+        //                [
+        //                    "26841",
+        //                    "67075",
+        //                ],
+        //            ],
+        //            t: 1684530667083,
         //        }
         //    }
         //
         const data = this.safeValue (message, 'data');
         const marketId = this.safeString (data, 's');
         if (marketId !== undefined) {
-            const event = this.safeString (message, 'event');
-            const tradeType = ('id' in data) ? 'contract' : 'spot';
+            let event = this.safeString (message, 'event');
+            const splitEvent = event.split (',');
+            event = this.safeString (splitEvent, 0);
+            const tradeType = ('fu' in data) ? 'contract' : 'spot';
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
             const asks = this.safeValue (data, 'a');
