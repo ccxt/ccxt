@@ -389,7 +389,7 @@ export default class xt extends xtRest {
             this.tickers[symbol] = ticker;
             const event = this.safeString (message, 'event');
             const market = this.market (symbol);
-            const messageHashTail = market['isContract'] ? 'contract' : 'spot';
+            const messageHashTail = market['contract'] ? 'contract' : 'spot';
             const messageHash = event + ':' + messageHashTail;
             client.resolve (ticker, messageHash);
         }
