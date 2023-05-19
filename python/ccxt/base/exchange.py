@@ -286,8 +286,6 @@ class Exchange(object):
         'fetchDepositAddresses': None,
         'fetchDepositAddressesByNetwork': None,
         'fetchDeposits': None,
-        'fetchFundingFee': None,
-        'fetchFundingFees': None,
         'fetchFundingHistory': None,
         'fetchFundingRate': None,
         'fetchFundingRateHistory': None,
@@ -1391,13 +1389,6 @@ class Exchange(object):
         markets = self.fetch_markets(params)
         return self.set_markets(markets, currencies)
 
-    def load_fees(self, reload=False):
-        if not reload:
-            if self.loaded_fees != Exchange.loaded_fees:
-                return self.loaded_fees
-        self.loaded_fees = self.deep_extend(self.loaded_fees, self.fetch_fees())
-        return self.loaded_fees
-
     def fetch_markets(self, params={}):
         # markets are returned as a list
         # currencies are returned as a dict
@@ -1411,18 +1402,6 @@ class Exchange(object):
         # this is for historical reasons
         # and may be changed for consistency later
         return self.currencies
-
-    def fetch_fees(self):
-        trading = {}
-        funding = {}
-        if self.has['fetchTradingFees']:
-            trading = self.fetch_trading_fees()
-        if self.has['fetchFundingFees']:
-            funding = self.fetch_funding_fees()
-        return {
-            'trading': trading,
-            'funding': funding,
-        }
 
     def build_ohlcvc(self, trades, timeframe='1m', since=None, limit=None):
         ms = self.parse_timeframe(timeframe) * 1000
@@ -3053,18 +3032,6 @@ class Exchange(object):
         if not ('info' in self.status):
             self.status['info'] = None
         return self.status
-
-    def fetch_funding_fee(self, code: str, params={}):
-        warnOnFetchFundingFee = self.safe_value(self.options, 'warnOnFetchFundingFee', True)
-        if warnOnFetchFundingFee:
-            raise NotSupported(self.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = False to suppress self warning')
-        return self.fetch_transaction_fee(code, params)
-
-    def fetch_funding_fees(self, codes: Optional[List[str]] = None, params={}):
-        warnOnFetchFundingFees = self.safe_value(self.options, 'warnOnFetchFundingFees', True)
-        if warnOnFetchFundingFees:
-            raise NotSupported(self.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = False to suppress self warning')
-        return self.fetch_transaction_fees(codes, params)
 
     def fetch_transaction_fee(self, code: str, params={}):
         if not self.has['fetchTransactionFees']:
