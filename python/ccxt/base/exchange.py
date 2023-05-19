@@ -1424,41 +1424,6 @@ class Exchange(object):
             'funding': funding,
         }
 
-    def build_ohlcvc(self, trades, timeframe='1m', since=None, limit=None):
-        ms = self.parse_timeframe(timeframe) * 1000
-        ohlcvs = []
-        (timestamp, open, high, low, close, volume, count) = (0, 1, 2, 3, 4, 5, 6)
-        num_trades = len(trades)
-        oldest = num_trades if limit is None else min(num_trades, limit)
-        for i in range(0, oldest):
-            trade = trades[i]
-            if (since is not None) and (trade['timestamp'] < since):
-                continue
-            opening_time = None
-            if trade['timestamp']:
-                opening_time = int(math.floor(trade['timestamp'] / ms) * ms)  # Shift the edge of the m/h/d (but not M)
-            j = len(ohlcvs)
-            candle = j - 1
-            if (j == 0) or (opening_time and opening_time >= ohlcvs[candle][timestamp] + ms):
-                # moved to a new timeframe -> create a new candle from opening trade
-                ohlcvs.append([
-                    opening_time,
-                    trade['price'],
-                    trade['price'],
-                    trade['price'],
-                    trade['price'],
-                    trade['amount'],
-                    1,  # count
-                ])
-            else:
-                # still processing the same timeframe -> update opening trade
-                ohlcvs[candle][high] = max(ohlcvs[candle][high], trade['price'])
-                ohlcvs[candle][low] = min(ohlcvs[candle][low], trade['price'])
-                ohlcvs[candle][close] = trade['price']
-                ohlcvs[candle][volume] += trade['amount']
-                ohlcvs[candle][count] += 1
-        return ohlcvs
-
     @staticmethod
     def parse_timeframe(timeframe):
         amount = int(timeframe[0:-1])

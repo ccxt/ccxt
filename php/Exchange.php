@@ -699,49 +699,6 @@ class Exchange {
         return $timestamp - $offset + (($direction === ROUND_UP) ? $ms : 0);
     }
 
-    // given a sorted arrays of trades (recent first) and a timeframe builds an array of OHLCV candles
-    public static function build_ohlcv($trades, $timeframe = '1m', $since = PHP_INT_MIN, $limits = PHP_INT_MAX) {
-        if (empty($trades) || !is_array($trades)) {
-            return array();
-        }
-        if (!is_numeric($since)) {
-            $since = PHP_INT_MIN;
-        }
-        if (!is_numeric($limits)) {
-            $limits = PHP_INT_MAX;
-        }
-        $ms = static::parse_timeframe($timeframe) * 1000;
-        $ohlcvs = array();
-        list(/* $timestamp */, /* $open */, $high, $low, $close, $volume) = array(0, 1, 2, 3, 4, 5);
-        for ($i = 0; $i < min(count($trades), $limits); $i++) {
-            $trade = $trades[$i];
-            if ($trade['timestamp'] < $since) {
-                continue;
-            }
-            $openingTime = floor($trade['timestamp'] / $ms) * $ms; // shift to the edge of m/h/d (but not M)
-            $j = count($ohlcvs);
-
-            if (($j == 0) || ($openingTime >= $ohlcvs[$j - 1][0] + $ms)) {
-                // moved to a new timeframe -> create a new candle from opening trade
-                $ohlcvs[] = array(
-                    $openingTime,
-                    $trade['price'],
-                    $trade['price'],
-                    $trade['price'],
-                    $trade['price'],
-                    $trade['amount'],
-                );
-            } else {
-                // still processing the same timeframe -> update opening trade
-                $ohlcvs[$j - 1][$high] = max($ohlcvs[$j - 1][$high], $trade['price']);
-                $ohlcvs[$j - 1][$low] = min($ohlcvs[$j - 1][$low], $trade['price']);
-                $ohlcvs[$j - 1][$close] = $trade['price'];
-                $ohlcvs[$j - 1][$volume] += $trade['amount'];
-            }
-        }
-        return $ohlcvs;
-    }
-
     public static function capitalize($string) {
         return mb_strtoupper(mb_substr($string, 0, 1)) . mb_substr($string, 1);
     }
