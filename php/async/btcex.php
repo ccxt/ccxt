@@ -6,11 +6,12 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\btcex as Exchange;
 use ccxt\ExchangeError;
-use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
+use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 
@@ -222,10 +223,12 @@ class btcex extends Exchange {
                     '403' => '\\ccxt\\AuthenticationError', // ACCESS_DENIED_ERROR Access denied
                     '1000' => '\\ccxt\\ExchangeNotAvailable', // NO_SERVICE No service found
                     '1001' => '\\ccxt\\BadRequest', // BAD_REQUEST Bad requested
+                    '1005' => '\\ccxt\\DDoSProtection', // array("code":1005,"message":"Operate too frequently")
                     '2000' => '\\ccxt\\AuthenticationError', // NEED_LOGIN Login is required
                     '2001' => '\\ccxt\\AuthenticationError', // ACCOUNT_NOT_MATCH Account information does not match
                     '2002' => '\\ccxt\\AuthenticationError', // ACCOUNT_NEED_ENABLE Account needs to be activated
                     '2003' => '\\ccxt\\AuthenticationError', // ACCOUNT_NOT_AVAILABLE Account not available
+                    '2010' => '\\ccxt\\PermissionDenied', // array("code":2010,"message":"Access denied","data":array())
                     '3000' => '\\ccxt\\AuthenticationError', // TEST user
                     '3002' => '\\ccxt\\AuthenticationError', // NICKNAME_EXIST Nicknames exist
                     '3003' => '\\ccxt\\AuthenticationError', // ACCOUNT_NOT_EXIST No account
@@ -290,6 +293,7 @@ class btcex extends Exchange {
                     '5013' => '\\ccxt\\InvalidOrder', // ORDER_PRICE_RANGE_IS_TOO_HIGH order price range is too high.
                     '5014' => '\\ccxt\\InvalidOrder', // ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
                     '5109' => '\\ccxt\\InvalidOrder', // ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
+                    '5119' => '\\ccxt\\InvalidOrder', // array("code":5119,"message":"Cannot be less than the minimum order value：10USDT, instrument => GXE/USDT","data":array("coinType":"USDT","amount":"10","instrumentName":"GXE/USDT"))
                     '5135' => '\\ccxt\\InvalidOrder', // The quantity should be larger than => 0.01
                     '5901' => '\\ccxt\\InvalidOrder', // TRANSFER_RESULT transfer out success.
                     '5902' => '\\ccxt\\InvalidOrder', // ORDER_SUCCESS place order success.
@@ -328,6 +332,7 @@ class btcex extends Exchange {
                 'createMarketBuyOrderRequiresPrice' => true,
             ),
             'commonCurrencies' => array(
+                'ALT' => 'ArchLoot',
             ),
         ));
     }
@@ -539,7 +544,7 @@ class btcex extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -578,7 +583,7 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -634,7 +639,7 @@ class btcex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -751,7 +756,7 @@ class btcex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -951,8 +956,8 @@ class btcex extends Exchange {
             if (($assetType === 'WALLET') || ($assetType === 'SPOT')) {
                 $details = $this->safe_value($currency, 'details');
                 if ($details !== null) {
-                    for ($i = 0; $i < count($details); $i++) {
-                        $detail = $details[$i];
+                    for ($j = 0; $j < count($details); $j++) {
+                        $detail = $details[$j];
                         $coinType = $this->safe_string($detail, 'coin_type');
                         $code = $this->safe_currency_code($coinType);
                         $account = $this->safe_value($result, $code, $this->account());
@@ -1226,7 +1231,7 @@ class btcex extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             Async\await($this->sign_in());
             Async\await($this->load_markets());
@@ -1269,7 +1274,7 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -1296,7 +1301,7 @@ class btcex extends Exchange {
              * @param {string|null} $params->timeInForce 'GTC', 'IOC', 'FOK'
              * @param {bool|null} $params->postOnly
              * @param {bool|null} $params->reduceOnly
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->sign_in());
             Async\await($this->load_markets());
@@ -1305,7 +1310,7 @@ class btcex extends Exchange {
                 'instrument_name' => $market['id'],
                 'type' => $type,
             );
-            if ($side === 'sell') {
+            if ($side === 'sell' || $type === 'limit') {
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
             }
             if ($type === 'limit') {
@@ -1419,7 +1424,7 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             Async\await($this->sign_in());
             Async\await($this->load_markets());
@@ -1444,7 +1449,7 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
@@ -1470,7 +1475,7 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
@@ -1516,7 +1521,7 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
@@ -1566,7 +1571,7 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             if ($id === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $id argument');
@@ -1616,7 +1621,7 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a id argument');
@@ -1719,14 +1724,14 @@ class btcex extends Exchange {
         $notionalString = Precise::string_mul($markPrice, $size);
         $unrealisedPnl = $this->safe_string($position, 'floating_profit_loss');
         $initialMarginString = $this->safe_string($position, 'initial_margin');
-        $percentage = Precise::string_mul(Precise::string_div($unrealisedPnl, $initialMarginString), '100');
         $marginType = $this->safe_string($position, 'margin_type');
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => null,
             'datetime' => null,
+            'lastUpdateTimestamp' => null,
             'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number(Precise::string_div($initialMarginString, $notionalString)),
             'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
@@ -1740,14 +1745,15 @@ class btcex extends Exchange {
             'marginRatio' => $this->parse_number($riskLevel),
             'liquidationPrice' => $this->safe_number($position, 'liquid_price'),
             'markPrice' => $this->parse_number($markPrice),
+            'lastPrice' => null,
             'collateral' => $this->parse_number($collateral),
             'marginType' => $marginType,
             'side' => $side,
-            'percentage' => $this->parse_number($percentage),
-        );
+            'percentage' => null,
+        ));
     }
 
-    public function fetch_position($symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             Async\await($this->sign_in());
             Async\await($this->load_markets());
@@ -1796,7 +1802,7 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             Async\await($this->sign_in());
             Async\await($this->load_markets());
@@ -1918,7 +1924,7 @@ class btcex extends Exchange {
         );
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDeposits() requires the $code argument');
@@ -1955,7 +1961,7 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires the $code argument');
@@ -1992,7 +1998,7 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires the $code argument');
@@ -2031,14 +2037,14 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function fetch_leverage($symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://docs.btcex.com/#get-perpetual-instrument-config
              * fetch the set leverage for a $market
              * @param {string} $symbol unified $market $symbol
              * @param {array} $params extra parameters specific to the btcex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure leverage structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
              */
             Async\await($this->sign_in());
             Async\await($this->load_markets());
@@ -2066,14 +2072,14 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function fetch_market_leverage_tiers($symbol, $params = array ()) {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://docs.btcex.com/#get-perpetual-instrument-leverage-config
              * retrieve information on the maximum leverage, for different trade sizes for a single $market
              * @param {string} $symbol unified $market $symbol
              * @param {array} $params extra parameters specific to the btcex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2108,7 +2114,7 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, $market) {
+    public function parse_market_leverage_tiers($info, $market = null) {
         //
         //     array(
         //         array(
@@ -2139,14 +2145,14 @@ class btcex extends Exchange {
         return $tiers;
     }
 
-    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * @see https://docs.btcex.com/#get-all-perpetual-instrument-leverage-config
              * retrieve information on the maximum leverage, for different trade sizes
              * @param {[string]|null} $symbols a list of unified market $symbols
              * @param {array} $params extra parameters specific to the btcex api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetGetPerpetualLeverageBracketAll ($params));
@@ -2177,7 +2183,7 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function parse_leverage_tiers($response, $symbols = null, $marketIdKey = null) {
+    public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null) {
         //
         //     {
         //         "WAVES-USDT-PERPETUAL" => array(
@@ -2216,7 +2222,7 @@ class btcex extends Exchange {
         return $result;
     }
 
-    public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
+    public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
@@ -2256,7 +2262,7 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the $leverage amount for a $market
@@ -2298,14 +2304,14 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rates($symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the current funding rates
              * @see https://docs.btcex.com/#contracts
              * @param {[string]} $symbols unified $market $symbols
              * @param {array} $params extra parameters specific to the btcex api endpoint
-             * @return {[array]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structures}
+             * @return {[array]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -2362,14 +2368,14 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rate($symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
              * @see https://docs.btcex.com/#contracts
              * @param {string} $symbol unified $market $symbol
              * @param {array} $params extra parameters specific to the btcex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2468,7 +2474,7 @@ class btcex extends Exchange {
         );
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -2478,7 +2484,7 @@ class btcex extends Exchange {
              * @param {string} $fromAccount account to transfer from
              * @param {string} $toAccount account to transfer to
              * @param {array} $params extra parameters specific to the btcex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
              */
             Async\await($this->sign_in());
             Async\await($this->load_markets());
@@ -2531,14 +2537,14 @@ class btcex extends Exchange {
         );
     }
 
-    public function fetch_open_interest($symbol, $params = array ()) {
+    public function fetch_open_interest(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the open interest of a $market
              * @see https://docs.btcex.com/#contracts
              * @param {string} $symbol unified CCXT $market $symbol
              * @param {array} $params extra parameters specific to the btcex api endpoint
-             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=interest-history-structure)
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2672,16 +2678,17 @@ class btcex extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to the default $error handler
+            return null; // fallback to the default $error handler
         }
         $error = $this->safe_value($response, 'error');
         if ($error) {
             $feedback = $this->id . ' ' . $body;
-            $code = $this->safe_string($error, 'code');
+            $codeInner = $this->safe_string($error, 'code');
             $message = $this->safe_string($error, 'message');
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeInner, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

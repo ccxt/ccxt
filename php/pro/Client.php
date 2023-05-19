@@ -54,6 +54,9 @@ class Client {
     public $connected; // connection-related Future
     public $isConnected = false;
     public $noOriginHeader = true;
+    public $log = null;
+    public $heartbeat = null;
+    public $cost = 1;
 
     // ratchet/pawl/reactphp stuff
     public $connector = null;
@@ -196,12 +199,13 @@ class Client {
     }
 
     public function send($data) {
-        $message = is_string($data) ? $data : Exchange::json($data);
-        if ($this->verbose) {
-            echo date('c'), ' sending ', $message, "\n";
-        }
-        $this->connection->send($message);
-        return null;
+        return React\Async\async(function () use ($data) {
+            $message = is_string($data) ? $data : Exchange::json($data);
+            if ($this->verbose) {
+                echo date('c'), ' sending ', $message, "\n";
+            }
+            return $this->connection->send($message);
+        })();
     }
 
     public function close() {
@@ -256,8 +260,12 @@ class Client {
             }
             // reset with a json encoding error?
         }
-        $on_message_callback = $this->on_message_callback;
-        $on_message_callback($this, $message);
+        try {
+            $on_message_callback = $this->on_message_callback;
+            $on_message_callback($this, $message);
+        } catch (Exception $error) {
+            $this->reject($error);
+        }
     }
 
     public function reset($error) {

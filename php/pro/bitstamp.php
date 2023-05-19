@@ -11,8 +11,6 @@ use React\Async;
 
 class bitstamp extends \ccxt\async\bitstamp {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -48,14 +46,14 @@ class bitstamp extends \ccxt\async\bitstamp {
         ));
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the bitstamp api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -75,7 +73,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         }) ();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -163,7 +161,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         return count($deltas);
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -190,7 +188,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
         }) ();
     }
 
@@ -211,12 +209,12 @@ class bitstamp extends \ccxt\async\bitstamp {
         //
         $microtimestamp = $this->safe_integer($trade, 'microtimestamp');
         $id = $this->safe_string($trade, 'id');
-        $timestamp = intval($microtimestamp / 1000);
+        $timestamp = $this->parse_to_int($microtimestamp / 1000);
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'amount');
         $symbol = $market['symbol'];
-        $side = $this->safe_integer($trade, 'type');
-        $side = ($side === 0) ? 'buy' : 'sell';
+        $sideRaw = $this->safe_integer($trade, 'type');
+        $side = ($sideRaw === 0) ? 'buy' : 'sell';
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -234,7 +232,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         ), $market);
     }
 
-    public function handle_trade($client, $message) {
+    public function handle_trade(Client $client, $message) {
         //
         //     {
         //         $data => array(
@@ -273,7 +271,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $client->resolve ($tradesArray, $messageHash);
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -281,7 +279,7 @@ class bitstamp extends \ccxt\async\bitstamp {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bitstamp api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
@@ -301,11 +299,11 @@ class bitstamp extends \ccxt\async\bitstamp {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
+            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp');
         }) ();
     }
 
-    public function handle_orders($client, $message) {
+    public function handle_orders(Client $client, $message) {
         //
         // {
         //     "data":array(
@@ -385,7 +383,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         ), $market);
     }
 
-    public function handle_order_book_subscription($client, $message) {
+    public function handle_order_book_subscription(Client $client, $message) {
         $channel = $this->safe_string($message, 'channel');
         $parts = explode('_', $channel);
         $marketId = $this->safe_string($parts, 3);
@@ -393,7 +391,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $this->orderbooks[$symbol] = $this->order_book();
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //     {
         //         'event' => "bts:subscription_succeeded",
@@ -412,7 +410,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         }
     }
 
-    public function handle_subject($client, $message) {
+    public function handle_subject(Client $client, $message) {
         //
         //     {
         //         data => array(
@@ -465,7 +463,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         }
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         // {
         //     $event => 'bts:error',
         //     channel => '',
@@ -481,7 +479,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         return $message;
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }
