@@ -112,9 +112,13 @@ class Exchange extends \ccxt\Exchange {
                 $proxy_url = $this->https_proxy;
             }
             if ($proxy_url) {
+                $proxy_files_dir = __DIR__ . '/../static_dependencies/proxies/';
                 if (stripos($proxy_url, 'socks5://') !== false) {
+                    include_once ($proxy_files_dir. 'reactphp-socks/src/StreamReader.php');
+                    include_once ($proxy_files_dir. 'reactphp-socks/src/Client.php');
                     $proxy = new Clue\React\Socks\Client($proxy_url);
                 } else {
+                    include_once ($proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
                     $proxy = new Clue\React\HttpProxy\ProxyConnector($proxy_url);
                 }
                 // because of complexity, ssh is not supported atm: 
