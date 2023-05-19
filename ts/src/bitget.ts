@@ -945,6 +945,7 @@ export default class bitget extends Exchange {
                 'fetchMarkets': [
                     'spot',
                     'swap',
+                    'margin',
                 ],
                 'defaultType': 'spot', // 'spot', 'swap'
                 'defaultSubType': 'linear', // 'linear', 'inverse'
@@ -1013,7 +1014,7 @@ export default class bitget extends Exchange {
          * @returns {[object]} an array of objects representing market data
          */
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
-        let types = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'swap' ]);
+        let types = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'swap', 'margin' ]);
         if (sandboxMode) {
             types = [ 'swap' ];
         }
@@ -1094,6 +1095,28 @@ export default class bitget extends Exchange {
         //        limitOpenTime: "-1"
         //    }
         //
+        // margin
+        //
+        //    {
+        //        symbol: "ETHUSDT",
+        //        baseCoin: "ETH",
+        //        quoteCoin: "USDT",
+        //        maxCrossLeverage: "3",
+        //        maxIsolatedLeverage: "10",
+        //        warningRiskRatio: "0.80000000",
+        //        liquidationRiskRatio: "1.00000000",
+        //        minTradeAmount: "0.00010000",
+        //        maxTradeAmount: "10000.00000000",
+        //        takerFeeRate: "0.00100000",
+        //        makerFeeRate: "0.00100000",
+        //        priceScale: "4",
+        //        quantityScale: "4",
+        //        minTradeUSDT: "5.00000000",
+        //        isBorrowable: true,
+        //        userMinBorrow: "0.00000001",
+        //        status: "1"
+        //    }
+        //
         const marketId = this.safeString (market, 'symbol');
         const quoteId = this.safeString (market, 'quoteCoin');
         const baseId = this.safeString (market, 'baseCoin');
@@ -1116,7 +1139,14 @@ export default class bitget extends Exchange {
         let inverse = undefined;
         let expiry = undefined;
         let expiryDatetime = undefined;
-        if (typeId === 'SPBL') {
+        let margin = false;
+        if (typeId === undefined) {
+            type = 'margin';
+            margin = true;
+            contract = true;
+            pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'priceScale')));
+            amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityScale')));
+        } else if (typeId === 'SPBL') {
             type = 'spot';
             spot = true;
             pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'priceScale')));
@@ -1158,7 +1188,7 @@ export default class bitget extends Exchange {
         const status = this.safeString2 (market, 'status', 'symbolStatus');
         let active = undefined;
         if (status !== undefined) {
-            active = (status === 'online' || status === 'normal');
+            active = (status === 'online' || status === 'normal' || status === '1');
         }
         let minCost = undefined;
         if (quote === 'USDT') {
@@ -1175,7 +1205,7 @@ export default class bitget extends Exchange {
             'settleId': settleId,
             'type': type,
             'spot': spot,
-            'margin': false,
+            'margin': margin,
             'swap': swap,
             'future': future,
             'option': false,
@@ -1220,6 +1250,7 @@ export default class bitget extends Exchange {
         const method = this.getSupportedMapping (type, {
             'spot': 'publicSpotGetPublicProducts',
             'swap': 'publicMixGetMarketContracts',
+            'margin': 'publicMarginGetPublicCurrencies',
         });
         const response = await this[method] (params);
         //
@@ -1272,6 +1303,34 @@ export default class bitget extends Exchange {
         //        ]
         //    }
         //
+        // margin
+        //
+        //    {
+        //        "code": "00000",
+        //        "msg": "success",
+        //        "requestTime": 1679383565084,
+        //        "data": [
+        //            {
+        //                "symbol": "ETHUSDT",
+        //                "baseCoin": "ETH",
+        //                "quoteCoin": "USDT",
+        //                "maxCrossLeverage": "3",
+        //                "maxIsolatedLeverage": "10",
+        //                "warningRiskRatio": "0.80000000",
+        //                "liquidationRiskRatio": "1.00000000",
+        //                "minTradeAmount": "0.00010000",
+        //                "maxTradeAmount": "10000.00000000",
+        //                "takerFeeRate": "0.00100000",
+        //                "makerFeeRate": "0.00100000",
+        //                "priceScale": "4",
+        //                "quantityScale": "4",
+        //                "minTradeUSDT": "5.00000000",
+        //                "isBorrowable": true,
+        //                "userMinBorrow": "0.00000001",
+        //                "status": "1"
+        //            }
+        //        ]
+        //    }
         const data = this.safeValue (response, 'data', []);
         return this.parseMarkets (data);
     }
@@ -2143,26 +2202,24 @@ export default class bitget extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicSpotGetPublicProduct (this.extend (request, params));
+        if (market['spot']) {
+            request['business'] = 'spot';
+        } else if (market['margin']) {
+            request['business'] = 'margin';
+        } else {
+            request['business'] = 'mix';
+        }
+        const response = await this.privateUserGetFeeQuery (this.extend (request, params));
         //
-        //     {
-        //         code: '00000',
-        //         msg: 'success',
-        //         requestTime: '1646255374000',
-        //         data: {
-        //           symbol: 'ethusdt_SPBL',
-        //           symbolName: null,
-        //           baseCoin: 'ETH',
-        //           quoteCoin: 'USDT',
-        //           minTradeAmount: '0',
-        //           maxTradeAmount: '0',
-        //           takerFeeRate: '0.002',
-        //           makerFeeRate: '0.002',
-        //           priceScale: '2',
-        //           quantityScale: '4',
-        //           status: 'online'
-        //         }
-        //     }
+        //    {
+        //        "code": "00000",
+        //        "msg": "success",
+        //        "requestTime": 1683875302853,
+        //        "data": {
+        //            "makerRate": "0.0002",
+        //            "takerRate": "0.0006"
+        //        }
+        //    }
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseTradingFee (data, market);
@@ -2217,8 +2274,8 @@ export default class bitget extends Exchange {
         return {
             'info': data,
             'symbol': this.safeSymbol (marketId, market),
-            'maker': this.safeNumber (data, 'makerFeeRate'),
-            'taker': this.safeNumber (data, 'takerFeeRate'),
+            'maker': this.safeNumber2 (data, 'makerFeeRate', 'makerRate'),
+            'taker': this.safeNumber2 (data, 'takerFeeRate', 'takerRate'),
         };
     }
 
