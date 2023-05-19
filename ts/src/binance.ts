@@ -3621,14 +3621,12 @@ export default class binance extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    async editSpotOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
-         * @name binance#editOrder
+         * @name binance#editSpotOrder
          * @description edit a trade order
          * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
-         * @see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
-         * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
          * @param {string} id cancel order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -3640,8 +3638,8 @@ export default class binance extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['option']) {
-            throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders');
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' editSpotOrder() does not support ' + market['type'] + ' orders');
         }
         const request = {
             'symbol': market['id'],
@@ -3808,6 +3806,52 @@ export default class binance extends Exchange {
         //         }
         //     }
         //
+        const data = this.safeValue (response, 'newOrderResponse');
+        return this.parseOrder (data, market);
+    }
+
+    async editContractOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#editOrder
+         * @description edit a trade order
+         * @see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new NotSupported (this.id + ' editContractOrder() does not support ' + market['type'] + ' orders');
+        }
+        const request = {
+            'symbol': market['id'],
+            'side': side.toUpperCase (),
+        };
+        const clientOrderId = this.safeStringN (params, [ 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ]);
+        request['orderId'] = id;
+        request['quantity'] = this.amountToPrecision (symbol, amount);
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (clientOrderId !== undefined) {
+            request['origClientOrderId'] = clientOrderId;
+        }
+        params = this.omit (params, [ 'clientOrderId', 'newClientOrderId' ]);
+        let response = undefined;
+        if (market['linear']) {
+            response = await this.fapiPrivatePutOrder (this.extend (request, params));
+        } else if (market['inverse']) {
+            response = await this.dapiPrivatePutOrder (this.extend (request, params));
+        }
+        //
         // swap and future
         //
         //     {
@@ -3834,13 +3878,36 @@ export default class binance extends Exchange {
         //         "updateTime": 1684300587845
         //     }
         //
-        let data = undefined;
-        if (market['spot']) {
-            data = this.safeValue (response, 'newOrderResponse');
-        } else {
-            data = response;
+        return this.parseOrder (response, market);
+    }
+
+    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#editOrder
+         * @description edit a trade order
+         * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
+         * @see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['option']) {
+            throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders');
         }
-        return this.parseOrder (data, market);
+        if (market['spot']) {
+            return await this.editSpotOrder (id, symbol, type, side, amount, price, params);
+        } else {
+            return await this.editContractOrder (id, symbol, type, side, amount, price, params);
+        }
     }
 
     parseOrderStatus (status) {
