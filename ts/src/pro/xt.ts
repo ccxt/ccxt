@@ -27,7 +27,7 @@ export default class xt extends xtRest {
                 'api': {
                     'ws': {
                         'spot': 'wss://stream.xt.com',
-                        'linear': 'wss://fstream.xt.com/ws',
+                        'contract': 'wss://fstream.xt.com/ws',
                     },
                 },
             },
@@ -36,10 +36,10 @@ export default class xt extends xtRest {
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
                 'watchTicker': {
-                    'method': 'ticker',  // agg_ticker (swap only)
+                    'method': 'ticker',  // agg_ticker (contract only)
                 },
                 'watchTickers': {
-                    'method': 'tickers',  // agg_tickers (swap only)
+                    'method': 'tickers',  // agg_tickers (contract only)
                 },
             },
             'streaming': {
@@ -50,27 +50,38 @@ export default class xt extends xtRest {
         });
     }
 
-    async getListenKey (subType: string, params = {}) {
+    async getListenKey (isContract: boolean) {
         /**
          * @ignore
          * @method
          * @description required for private endpoints
-         * @param {string} subType spot or linear
-         * @param {object} params extra parameters specific to the xt api
+         * @param {string} isContract true for contract trades
          * @see https://doc.xt.com/#websocket_privategetToken
          * @see https://doc.xt.com/#futures_user_websocket_v2base
          * @returns {string} listen key / access token
          */
         this.checkRequiredCredentials ();
-        let url = this.urls['api']['ws'][subType];
-        if (subType === 'spot') {
+        const tradeType = isContract ? 'contract' : 'spot';
+        let url = this.urls['api']['ws'][tradeType];
+        if (!isContract) {
             url = url + '/private';
         }
         const client = this.client (url);
         const accessToken = this.safeValue (client.subscriptions, 'accessToken');
         if (accessToken === undefined) {
-            if (subType === 'spot') {
-                const response = await this.privateSpotPostWsToken (params);
+            if (isContract) {
+                const response = await this.privateLinearGetFutureUserV1UserListenKey ();
+                //
+                //    {
+                //        returnCode: '0',
+                //        msgInfo: 'success',
+                //        error: null,
+                //        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
+                //    }
+                //
+                client.subscriptions['accessToken'] = this.safeValue (response, 'result');
+            } else {
+                const response = await this.privateSpotPostWsToken ();
                 //
                 //    {
                 //        "rc": 0,
@@ -84,17 +95,6 @@ export default class xt extends xtRest {
                 //
                 const result = this.safeValue (response, 'result');
                 client.subscriptions['accessToken'] = this.safeString (result, 'accessToken');
-            } else if (subType === 'linear') {
-                const response = await this.privateLinearGetFutureUserV1UserListenKey (params);
-                //
-                //    {
-                //        returnCode: '0',
-                //        msgInfo: 'success',
-                //        error: null,
-                //        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
-                //    }
-                //
-                client.subscriptions['accessToken'] = this.safeValue (response, 'result');
             }
         }
         return client.subscriptions['accessToken'];
@@ -116,32 +116,32 @@ export default class xt extends xtRest {
          */
         await this.loadMarkets ();
         const privateAccess = access === 'private';
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams (methodName, market, params);
-        const isSpot = subType === 'spot';
+        let isContract = undefined;
+        [ isContract, params ] = this.handleIsContractAndParams (methodName, market, params);
         const subscribe = {
-            'method': isSpot ? 'subscribe' : 'SUBSCRIBE',
+            'method': isContract ? 'SUBSCRIBE' : 'subscribe',
             'id': this.numberToString (this.milliseconds ()) + name,  // call back ID
         };
         if (privateAccess) {
-            if (isSpot) {
+            if (!isContract) {
                 subscribe['params'] = [ name ];
-                subscribe['listenKey'] = await this.getListenKey (subType);
+                subscribe['listenKey'] = await this.getListenKey (isContract);
             } else {
-                const listenKey = await this.getListenKey (subType);
+                const listenKey = await this.getListenKey (isContract);
                 const param = name + '@' + listenKey;
                 subscribe['params'] = [ param ];
             }
         } else {
             subscribe['params'] = [ name ];
         }
-        const messageHash = name + ':' + subType;
+        const tradeType = isContract ? 'contract' : 'spot';
+        const messageHash = name + ':' + tradeType;
         const request = this.extend (subscribe, params);
         let tail = access;
-        if (!isSpot) {
+        if (isContract) {
             tail = privateAccess ? 'user' : 'market';
         }
-        const url = this.urls['api']['ws'][subType] + '/' + tail;
+        const url = this.urls['api']['ws'][tradeType] + '/' + tail;
         return await this.watch (url, messageHash, request, messageHash);
     }
 
@@ -389,7 +389,7 @@ export default class xt extends xtRest {
             this.tickers[symbol] = ticker;
             const event = this.safeString (message, 'event');
             const market = this.market (symbol);
-            const messageHashTail = (market['spot'] ? 'spot' : 'linear');
+            const messageHashTail = market['isContract'] ? 'contract' : 'spot';
             const messageHash = event + ':' + messageHashTail;
             client.resolve (ticker, messageHash);
         }
@@ -466,14 +466,14 @@ export default class xt extends xtRest {
         //
         const data = this.safeValue (message, 'data', []);
         const firstTicker = this.safeValue (message, 0);
-        const marketType = ('cv' in firstTicker) || ('aq' in firstTicker) ? 'spot' : 'swap';
+        const tradeType = ('cv' in firstTicker) || ('aq' in firstTicker) ? 'spot' : 'contract';
         for (let i = 0; i < data.length; i++) {
             const tickerData = data[i];
             const ticker = this.parseTicker (tickerData);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
         }
-        client.resolve (this.tickers, 'tickers:' + marketType);
+        client.resolve (this.tickers, 'tickers:' + tradeType);
         return message;
     }
 
@@ -519,8 +519,8 @@ export default class xt extends xtRest {
         const marketId = this.safeString (data, 's');
         if (marketId !== undefined) {
             const timeframe = this.safeString (data, 'i');
-            const marketType = ('ch' in data) ? 'swap' : 'spot';
-            const market = this.safeMarket (marketId, undefined, undefined, marketType);
+            const tradeType = ('ch' in data) ? 'contract' : 'spot';
+            const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
             const parsed = this.parseOHLCV (data, market);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
@@ -532,7 +532,7 @@ export default class xt extends xtRest {
             }
             stored.append (parsed);
             const event = this.safeString (message, 'event');
-            const messageHash = event + ':' + marketType;
+            const messageHash = event + ':' + tradeType;
             client.resolve (stored, messageHash);
         }
         return message;
@@ -573,7 +573,8 @@ export default class xt extends xtRest {
         const marketId = this.safeStringLower (data, 's');
         if (marketId !== undefined) {
             const trade = this.parseTrade (data);
-            const market = this.safeMarket (marketId, undefined, undefined, trade['type']);
+            const tradeType = trade['contract'] ? 'contract' : 'spot';
+            const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
             const event = this.safeString (message, 'event');
             let tradesArray = this.safeValue (this.trades, symbol);
@@ -583,7 +584,7 @@ export default class xt extends xtRest {
                 this.trades[symbol] = tradesArray;
             }
             tradesArray.append (trade);
-            const messageHash = event + ':' + trade['type'];
+            const messageHash = event + ':' + tradeType;
             client.resolve (tradesArray, messageHash);
         }
         return message;
@@ -640,13 +641,13 @@ export default class xt extends xtRest {
         const marketId = this.safeString (data, 's');
         if (marketId !== undefined) {
             const event = this.safeString (message, 'event');
-            const marketType = ('id' in data) ? 'swap' : 'spot';
-            const market = this.safeMarket (marketId, undefined, undefined, marketType);
+            const tradeType = ('id' in data) ? 'contract' : 'spot';
+            const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
             const asks = this.safeValue (data, 'a');
             const bids = this.safeValue (data, 'b');
             let orderbook = this.safeValue (this.orderbooks, symbol);
-            const messageHash = event + ':' + marketType;
+            const messageHash = event + ':' + tradeType;
             if (orderbook === undefined) {
                 const subscription = this.safeValue (client.subscriptions, messageHash, {});
                 const limit = this.safeInteger (subscription, 'limit');
@@ -707,8 +708,8 @@ export default class xt extends xtRest {
         //    }
         //
         const marketId = this.safeString (trade, 's');
-        const marketType = ('symbol' in trade) ? 'swap' : 'spot';
-        market = this.safeMarket (marketId, market, undefined, marketType);
+        const tradeType = ('symbol' in trade) ? 'contract' : 'spot';
+        market = this.safeMarket (marketId, market, undefined, tradeType);
         const timestamp = this.safeString (trade, 't');
         return this.safeTrade ({
             'info': trade,
@@ -767,8 +768,8 @@ export default class xt extends xtRest {
         //    }
         //
         const marketId = this.safeString2 (order, 's', 'symbol');
-        const marketType = ('symbol' in order) ? 'swap' : 'spot';
-        market = this.safeMarket (marketId, market, undefined, marketType);
+        const tradeType = ('symbol' in order) ? 'contract' : 'spot';
+        market = this.safeMarket (marketId, market, undefined, tradeType);
         const timestamp = this.safeInteger2 (order, 't', 'createTime');
         return this.safeOrder ({
             'info': order,
@@ -852,8 +853,8 @@ export default class xt extends xtRest {
         const order = this.safeValue (message, 'data', {});
         const marketId = this.safeString2 (order, 's', 'symbol');
         if (marketId !== undefined) {
-            const marketType = ('symbol' in order) ? 'swap' : 'spot';
-            const market = this.safeMarket (marketId, undefined, undefined, marketType);
+            const tradeType = ('symbol' in order) ? 'contract' : 'spot';
+            const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
             const orderId = this.safeString (order, 'i', 'orderId');
             const previousOrders = this.safeValue (orders.hashmap, symbol, {});
@@ -901,7 +902,7 @@ export default class xt extends xtRest {
                 }
                 // update the newUpdates count
                 orders.append (this.safeOrder (previousOrder));
-                client.resolve (orders, 'order:' + marketType);
+                client.resolve (orders, 'order:' + tradeType);
             }
         }
         return message;
@@ -951,7 +952,8 @@ export default class xt extends xtRest {
         account['total'] = total;
         this.balance[code] = account;
         this.balance = this.safeBalance (this.balance);
-        client.resolve (this.balance, 'balance');
+        const tradeType = ('coin' in data) ? 'contract' : 'spot';
+        client.resolve (this.balance, 'balance:' + tradeType);
     }
 
     handleMyTrades (client: Client, message) {
@@ -993,7 +995,8 @@ export default class xt extends xtRest {
         }
         const parsedTrade = this.parseTrade (data);
         stored.append (parsedTrade);
-        client.resolve (stored, 'trade:' + parsedTrade['type']);
+        const tradeType = parsedTrade['contract'] ? 'contract' : 'spot';
+        client.resolve (stored, 'trade:' + tradeType);
     }
 
     handleMessage (client, message) {
