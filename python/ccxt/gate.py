@@ -351,6 +351,7 @@ class gate(Exchange, ImplicitAPI):
                             '{settle}/orders': 1.5,
                             '{settle}/orders/{order_id}': 1.5,
                             '{settle}/my_trades': 1.5,
+                            '{settle}/my_trades_timerange': 1.5,
                             '{settle}/position_close': 1.5,
                             '{settle}/liquidates': 1.5,
                             '{settle}/price_orders': 1.5,
@@ -2651,7 +2652,7 @@ class gate(Exchange, ImplicitAPI):
         method = self.get_supported_mapping(type, {
             'spot': 'privateSpotGetMyTrades',
             'margin': 'privateSpotGetMyTrades',
-            'swap': 'privateFuturesGetSettleMyTrades',
+            'swap': 'privateFuturesGetSettleMyTradesTimerange',
             'future': 'privateDeliveryGetSettleMyTrades',
         })
         response = getattr(self, method)(self.extend(request, params))

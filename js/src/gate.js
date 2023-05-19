@@ -331,6 +331,7 @@ export default class gate extends Exchange {
                             '{settle}/orders': 1.5,
                             '{settle}/orders/{order_id}': 1.5,
                             '{settle}/my_trades': 1.5,
+                            '{settle}/my_trades_timerange': 1.5,
                             '{settle}/position_close': 1.5,
                             '{settle}/liquidates': 1.5,
                             '{settle}/price_orders': 1.5,
@@ -2764,7 +2765,7 @@ export default class gate extends Exchange {
         const method = this.getSupportedMapping(type, {
             'spot': 'privateSpotGetMyTrades',
             'margin': 'privateSpotGetMyTrades',
-            'swap': 'privateFuturesGetSettleMyTrades',
+            'swap': 'privateFuturesGetSettleMyTradesTimerange',
             'future': 'privateDeliveryGetSettleMyTrades',
         });
         const response = await this[method](this.extend(request, params));

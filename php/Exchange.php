@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.0.105';
+$version = '3.1.1';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.0.105';
+    const VERSION = '3.1.1';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4238,6 +4238,18 @@ class Exchange {
         } else {
             return $this->decimal_to_precision($fee, ROUND, $precision, $this->precisionMode, $this->paddingMode);
         }
+    }
+
+    public function is_tick_precision() {
+        return $this->precisionMode === TICK_SIZE;
+    }
+
+    public function is_decimal_precision() {
+        return $this->precisionMode === DECIMAL_PLACES;
+    }
+
+    public function is_significant_precision() {
+        return $this->precisionMode === SIGNIFICANT_DIGITS;
     }
 
     public function safe_number(array $obj, int|string $key, ?float $defaultNumber = null) {

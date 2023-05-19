@@ -107,6 +107,7 @@ const {
     , DECIMAL_PLACES
     , NO_PADDING
     , TICK_SIZE
+    , SIGNIFICANT_DIGITS
 } = functions
 
 // import exceptions from "./errors.js"
@@ -3467,6 +3468,18 @@ export default class Exchange {
         } else {
             return this.decimalToPrecision (fee, ROUND, precision, this.precisionMode, this.paddingMode);
         }
+    }
+
+    isTickPrecision () {
+        return this.precisionMode === TICK_SIZE;
+    }
+
+    isDecimalPrecision () {
+        return this.precisionMode === DECIMAL_PLACES;
+    }
+
+    isSignificantPrecision () {
+        return this.precisionMode === SIGNIFICANT_DIGITS;
     }
 
     safeNumber (obj: object, key: IndexType, defaultNumber: number = undefined): number {
