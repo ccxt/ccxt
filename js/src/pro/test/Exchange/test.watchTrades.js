@@ -13,6 +13,7 @@ import errors from '../../../base/errors.js';
 export default async (exchange, symbol) => {
     // log (symbol.green, 'watching trades...')
     const method = 'watchTrades';
+    const skippedProperties = {};
     // we have to skip some exchanges here due to the frequency of trading
     const skippedExchanges = [
         'binanceje',
@@ -46,7 +47,7 @@ export default async (exchange, symbol) => {
             console.log(exchange.iso8601(now), exchange.id, symbol, method, Object.values(response).length, 'trades');
             // log.noLocate (asTable (response))
             for (let i = 0; i < response.length; i++) {
-                testTrade(exchange, method, response[i], symbol, now);
+                testTrade(exchange, skippedProperties, method, response[i], symbol, now);
             }
         }
         catch (e) {

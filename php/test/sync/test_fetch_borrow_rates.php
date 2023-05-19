@@ -10,12 +10,12 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_borrow_rate.php';
 
-function test_fetch_borrow_rates($exchange) {
+function test_fetch_borrow_rates($exchange, $skipped_properties) {
     $method = 'fetchBorrowRates';
     $borrow_rates = $exchange->fetch_borrow_rates();
     assert(is_array($borrow_rates), $exchange->id . ' ' . $method . ' must return an object. ' . $exchange->json($borrow_rates));
     $values = is_array($borrow_rates) ? array_values($borrow_rates) : array();
     for ($i = 0; $i < count($values); $i++) {
-        test_borrow_rate($exchange, $method, $values[$i], null);
+        test_borrow_rate($exchange, $skipped_properties, $method, $values[$i], null);
     }
 }

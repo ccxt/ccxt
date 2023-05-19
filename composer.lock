@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1ffb3d12ac8b23540353a257935e35a6",
+    "content-hash": "a6fedf32a5fd81798148f1783e4e6dec",
     "packages": [
         {
             "name": "evenement/evenement",
@@ -111,22 +111,22 @@
         },
         {
             "name": "guzzlehttp/psr7",
-            "version": "2.4.3",
+            "version": "2.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "67c26b443f348a51926030c83481b85718457d3d"
+                "reference": "b635f279edd83fc275f822a1188157ffea568ff6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/67c26b443f348a51926030c83481b85718457d3d",
-                "reference": "67c26b443f348a51926030c83481b85718457d3d",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/b635f279edd83fc275f822a1188157ffea568ff6",
+                "reference": "b635f279edd83fc275f822a1188157ffea568ff6",
                 "shasum": ""
             },
             "require": {
                 "php": "^7.2.5 || ^8.0",
                 "psr/http-factory": "^1.0",
-                "psr/http-message": "^1.0",
+                "psr/http-message": "^1.1 || ^2.0",
                 "ralouphie/getallheaders": "^3.0"
             },
             "provide": {
@@ -146,9 +146,6 @@
                 "bamarni-bin": {
                     "bin-links": true,
                     "forward-command": false
-                },
-                "branch-alias": {
-                    "dev-master": "2.4-dev"
                 }
             },
             "autoload": {
@@ -210,7 +207,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/2.4.3"
+                "source": "https://github.com/guzzle/psr7/tree/2.5.0"
             },
             "funding": [
                 {
@@ -226,7 +223,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-10-26T14:07:24+00:00"
+            "time": "2023-04-17T16:11:26+00:00"
         },
         {
             "name": "pear/console_table",
@@ -289,21 +286,21 @@
         },
         {
             "name": "psr/http-factory",
-            "version": "1.0.1",
+            "version": "1.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/http-factory.git",
-                "reference": "12ac7fcd07e5b077433f5f2bee95b3a771bf61be"
+                "reference": "e616d01114759c4c489f93b099585439f795fe35"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/http-factory/zipball/12ac7fcd07e5b077433f5f2bee95b3a771bf61be",
-                "reference": "12ac7fcd07e5b077433f5f2bee95b3a771bf61be",
+                "url": "https://api.github.com/repos/php-fig/http-factory/zipball/e616d01114759c4c489f93b099585439f795fe35",
+                "reference": "e616d01114759c4c489f93b099585439f795fe35",
                 "shasum": ""
             },
             "require": {
                 "php": ">=7.0.0",
-                "psr/http-message": "^1.0"
+                "psr/http-message": "^1.0 || ^2.0"
             },
             "type": "library",
             "extra": {
@@ -323,7 +320,7 @@
             "authors": [
                 {
                     "name": "PHP-FIG",
-                    "homepage": "http://www.php-fig.org/"
+                    "homepage": "https://www.php-fig.org/"
                 }
             ],
             "description": "Common interfaces for PSR-7 HTTP message factories",
@@ -338,31 +335,31 @@
                 "response"
             ],
             "support": {
-                "source": "https://github.com/php-fig/http-factory/tree/master"
+                "source": "https://github.com/php-fig/http-factory/tree/1.0.2"
             },
-            "time": "2019-04-30T12:38:16+00:00"
+            "time": "2023-04-10T20:10:41+00:00"
         },
         {
             "name": "psr/http-message",
-            "version": "1.0.1",
+            "version": "1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/http-message.git",
-                "reference": "f6561bf28d520154e4b0ec72be95418abe6d9363"
+                "reference": "cb6ce4845ce34a8ad9e68117c10ee90a29919eba"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/http-message/zipball/f6561bf28d520154e4b0ec72be95418abe6d9363",
-                "reference": "f6561bf28d520154e4b0ec72be95418abe6d9363",
+                "url": "https://api.github.com/repos/php-fig/http-message/zipball/cb6ce4845ce34a8ad9e68117c10ee90a29919eba",
+                "reference": "cb6ce4845ce34a8ad9e68117c10ee90a29919eba",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.0"
+                "php": "^7.2 || ^8.0"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.0.x-dev"
+                    "dev-master": "1.1.x-dev"
                 }
             },
             "autoload": {
@@ -391,9 +388,9 @@
                 "response"
             ],
             "support": {
-                "source": "https://github.com/php-fig/http-message/tree/master"
+                "source": "https://github.com/php-fig/http-message/tree/1.1"
             },
-            "time": "2016-08-06T14:39:51+00:00"
+            "time": "2023-04-04T09:50:52+00:00"
         },
         {
             "name": "ralouphie/getallheaders",
@@ -782,33 +779,31 @@
         },
         {
             "name": "react/event-loop",
-            "version": "v1.3.0",
+            "version": "v1.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/event-loop.git",
-                "reference": "187fb56f46d424afb6ec4ad089269c72eec2e137"
+                "reference": "6e7e587714fff7a83dcc7025aee42ab3b265ae05"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/event-loop/zipball/187fb56f46d424afb6ec4ad089269c72eec2e137",
-                "reference": "187fb56f46d424afb6ec4ad089269c72eec2e137",
+                "url": "https://api.github.com/repos/reactphp/event-loop/zipball/6e7e587714fff7a83dcc7025aee42ab3b265ae05",
+                "reference": "6e7e587714fff7a83dcc7025aee42ab3b265ae05",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "^9.3 || ^5.7 || ^4.8.35"
+                "phpunit/phpunit": "^9.6 || ^5.7 || ^4.8.36"
             },
             "suggest": {
-                "ext-event": "~1.0 for ExtEventLoop",
-                "ext-pcntl": "For signal handling support when using the StreamSelectLoop",
-                "ext-uv": "* for ExtUvLoop"
+                "ext-pcntl": "For signal handling support when using the StreamSelectLoop"
             },
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "React\\EventLoop\\": "src"
+                    "React\\EventLoop\\": "src/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -844,32 +839,28 @@
             ],
             "support": {
                 "issues": "https://github.com/reactphp/event-loop/issues",
-                "source": "https://github.com/reactphp/event-loop/tree/v1.3.0"
+                "source": "https://github.com/reactphp/event-loop/tree/v1.4.0"
             },
             "funding": [
                 {
-                    "url": "https://github.com/WyriHaximus",
-                    "type": "github"
-                },
-                {
-                    "url": "https://github.com/clue",
-                    "type": "github"
+                    "url": "https://opencollective.com/reactphp",
+                    "type": "open_collective"
                 }
             ],
-            "time": "2022-03-17T11:10:22+00:00"
+            "time": "2023-05-05T10:11:24+00:00"
         },
         {
             "name": "react/http",
-            "version": "v1.8.0",
+            "version": "v1.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/http.git",
-                "reference": "aa7512ee17258c88466de30f9cb44ec5f9df3ff3"
+                "reference": "bb3154dbaf2dfe3f0467f956a05f614a69d5f1d0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/http/zipball/aa7512ee17258c88466de30f9cb44ec5f9df3ff3",
-                "reference": "aa7512ee17258c88466de30f9cb44ec5f9df3ff3",
+                "url": "https://api.github.com/repos/reactphp/http/zipball/bb3154dbaf2dfe3f0467f956a05f614a69d5f1d0",
+                "reference": "bb3154dbaf2dfe3f0467f956a05f614a69d5f1d0",
                 "shasum": ""
             },
             "require": {
@@ -879,7 +870,6 @@
                 "psr/http-message": "^1.0",
                 "react/event-loop": "^1.2",
                 "react/promise": "^3 || ^2.3 || ^1.2.1",
-                "react/promise-stream": "^1.4",
                 "react/socket": "^1.12",
                 "react/stream": "^1.2",
                 "ringcentral/psr7": "^1.2"
@@ -888,14 +878,15 @@
                 "clue/http-proxy-react": "^1.8",
                 "clue/reactphp-ssh-proxy": "^1.4",
                 "clue/socks-react": "^1.4",
-                "phpunit/phpunit": "^9.3 || ^5.7 || ^4.8.35",
+                "phpunit/phpunit": "^9.5 || ^5.7 || ^4.8.35",
                 "react/async": "^4 || ^3 || ^2",
+                "react/promise-stream": "^1.4",
                 "react/promise-timer": "^1.9"
             },
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "React\\Http\\": "src"
+                    "React\\Http\\": "src/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -940,39 +931,35 @@
             ],
             "support": {
                 "issues": "https://github.com/reactphp/http/issues",
-                "source": "https://github.com/reactphp/http/tree/v1.8.0"
+                "source": "https://github.com/reactphp/http/tree/v1.9.0"
             },
             "funding": [
                 {
-                    "url": "https://github.com/WyriHaximus",
-                    "type": "github"
-                },
-                {
-                    "url": "https://github.com/clue",
-                    "type": "github"
+                    "url": "https://opencollective.com/reactphp",
+                    "type": "open_collective"
                 }
             ],
-            "time": "2022-09-29T12:55:52+00:00"
+            "time": "2023-04-26T10:29:24+00:00"
         },
         {
             "name": "react/promise",
-            "version": "v2.9.0",
+            "version": "v2.10.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/promise.git",
-                "reference": "234f8fd1023c9158e2314fa9d7d0e6a83db42910"
+                "reference": "f913fb8cceba1e6644b7b90c4bfb678ed8a3ef38"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/promise/zipball/234f8fd1023c9158e2314fa9d7d0e6a83db42910",
-                "reference": "234f8fd1023c9158e2314fa9d7d0e6a83db42910",
+                "url": "https://api.github.com/repos/reactphp/promise/zipball/f913fb8cceba1e6644b7b90c4bfb678ed8a3ef38",
+                "reference": "f913fb8cceba1e6644b7b90c4bfb678ed8a3ef38",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.4.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "^9.3 || ^5.7 || ^4.8.36"
+                "phpunit/phpunit": "^9.5 || ^5.7 || ^4.8.36"
             },
             "type": "library",
             "autoload": {
@@ -1016,102 +1003,15 @@
             ],
             "support": {
                 "issues": "https://github.com/reactphp/promise/issues",
-                "source": "https://github.com/reactphp/promise/tree/v2.9.0"
+                "source": "https://github.com/reactphp/promise/tree/v2.10.0"
             },
             "funding": [
                 {
-                    "url": "https://github.com/WyriHaximus",
-                    "type": "github"
-                },
-                {
-                    "url": "https://github.com/clue",
-                    "type": "github"
+                    "url": "https://opencollective.com/reactphp",
+                    "type": "open_collective"
                 }
             ],
-            "time": "2022-02-11T10:27:51+00:00"
-        },
-        {
-            "name": "react/promise-stream",
-            "version": "v1.5.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/reactphp/promise-stream.git",
-                "reference": "e6d2805e09ad50c4896f65f5e8705fe4ee7731a3"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/promise-stream/zipball/e6d2805e09ad50c4896f65f5e8705fe4ee7731a3",
-                "reference": "e6d2805e09ad50c4896f65f5e8705fe4ee7731a3",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3",
-                "react/promise": "^3 || ^2.1 || ^1.2",
-                "react/stream": "^1.0 || ^0.7 || ^0.6 || ^0.5 || ^0.4.6"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^9.3 || ^5.7 || ^4.8.35"
-            },
-            "type": "library",
-            "autoload": {
-                "files": [
-                    "src/functions_include.php"
-                ],
-                "psr-4": {
-                    "React\\Promise\\Stream\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Christian Lück",
-                    "email": "christian@clue.engineering",
-                    "homepage": "https://clue.engineering/"
-                },
-                {
-                    "name": "Cees-Jan Kiewiet",
-                    "email": "reactphp@ceesjankiewiet.nl",
-                    "homepage": "https://wyrihaximus.net/"
-                },
-                {
-                    "name": "Jan Sorgalla",
-                    "email": "jsorgalla@gmail.com",
-                    "homepage": "https://sorgalla.com/"
-                },
-                {
-                    "name": "Chris Boden",
-                    "email": "cboden@gmail.com",
-                    "homepage": "https://cboden.dev/"
-                }
-            ],
-            "description": "The missing link between Promise-land and Stream-land for ReactPHP",
-            "homepage": "https://github.com/reactphp/promise-stream",
-            "keywords": [
-                "Buffer",
-                "async",
-                "promise",
-                "reactphp",
-                "stream",
-                "unwrap"
-            ],
-            "support": {
-                "issues": "https://github.com/reactphp/promise-stream/issues",
-                "source": "https://github.com/reactphp/promise-stream/tree/v1.5.0"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/WyriHaximus",
-                    "type": "github"
-                },
-                {
-                    "url": "https://github.com/clue",
-                    "type": "github"
-                }
-            ],
-            "time": "2022-09-09T11:42:18+00:00"
+            "time": "2023-05-02T15:15:43+00:00"
         },
         {
             "name": "react/promise-timer",

@@ -10,7 +10,7 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/test_shared_methods.php';
 
-function test_trade($exchange, $method, $entry, $symbol, $now) {
+function test_trade($exchange, $skipped_properties, $method, $entry, $symbol, $now) {
     $format = array(
         'info' => array(),
         'id' => '12345-67890:09876/54321',
@@ -26,15 +26,22 @@ function test_trade($exchange, $method, $entry, $symbol, $now) {
         'fees' => [],
         'fee' => array(),
     );
-    // todo: add takeOrMaker as mandatory set
+    // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
     // removed side because some public endpoints return trades without side
-    $empty_not_allowed_for = ['price', 'amount', 'cost'];
-    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
-    assert_timestamp($exchange, $method, $entry, $now);
-    assert_symbol($exchange, $method, $entry, 'symbol', $symbol);
+    $empty_allowed_for = ['fees', 'fee', 'symbol', 'order', 'id', 'takerOrMaker'];
+    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+    assert_timestamp($exchange, $skipped_properties, $method, $entry, $now);
+    assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
     //
-    assert_in_array($exchange, $method, $entry, 'side', ['buy', 'sell']);
-    assert_in_array($exchange, $method, $entry, 'takerOrMaker', ['taker', 'maker']);
-    assert_fee($exchange, $method, $entry['fee']);
-    assert_fees($exchange, $method, $entry['fees']);
+    assert_in_array($exchange, $skipped_properties, $method, $entry, 'side', ['buy', 'sell']);
+    assert_in_array($exchange, $skipped_properties, $method, $entry, 'takerOrMaker', ['taker', 'maker']);
+    assert_fee_structure($exchange, $skipped_properties, $method, $entry, 'fee');
+    if (!(is_array($skipped_properties) && array_key_exists('fees', $skipped_properties))) {
+        // todo: remove undefined check
+        if ($entry['fees'] !== null) {
+            for ($i = 0; $i < count($entry['fees']); $i++) {
+                assert_fee_structure($exchange, $skipped_properties, $method, $entry['fees'], $i);
+            }
+        }
+    }
 }

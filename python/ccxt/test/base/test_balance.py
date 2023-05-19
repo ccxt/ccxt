@@ -17,31 +17,39 @@ from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.base import test_shared_methods  # noqa E402
 
 
-def test_balance(exchange, method, entry):
+def test_balance(exchange, skipped_properties, method, entry):
     format = {
         'free': {},
         'used': {},
         'total': {},
         'info': {},
     }
-    empty_not_allowed_for = ['free', 'used', 'total']
-    test_shared_methods.assert_structure(exchange, method, entry, format, empty_not_allowed_for)
+    test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format)
     log_text = test_shared_methods.log_template(exchange, method, entry)
     #
-    codes = list(entry['total'].keys())
-    for i in range(0, len(codes)):
-        code = codes[i]
-        test_shared_methods.assert_currency_code(exchange, method, entry, code)
+    codes_total = list(entry['total'].keys())
+    codes_free = list(entry['free'].keys())
+    codes_used = list(entry['used'].keys())
+    all_codes = codes_total.concat(codes_free)
+    all_codes = all_codes.concat(codes_used)
+    codes_length = len(codes_total)
+    free_length = len(codes_free)
+    used_length = len(codes_used)
+    assert (codes_length == free_length) or (codes_length == used_length), 'free and total and used codes have different lengths' + log_text
+    for i in range(0, len(all_codes)):
+        code = all_codes[i]
+        test_shared_methods.assert_currency_code(exchange, skipped_properties, method, entry, code)
+        assert code in entry['total'], 'code ' + code + ' not in total' + log_text
+        assert code in entry['free'], 'code ' + code + ' not in free' + log_text
+        assert code in entry['used'], 'code ' + code + ' not in used' + log_text
         total = exchange.safe_string(entry['total'], code)
         free = exchange.safe_string(entry['free'], code)
         used = exchange.safe_string(entry['used'], code)
-        total_defined = total is not None
-        free_defined = free is not None
-        used_defined = used is not None
-        if total_defined and free_defined and used_defined:
-            free_and_used = Precise.string_add(free, used)
-            assert Precise.string_eq(total, free_and_used), 'free and used do not sum to total' + log_text
-        else:
-            assert not total_defined and free_defined and used_defined, 'value of \"total\" is missing from balance calculations' + log_text
-            assert total_defined and not free_defined and used_defined, 'value of \"free\" is missing from balance calculations' + log_text
-            assert total_defined and free_defined and not used_defined, 'value of \"used\" is missing from balance calculations' + log_text
+        assert total is not None, 'total is undefined' + log_text
+        assert free is not None, 'free is undefined' + log_text
+        assert used is not None, 'used is undefined' + log_text
+        assert Precise.string_ge(total, '0'), 'total is not positive' + log_text
+        assert Precise.string_ge(free, '0'), 'free is not positive' + log_text
+        assert Precise.string_ge(used, '0'), 'used is not positive' + log_text
+        sum_free_used = Precise.string_add(free, used)
+        assert Precise.string_eq(total, sum_free_used), 'free and used do not sum to total' + log_text

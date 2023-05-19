@@ -457,6 +457,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function futuresprivate_get_funding_history($params = array()) {
         return $this->request('funding-history', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 4.44));
     }
+    public function futuresprivate_get_sub_api_key($params = array()) {
+        return $this->request('sub/api-key', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function futuresprivate_post_withdrawals($params = array()) {
         return $this->request('withdrawals', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -475,6 +478,18 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function futuresprivate_post_bullet_private($params = array()) {
         return $this->request('bullet-private', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function futuresprivate_post_transfer_in($params = array()) {
+        return $this->request('transfer-in', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function futuresprivate_post_position_risk_limit_level_change($params = array()) {
+        return $this->request('position/risk-limit-level/change', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function futuresprivate_post_sub_api_key($params = array()) {
+        return $this->request('sub/api-key', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function futuresprivate_post_sub_api_key_update($params = array()) {
+        return $this->request('sub/api-key/update', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function futuresprivate_delete_withdrawals_withdrawalid($params = array()) {
         return $this->request('withdrawals/{withdrawalId}', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
@@ -489,6 +504,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     }
     public function futuresprivate_delete_stoporders($params = array()) {
         return $this->request('stopOrders', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function futuresprivate_delete_sub_api_key($params = array()) {
+        return $this->request('sub/api-key', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function webfront_get_contract_symbol_funding_rates($params = array()) {
         return $this->request('contract/{symbol}/funding-rates', 'webFront', 'GET', $params, null, null, array("cost" => 1));
@@ -943,6 +961,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function futuresPrivateGetFundingHistory($params = array()) {
         return $this->request('funding-history', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 4.44));
     }
+    public function futuresPrivateGetSubApiKey($params = array()) {
+        return $this->request('sub/api-key', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function futuresPrivatePostWithdrawals($params = array()) {
         return $this->request('withdrawals', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -961,6 +982,18 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function futuresPrivatePostBulletPrivate($params = array()) {
         return $this->request('bullet-private', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function futuresPrivatePostTransferIn($params = array()) {
+        return $this->request('transfer-in', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function futuresPrivatePostPositionRiskLimitLevelChange($params = array()) {
+        return $this->request('position/risk-limit-level/change', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function futuresPrivatePostSubApiKey($params = array()) {
+        return $this->request('sub/api-key', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function futuresPrivatePostSubApiKeyUpdate($params = array()) {
+        return $this->request('sub/api-key/update', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function futuresPrivateDeleteWithdrawalsWithdrawalId($params = array()) {
         return $this->request('withdrawals/{withdrawalId}', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
@@ -975,6 +1008,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     }
     public function futuresPrivateDeleteStopOrders($params = array()) {
         return $this->request('stopOrders', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function futuresPrivateDeleteSubApiKey($params = array()) {
+        return $this->request('sub/api-key', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function webFrontGetContractSymbolFundingRates($params = array()) {
         return $this->request('contract/{symbol}/funding-rates', 'webFront', 'GET', $params, null, null, array("cost" => 1));

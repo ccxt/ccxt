@@ -16,7 +16,7 @@ sys.path.append(root)
 from ccxt.test.base import test_shared_methods  # noqa E402
 
 
-def test_leverage_tier(exchange, method, entry):
+def test_leverage_tier(exchange, skipped_properties, method, entry):
     format = {
         'tier': exchange.parse_number('1'),
         'minNotional': exchange.parse_number('0'),
@@ -25,11 +25,11 @@ def test_leverage_tier(exchange, method, entry):
         'maxLeverage': exchange.parse_number('25'),
         'info': {},
     }
-    empty_not_allowed_for = ['maxLeverage', ' info']
-    test_shared_methods.assert_structure(exchange, method, entry, format, empty_not_allowed_for)
+    empty_allowed_for = ['maintenanceMarginRate']
+    test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
     #
-    test_shared_methods.assert_greater_or_equal(exchange, method, entry, 'tier', '0')
-    test_shared_methods.assert_greater_or_equal(exchange, method, entry, 'minNotional', '0')
-    test_shared_methods.assert_greater_or_equal(exchange, method, entry, 'maxNotional', '0')
-    test_shared_methods.assert_greater_or_equal(exchange, method, entry, 'maxLeverage', '1')
-    test_shared_methods.assert_less_or_equal(exchange, method, entry, 'maintenanceMarginRate', '1')
+    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'tier', '0')
+    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'minNotional', '0')
+    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'maxNotional', '0')
+    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'maxLeverage', '1')
+    test_shared_methods.assert_less_or_equal(exchange, skipped_properties, method, entry, 'maintenanceMarginRate', '1')

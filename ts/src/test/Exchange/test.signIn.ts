@@ -1,5 +1,5 @@
 
-async function testSignIn (exchange) {
+async function testSignIn (exchange, skippedProperties) {
     const method = 'signIn';
     if (exchange.has[method]) {
         await exchange.signIn ();

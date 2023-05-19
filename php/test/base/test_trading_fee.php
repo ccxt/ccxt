@@ -10,7 +10,7 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/test_shared_methods.php';
 
-function test_trading_fee($exchange, $method, $symbol, $entry) {
+function test_trading_fee($exchange, $skipped_properties, $method, $symbol, $entry) {
     $format = array(
         'info' => array(),
         'symbol' => 'ETH/BTC',
@@ -19,7 +19,7 @@ function test_trading_fee($exchange, $method, $symbol, $entry) {
         'percentage' => false,
         'tierBased' => false,
     );
-    $empty_not_allowed_for = ['maker', 'taker', 'percentage', 'tierBased'];
-    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
-    assert_symbol($exchange, $method, $entry, 'symbol', $symbol);
+    $empty_allowed_for = ['tierBased', 'percentage', 'symbol'];
+    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+    assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
 }

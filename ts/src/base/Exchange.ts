@@ -107,6 +107,7 @@ const {
     , DECIMAL_PLACES
     , NO_PADDING
     , TICK_SIZE
+    , SIGNIFICANT_DIGITS
 } = functions
 
 // import exceptions from "./errors.js"
@@ -1366,7 +1367,7 @@ export default class Exchange {
                     const first = array[0][key];
                     const last = array[arrayLength - 1][key];
                     if (first !== undefined && last !== undefined) {
-                        ascending = first < last;  // true if array is sorted in ascending order based on 'timestamp'
+                        ascending = first <= last;  // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
                 array = ascending ? this.arraySlice (array, -limit) : this.arraySlice (array, 0, limit);
@@ -1590,8 +1591,8 @@ export default class Exchange {
         };
     }
 
-    currencyStructure () {
-        return {
+    safeCurrencyStructure (currency: object) {
+        return this.extend ({
             'info': undefined,
             'id': undefined,
             'numericId': undefined,
@@ -1615,7 +1616,7 @@ export default class Exchange {
                     'max': undefined,
                 },
             },
-        };
+        }, currency);
     }
 
     setMarkets (markets, currencies = undefined) {
@@ -1653,19 +1654,21 @@ export default class Exchange {
                 const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('1e-8');
                 const marketPrecision = this.safeValue (market, 'precision', {});
                 if ('base' in market) {
-                    const currency = this.currencyStructure ();
-                    currency['id'] = this.safeString2 (market, 'baseId', 'base');
-                    currency['numericId'] = this.safeInteger (market, 'baseNumericId');
-                    currency['code'] = this.safeString (market, 'base');
-                    currency['precision'] = this.safeValue2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision);
+                    const currency = this.safeCurrencyStructure ({
+                        'id': this.safeString2 (market, 'baseId', 'base'),
+                        'numericId': this.safeInteger (market, 'baseNumericId'),
+                        'code': this.safeString (market, 'base'),
+                        'precision': this.safeValue2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision),
+                    });
                     baseCurrencies.push (currency);
                 }
                 if ('quote' in market) {
-                    const currency = this.currencyStructure ();
-                    currency['id'] = this.safeString2 (market, 'quoteId', 'quote');
-                    currency['numericId'] = this.safeInteger (market, 'quoteNumericId');
-                    currency['code'] = this.safeString (market, 'quote');
-                    currency['precision'] = this.safeValue2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision);
+                    const currency = this.safeCurrencyStructure ({
+                        'id': this.safeString2 (market, 'quoteId', 'quote'),
+                        'numericId': this.safeInteger (market, 'quoteNumericId'),
+                        'code': this.safeString (market, 'quote'),
+                        'precision': this.safeValue2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
+                    });
                     quoteCurrencies.push (currency);
                 }
             }
@@ -3491,6 +3494,18 @@ export default class Exchange {
         } else {
             return this.decimalToPrecision (fee, ROUND, precision, this.precisionMode, this.paddingMode);
         }
+    }
+
+    isTickPrecision () {
+        return this.precisionMode === TICK_SIZE;
+    }
+
+    isDecimalPrecision () {
+        return this.precisionMode === DECIMAL_PLACES;
+    }
+
+    isSignificantPrecision () {
+        return this.precisionMode === SIGNIFICANT_DIGITS;
     }
 
     safeNumber (obj: object, key: IndexType, defaultNumber: number = undefined): number {

@@ -11,6 +11,7 @@ export default async (exchange, symbol) => {
     // log (symbol.green, 'watching my trades...')
 
     const method = 'watchMyTrades';
+    const skippedProperties = {};
 
     if (!exchange.has[method]) {
         console.log (exchange.id, 'does not support', method, '() method');
@@ -38,7 +39,7 @@ export default async (exchange, symbol) => {
 
             for (let i = 0; i < response.length; i++) {
                 const trade = response[i];
-                testTrade (exchange, method, trade, symbol, now);
+                testTrade (exchange, skippedProperties, method, trade, symbol, now);
                 if (i > 0) {
                     const previousTrade = response[i - 1];
                     if (trade.timestamp && previousTrade.timestamp) {

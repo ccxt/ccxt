@@ -12,10 +12,10 @@ use React\Promise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_balance.php';
 
-function test_fetch_balance($exchange, $code, $symbol) {
-    return Async\async(function () use ($exchange, $code, $symbol) {
+function test_fetch_balance($exchange, $skipped_properties, $code, $symbol) {
+    return Async\async(function () use ($exchange, $skipped_properties, $code, $symbol) {
         $method = 'fetchBalance';
         $response = Async\await($exchange->fetch_balance());
-        test_balance($exchange, $method, $response);
+        test_balance($exchange, $skipped_properties, $method, $response);
     }) ();
 }

@@ -1124,7 +1124,7 @@ export default class coinex extends Exchange {
         //      }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseTradingFee (data);
+        return this.parseTradingFee (data, market);
     }
 
     async fetchTradingFees (params = {}) {

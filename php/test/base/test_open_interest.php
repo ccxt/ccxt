@@ -10,7 +10,7 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/test_shared_methods.php';
 
-function test_open_interest($exchange, $method, $entry) {
+function test_open_interest($exchange, $skipped_properties, $method, $entry) {
     $format = array(
         'symbol' => 'BTC/USDT',
         'baseVolume' => $exchange->parse_number('81094.084'),
@@ -19,11 +19,11 @@ function test_open_interest($exchange, $method, $entry) {
         'datetime' => '2022-04-07T23:20:00.000Z',
         'info' => array(),
     );
-    $empty_not_allowed_for = ['baseVolume'];
-    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
-    assert_symbol($exchange, $method, $entry, 'symbol');
-    assert_timestamp($exchange, $method, $entry);
+    $empty_allowed_for = ['quoteVolume', 'symbol', 'timestamp'];
+    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+    assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol');
+    assert_timestamp($exchange, $skipped_properties, $method, $entry);
     //
-    assert_greater($exchange, $method, $entry, 'quoteVolume', '0');
-    assert_greater($exchange, $method, $entry, 'baseVolume', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'quoteVolume', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'baseVolume', '0');
 }

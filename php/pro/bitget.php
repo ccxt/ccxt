@@ -598,10 +598,15 @@ class bitget extends \ccxt\async\bitget {
                 $marketId = $market['id'];
                 $messageHash = $messageHash . ':' . $symbol;
             }
+            $isStop = $this->safe_value($params, 'stop', false);
+            $params = $this->omit($params, 'stop');
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
             if (($type === 'spot') && ($symbol === null)) {
                 throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument for ' . $type . ' markets.');
+            }
+            if ($isStop && $type === 'spot') {
+                throw new NotSupported($this->id . ' watchOrders does not support stop $orders for ' . $type . ' markets.');
             }
             $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
             $instType = null;
@@ -616,9 +621,10 @@ class bitget extends \ccxt\async\bitget {
                 }
             }
             $instId = ($type === 'spot') ? $marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+            $channel = $isStop ? 'ordersAlgo' : 'orders';
             $args = array(
                 'instType' => $instType,
-                'channel' => 'orders',
+                'channel' => $channel,
                 'instId' => $instId,
             );
             $orders = Async\await($this->watch_private($messageHash, $subscriptionHash, $args, $params));
@@ -757,12 +763,38 @@ class bitget extends \ccxt\async\bitget {
         //        tgtCcy => 'USDT',
         //        uTime => 1656510642518
         //    }
+        // algo $order
+        //    {
+        //        "actualPx":"50.000000000",
+        //        "actualSz":"0.000000000",
+        //        "cOid":"1041588152132243456",
+        //        "cTime":"1684059887917",
+        //        "eps":"api",
+        //        "hM":"double_hold",
+        //        "id":"1041588152132243457",
+        //        "instId":"LTCUSDT_UMCBL",
+        //        "key":"1041588152132243457",
+        //        "ordPx":"55.000000000",
+        //        "ordType":"limit",
+        //        "planType":"pl",
+        //        "posSide":"long",
+        //        "side":"buy",
+        //        "state":"not_trigger",
+        //        "sz":"0.100000000",
+        //        "tS":"open_long",
+        //        "tgtCcy":"USDT",
+        //        "triggerPx":"55.000000000",
+        //        "triggerPxType":"mark",
+        //        "triggerTime":"1684059887917",
+        //        "userId":"3704614084",
+        //        "version":1041588152090300400
+        //    }
         //
         $marketId = $this->safe_string($order, 'instId');
         $market = $this->safe_market($marketId, $market);
-        $id = $this->safe_string($order, 'ordId');
-        $clientOrderId = $this->safe_string($order, 'clOrdId');
-        $price = $this->safe_string($order, 'px');
+        $id = $this->safe_string_2($order, 'ordId', 'id');
+        $clientOrderId = $this->safe_string_2($order, 'clOrdId', 'cOid');
+        $price = $this->safe_string_2($order, 'px', 'actualPx');
         $filled = $this->safe_string($order, 'fillSz');
         $amount = $this->safe_string($order, 'sz');
         $cost = $this->safe_string_2($order, 'notional', 'notionalUsd');
@@ -776,7 +808,7 @@ class bitget extends \ccxt\async\bitget {
         } elseif (($side === 'close_long') || ($side === 'open_short')) {
             $side = 'sell';
         }
-        $rawStatus = $this->safe_string($order, 'status', 'state');
+        $rawStatus = $this->safe_string_2($order, 'status', 'state');
         $timeInForce = $this->safe_string($order, 'force');
         $status = $this->parse_ws_order_status($rawStatus);
         $orderFee = $this->safe_value($order, 'orderFee', array());
@@ -790,6 +822,7 @@ class bitget extends \ccxt\async\bitget {
                 'currency' => $this->safe_currency_code($feeCurrency),
             );
         }
+        $stopPrice = $this->safe_string($order, 'triggerPx');
         return $this->safe_order(array(
             'info' => $order,
             'symbol' => $symbol,
@@ -803,8 +836,8 @@ class bitget extends \ccxt\async\bitget {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
-            'triggerPrice' => null,
+            'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -823,6 +856,7 @@ class bitget extends \ccxt\async\bitget {
             'full-fill' => 'closed',
             'filled' => 'closed',
             'cancelled' => 'canceled',
+            'not_trigger' => 'open',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1208,6 +1242,7 @@ class bitget extends \ccxt\async\bitget {
             'ticker' => array($this, 'handle_ticker'),
             'trade' => array($this, 'handle_trades'),
             'orders' => array($this, 'handle_order'),
+            'ordersAlgo' => array($this, 'handle_order'),
             'account' => array($this, 'handle_balance'),
         );
         $arg = $this->safe_value($message, 'arg', array());

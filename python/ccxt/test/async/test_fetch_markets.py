@@ -16,10 +16,10 @@ sys.path.append(root)
 from ccxt.test.base import test_market  # noqa E402
 
 
-async def test_fetch_markets(exchange):
+async def test_fetch_markets(exchange, skipped_properties):
     method = 'fetchMarkets'
     markets = await exchange.fetch_markets()
     assert isinstance(markets, dict), exchange.id + ' ' + method + ' must return an object. ' + exchange.json(markets)
     market_values = list(markets.values())
     for i in range(0, len(market_values)):
-        test_market(exchange, method, market_values[i])
+        test_market(exchange, skipped_properties, method, market_values[i])

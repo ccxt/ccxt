@@ -32,6 +32,7 @@ class bitpanda(Exchange, ImplicitAPI):
             'countries': ['AT'],  # Austria
             'rateLimit': 300,
             'version': 'v1',
+            'pro': True,
             # new metainfo interface
             'has': {
                 'CORS': None,

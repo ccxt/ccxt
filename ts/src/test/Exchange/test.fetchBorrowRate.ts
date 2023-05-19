@@ -1,7 +1,7 @@
 
 import testBorrowRate from './base/test.borrowRate.js';
 
-async function testFetchBorrowRate (exchange, code) {
+async function testFetchBorrowRate (exchange, skippedProperties, code) {
     const method = 'fetchBorrowRate';
     let borrowRate = undefined;
     try {
@@ -15,7 +15,7 @@ async function testFetchBorrowRate (exchange, code) {
         // console.log (method + '() : ' + code + ' is not borrowable for this exchange. Skipping the test method.');
         return;
     }
-    testBorrowRate (exchange, method, borrowRate, code);
+    testBorrowRate (exchange, skippedProperties, method, borrowRate, code);
 }
 
 export default testFetchBorrowRate;

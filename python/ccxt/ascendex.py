@@ -1245,6 +1245,25 @@ class ascendex(Exchange, ImplicitAPI):
         #     }
         #
         #     {
+        #         "orderId": "a173ad938fc3U22666567717788c3b66",   # orderId
+        #         "seqNum": 18777366360,                           # sequence number
+        #         "accountId": "cshwSjbpPjSwHmxPdz2CPQVU9mnbzPpt",  # accountId
+        #         "symbol": "BTC/USDT",                            # symbol
+        #         "orderType": "Limit",                            # order type(Limit/Market/StopMarket/StopLimit)
+        #         "side": "Sell",                                  # order side(Buy/Sell)
+        #         "price": "11346.77",                             # order price
+        #         "stopPrice": "0",                                # stop price(0 by default)
+        #         "orderQty": "0.01",                              # order quantity(in base asset)
+        #         "status": "Canceled",                            # order status(Filled/Canceled/Rejected)
+        #         "createTime": 1596344995793,                     # order creation time
+        #         "lastExecTime": 1596344996053,                   # last execution time
+        #         "avgFillPrice": "11346.77",                      # average filled price
+        #         "fillQty": "0.01",                               # filled quantity(in base asset)
+        #         "fee": "-0.004992579",                           # cummulative fee. if negative, self value is the commission charged; if possitive, self value is the rebate received.
+        #         "feeAsset": "USDT"                               # fee asset
+        #     }
+        #
+        #     {
         #         "ac": "FUTURES",
         #         "accountId": "testabcdefg",
         #         "avgPx": "0",
@@ -1276,7 +1295,7 @@ class ascendex(Exchange, ImplicitAPI):
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'orderQty')
         average = self.safe_string(order, 'avgPx')
-        filled = self.safe_string_2(order, 'cumFilledQty', 'cumQty')
+        filled = self.safe_string_n(order, ['cumFilledQty', 'cumQty', 'fillQty'])
         id = self.safe_string(order, 'orderId')
         clientOrderId = self.safe_string(order, 'id')
         if clientOrderId is not None:
@@ -1290,7 +1309,7 @@ class ascendex(Exchange, ImplicitAPI):
             if rawTypeLower == 'stopmarket':
                 type = 'market'
         side = self.safe_string_lower(order, 'side')
-        feeCost = self.safe_number(order, 'cumFee')
+        feeCost = self.safe_number_2(order, 'cumFee', 'fee')
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(order, 'feeAsset')

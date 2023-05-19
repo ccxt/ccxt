@@ -16,7 +16,7 @@ sys.path.append(root)
 from ccxt.test.base import test_shared_methods  # noqa E402
 
 
-def test_borrow_rate(exchange, method, entry, requested_code):
+def test_borrow_rate(exchange, skipped_properties, method, entry, requested_code):
     format = {
         'info': {},
         'currency': 'USDT',
@@ -25,10 +25,10 @@ def test_borrow_rate(exchange, method, entry, requested_code):
         'rate': exchange.parse_number('0.0006'),
         'period': 86400000,
     }
-    empty_not_allowed_for = ['currency', 'rate']
-    test_shared_methods.assert_structure(exchange, method, entry, format, empty_not_allowed_for)
-    test_shared_methods.assert_timestamp(exchange, method, entry)
-    test_shared_methods.assert_currency_code(exchange, method, entry, entry['currency'], requested_code)
+    test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format)
+    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry)
+    test_shared_methods.assert_currency_code(exchange, skipped_properties, method, entry, entry['currency'], requested_code)
     #
     # assert (borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000) # Milliseconds in an hour or a day
-    test_shared_methods.assert_greater(exchange, method, entry, 'rate', '0')
+    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'period', '0')
+    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'rate', '0')

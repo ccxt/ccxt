@@ -10,7 +10,7 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/test_shared_methods.php';
 
-function test_leverage_tier($exchange, $method, $entry) {
+function test_leverage_tier($exchange, $skipped_properties, $method, $entry) {
     $format = array(
         'tier' => $exchange->parse_number('1'),
         'minNotional' => $exchange->parse_number('0'),
@@ -19,12 +19,12 @@ function test_leverage_tier($exchange, $method, $entry) {
         'maxLeverage' => $exchange->parse_number('25'),
         'info' => array(),
     );
-    $empty_not_allowed_for = ['maxLeverage', ' info'];
-    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
+    $empty_allowed_for = ['maintenanceMarginRate'];
+    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
     //
-    assert_greater_or_equal($exchange, $method, $entry, 'tier', '0');
-    assert_greater_or_equal($exchange, $method, $entry, 'minNotional', '0');
-    assert_greater_or_equal($exchange, $method, $entry, 'maxNotional', '0');
-    assert_greater_or_equal($exchange, $method, $entry, 'maxLeverage', '1');
-    assert_less_or_equal($exchange, $method, $entry, 'maintenanceMarginRate', '1');
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'tier', '0');
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'minNotional', '0');
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'maxNotional', '0');
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'maxLeverage', '1');
+    assert_less_or_equal($exchange, $skipped_properties, $method, $entry, 'maintenanceMarginRate', '1');
 }

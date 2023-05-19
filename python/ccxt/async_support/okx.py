@@ -1540,6 +1540,23 @@ class okx(Exchange, ImplicitAPI):
         #         "ts": "1621446178316"
         #     }
         #
+        # option: fetchTrades
+        #
+        #     {
+        #         "fillVol": "0.46387625976562497",
+        #         "fwdPx": "26299.754935451125",
+        #         "indexPx": "26309.7",
+        #         "instFamily": "BTC-USD",
+        #         "instId": "BTC-USD-230526-26000-C",
+        #         "markPx": "0.042386283557554236",
+        #         "optType": "C",
+        #         "px": "0.0415",
+        #         "side": "sell",
+        #         "sz": "90",
+        #         "tradeId": "112",
+        #         "ts": "1683907480154"
+        #     }
+        #
         # private fetchMyTrades
         #
         #     {
@@ -1603,6 +1620,8 @@ class okx(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
+        see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades
+        see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-option-trades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
@@ -1614,9 +1633,13 @@ class okx(Exchange, ImplicitAPI):
         request = {
             'instId': market['id'],
         }
-        if limit is not None:
-            request['limit'] = limit  # default 100
-        response = await self.publicGetMarketTrades(self.extend(request, params))
+        response = None
+        if market['option']:
+            response = await self.publicGetPublicOptionTrades(self.extend(request, params))
+        else:
+            if limit is not None:
+                request['limit'] = limit  # default 100
+            response = await self.publicGetMarketTrades(self.extend(request, params))
         #
         #     {
         #         "code": "0",
@@ -1626,6 +1649,29 @@ class okx(Exchange, ImplicitAPI):
         #             {"instId":"ETH-BTC","side":"sell","sz":"0.03","px":"0.07068","tradeId":"15826756","ts":"1621446178066"},
         #             {"instId":"ETH-BTC","side":"buy","sz":"0.507","px":"0.07069","tradeId":"15826755","ts":"1621446175085"},
         #         ]
+        #     }
+        #
+        # option
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "fillVol": "0.46387625976562497",
+        #                 "fwdPx": "26299.754935451125",
+        #                 "indexPx": "26309.7",
+        #                 "instFamily": "BTC-USD",
+        #                 "instId": "BTC-USD-230526-26000-C",
+        #                 "markPx": "0.042386283557554236",
+        #                 "optType": "C",
+        #                 "px": "0.0415",
+        #                 "side": "sell",
+        #                 "sz": "90",
+        #                 "tradeId": "112",
+        #                 "ts": "1683907480154"
+        #             },
+        #         ],
+        #         "msg": ""
         #     }
         #
         data = self.safe_value(response, 'data', [])

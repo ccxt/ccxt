@@ -10,7 +10,7 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_borrow_rate.php';
 
-function test_fetch_borrow_rate($exchange, $code) {
+function test_fetch_borrow_rate($exchange, $skipped_properties, $code) {
     $method = 'fetchBorrowRate';
     $borrow_rate = null;
     try {
@@ -24,5 +24,5 @@ function test_fetch_borrow_rate($exchange, $code) {
         // console.log (method + '() : ' + code + ' is not borrowable for this exchange. Skipping the test method.');
         return;
     }
-    test_borrow_rate($exchange, $method, $borrow_rate, $code);
+    test_borrow_rate($exchange, $skipped_properties, $method, $borrow_rate, $code);
 }

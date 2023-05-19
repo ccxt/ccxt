@@ -545,31 +545,7 @@ export default class Exchange {
         fee: any;
         info: object;
     };
-    currencyStructure(): {
-        info: any;
-        id: any;
-        numericId: any;
-        code: any;
-        precision: any;
-        type: any;
-        name: any;
-        active: any;
-        deposit: any;
-        withdraw: any;
-        fee: any;
-        fees: {};
-        networks: {};
-        limits: {
-            deposit: {
-                min: any;
-                max: any;
-            };
-            withdraw: {
-                min: any;
-                max: any;
-            };
-        };
-    };
+    safeCurrencyStructure(currency: object): any;
     setMarkets(markets: any, currencies?: any): Dictionary<any>;
     safeBalance(balance: object): Balances;
     safeOrder(order: object, market?: object): any;
@@ -704,6 +680,9 @@ export default class Exchange {
     amountToPrecision(symbol: string, amount: any): any;
     feeToPrecision(symbol: string, fee: any): any;
     currencyToPrecision(code: string, fee: any, networkCode?: any): any;
+    isTickPrecision(): boolean;
+    isDecimalPrecision(): boolean;
+    isSignificantPrecision(): boolean;
     safeNumber(obj: object, key: IndexType, defaultNumber?: number): number;
     safeNumberN(obj: object, arr: IndexType[], defaultNumber?: number): number;
     parsePrecision(precision?: string): string;

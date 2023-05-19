@@ -1,2 +1,2 @@
-declare function testFetchLedger(exchange: any, code: any): Promise<void>;
+declare function testFetchLedger(exchange: any, skippedProperties: any, code: any): Promise<void>;
 export default testFetchLedger;

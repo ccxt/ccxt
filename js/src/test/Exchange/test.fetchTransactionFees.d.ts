@@ -1,2 +1,2 @@
-declare function testFetchTransactionFees(exchange?: any): Promise<any>;
+declare function testFetchTransactionFees(exchange: any, skippedProperties: any): Promise<any>;
 export default testFetchTransactionFees;

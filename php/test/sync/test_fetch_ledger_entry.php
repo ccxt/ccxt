@@ -10,13 +10,13 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_ledger_entry.php';
 
-function test_fetch_ledger_entry($exchange, $code) {
+function test_fetch_ledger_entry($exchange, $skipped_properties, $code) {
     $method = 'fetchLedgerEntry';
     $items = $exchange->fetch_ledger($code);
     $length = count($items);
     if ($length > 0) {
         $item = $exchange->fetch_ledger_entry($items[0]->id);
         $now = $exchange->milliseconds();
-        test_ledger_entry($exchange, $method, $item, $code, $now);
+        test_ledger_entry($exchange, $skipped_properties, $method, $item, $code, $now);
     }
 }

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.100'
+__version__ = '3.1.2'
 
 # -----------------------------------------------------------------------------
 
@@ -1679,7 +1679,7 @@ class Exchange(object):
                     first = array[0][key]
                     last = array[arrayLength - 1][key]
                     if first is not None and last is not None:
-                        ascending = first < last  # True if array is sorted in ascending order based on 'timestamp'
+                        ascending = first <= last  # True if array is sorted in ascending order based on 'timestamp'
                 array = self.arraySlice(array, -limit) if ascending else self.arraySlice(array, 0, limit)
         return array
 
@@ -1852,8 +1852,8 @@ class Exchange(object):
             'info': entry,
         }
 
-    def currency_structure(self):
-        return {
+    def safe_currency_structure(self, currency: object):
+        return self.extend({
             'info': None,
             'id': None,
             'numericId': None,
@@ -1877,7 +1877,7 @@ class Exchange(object):
                     'max': None,
                 },
             },
-        }
+        }, currency)
 
     def set_markets(self, markets, currencies=None):
         values = []
@@ -1912,18 +1912,20 @@ class Exchange(object):
                 defaultCurrencyPrecision = 8 if (self.precisionMode == DECIMAL_PLACES) else self.parse_number('1e-8')
                 marketPrecision = self.safe_value(market, 'precision', {})
                 if 'base' in market:
-                    currency = self.currency_structure()
-                    currency['id'] = self.safe_string_2(market, 'baseId', 'base')
-                    currency['numericId'] = self.safe_integer(market, 'baseNumericId')
-                    currency['code'] = self.safe_string(market, 'base')
-                    currency['precision'] = self.safe_value_2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision)
+                    currency = self.safe_currency_structure({
+                        'id': self.safe_string_2(market, 'baseId', 'base'),
+                        'numericId': self.safe_integer(market, 'baseNumericId'),
+                        'code': self.safe_string(market, 'base'),
+                        'precision': self.safe_value_2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision),
+                    })
                     baseCurrencies.append(currency)
                 if 'quote' in market:
-                    currency = self.currency_structure()
-                    currency['id'] = self.safe_string_2(market, 'quoteId', 'quote')
-                    currency['numericId'] = self.safe_integer(market, 'quoteNumericId')
-                    currency['code'] = self.safe_string(market, 'quote')
-                    currency['precision'] = self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision)
+                    currency = self.safe_currency_structure({
+                        'id': self.safe_string_2(market, 'quoteId', 'quote'),
+                        'numericId': self.safe_integer(market, 'quoteNumericId'),
+                        'code': self.safe_string(market, 'quote'),
+                        'precision': self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
+                    })
                     quoteCurrencies.append(currency)
             baseCurrencies = self.sort_by(baseCurrencies, 'code')
             quoteCurrencies = self.sort_by(quoteCurrencies, 'code')
@@ -3382,6 +3384,15 @@ class Exchange(object):
             return fee
         else:
             return self.decimal_to_precision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
+
+    def is_tick_precision(self):
+        return self.precisionMode == TICK_SIZE
+
+    def is_decimal_precision(self):
+        return self.precisionMode == DECIMAL_PLACES
+
+    def is_significant_precision(self):
+        return self.precisionMode == SIGNIFICANT_DIGITS
 
     def safe_number(self, obj: object, key: IndexType, defaultNumber: Optional[float] = None):
         value = self.safe_string(obj, key)

@@ -2087,6 +2087,10 @@ class whitebit extends Exchange {
         return $this->in_array($currency, $fiatCurrencies);
     }
 
+    public function nonce() {
+        return $this->milliseconds();
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $version = $this->safe_value($api, 0);

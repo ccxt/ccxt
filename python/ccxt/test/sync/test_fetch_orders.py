@@ -17,11 +17,11 @@ from ccxt.test.base import test_shared_methods  # noqa E402
 from ccxt.test.base import test_order  # noqa E402
 
 
-def test_fetch_orders(exchange, symbol):
+def test_fetch_orders(exchange, skipped_properties, symbol):
     method = 'fetchOrders'
     orders = exchange.fetch_orders(symbol)
     assert isinstance(orders, list), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json(orders)
     now = exchange.milliseconds()
     for i in range(0, len(orders)):
-        test_order(exchange, method, orders[i], symbol, now)
+        test_order(exchange, skipped_properties, method, orders[i], symbol, now)
     test_shared_methods.assert_timestamp_order(exchange, method, symbol, orders)

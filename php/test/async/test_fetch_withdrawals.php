@@ -13,14 +13,14 @@ use React\Promise;
 include_once __DIR__ . '/../base/test_shared_methods.php';
 include_once __DIR__ . '/../base/test_transaction.php';
 
-function test_fetch_withdrawals($exchange, $code) {
-    return Async\async(function () use ($exchange, $code) {
+function test_fetch_withdrawals($exchange, $skipped_properties, $code) {
+    return Async\async(function () use ($exchange, $skipped_properties, $code) {
         $method = 'fetchWithdrawals';
         $transactions = Async\await($exchange->fetch_withdrawals($code));
         assert(gettype($transactions) === 'array' && array_keys($transactions) === array_keys(array_keys($transactions)), $exchange->id . ' ' . $method . ' ' . $code . ' must return an array. ' . $exchange->json($transactions));
         $now = $exchange->milliseconds();
         for ($i = 0; $i < count($transactions); $i++) {
-            test_transaction($exchange, $method, $transactions[$i], $code, $now);
+            test_transaction($exchange, $skipped_properties, $method, $transactions[$i], $code, $now);
         }
         assert_timestamp_order($exchange, $method, $code, $transactions);
     }) ();

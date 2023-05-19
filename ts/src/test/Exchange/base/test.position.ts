@@ -1,7 +1,7 @@
 
 import testSharedMethods from './test.sharedMethods.js';
 
-function testPosition (exchange, method, entry, symbol, now) {
+function testPosition (exchange, skippedProperties, method, entry, symbol, now) {
     const format = {
         'info': {}, // or []
         'symbol': 'XYZ/USDT',
@@ -25,27 +25,27 @@ function testPosition (exchange, method, entry, symbol, now) {
         'side': 'long',
         'percentage': exchange.parseNumber ('1.234'),
     };
-    const emptyNotAllowedFor = [ 'symbol', 'entryPrice', 'side', 'markPrice', 'contracts', 'contractSize', 'marginMode' ];
-    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.assertTimestamp (exchange, method, entry, now);
-    testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
-    testSharedMethods.assertInArray (exchange, method, entry, 'side', [ 'long', 'short' ]);
-    testSharedMethods.assertInArray (exchange, method, entry, 'marginMode', [ 'cross', 'isolated' ]);
-    testSharedMethods.assertGreater (exchange, method, entry, 'leverage', '0');
-    testSharedMethods.assertLessOrEqual (exchange, method, entry, 'leverage', '200');
-    testSharedMethods.assertGreater (exchange, method, entry, 'initialMargin', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'initialMarginPercentage', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'maintenanceMargin', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'maintenanceMarginPercentage', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'entryPrice', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'notional', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'contracts', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'contractSize', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'marginRatio', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'liquidationPrice', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'markPrice', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'collateral', '0');
-    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'percentage', '0');
+    const emptyotAllowedFor = [ 'liquidationPrice', 'initialMargin', 'initialMarginPercentage', 'maintenanceMargin', 'maintenanceMarginPercentage', 'marginRatio' ];
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyotAllowedFor);
+    testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry, now);
+    testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
+    testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'side', [ 'long', 'short' ]);
+    testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'marginMode', [ 'cross', 'isolated' ]);
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'leverage', '0');
+    testSharedMethods.assertLessOrEqual (exchange, skippedProperties, method, entry, 'leverage', '200');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'initialMargin', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'initialMarginPercentage', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'maintenanceMargin', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'maintenanceMarginPercentage', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'entryPrice', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'notional', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'contracts', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'contractSize', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'marginRatio', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'liquidationPrice', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'markPrice', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'collateral', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'percentage', '0');
 }
 
 export default testPosition;

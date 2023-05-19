@@ -16,7 +16,7 @@ sys.path.append(root)
 from ccxt.test.base import test_ticker  # noqa E402
 
 
-async def test_fetch_tickers(exchange, symbol):
+async def test_fetch_tickers(exchange, skipped_properties, symbol):
     method = 'fetchTickers'
     # log ('fetching all tickers at once...')
     tickers = None
@@ -30,4 +30,4 @@ async def test_fetch_tickers(exchange, symbol):
     values = list(tickers.values())
     for i in range(0, len(values)):
         ticker = values[i]
-        test_ticker(exchange, method, ticker, checked_symbol)
+        test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)

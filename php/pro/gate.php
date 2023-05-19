@@ -828,10 +828,11 @@ class gate extends \ccxt\async\gate {
             // inject order status
             $info = $this->safe_value($parsed, 'info');
             $event = $this->safe_string($info, 'event');
-            if ($event === 'put') {
+            if ($event === 'put' || $event === ' update') {
                 $parsed['status'] = 'open';
             } elseif ($event === 'finish') {
-                $parsed['status'] = 'closed';
+                $left = $this->safe_number($info, 'left');
+                $parsed['status'] = ($left === 0) ? 'closed' : 'canceled';
             }
             $stored->append ($parsed);
             $symbol = $parsed['symbol'];

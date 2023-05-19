@@ -49,12 +49,12 @@ export default class xt extends Exchange {
                 max: any;
             };
             price: {
-                min: number;
-                max: number;
+                min: any;
+                max: any;
             };
             cost: {
-                min: number;
-                max: number;
+                min: any;
+                max: any;
             };
         };
         info: any;
@@ -136,7 +136,7 @@ export default class xt extends Exchange {
         tagFrom: any;
         tagTo: any;
         tag: string;
-        type: any;
+        type: string;
         amount: number;
         currency: any;
         network: string;
@@ -161,7 +161,7 @@ export default class xt extends Exchange {
         tagFrom: any;
         tagTo: any;
         tag: string;
-        type: any;
+        type: string;
         amount: number;
         currency: any;
         network: string;

@@ -163,6 +163,7 @@ class binance extends Exchange {
                     'public' => 'https://api.binance.com/api/v3',
                     'private' => 'https://api.binance.com/api/v3',
                     'v1' => 'https://api.binance.com/api/v1',
+                    'papi' => 'https://papi.binance.com/papi/v1',
                 ),
                 'www' => 'https://www.binance.com',
                 'referral' => array(
@@ -806,6 +807,68 @@ class binance extends Exchange {
                         'openOrders' => 1, // added on 2020-04-25 for canceling all open orders per symbol
                         'orderList' => 1, // oco
                         'order' => 1,
+                    ),
+                ),
+                'papi' => array(
+                    'get' => array(
+                        'um/order' => 1, // 1
+                        'um/openOrder' => 1, // 1
+                        'um/openOrders' => 1, // 1
+                        'um/allOrders' => 5, // 5
+                        'cm/order' => 1, // 1
+                        'cm/openOrder' => 1, // 1
+                        'cm/openOrders' => 1, // 1
+                        'cm/allOrders' => 20, // 20
+                        'balance' => 20, // 20
+                        'account' => 20, // 20
+                        'margin/maxBorrowable' => 5, // 5
+                        'margin/maxWithdraw' => 5, // 5
+                        'um/positionRisk' => 5, // 5
+                        'cm/positionRisk' => 1, // 1
+                        'um/positionSide/dual' => 30, // 30
+                        'cm/positionSide/dual' => 30, // 30
+                        'um/userTrades' => 5, // 5
+                        'cm/userTrades' => 20, // 20
+                        'um/leverageBracket' => 1, // 1
+                        'cm/leverageBracket' => 1, // 1
+                        'margin/forceOrders' => 1, // 1
+                        'um/forceOrders' => 20, // 20
+                        'cm/forceOrders' => 20, // 20
+                        'um/apiTradingStatus' => 1, // 1
+                        'um/commissionRate' => 20, // 20
+                        'cm/commissionRate' => 20, // 20
+                        'margin/marginLoan' => 0.0667, // Weight(UID) => 10 => cost = 0.006667 * 10 = 0.06667
+                        'margin/repayLoan' => 0.0667, // Weight(UID) => 10 => cost = 0.006667 * 10 = 0.06667
+                        'margin/marginInterestHistory' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
+                        'portfolio/interest-history' => 50, // 50
+                    ),
+                    'post' => array(
+                        'um/order' => 1, // 0
+                        'cm/order' => 1, // 0
+                        'margin/order' => 0.0133, // Weight(UID) => 2 => cost = 0.006667 * 2 = 0.013334
+                        'marginLoan' => 0.1333, // Weight(UID) => 20 => cost = 0.006667 * 20 = 0.13334
+                        'repayLoan' => 0.1333, // Weight(UID) => 20 => cost = 0.006667 * 20 = 0.13334
+                        'margin/order/oco' => 0.0400, // Weight(UID) => 6 => cost = 0.006667 * 6 = 0.040002
+                        'um/leverage' => 1, // 1
+                        'cm/leverage' => 1, // 1
+                        'um/positionSide/dual' => 1, // 1
+                        'cm/positionSide/dual' => 1, // 1
+                        'auto-collection' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
+                        'bnb-transfer' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
+                        'listenKey' => 1, // 1
+                    ),
+                    'put' => array(
+                        'listenKey' => 1, // 1
+                    ),
+                    'delete' => array(
+                        'um/order' => 1, // 1
+                        'um/allOpenOrders' => 1, // 1
+                        'cm/order' => 1, // 1
+                        'cm/allOpenOrders' => 1, // 1
+                        'margin/order' => 1, // Weight(IP) => 10 => cost = 0.1 * 10 = 1
+                        'margin/allOpenOrders' => 5, // 5
+                        'margin/orderList' => 2, // 2
+                        'listenKey' => 1, // 1
                     ),
                 ),
             ),
@@ -3532,7 +3595,7 @@ class binance extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_spot_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
@@ -3548,118 +3611,136 @@ class binance extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['spot']) {
-            throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
+            throw new NotSupported($this->id . ' editSpotOrder() does not support ' . $market['type'] . ' orders');
         }
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
-            'cancelReplaceMode' => 'STOP_ON_FAILURE',
-            // STOP_ON_FAILURE - If the cancel $request fails, the new order placement will not be attempted.
-            // ALLOW_FAILURE - new order placement will be attempted even if cancel $request fails.
         );
-        $cancelId = $this->safe_string_2($params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId');
-        if ($cancelId === null) {
-            $request['cancelOrderId'] = $id; // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
-        }
-        $clientOrderId = $this->safe_string_2($params, 'newClientOrderId', 'clientOrderId');
-        $initialUppercaseType = strtoupper($type);
-        $uppercaseType = $initialUppercaseType;
-        $postOnly = $this->is_post_only($initialUppercaseType === 'MARKET', $initialUppercaseType === 'LIMIT_MAKER', $params);
-        if ($postOnly) {
-            $uppercaseType = 'LIMIT_MAKER';
-        }
-        $request['type'] = $uppercaseType;
-        $stopPrice = $this->safe_number($params, 'stopPrice');
-        if ($stopPrice !== null) {
-            if ($uppercaseType === 'MARKET') {
-                $uppercaseType = 'STOP_LOSS';
-            } elseif ($uppercaseType === 'LIMIT') {
-                $uppercaseType = 'STOP_LOSS_LIMIT';
+        $clientOrderId = $this->safe_string_n($params, array( 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ));
+        $response = null;
+        if ($market['spot']) {
+            $initialUppercaseType = strtoupper($type);
+            $uppercaseType = $initialUppercaseType;
+            $postOnly = $this->is_post_only($initialUppercaseType === 'MARKET', $initialUppercaseType === 'LIMIT_MAKER', $params);
+            if ($postOnly) {
+                $uppercaseType = 'LIMIT_MAKER';
             }
-        }
-        $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
-        if (!$this->in_array($uppercaseType, $validOrderTypes)) {
-            if ($initialUppercaseType !== $uppercaseType) {
-                throw new InvalidOrder($this->id . ' $stopPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
-            } else {
-                throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type for the ' . $symbol . ' market');
-            }
-        }
-        if ($clientOrderId === null) {
-            $broker = $this->safe_value($this->options, 'broker');
-            if ($broker !== null) {
-                $brokerId = $this->safe_string($broker, 'spot');
-                if ($brokerId !== null) {
-                    $request['newClientOrderId'] = $brokerId . $this->uuid22();
+            $request['type'] = $uppercaseType;
+            $stopPrice = $this->safe_number($params, 'stopPrice');
+            if ($stopPrice !== null) {
+                if ($uppercaseType === 'MARKET') {
+                    $uppercaseType = 'STOP_LOSS';
+                } elseif ($uppercaseType === 'LIMIT') {
+                    $uppercaseType = 'STOP_LOSS_LIMIT';
                 }
             }
-        } else {
-            $request['newClientOrderId'] = $clientOrderId;
-        }
-        $request['newOrderRespType'] = $this->safe_value($this->options['newOrderRespType'], $type, 'RESULT'); // 'ACK' for order $id, 'RESULT' for full order or 'FULL' for order with fills
-        $timeInForceIsRequired = false;
-        $priceIsRequired = false;
-        $stopPriceIsRequired = false;
-        $quantityIsRequired = false;
-        if ($uppercaseType === 'MARKET') {
-            $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', true);
-            if ($quoteOrderQty) {
-                $quoteOrderQtyNew = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
-                $precision = $market['precision']['price'];
-                if ($quoteOrderQtyNew !== null) {
-                    $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQtyNew, TRUNCATE, $precision, $this->precisionMode);
-                } elseif ($price !== null) {
-                    $amountString = $this->number_to_string($amount);
-                    $priceString = $this->number_to_string($price);
-                    $quoteOrderQuantity = Precise::string_mul($amountString, $priceString);
-                    $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQuantity, TRUNCATE, $precision, $this->precisionMode);
+            $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
+            if (!$this->in_array($uppercaseType, $validOrderTypes)) {
+                if ($initialUppercaseType !== $uppercaseType) {
+                    throw new InvalidOrder($this->id . ' $stopPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
+                } else {
+                    throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type for the ' . $symbol . ' market');
+                }
+            }
+            if ($clientOrderId === null) {
+                $broker = $this->safe_value($this->options, 'broker');
+                if ($broker !== null) {
+                    $brokerId = $this->safe_string($broker, 'spot');
+                    if ($brokerId !== null) {
+                        $request['newClientOrderId'] = $brokerId . $this->uuid22();
+                    }
+                }
+            } else {
+                $request['newClientOrderId'] = $clientOrderId;
+            }
+            $request['newOrderRespType'] = $this->safe_value($this->options['newOrderRespType'], $type, 'RESULT'); // 'ACK' for order $id, 'RESULT' for full order or 'FULL' for order with fills
+            $timeInForceIsRequired = false;
+            $priceIsRequired = false;
+            $stopPriceIsRequired = false;
+            $quantityIsRequired = false;
+            if ($uppercaseType === 'MARKET') {
+                $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', true);
+                if ($quoteOrderQty) {
+                    $quoteOrderQtyNew = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
+                    $precision = $market['precision']['price'];
+                    if ($quoteOrderQtyNew !== null) {
+                        $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQtyNew, TRUNCATE, $precision, $this->precisionMode);
+                    } elseif ($price !== null) {
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $quoteOrderQuantity = Precise::string_mul($amountString, $priceString);
+                        $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQuantity, TRUNCATE, $precision, $this->precisionMode);
+                    } else {
+                        $quantityIsRequired = true;
+                    }
                 } else {
                     $quantityIsRequired = true;
                 }
-            } else {
+            } elseif ($uppercaseType === 'LIMIT') {
+                $priceIsRequired = true;
+                $timeInForceIsRequired = true;
+                $quantityIsRequired = true;
+            } elseif (($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT')) {
+                $stopPriceIsRequired = true;
+                $quantityIsRequired = true;
+            } elseif (($uppercaseType === 'STOP_LOSS_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                $quantityIsRequired = true;
+                $stopPriceIsRequired = true;
+                $priceIsRequired = true;
+                $timeInForceIsRequired = true;
+            } elseif ($uppercaseType === 'LIMIT_MAKER') {
+                $priceIsRequired = true;
                 $quantityIsRequired = true;
             }
-        } elseif ($uppercaseType === 'LIMIT') {
-            $priceIsRequired = true;
-            $timeInForceIsRequired = true;
-            $quantityIsRequired = true;
-        } elseif (($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT')) {
-            $stopPriceIsRequired = true;
-            $quantityIsRequired = true;
-        } elseif (($uppercaseType === 'STOP_LOSS_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
-            $quantityIsRequired = true;
-            $stopPriceIsRequired = true;
-            $priceIsRequired = true;
-            $timeInForceIsRequired = true;
-        } elseif ($uppercaseType === 'LIMIT_MAKER') {
-            $priceIsRequired = true;
-            $quantityIsRequired = true;
-        }
-        if ($quantityIsRequired) {
+            if ($quantityIsRequired) {
+                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+            }
+            if ($priceIsRequired) {
+                if ($price === null) {
+                    throw new InvalidOrder($this->id . ' editOrder() requires a $price argument for a ' . $type . ' order');
+                }
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+            if ($timeInForceIsRequired) {
+                $request['timeInForce'] = $this->options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            }
+            if ($stopPriceIsRequired) {
+                if ($stopPrice === null) {
+                    throw new InvalidOrder($this->id . ' editOrder() requires a $stopPrice extra param for a ' . $type . ' order');
+                } else {
+                    $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                }
+            }
+            $request['cancelReplaceMode'] = 'STOP_ON_FAILURE'; // If the cancel $request fails, the new order placement will not be attempted.
+            $cancelId = $this->safe_string_2($params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId');
+            if ($cancelId === null) {
+                $request['cancelOrderId'] = $id; // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
+            }
+            // remove timeInForce from $params because PO is only used by $this->is_post_onlyand it's not a valid value for Binance
+            if ($this->safe_string($params, 'timeInForce') === 'PO') {
+                $params = $this->omit($params, array( 'timeInForce' ));
+            }
+            $params = $this->omit($params, array( 'quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly' ));
+            $response = $this->privatePostOrderCancelReplace (array_merge($request, $params));
+        } else {
+            $request['orderId'] = $id;
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-        }
-        if ($priceIsRequired) {
-            if ($price === null) {
-                throw new InvalidOrder($this->id . ' editOrder() requires a $price argument for a ' . $type . ' order');
+            if ($price !== null) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $request['price'] = $this->price_to_precision($symbol, $price);
-        }
-        if ($timeInForceIsRequired) {
-            $request['timeInForce'] = $this->options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-        }
-        if ($stopPriceIsRequired) {
-            if ($stopPrice === null) {
-                throw new InvalidOrder($this->id . ' editOrder() requires a $stopPrice extra param for a ' . $type . ' order');
-            } else {
-                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+            if ($clientOrderId !== null) {
+                $request['origClientOrderId'] = $clientOrderId;
+            }
+            $params = $this->omit($params, array( 'clientOrderId', 'newClientOrderId' ));
+            if ($market['linear']) {
+                $response = $this->fapiPrivatePutOrder (array_merge($request, $params));
+            } elseif ($market['inverse']) {
+                $response = $this->dapiPrivatePutOrder (array_merge($request, $params));
             }
         }
-        // remove timeInForce from $params because PO is only used by $this->is_post_onlyand it's not a valid value for Binance
-        if ($this->safe_string($params, 'timeInForce') === 'PO') {
-            $params = $this->omit($params, array( 'timeInForce' ));
-        }
-        $requestParams = $this->omit($params, array( 'quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly' ));
-        $response = $this->privatePostOrderCancelReplace (array_merge($request, $requestParams));
+        //
+        // spot
         //
         //     {
         //         "cancelResult" => "SUCCESS",
@@ -3699,6 +3780,102 @@ class binance extends Exchange {
         //
         $data = $this->safe_value($response, 'newOrderResponse');
         return $this->parse_order($data, $market);
+    }
+
+    public function edit_contract_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * edit a trade order
+         * @see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
+         * @param {string} $id cancel order $id
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the binance api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new NotSupported($this->id . ' editContractOrder() does not support ' . $market['type'] . ' orders');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'side' => strtoupper($side),
+        );
+        $clientOrderId = $this->safe_string_n($params, array( 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ));
+        $request['orderId'] = $id;
+        $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+        if ($price !== null) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        if ($clientOrderId !== null) {
+            $request['origClientOrderId'] = $clientOrderId;
+        }
+        $params = $this->omit($params, array( 'clientOrderId', 'newClientOrderId' ));
+        $response = null;
+        if ($market['linear']) {
+            $response = $this->fapiPrivatePutOrder (array_merge($request, $params));
+        } elseif ($market['inverse']) {
+            $response = $this->dapiPrivatePutOrder (array_merge($request, $params));
+        }
+        //
+        // swap and future
+        //
+        //     {
+        //         "orderId" => 151007482392,
+        //         "symbol" => "BTCUSDT",
+        //         "status" => "NEW",
+        //         "clientOrderId" => "web_pCCGp9AIHjziKLlpGpXI",
+        //         "price" => "25000",
+        //         "avgPrice" => "0.00000",
+        //         "origQty" => "0.001",
+        //         "executedQty" => "0",
+        //         "cumQty" => "0",
+        //         "cumQuote" => "0",
+        //         "timeInForce" => "GTC",
+        //         "type" => "LIMIT",
+        //         "reduceOnly" => false,
+        //         "closePosition" => false,
+        //         "side" => "BUY",
+        //         "positionSide" => "BOTH",
+        //         "stopPrice" => "0",
+        //         "workingType" => "CONTRACT_PRICE",
+        //         "priceProtect" => false,
+        //         "origType" => "LIMIT",
+        //         "updateTime" => 1684300587845
+        //     }
+        //
+        return $this->parse_order($response, $market);
+    }
+
+    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * edit a trade order
+         * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
+         * @see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
+         * @param {string} $id cancel order $id
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the binance api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if ($market['option']) {
+            throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders');
+        }
+        if ($market['spot']) {
+            return $this->edit_spot_order($id, $symbol, $type, $side, $amount, $price, $params);
+        } else {
+            return $this->edit_contract_order($id, $symbol, $type, $side, $amount, $price, $params);
+        }
     }
 
     public function parse_order_status($status) {
@@ -3757,6 +3934,32 @@ class binance extends Exchange {
         //         "type" => "LIMIT",
         //         "side" => "BUY",
         //         "fills" => array()
+        //     }
+        //
+        // swap and future => editOrder
+        //
+        //     {
+        //         "orderId" => 151007482392,
+        //         "symbol" => "BTCUSDT",
+        //         "status" => "NEW",
+        //         "clientOrderId" => "web_pCCGp9AIHjziKLlpGpXI",
+        //         "price" => "25000",
+        //         "avgPrice" => "0.00000",
+        //         "origQty" => "0.001",
+        //         "executedQty" => "0",
+        //         "cumQty" => "0",
+        //         "cumQuote" => "0",
+        //         "timeInForce" => "GTC",
+        //         "type" => "LIMIT",
+        //         "reduceOnly" => false,
+        //         "closePosition" => false,
+        //         "side" => "BUY",
+        //         "positionSide" => "BOTH",
+        //         "stopPrice" => "0",
+        //         "workingType" => "CONTRACT_PRICE",
+        //         "priceProtect" => false,
+        //         "origType" => "LIMIT",
+        //         "updateTime" => 1684300587845
         //     }
         //
         // futures

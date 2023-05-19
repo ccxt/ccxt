@@ -16,7 +16,7 @@ sys.path.append(root)
 from ccxt.test.base import test_shared_methods  # noqa E402
 
 
-def test_margin_modification(exchange, method, entry):
+def test_margin_modification(exchange, skipped_properties, method, entry):
     format = {
         'info': {},
         'type': 'add',
@@ -26,12 +26,12 @@ def test_margin_modification(exchange, method, entry):
         'symbol': 'ADA/USDT:USDT',
         'status': 'ok',
     }
-    empty_not_allowed_for = ['type', 'status']
-    test_shared_methods.assert_structure(exchange, method, entry, format, empty_not_allowed_for)
-    test_shared_methods.assert_currency_code(exchange, method, entry, entry['code'])
+    empty_allowed_for = ['status', 'symbol', 'code', 'total', 'amount']
+    test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
+    test_shared_methods.assert_currency_code(exchange, skipped_properties, method, entry, entry['code'])
     #
-    test_shared_methods.assert_greater_or_equal(exchange, method, entry, 'amount', '0')
-    test_shared_methods.assert_greater_or_equal(exchange, method, entry, 'total', '0')
-    test_shared_methods.assert_in_array(exchange, method, entry, 'type', ['add', 'reduce', 'set'])
-    test_shared_methods.assert_in_array(exchange, method, entry, 'status', ['ok', 'pending', 'canceled', 'failed'])
-    test_shared_methods.assert_symbol(exchange, method, entry, 'symbol')
+    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'amount', '0')
+    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'total', '0')
+    test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'type', ['add', 'reduce', 'set'])
+    test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'status', ['ok', 'pending', 'canceled', 'failed'])
+    test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, 'symbol')

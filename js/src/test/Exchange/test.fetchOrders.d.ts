@@ -1,2 +1,2 @@
-declare function testFetchOrders(exchange: any, symbol: any): Promise<void>;
+declare function testFetchOrders(exchange: any, skippedProperties: any, symbol: any): Promise<void>;
 export default testFetchOrders;

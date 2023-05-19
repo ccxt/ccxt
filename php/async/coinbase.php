@@ -2433,7 +2433,7 @@ class coinbase extends Exchange {
                 $request['limit'] = $limit;
             }
             if ($since !== null) {
-                $request['start_date'] = $this->parse8601($since);
+                $request['start_date'] = $this->iso8601($since);
             }
             $response = Async\await($this->v3PrivateGetBrokerageOrdersHistoricalBatch (array_merge($request, $params)));
             //
@@ -2501,7 +2501,7 @@ class coinbase extends Exchange {
             }
             $request['limit'] = $limit;
             if ($since !== null) {
-                $request['start_date'] = $this->parse8601($since);
+                $request['start_date'] = $this->iso8601($since);
             }
             $response = Async\await($this->v3PrivateGetBrokerageOrdersHistoricalBatch (array_merge($request, $params)));
             //

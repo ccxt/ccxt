@@ -1098,7 +1098,7 @@ class coinex(Exchange, ImplicitAPI):
         #      }
         #
         data = self.safe_value(response, 'data', {})
-        return self.parse_trading_fee(data)
+        return self.parse_trading_fee(data, market)
 
     async def fetch_trading_fees(self, params={}):
         """

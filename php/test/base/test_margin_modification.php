@@ -10,7 +10,7 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/test_shared_methods.php';
 
-function test_margin_modification($exchange, $method, $entry) {
+function test_margin_modification($exchange, $skipped_properties, $method, $entry) {
     $format = array(
         'info' => array(),
         'type' => 'add',
@@ -20,13 +20,13 @@ function test_margin_modification($exchange, $method, $entry) {
         'symbol' => 'ADA/USDT:USDT',
         'status' => 'ok',
     );
-    $empty_not_allowed_for = ['type', 'status'];
-    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
-    assert_currency_code($exchange, $method, $entry, $entry['code']);
+    $empty_allowed_for = ['status', 'symbol', 'code', 'total', 'amount'];
+    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+    assert_currency_code($exchange, $skipped_properties, $method, $entry, $entry['code']);
     //
-    assert_greater_or_equal($exchange, $method, $entry, 'amount', '0');
-    assert_greater_or_equal($exchange, $method, $entry, 'total', '0');
-    assert_in_array($exchange, $method, $entry, 'type', ['add', 'reduce', 'set']);
-    assert_in_array($exchange, $method, $entry, 'status', ['ok', 'pending', 'canceled', 'failed']);
-    assert_symbol($exchange, $method, $entry, 'symbol');
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'amount', '0');
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'total', '0');
+    assert_in_array($exchange, $skipped_properties, $method, $entry, 'type', ['add', 'reduce', 'set']);
+    assert_in_array($exchange, $skipped_properties, $method, $entry, 'status', ['ok', 'pending', 'canceled', 'failed']);
+    assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol');
 }

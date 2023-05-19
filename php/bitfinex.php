@@ -869,7 +869,7 @@ class bitfinex extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-        $marketId = $this->safe_string($market, 'pair');
+        $marketId = $this->safe_string($ticker, 'pair');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'last_price');

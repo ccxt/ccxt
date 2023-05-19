@@ -16,18 +16,19 @@ sys.path.append(root)
 from ccxt.test.base import test_shared_methods  # noqa E402
 
 
-def test_ohlcv(exchange, method, entry, symbol, now):
+def test_ohlcv(exchange, skipped_properties, method, entry, symbol, now):
     format = [1638230400000, exchange.parse_number('0.123'), exchange.parse_number('0.125'), exchange.parse_number('0.121'), exchange.parse_number('0.122'), exchange.parse_number('123.456')]
     empty_not_allowed_for = [0, 1, 2, 3, 4, 5]
-    test_shared_methods.assert_structure(exchange, method, entry, format, empty_not_allowed_for)
-    test_shared_methods.assert_timestamp(exchange, method, entry, now, 0)
+    test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_not_allowed_for)
+    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry, now, 0)
     log_text = test_shared_methods.log_template(exchange, method, entry)
     #
     length = len(entry)
     assert length >= 6, 'ohlcv array length should be >= 6;' + log_text
-    skipped_exchanges = []
-    if not exchange.in_array(exchange.id, skipped_exchanges):
-        assert (entry[1] is None) or (entry[2] is None) or (entry[1] <= entry[2]), 'open > high, ' + exchange.safe_string(entry, 1, 'undefined') + ' > ' + exchange.safe_string(entry, 2, 'undefined')  # open <= high
-        assert (entry[3] is None) or (entry[2] is None) or (entry[3] <= entry[2]), 'low > high, ' + exchange.safe_string(entry, 2, 'undefined') + ' > ' + exchange.safe_string(entry, 3, 'undefined')  # low <= high
-        assert (entry[3] is None) or (entry[4] is None) or (entry[3] <= entry[4]), 'low > close, ' + exchange.safe_string(entry, 3, 'undefined') + ' > ' + exchange.safe_string(entry, 4, 'undefined')  # low <= close
-    assert (symbol is None) or (isinstance(symbol, str)), 'symbol ' + symbol + ' is incorrect' + log_text
+    high = exchange.safe_string(entry, 2)
+    low = exchange.safe_string(entry, 3)
+    test_shared_methods.assert_less_or_equal(exchange, skipped_properties, method, entry, '1', high)
+    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, '1', low)
+    test_shared_methods.assert_less_or_equal(exchange, skipped_properties, method, entry, '4', high)
+    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, '4', low)
+    assert (symbol is None) or (isinstance(symbol, str)), 'symbol ' + symbol + ' is incorrect' + log_text  # todo: check with standard symbol check

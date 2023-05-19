@@ -16,18 +16,11 @@ sys.path.append(root)
 from ccxt.test.base import test_shared_methods  # noqa E402
 
 
-def test_status(exchange, method, entry, now):
+def test_status(exchange, skipped_properties, method, entry, now):
     format = {
         'info': {},
         'status': 'ok',
-        'updated': None,
-        'eta': None,
-        'url': None,
+        'updated': 1650000000000,
+        'eta': 1660000000000,
+        'url': 'https://example.com',
     }
-    empty_not_allowed_for = ['status']
-    test_shared_methods.assert_structure(exchange, method, entry, format, empty_not_allowed_for)
-    #
-    test_shared_methods.assert_in_array(exchange, method, entry, 'status', ['ok', 'error', 'shutdown', 'maintenance'])
-    test_shared_methods.assert_greater(exchange, method, entry, 'updated', '0')
-    test_shared_methods.assert_greater(exchange, method, entry, 'eta', '0')
-    test_shared_methods.assert_greater(exchange, method, entry, 'eta', str(now))

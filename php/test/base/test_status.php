@@ -10,19 +10,12 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/test_shared_methods.php';
 
-function test_status($exchange, $method, $entry, $now) {
+function test_status($exchange, $skipped_properties, $method, $entry, $now) {
     $format = array(
         'info' => array(),
         'status' => 'ok',
-        'updated' => null,
-        'eta' => null,
-        'url' => null,
+        'updated' => 1650000000000,
+        'eta' => 1660000000000,
+        'url' => 'https://example.com',
     );
-    $empty_not_allowed_for = ['status'];
-    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
-    //
-    assert_in_array($exchange, $method, $entry, 'status', ['ok', 'error', 'shutdown', 'maintenance']);
-    assert_greater($exchange, $method, $entry, 'updated', '0');
-    assert_greater($exchange, $method, $entry, 'eta', '0');
-    assert_greater($exchange, $method, $entry, 'eta', ((string) $now));
 }

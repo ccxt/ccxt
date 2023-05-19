@@ -13,6 +13,7 @@ export default async (exchange, symbol) => {
     // log (symbol.green, 'watching ohlcv...')
 
     const method = 'watchOHLCV';
+    const skippedProperties = {};
 
     const skippedExchanges = [
         'dsx',
@@ -53,7 +54,7 @@ export default async (exchange, symbol) => {
             // log (symbol.green, method, 'returned', Object.values (response).length.toString ().green, 'ohlcvs')
             for (let i = 0; i < response.length; i++) {
                 const current = response[i];
-                testOHLCV (exchange, method, current, symbol, now);
+                testOHLCV (exchange, skippedProperties, method, current, symbol, now);
                 if (i > 0) {
                     const previous = response[i - 1];
                     if (current[0] && previous[0]) {

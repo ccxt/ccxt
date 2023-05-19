@@ -10,7 +10,7 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/test_shared_methods.php';
 
-function test_borrow_rate($exchange, $method, $entry, $requested_code) {
+function test_borrow_rate($exchange, $skipped_properties, $method, $entry, $requested_code) {
     $format = array(
         'info' => array(),
         'currency' => 'USDT',
@@ -19,11 +19,11 @@ function test_borrow_rate($exchange, $method, $entry, $requested_code) {
         'rate' => $exchange->parse_number('0.0006'),
         'period' => 86400000,
     );
-    $empty_not_allowed_for = ['currency', 'rate'];
-    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
-    assert_timestamp($exchange, $method, $entry);
-    assert_currency_code($exchange, $method, $entry, $entry['currency'], $requested_code);
+    assert_structure($exchange, $skipped_properties, $method, $entry, $format);
+    assert_timestamp($exchange, $skipped_properties, $method, $entry);
+    assert_currency_code($exchange, $skipped_properties, $method, $entry, $entry['currency'], $requested_code);
     //
     // assert (borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000) // Milliseconds in an hour or a day
-    assert_greater($exchange, $method, $entry, 'rate', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'period', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'rate', '0');
 }

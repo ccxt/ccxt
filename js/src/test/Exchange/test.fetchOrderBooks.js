@@ -6,7 +6,7 @@
 
 import assert from 'assert';
 import testOrderBook from './base/test.orderBook.js';
-async function testFetchOrderBooks(exchange) {
+async function testFetchOrderBooks(exchange, skippedProperties) {
     const method = 'fetchOrderBooks';
     const symbol = exchange.symbols[0];
     const orderBooks = await exchange.fetchOrderBooks([symbol]);
@@ -15,7 +15,7 @@ async function testFetchOrderBooks(exchange) {
     assert(orderBookKeys.length > 0, exchange.id + ' ' + method + ' returned 0 length data');
     for (let i = 0; i < orderBookKeys.length; i++) {
         const symbol = orderBookKeys[i];
-        testOrderBook(exchange, method, orderBooks[symbol], symbol);
+        testOrderBook(exchange, skippedProperties, method, orderBooks[symbol], symbol);
     }
 }
 export default testFetchOrderBooks;

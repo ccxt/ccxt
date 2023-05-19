@@ -6,7 +6,7 @@
 
 import assert from 'assert';
 import testOHLCV from './base/test.ohlcv.js';
-async function testFetchOHLCV(exchange, symbol) {
+async function testFetchOHLCV(exchange, skippedProperties, symbol) {
     const method = 'fetchOHLCV';
     const timeframeKeys = Object.keys(exchange.timeframes);
     assert(timeframeKeys.length > 0, exchange.id + ' ' + method + ' - no timeframes found');
@@ -22,7 +22,7 @@ async function testFetchOHLCV(exchange, symbol) {
     assert(Array.isArray(ohlcvs), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json(ohlcvs));
     const now = exchange.milliseconds();
     for (let i = 0; i < ohlcvs.length; i++) {
-        testOHLCV(exchange, method, ohlcvs[i], symbol, now);
+        testOHLCV(exchange, skippedProperties, method, ohlcvs[i], symbol, now);
     }
     // todo: sorted timestamps check
 }

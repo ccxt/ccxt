@@ -10,7 +10,7 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/test_shared_methods.php';
 
-function test_position($exchange, $method, $entry, $symbol, $now) {
+function test_position($exchange, $skipped_properties, $method, $entry, $symbol, $now) {
     $format = array(
         'info' => array(),
         'symbol' => 'XYZ/USDT',
@@ -34,25 +34,25 @@ function test_position($exchange, $method, $entry, $symbol, $now) {
         'side' => 'long',
         'percentage' => $exchange->parse_number('1.234'),
     );
-    $empty_not_allowed_for = ['symbol', 'entryPrice', 'side', 'markPrice', 'contracts', 'contractSize', 'marginMode'];
-    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
-    assert_timestamp($exchange, $method, $entry, $now);
-    assert_symbol($exchange, $method, $entry, 'symbol', $symbol);
-    assert_in_array($exchange, $method, $entry, 'side', ['long', 'short']);
-    assert_in_array($exchange, $method, $entry, 'marginMode', ['cross', 'isolated']);
-    assert_greater($exchange, $method, $entry, 'leverage', '0');
-    assert_less_or_equal($exchange, $method, $entry, 'leverage', '200');
-    assert_greater($exchange, $method, $entry, 'initialMargin', '0');
-    assert_greater($exchange, $method, $entry, 'initialMarginPercentage', '0');
-    assert_greater($exchange, $method, $entry, 'maintenanceMargin', '0');
-    assert_greater($exchange, $method, $entry, 'maintenanceMarginPercentage', '0');
-    assert_greater($exchange, $method, $entry, 'entryPrice', '0');
-    assert_greater($exchange, $method, $entry, 'notional', '0');
-    assert_greater($exchange, $method, $entry, 'contracts', '0');
-    assert_greater($exchange, $method, $entry, 'contractSize', '0');
-    assert_greater($exchange, $method, $entry, 'marginRatio', '0');
-    assert_greater($exchange, $method, $entry, 'liquidationPrice', '0');
-    assert_greater($exchange, $method, $entry, 'markPrice', '0');
-    assert_greater($exchange, $method, $entry, 'collateral', '0');
-    assert_greater_or_equal($exchange, $method, $entry, 'percentage', '0');
+    $emptyot_allowed_for = ['liquidationPrice', 'initialMargin', 'initialMarginPercentage', 'maintenanceMargin', 'maintenanceMarginPercentage', 'marginRatio'];
+    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $emptyot_allowed_for);
+    assert_timestamp($exchange, $skipped_properties, $method, $entry, $now);
+    assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
+    assert_in_array($exchange, $skipped_properties, $method, $entry, 'side', ['long', 'short']);
+    assert_in_array($exchange, $skipped_properties, $method, $entry, 'marginMode', ['cross', 'isolated']);
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'leverage', '0');
+    assert_less_or_equal($exchange, $skipped_properties, $method, $entry, 'leverage', '200');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'initialMargin', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'initialMarginPercentage', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'maintenanceMargin', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'maintenanceMarginPercentage', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'entryPrice', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'notional', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'contracts', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'contractSize', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'marginRatio', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'liquidationPrice', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'markPrice', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'collateral', '0');
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'percentage', '0');
 }

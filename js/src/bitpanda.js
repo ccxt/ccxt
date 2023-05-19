@@ -18,6 +18,7 @@ export default class bitpanda extends Exchange {
             'countries': ['AT'],
             'rateLimit': 300,
             'version': 'v1',
+            'pro': true,
             // new metainfo interface
             'has': {
                 'CORS': undefined,

@@ -331,6 +331,7 @@ export default class gate extends Exchange {
                             '{settle}/orders': 1.5,
                             '{settle}/orders/{order_id}': 1.5,
                             '{settle}/my_trades': 1.5,
+                            '{settle}/my_trades_timerange': 1.5,
                             '{settle}/position_close': 1.5,
                             '{settle}/liquidates': 1.5,
                             '{settle}/price_orders': 1.5,
@@ -2624,6 +2625,7 @@ export default class gate extends Exchange {
             'margin': 'publicSpotGetTrades',
             'swap': 'publicFuturesGetSettleTrades',
             'future': 'publicDeliveryGetSettleTrades',
+            'option': 'publicOptionsGetTrades',
         });
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
@@ -2657,6 +2659,18 @@ export default class gate extends Exchange {
         //              create_time: "1634673380.182",
         //              contract: "ADA_USDT",
         //              price: "2.10486",
+        //         }
+        //     ]
+        //
+        // option
+        //
+        //     [
+        //         {
+        //             "size": -5,
+        //             "id": 25,
+        //             "create_time": 1682378573,
+        //             "contract": "ETH_USDT-20230526-2000-P",
+        //             "price": "209.1"
         //         }
         //     ]
         //
@@ -2751,7 +2765,7 @@ export default class gate extends Exchange {
         const method = this.getSupportedMapping(type, {
             'spot': 'privateSpotGetMyTrades',
             'margin': 'privateSpotGetMyTrades',
-            'swap': 'privateFuturesGetSettleMyTrades',
+            'swap': 'privateFuturesGetSettleMyTradesTimerange',
             'future': 'privateDeliveryGetSettleMyTrades',
         });
         const response = await this[method](this.extend(request, params));
@@ -2870,6 +2884,16 @@ export default class gate extends Exchange {
         //         "size": 100,
         //         "price": "100.123",
         //         "role": "taker"
+        //     }
+        //
+        // option rest
+        //
+        //     {
+        //         "size": -5,
+        //         "id": 25,
+        //         "create_time": 1682378573,
+        //         "contract": "ETH_USDT-20230526-2000-P",
+        //         "price": "209.1"
         //     }
         //
         const id = this.safeString(trade, 'id');

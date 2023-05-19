@@ -35,7 +35,7 @@ class phemex extends phemex$1 {
                 'OHLCVLimit': 1000,
             },
             'streaming': {
-                'keepAlive': 20000,
+                'keepAlive': 10000,
             },
         });
     }
@@ -1400,7 +1400,9 @@ class phemex extends phemex$1 {
         if (id in client.subscriptions) {
             const method = client.subscriptions[id];
             delete client.subscriptions[id];
-            return method.call(this, client, message);
+            if (method !== true) {
+                return method.call(this, client, message);
+            }
         }
         const method = this.safeString(message, 'method', '');
         if (('market24h' in message) || ('spot_market24h' in message) || (method.indexOf('perp_market24h_pack_p') >= 0)) {

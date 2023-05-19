@@ -17,14 +17,14 @@ from ccxt.test.base import test_shared_methods  # noqa E402
 from ccxt.test.base import test_position  # noqa E402
 
 
-def test_fetch_positions(exchange, symbol):
+def test_fetch_positions(exchange, skipped_properties, symbol):
     method = 'fetchPositions'
     now = exchange.milliseconds()
     # without symbol
     positions = exchange.fetch_positions()
     assert isinstance(positions, list), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json(positions)
     for i in range(0, len(positions)):
-        test_position(exchange, method, positions[i], None, now)
+        test_position(exchange, skipped_properties, method, positions[i], None, now)
     test_shared_methods.assert_timestamp_order(exchange, method, None, positions)
     # with symbol
     positions_for_symbol = exchange.fetch_positions([symbol])
@@ -32,5 +32,5 @@ def test_fetch_positions(exchange, symbol):
     positions_for_symbol_length = len(positions_for_symbol)
     assert positions_for_symbol_length <= 4, exchange.id + ' ' + method + ' positions length for particular symbol should be less than 4, returned ' + exchange.json(positions_for_symbol)
     for i in range(0, len(positions_for_symbol)):
-        test_position(exchange, method, positions_for_symbol[i], symbol, now)
+        test_position(exchange, skipped_properties, method, positions_for_symbol[i], symbol, now)
     test_shared_methods.assert_timestamp_order(exchange, method, symbol, positions_for_symbol)

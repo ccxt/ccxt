@@ -6,7 +6,7 @@
 
 import assert from 'assert';
 import testLeverageTier from './base/test.leverageTier.js';
-async function testFetchLeverageTiers(exchange, symbol) {
+async function testFetchLeverageTiers(exchange, skippedProperties, symbol) {
     const method = 'fetchLeverageTiers';
     const tiers = await exchange.fetchLeverageTiers(symbol);
     // const format = {
@@ -23,7 +23,7 @@ async function testFetchLeverageTiers(exchange, symbol) {
         const arrayLengthSymbol = tiersForSymbol.length;
         assert(arrayLengthSymbol >= 1, exchange.id + ' ' + method + ' ' + symbol + ' must have at least one entry. ' + exchange.json(tiers));
         for (let j = 0; j < tiersForSymbol.length; j++) {
-            testLeverageTier(exchange, method, tiersForSymbol[j]);
+            testLeverageTier(exchange, skippedProperties, method, tiersForSymbol[j]);
         }
     }
 }

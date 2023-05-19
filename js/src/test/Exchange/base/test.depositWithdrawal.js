@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import testSharedMethods from './test.sharedMethods.js';
-function testDepositWithdrawal(exchange, method, entry, requestedCode, now) {
+function testDepositWithdrawal(exchange, skippedProperties, method, entry, requestedCode, now) {
     const format = {
         'info': {},
         'id': '1234',
@@ -26,14 +26,20 @@ function testDepositWithdrawal(exchange, method, entry, requestedCode, now) {
         'updated': 1502962946233,
         'fee': {},
     };
-    const emptyNotAllowedFor = ['type', 'amount', 'currency'];
-    testSharedMethods.assertStructure(exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.assertTimestamp(exchange, method, entry, now);
-    testSharedMethods.assertCurrencyCode(exchange, method, entry, entry['currency'], requestedCode);
+    const emptyAllowedFor = ['address', 'addressTo', 'addressFrom', 'tag', 'tagTo', 'tagFrom']; // below we still do assertion for to/from
+    testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+    testSharedMethods.assertTimestamp(exchange, skippedProperties, method, entry, now);
+    testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, entry['currency'], requestedCode);
     //
-    testSharedMethods.assertInArray(exchange, method, entry, 'status', ['ok', 'pending', 'failed', 'rejected', 'canceled']);
-    testSharedMethods.assertInArray(exchange, method, entry, 'type', ['deposit', 'withdrawal']);
-    testSharedMethods.assertGreaterOrEqual(exchange, method, entry, 'amount', '0');
-    testSharedMethods.assertFee(exchange, method, entry['fee']);
+    testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'status', ['ok', 'pending', 'failed', 'rejected', 'canceled']);
+    testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'type', ['deposit', 'withdrawal']);
+    testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, 'amount', '0');
+    testSharedMethods.assertFeeStructure(exchange, skippedProperties, method, entry, 'fee');
+    if (entry['type'] === 'deposit') {
+        testSharedMethods.assertType(exchange, skippedProperties, entry, 'addressFrom', format);
+    }
+    else {
+        testSharedMethods.assertType(exchange, skippedProperties, entry, 'addressTo', format);
+    }
 }
 export default testDepositWithdrawal;

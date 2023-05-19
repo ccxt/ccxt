@@ -16,10 +16,10 @@ sys.path.append(root)
 from ccxt.test.base import test_trading_fee  # noqa E402
 
 
-def test_fetch_trading_fees(exchange):
+def test_fetch_trading_fees(exchange, skipped_properties):
     method = 'fetchTradingFees'
     fees = exchange.fetch_trading_fees()
     symbols = list(fees.keys())
     for i in range(0, len(symbols)):
         symbol = symbols[i]
-        test_trading_fee(exchange, method, symbol, fees[symbol])
+        test_trading_fee(exchange, skipped_properties, method, symbol, fees[symbol])

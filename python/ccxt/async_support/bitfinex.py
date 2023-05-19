@@ -857,7 +857,7 @@ class bitfinex(Exchange, ImplicitAPI):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        marketId = self.safe_string(market, 'pair')
+        marketId = self.safe_string(ticker, 'pair')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         last = self.safe_string(ticker, 'last_price')

@@ -13,6 +13,7 @@ sys.path.append(root)
 # -*- coding: utf-8 -*-
 
 
+from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402
 import numbers  # noqa E402
 from ccxt.base.precise import Precise  # noqa E402
 
@@ -21,22 +22,41 @@ def log_template(exchange, method, entry):
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json(entry) + ' >>> '
 
 
-def assert_type(exchange, entry, key, format):
+def is_integer(value):
+    is_numeric = (isinstance(value, numbers.Real))
+    if is_numeric:
+        return (value % 1) == 0
+    else:
+        return False
+
+
+def string_value(value):
+    string_val = None
+    if isinstance(value, str):
+        string_val = value
+    elif value is None:
+        string_val = 'undefined'
+    else:
+        string_val = str(value)
+    return string_val
+
+
+def assert_type(exchange, skipped_properties, entry, key, format):
+    if key in skipped_properties:
+        return
     # because "typeof" string is not transpilable without === 'name', we list them manually at this moment
     entry_key_val = exchange.safe_value(entry, key)
     format_key_val = exchange.safe_value(format, key)
     same_string = (isinstance(entry_key_val, str)) and (isinstance(format_key_val, str))
     same_numeric = (isinstance(entry_key_val, numbers.Real)) and (isinstance(format_key_val, numbers.Real))
-    # todo: the below is correct, but is not being transpiled into python correctly: (x == False) instead of (x is False)
-    # const same_boolean = ((entryKeyVal === true) || (entryKeyVal === false)) && ((formatKeyVal === true) || (formatKeyVal === false));
-    same_boolean = ((entry_key_val or not entry_key_val) and (format_key_val or not format_key_val))
+    same_boolean = ((entry_key_val) or (entry_key_val is False)) and ((format_key_val) or (format_key_val is False))
     same_array = isinstance(entry_key_val, list) and isinstance(format_key_val, list)
     same_object = (isinstance(entry_key_val, dict)) and (isinstance(format_key_val, dict))
     result = (entry_key_val is None) or same_string or same_numeric or same_boolean or same_array or same_object
     return result
 
 
-def assert_structure(exchange, method, entry, format, empty_not_allowed_for=[]):
+def assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for=[]):
     log_text = log_template(exchange, method, entry)
     assert entry, 'item is null/undefined' + log_text
     # get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -46,40 +66,60 @@ def assert_structure(exchange, method, entry, format, empty_not_allowed_for=[]):
         expected_length = len(format)
         assert real_length == expected_length, 'entry length is not equal to expected length of ' + str(expected_length) + log_text
         for i in range(0, len(format)):
-            is_in_array = exchange.in_array(i, empty_not_allowed_for)
-            if is_in_array:
-                assert (entry[i] is not None), str(i) + ' index is undefined, but is is was expected to be set' + log_text
+            empty_allowed_for_this_key = exchange.in_array(i, empty_allowed_for)
+            value = entry[i]
+            # check when:
+            # - it's not inside "allowe empty values" list
+            # - it's not undefined
+            if empty_allowed_for_this_key and (value is None):
+                continue
+            assert value is not None, str(i) + ' index is expected to have a value' + log_text
             # because of other langs, this is needed for arrays
-            assert assert_type(exchange, entry, i, format), str(i) + ' index does not have an expected type ' + log_text
+            assert assert_type(exchange, skipped_properties, entry, i, format), str(i) + ' index does not have an expected type ' + log_text
     else:
         assert isinstance(entry, dict), 'entry is not an object' + log_text
         keys = list(format.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            key_str = str(key)
-            assert (key in entry), key_str + ' key is missing from structure' + log_text
-            if exchange.in_array(key, empty_not_allowed_for):
-                # if it was in needed keys, then it should have value.
-                assert entry[key] is not None, key + ' key has an null value, but is expected to have a value' + log_text
-            assert assert_type(exchange, entry, key, format), key + ' key is neither undefined, neither of expected type' + log_text
+            if key in skipped_properties:
+                continue
+            assert key in entry, 'key \"' + string_value(key) + '\" is missing from structure' + log_text
+            empty_allowed_for_this_key = exchange.in_array(key, empty_allowed_for)
+            value = entry[key]
+            # check when:
+            # - it's not inside "allowe empty values" list
+            # - it's not undefined
+            if empty_allowed_for_this_key and (value is None):
+                continue
+            # if it was in needed keys, then it should have value.
+            assert value is not None, 'key \"' + string_value(key) + '\" is expected to have a value' + log_text
+            # add exclusion for info key, as it can be any type
+            if key != 'info':
+                assert assert_type(exchange, skipped_properties, entry, key, format), 'key \"' + string_value(key) + '\" is neither undefined, neither of expected type' + log_text
 
 
-def assert_timestamp(exchange, method, entry, now_to_check=None, key_name='timestamp'):
+def assert_timestamp(exchange, skipped_properties, method, entry, now_to_check=None, key_name_or_index='timestamp'):
     log_text = log_template(exchange, method, entry)
-    is_date_time_object = isinstance(key_name, str)
+    skip_value = exchange.safe_value(skipped_properties, key_name_or_index)
+    if skip_value is not None:
+        return   # skipped
+    is_date_time_object = isinstance(key_name_or_index, str)
     if is_date_time_object:
-        assert (key_name in entry), 'timestamp key ' + key_name + ' is missing from structure' + log_text
+        assert (key_name_or_index in entry), 'timestamp key ' + key_name_or_index + ' is missing from structure' + log_text
     else:
         # if index was provided (mostly from fetchOHLCV) then we check if it exists, as mandatory
-        assert not (entry[key_name] is None), 'timestamp index ' + str(key_name) + ' is undefined' + log_text
-    ts = entry[key_name]
+        assert not (entry[key_name_or_index] is None), 'timestamp index ' + string_value(key_name_or_index) + ' is undefined' + log_text
+    ts = entry[key_name_or_index]
     if ts is not None:
-        # todo: add transpilable is_integer
         assert isinstance(ts, numbers.Real), 'timestamp is not numeric' + log_text
-        assert ts > 1230940800000, 'timestamp is impossible to be before 1230940800000 / 03.01.2009' + log_text  # 03 Jan 2009 - first block
-        assert ts < 2147483648000, 'timestamp more than 2147483648000 / 19.01.2038' + log_text  # 19 Jan 2038 - int32 overflows # 7258118400000  -> Jan 1 2200
+        assert is_integer(ts), 'timestamp should be an integer' + log_text
+        min_ts = 1230940800000  # 03 Jan 2009 - first block
+        max_ts = 2147483648000  # 03 Jan 2009 - first block
+        assert ts > min_ts, 'timestamp is impossible to be before ' + str(min_ts) + ' (03.01.2009)' + log_text  # 03 Jan 2009 - first block
+        assert ts < max_ts, 'timestamp more than ' + str(max_ts) + ' (19.01.2038)' + log_text  # 19 Jan 2038 - int32 overflows # 7258118400000  -> Jan 1 2200
         if now_to_check is not None:
-            assert ts < now_to_check + 60000, 'trade timestamp is not below current time. Returned datetime: ' + exchange.iso8601(ts) + ', now: ' + exchange.iso8601(now_to_check) + log_text
+            max_ms_offset = 60000  # 1 min
+            assert ts < now_to_check + max_ms_offset, 'returned trade timestamp (' + exchange.iso8601(ts) + ') is ahead of the current time (' + exchange.iso8601(now_to_check) + ')' + log_text
     # only in case if the entry is a dictionary, thus it must have 'timestamp' & 'datetime' string keys
     if is_date_time_object:
         # we also test 'datetime' here because it's certain sibling of 'timestamp'
@@ -90,120 +130,125 @@ def assert_timestamp(exchange, method, entry, now_to_check=None, key_name='times
             assert dt == exchange.iso8601(entry['timestamp']), 'datetime is not iso8601 of timestamp' + log_text
 
 
-def assert_currency_code(exchange, method, entry, actual_code, expected_code=None):
+def assert_currency_code(exchange, skipped_properties, method, entry, actual_code, expected_code=None):
     log_text = log_template(exchange, method, entry)
     if actual_code is not None:
         assert isinstance(actual_code, str), 'currency code should be either undefined or a string' + log_text
         assert (actual_code in exchange.currencies), 'currency code should be present in exchange.currencies' + log_text
         if expected_code is not None:
-            assert actual_code == expected_code, 'currency code in response (' + actual_code + ') should be equal to expected code (' + expected_code + ')' + log_text
+            assert actual_code == expected_code, 'currency code in response (' + string_value(actual_code) + ') should be equal to expected code (' + string_value(expected_code) + ')' + log_text
 
 
-def assert_symbol(exchange, method, entry, key, expected_symbol=None):
+def assert_valid_currency_id_and_code(exchange, skipped_properties, method, entry, currency_id, currency_code):
+    # this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
+    if 'currencyIdAndCode' in skipped_properties:
+        return
+    log_text = log_template(exchange, method, entry)
+    undefined_values = currency_id is None and currency_code is None
+    defined_values = currency_id is not None and currency_code is not None
+    assert undefined_values or defined_values, 'currencyId and currencyCode should be either both defined or both undefined' + log_text
+    if defined_values:
+        # check by code
+        currency_by_code = exchange.currency(currency_code)
+        assert currency_by_code['id'] == currency_id, 'currencyId ' + string_value(currency_id) + ' does not match currency of code: ' + string_value(currency_code) + log_text
+        # check by id
+        currency_by_id = exchange.safe_currency(currency_id)
+        assert currency_by_id['code'] == currency_code, 'currencyCode ' + string_value(currency_code) + ' does not match currency of id: ' + string_value(currency_id) + log_text
+
+
+def assert_symbol(exchange, skipped_properties, method, entry, key, expected_symbol=None):
+    if key in skipped_properties:
+        return
     log_text = log_template(exchange, method, entry)
     actual_symbol = exchange.safe_string(entry, key)
     if actual_symbol is not None:
         assert isinstance(actual_symbol, str), 'symbol should be either undefined or a string' + log_text
         assert (actual_symbol in exchange.markets), 'symbol should be present in exchange.symbols' + log_text
     if expected_symbol is not None:
-        assert actual_symbol == expected_symbol, 'symbol in response (' + actual_symbol + ') should be equal to expected symbol (' + expected_symbol + ')' + log_text
+        assert actual_symbol == expected_symbol, 'symbol in response (' + string_value(actual_symbol) + ') should be equal to expected symbol (' + string_value(expected_symbol) + ')' + log_text
 
 
-def assert_greater(exchange, method, entry, key, compare_to):
+def assert_greater(exchange, skipped_properties, method, entry, key, compare_to):
+    if key in skipped_properties:
+        return
     log_text = log_template(exchange, method, entry)
     value = exchange.safe_string(entry, key)
     if value is not None:
-        key_str = None
-        if isinstance(key, str):
-            key_str = key
-        else:
-            key_str = str(key)
-        compare_to_str = None
-        if isinstance(compare_to, str):
-            compare_to_str = compare_to
-        else:
-            compare_to_str = str(compare_to)
-        assert Precise.string_gt(value, compare_to), key_str + ' key (with a value of ' + value + ') was expected to be > ' + compare_to_str + log_text
+        assert Precise.string_gt(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected to be > ' + string_value(compare_to) + log_text
 
 
-def assert_greater_or_equal(exchange, method, entry, key, compare_to):
+def assert_greater_or_equal(exchange, skipped_properties, method, entry, key, compare_to):
+    if key in skipped_properties:
+        return
     log_text = log_template(exchange, method, entry)
     value = exchange.safe_string(entry, key)
     if value is not None:
-        key_str = None
-        if isinstance(key, str):
-            key_str = key
-        else:
-            key_str = str(key)
-        compare_to_str = None
-        if isinstance(compare_to, str):
-            compare_to_str = compare_to
-        else:
-            compare_to_str = str(compare_to)
-        assert Precise.string_ge(value, compare_to), key_str + ' key (with a value of ' + value + ') was expected to be >= ' + compare_to_str + log_text
+        assert Precise.string_ge(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected to be >= ' + string_value(compare_to) + log_text
 
 
-def assert_less(exchange, method, entry, key, compare_to):
+def assert_less(exchange, skipped_properties, method, entry, key, compare_to):
+    if key in skipped_properties:
+        return
     log_text = log_template(exchange, method, entry)
     value = exchange.safe_string(entry, key)
     if value is not None:
-        key_str = None
-        if isinstance(key, str):
-            key_str = key
-        else:
-            key_str = str(key)
-        compare_to_str = None
-        if isinstance(compare_to, str):
-            compare_to_str = compare_to
-        else:
-            compare_to_str = str(compare_to)
-        assert Precise.string_lt(value, compare_to), key_str + ' key (with a value of ' + value + ') was expected to be < ' + compare_to_str + log_text
+        assert Precise.string_lt(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected to be < ' + string_value(compare_to) + log_text
 
 
-def assert_less_or_equal(exchange, method, entry, key, compare_to):
+def assert_less_or_equal(exchange, skipped_properties, method, entry, key, compare_to):
+    if key in skipped_properties:
+        return
     log_text = log_template(exchange, method, entry)
     value = exchange.safe_string(entry, key)
     if value is not None:
-        key_str = None
-        if isinstance(key, str):
-            key_str = key
-        else:
-            key_str = str(key)
-        compare_to_str = None
-        if isinstance(compare_to, str):
-            compare_to_str = compare_to
-        else:
-            compare_to_str = str(compare_to)
-        assert Precise.string_le(value, compare_to), key_str + ' key (with a value of ' + value + ') was expected to be <= ' + compare_to_str + log_text
+        assert Precise.string_le(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected to be <= ' + string_value(compare_to) + log_text
 
 
-def assert_in_array(exchange, method, entry, key, expected_array):
+def assert_equal(exchange, skipped_properties, method, entry, key, compare_to):
+    if key in skipped_properties:
+        return
+    log_text = log_template(exchange, method, entry)
+    value = exchange.safe_string(entry, key)
+    if value is not None:
+        assert Precise.string_eq(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected to be equal to ' + string_value(compare_to) + log_text
+
+
+def assert_non_equal(exchange, skipped_properties, method, entry, key, compare_to):
+    if key in skipped_properties:
+        return
+    log_text = log_template(exchange, method, entry)
+    value = exchange.safe_string(entry, key)
+    if value is not None:
+        assert not Precise.string_eq(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected not to be equal to ' + string_value(compare_to) + log_text
+
+
+def assert_in_array(exchange, skipped_properties, method, entry, key, expected_array):
+    if key in skipped_properties:
+        return
     log_text = log_template(exchange, method, entry)
     value = exchange.safe_value(entry, key)
+    # todo: remove undefined check
     if value is not None:
-        key_str = None
-        if isinstance(key, str):
-            key_str = key
-        else:
-            key_str = str(key)
-        assert exchange.in_array(value, expected_array), key_str + ' key (with a value of ' + value + ') was expected to be one from: [' + ','.join(expected_array) + ']' + log_text
+        stingified_array_value = exchange.json(expected_array)  # don't use expectedArray.join (','), as it bugs in other languages, if values are bool, undefined or etc..
+        assert exchange.in_array(value, expected_array), string_value(key) + ' key (with a value of ' + string_value(value) + ') is not from the expected list : [' + stingified_array_value + ']' + log_text
 
 
-def assert_fee(exchange, method, entry):
+def assert_fee_structure(exchange, skipped_properties, method, entry, key):
     log_text = log_template(exchange, method, entry)
-    if entry is not None:
-        assert ('cost' in entry), '\"fee\" should contain a \"cost\" key' + log_text
-        assert_greater_or_equal(exchange, method, entry, 'cost', '0')
-        assert ('currency' in entry), '\"fee\" should contain a \"currency\" key' + log_text
-        assert_currency_code(exchange, method, entry, entry['currency'])
-
-
-def assert_fees(exchange, method, entry):
-    log_text = log_template(exchange, method, entry)
-    if entry is not None:
-        assert isinstance(entry, list), '\"fees\" is not an array' + log_text
-        for i in range(0, len(entry)):
-            assert_fee(exchange, method, entry[i])
+    key_string = string_value(key)
+    if is_integer(key):
+        assert isinstance(entry, list), 'fee container is expected to be an array' + log_text
+        assert key < len(entry), 'fee key ' + key_string + ' was expected to be present in entry' + log_text
+    else:
+        assert isinstance(entry, dict), 'fee container is expected to be an object' + log_text
+        assert key in entry, 'fee key ' + key + ' was expected to be present in entry' + log_text
+    fee_object = exchange.safe_value(entry, key)
+    # todo: remove undefined check to make stricter
+    if fee_object is not None:
+        assert 'cost' in fee_object, key_string + ' fee object should contain \"cost\" key' + log_text
+        assert_greater_or_equal(exchange, skipped_properties, method, fee_object, 'cost', '0')
+        assert 'currency' in fee_object, key_string + ' fee object should contain \"currency\" key' + log_text
+        assert_currency_code(exchange, skipped_properties, method, entry, fee_object['currency'])
 
 
 def assert_timestamp_order(exchange, method, code_or_symbol, items, ascending=False):
@@ -212,4 +257,33 @@ def assert_timestamp_order(exchange, method, code_or_symbol, items, ascending=Fa
             ascending_or_descending = 'ascending' if ascending else 'descending'
             first_index = i - 1 if ascending else i
             second_index = i if ascending else i - 1
-            assert items[first_index]['timestamp'] >= items[second_index]['timestamp'], exchange.id + ' ' + method + ' ' + code_or_symbol + ' must return a ' + ascending_or_descending + ' sorted array of items by timestamp. ' + exchange.json(items)
+            assert items[first_index]['timestamp'] >= items[second_index]['timestamp'], exchange.id + ' ' + method + ' ' + string_value(code_or_symbol) + ' must return a ' + ascending_or_descending + ' sorted array of items by timestamp. ' + exchange.json(items)
+
+
+def assert_integer(exchange, skipped_properties, method, entry, key):
+    if key in skipped_properties:
+        return
+    log_text = log_template(exchange, method, entry)
+    if entry is not None:
+        value = exchange.safe_number(entry, key)
+        if value is not None:
+            assert is_integer(value), string_value(key) + ' key (with value ' + string_value(value) + ') is not an integer' + log_text
+
+
+def check_precision_accuracy(exchange, skipped_properties, method, entry, key):
+    if key in skipped_properties:
+        return
+    is_tick_size_precisionMode = exchange.precisionMode == TICK_SIZE
+    if is_tick_size_precisionMode:
+        # TICK_SIZE should be above zero
+        assert_greater(exchange, skipped_properties, method, entry, key, '0')
+        # the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
+        decimal_numbers = ['2', '3', '4', '6', '7', '8', '9', '11', '12', '13', '14', '15', '16']
+        for i in range(0, len(decimal_numbers)):
+            num = decimal_numbers[i]
+            num_str = num
+            assert_non_equal(exchange, skipped_properties, method, entry, key, num_str)
+    else:
+        assert_integer(exchange, skipped_properties, method, entry, key)  # should be integer
+        assert_less_or_equal(exchange, skipped_properties, method, entry, key, '18')  # should be under 18 decimals
+        assert_greater_or_equal(exchange, skipped_properties, method, entry, key, '-8')  # in real-world cases, there would not be less than that

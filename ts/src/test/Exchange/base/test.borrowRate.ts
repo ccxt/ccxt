@@ -1,7 +1,7 @@
 
 import testSharedMethods from './test.sharedMethods.js';
 
-function testBorrowRate (exchange, method, entry, requestedCode) {
+function testBorrowRate (exchange, skippedProperties, method, entry, requestedCode) {
     const format = {
         'info': {}, // Or []
         'currency': 'USDT',
@@ -10,13 +10,13 @@ function testBorrowRate (exchange, method, entry, requestedCode) {
         'rate': exchange.parseNumber ('0.0006'), // Interest rate
         'period': 86400000, // Amount of time the interest rate is based on in milliseconds
     };
-    const emptyNotAllowedFor = [ 'currency', 'rate' ];
-    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.assertTimestamp (exchange, method, entry);
-    testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format);
+    testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry);
+    testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['currency'], requestedCode);
     //
     // assert (borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000) // Milliseconds in an hour or a day
-    testSharedMethods.assertGreater (exchange, method, entry, 'rate', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'period', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'rate', '0');
 }
 
 export default testBorrowRate;

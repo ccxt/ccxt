@@ -2,7 +2,7 @@
 import assert from 'assert';
 import testTicker from './base/test.ticker.js';
 
-async function testFetchTickers (exchange, symbol) {
+async function testFetchTickers (exchange, skippedProperties, symbol) {
     const method = 'fetchTickers';
     // log ('fetching all tickers at once...')
     let tickers = undefined;
@@ -17,7 +17,7 @@ async function testFetchTickers (exchange, symbol) {
     const values = Object.values (tickers);
     for (let i = 0; i < values.length; i++) {
         const ticker = values[i];
-        testTicker (exchange, method, ticker, checkedSymbol);
+        testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
     }
 }
 

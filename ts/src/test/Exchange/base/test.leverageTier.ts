@@ -1,7 +1,7 @@
 
 import testSharedMethods from './test.sharedMethods.js';
 
-function testLeverageTier (exchange, method, entry) {
+function testLeverageTier (exchange, skippedProperties, method, entry) {
     const format = {
         'tier': exchange.parseNumber ('1'),
         'minNotional': exchange.parseNumber ('0'),
@@ -10,14 +10,14 @@ function testLeverageTier (exchange, method, entry) {
         'maxLeverage': exchange.parseNumber ('25'),
         'info': {},
     };
-    const emptyNotAllowedFor = [ 'maxLeverage', ' info' ];
-    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
+    const emptyAllowedFor = [ 'maintenanceMarginRate' ];
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     //
-    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'tier', '0');
-    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'minNotional', '0');
-    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'maxNotional', '0');
-    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'maxLeverage', '1');
-    testSharedMethods.assertLessOrEqual (exchange, method, entry, 'maintenanceMarginRate', '1');
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'tier', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'minNotional', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'maxNotional', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'maxLeverage', '1');
+    testSharedMethods.assertLessOrEqual (exchange, skippedProperties, method, entry, 'maintenanceMarginRate', '1');
 }
 
 export default testLeverageTier;

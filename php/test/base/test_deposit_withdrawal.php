@@ -10,7 +10,7 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/test_shared_methods.php';
 
-function test_deposit_withdrawal($exchange, $method, $entry, $requested_code, $now) {
+function test_deposit_withdrawal($exchange, $skipped_properties, $method, $entry, $requested_code, $now) {
     $format = array(
         'info' => array(),
         'id' => '1234',
@@ -31,13 +31,18 @@ function test_deposit_withdrawal($exchange, $method, $entry, $requested_code, $n
         'updated' => 1502962946233,
         'fee' => array(),
     );
-    $empty_not_allowed_for = ['type', 'amount', 'currency'];
-    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
-    assert_timestamp($exchange, $method, $entry, $now);
-    assert_currency_code($exchange, $method, $entry, $entry['currency'], $requested_code);
+    $empty_allowed_for = ['address', 'addressTo', 'addressFrom', 'tag', 'tagTo', 'tagFrom']; // below we still do assertion for to/from
+    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+    assert_timestamp($exchange, $skipped_properties, $method, $entry, $now);
+    assert_currency_code($exchange, $skipped_properties, $method, $entry, $entry['currency'], $requested_code);
     //
-    assert_in_array($exchange, $method, $entry, 'status', ['ok', 'pending', 'failed', 'rejected', 'canceled']);
-    assert_in_array($exchange, $method, $entry, 'type', ['deposit', 'withdrawal']);
-    assert_greater_or_equal($exchange, $method, $entry, 'amount', '0');
-    assert_fee($exchange, $method, $entry['fee']);
+    assert_in_array($exchange, $skipped_properties, $method, $entry, 'status', ['ok', 'pending', 'failed', 'rejected', 'canceled']);
+    assert_in_array($exchange, $skipped_properties, $method, $entry, 'type', ['deposit', 'withdrawal']);
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'amount', '0');
+    assert_fee_structure($exchange, $skipped_properties, $method, $entry, 'fee');
+    if ($entry['type'] === 'deposit') {
+        assert_type($exchange, $skipped_properties, $entry, 'addressFrom', $format);
+    } else {
+        assert_type($exchange, $skipped_properties, $entry, 'addressTo', $format);
+    }
 }

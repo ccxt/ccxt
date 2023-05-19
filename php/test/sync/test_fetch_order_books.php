@@ -10,7 +10,7 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_order_book.php';
 
-function test_fetch_order_books($exchange) {
+function test_fetch_order_books($exchange, $skipped_properties) {
     $method = 'fetchOrderBooks';
     $symbol = $exchange->symbols[0];
     $order_books = $exchange->fetch_order_books([$symbol]);
@@ -19,6 +19,6 @@ function test_fetch_order_books($exchange) {
     assert(count($order_book_keys) > 0, $exchange->id . ' ' . $method . ' returned 0 length data');
     for ($i = 0; $i < count($order_book_keys); $i++) {
         $symbol = $order_book_keys[$i];
-        test_order_book($exchange, $method, $order_books[$symbol], $symbol);
+        test_order_book($exchange, $skipped_properties, $method, $order_books[$symbol], $symbol);
     }
 }

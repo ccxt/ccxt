@@ -21,6 +21,8 @@ async def test_watch_trades(exchange, symbol):
         'independentreserve',  # too illiquid
     ]
 
+    skipped_properties = {}
+
     if exchange.id in skipped_exchanges:
         print(exchange.id, method, 'skipped')
         return
@@ -36,7 +38,7 @@ async def test_watch_trades(exchange, symbol):
                 now = exchange.milliseconds()
                 print(exchange.iso8601(now), symbol, len(trades), 'trades')
                 for trade in trades:
-                    test_trade(exchange, method, trade, symbol, now)
+                    test_trade(exchange, skipped_properties, method, trade, symbol, now)
                 # print(table([exchange.omit(t, ['info', 'timestamp']) for t in trades]))
             except NetworkError:
                 now = exchange.milliseconds()

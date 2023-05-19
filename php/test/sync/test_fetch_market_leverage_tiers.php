@@ -10,13 +10,13 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_leverage_tier.php';
 
-function test_fetch_market_leverage_tiers($exchange, $symbol) {
+function test_fetch_market_leverage_tiers($exchange, $skipped_properties, $symbol) {
     $method = 'fetchMarketLeverageTiers';
     $tiers = $exchange->fetch_market_leverage_tiers($symbol);
     assert(gettype($tiers) === 'array' && array_keys($tiers) === array_keys(array_keys($tiers)), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an array. ' . $exchange->json($tiers));
     $array_length = count($tiers);
     assert($array_length >= 1, $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an array with at least one entry. ' . $exchange->json($tiers));
     for ($j = 0; $j < count($tiers); $j++) {
-        test_leverage_tier($exchange, $method, $tiers[$j]);
+        test_leverage_tier($exchange, $skipped_properties, $method, $tiers[$j]);
     }
 }

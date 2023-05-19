@@ -16,7 +16,7 @@ sys.path.append(root)
 from ccxt.test.base import test_borrow_rate  # noqa E402
 
 
-async def test_fetch_borrow_rate(exchange, code):
+async def test_fetch_borrow_rate(exchange, skipped_properties, code):
     method = 'fetchBorrowRate'
     borrow_rate = None
     try:
@@ -28,4 +28,4 @@ async def test_fetch_borrow_rate(exchange, code):
             raise Error(message)
         # console.log (method + '() : ' + code + ' is not borrowable for this exchange. Skipping the test method.');
         return
-    test_borrow_rate(exchange, method, borrow_rate, code)
+    test_borrow_rate(exchange, skipped_properties, method, borrow_rate, code)

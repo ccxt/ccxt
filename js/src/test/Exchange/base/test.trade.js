@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import testSharedMethods from './test.sharedMethods.js';
-function testTrade(exchange, method, entry, symbol, now) {
+function testTrade(exchange, skippedProperties, method, entry, symbol, now) {
     const format = {
         'info': {},
         'id': '12345-67890:09876/54321',
@@ -21,16 +21,23 @@ function testTrade(exchange, method, entry, symbol, now) {
         'fees': [],
         'fee': {},
     };
-    // todo: add takeOrMaker as mandatory set
+    // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
     // removed side because some public endpoints return trades without side
-    const emptyNotAllowedFor = ['price', 'amount', 'cost'];
-    testSharedMethods.assertStructure(exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.assertTimestamp(exchange, method, entry, now);
-    testSharedMethods.assertSymbol(exchange, method, entry, 'symbol', symbol);
+    const emptyAllowedFor = ['fees', 'fee', 'symbol', 'order', 'id', 'takerOrMaker'];
+    testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+    testSharedMethods.assertTimestamp(exchange, skippedProperties, method, entry, now);
+    testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, 'symbol', symbol);
     //
-    testSharedMethods.assertInArray(exchange, method, entry, 'side', ['buy', 'sell']);
-    testSharedMethods.assertInArray(exchange, method, entry, 'takerOrMaker', ['taker', 'maker']);
-    testSharedMethods.assertFee(exchange, method, entry['fee']);
-    testSharedMethods.assertFees(exchange, method, entry['fees']);
+    testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'side', ['buy', 'sell']);
+    testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'takerOrMaker', ['taker', 'maker']);
+    testSharedMethods.assertFeeStructure(exchange, skippedProperties, method, entry, 'fee');
+    if (!('fees' in skippedProperties)) {
+        // todo: remove undefined check
+        if (entry['fees'] !== undefined) {
+            for (let i = 0; i < entry['fees'].length; i++) {
+                testSharedMethods.assertFeeStructure(exchange, skippedProperties, method, entry['fees'], i);
+            }
+        }
+    }
 }
 export default testTrade;

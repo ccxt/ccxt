@@ -4,7 +4,7 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-async function testFetchTransactionFees(exchange = undefined) {
+async function testFetchTransactionFees(exchange, skippedProperties) {
     // const method = 'fetchTransactionFees';
     // const fees = await exchange.fetchTransactionFees ();
     // const withdrawKeys = Object.keys (fees['withdraw']);
