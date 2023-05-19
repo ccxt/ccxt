@@ -465,8 +465,9 @@ export default class xt extends xtRest {
         //    }
         //
         const data = this.safeValue (message, 'data', []);
-        const firstTicker = this.safeValue (message, 0);
-        const tradeType = ('cv' in firstTicker) || ('aq' in firstTicker) ? 'spot' : 'contract';
+        const firstTicker = this.safeValue (data, 0);
+        const spotTest = this.safeString2 (firstTicker, 'cv', 'aq');
+        const tradeType = (spotTest !== undefined) ? 'spot' : 'contract';
         for (let i = 0; i < data.length; i++) {
             const tickerData = data[i];
             const ticker = this.parseTicker (tickerData);
