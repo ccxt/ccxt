@@ -41,13 +41,8 @@ function run_tests {
     fi
   fi
 
-  if [ -n "$rest_pid" ]; then
-    wait $rest_pid
-  fi
+  wait $rest_pid && wait $ws_pid
 
-  if [ -n "$ws_pid" ]; then
-    wait $ws_pid
-  fi
 }
 
 build_and_test_all () {
