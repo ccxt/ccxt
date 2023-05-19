@@ -2226,7 +2226,7 @@ export default class binance extends Exchange {
                 'amount': this.safeInteger2 (market, 'quantityPrecision', 'quantityScale'),
                 'price': this.safeInteger2 (market, 'pricePrecision', 'priceScale'),
                 'base': this.safeInteger (market, 'baseAssetPrecision'),
-                'quote': this.safeInteger (market, 'quotePrecision'),
+                'quote': this.safeInteger2 (market, 'quoteAssetPrecision', 'quotePrecision'),
             },
             'limits': {
                 'leverage': {
