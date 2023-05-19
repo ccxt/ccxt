@@ -2553,13 +2553,19 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-order
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-stop-order
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-position-tpsl
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-plan-order
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
+         * @param {string} side 'buy' or 'sell' or 'open_long' or 'open_short' or 'close_long' or 'close_short'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {float} params.triggerPrice *swap only* The price at which a trigger order is triggered at
+         * @param {float|undefined} params.stopLossPrice *swap only* The price at which a stop loss order is triggered at
+         * @param {float|undefined} params.takeProfitPrice *swap only* The price at which a take profit order is triggered at
+         * @param {float|undefined} params.stopLoss *swap only* *uses the Place Position TPSL* The price at which a stop loss order is triggered at
+         * @param {float|undefined} params.takeProfit *swap only* *uses the Place Position TPSL* The price at which a take profit order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2666,6 +2672,13 @@ export default class bitget extends Exchange {
                 if (price !== undefined) {
                     request['executePrice'] = this.priceToPrecision (symbol, price);
                 }
+                if (side === 'buy') {
+                    request['side'] = 'open_long';
+                } else if (side === 'sell') {
+                    request['side'] = 'open_short';
+                } else {
+                    request['side'] = side;
+                }
                 method = 'privateMixPostPlanPlacePlan';
             } else if (isStopLossOrTakeProfitTrigger) {
                 if (isStopLossTriggerOrder) {
@@ -2689,7 +2702,13 @@ export default class bitget extends Exchange {
                 if (reduceOnly) {
                     request['side'] = (side === 'buy') ? 'close_short' : 'close_long';
                 } else {
-                    request['side'] = (side === 'buy') ? 'open_long' : 'open_short';
+                    if (side === 'buy') {
+                        request['side'] = 'open_long';
+                    } else if (side === 'sell') {
+                        request['side'] = 'open_short';
+                    } else {
+                        request['side'] = side;
+                    }
                 }
             }
             request['marginCoin'] = market['settleId'];
