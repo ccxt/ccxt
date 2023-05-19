@@ -155,7 +155,7 @@ export default class xt extends xtRest {
          * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the xt api endpoint
-         * @param {string} params.method 'agg_ticker' (swap only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
+         * @param {string} params.method 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const market = this.market (symbol);
@@ -176,7 +176,7 @@ export default class xt extends xtRest {
          * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
          * @param {string} symbol not used by xt watchTickers
          * @param {object} params extra parameters specific to the xt api endpoint
-         * @param {string} params.method 'agg_tickers' (swap only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
+         * @param {string} params.method 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const options = this.safeValue (this.options, 'watchTickers');
@@ -341,7 +341,7 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
-        // swap
+        // contract
         //
         //    {
         //        "topic": "ticker",
@@ -359,7 +359,7 @@ export default class xt extends xtRest {
         //       }
         //    }
         //
-        // agg_ticker (swap)
+        // agg_ticker (contract)
         //
         //    {
         //        "topic": "agg_ticker",
@@ -420,7 +420,7 @@ export default class xt extends xtRest {
         //        ]
         //    }
         //
-        // swap
+        // contract
         //
         //    {
         //        "topic": "tickers",
@@ -440,7 +440,7 @@ export default class xt extends xtRest {
         //        ]
         //    }
         //
-        // agg_ticker (swap)
+        // agg_ticker (contract)
         //
         //    {
         //        "topic": "agg_tickers",
@@ -497,7 +497,7 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
-        // swap
+        // contract
         //
         //    {
         //        "topic": "kline",
@@ -555,7 +555,7 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
-        // swap
+        // contract
         //
         //    {
         //        "topic": "trade",
@@ -624,7 +624,7 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
-        // swap
+        // contract
         //
         //    {
         //        "topic": "depth",
@@ -688,7 +688,7 @@ export default class xt extends xtRest {
         //        "f": "0.002"                             // fee
         //    }
         //
-        // swap
+        // contract
         //
         //    {
         //        "symbol": "btc_usdt",                    // Trading pair
@@ -748,7 +748,7 @@ export default class xt extends xtRest {
         //        "f": "0.002"                             // fee
         //    }
         //
-        // swap
+        // contract
         //
         //    {
         //        "symbol": "btc_usdt",                    // Trading pair
@@ -821,7 +821,7 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
-        // swap
+        // contract
         //
         //    {
         //        "topic": "order",
@@ -925,7 +925,7 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
-        // swap
+        // contract
         //
         //    {
         //        "topic": "balance",
@@ -972,7 +972,7 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
-        // swap
+        // contract
         //
         //    {
         //        "topic": "trade",
