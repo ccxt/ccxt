@@ -43,7 +43,8 @@ export default class xt extends xtRest {
                 },
             },
             'streaming': {
-                'keepAlive': 30000,
+                'keepAlive': 20000,
+                'ping': this.ping,
             },
             'accessToken': undefined,
         });
@@ -997,5 +998,10 @@ export default class xt extends xtRest {
                 return method.call (this, client, message);
             }
         }
+    }
+
+    ping (client) {
+        client.lastPong = this.milliseconds ();
+        return 'ping';
     }
 }
