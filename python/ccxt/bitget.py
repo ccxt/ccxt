@@ -115,20 +115,18 @@ class bitget(Exchange, ImplicitAPI):
                 'withdraw': False,
             },
             'timeframes': {
-                '1m': '1m',
-                '3m': '3m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
+                '1m': '1min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
                 '1h': '1h',
-                '2h': '2h',
                 '4h': '4h',
-                '6h': '6h',
-                '12h': '12h',
-                '1d': '1d',
-                '3d': '3d',
-                '1w': '1w',
-                '1M': '1M',
+                '6h': '6Hutc',
+                '12h': '12Hutc',
+                '1d': '1Dutc',
+                '3d': '3Dutc',
+                '1w': '1Wutc',
+                '1M': '1Mutc',
             },
             'hostname': 'bitget.com',
             'urls': {
@@ -136,13 +134,17 @@ class bitget(Exchange, ImplicitAPI):
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'mix': 'https://api.{hostname}',
+                    'user': 'https://api.{hostname}',
                     'p2p': 'https://api.{hostname}',
+                    'broker': 'https://api.{hostname}',
+                    'margin': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
                     'https://bitgetlimited.github.io/apidoc/en/mix',
                     'https://bitgetlimited.github.io/apidoc/en/spot',
                     'https://bitgetlimited.github.io/apidoc/en/broker',
+                    'https://bitgetlimited.github.io/apidoc/en/margin',
                 ],
                 'fees': 'https://www.bitget.cc/zh-CN/rate?tab=1',
                 'referral': 'https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j',
@@ -152,12 +154,12 @@ class bitget(Exchange, ImplicitAPI):
                     'spot': {
                         'get': {
                             'public/time': 1,
-                            'public/currencies': 1,
+                            'public/currencies': 6.6667,  # 3 times/1s(IP) => 20/3 = 6.6667
                             'public/products': 1,
                             'public/product': 1,
                             'market/ticker': 1,
                             'market/tickers': 1,
-                            'market/fills': 1,
+                            'market/fills': 2,  # 10 times/1s(IP) => 20/10 = 2
                             'market/fills-history': 2,
                             'market/candles': 1,
                             'market/depth': 1,
@@ -170,7 +172,9 @@ class bitget(Exchange, ImplicitAPI):
                             'market/depth': 1,
                             'market/ticker': 1,
                             'market/tickers': 1,
+                            'market/contract-vip-level': 2,
                             'market/fills': 1,
+                            'market/fills-history': 2,
                             'market/candles': 1,
                             'market/index': 1,
                             'market/funding-time': 1,
@@ -179,91 +183,125 @@ class bitget(Exchange, ImplicitAPI):
                             'market/open-interest': 1,
                             'market/mark-price': 1,
                             'market/symbol-leverage': 1,
-                            'market/contract-vip-level': 2,
-                            'market/fills-history': 2,
                             'market/queryPositionLever': 1,
+                        },
+                    },
+                    'margin': {
+                        'get': {
+                            'cross/public/interestRateAndLimit': 2,  # 10 times/1s(IP) => 20/10 = 2
+                            'isolated/public/interestRateAndLimit': 2,  # 10 times/1s(IP) => 20/10 = 2
+                            'cross/public/tierData': 2,  # 10 times/1s(IP) => 20/10 = 2
+                            'isolated/public/tierData': 2,  # 10 times/1s(IP) => 20/10 = 2
+                            'public/currencies': 1,  # 20 times/1s(IP) => 20/20 = 1
+                            'cross/account/assets': 2,  # 10 times/1s(IP) => 20/10 = 2
+                            'isolated/account/assets': 2,  # 10 times/1s(IP) => 20/10 = 2
                         },
                     },
                 },
                 'private': {
                     'spot': {
                         'get': {
-                            'account/getInfo': 20,
-                            'account/assets': 2,
-                            'account/transferRecords': 4,
                             'wallet/deposit-address': 4,
-                            'wallet/withdrawal-inner': 4,
                             'wallet/withdrawal-list': 1,
                             'wallet/deposit-list': 1,
+                            'account/getInfo': 20,
+                            'account/assets': 2,
+                            'account/transferRecords': 1,  # 20 times/1s(UID) => 20/20 = 1
                         },
                         'post': {
-                            'account/bills': 2,
+                            'wallet/transfer': 4,
+                            'wallet/transfer-v2': 4,
+                            'wallet/subTransfer': 10,
+                            'wallet/withdrawal': 4,
+                            'wallet/withdrawal-v2': 4,
+                            'wallet/withdrawal-inner': 4,
+                            'wallet/withdrawal-inner-v2': 4,
                             'account/sub-account-spot-assets': 200,
+                            'account/bills': 2,
                             'trade/orders': 2,
                             'trade/batch-orders': 4,
                             'trade/cancel-order': 2,
+                            'trade/cancel-order-v2': 2,
+                            'trade/cancel-symbol-order': 2,
                             'trade/cancel-batch-orders': 4,
                             'trade/cancel-batch-orders-v2': 4,
                             'trade/orderInfo': 1,
                             'trade/open-orders': 1,
                             'trade/history': 1,
                             'trade/fills': 1,
-                            'trade/cancel-order-v2': 2,
-                            'trade/cancel-symbol-order': 2,
-                            'wallet/transfer': 4,
-                            'wallet/withdrawal': 4,
-                            'wallet/subTransfer': 10,
-                            'wallet/transfer-v2': 4,
-                            'wallet/withdrawal-v2': 4,
-                            'wallet/withdrawal-inner-v2': 4,
                             'plan/placePlan': 1,
                             'plan/modifyPlan': 1,
                             'plan/cancelPlan': 1,
                             'plan/currentPlan': 1,
                             'plan/historyPlan': 1,
+                            'plan/batchCancelPlan': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/order/orderCurrentList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/order/orderHistoryList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/order/closeTrackingOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/order/updateTpsl': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/order/followerEndOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/order/spotInfoList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/config/getTraderSettings': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/config/getFollowerSettings': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/user/myTraders': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/config/setFollowerConfig': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/user/myFollowers': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/config/setProductCode': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/user/removeTrader': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/profit/totalProfitInfo': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/profit/totalProfitList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/profit/profitHisList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/profit/profitHisDetailList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/profit/waitProfitDetailList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/user/getTraderInfo': 2,  # 10 times/1s(UID) => 20/10 = 2
                         },
                     },
                     'mix': {
                         'get': {
                             'account/account': 2,
                             'account/accounts': 2,
+                            'position/singlePosition': 2,
+                            'position/singlePosition-v2': 2,
+                            'position/allPosition': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'position/allPosition-v2': 4,  # 5 times/1s(UID) => 20/5 = 4
                             'account/accountBill': 2,
                             'account/accountBusinessBill': 4,
-                            'account/open-count': 1,
-                            'order/current': 2,
+                            'order/current': 1,  # 20 times/1s(UID) => 20/20 = 1
+                            'order/marginCoinCurrent': 1,  # 20 times/1s(UID) => 20/20 = 1
                             'order/history': 2,
+                            'order/historyProductType': 4,  # 5 times/1s(UID) => 20/5 = 4
                             'order/detail': 2,
                             'order/fills': 2,
-                            'order/historyProductType': 8,
                             'order/allFills': 2,
-                            'plan/currentPlan': 2,
+                            'plan/currentPlan': 1,  # 20 times/1s(UID) => 20/20 = 1
                             'plan/historyPlan': 2,
-                            'position/singlePosition': 2,
-                            'position/allPosition': 2,
                             'trace/currentTrack': 2,
                             'trace/followerOrder': 2,
+                            'trace/followerHistoryOrders': 2,
                             'trace/historyTrack': 2,
-                            'trace/summary': 2,
-                            'trace/profitSettleTokenIdGroup': 2,
-                            'trace/profitDateGroupList': 2,
+                            'trace/summary': 1,  # 20 times/1s(UID) => 20/20 = 1
+                            'trace/profitSettleTokenIdGroup': 1,  # 20 times/1s(UID) => 20/20 = 1
+                            'trace/profitDateGroupList': 1,  # 20 times/1s(UID) => 20/20 = 1
                             'trade/profitDateList': 2,
-                            'trace/waitProfitDateList': 2,
-                            'trace/traderSymbols': 2,
+                            'trace/waitProfitDateList': 1,  # 20 times/1s(UID) => 20/20 = 1
+                            'trace/traderSymbols': 1,  # 20 times/1s(UID) => 20/20 = 1
                             'trace/traderList': 2,
+                            'trace/traderDetail': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/queryTraceConfig': 2,
-                            'order/marginCoinCurrent': 2,
                         },
                         'post': {
-                            'account/setLeverage': 8,
-                            'account/setMargin': 8,
-                            'account/setMarginMode': 8,
-                            'account/setPositionMode': 8,
+                            'account/sub-account-contract-assets': 200,  # 0.1 times/1s(UID) => 20/0.1 = 200
+                            'account/open-count': 1,
+                            'account/setLeverage': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'account/setMargin': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'account/setMarginMode': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'account/setPositionMode': 4,  # 5 times/1s(UID) => 20/5 = 4
                             'order/placeOrder': 2,
                             'order/batch-orders': 2,
                             'order/cancel-order': 2,
-                            'order/cancel-all-orders': 2,
                             'order/cancel-batch-orders': 2,
                             'order/cancel-symbol-orders': 2,
+                            'order/cancel-all-orders': 2,
                             'plan/placePlan': 2,
                             'plan/modifyPlan': 2,
                             'plan/modifyPlanPreset': 2,
@@ -272,22 +310,98 @@ class bitget(Exchange, ImplicitAPI):
                             'plan/placePositionsTPSL': 2,
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
-                            'plan/cancelAllPlan': 2,
                             'plan/cancelSymbolPlan': 2,
+                            'plan/cancelAllPlan': 2,
                             'trace/closeTrackOrder': 2,
+                            'trace/modifyTPSL': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/setUpCopySymbols': 2,
                             'trace/followerSetBatchTraceConfig': 2,
                             'trace/followerCloseByTrackingNo': 2,
                             'trace/followerCloseByAll': 2,
                             'trace/followerSetTpsl': 2,
+                            'trace/cancelCopyTrader': 4,  # 5 times/1s(UID) => 20/5 = 4
+                        },
+                    },
+                    'user': {
+                        'get': {
+                            'fee/query': 2,
+                            'sub/virtual-list': 2,
+                            'sub/virtual-api-list': 2,
+                        },
+                        'post': {
+                            'sub/virtual-create': 4,
+                            'sub/virtual-modify': 4,
+                            'sub/virtual-api-batch-create': 20,  # 1 times/1s(UID) => 20/1 = 20
+                            'sub/virtual-api-create': 4,
+                            'sub/virtual-api-modify': 4,
                         },
                     },
                     'p2p': {
                         'get': {
-                            'merchant/merchantList': 1,
-                            'merchant/merchantInfo': 1,
-                            'merchant/advList': 1,
-                            'merchant/orderList': 1,
+                            'merchant/merchantList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'merchant/merchantInfo': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'merchant/advList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'merchant/orderList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                        },
+                    },
+                    'broker': {
+                        'get': {
+                            'account/info': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'account/sub-list': 20,  # 1 times/1s(UID) => 20/1 = 20
+                            'account/sub-email': 20,  # 1 times/1s(UID) => 20/1 = 20
+                            'account/sub-spot-assets': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'account/sub-future-assets': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'account/sub-api-list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                        },
+                        'post': {
+                            'account/sub-create': 20,  # 1 times/1s(UID) => 20/1 = 20
+                            'account/sub-modify': 20,  # 1 times/1s(UID) => 20/1 = 20
+                            'account/sub-modify-email': 20,  # 1 times/1s(UID) => 20/1 = 20
+                            'account/sub-address': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'account/sub-withdrawal': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'account/sub-auto-transfer': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'account/sub-api-create': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'account/sub-api-modify': 2,  # 10 times/1s(UID) => 20/10 = 2
+                        },
+                    },
+                    'margin': {
+                        'get': {
+                            'cross/account/riskRate': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/account/maxTransferOutAmount': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/account/maxTransferOutAmount': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/order/openOrders': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/order/history': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/order/fills': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/loan/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/repay/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/interest/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/liquidation/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/fin/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/order/openOrders': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/order/history': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/order/fills': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/loan/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/repay/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/interest/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/liquidation/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/fin/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                        },
+                        'post': {
+                            'cross/account/borrow': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/account/borrow': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/account/repay': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/account/repay': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/account/riskRate': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/account/maxBorrowableAmount': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/account/maxBorrowableAmount': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/order/placeOrder': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'isolated/order/batchPlaceOrder': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'isolated/order/cancelOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/order/batchCancelOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/order/placeOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/order/batchPlaceOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/order/cancelOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/order/batchCancelOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
                         },
                     },
                 },
@@ -822,10 +936,10 @@ class bitget(Exchange, ImplicitAPI):
             'options': {
                 'timeframes': {
                     'spot': {
-                        '1m': '1m',
-                        '5m': '5m',
-                        '15m': '15m',
-                        '30m': '30m',
+                        '1m': '1min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
                         '1h': '1h',
                         '4h': '4h',
                         '6h': '6Hutc',
@@ -1021,7 +1135,7 @@ class bitget(Exchange, ImplicitAPI):
                 year = '20' + expiryString[0:2]
                 month = expiryString[2:4]
                 day = expiryString[4:6]
-                expiryDatetime = year + '-' + month + '-' + day + 'T00:00:00Z'
+                expiryDatetime = year + '-' + month + '-' + day + 'T00:00:00.000Z'
                 expiry = self.parse8601(expiryDatetime)
                 type = 'future'
                 future = True
@@ -1369,6 +1483,7 @@ class bitget(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
+        see https://bitgetlimited.github.io/apidoc/en/spot/#withdraw-v2
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -1378,20 +1493,22 @@ class bitget(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.check_address(address)
-        chain = self.safe_string(params, 'chain')
+        chain = self.safe_string_2(params, 'chain', 'network')
+        params = self.omit(params, ['network'])
         if chain is None:
             raise ArgumentsRequired(self.id + ' withdraw() requires a chain parameter')
         self.load_markets()
         currency = self.currency(code)
+        networkId = self.network_code_to_id(chain)
         request = {
             'coin': currency['code'],
             'address': address,
-            'chain': chain,
+            'chain': networkId,
             'amount': amount,
         }
         if tag is not None:
             request['tag'] = tag
-        response = self.privateSpotPostWalletWithdrawal(self.extend(request, params))
+        response = self.privateSpotPostWalletWithdrawalV2(self.extend(request, params))
         #
         #     {
         #         "code": "00000",
@@ -2077,6 +2194,8 @@ class bitget(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-candle-data
+        see https://bitgetlimited.github.io/apidoc/en/spot/#candlestick-line-timeframe
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
@@ -2092,7 +2211,8 @@ class bitget(Exchange, ImplicitAPI):
         }
         until = self.safe_integer_2(params, 'until', 'till')
         if limit is None:
-            limit = 100
+            limit = 1000
+        request['limit'] = limit
         marketType = 'spot' if market['spot'] else 'swap'
         timeframes = self.options['timeframes'][marketType]
         selectedTimeframe = self.safe_string(timeframes, timeframe, timeframe)
@@ -2110,10 +2230,10 @@ class bitget(Exchange, ImplicitAPI):
             request['granularity'] = selectedTimeframe
             now = self.milliseconds()
             if since is None:
-                request['startTime'] = now - (limit - 1) * (duration * 1000)
+                request['startTime'] = now - limit * (duration * 1000)
                 request['endTime'] = now
             else:
-                request['startTime'] = self.sum(since, duration * 1000)
+                request['startTime'] = since
                 if until is not None:
                     request['endTime'] = until
                 else:
@@ -2779,12 +2899,19 @@ class bitget(Exchange, ImplicitAPI):
         #       }
         #     }
         #
+        # response will be string after filled, see: ccxt/ccxt#17900
+        if isinstance(response, str):
+            response = json.loads(response)
         data = self.safe_value(response, 'data')
         first = self.safe_value(data, 0, data)
         return self.parse_order(first, market)
 
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-list
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-open-order
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-plan-order-tpsl-list
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-order
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch open orders for
@@ -2792,30 +2919,41 @@ class bitget(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        self.check_required_symbol('fetchOpenOrders', symbol)
         self.load_markets()
-        market = self.market(symbol)
+        request = {}
         marketType = None
         query = None
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
         marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
-        request = {
-            'symbol': market['id'],
-        }
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privateSpotPostTradeOpenOrders',
-            'swap': 'privateMixGetOrderCurrent',
-            'future': 'privateMixGetOrderCurrent',
-        })
+        response = None
         stop = self.safe_value(query, 'stop')
         if stop:
+            self.check_required_symbol('fetchOpenOrders', symbol)
+            query = self.omit(query, 'stop')
             if marketType == 'spot':
-                method = 'privateSpotPostPlanCurrentPlan'
                 if limit is not None:
                     request['pageSize'] = limit
+                response = self.privateSpotPostPlanCurrentPlan(self.extend(request, query))
             else:
-                method = 'privateMixGetPlanCurrentPlan'
-            query = self.omit(query, 'stop')
-        response = getattr(self, method)(self.extend(request, query))
+                response = self.privateMixGetPlanCurrentPlan(self.extend(request, query))
+        else:
+            if marketType == 'spot':
+                response = self.privateSpotPostTradeOpenOrders(self.extend(request, query))
+            else:
+                if market is None:
+                    subType = None
+                    subType, params = self.handle_sub_type_and_params('fetchOpenOrders', None, params)
+                    productType = 'UMCBL' if (subType == 'linear') else 'DMCBL'
+                    sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+                    if sandboxMode:
+                        productType = 'S' + productType
+                    request['productType'] = productType
+                    response = self.privateMixGetOrderMarginCoinCurrent(self.extend(request, query))
+                else:
+                    response = self.privateMixGetOrderCurrent(self.extend(request, query))
         #
         #  spot
         #     {
@@ -3313,7 +3451,7 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'marginCoin': market['settleId'],
         }
-        response = self.privateMixGetPositionSinglePosition(self.extend(request, params))
+        response = self.privateMixGetPositionSinglePositionV2(self.extend(request, params))
         #
         #     {
         #       code: '00000',
@@ -3366,7 +3504,7 @@ class bitget(Exchange, ImplicitAPI):
         request = {
             'productType': productType,
         }
-        response = self.privateMixGetPositionAllPosition(self.extend(request, params))
+        response = self.privateMixGetPositionAllPositionV2(self.extend(request, params))
         #
         #     {
         #       code: '00000',
@@ -3979,7 +4117,7 @@ class bitget(Exchange, ImplicitAPI):
 
     def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
-        see https://bitgetlimited.github.io/apidoc/en/spot/#transfer
+        see https://bitgetlimited.github.io/apidoc/en/spot/#transfer-v2
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
         :param float amount: amount to transfer
@@ -4006,7 +4144,7 @@ class bitget(Exchange, ImplicitAPI):
             'amount': amount,
             'coin': currency['info']['coinName'],
         }
-        response = self.privateSpotPostWalletTransfer(self.extend(request, params))
+        response = self.privateSpotPostWalletTransferV2(self.extend(request, params))
         #
         #    {
         #        "code": "00000",
@@ -4143,6 +4281,12 @@ class bitget(Exchange, ImplicitAPI):
             pathPart = '/api/spot/v1'
         elif endpoint == 'mix':
             pathPart = '/api/mix/v1'
+        elif endpoint == 'user':
+            pathPart = '/api/user/v1'
+        elif endpoint == 'broker':
+            pathPart = '/api/broker/v1'
+        elif endpoint == 'margin':
+            pathPart = '/api/margin/v1'
         else:
             pathPart = '/api/p2p/v1'
         request = '/' + self.implode_params(path, params)

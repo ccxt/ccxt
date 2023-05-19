@@ -12,14 +12,14 @@ use React\Promise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_market.php';
 
-function test_fetch_markets($exchange) {
-    return Async\async(function () use ($exchange) {
+function test_fetch_markets($exchange, $skipped_properties) {
+    return Async\async(function () use ($exchange, $skipped_properties) {
         $method = 'fetchMarkets';
         $markets = Async\await($exchange->fetch_markets());
         assert(is_array($markets), $exchange->id . ' ' . $method . ' must return an object. ' . $exchange->json($markets));
         $market_values = is_array($markets) ? array_values($markets) : array();
         for ($i = 0; $i < count($market_values); $i++) {
-            test_market($exchange, $method, $market_values[$i]);
+            test_market($exchange, $skipped_properties, $method, $market_values[$i]);
         }
     }) ();
 }

@@ -18,6 +18,7 @@ class krakenfutures extends Exchange {
             'version' => 'v3',
             'userAgent' => null,
             'rateLimit' => 600,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => false,
@@ -302,8 +303,9 @@ class krakenfutures extends Exchange {
             $settleId = null;
             $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'contractValueTradePrecision', '0')));
             $pricePrecision = $this->safe_number($market, 'tickSize');
-            $contract = ($swap || $future);
-            if ($contract) {
+            $contract = ($swap || $future || $index);
+            $swapOrFutures = ($swap || $future);
+            if ($swapOrFutures) {
                 $exchangeType = $this->safe_string($market, 'type');
                 if ($exchangeType === 'futures_inverse') {
                     $settle = $base;
@@ -1899,7 +1901,7 @@ class krakenfutures extends Exchange {
         $currency = $this->currency($code);
         $method = 'privatePostTransfer';
         $request = array(
-            'amount' => $this->currency_to_precision($code, $amount),
+            'amount' => $amount,
         );
         if ($fromAccount === 'spot') {
             throw new BadRequest($this->id . ' $transfer does not yet support transfers from spot');

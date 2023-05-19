@@ -87,7 +87,7 @@ export default class phemex extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
                 'test': {
                     'v1': 'https://testnet-api.phemex.com/v1',
-                    'v2': 'https://testnet-api.phemex.com/',
+                    'v2': 'https://testnet-api.phemex.com',
                     'public': 'https://testnet-api.phemex.com/exchange/public',
                     'private': 'https://testnet-api.phemex.com',
                 },
@@ -144,7 +144,8 @@ export default class phemex extends Exchange {
                         'md/ticker/24hr/all': 5,
                         'md/spot/ticker/24hr': 5,
                         'md/spot/ticker/24hr/all': 5,
-                        'exchange/public/products': 5, // contracts only
+                        'exchange/public/products': 5,
+                        'api-data/public/data/funding-rate-history': 5,
                     },
                 },
                 'v2': {
@@ -2497,7 +2498,7 @@ export default class phemex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @param {string|undefined} params.posSide either 'Hedged' or 'OneWay' or 'Merged'
+         * @param {string|undefined} params.posSide either 'Merged' or 'Long' or 'Short'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -2573,7 +2574,7 @@ export default class phemex extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @param {string|undefined} params.posSide either 'Hedged' or 'OneWay' or 'Merged'
+         * @param {string|undefined} params.posSide either 'Merged' or 'Long' or 'Short'
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -4192,10 +4193,17 @@ export default class phemex extends Exchange {
         this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['swap'] || market['settle'] !== 'USDT') {
-            throw new BadRequest(this.id + ' fetchFundingRateHistory() supports USDT swap contracts only');
+        const isUsdtSettled = market['settle'] === 'USDT';
+        if (!market['swap']) {
+            throw new BadRequest(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
-        const customSymbol = '.' + market['id'] + 'FR8H'; // phemex requires a custom symbol for funding rate history
+        let customSymbol = undefined;
+        if (isUsdtSettled) {
+            customSymbol = '.' + market['id'] + 'FR8H'; // phemex requires a custom symbol for funding rate history
+        }
+        else {
+            customSymbol = '.' + market['baseId'] + 'FR8H';
+        }
         const request = {
             'symbol': customSymbol,
         };
@@ -4205,7 +4213,13 @@ export default class phemex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v2GetApiDataPublicDataFundingRateHistory(this.extend(request, params));
+        let response = undefined;
+        if (isUsdtSettled) {
+            response = await this.v2GetApiDataPublicDataFundingRateHistory(this.extend(request, params));
+        }
+        else {
+            response = await this.v1GetApiDataPublicDataFundingRateHistory(this.extend(request, params));
+        }
         //
         //    {
         //        "code":"0",

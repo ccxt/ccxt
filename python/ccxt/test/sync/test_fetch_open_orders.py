@@ -17,13 +17,13 @@ from ccxt.test.base import test_shared_methods  # noqa E402
 from ccxt.test.base import test_order  # noqa E402
 
 
-def test_fetch_open_orders(exchange, symbol):
+def test_fetch_open_orders(exchange, skipped_properties, symbol):
     method = 'fetchOpenOrders'
     orders = exchange.fetch_open_orders(symbol)
     assert isinstance(orders, list), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json(orders)
     now = exchange.milliseconds()
     for i in range(0, len(orders)):
         order = orders[i]
-        test_order(exchange, method, order, symbol, now)
+        test_order(exchange, skipped_properties, method, order, symbol, now)
         assert order['status'] == 'open', exchange.id + ' ' + method + ' ' + symbol + ' returned an order with status ' + order['status'] + ' (expected \"open\")'
     test_shared_methods.assert_timestamp_order(exchange, method, symbol, orders)

@@ -106,7 +106,7 @@ class phemex(Exchange, ImplicitAPI):
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
                 'test': {
                     'v1': 'https://testnet-api.phemex.com/v1',
-                    'v2': 'https://testnet-api.phemex.com/',
+                    'v2': 'https://testnet-api.phemex.com',
                     'public': 'https://testnet-api.phemex.com/exchange/public',
                     'private': 'https://testnet-api.phemex.com',
                 },
@@ -164,6 +164,7 @@ class phemex(Exchange, ImplicitAPI):
                         'md/spot/ticker/24hr': 5,  # ?symbol=<symbol>&id=<id>
                         'md/spot/ticker/24hr/all': 5,  # ?symbol=<symbol>&id=<id>
                         'exchange/public/products': 5,  # contracts only
+                        'api-data/public/data/funding-rate-history': 5,
                     },
                 },
                 'v2': {
@@ -2398,7 +2399,7 @@ class phemex(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
         :param dict params: extra parameters specific to the phemex api endpoint
-        :param str|None params['posSide']: either 'Hedged' or 'OneWay' or 'Merged'
+        :param str|None params['posSide']: either 'Merged' or 'Long' or 'Short'
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -2456,7 +2457,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the phemex api endpoint
-        :param str|None params['posSide']: either 'Hedged' or 'OneWay' or 'Merged'
+        :param str|None params['posSide']: either 'Merged' or 'Long' or 'Short'
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -3934,9 +3935,14 @@ class phemex(Exchange, ImplicitAPI):
         self.check_required_symbol('fetchFundingRateHistory', symbol)
         await self.load_markets()
         market = self.market(symbol)
-        if not market['swap'] or market['settle'] != 'USDT':
-            raise BadRequest(self.id + ' fetchFundingRateHistory() supports USDT swap contracts only')
-        customSymbol = '.' + market['id'] + 'FR8H'  # phemex requires a custom symbol for funding rate history
+        isUsdtSettled = market['settle'] == 'USDT'
+        if not market['swap']:
+            raise BadRequest(self.id + ' fetchFundingRateHistory() supports swap contracts only')
+        customSymbol = None
+        if isUsdtSettled:
+            customSymbol = '.' + market['id'] + 'FR8H'  # phemex requires a custom symbol for funding rate history
+        else:
+            customSymbol = '.' + market['baseId'] + 'FR8H'
         request = {
             'symbol': customSymbol,
         }
@@ -3944,7 +3950,11 @@ class phemex(Exchange, ImplicitAPI):
             request['start'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.v2GetApiDataPublicDataFundingRateHistory(self.extend(request, params))
+        response = None
+        if isUsdtSettled:
+            response = await self.v2GetApiDataPublicDataFundingRateHistory(self.extend(request, params))
+        else:
+            response = await self.v1GetApiDataPublicDataFundingRateHistory(self.extend(request, params))
         #
         #    {
         #        "code":"0",

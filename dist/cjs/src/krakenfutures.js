@@ -18,6 +18,7 @@ class krakenfutures extends krakenfutures$1 {
             'version': 'v3',
             'userAgent': undefined,
             'rateLimit': 600,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -304,8 +305,9 @@ class krakenfutures extends krakenfutures$1 {
             let settleId = undefined;
             const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'contractValueTradePrecision', '0')));
             const pricePrecision = this.safeNumber(market, 'tickSize');
-            const contract = (swap || future);
-            if (contract) {
+            const contract = (swap || future || index);
+            const swapOrFutures = (swap || future);
+            if (swapOrFutures) {
                 const exchangeType = this.safeString(market, 'type');
                 if (exchangeType === 'futures_inverse') {
                     settle = base;
@@ -1911,7 +1913,7 @@ class krakenfutures extends krakenfutures$1 {
         const currency = this.currency(code);
         let method = 'privatePostTransfer';
         const request = {
-            'amount': this.currencyToPrecision(code, amount),
+            'amount': amount,
         };
         if (fromAccount === 'spot') {
             throw new errors.BadRequest(this.id + ' transfer does not yet support transfers from spot');

@@ -1946,6 +1946,9 @@ class whitebit(Exchange, ImplicitAPI):
         fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])
         return self.in_array(currency, fiatCurrencies)
 
+    def nonce(self):
+        return self.milliseconds()
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
         version = self.safe_value(api, 0)
@@ -1962,7 +1965,7 @@ class whitebit(Exchange, ImplicitAPI):
             request = '/' + 'api' + '/' + version + pathWithParams
             body = self.json(self.extend({'request': request, 'nonce': nonce}, params))
             payload = self.string_to_base64(body)
-            signature = self.hmac(payload, secret, hashlib.sha512)
+            signature = self.hmac(self.encode(payload), secret, hashlib.sha512)
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': self.apiKey,

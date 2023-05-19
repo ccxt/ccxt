@@ -1582,6 +1582,23 @@ class okx extends Exchange {
         //         "ts" => "1621446178316"
         //     }
         //
+        // option => fetchTrades
+        //
+        //     {
+        //         "fillVol" => "0.46387625976562497",
+        //         "fwdPx" => "26299.754935451125",
+        //         "indexPx" => "26309.7",
+        //         "instFamily" => "BTC-USD",
+        //         "instId" => "BTC-USD-230526-26000-C",
+        //         "markPx" => "0.042386283557554236",
+        //         "optType" => "C",
+        //         "px" => "0.0415",
+        //         "side" => "sell",
+        //         "sz" => "90",
+        //         "tradeId" => "112",
+        //         "ts" => "1683907480154"
+        //     }
+        //
         // private fetchMyTrades
         //
         //     {
@@ -1649,6 +1666,8 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-trades
+             * @see https://www.okx.com/docs-v5/en/#rest-api-public-$data-get-option-trades
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of trades to fetch
@@ -1660,10 +1679,15 @@ class okx extends Exchange {
             $request = array(
                 'instId' => $market['id'],
             );
-            if ($limit !== null) {
-                $request['limit'] = $limit; // default 100
+            $response = null;
+            if ($market['option']) {
+                $response = Async\await($this->publicGetPublicOptionTrades (array_merge($request, $params)));
+            } else {
+                if ($limit !== null) {
+                    $request['limit'] = $limit; // default 100
+                }
+                $response = Async\await($this->publicGetMarketTrades (array_merge($request, $params)));
             }
-            $response = Async\await($this->publicGetMarketTrades (array_merge($request, $params)));
             //
             //     {
             //         "code" => "0",
@@ -1673,6 +1697,29 @@ class okx extends Exchange {
             //             array("instId":"ETH-BTC","side":"sell","sz":"0.03","px":"0.07068","tradeId":"15826756","ts":"1621446178066"),
             //             array("instId":"ETH-BTC","side":"buy","sz":"0.507","px":"0.07069","tradeId":"15826755","ts":"1621446175085"),
             //         )
+            //     }
+            //
+            // option
+            //
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             array(
+            //                 "fillVol" => "0.46387625976562497",
+            //                 "fwdPx" => "26299.754935451125",
+            //                 "indexPx" => "26309.7",
+            //                 "instFamily" => "BTC-USD",
+            //                 "instId" => "BTC-USD-230526-26000-C",
+            //                 "markPx" => "0.042386283557554236",
+            //                 "optType" => "C",
+            //                 "px" => "0.0415",
+            //                 "side" => "sell",
+            //                 "sz" => "90",
+            //                 "tradeId" => "112",
+            //                 "ts" => "1683907480154"
+            //             ),
+            //         ),
+            //         "msg" => ""
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
@@ -1841,7 +1888,7 @@ class okx extends Exchange {
             $data = $this->safe_value($response, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
                 $rate = $data[$i];
-                $timestamp = $this->safe_number($rate, 'fundingTime');
+                $timestamp = $this->safe_integer($rate, 'fundingTime');
                 $rates[] = array(
                     'info' => $rate,
                     'symbol' => $this->safe_symbol($this->safe_string($rate, 'instId')),

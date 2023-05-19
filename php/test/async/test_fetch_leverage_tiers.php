@@ -12,8 +12,8 @@ use React\Promise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_leverage_tier.php';
 
-function test_fetch_leverage_tiers($exchange, $symbol) {
-    return Async\async(function () use ($exchange, $symbol) {
+function test_fetch_leverage_tiers($exchange, $skipped_properties, $symbol) {
+    return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchLeverageTiers';
         $tiers = Async\await($exchange->fetch_leverage_tiers($symbol));
         // const format = {
@@ -30,7 +30,7 @@ function test_fetch_leverage_tiers($exchange, $symbol) {
             $array_length_symbol = count($tiers_for_symbol);
             assert($array_length_symbol >= 1, $exchange->id . ' ' . $method . ' ' . $symbol . ' must have at least one entry. ' . $exchange->json($tiers));
             for ($j = 0; $j < count($tiers_for_symbol); $j++) {
-                test_leverage_tier($exchange, $method, $tiers_for_symbol[$j]);
+                test_leverage_tier($exchange, $skipped_properties, $method, $tiers_for_symbol[$j]);
             }
         }
     }) ();

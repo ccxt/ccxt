@@ -99,20 +99,18 @@ class bitget extends Exchange {
                 'withdraw' => false,
             ),
             'timeframes' => array(
-                '1m' => '1m',
-                '3m' => '3m',
-                '5m' => '5m',
-                '15m' => '15m',
-                '30m' => '30m',
+                '1m' => '1min',
+                '5m' => '5min',
+                '15m' => '15min',
+                '30m' => '30min',
                 '1h' => '1h',
-                '2h' => '2h',
                 '4h' => '4h',
-                '6h' => '6h',
-                '12h' => '12h',
-                '1d' => '1d',
-                '3d' => '3d',
-                '1w' => '1w',
-                '1M' => '1M',
+                '6h' => '6Hutc',
+                '12h' => '12Hutc',
+                '1d' => '1Dutc',
+                '3d' => '3Dutc',
+                '1w' => '1Wutc',
+                '1M' => '1Mutc',
             ),
             'hostname' => 'bitget.com',
             'urls' => array(
@@ -120,13 +118,17 @@ class bitget extends Exchange {
                 'api' => array(
                     'spot' => 'https://api.{hostname}',
                     'mix' => 'https://api.{hostname}',
+                    'user' => 'https://api.{hostname}',
                     'p2p' => 'https://api.{hostname}',
+                    'broker' => 'https://api.{hostname}',
+                    'margin' => 'https://api.{hostname}',
                 ),
                 'www' => 'https://www.bitget.com',
                 'doc' => array(
                     'https://bitgetlimited.github.io/apidoc/en/mix',
                     'https://bitgetlimited.github.io/apidoc/en/spot',
                     'https://bitgetlimited.github.io/apidoc/en/broker',
+                    'https://bitgetlimited.github.io/apidoc/en/margin',
                 ),
                 'fees' => 'https://www.bitget.cc/zh-CN/rate?tab=1',
                 'referral' => 'https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j',
@@ -136,12 +138,12 @@ class bitget extends Exchange {
                     'spot' => array(
                         'get' => array(
                             'public/time' => 1,
-                            'public/currencies' => 1,
+                            'public/currencies' => 6.6667, // 3 times/1s (IP) => 20/3 = 6.6667
                             'public/products' => 1,
                             'public/product' => 1,
                             'market/ticker' => 1,
                             'market/tickers' => 1,
-                            'market/fills' => 1,
+                            'market/fills' => 2, // 10 times/1s (IP) => 20/10 = 2
                             'market/fills-history' => 2,
                             'market/candles' => 1,
                             'market/depth' => 1,
@@ -154,7 +156,9 @@ class bitget extends Exchange {
                             'market/depth' => 1,
                             'market/ticker' => 1,
                             'market/tickers' => 1,
+                            'market/contract-vip-level' => 2,
                             'market/fills' => 1,
+                            'market/fills-history' => 2,
                             'market/candles' => 1,
                             'market/index' => 1,
                             'market/funding-time' => 1,
@@ -163,91 +167,125 @@ class bitget extends Exchange {
                             'market/open-interest' => 1,
                             'market/mark-price' => 1,
                             'market/symbol-leverage' => 1,
-                            'market/contract-vip-level' => 2,
-                            'market/fills-history' => 2,
                             'market/queryPositionLever' => 1,
+                        ),
+                    ),
+                    'margin' => array(
+                        'get' => array(
+                            'cross/public/interestRateAndLimit' => 2, // 10 times/1s (IP) => 20/10 = 2
+                            'isolated/public/interestRateAndLimit' => 2, // 10 times/1s (IP) => 20/10 = 2
+                            'cross/public/tierData' => 2, // 10 times/1s (IP) => 20/10 = 2
+                            'isolated/public/tierData' => 2, // 10 times/1s (IP) => 20/10 = 2
+                            'public/currencies' => 1, // 20 times/1s (IP) => 20/20 = 1
+                            'cross/account/assets' => 2, // 10 times/1s (IP) => 20/10 = 2
+                            'isolated/account/assets' => 2, // 10 times/1s (IP) => 20/10 = 2
                         ),
                     ),
                 ),
                 'private' => array(
                     'spot' => array(
                         'get' => array(
-                            'account/getInfo' => 20,
-                            'account/assets' => 2,
-                            'account/transferRecords' => 4,
                             'wallet/deposit-address' => 4,
-                            'wallet/withdrawal-inner' => 4,
                             'wallet/withdrawal-list' => 1,
                             'wallet/deposit-list' => 1,
+                            'account/getInfo' => 20,
+                            'account/assets' => 2,
+                            'account/transferRecords' => 1, // 20 times/1s (UID) => 20/20 = 1
                         ),
                         'post' => array(
-                            'account/bills' => 2,
+                            'wallet/transfer' => 4,
+                            'wallet/transfer-v2' => 4,
+                            'wallet/subTransfer' => 10,
+                            'wallet/withdrawal' => 4,
+                            'wallet/withdrawal-v2' => 4,
+                            'wallet/withdrawal-inner' => 4,
+                            'wallet/withdrawal-inner-v2' => 4,
                             'account/sub-account-spot-assets' => 200,
+                            'account/bills' => 2,
                             'trade/orders' => 2,
                             'trade/batch-orders' => 4,
                             'trade/cancel-order' => 2,
+                            'trade/cancel-order-v2' => 2,
+                            'trade/cancel-symbol-order' => 2,
                             'trade/cancel-batch-orders' => 4,
                             'trade/cancel-batch-orders-v2' => 4,
                             'trade/orderInfo' => 1,
                             'trade/open-orders' => 1,
                             'trade/history' => 1,
                             'trade/fills' => 1,
-                            'trade/cancel-order-v2' => 2,
-                            'trade/cancel-symbol-order' => 2,
-                            'wallet/transfer' => 4,
-                            'wallet/withdrawal' => 4,
-                            'wallet/subTransfer' => 10,
-                            'wallet/transfer-v2' => 4,
-                            'wallet/withdrawal-v2' => 4,
-                            'wallet/withdrawal-inner-v2' => 4,
                             'plan/placePlan' => 1,
                             'plan/modifyPlan' => 1,
                             'plan/cancelPlan' => 1,
                             'plan/currentPlan' => 1,
                             'plan/historyPlan' => 1,
+                            'plan/batchCancelPlan' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/order/orderCurrentList' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/order/orderHistoryList' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/order/closeTrackingOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/order/updateTpsl' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/order/followerEndOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/order/spotInfoList' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/config/getTraderSettings' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/config/getFollowerSettings' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/user/myTraders' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/config/setFollowerConfig' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/user/myFollowers' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/config/setProductCode' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/user/removeTrader' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/profit/totalProfitInfo' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/profit/totalProfitList' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/profit/profitHisList' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/profit/profitHisDetailList' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/profit/waitProfitDetailList' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/user/getTraderInfo' => 2, // 10 times/1s (UID) => 20/10 = 2
                         ),
                     ),
                     'mix' => array(
                         'get' => array(
                             'account/account' => 2,
                             'account/accounts' => 2,
+                            'position/singlePosition' => 2,
+                            'position/singlePosition-v2' => 2,
+                            'position/allPosition' => 4, // 5 times/1s (UID) => 20/5 = 4
+                            'position/allPosition-v2' => 4, // 5 times/1s (UID) => 20/5 = 4
                             'account/accountBill' => 2,
                             'account/accountBusinessBill' => 4,
-                            'account/open-count' => 1,
-                            'order/current' => 2,
+                            'order/current' => 1, // 20 times/1s (UID) => 20/20 = 1
+                            'order/marginCoinCurrent' => 1, // 20 times/1s (UID) => 20/20 = 1
                             'order/history' => 2,
+                            'order/historyProductType' => 4, // 5 times/1s (UID) => 20/5 = 4
                             'order/detail' => 2,
                             'order/fills' => 2,
-                            'order/historyProductType' => 8,
                             'order/allFills' => 2,
-                            'plan/currentPlan' => 2,
+                            'plan/currentPlan' => 1, // 20 times/1s (UID) => 20/20 = 1
                             'plan/historyPlan' => 2,
-                            'position/singlePosition' => 2,
-                            'position/allPosition' => 2,
                             'trace/currentTrack' => 2,
                             'trace/followerOrder' => 2,
+                            'trace/followerHistoryOrders' => 2,
                             'trace/historyTrack' => 2,
-                            'trace/summary' => 2,
-                            'trace/profitSettleTokenIdGroup' => 2,
-                            'trace/profitDateGroupList' => 2,
+                            'trace/summary' => 1, // 20 times/1s (UID) => 20/20 = 1
+                            'trace/profitSettleTokenIdGroup' => 1, // 20 times/1s (UID) => 20/20 = 1
+                            'trace/profitDateGroupList' => 1, // 20 times/1s (UID) => 20/20 = 1
                             'trade/profitDateList' => 2,
-                            'trace/waitProfitDateList' => 2,
-                            'trace/traderSymbols' => 2,
+                            'trace/waitProfitDateList' => 1, // 20 times/1s (UID) => 20/20 = 1
+                            'trace/traderSymbols' => 1, // 20 times/1s (UID) => 20/20 = 1
                             'trace/traderList' => 2,
+                            'trace/traderDetail' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/queryTraceConfig' => 2,
-                            'order/marginCoinCurrent' => 2,
                         ),
                         'post' => array(
-                            'account/setLeverage' => 8,
-                            'account/setMargin' => 8,
-                            'account/setMarginMode' => 8,
-                            'account/setPositionMode' => 8,
+                            'account/sub-account-contract-assets' => 200, // 0.1 times/1s (UID) => 20/0.1 = 200
+                            'account/open-count' => 1,
+                            'account/setLeverage' => 4, // 5 times/1s (UID) => 20/5 = 4
+                            'account/setMargin' => 4, // 5 times/1s (UID) => 20/5 = 4
+                            'account/setMarginMode' => 4, // 5 times/1s (UID) => 20/5 = 4
+                            'account/setPositionMode' => 4, // 5 times/1s (UID) => 20/5 = 4
                             'order/placeOrder' => 2,
                             'order/batch-orders' => 2,
                             'order/cancel-order' => 2,
-                            'order/cancel-all-orders' => 2,
                             'order/cancel-batch-orders' => 2,
                             'order/cancel-symbol-orders' => 2,
+                            'order/cancel-all-orders' => 2,
                             'plan/placePlan' => 2,
                             'plan/modifyPlan' => 2,
                             'plan/modifyPlanPreset' => 2,
@@ -256,22 +294,98 @@ class bitget extends Exchange {
                             'plan/placePositionsTPSL' => 2,
                             'plan/modifyTPSLPlan' => 2,
                             'plan/cancelPlan' => 2,
-                            'plan/cancelAllPlan' => 2,
                             'plan/cancelSymbolPlan' => 2,
+                            'plan/cancelAllPlan' => 2,
                             'trace/closeTrackOrder' => 2,
+                            'trace/modifyTPSL' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/setUpCopySymbols' => 2,
                             'trace/followerSetBatchTraceConfig' => 2,
                             'trace/followerCloseByTrackingNo' => 2,
                             'trace/followerCloseByAll' => 2,
                             'trace/followerSetTpsl' => 2,
+                            'trace/cancelCopyTrader' => 4, // 5 times/1s (UID) => 20/5 = 4
+                        ),
+                    ),
+                    'user' => array(
+                        'get' => array(
+                            'fee/query' => 2,
+                            'sub/virtual-list' => 2,
+                            'sub/virtual-api-list' => 2,
+                        ),
+                        'post' => array(
+                            'sub/virtual-create' => 4,
+                            'sub/virtual-modify' => 4,
+                            'sub/virtual-api-batch-create' => 20, // 1 times/1s (UID) => 20/1 = 20
+                            'sub/virtual-api-create' => 4,
+                            'sub/virtual-api-modify' => 4,
                         ),
                     ),
                     'p2p' => array(
                         'get' => array(
-                            'merchant/merchantList' => 1,
-                            'merchant/merchantInfo' => 1,
-                            'merchant/advList' => 1,
-                            'merchant/orderList' => 1,
+                            'merchant/merchantList' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'merchant/merchantInfo' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'merchant/advList' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'merchant/orderList' => 2, // 10 times/1s (UID) => 20/10 = 2
+                        ),
+                    ),
+                    'broker' => array(
+                        'get' => array(
+                            'account/info' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'account/sub-list' => 20, // 1 times/1s (UID) => 20/1 = 20
+                            'account/sub-email' => 20, // 1 times/1s (UID) => 20/1 = 20
+                            'account/sub-spot-assets' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'account/sub-future-assets' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'account/sub-api-list' => 2, // 10 times/1s (UID) => 20/10 = 2
+                        ),
+                        'post' => array(
+                            'account/sub-create' => 20, // 1 times/1s (UID) => 20/1 = 20
+                            'account/sub-modify' => 20, // 1 times/1s (UID) => 20/1 = 20
+                            'account/sub-modify-email' => 20, // 1 times/1s (UID) => 20/1 = 20
+                            'account/sub-address' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'account/sub-withdrawal' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'account/sub-auto-transfer' => 4, // 5 times/1s (UID) => 20/5 = 4
+                            'account/sub-api-create' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'account/sub-api-modify' => 2, // 10 times/1s (UID) => 20/10 = 2
+                        ),
+                    ),
+                    'margin' => array(
+                        'get' => array(
+                            'cross/account/riskRate' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/account/maxTransferOutAmount' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/account/maxTransferOutAmount' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/order/openOrders' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/order/history' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/order/fills' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/loan/list' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/repay/list' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/interest/list' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/liquidation/list' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/fin/list' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/order/openOrders' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/order/history' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/order/fills' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/loan/list' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/repay/list' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/interest/list' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/liquidation/list' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/fin/list' => 2, // 10 times/1s (UID) => 20/10 = 2
+                        ),
+                        'post' => array(
+                            'cross/account/borrow' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/account/borrow' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/account/repay' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/account/repay' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/account/riskRate' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/account/maxBorrowableAmount' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/account/maxBorrowableAmount' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/order/placeOrder' => 4, // 5 times/1s (UID) => 20/5 = 4
+                            'isolated/order/batchPlaceOrder' => 4, // 5 times/1s (UID) => 20/5 = 4
+                            'isolated/order/cancelOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'isolated/order/batchCancelOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/order/placeOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/order/batchPlaceOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/order/cancelOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'cross/order/batchCancelOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
                         ),
                     ),
                 ),
@@ -806,10 +920,10 @@ class bitget extends Exchange {
             'options' => array(
                 'timeframes' => array(
                     'spot' => array(
-                        '1m' => '1m',
-                        '5m' => '5m',
-                        '15m' => '15m',
-                        '30m' => '30m',
+                        '1m' => '1min',
+                        '5m' => '5min',
+                        '15m' => '15min',
+                        '30m' => '30min',
                         '1h' => '1h',
                         '4h' => '4h',
                         '6h' => '6Hutc',
@@ -1021,7 +1135,7 @@ class bitget extends Exchange {
                 $year = '20' . mb_substr($expiryString, 0, 2 - 0);
                 $month = mb_substr($expiryString, 2, 4 - 2);
                 $day = mb_substr($expiryString, 4, 6 - 4);
-                $expiryDatetime = $year . '-' . $month . '-' . $day . 'T00:00:00Z';
+                $expiryDatetime = $year . '-' . $month . '-' . $day . 'T00:00:00.000Z';
                 $expiry = $this->parse8601($expiryDatetime);
                 $type = 'future';
                 $future = true;
@@ -1395,6 +1509,7 @@ class bitget extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#withdraw-v2
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -1404,22 +1519,24 @@ class bitget extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             $this->check_address($address);
-            $chain = $this->safe_string($params, 'chain');
+            $chain = $this->safe_string_2($params, 'chain', 'network');
+            $params = $this->omit($params, array( 'network' ));
             if ($chain === null) {
                 throw new ArgumentsRequired($this->id . ' withdraw() requires a $chain parameter');
             }
             Async\await($this->load_markets());
             $currency = $this->currency($code);
+            $networkId = $this->network_code_to_id($chain);
             $request = array(
                 'coin' => $currency['code'],
                 'address' => $address,
-                'chain' => $chain,
+                'chain' => $networkId,
                 'amount' => $amount,
             );
             if ($tag !== null) {
                 $request['tag'] = $tag;
             }
-            $response = Async\await($this->privateSpotPostWalletWithdrawal (array_merge($request, $params)));
+            $response = Async\await($this->privateSpotPostWalletWithdrawalV2 (array_merge($request, $params)));
             //
             //     {
             //         "code" => "00000",
@@ -2156,6 +2273,8 @@ class bitget extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-candle-$data
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#candlestick-line-$timeframe
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
@@ -2171,8 +2290,9 @@ class bitget extends Exchange {
             );
             $until = $this->safe_integer_2($params, 'until', 'till');
             if ($limit === null) {
-                $limit = 100;
+                $limit = 1000;
             }
+            $request['limit'] = $limit;
             $marketType = $market['spot'] ? 'spot' : 'swap';
             $timeframes = $this->options['timeframes'][$marketType];
             $selectedTimeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
@@ -2193,10 +2313,10 @@ class bitget extends Exchange {
                 $request['granularity'] = $selectedTimeframe;
                 $now = $this->milliseconds();
                 if ($since === null) {
-                    $request['startTime'] = $now - ($limit - 1) * ($duration * 1000);
+                    $request['startTime'] = $now - $limit * ($duration * 1000);
                     $request['endTime'] = $now;
                 } else {
-                    $request['startTime'] = $this->sum($since, $duration * 1000);
+                    $request['startTime'] = $since;
                     if ($until !== null) {
                         $request['endTime'] = $until;
                     } else {
@@ -2933,6 +3053,10 @@ class bitget extends Exchange {
             //       }
             //     }
             //
+            // $response will be string after filled, see => ccxt/ccxt#17900
+            if (gettype($response) === 'string') {
+                $response = json_decode($response, $as_associative_array = true);
+            }
             $data = $this->safe_value($response, 'data');
             $first = $this->safe_value($data, 0, $data);
             return $this->parse_order($first, $market);
@@ -2942,6 +3066,10 @@ class bitget extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-list
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-open-order
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-plan-order-tpsl-list
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-order
              * fetch all unfilled currently open orders
              * @param {string} $symbol unified $market $symbol
              * @param {int|null} $since the earliest time in ms to fetch open orders for
@@ -2949,33 +3077,48 @@ class bitget extends Exchange {
              * @param {array} $params extra parameters specific to the bitget api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            $this->check_required_symbol('fetchOpenOrders', $symbol);
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
+            $request = array();
             $marketType = null;
             $query = null;
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
             list($marketType, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'privateSpotPostTradeOpenOrders',
-                'swap' => 'privateMixGetOrderCurrent',
-                'future' => 'privateMixGetOrderCurrent',
-            ));
+            $response = null;
             $stop = $this->safe_value($query, 'stop');
             if ($stop) {
+                $this->check_required_symbol('fetchOpenOrders', $symbol);
+                $query = $this->omit($query, 'stop');
                 if ($marketType === 'spot') {
-                    $method = 'privateSpotPostPlanCurrentPlan';
                     if ($limit !== null) {
                         $request['pageSize'] = $limit;
                     }
+                    $response = Async\await($this->privateSpotPostPlanCurrentPlan (array_merge($request, $query)));
                 } else {
-                    $method = 'privateMixGetPlanCurrentPlan';
+                    $response = Async\await($this->privateMixGetPlanCurrentPlan (array_merge($request, $query)));
                 }
-                $query = $this->omit($query, 'stop');
+            } else {
+                if ($marketType === 'spot') {
+                    $response = Async\await($this->privateSpotPostTradeOpenOrders (array_merge($request, $query)));
+                } else {
+                    if ($market === null) {
+                        $subType = null;
+                        list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenOrders', null, $params);
+                        $productType = ($subType === 'linear') ? 'UMCBL' : 'DMCBL';
+                        $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+                        if ($sandboxMode) {
+                            $productType = 'S' . $productType;
+                        }
+                        $request['productType'] = $productType;
+                        $response = Async\await($this->privateMixGetOrderMarginCoinCurrent (array_merge($request, $query)));
+                    } else {
+                        $response = Async\await($this->privateMixGetOrderCurrent (array_merge($request, $query)));
+                    }
+                }
             }
-            $response = Async\await($this->$method (array_merge($request, $query)));
             //
             //  spot
             //     {
@@ -3510,7 +3653,7 @@ class bitget extends Exchange {
                 'symbol' => $market['id'],
                 'marginCoin' => $market['settleId'],
             );
-            $response = Async\await($this->privateMixGetPositionSinglePosition (array_merge($request, $params)));
+            $response = Async\await($this->privateMixGetPositionSinglePositionV2 (array_merge($request, $params)));
             //
             //     {
             //       code => '00000',
@@ -3568,7 +3711,7 @@ class bitget extends Exchange {
             $request = array(
                 'productType' => $productType,
             );
-            $response = Async\await($this->privateMixGetPositionAllPosition (array_merge($request, $params)));
+            $response = Async\await($this->privateMixGetPositionAllPositionV2 (array_merge($request, $params)));
             //
             //     {
             //       code => '00000',
@@ -4250,7 +4393,7 @@ class bitget extends Exchange {
     public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
-             * @see https://bitgetlimited.github.io/apidoc/en/spot/#transfer
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#transfer-v2
              * transfer $currency internally between wallets on the same account
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
@@ -4278,7 +4421,7 @@ class bitget extends Exchange {
                 'amount' => $amount,
                 'coin' => $currency['info']['coinName'],
             );
-            $response = Async\await($this->privateSpotPostWalletTransfer (array_merge($request, $params)));
+            $response = Async\await($this->privateSpotPostWalletTransferV2 (array_merge($request, $params)));
             //
             //    {
             //        "code" => "00000",
@@ -4427,6 +4570,12 @@ class bitget extends Exchange {
             $pathPart = '/api/spot/v1';
         } elseif ($endpoint === 'mix') {
             $pathPart = '/api/mix/v1';
+        } elseif ($endpoint === 'user') {
+            $pathPart = '/api/user/v1';
+        } elseif ($endpoint === 'broker') {
+            $pathPart = '/api/broker/v1';
+        } elseif ($endpoint === 'margin') {
+            $pathPart = '/api/margin/v1';
         } else {
             $pathPart = '/api/p2p/v1';
         }

@@ -2053,6 +2053,9 @@ export default class whitebit extends Exchange {
         const fiatCurrencies = this.safeValue(this.options, 'fiatCurrencies', []);
         return this.inArray(currency, fiatCurrencies);
     }
+    nonce() {
+        return this.milliseconds();
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));
         const version = this.safeValue(api, 0);
@@ -2071,7 +2074,7 @@ export default class whitebit extends Exchange {
             const request = '/' + 'api' + '/' + version + pathWithParams;
             body = this.json(this.extend({ 'request': request, 'nonce': nonce }, params));
             const payload = this.stringToBase64(body);
-            const signature = this.hmac(payload, secret, sha512);
+            const signature = this.hmac(this.encode(payload), secret, sha512);
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
