@@ -74,6 +74,9 @@ export default class coinone extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
                 'api': {
                     'rest': 'https://api.coinone.co.kr',
+                    'v2Public': 'https://api.coinone.co.kr/public/v2',
+                    'v2Private': 'https://api.coinone.co.kr/v2',
+                    'v2_1Private': 'https://api.coinone.co.kr/v2.1',
                 },
                 'www': 'https://coinone.co.kr',
                 'doc': 'https://doc.coinone.co.kr',
@@ -85,31 +88,85 @@ export default class coinone extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'orderbook/',
-                        'trades/',
-                        'ticker/',
+                        'orderbook',
+                        'ticker',
+                        'ticker_utc',
+                        'trades',
+                    ],
+                },
+                'v2Public': {
+                    'get': [
+                        'range_units',
+                        'markets/{quote_currency}',
+                        'markets/{quote_currency}/{target_currency}',
+                        'orderbook/{quote_currency}/{target_currency}',
+                        'trades/{quote_currency}/{target_currency}',
+                        'ticker_new/{quote_currency}',
+                        'ticker_new/{quote_currency}/{target_currency}',
+                        'ticker_utc_new/{quote_currency}',
+                        'ticker_utc_new/{quote_currency}/{target_currency}',
+                        'currencies',
+                        'currencies/{currency}',
+                        'chart/{quote_currency}/{target_currency}',
                     ],
                 },
                 'private': {
                     'post': [
-                        'account/deposit_address/',
-                        'account/btc_deposit_address/',
-                        'account/balance/',
-                        'account/daily_balance/',
-                        'account/user_info/',
-                        'account/virtual_account/',
-                        'order/cancel_all/',
-                        'order/cancel/',
-                        'order/limit_buy/',
-                        'order/limit_sell/',
-                        'order/complete_orders/',
-                        'order/limit_orders/',
-                        'order/order_info/',
-                        'transaction/auth_number/',
-                        'transaction/history/',
-                        'transaction/krw/history/',
-                        'transaction/btc/',
-                        'transaction/coin/',
+                        'account/deposit_address',
+                        'account/btc_deposit_address',
+                        'account/balance',
+                        'account/daily_balance',
+                        'account/user_info',
+                        'account/virtual_account',
+                        'order/cancel_all',
+                        'order/cancel',
+                        'order/limit_buy',
+                        'order/limit_sell',
+                        'order/complete_orders',
+                        'order/limit_orders',
+                        'order/order_info',
+                        'transaction/auth_number',
+                        'transaction/history',
+                        'transaction/krw/history',
+                        'transaction/btc',
+                        'transaction/coin',
+                    ],
+                },
+                'v2Private': {
+                    'post': [
+                        'account/balance',
+                        'account/deposit_address',
+                        'account/user_info',
+                        'account/virtual_account',
+                        'order/cancel',
+                        'order/limit_buy',
+                        'order/limit_sell',
+                        'order/limit_orders',
+                        'order/complete_orders',
+                        'order/query_order',
+                        'transaction/auth_number',
+                        'transaction/btc',
+                        'transaction/history',
+                        'transaction/krw/history',
+                    ],
+                },
+                'v2_1Private': {
+                    'post': [
+                        'account/balance/all',
+                        'account/balance',
+                        'account/trade_fee',
+                        'account/trade_fee/{quote_currency}/{target_currency}',
+                        'order/limit',
+                        'order/cancel',
+                        'order/cancel/all',
+                        'order/open_orders',
+                        'order/open_orders/all',
+                        'order/complete_orders',
+                        'order/complete_orders/all',
+                        'order/info',
+                        'transaction/krw/history',
+                        'transaction/coin/history',
+                        'transaction/coin/withdrawal/limit',
                     ],
                 },
             },
@@ -867,6 +924,14 @@ export default class coinone extends Exchange {
         const request = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/';
+        if (api === 'v2Public') {
+            url = this.urls['api']['v2Public'] + '/';
+            api = 'public';
+        } else if (api === 'v2Private') {
+            url = this.urls['api']['v2Private'] + '/';
+        } else if (api === 'v2_1Private') {
+            url = this.urls['api']['v2_1Private'] + '/';
+        }
         if (api === 'public') {
             url += request;
             if (Object.keys (query).length) {
@@ -874,7 +939,7 @@ export default class coinone extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            url += this.version + '/' + request;
+            url += request;
             const nonce = this.nonce ().toString ();
             const json = this.json (this.extend ({
                 'access_token': this.apiKey,
