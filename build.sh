@@ -41,11 +41,11 @@ function run_tests {
     fi
   fi
 
-  if [ -n "$rest_pid" ]; then
+  if [ -n "$rest_pid" ] && [ -n "$rest_pid" ]; then
+    wait $rest_pid && wait $ws_pid
+  elif [ -n "$rest_pid" ]; then
     wait $rest_pid
-  fi
-
-  if [ -n "$ws_pid" ]; then
+  else
     wait $ws_pid
   fi
 }
