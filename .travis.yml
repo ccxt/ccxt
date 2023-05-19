@@ -26,7 +26,7 @@ before_install:
 - php --version
 - composer install
 script:
-- ./build.sh 2>&1
+- ./build.sh
 - git checkout master composer.json
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
     export SHOULD_DEPLOY=false;
