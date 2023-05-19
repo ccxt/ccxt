@@ -2459,13 +2459,23 @@ class bitget(Exchange, ImplicitAPI):
 
     async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
+        see https://bitgetlimited.github.io/apidoc/en/spot/#place-order
+        see https://bitgetlimited.github.io/apidoc/en/mix/#place-order
+        see https://bitgetlimited.github.io/apidoc/en/mix/#place-stop-order
+        see https://bitgetlimited.github.io/apidoc/en/mix/#place-position-tpsl
+        see https://bitgetlimited.github.io/apidoc/en/mix/#place-plan-order
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
-        :param str side: 'buy' or 'sell'
+        :param str side: 'buy' or 'sell' or 'open_long' or 'open_short' or 'close_long' or 'close_short'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bitget api endpoint
+        :param float params['triggerPrice']: *swap only* The price at which a trigger order is triggered at
+        :param float|None params['stopLossPrice']: *swap only* The price at which a stop loss order is triggered at
+        :param float|None params['takeProfitPrice']: *swap only* The price at which a take profit order is triggered at
+        :param float|None params['stopLoss']: *swap only* *uses the Place Position TPSL* The price at which a stop loss order is triggered at
+        :param float|None params['takeProfit']: *swap only* *uses the Place Position TPSL* The price at which a take profit order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -2476,15 +2486,20 @@ class bitget(Exchange, ImplicitAPI):
             'orderType': type,
         }
         isMarketOrder = type == 'market'
-        triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
+        triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
+        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
+        stopLoss = self.safe_number(params, 'stopLoss')
+        takeProfit = self.safe_number(params, 'takeProfit')
         isTriggerOrder = triggerPrice is not None
-        stopLossPrice = self.safe_value(params, 'stopLossPrice')
-        isStopLossOrder = stopLossPrice is not None
-        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-        isTakeProfitOrder = takeProfitPrice is not None
-        isStopLossOrTakeProfit = isStopLossOrder or isTakeProfitOrder
-        if self.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder) > 1:
-            raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice')
+        isStopLossTriggerOrder = stopLossTriggerPrice is not None
+        isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
+        isStopLoss = stopLoss is not None
+        isTakeProfit = takeProfit is not None
+        isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
+        isStopLossOrTakeProfit = isStopLoss or isTakeProfit
+        if self.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isStopLoss, isTakeProfit) > 1:
+            raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, stopLoss, takeProfit')
         if (type == 'limit') and (triggerPrice is None):
             request['price'] = self.price_to_precision(symbol, price)
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
@@ -2497,7 +2512,7 @@ class bitget(Exchange, ImplicitAPI):
         postOnly = None
         postOnly, params = self.handle_post_only(isMarketOrder, exchangeSpecificTifParam == 'post_only', params)
         if marketType == 'spot':
-            if isStopLossOrTakeProfit:
+            if isStopLossOrTakeProfitTrigger or isStopLossOrTakeProfit:
                 raise InvalidOrder(self.id + ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets')
             timeInForceKey = 'force'
             quantityKey = 'quantity'
@@ -2534,36 +2549,58 @@ class bitget(Exchange, ImplicitAPI):
         else:
             if clientOrderId is not None:
                 request['clientOid'] = clientOrderId
-            request['size'] = self.amount_to_precision(symbol, amount)
-            if postOnly:
-                request['timeInForceValue'] = 'post_only'
-            reduceOnly = self.safe_value(params, 'reduceOnly', False)
-            if triggerPrice is not None:
+            if not isStopLossOrTakeProfit:
+                request['size'] = self.amount_to_precision(symbol, amount)
+                if postOnly:
+                    request['timeInForceValue'] = 'post_only'
+            if isTriggerOrder or isStopLossOrTakeProfit:
                 # default triggerType to market price for unification
                 triggerType = self.safe_string(params, 'triggerType', 'market_price')
                 request['triggerType'] = triggerType
+            if isStopLossOrTakeProfitTrigger or isStopLossOrTakeProfit:
+                if not isMarketOrder:
+                    raise ExchangeError(self.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders')
+                request['holdSide'] = 'long' if (side == 'buy') else 'short'
+            reduceOnly = self.safe_value(params, 'reduceOnly', False)
+            if isTriggerOrder:
                 request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
                 if price is not None:
                     request['executePrice'] = self.price_to_precision(symbol, price)
+                if side == 'buy':
+                    request['side'] = 'open_long'
+                elif side == 'sell':
+                    request['side'] = 'open_short'
+                else:
+                    request['side'] = side
                 method = 'privateMixPostPlanPlacePlan'
-            if isStopLossOrTakeProfit:
-                if not isMarketOrder:
-                    raise ExchangeError(self.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders')
-                if isStopLossOrder:
-                    request['triggerPrice'] = self.price_to_precision(symbol, stopLossPrice)
+            elif isStopLossOrTakeProfitTrigger:
+                if isStopLossTriggerOrder:
+                    request['triggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
                     request['planType'] = 'loss_plan'
-                elif isTakeProfitOrder:
-                    request['triggerPrice'] = self.price_to_precision(symbol, takeProfitPrice)
+                elif isTakeProfitTriggerOrder:
+                    request['triggerPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
                     request['planType'] = 'profit_plan'
-                request['holdSide'] = 'long' if (side == 'buy') else 'short'
                 method = 'privateMixPostPlanPlaceTPSL'
+            elif isStopLossOrTakeProfit:
+                if isStopLoss:
+                    request['triggerPrice'] = self.price_to_precision(symbol, stopLoss)
+                    request['planType'] = 'pos_loss'
+                elif isTakeProfit:
+                    request['triggerPrice'] = self.price_to_precision(symbol, takeProfit)
+                    request['planType'] = 'pos_profit'
+                method = 'privateMixPostPlanPlacePositionsTPSL'
             else:
                 if reduceOnly:
                     request['side'] = 'close_short' if (side == 'buy') else 'close_long'
                 else:
-                    request['side'] = 'open_long' if (side == 'buy') else 'open_short'
+                    if side == 'buy':
+                        request['side'] = 'open_long'
+                    elif side == 'sell':
+                        request['side'] = 'open_short'
+                    else:
+                        request['side'] = side
             request['marginCoin'] = market['settleId']
-        omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'postOnly'])
+        omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly'])
         response = await getattr(self, method)(self.extend(request, omitted))
         #
         #     {
