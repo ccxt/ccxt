@@ -318,7 +318,7 @@ export default class coinone extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostAccountBalance (params);
+        const response = await this.v2PrivatePostAccountBalance (params);
         return this.parseBalance (response);
     }
 
@@ -796,7 +796,7 @@ export default class coinone extends Exchange {
         const request = {
             'currency': market['id'],
         };
-        const response = await this.privatePostOrderCompleteOrders (this.extend (request, params));
+        const response = await this.v2PrivatePostOrderCompleteOrders (this.extend (request, params));
         //
         // despite the name of the endpoint it returns trades which may have a duplicate orderId
         // https://github.com/ccxt/ccxt/pull/7067
@@ -850,7 +850,7 @@ export default class coinone extends Exchange {
             'is_ask': isAsk,
             'currency': this.marketId (symbol),
         };
-        const response = await this.privatePostOrderCancel (this.extend (request, params));
+        const response = await this.v2PrivatePostOrderCancel (this.extend (request, params));
         //
         //     {
         //         "result": "success",
@@ -870,7 +870,7 @@ export default class coinone extends Exchange {
          * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostAccountDepositAddress (params);
+        const response = await this.v2PrivatePostAccountDepositAddress (params);
         //
         //     {
         //         result: 'success',
