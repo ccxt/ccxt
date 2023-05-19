@@ -2959,11 +2959,19 @@ export default class Exchange {
     async fetchStatus (params = {}) {
         if (this.has['fetchTime']) {
             const time = await this.fetchTime (params);
-            this.status = this.extend (this.status, {
-                'status': 'ok',
-                'updated': time,
-                'info': time,
-            });
+            try {
+                this.status = this.extend (this.status, {
+                    'status': 'ok',
+                    'updated': time,
+                    'info': time,
+                });
+            } catch (ex) {
+                this.status = this.extend (this.status, {
+                    'status': 'failed',
+                    'updated': undefined,
+                    'info': ex.toString (),
+                });
+            }
         }
         if (!('info' in this.status)) {
             this.status['info'] = undefined;
