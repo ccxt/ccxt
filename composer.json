@@ -245,9 +245,7 @@
         "ratchet/pawl": ">=0.4.1",
         "react/http": ">=1.6.0",
         "react/async": "^4.0.0",
-        "react/promise": "^2.9.0",
-        "clue/http-proxy-react": "1.8",
-        "clue/socks-react": "1.4"
+        "react/promise": "^2.9.0"
     },
     "suggest": {
         "recoil/recoil": "Required for asynchronous API calls to exchanges with PHP",
