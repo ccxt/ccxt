@@ -3505,7 +3505,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    async def edit_spot_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         """
         edit a trade order
         see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
@@ -3521,98 +3521,112 @@ class binance(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
-            raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
+            raise NotSupported(self.id + ' editSpotOrder() does not support ' + market['type'] + ' orders')
         request = {
             'symbol': market['id'],
             'side': side.upper(),
-            'cancelReplaceMode': 'STOP_ON_FAILURE',
-            # STOP_ON_FAILURE - If the cancel request fails, the new order placement will not be attempted.
-            # ALLOW_FAILURE - new order placement will be attempted even if cancel request fails.
         }
-        cancelId = self.safe_string_2(params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId')
-        if cancelId is None:
-            request['cancelOrderId'] = id  # user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
-        clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
-        initialUppercaseType = type.upper()
-        uppercaseType = initialUppercaseType
-        postOnly = self.is_post_only(initialUppercaseType == 'MARKET', initialUppercaseType == 'LIMIT_MAKER', params)
-        if postOnly:
-            uppercaseType = 'LIMIT_MAKER'
-        request['type'] = uppercaseType
-        stopPrice = self.safe_number(params, 'stopPrice')
-        if stopPrice is not None:
-            if uppercaseType == 'MARKET':
-                uppercaseType = 'STOP_LOSS'
-            elif uppercaseType == 'LIMIT':
-                uppercaseType = 'STOP_LOSS_LIMIT'
-        validOrderTypes = self.safe_value(market['info'], 'orderTypes')
-        if not self.in_array(uppercaseType, validOrderTypes):
-            if initialUppercaseType != uppercaseType:
-                raise InvalidOrder(self.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
+        clientOrderId = self.safe_string_n(params, ['newClientOrderId', 'clientOrderId', 'origClientOrderId'])
+        response = None
+        if market['spot']:
+            initialUppercaseType = type.upper()
+            uppercaseType = initialUppercaseType
+            postOnly = self.is_post_only(initialUppercaseType == 'MARKET', initialUppercaseType == 'LIMIT_MAKER', params)
+            if postOnly:
+                uppercaseType = 'LIMIT_MAKER'
+            request['type'] = uppercaseType
+            stopPrice = self.safe_number(params, 'stopPrice')
+            if stopPrice is not None:
+                if uppercaseType == 'MARKET':
+                    uppercaseType = 'STOP_LOSS'
+                elif uppercaseType == 'LIMIT':
+                    uppercaseType = 'STOP_LOSS_LIMIT'
+            validOrderTypes = self.safe_value(market['info'], 'orderTypes')
+            if not self.in_array(uppercaseType, validOrderTypes):
+                if initialUppercaseType != uppercaseType:
+                    raise InvalidOrder(self.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
+                else:
+                    raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
+            if clientOrderId is None:
+                broker = self.safe_value(self.options, 'broker')
+                if broker is not None:
+                    brokerId = self.safe_string(broker, 'spot')
+                    if brokerId is not None:
+                        request['newClientOrderId'] = brokerId + self.uuid22()
             else:
-                raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
-        if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker')
-            if broker is not None:
-                brokerId = self.safe_string(broker, 'spot')
-                if brokerId is not None:
-                    request['newClientOrderId'] = brokerId + self.uuid22()
-        else:
-            request['newClientOrderId'] = clientOrderId
-        request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        timeInForceIsRequired = False
-        priceIsRequired = False
-        stopPriceIsRequired = False
-        quantityIsRequired = False
-        if uppercaseType == 'MARKET':
-            quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', True)
-            if quoteOrderQty:
-                quoteOrderQtyNew = self.safe_value_2(params, 'quoteOrderQty', 'cost')
-                precision = market['precision']['price']
-                if quoteOrderQtyNew is not None:
-                    request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQtyNew, TRUNCATE, precision, self.precisionMode)
-                elif price is not None:
-                    amountString = self.number_to_string(amount)
-                    priceString = self.number_to_string(price)
-                    quoteOrderQuantity = Precise.string_mul(amountString, priceString)
-                    request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQuantity, TRUNCATE, precision, self.precisionMode)
+                request['newClientOrderId'] = clientOrderId
+            request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+            timeInForceIsRequired = False
+            priceIsRequired = False
+            stopPriceIsRequired = False
+            quantityIsRequired = False
+            if uppercaseType == 'MARKET':
+                quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', True)
+                if quoteOrderQty:
+                    quoteOrderQtyNew = self.safe_value_2(params, 'quoteOrderQty', 'cost')
+                    precision = market['precision']['price']
+                    if quoteOrderQtyNew is not None:
+                        request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQtyNew, TRUNCATE, precision, self.precisionMode)
+                    elif price is not None:
+                        amountString = self.number_to_string(amount)
+                        priceString = self.number_to_string(price)
+                        quoteOrderQuantity = Precise.string_mul(amountString, priceString)
+                        request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQuantity, TRUNCATE, precision, self.precisionMode)
+                    else:
+                        quantityIsRequired = True
                 else:
                     quantityIsRequired = True
-            else:
+            elif uppercaseType == 'LIMIT':
+                priceIsRequired = True
+                timeInForceIsRequired = True
                 quantityIsRequired = True
-        elif uppercaseType == 'LIMIT':
-            priceIsRequired = True
-            timeInForceIsRequired = True
-            quantityIsRequired = True
-        elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
-            stopPriceIsRequired = True
-            quantityIsRequired = True
-        elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
-            quantityIsRequired = True
-            stopPriceIsRequired = True
-            priceIsRequired = True
-            timeInForceIsRequired = True
-        elif uppercaseType == 'LIMIT_MAKER':
-            priceIsRequired = True
-            quantityIsRequired = True
-        if quantityIsRequired:
+            elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
+                stopPriceIsRequired = True
+                quantityIsRequired = True
+            elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
+                quantityIsRequired = True
+                stopPriceIsRequired = True
+                priceIsRequired = True
+                timeInForceIsRequired = True
+            elif uppercaseType == 'LIMIT_MAKER':
+                priceIsRequired = True
+                quantityIsRequired = True
+            if quantityIsRequired:
+                request['quantity'] = self.amount_to_precision(symbol, amount)
+            if priceIsRequired:
+                if price is None:
+                    raise InvalidOrder(self.id + ' editOrder() requires a price argument for a ' + type + ' order')
+                request['price'] = self.price_to_precision(symbol, price)
+            if timeInForceIsRequired:
+                request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+            if stopPriceIsRequired:
+                if stopPrice is None:
+                    raise InvalidOrder(self.id + ' editOrder() requires a stopPrice extra param for a ' + type + ' order')
+                else:
+                    request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['cancelReplaceMode'] = 'STOP_ON_FAILURE'  # If the cancel request fails, the new order placement will not be attempted.
+            cancelId = self.safe_string_2(params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId')
+            if cancelId is None:
+                request['cancelOrderId'] = id  # user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
+            # remove timeInForce from params because PO is only used by self.is_post_onlyand it's not a valid value for Binance
+            if self.safe_string(params, 'timeInForce') == 'PO':
+                params = self.omit(params, ['timeInForce'])
+            params = self.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly'])
+            response = await self.privatePostOrderCancelReplace(self.extend(request, params))
+        else:
+            request['orderId'] = id
             request['quantity'] = self.amount_to_precision(symbol, amount)
-        if priceIsRequired:
-            if price is None:
-                raise InvalidOrder(self.id + ' editOrder() requires a price argument for a ' + type + ' order')
-            request['price'] = self.price_to_precision(symbol, price)
-        if timeInForceIsRequired:
-            request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-        if stopPriceIsRequired:
-            if stopPrice is None:
-                raise InvalidOrder(self.id + ' editOrder() requires a stopPrice extra param for a ' + type + ' order')
-            else:
-                request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-        # remove timeInForce from params because PO is only used by self.is_post_onlyand it's not a valid value for Binance
-        if self.safe_string(params, 'timeInForce') == 'PO':
-            params = self.omit(params, ['timeInForce'])
-        requestParams = self.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly'])
-        response = await self.privatePostOrderCancelReplace(self.extend(request, requestParams))
+            if price is not None:
+                request['price'] = self.price_to_precision(symbol, price)
+            if clientOrderId is not None:
+                request['origClientOrderId'] = clientOrderId
+            params = self.omit(params, ['clientOrderId', 'newClientOrderId'])
+            if market['linear']:
+                response = await self.fapiPrivatePutOrder(self.extend(request, params))
+            elif market['inverse']:
+                response = await self.dapiPrivatePutOrder(self.extend(request, params))
+        #
+        # spot
         #
         #     {
         #         "cancelResult": "SUCCESS",
@@ -3652,6 +3666,94 @@ class binance(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'newOrderResponse')
         return self.parse_order(data, market)
+
+    async def edit_contract_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+        """
+        edit a trade order
+        see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
+        see https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
+        :param str id: cancel order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise NotSupported(self.id + ' editContractOrder() does not support ' + market['type'] + ' orders')
+        request = {
+            'symbol': market['id'],
+            'side': side.upper(),
+        }
+        clientOrderId = self.safe_string_n(params, ['newClientOrderId', 'clientOrderId', 'origClientOrderId'])
+        request['orderId'] = id
+        request['quantity'] = self.amount_to_precision(symbol, amount)
+        if price is not None:
+            request['price'] = self.price_to_precision(symbol, price)
+        if clientOrderId is not None:
+            request['origClientOrderId'] = clientOrderId
+        params = self.omit(params, ['clientOrderId', 'newClientOrderId'])
+        response = None
+        if market['linear']:
+            response = await self.fapiPrivatePutOrder(self.extend(request, params))
+        elif market['inverse']:
+            response = await self.dapiPrivatePutOrder(self.extend(request, params))
+        #
+        # swap and future
+        #
+        #     {
+        #         "orderId": 151007482392,
+        #         "symbol": "BTCUSDT",
+        #         "status": "NEW",
+        #         "clientOrderId": "web_pCCGp9AIHjziKLlpGpXI",
+        #         "price": "25000",
+        #         "avgPrice": "0.00000",
+        #         "origQty": "0.001",
+        #         "executedQty": "0",
+        #         "cumQty": "0",
+        #         "cumQuote": "0",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "reduceOnly": False,
+        #         "closePosition": False,
+        #         "side": "BUY",
+        #         "positionSide": "BOTH",
+        #         "stopPrice": "0",
+        #         "workingType": "CONTRACT_PRICE",
+        #         "priceProtect": False,
+        #         "origType": "LIMIT",
+        #         "updateTime": 1684300587845
+        #     }
+        #
+        return self.parse_order(response, market)
+
+    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+        """
+        edit a trade order
+        see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
+        see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
+        see https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
+        :param str id: cancel order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if market['option']:
+            raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders')
+        if market['spot']:
+            return await self.edit_spot_order(id, symbol, type, side, amount, price, params)
+        else:
+            return await self.edit_contract_order(id, symbol, type, side, amount, price, params)
 
     def parse_order_status(self, status):
         statuses = {
@@ -3708,6 +3810,32 @@ class binance(Exchange, ImplicitAPI):
         #         "type": "LIMIT",
         #         "side": "BUY",
         #         "fills": []
+        #     }
+        #
+        # swap and future: editOrder
+        #
+        #     {
+        #         "orderId": 151007482392,
+        #         "symbol": "BTCUSDT",
+        #         "status": "NEW",
+        #         "clientOrderId": "web_pCCGp9AIHjziKLlpGpXI",
+        #         "price": "25000",
+        #         "avgPrice": "0.00000",
+        #         "origQty": "0.001",
+        #         "executedQty": "0",
+        #         "cumQty": "0",
+        #         "cumQuote": "0",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "reduceOnly": False,
+        #         "closePosition": False,
+        #         "side": "BUY",
+        #         "positionSide": "BOTH",
+        #         "stopPrice": "0",
+        #         "workingType": "CONTRACT_PRICE",
+        #         "priceProtect": False,
+        #         "origType": "LIMIT",
+        #         "updateTime": 1684300587845
         #     }
         #
         # futures

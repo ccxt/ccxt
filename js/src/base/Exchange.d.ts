@@ -680,6 +680,9 @@ export default class Exchange {
     amountToPrecision(symbol: string, amount: any): any;
     feeToPrecision(symbol: string, fee: any): any;
     currencyToPrecision(code: string, fee: any, networkCode?: any): any;
+    isTickPrecision(): boolean;
+    isDecimalPrecision(): boolean;
+    isSignificantPrecision(): boolean;
     safeNumber(obj: object, key: IndexType, defaultNumber?: number): number;
     safeNumberN(obj: object, arr: IndexType[], defaultNumber?: number): number;
     parsePrecision(precision?: string): string;
