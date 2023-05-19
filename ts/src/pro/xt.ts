@@ -27,7 +27,7 @@ export default class xt extends xtRest {
                 'api': {
                     'ws': {
                         'spot': 'wss://stream.xt.com',
-                        'swap': 'wss://fstream.xt.com/ws',
+                        'linear': 'wss://fstream.xt.com/ws',
                     },
                 },
             },
@@ -50,34 +50,52 @@ export default class xt extends xtRest {
         });
     }
 
-    async getAccessToken (marketType: string, params = {}) {
+    async getListenKey (subType: string, params = {}) {
         /**
          * @ignore
          * @method
          * @description required for private endpoints
-         * @param marketType spot or swap
+         * @param {string} subType spot or linear
+         * @param {object} params extra parameters specific to the xt api
          * @see https://doc.xt.com/#websocket_privategetToken
-         * @returns {string} accessToken
+         * @see https://doc.xt.com/#futures_user_websocket_v2base
+         * @returns {string} listen key / access token
          */
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws'][marketType] + '/private';
+        let url = this.urls['api']['ws'][subType];
+        if (subType === 'spot') {
+            url = url + '/private';
+        }
         const client = this.client (url);
         const accessToken = this.safeValue (client.subscriptions, 'accessToken');
         if (accessToken === undefined) {
-            const response = await this.privateSpotPostWsToken (params);
-            //
-            //    {
-            //        "rc": 0,
-            //        "mc": "SUCCESS",
-            //        "ma": [],
-            //        "result": {
-            //            "accessToken": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
-            //            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
-            //        }
-            //    }
-            //
-            const result = this.safeValue (response, 'result');
-            client.subscriptions['accessToken'] = this.safeString (result, 'accessToken');
+            if (subType === 'spot') {
+                const response = await this.privateSpotPostWsToken (params);
+                //
+                //    {
+                //        "rc": 0,
+                //        "mc": "SUCCESS",
+                //        "ma": [],
+                //        "result": {
+                //            "accessToken": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
+                //            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
+                //        }
+                //    }
+                //
+                const result = this.safeValue (response, 'result');
+                client.subscriptions['accessToken'] = this.safeString (result, 'accessToken');
+            } else if (subType === 'linear') {
+                const response = await this.privateLinearGetFutureUserV1UserListenKey (params);
+                //
+                //    {
+                //        returnCode: '0',
+                //        msgInfo: 'success',
+                //        error: null,
+                //        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
+                //    }
+                //
+                client.subscriptions['accessToken'] = this.safeValue (response, 'result');
+            }
         }
         return client.subscriptions['accessToken'];
     }
@@ -97,24 +115,33 @@ export default class xt extends xtRest {
          * @returns {object} data from the websocket stream
          */
         await this.loadMarkets ();
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params);
-        if (marketType !== 'spot') {
-            access = (access === 'private') ? 'user' : 'market';
-        }
-        const url = this.urls['api']['ws'][marketType] + '/' + access;
+        const privateAccess = access === 'private';
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams (methodName, market, params);
+        const isSpot = subType === 'spot';
         const subscribe = {
-            'method': 'subscribe',
-            'params': [
-                name,
-            ],
+            'method': isSpot ? 'subscribe' : 'SUBSCRIBE',
             'id': this.numberToString (this.milliseconds ()) + name,  // call back ID
         };
-        if (access === 'private') {
-            subscribe['listenKey'] = await this.getAccessToken (marketType);
+        if (privateAccess) {
+            if (isSpot) {
+                subscribe['params'] = [ name ];
+                subscribe['listenKey'] = await this.getListenKey (subType);
+            } else {
+                const listenKey = await this.getListenKey (subType);
+                const param = name + '@' + listenKey;
+                subscribe['params'] = [ param ];
+            }
+        } else {
+            subscribe['params'] = [ name ];
         }
-        const messageHash = name + ':' + marketType;
+        const messageHash = name + ':' + subType;
         const request = this.extend (subscribe, params);
+        let tail = access;
+        if (!isSpot) {
+            tail = privateAccess ? 'user' : 'market';
+        }
+        const url = this.urls['api']['ws'][subType] + '/' + tail;
         return await this.watch (url, messageHash, request, messageHash);
     }
 
