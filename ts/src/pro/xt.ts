@@ -520,7 +520,7 @@ export default class xt extends xtRest {
         const marketId = this.safeString (data, 's');
         if (marketId !== undefined) {
             const timeframe = this.safeString (data, 'i');
-            const tradeType = ('ch' in data) ? 'contract' : 'spot';
+            const tradeType = ('q' in data) ? 'spot' : 'contract';
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
             const parsed = this.parseOHLCV (data, market);
