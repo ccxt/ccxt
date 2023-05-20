@@ -64,9 +64,13 @@ build_and_test_all () {
 
 ### CHECK IF THIS IS A PR ###
 if [ -n "$IS_TRAVIS" ]; then
-  ### CHECK IF THIS IS A PR ###
   if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-    echo "not a PR, will build everything"
+    echo "This is merger in master, will build everything"
+    build_and_test_all
+  fi
+else
+  if [ -z "$APPVEYOR_PULL_REQUEST_NUMBER" ]; then
+    echo "This is merger in master, will build everything"
     build_and_test_all
   fi
 fi
@@ -81,6 +85,7 @@ if [ -n "$IS_TRAVIS" ]; then
   diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
   diff=$(echo "$diff" | sed -e "s/python\/tox\.ini//")
 else
+  # in appveyor, there is no origin/master locally, so we need to fetch it
   git remote set-branches origin 'master'
   git fetch --depth=1
   diff=$(git diff origin/master --name-only)
@@ -140,7 +145,8 @@ done
 npm run check-php-syntax
 cd python && tox -e qa -- ${PYTHON_FILES[*]} && cd ..
 
-### RUN SPECIFIC TESTS ###
+
+### RUN SPECIFIC TESTS (ONLY IN TRAVIS) ###
 if [ -n "$IS_TRAVIS" ]; then
   if [  ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
     echo "no exchanges to test, exiting"
