@@ -10,9 +10,9 @@ if [ $# -gt 0 ]; then
   exit 7
 fi
 
-[[ -n "$TRAVIS_BUILD_ID" ]] && IS_TRAVIS="TRUE" || IS_TRAVIS=""
+[[ -n "$TRAVIS_BUILD_ID" ]] && IS_TRAVIS="TRUE" || IS_TRAVIS="FALSE"
 
-if [ -n "$IS_TRAVIS"]; then
+if [ "$IS_TRAVIS" == "TRUE" ]; then
   echo "IS TRAVISSS"
 else
   echo "IS NOT TRAVISSS"
@@ -60,7 +60,7 @@ function run_tests {
 
 build_and_test_all () {
   npm run force-build
-  if [ -n "$IS_TRAVIS"]; then
+  if [ "$IS_TRAVIS" == "TRUE" ]; then
     npm run test-base
     npm run test-base-ws
     run_tests
@@ -69,7 +69,7 @@ build_and_test_all () {
 }
 
 ### CHECK IF THIS IS A PR ###
-if [ -n "$IS_TRAVIS" ]; then
+if [ "$IS_TRAVIS" == "TRUE" ]; then
   if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
     echo "This is merger in master, will build everything"
     build_and_test_all
@@ -83,7 +83,7 @@ fi
 
 ##### DETECT CHANGES #####
 # temporarily remove the below scripts from diff
-if [ -n "$IS_TRAVIS" ]; then
+if [ "$IS_TRAVIS" == "TRUE" ]; then
   diff=$(git diff origin/master --name-only)
   diff=$(echo "$diff" | sed -e "s/^build\.sh//")
   diff=$(echo "$diff" | sed -e "s/^appveyor\.yml//")
@@ -156,7 +156,7 @@ cd python && tox -e qa -- ${PYTHON_FILES[*]} && cd ..
 
 
 ### RUN SPECIFIC TESTS (ONLY IN TRAVIS) ###
-if [ -n "$IS_TRAVIS" ]; then
+if [ "$IS_TRAVIS" == "TRUE" ]; then
   if [  ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
     echo "no exchanges to test, exiting"
     exit
