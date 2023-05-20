@@ -5870,7 +5870,7 @@ export default class okx extends Exchange {
          * @description Retrieves the open interest history of a currency
          * @see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-contracts-open-interest-and-volume
          * @see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-options-open-interest-and-volume
-         * @param {string} symbol Unified CCXT currency code instead of a unified symbol
+         * @param {string} symbol Unified CCXT currency code or unified symbol
          * @param {string} timeframe "5m", "1h", or "1d" for option only "1d" or "8h"
          * @param {int|undefined} since The time in ms of the earliest record to retrieve as a unix timestamp
          * @param {int|undefined} limit Not used by okx, but parsed internally by CCXT
@@ -5885,8 +5885,15 @@ export default class okx extends Exchange {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');
         }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const currency = this.currency (symbol);
+        // handle unified currency code or symbol
+        let currency = undefined;
+        let market = undefined;
+        if (symbol in this.markets || symbol in this.markets_by_id) {
+            market = this.market (symbol);
+            currency = market['baseId'];
+        } else {
+            currency = this.currency (symbol);
+        }
         const request = {
             'ccy': currency['id'],
             'period': timeframe,
