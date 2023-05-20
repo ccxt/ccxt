@@ -68,7 +68,8 @@ fi
 diff=$(git diff origin/master --name-only)
 diff=$(echo "$diff" | sed -e "s/^build.sh//") # temporarily remove this script from diff
 diff=$(echo "$diff" | sed -e "s/^package.json//") # temporarily remove this script from diff
-diff=$(echo "$diff" | sed -e "s/python/qa.py//") # temporarily remove this script from diff
+diff=$(echo "$diff" | sed -e "s/python\/qa.py//") # temporarily remove this script from diff
+diff=$(echo "$diff" | sed -e "s/python\/tox.ini//") # temporarily remove this script from diff
 
 critical_pattern='Client(Trait)?\.php|Exchange\.php|\/test|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|ccxt\.ts|__init__.py'
 if [[ "$diff" =~ $critical_pattern ]]; then
@@ -110,7 +111,6 @@ for exchange in "${WS_EXCHANGES[@]}"; do
   eslint "ts/src/pro/$exchange.ts"
   node build/transpileWS.js $exchange --force --child
   PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
-
 done
 # faster version of post-transpile
 npm run check-php-syntax
