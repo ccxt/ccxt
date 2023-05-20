@@ -94,14 +94,16 @@ done
 
 ### BUILD SPECIFIC EXCHANGES ###
 # npm run pre-transpile
-# faster version of pre-transpile (without bundle)
-npm run pre-transpile-pr
+# faster version of pre-transpile (without bundle and atomic linting)
+npm run export-exchanges && npm run tsBuild && npm run emitAPI
 echo "REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[@]}"
 for exchange in "${REST_EXCHANGES[@]}"; do
+  eslint "ts/src/$exchange.ts"
   node build/transpile.js $exchange --force --child
 done
 echo "WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[@]}"
 for exchange in "${WS_EXCHANGES[@]}"; do
+  eslint "ts/src/pro/$exchange.ts"
   node build/transpileWS.js $exchange --force --child
 done
 time npm run post-transpile
