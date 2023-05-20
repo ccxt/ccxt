@@ -149,8 +149,8 @@ for exchange in "${WS_EXCHANGES[@]}"; do
   PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
 done
 # faster version of post-transpile
-sudo ldconfig
 npm run check-php-syntax
+ldconfig
 cd python && tox -e qa -- ${PYTHON_FILES[*]} && cd ..
 
 
