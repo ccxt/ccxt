@@ -5888,7 +5888,7 @@ export default class okx extends Exchange {
         // handle unified currency code or symbol
         let currencyId = undefined;
         let market = undefined;
-        if (symbol in this.markets || symbol in this.markets_by_id) {
+        if ((symbol in this.markets) || (symbol in this.markets_by_id)) {
             market = this.market (symbol);
             currencyId = market['baseId'];
         } else {
