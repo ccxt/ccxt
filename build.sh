@@ -96,17 +96,12 @@ npm run pre-transpile
 echo "REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[@]}"
 for exchange in "${REST_EXCHANGES[@]}"; do
   node build/transpile.js $exchange --force --child
-  sync_file="python/ccxt/$exchange.py"
-  async_file="python/ccxt/async_support/$exchange.py"
-  python python/qa.py $sync_file $async_file
 done
 echo "WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[@]}"
 for exchange in "${WS_EXCHANGES[@]}"; do
-  pro_file="python/ccxt/pro/$exchange.py"
   node build/transpileWS.js $exchange --force --child
-  python python/qa.py $pro_file
 done
-npm run check-php-syntax
+npm run post-transpile
 
 ### RUN SPECIFIC TESTS ###
 if [  ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
