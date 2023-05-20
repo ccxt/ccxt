@@ -271,7 +271,7 @@ var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange
 
 The library supports concurrent asynchronous mode using tools from [RecoilPHP](https://github.com/recoilphp/recoil) and [ReactPHP](https://reactphp.org/) in PHP 7.1+. Read the [Manual](https://docs.ccxt.com/#/README) for more details.
 
-### C# (dotnet core)
+### Dotnet/C#
 
 [ccxt in C# with **Nugget**](https://packagist.org/packages/ccxt/ccxt) (dotnet 7.0+)
 ```c#
@@ -494,7 +494,7 @@ var_dump ($zaif->id, $zaif->create_limit_buy_order ('BTC/JPY', 1, 285000));
 $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
 ```
 
-### C# (dotnet core)
+### Dotnet/C#
 
 ```C#
     public async static Task FetchTrades()
