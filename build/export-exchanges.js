@@ -654,6 +654,7 @@ const url = pathToFileURL(process.argv[1]);
 const href = (url.href.indexOf('.') !== -1) ? url.href.substring(0, url.href.lastIndexOf(".")) : url.href;
 if (metaUrl === href) {
 
+    console.log('runnnnnn11')
     // if called directly like `node module`
     try {
         await exportEverything ()
