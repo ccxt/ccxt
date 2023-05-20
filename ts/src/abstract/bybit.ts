@@ -407,6 +407,9 @@ interface Exchange {
     privatePostV5PositionSetTpslMode (params?: {}): Promise<implicitReturnType>;
     privatePostV5PositionSetRiskLimit (params?: {}): Promise<implicitReturnType>;
     privatePostV5PositionTradingStop (params?: {}): Promise<implicitReturnType>;
+    privatePostV5PositionSwitchIsolated (params?: {}): Promise<implicitReturnType>;
+    privatePostV5PositionSwitchMode (params?: {}): Promise<implicitReturnType>;
+    privatePostV5PositionSetAutoAddMargin (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountUpgradeToUta (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountSetMarginMode (params?: {}): Promise<implicitReturnType>;
     privatePostV5AssetTransferInterTransfer (params?: {}): Promise<implicitReturnType>;
