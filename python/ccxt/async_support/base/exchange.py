@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.106'
+__version__ = '3.1.3'
 
 # -----------------------------------------------------------------------------
 
@@ -970,28 +970,28 @@ class Exchange(BaseExchange):
             datetime = self.iso8601(timestamp)
         triggerPrice = self.parse_number(self.safe_string_2(order, 'triggerPrice', 'stopPrice'))
         return self.extend(order, {
-            'id': self.safe_string(order, 'id'),
-            'clientOrderId': self.safe_string(order, 'clientOrderId'),
-            'timestamp': timestamp,
-            'datetime': datetime,
-            'symbol': symbol,
-            'type': self.safe_string(order, 'type'),
-            'side': side,
-            'lastTradeTimestamp': lastTradeTimeTimestamp,
-            'price': self.parse_number(price),
             'amount': self.parse_number(amount),
-            'cost': self.parse_number(cost),
             'average': self.parse_number(average),
-            'filled': self.parse_number(filled),
-            'remaining': self.parse_number(remaining),
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
-            'trades': trades,
-            'reduceOnly': self.safe_value(order, 'reduceOnly'),
-            'stopPrice': triggerPrice,  # ! deprecated, use triggerPrice instead
-            'triggerPrice': triggerPrice,
-            'status': self.safe_string(order, 'status'),
+            'clientOrderId': self.safe_string(order, 'clientOrderId'),
+            'cost': self.parse_number(cost),
+            'datetime': datetime,
             'fee': self.safe_value(order, 'fee'),
+            'filled': self.parse_number(filled),
+            'id': self.safe_string(order, 'id'),
+            'lastTradeTimestamp': lastTradeTimeTimestamp,
+            'postOnly': postOnly,
+            'price': self.parse_number(price),
+            'reduceOnly': self.safe_value(order, 'reduceOnly'),
+            'remaining': self.parse_number(remaining),
+            'side': side,
+            'status': self.safe_string(order, 'status'),
+            'stopPrice': triggerPrice,  # ! deprecated, use triggerPrice instead
+            'symbol': symbol,
+            'timeInForce': timeInForce,
+            'timestamp': timestamp,
+            'trades': trades,
+            'triggerPrice': triggerPrice,
+            'type': self.safe_string(order, 'type'),
         })
 
     def parse_orders(self, orders: object, market: Optional[object] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -1063,10 +1063,10 @@ class Exchange(BaseExchange):
         rate = self.safe_string(market, takerOrMaker)
         cost = Precise.string_mul(cost, rate)
         return {
-            'type': takerOrMaker,
+            'cost': self.parse_number(cost),
             'currency': market[key],
             'rate': self.parse_number(rate),
-            'cost': self.parse_number(cost),
+            'type': takerOrMaker,
         }
 
     def safe_trade(self, trade: object, market: Optional[object] = None):
@@ -1111,8 +1111,8 @@ class Exchange(BaseExchange):
                     tradeFee['rate'] = self.safe_number(tradeFee, 'rate')
                 trade['fee'] = tradeFee
         trade['amount'] = self.parse_number(amount)
-        trade['price'] = self.parse_number(price)
         trade['cost'] = self.parse_number(cost)
+        trade['price'] = self.parse_number(price)
         return trade
 
     def reduce_fees_by_currency(self, fees):
@@ -1178,8 +1178,8 @@ class Exchange(BaseExchange):
                     reduced[feeCurrencyCode][rateKey]['cost'] = Precise.string_add(reduced[feeCurrencyCode][rateKey]['cost'], cost)
                 else:
                     reduced[feeCurrencyCode][rateKey] = {
-                        'currency': feeCurrencyCode,
                         'cost': cost,
+                        'currency': feeCurrencyCode,
                     }
                     if rate is not None:
                         reduced[feeCurrencyCode][rateKey]['rate'] = rate
@@ -1220,22 +1220,22 @@ class Exchange(BaseExchange):
         # timestamp and symbol operations don't belong in safeTicker
         # they should be done in the derived classes
         return self.extend(ticker, {
-            'bid': self.omit_zero(self.safe_number(ticker, 'bid')),
-            'bidVolume': self.safe_number(ticker, 'bidVolume'),
             'ask': self.omit_zero(self.safe_number(ticker, 'ask')),
             'askVolume': self.safe_number(ticker, 'askVolume'),
+            'average': self.omit_zero(self.parse_number(average)),
+            'baseVolume': self.parse_number(baseVolume),
+            'bid': self.omit_zero(self.safe_number(ticker, 'bid')),
+            'bidVolume': self.safe_number(ticker, 'bidVolume'),
+            'change': self.parse_number(change),
+            'close': self.omit_zero(self.parse_number(close)),
             'high': self.omit_zero(self.safe_number(ticker, 'high')),
+            'last': self.omit_zero(self.parse_number(last)),
             'low': self.omit_zero(self.safe_number(ticker, 'low')),
             'open': self.omit_zero(self.parse_number(open)),
-            'close': self.omit_zero(self.parse_number(close)),
-            'last': self.omit_zero(self.parse_number(last)),
-            'change': self.parse_number(change),
             'percentage': self.parse_number(percentage),
-            'average': self.omit_zero(self.parse_number(average)),
-            'vwap': self.omit_zero(self.parse_number(vwap)),
-            'baseVolume': self.parse_number(baseVolume),
-            'quoteVolume': self.parse_number(quoteVolume),
             'previousClose': self.safe_number(ticker, 'previousClose'),
+            'quoteVolume': self.parse_number(quoteVolume),
+            'vwap': self.omit_zero(self.parse_number(vwap)),
         })
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -1279,11 +1279,11 @@ class Exchange(BaseExchange):
 
     def convert_ohlcv_to_trading_view(self, ohlcvs, timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
         result = {}
-        result[timestamp] = []
-        result[open] = []
+        result[close] = []
         result[high] = []
         result[low] = []
-        result[close] = []
+        result[open] = []
+        result[timestamp] = []
         result[volume] = []
         for i in range(0, len(ohlcvs)):
             ts = ohlcvs[i][0] if ms else self.parseToInt(ohlcvs[i][0] / 1000)
@@ -1358,32 +1358,32 @@ class Exchange(BaseExchange):
     def get_network(self, network: str, code: str):
         network = network.upper()
         aliases = {
-            'ETHEREUM': 'ETH',
-            'ETHER': 'ETH',
+            'AVALANCHE': 'AVAX',
+            'AVAX': 'AVAX',
+            'BEP20': 'BSC',
+            'BSC': 'BSC',
+            'CHZ': 'CHZ',
+            'EOS': 'EOS',
             'ERC20': 'ETH',
             'ETH': 'ETH',
+            'ETHER': 'ETH',
+            'ETHEREUM': 'ETH',
+            'HECO': 'HT',
+            'HRC20': 'HT',
+            'LUNA': 'LUNA',
+            'MATIC': 'MATIC',
+            'NEO': 'NEO',
+            'ONT': 'ONT',
+            'POLYGON': 'MATIC',
+            'QTUM': 'QTUM',
+            'RON': 'RON',
+            'SOL': 'SOL',
+            'SPL': 'SOL',
+            'TERRA': 'LUNA',
             'TRC20': 'TRX',
             'TRON': 'TRX',
             'TRX': 'TRX',
-            'BEP20': 'BSC',
-            'BSC': 'BSC',
-            'HRC20': 'HT',
-            'HECO': 'HT',
-            'SPL': 'SOL',
-            'SOL': 'SOL',
-            'TERRA': 'LUNA',
-            'LUNA': 'LUNA',
-            'POLYGON': 'MATIC',
-            'MATIC': 'MATIC',
-            'EOS': 'EOS',
             'WAVES': 'WAVES',
-            'AVALANCHE': 'AVAX',
-            'AVAX': 'AVAX',
-            'QTUM': 'QTUM',
-            'CHZ': 'CHZ',
-            'NEO': 'NEO',
-            'ONT': 'ONT',
-            'RON': 'RON',
         }
         if network == code:
             return network
@@ -1518,12 +1518,12 @@ class Exchange(BaseExchange):
         bids = self.parse_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey)
         asks = self.parse_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey)
         return {
-            'symbol': symbol,
-            'bids': self.sort_by(bids, 0, True),
             'asks': self.sort_by(asks, 0),
-            'timestamp': timestamp,
+            'bids': self.sort_by(bids, 0, True),
             'datetime': self.iso8601(timestamp),
             'nonce': None,
+            'symbol': symbol,
+            'timestamp': timestamp,
         }
 
     def parse_ohlcvs(self, ohlcvs: List[object], market: Optional[Any] = None, timeframe: str = '1m', since: Optional[int] = None, limit: Optional[int] = None):
@@ -1746,39 +1746,19 @@ class Exchange(BaseExchange):
 
     def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
         result = {
-            'id': marketId,
-            'symbol': marketId,
-            'base': None,
-            'quote': None,
-            'baseId': None,
-            'quoteId': None,
             'active': None,
-            'type': None,
-            'linear': None,
-            'inverse': None,
-            'spot': False,
-            'swap': False,
-            'future': False,
-            'option': False,
-            'margin': False,
+            'base': None,
+            'baseId': None,
             'contract': False,
             'contractSize': None,
             'expiry': None,
             'expiryDatetime': None,
-            'optionType': None,
-            'strike': None,
-            'settle': None,
-            'settleId': None,
-            'precision': {
-                'amount': None,
-                'price': None,
-            },
+            'future': False,
+            'id': marketId,
+            'info': None,
+            'inverse': None,
             'limits': {
                 'amount': {
-                    'min': None,
-                    'max': None,
-                },
-                'price': {
                     'min': None,
                     'max': None,
                 },
@@ -1786,8 +1766,28 @@ class Exchange(BaseExchange):
                     'min': None,
                     'max': None,
                 },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
             },
-            'info': None,
+            'linear': None,
+            'margin': False,
+            'option': False,
+            'optionType': None,
+            'precision': {
+                'amount': None,
+                'price': None,
+            },
+            'quote': None,
+            'quoteId': None,
+            'settle': None,
+            'settleId': None,
+            'spot': False,
+            'strike': None,
+            'swap': False,
+            'symbol': marketId,
+            'type': None,
         }
         if marketId is not None:
             if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
@@ -2196,6 +2196,15 @@ class Exchange(BaseExchange):
             return fee
         else:
             return self.decimal_to_precision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
+
+    def is_tick_precision(self):
+        return self.precisionMode == TICK_SIZE
+
+    def is_decimal_precision(self):
+        return self.precisionMode == DECIMAL_PLACES
+
+    def is_significant_precision(self):
+        return self.precisionMode == SIGNIFICANT_DIGITS
 
     def safe_number(self, obj: object, key: IndexType, defaultNumber: Optional[float] = None):
         value = self.safe_string(obj, key)
@@ -2642,16 +2651,16 @@ class Exchange(BaseExchange):
 
     def deposit_withdraw_fee(self, info):
         return {
-            'info': info,
-            'withdraw': {
-                'fee': None,
-                'percentage': None,
-            },
             'deposit': {
                 'fee': None,
                 'percentage': None,
             },
+            'info': info,
             'networks': {},
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
         }
 
     def assign_default_deposit_withdraw_fees(self, fee, currency=None):
@@ -2672,8 +2681,8 @@ class Exchange(BaseExchange):
         for i in range(0, numNetworks):
             network = networkKeys[i]
             if network == currencyCode:
-                fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw']
                 fee['deposit'] = fee['networks'][networkKeys[i]]['deposit']
+                fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw']
         return fee
 
     def parse_income(self, info, market=None):

@@ -165,7 +165,7 @@ class mexc extends \ccxt\async\mexc {
 
     public function watch_spot_private($channel, $messageHash, $params = array ()) {
         return Async\async(function () use ($channel, $messageHash, $params) {
-            Async\await($this->check_required_credentials());
+            $this->check_required_credentials();
             $listenKey = Async\await($this->authenticate($channel));
             $url = $this->urls['api']['ws']['spot'] . '?$listenKey=' . $listenKey;
             $request = array(

@@ -565,6 +565,9 @@ export default class bybit extends Exchange {
                         'v5/position/set-tpsl-mode': 2.5,
                         'v5/position/set-risk-limit': 2.5,
                         'v5/position/trading-stop': 2.5,
+                        'v5/position/switch-isolated': 2.5,
+                        'v5/position/switch-mode': 2.5,
+                        'v5/position/set-auto-add-margin': 2.5,
                         'v5/account/upgrade-to-uta': 2.5,
                         'v5/account/set-margin-mode': 2.5,
                         'v5/asset/transfer/inter-transfer': 2.5,
@@ -2477,7 +2480,7 @@ export default class bybit extends Exchange {
         //
         //     {
         //         "symbol": "AAVEUSDT",
-        //         "id": "1274785101965716992",
+        //         "id": "1274785101965716991",
         //         "orderId": "1274784252359089664",
         //         "tradeId": "2270000000031365639",
         //         "orderPrice": "82.5",
