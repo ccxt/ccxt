@@ -5885,6 +5885,7 @@ export default class okx extends Exchange {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');
         }
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const currency = this.currency (symbol);
         const request = {
             'ccy': currency['id'],
@@ -5892,7 +5893,7 @@ export default class okx extends Exchange {
         };
         let type = undefined;
         let response = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenInterestHistory', undefined, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenInterestHistory', market, params);
         if (type === 'option') {
             response = await this.publicGetRubikStatOptionOpenInterestVolume (this.extend (request, params));
         } else {
