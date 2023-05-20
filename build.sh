@@ -53,11 +53,14 @@ function run_tests {
 }
 
 build_and_test_all () {
-  npm run force-build
   if [ "$IS_TRAVIS" == "TRUE" ]; then
+    npm run force-build
     npm run test-base
     npm run test-base-ws
     run_tests
+  else
+    sudo ldconfig
+    npm run force-build
   fi
   exit
 }
