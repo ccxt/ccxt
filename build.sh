@@ -12,12 +12,6 @@ fi
 
 [[ -n "$TRAVIS_BUILD_ID" ]] && IS_TRAVIS="TRUE" || IS_TRAVIS="FALSE"
 
-if [ "$IS_TRAVIS" == "TRUE" ]; then
-  echo "IS TRAVISSS"
-else
-  echo "IS NOT TRAVISSS"
-fi
-
 function run_tests {
   local rest_args=
   local ws_args=
@@ -86,6 +80,7 @@ fi
 if [ "$IS_TRAVIS" == "TRUE" ]; then
   diff=$(git diff origin/master --name-only)
   diff=$(echo "$diff" | sed -e "s/^build\.sh//")
+  diff=$(echo "$diff" | sed -e "s/^\.travis\.yml//")
   diff=$(echo "$diff" | sed -e "s/^appveyor\.yml//")
   diff=$(echo "$diff" | sed -e "s/^package\.json//")
   diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
@@ -98,13 +93,14 @@ else
   # for some reason using "sed" commands (in appveyor) turns variable into empty string, so manually replacing them
   replace_with=""
   diff="${diff//build\.sh/${replace_with}}"
+  diff="${diff//\.travis\.yml/${replace_with}}"
   diff="${diff//appveyor\.yml/${replace_with}}"
   diff="${diff//package\.json/${replace_with}}"
   diff="${diff//python\/qa\.py/${replace_with}}"
   diff="${diff//python\/tox\.ini/${replace_with}}"
 fi
 
-echo "TEMP: CHANGED FILES: $diff"
+# echo "TEMP: CHANGED FILES: $diff"
 
 critical_pattern='Client(Trait)?\.php|Exchange\.php|\/test|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py'
 if [[ "$diff" =~ $critical_pattern ]]; then
@@ -129,8 +125,8 @@ for file in "${y[@]}"; do
   fi
 done
 
-echo "TEMP: REST_EXCHANGES: ${REST_EXCHANGES[@]}"
-echo "TEMP: WS_EXCHANGES: ${WS_EXCHANGES[@]}"
+#echo "TEMP: REST_EXCHANGES: ${REST_EXCHANGES[@]}"
+#echo "TEMP: WS_EXCHANGES: ${WS_EXCHANGES[@]}"
 
 ### BUILD SPECIFIC EXCHANGES ###
 # npm run pre-transpile
