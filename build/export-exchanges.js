@@ -665,6 +665,7 @@ if (metaUrl === href) {
 
 } else {
 
+    console.log('norunnnnnn')
     // do nothing if required as a module
 }
 
