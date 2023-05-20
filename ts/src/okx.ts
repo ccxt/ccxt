@@ -5886,16 +5886,17 @@ export default class okx extends Exchange {
         }
         await this.loadMarkets ();
         // handle unified currency code or symbol
-        let currency = undefined;
+        let currencyId = undefined;
         let market = undefined;
         if (symbol in this.markets || symbol in this.markets_by_id) {
             market = this.market (symbol);
-            currency = market['baseId'];
+            currencyId = market['baseId'];
         } else {
-            currency = this.currency (symbol);
+            const currency = this.currency (symbol);
+            currencyId = currency['id'];
         }
         const request = {
-            'ccy': currency['id'],
+            'ccy': currencyId,
             'period': timeframe,
         };
         let type = undefined;
