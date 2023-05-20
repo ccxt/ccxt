@@ -5937,11 +5937,11 @@ export default class okx extends Exchange {
         // fetchOpenInterest
         //
         //     {
-        //         "instId": "BTC-USDT-SWAP",
-        //         "instType": "SWAP",
-        //         "oi": "2125419",
-        //         "oiCcy": "21254.19",
-        //         "ts": "1664005108969"
+        //         "instId": "BTC-USD-230520-25500-P",
+        //         "instType": "OPTION",
+        //         "oi": "300",
+        //         "oiCcy": "3",
+        //         "ts": "1684551166251"
         //     }
         //
         const id = this.safeString (interest, 'instId');
@@ -5963,9 +5963,8 @@ export default class okx extends Exchange {
             }
         } else {
             baseVolume = this.safeNumber (interest, 'oiCcy');
-            quoteVolume = this.safeNumber (interest, 'oi');
-            openInterestAmount = this.safeNumber (interest, 'oiCcy');
-            openInterestValue = this.safeNumber (interest, 'oi');
+            openInterestAmount = this.safeNumber (interest, 'oi');
+            openInterestValue = this.safeNumber (interest, 'oiCcy');
         }
         return {
             'symbol': this.safeSymbol (id),
