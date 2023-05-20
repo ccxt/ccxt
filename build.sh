@@ -68,7 +68,6 @@ fi
 diff=$(git diff origin/master --name-only)
 diff=$(echo "$diff" | sed -e "s/^build.sh//") # temporarily remove this script from diff
 diff=$(echo "$diff" | sed -e "s/^package.json//") # temporarily remove this script from diff
-diff=$(echo "$diff" | sed -e "s/^tsconfig.json//") # temporarily remove this script from diff
 
 critical_pattern='Client(Trait)?\.php|Exchange\.php|\/test|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|ccxt\.ts|__init__.py'
 if [[ "$diff" =~ $critical_pattern ]]; then
@@ -94,7 +93,9 @@ for file in "${y[@]}"; do
 done
 
 ### BUILD SPECIFIC EXCHANGES ###
-npm run pre-transpile
+# npm run pre-transpile
+# faster version of pre-transpile (without bundle)
+npm run pre-transpile-pr
 echo "REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[@]}"
 for exchange in "${REST_EXCHANGES[@]}"; do
   node build/transpile.js $exchange --force --child
