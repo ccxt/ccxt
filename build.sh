@@ -130,6 +130,8 @@ done
 ### BUILD SPECIFIC EXCHANGES ###
 # faster version of pre-transpile (without bundle and atomic linting)
 echo "PRE_ERRROR"
+echo "${APPVEYOR_BUILD_FOLDER}"
+cd $APPVEYOR_BUILD_FOLDER
 npm run export-exchanges && npm run tsBuild && npm run emitAPI
 echo "REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[@]}"
 PYTHON_FILES=()
