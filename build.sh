@@ -101,7 +101,7 @@ echo "WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[@]}"
 for exchange in "${WS_EXCHANGES[@]}"; do
   node build/transpileWS.js $exchange --force --child
 done
-npm run post-transpile
+time npm run post-transpile
 
 ### RUN SPECIFIC TESTS ###
 if [  ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
