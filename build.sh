@@ -83,6 +83,7 @@ if [ "$IS_TRAVIS" == "TRUE" ]; then
   diff=$(echo "$diff" | sed -e "s/^\.travis\.yml//")
   diff=$(echo "$diff" | sed -e "s/^appveyor\.yml//")
   diff=$(echo "$diff" | sed -e "s/^package\.json//")
+  diff=$(echo "$diff" | sed -e "s/^package\-lock\.json//")
   diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
   diff=$(echo "$diff" | sed -e "s/python\/tox\.ini//")
 else
@@ -96,6 +97,7 @@ else
   diff="${diff//\.travis\.yml/${replace_with}}"
   diff="${diff//appveyor\.yml/${replace_with}}"
   diff="${diff//package\.json/${replace_with}}"
+  diff="${diff//package\-lock\.json/${replace_with}}"
   diff="${diff//python\/qa\.py/${replace_with}}"
   diff="${diff//python\/tox\.ini/${replace_with}}"
 fi
