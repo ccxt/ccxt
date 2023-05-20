@@ -1201,6 +1201,15 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_post_v5_position_trading_stop($params = array()) {
         return $this->request('v5/position/trading-stop', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
+    public function private_post_v5_position_switch_isolated($params = array()) {
+        return $this->request('v5/position/switch-isolated', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function private_post_v5_position_switch_mode($params = array()) {
+        return $this->request('v5/position/switch-mode', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function private_post_v5_position_set_auto_add_margin($params = array()) {
+        return $this->request('v5/position/set-auto-add-margin', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
     public function private_post_v5_account_upgrade_to_uta($params = array()) {
         return $this->request('v5/account/upgrade-to-uta', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
@@ -2478,6 +2487,15 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privatePostV5PositionTradingStop($params = array()) {
         return $this->request('v5/position/trading-stop', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function privatePostV5PositionSwitchIsolated($params = array()) {
+        return $this->request('v5/position/switch-isolated', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function privatePostV5PositionSwitchMode($params = array()) {
+        return $this->request('v5/position/switch-mode', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function privatePostV5PositionSetAutoAddMargin($params = array()) {
+        return $this->request('v5/position/set-auto-add-margin', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
     public function privatePostV5AccountUpgradeToUta($params = array()) {
         return $this->request('v5/account/upgrade-to-uta', 'private', 'POST', $params, null, null, array("cost" => 2.5));
