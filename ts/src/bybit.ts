@@ -7574,6 +7574,7 @@ export default class bybit extends Exchange {
 
     async setPositionMode (hedged, symbol: string = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = undefined;
         let mode = undefined;
         if (hedged) {
             mode = 3;
@@ -7583,13 +7584,28 @@ export default class bybit extends Exchange {
         const request = {
             'mode': mode,
         };
-        if (symbol === undefined) {
-            request['coin'] = 'USDT';
-        } else {
-            const market = this.market (symbol);
+        const enableUnified = await this.isUnifiedEnabled ();
+        let method = undefined;
+        if (enableUnified[1]) {
+            this.checkRequiredSymbol ('setPositionMode', symbol);
+            market = this.market (symbol);
+            if (!market['inverse']) {
+                throw new NotSupported (this.id + ' setPositionMode () only support inverse market for unified trading account');
+            }
             request['symbol'] = market['id'];
+            request['category'] = 'inverse';
+            method = 'privatePostV5PositionSwitchMode';
+        } else {
+            if (symbol === undefined) {
+                request['coin'] = 'USDT';
+            } else {
+                market = this.market (symbol);
+                request['symbol'] = market['id'];
+            }
+            method = 'privatePostContractV3PrivatePositionSwitchMode';
         }
         //
+        // contract v3
         //     {
         //         "ret_code": 0,
         //         "ret_msg": "ok",
@@ -7602,7 +7618,15 @@ export default class bybit extends Exchange {
         //         "rate_limit": 75
         //     }
         //
-        return await this.privatePostContractV3PrivatePositionSwitchMode (this.extend (request, params));
+        // v5
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {},
+        //         "retExtInfo": {},
+        //         "time": 1675249072814
+        //     }
+        return await this[method] (this.extend (request, params));
     }
 
     async fetchDerivativesOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
