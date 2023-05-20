@@ -37,8 +37,10 @@ test_script:
   - node --version
   - npm --version
   - python --version
-  - npm run force-build
-  # - npm run test-base
+  - pip --version
+  - php --version
+  - move "C:\Program Files\Git\usr\bin\msys-2.0.dll" "C:\Program Files\Git\usr\bin\msys-2.0-bak.dll" # workaround for cygwin-related error
+  - cmd: build.sh
 cache:
   - '%APPDATA%\npm-cache'
   - '%LOCALAPPDATA%\pip\Cache'
