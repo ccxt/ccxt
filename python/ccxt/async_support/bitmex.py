@@ -4,7 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -20,7 +24,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bitmex(Exchange):
+class bitmex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitmex, self).describe(), {
@@ -34,6 +38,7 @@ class bitmex(Exchange):
             # 120 per minute => 2 per second => weight = 5(authenticated)
             # 30 per minute => 0.5 per second => weight = 20(unauthenticated)
             'rateLimit': 100,
+            'certified': True,
             'pro': True,
             'has': {
                 'CORS': None,
@@ -392,92 +397,108 @@ class bitmex(Exchange):
             id = self.safe_string(market, 'symbol')
             baseId = self.safe_string(market, 'underlying')
             quoteId = self.safe_string(market, 'quoteCurrency')
-            settleId = self.safe_string(market, 'settlCurrency', '')
+            settleId = self.safe_string(market, 'settlCurrency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
-            basequote = baseId + quoteId
-            swap = (id == basequote)
             # 'positionCurrency' may be empty("", currently returns for ETHUSD)
             # so let's take the settlCurrency first and then adjust if needed
-            type = None
-            future = False
-            symbol = base + '/' + quote + ':' + settle
-            expiryDatetime = self.safe_string(market, 'expiry')
-            expiry = self.parse8601(expiryDatetime)
+            typ = self.safe_string(market, 'typ')
+            # Perpetual Contracts - FFWCSX
+            # Perpetual Contracts(FX underliers) - FFWCSF
+            # Spot - IFXXXP
+            # Futures - FFCCSX
+            # BitMEX Basket Index - MRBXXX
+            # BitMEX Crypto Index - MRCXXX
+            # BitMEX FX Index - MRFXXX
+            # BitMEX Lending/Premium Index - MRRXXX
+            # BitMEX Volatility Index - MRIXXX
+            types = {
+                'FFWCSX': 'swap',
+                'FFWCSF': 'swap',
+                'IFXXXP': 'spot',
+                'FFCCSX': 'future',
+            }
+            type = self.safe_string(types, typ, typ)
+            swap = type == 'swap'
+            future = type == 'future'
+            spot = type == 'spot'
+            contract = swap or future
+            symbol = base + '/' + quote
+            contractSize = None
+            if contract:
+                symbol = symbol + ':' + settle
+                multiplierString = Precise.string_abs(self.safe_string(market, 'multiplier'))
+                contractSize = self.parse_number(multiplierString)
             inverse = self.safe_value(market, 'isInverse')
             status = self.safe_string(market, 'state')
             active = status != 'Unlisted'
-            contract = True
-            if swap:
-                type = 'swap'
-            elif expiry is not None:
-                future = True
-                type = 'future'
+            expiry = None
+            expiryDatetime = None
+            if future:
+                expiryDatetime = self.safe_string(market, 'expiry')
+                expiry = self.parse8601(expiryDatetime)
                 symbol = symbol + '-' + self.yymmdd(expiry)
-            else:
-                symbol = base + '/' + quote
-                active = False
-                contract = False
             positionId = self.safe_string_2(market, 'positionCurrency', 'underlying')
             position = self.safe_currency_code(positionId)
             positionIsQuote = (position == quote)
             maxOrderQty = self.safe_number(market, 'maxOrderQty')
             initMargin = self.safe_string(market, 'initMargin', '1')
             maxLeverage = self.parse_number(Precise.string_div('1', initMargin))
-            multiplierString = Precise.string_abs(self.safe_string(market, 'multiplier'))
-            result.append({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': type,
-                'spot': False,
-                'margin': False,
-                'swap': swap,
-                'future': future,
-                'option': False,
-                'active': active,
-                'contract': contract,
-                'linear': not inverse if contract else None,
-                'inverse': inverse if contract else None,
-                'taker': self.safe_number(market, 'takerFee'),
-                'maker': self.safe_number(market, 'makerFee'),
-                'contractSize': self.parse_number(multiplierString),
-                'expiry': expiry,
-                'expiryDatetime': expiryDatetime,
-                'strike': self.safe_number(market, 'optionStrikePrice'),
-                'optionType': None,
-                'precision': {
-                    'amount': self.safe_number(market, 'lotSize'),
-                    'price': self.safe_number(market, 'tickSize'),
-                    'quote': self.safe_number(market, 'tickSize'),
-                    'base': self.safe_number(market, 'tickSize'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': self.parse_number('1') if contract else None,
-                        'max': maxLeverage if contract else None,
+            # temporarily filter out unlisted markets to avoid symbol conflicts
+            if active:
+                result.append({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'settle': settle,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'settleId': settleId,
+                    'type': type,
+                    'spot': spot,
+                    'margin': False,
+                    'swap': swap,
+                    'future': future,
+                    'option': False,
+                    'active': active,
+                    'contract': contract,
+                    'linear': not inverse if contract else None,
+                    'inverse': inverse if contract else None,
+                    'taker': self.safe_number(market, 'takerFee'),
+                    'maker': self.safe_number(market, 'makerFee'),
+                    'contractSize': contractSize,
+                    'expiry': expiry,
+                    'expiryDatetime': expiryDatetime,
+                    'strike': self.safe_number(market, 'optionStrikePrice'),
+                    'optionType': None,
+                    'precision': {
+                        'amount': self.safe_number(market, 'lotSize'),
+                        'price': self.safe_number(market, 'tickSize'),
+                        'quote': self.safe_number(market, 'tickSize'),
+                        'base': self.safe_number(market, 'tickSize'),
                     },
-                    'amount': {
-                        'min': None,
-                        'max': None if positionIsQuote else maxOrderQty,
+                    'limits': {
+                        'leverage': {
+                            'min': self.parse_number('1') if contract else None,
+                            'max': maxLeverage if contract else None,
+                        },
+                        'amount': {
+                            'min': None,
+                            'max': None if positionIsQuote else maxOrderQty,
+                        },
+                        'price': {
+                            'min': None,
+                            'max': self.safe_number(market, 'maxPrice'),
+                        },
+                        'cost': {
+                            'min': None,
+                            'max': maxOrderQty if positionIsQuote else None,
+                        },
                     },
-                    'price': {
-                        'min': None,
-                        'max': self.safe_number(market, 'maxPrice'),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': maxOrderQty if positionIsQuote else None,
-                    },
-                },
-                'info': market,
-            })
+                    'info': market,
+                })
         return result
 
     def parse_balance(self, response):
@@ -617,7 +638,7 @@ class bitmex(Exchange):
         #
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -655,7 +676,7 @@ class bitmex(Exchange):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -673,7 +694,7 @@ class bitmex(Exchange):
             return response[0]
         raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -701,7 +722,7 @@ class bitmex(Exchange):
         response = await self.privateGetOrder(request)
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -717,7 +738,7 @@ class bitmex(Exchange):
         }
         return await self.fetch_orders(symbol, since, limit, self.deep_extend(request, params))
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -730,7 +751,7 @@ class bitmex(Exchange):
         orders = await self.fetch_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -916,7 +937,7 @@ class bitmex(Exchange):
             'fee': fee,
         }
 
-    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -962,7 +983,7 @@ class bitmex(Exchange):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -1067,7 +1088,7 @@ class bitmex(Exchange):
             },
         }
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -1082,7 +1103,7 @@ class bitmex(Exchange):
             raise BadSymbol(self.id + ' fetchTicker() symbol ' + symbol + ' not found')
         return ticker
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1373,7 +1394,7 @@ class bitmex(Exchange):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1652,7 +1673,7 @@ class bitmex(Exchange):
             'trades': None,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1704,7 +1725,7 @@ class bitmex(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1746,7 +1767,7 @@ class bitmex(Exchange):
         response = await self.privatePostOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
-    async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         await self.load_markets()
         request = {}
         origClOrdID = self.safe_string_2(params, 'origClOrdID', 'clientOrderId')
@@ -1767,7 +1788,7 @@ class bitmex(Exchange):
         response = await self.privatePutOrder(self.extend(request, params))
         return self.parse_order(response)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1792,7 +1813,7 @@ class bitmex(Exchange):
                 raise OrderNotFound(self.id + ' cancelOrder() failed: ' + error)
         return self.parse_order(order)
 
-    async def cancel_orders(self, ids, symbol=None, params={}):
+    async def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
         """
         cancel multiple orders
         :param [str] ids: order ids
@@ -1813,7 +1834,7 @@ class bitmex(Exchange):
         response = await self.privateDeleteOrder(self.extend(request, params))
         return self.parse_orders(response)
 
-    async def cancel_all_orders(self, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1868,7 +1889,7 @@ class bitmex(Exchange):
         #
         return self.parse_orders(response, market)
 
-    async def fetch_positions(self, symbols=None, params={}):
+    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str]|None symbols: list of unified market symbols
@@ -2085,18 +2106,20 @@ class bitmex(Exchange):
         maintenanceMargin = self.safe_number(position, 'maintMargin')
         unrealisedPnl = self.safe_number(position, 'unrealisedPnl')
         contracts = self.omit_zero(self.safe_number(position, 'currentQty'))
-        return {
+        return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'account'),
             'symbol': symbol,
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
+            'lastUpdateTimestamp': None,
             'hedged': None,
             'side': None,
             'contracts': self.convert_value(contracts, market),
             'contractSize': None,
             'entryPrice': self.safe_number(position, 'avgEntryPrice'),
             'markPrice': self.safe_number(position, 'markPrice'),
+            'lastPrice': None,
             'notional': notional,
             'leverage': self.safe_number(position, 'leverage'),
             'collateral': None,
@@ -2109,7 +2132,7 @@ class bitmex(Exchange):
             'marginMode': marginMode,
             'marginRatio': None,
             'percentage': self.safe_number(position, 'unrealisedPnlPcnt'),
-        }
+        })
 
     def convert_value(self, value, market=None):
         if (value is None) or (market is None):
@@ -2137,7 +2160,7 @@ class bitmex(Exchange):
             return True
         return False
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2164,7 +2187,7 @@ class bitmex(Exchange):
         response = await self.privatePostUserRequestWithdrawal(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
-    async def fetch_funding_rates(self, symbols=None, params={}):
+    async def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch the funding rate for multiple markets
         :param [str]|None symbols: list of unified market symbols
@@ -2427,7 +2450,7 @@ class bitmex(Exchange):
             'previousFundingDatetime': None,
         }
 
-    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Fetches the history of funding rates
         :param str|None symbol: unified symbol of the market to fetch the funding rate history for
@@ -2500,7 +2523,7 @@ class bitmex(Exchange):
             'datetime': datetime,
         }
 
-    async def set_leverage(self, leverage, symbol=None, params={}):
+    async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -2522,7 +2545,7 @@ class bitmex(Exchange):
         }
         return await self.privatePostPositionLeverage(self.extend(request, params))
 
-    async def set_margin_mode(self, marginMode, symbol=None, params={}):
+    async def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :param str marginMode: 'cross' or 'isolated'
@@ -2546,7 +2569,7 @@ class bitmex(Exchange):
         }
         return await self.privatePostPositionIsolate(self.extend(request, params))
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         see https://www.bitmex.com/api/explorer/#not /User/User_getDepositAddress
@@ -2581,7 +2604,7 @@ class bitmex(Exchange):
             'info': response,
         }
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         isAuthenticated = self.check_required_credentials(False)
         cost = self.safe_value(config, 'cost', 1)
         if cost != 1:  # trading endpoints
@@ -2593,7 +2616,7 @@ class bitmex(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
         if code >= 400:
@@ -2605,6 +2628,7 @@ class bitmex(Exchange):
             if code == 400:
                 raise BadRequest(feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None
 
     def nonce(self):
         return self.milliseconds()

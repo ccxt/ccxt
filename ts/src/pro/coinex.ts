@@ -3,17 +3,12 @@
 
 import { Precise } from '../base/Precise.js';
 import coinexRest from '../coinex.js';
-import {
-    AuthenticationError,
-    BadRequest,
-    ExchangeNotAvailable,
-    NotSupported,
-    RequestTimeout,
-    ExchangeError,
-} from '../base/errors.js';
+import { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, RequestTimeout, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { md5 } from '../static_dependencies/noble-hashes/md5.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -85,7 +80,7 @@ export default class coinex extends coinexRest {
         return requestId;
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //  spot
         //
@@ -243,7 +238,7 @@ export default class coinex extends coinexRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //     {
         //         "method": "asset.update",
@@ -279,7 +274,7 @@ export default class coinex extends coinexRest {
         client.resolve (this.balance, messageHash);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         "method": "deals.update",
@@ -347,7 +342,7 @@ export default class coinex extends coinexRest {
         }, market);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         method: 'kline.update',
@@ -380,7 +375,7 @@ export default class coinex extends coinexRest {
         client.resolve (this.ohlcvs, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name coinex#watchTicker
@@ -428,7 +423,7 @@ export default class coinex extends coinexRest {
         return await this.watchTickers (symbols, params);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinex#watchTrades
@@ -458,10 +453,10 @@ export default class coinex extends coinexRest {
         this.options['watchTradesSubscriptions'] = subscribedSymbols;
         const request = this.deepExtend (message, params);
         const trades = await this.watch (url, messageHash, request, subscriptionHash);
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinex#watchOrderBook
@@ -510,7 +505,7 @@ export default class coinex extends coinexRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinex#watchOHLCV
@@ -557,7 +552,7 @@ export default class coinex extends coinexRest {
         if (this.newUpdates) {
             limit = ohlcvs.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcvs, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcvs, since, limit, 0);
     }
 
     handleDelta (bookside, delta) {
@@ -571,7 +566,7 @@ export default class coinex extends coinexRest {
         }
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         "method": "depth.update",
@@ -629,7 +624,7 @@ export default class coinex extends coinexRest {
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         await this.authenticate (params);
         let messageHash = 'orders';
@@ -653,10 +648,10 @@ export default class coinex extends coinexRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    handleOrders (client, message) {
+    handleOrders (client: Client, message) {
         //
         //  spot
         //
@@ -924,7 +919,7 @@ export default class coinex extends coinexRest {
         return this.safeString (statuses, status, status);
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         const error = this.safeValue (message, 'error');
         if (error !== undefined) {
             throw new ExchangeError (this.id + ' ' + this.json (error));
@@ -946,7 +941,7 @@ export default class coinex extends coinexRest {
         return this.handleSubscriptionStatus (client, message);
     }
 
-    handleAuthenticationMessage (client, message) {
+    handleAuthenticationMessage (client: Client, message) {
         //
         //     {
         //         error: null,
@@ -963,7 +958,7 @@ export default class coinex extends coinexRest {
         return message;
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         const id = this.safeString (message, 'id');
         const subscription = this.safeValue (client.subscriptions, id);
         if (subscription !== undefined) {

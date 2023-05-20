@@ -2,6 +2,7 @@ import Exchange from './abstract/btcex.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -531,7 +532,7 @@ export default class btcex extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -568,7 +569,7 @@ export default class btcex extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -622,7 +623,7 @@ export default class btcex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (limit === undefined) {
@@ -737,7 +738,7 @@ export default class btcex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -933,8 +934,8 @@ export default class btcex extends Exchange {
             if ((assetType === 'WALLET') || (assetType === 'SPOT')) {
                 const details = this.safeValue (currency, 'details');
                 if (details !== undefined) {
-                    for (let i = 0; i < details.length; i++) {
-                        const detail = details[i];
+                    for (let j = 0; j < details.length; j++) {
+                        const detail = details[j];
                         const coinType = this.safeString (detail, 'coin_type');
                         const code = this.safeCurrencyCode (coinType);
                         const account = this.safeValue (result, code, this.account ());
@@ -1206,7 +1207,7 @@ export default class btcex extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         await this.signIn ();
         await this.loadMarkets ();
         const request = {
@@ -1247,7 +1248,7 @@ export default class btcex extends Exchange {
         return this.parseOrder (result);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name btcex#createOrder
@@ -1397,7 +1398,7 @@ export default class btcex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         await this.signIn ();
         await this.loadMarkets ();
         const request = {
@@ -1444,7 +1445,7 @@ export default class btcex extends Exchange {
         return response;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -1488,7 +1489,7 @@ export default class btcex extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
@@ -1536,7 +1537,7 @@ export default class btcex extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a id argument');
         }
@@ -1584,7 +1585,7 @@ export default class btcex extends Exchange {
         return this.parseTrades (trades, undefined, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a id argument');
         }
@@ -1685,14 +1686,14 @@ export default class btcex extends Exchange {
         const notionalString = Precise.stringMul (markPrice, size);
         const unrealisedPnl = this.safeString (position, 'floating_profit_loss');
         const initialMarginString = this.safeString (position, 'initial_margin');
-        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
         const marginType = this.safeString (position, 'margin_type');
-        return {
+        return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notionalString)),
             'maintenanceMargin': this.parseNumber (maintenanceMarginString),
@@ -1706,14 +1707,15 @@ export default class btcex extends Exchange {
             'marginRatio': this.parseNumber (riskLevel),
             'liquidationPrice': this.safeNumber (position, 'liquid_price'),
             'markPrice': this.parseNumber (markPrice),
+            'lastPrice': undefined,
             'collateral': this.parseNumber (collateral),
             'marginType': marginType,
             'side': side,
-            'percentage': this.parseNumber (percentage),
-        };
+            'percentage': undefined,
+        });
     }
 
-    async fetchPosition (symbol, params = {}) {
+    async fetchPosition (symbol: string, params = {}) {
         await this.signIn ();
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1880,7 +1882,7 @@ export default class btcex extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires the code argument');
         }
@@ -1915,7 +1917,7 @@ export default class btcex extends Exchange {
         return this.parseTransactions (result, currency, since, limit, { 'type': 'deposit' });
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires the code argument');
         }
@@ -1950,7 +1952,7 @@ export default class btcex extends Exchange {
         return this.parseTransactions (result, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    async fetchWithdrawal (id, code = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawal() requires the code argument');
         }
@@ -1987,7 +1989,7 @@ export default class btcex extends Exchange {
         return this.parseTransaction (record, currency);
     }
 
-    async fetchLeverage (symbol, params = {}) {
+    async fetchLeverage (symbol: string, params = {}) {
         /**
          * @method
          * @name btcex#fetchLeverage
@@ -2022,7 +2024,7 @@ export default class btcex extends Exchange {
         return this.safeNumber (data, 'leverage');
     }
 
-    async fetchMarketLeverageTiers (symbol, params = {}) {
+    async fetchMarketLeverageTiers (symbol: string, params = {}) {
         /**
          * @method
          * @name btcex#fetchMarketLeverageTiers
@@ -2318,7 +2320,7 @@ export default class btcex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchFundingRate (symbol, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}) {
         /**
          * @method
          * @name btcex#fetchFundingRate
@@ -2424,7 +2426,7 @@ export default class btcex extends Exchange {
         };
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name btcex#transfer
@@ -2487,7 +2489,7 @@ export default class btcex extends Exchange {
         };
     }
 
-    async fetchOpenInterest (symbol, params = {}) {
+    async fetchOpenInterest (symbol: string, params = {}) {
         /**
          * @method
          * @name btcex#fetchOpenInterest
@@ -2588,7 +2590,7 @@ export default class btcex extends Exchange {
         };
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + 'api/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
@@ -2628,16 +2630,17 @@ export default class btcex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to the default error handler
+            return undefined; // fallback to the default error handler
         }
         const error = this.safeValue (response, 'error');
         if (error) {
             const feedback = this.id + ' ' + body;
-            const code = this.safeString (error, 'code');
+            const codeInner = this.safeString (error, 'code');
             const message = this.safeString (error, 'message');
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeInner, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

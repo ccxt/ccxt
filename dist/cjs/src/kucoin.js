@@ -185,7 +185,14 @@ class kucoin extends kucoin$1 {
                         'stop-order/{orderId}': 1,
                         'stop-order': 1,
                         'stop-order/queryOrderByClientOid': 1,
-                        'trade-fees': 1.3333, // 45/3s = 15/s => cost = 20 / 15 = 1.333
+                        'trade-fees': 1.3333,
+                        'hf/accounts/ledgers': 3.33,
+                        'hf/orders/active': 2,
+                        'hf/orders/active/symbols': 20,
+                        'hf/orders/done': 2,
+                        'hf/orders/{orderId}': 1,
+                        'hf/orders/client-order/{clientOid}': 2,
+                        'hf/fills': 6.67, // 9 times/3s = 3/s => cost = 20 / 3 = 6.67
                     },
                     'post': {
                         'accounts': 1,
@@ -209,6 +216,11 @@ class kucoin extends kucoin$1 {
                         'sub/user': 1,
                         'sub/api-key': 1,
                         'sub/api-key/update': 1,
+                        'hf/orders': 0.4,
+                        'hf/orders/sync': 1.33,
+                        'hf/orders/multi': 20,
+                        'hf/orders/multi/sync': 20,
+                        'hf/orders/alter': 1, // 60 times/3s = 20/s => cost = 20/20 = 1
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -220,6 +232,12 @@ class kucoin extends kucoin$1 {
                         'stop-order/{orderId}': 1,
                         'stop-order/cancel': 1,
                         'sub/api-key': 1,
+                        'hf/orders/{orderId}': 0.4,
+                        'hf/orders/sync/{orderId}': 0.4,
+                        'hf/orders/client-order/{clientOid}': 0.4,
+                        'hf/orders/sync/client-order/{clientOid}': 0.4,
+                        'hf/orders/cancel/{orderId}': 1,
+                        'hf/orders': 20, // 3 times/3s = 1/s => cost = 20 / 1 = 20
                     },
                 },
                 'futuresPublic': {
@@ -436,12 +454,32 @@ class kucoin extends kucoin$1 {
                             'market/orderbook/level2': 'v3',
                             'market/orderbook/level3': 'v3',
                             'market/orderbook/level{level}': 'v3',
-                            'deposit-addresses': 'v1', // 'v1' for fetchDepositAddress, 'v2' for fetchDepositAddressesByNetwork
+                            'deposit-addresses': 'v1',
+                            'hf/accounts/ledgers': 'v1',
+                            'hf/orders/active': 'v1',
+                            'hf/orders/active/symbols': 'v1',
+                            'hf/orders/done': 'v1',
+                            'hf/orders/{orderId}': 'v1',
+                            'hf/orders/client-order/{clientOid}': 'v1',
+                            'hf/fills': 'v1',
                         },
                         'POST': {
                             'accounts/inner-transfer': 'v2',
                             'accounts/sub-transfer': 'v2',
                             'accounts': 'v1',
+                            'hf/orders': 'v1',
+                            'hf/orders/sync': 'v1',
+                            'hf/orders/multi': 'v1',
+                            'hf/orders/multi/sync': 'v1',
+                            'hf/orders/alter': 'v1',
+                        },
+                        'DELETE': {
+                            'hf/orders/{orderId}': 'v1',
+                            'hf/orders/sync/{orderId}': 'v1',
+                            'hf/orders/client-order/{clientOid}': 'v1',
+                            'hf/orders/sync/client-order/{clientOid}': 'v1',
+                            'hf/orders/cancel/{orderId}': 'v1',
+                            'hf/orders': 'v1',
                         },
                     },
                     'futuresPrivate': {
@@ -483,6 +521,7 @@ class kucoin extends kucoin$1 {
                     'future': 'contract',
                     'swap': 'contract',
                     'mining': 'pool',
+                    'hf': 'trade_hf',
                 },
                 'networks': {
                     'Native': 'bech32',
@@ -739,6 +778,7 @@ class kucoin extends kucoin$1 {
                 'withdraw': isWithdrawEnabled,
                 'fee': fee,
                 'limits': this.limits,
+                'networks': {},
             };
         }
         return result;
@@ -844,7 +884,7 @@ class kucoin extends kucoin$1 {
         const networkCode = this.safeStringUpper(params, 'network');
         const network = this.networkCodeToId(networkCode, code);
         if (network !== undefined) {
-            request['chain'] = network;
+            request['chain'] = network.toLowerCase();
             params = this.omit(params, ['network']);
         }
         const response = await this.privateGetWithdrawalsQuotas(this.extend(request, params));
@@ -1505,6 +1545,11 @@ class kucoin extends kucoin$1 {
                 request['marginModel'] = 'isolated';
             }
         }
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(type === 'market', false, params);
+        if (postOnly) {
+            request['postOnly'] = true;
+        }
         const response = await this[method](this.extend(request, params));
         //
         //     {
@@ -1866,8 +1911,13 @@ class kucoin extends kucoin$1 {
         const stopTriggered = this.safeValue(order, 'stopTriggered', false);
         const isActive = this.safeValue(order, 'isActive');
         let status = undefined;
-        if (isActive === true) {
-            status = 'open';
+        if (isActive !== undefined) {
+            if (isActive === true) {
+                status = 'open';
+            }
+            else {
+                status = 'closed';
+            }
         }
         if (stop) {
             const responseStatus = this.safeString(order, 'status');
@@ -2698,8 +2748,8 @@ class kucoin extends kucoin$1 {
             for (let i = 0; i < accounts.length; i++) {
                 const balance = accounts[i];
                 const currencyId = this.safeString(balance, 'currency');
-                const code = this.safeCurrencyCode(currencyId);
-                result[code] = this.parseBalanceHelper(balance);
+                const codeInner = this.safeCurrencyCode(currencyId);
+                result[codeInner] = this.parseBalanceHelper(balance);
             }
         }
         else {
@@ -2708,12 +2758,12 @@ class kucoin extends kucoin$1 {
                 const balanceType = this.safeString(balance, 'type');
                 if (balanceType === type) {
                     const currencyId = this.safeString(balance, 'currency');
-                    const code = this.safeCurrencyCode(currencyId);
+                    const codeInner2 = this.safeCurrencyCode(currencyId);
                     const account = this.account();
                     account['total'] = this.safeString(balance, 'balance');
                     account['free'] = this.safeString(balance, 'available');
                     account['used'] = this.safeString(balance, 'holds');
-                    result[code] = account;
+                    result[codeInner2] = account;
                 }
             }
         }
@@ -3073,7 +3123,7 @@ class kucoin extends kucoin$1 {
         const items = this.safeValue(data, 'items');
         return this.parseLedger(items, currency, since, limit);
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
         const versions = this.safeValue(this.options, 'versions', {});
         const apiVersions = this.safeValue(versions, api, {});
         const methodVersions = this.safeValue(apiVersions, method, {});
@@ -3560,7 +3610,7 @@ class kucoin extends kucoin$1 {
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, body);
-            return;
+            return undefined;
         }
         //
         // bad
@@ -3574,6 +3624,7 @@ class kucoin extends kucoin$1 {
         this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
         this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
+        return undefined;
     }
 }
 

@@ -75,7 +75,7 @@ class probit extends \ccxt\async\probit {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         //     {
         //         channel => 'balance',
@@ -124,7 +124,7 @@ class probit extends \ccxt\async\probit {
         $this->balance = $this->safe_balance($this->balance);
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -140,7 +140,7 @@ class probit extends \ccxt\async\probit {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //     {
         //         channel => 'marketdata',
@@ -169,7 +169,7 @@ class probit extends \ccxt\async\probit {
         $client->resolve ($parsedTicker, $messageHash);
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -187,11 +187,11 @@ class probit extends \ccxt\async\probit {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         channel => 'marketdata',
@@ -233,7 +233,7 @@ class probit extends \ccxt\async\probit {
         $client->resolve ($this->trades[$symbol], $messageHash);
     }
 
-    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of $trades associated with the user
@@ -262,11 +262,11 @@ class probit extends \ccxt\async\probit {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
         }) ();
     }
 
-    public function handle_my_trades($client, $message) {
+    public function handle_my_trades(Client $client, $message) {
         //
         //     {
         //         channel => 'trade_history',
@@ -314,7 +314,7 @@ class probit extends \ccxt\async\probit {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on an order made by the user
@@ -345,11 +345,11 @@ class probit extends \ccxt\async\probit {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
         }) ();
     }
 
-    public function handle_orders($client, $message) {
+    public function handle_orders(Client $client, $message) {
         //
         //     {
         //         channel => 'order_history',
@@ -402,7 +402,7 @@ class probit extends \ccxt\async\probit {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -419,7 +419,7 @@ class probit extends \ccxt\async\probit {
         }) ();
     }
 
-    public function subscribe_order_book($symbol, $messageHash, $filter, $params = array ()) {
+    public function subscribe_order_book(string $symbol, $messageHash, $filter, $params = array ()) {
         return Async\async(function () use ($symbol, $messageHash, $filter, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -453,7 +453,7 @@ class probit extends \ccxt\async\probit {
         }) ();
     }
 
-    public function handle_order_book($client, $message, $orderBook) {
+    public function handle_order_book(Client $client, $message, $orderBook) {
         //
         //     {
         //         channel => 'marketdata',
@@ -503,7 +503,7 @@ class probit extends \ccxt\async\probit {
         $this->handle_bid_asks($storedAsks, $asks);
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         //     {
         //         errorCode => 'INVALID_ARGUMENT',
@@ -520,7 +520,7 @@ class probit extends \ccxt\async\probit {
         throw new ExchangeError($this->id . ' ' . $code . ' ' . $errMessage . ' ' . $this->json($details));
     }
 
-    public function handle_authenticate($client, $message) {
+    public function handle_authenticate(Client $client, $message) {
         //
         //     array( type => 'authorization', $result => 'ok' )
         //
@@ -534,7 +534,7 @@ class probit extends \ccxt\async\probit {
         }
     }
 
-    public function handle_market_data($client, $message) {
+    public function handle_market_data(Client $client, $message) {
         $ticker = $this->safe_value($message, 'ticker');
         if ($ticker !== null) {
             $this->handle_ticker($client, $message);
@@ -549,7 +549,7 @@ class probit extends \ccxt\async\probit {
         }
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         //     {
         //         $errorCode => 'INVALID_ARGUMENT',

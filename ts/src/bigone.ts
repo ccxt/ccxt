@@ -6,6 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFund
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -332,7 +333,7 @@ export default class bigone extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bigone#fetchTicker
@@ -440,11 +441,11 @@ export default class bigone extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const timestamp = this.safeInteger (data, 'timestamp');
+        const timestamp = this.safeInteger (data, 'Timestamp');
         return this.parseToInt (timestamp / 1000000);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bigone#fetchOrderBook
@@ -620,7 +621,7 @@ export default class bigone extends Exchange {
         return this.safeTrade (result as any, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bigone#fetchTrades
@@ -683,7 +684,7 @@ export default class bigone extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bigone#fetchOHLCV
@@ -769,8 +770,12 @@ export default class bigone extends Exchange {
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', '');
         params = this.omit (params, 'type');
-        const method = 'privateGet' + this.capitalize (type) + 'Accounts';
-        const response = await this[method] (params);
+        let response = undefined;
+        if (type === 'funding' || type === 'fund') {
+            response = await this.privateGetFundAccounts (params);
+        } else {
+            response = await this.privateGetAccounts (params);
+        }
         //
         //     {
         //         "code":0,
@@ -841,7 +846,7 @@ export default class bigone extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bigone#createOrder
@@ -856,11 +861,11 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        side = (side === 'buy') ? 'BID' : 'ASK';
+        const requestSide = (side === 'buy') ? 'BID' : 'ASK';
         const uppercaseType = type.toUpperCase ();
         const request = {
             'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
-            'side': side, // order side one of "ASK"/"BID", required
+            'side': requestSide, // order side one of "ASK"/"BID", required
             'amount': this.amountToPrecision (symbol, amount), // order amount, string, required
             // 'price': this.priceToPrecision (symbol, price), // order price, string, required
             'type': uppercaseType,
@@ -904,7 +909,7 @@ export default class bigone extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bigone#cancelOrder
@@ -963,7 +968,7 @@ export default class bigone extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bigone#fetchOrder
@@ -979,7 +984,7 @@ export default class bigone extends Exchange {
         return this.parseOrder (order);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bigone#fetchOrders
@@ -1030,7 +1035,7 @@ export default class bigone extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bigone#fetchMyTrades
@@ -1101,7 +1106,7 @@ export default class bigone extends Exchange {
         return this.safeString (statuses, status);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bigone#fetchOpenOrders
@@ -1118,7 +1123,7 @@ export default class bigone extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bigone#fetchClosedOrders
@@ -1137,10 +1142,10 @@ export default class bigone extends Exchange {
 
     nonce () {
         const exchangeTimeCorrection = this.safeInteger (this.options, 'exchangeMillisecondsCorrection', 0) * 1000000;
-        return this.microseconds () * 1000 + exchangeTimeCorrection;
+        return this.sum (this.microseconds () * 1000, exchangeTimeCorrection);
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
@@ -1173,7 +1178,7 @@ export default class bigone extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bigone#fetchDepositAddress
@@ -1320,7 +1325,7 @@ export default class bigone extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bigone#fetchDeposits
@@ -1372,7 +1377,7 @@ export default class bigone extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bigone#fetchWithdrawals
@@ -1424,7 +1429,7 @@ export default class bigone extends Exchange {
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name bigone#transfer
@@ -1498,7 +1503,7 @@ export default class bigone extends Exchange {
         return this.safeString (statuses, status, 'failed');
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bigone#withdraw
@@ -1550,7 +1555,7 @@ export default class bigone extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //      {"code":10013,"message":"Resource not found"}
@@ -1565,5 +1570,6 @@ export default class bigone extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

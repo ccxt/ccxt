@@ -2,6 +2,7 @@ import Exchange from './abstract/timex.js';
 import { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { Int, OrderSide } from './base/types.js';
 
 export default class timex extends Exchange {
     describe () {
@@ -335,7 +336,7 @@ export default class timex extends Exchange {
         return this.indexBy (result, 'code');
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchDeposits
@@ -367,10 +368,11 @@ export default class timex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, code, since, limit);
+        const currency = this.safeCurrency (code);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchWithdrawals
@@ -402,7 +404,8 @@ export default class timex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, code, since, limit);
+        const currency = this.safeCurrency (code);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     getCurrencyByAddress (address) {
@@ -489,7 +492,7 @@ export default class timex extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name timex#fetchTicker
@@ -527,7 +530,7 @@ export default class timex extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchOrderBook
@@ -574,7 +577,7 @@ export default class timex extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp, 'bid', 'ask', 'price', 'baseTokenAmount');
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchTrades
@@ -622,7 +625,7 @@ export default class timex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchOHLCV
@@ -710,7 +713,7 @@ export default class timex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name timex#createOrder
@@ -785,7 +788,7 @@ export default class timex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -837,7 +840,7 @@ export default class timex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name timex#cancelOrder
@@ -893,7 +896,7 @@ export default class timex extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchOrder
@@ -945,7 +948,7 @@ export default class timex extends Exchange {
         return this.parseOrder (this.extend (order, { 'trades': trades }));
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchOpenOrders
@@ -1000,7 +1003,7 @@ export default class timex extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchClosedOrders
@@ -1060,7 +1063,7 @@ export default class timex extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchMyTrades
@@ -1140,7 +1143,7 @@ export default class timex extends Exchange {
         };
     }
 
-    async fetchTradingFee (symbol, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}) {
         /**
          * @method
          * @name timex#fetchTradingFee
@@ -1329,6 +1332,7 @@ export default class timex extends Exchange {
                 'withdraw': { 'min': fee, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
             },
+            'networks': {},
         };
     }
 
@@ -1535,7 +1539,7 @@ export default class timex extends Exchange {
         }, market);
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'] + '/' + api + '/' + path;
         if (Object.keys (params).length) {
             url += '?' + this.urlencodeWithArrayRepeat (params);
@@ -1551,7 +1555,7 @@ export default class timex extends Exchange {
 
     handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (statusCode >= 400) {
             //
@@ -1570,5 +1574,6 @@ export default class timex extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 }

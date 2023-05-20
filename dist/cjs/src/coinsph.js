@@ -364,7 +364,7 @@ class coinsph extends coinsph$1 {
             },
         });
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         }
@@ -1759,7 +1759,7 @@ class coinsph extends coinsph$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const responseCode = this.safeString(response, 'code', undefined);
         if ((responseCode !== undefined) && (responseCode !== '200') && (responseCode !== '0')) {
@@ -1768,6 +1768,7 @@ class coinsph extends coinsph$1 {
             this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
 }
 

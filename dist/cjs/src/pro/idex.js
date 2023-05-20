@@ -156,7 +156,7 @@ class idex extends idex$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     handleTrade(client, message) {
         const type = this.safeString(message, 'type');
@@ -253,7 +253,7 @@ class idex extends idex$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0);
     }
     handleOHLCV(client, message) {
         // { type: 'candles',
@@ -526,7 +526,7 @@ class idex extends idex$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(orders, since, limit, 'timestamp');
     }
     handleOrder(client, message) {
         // {
@@ -651,7 +651,7 @@ class idex extends idex$1 {
         if (this.newUpdates) {
             limit = transactions.getLimit(code, limit);
         }
-        return this.filterBySinceLimit(transactions, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(transactions, since, limit, 'timestamp');
     }
     handleTransaction(client, message) {
         // Update Speed: Real time, updates on any deposit or withdrawal of the wallet

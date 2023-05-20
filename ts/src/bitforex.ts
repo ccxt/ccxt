@@ -5,6 +5,7 @@ import Exchange from './abstract/bitforex.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -275,7 +276,7 @@ export default class bitforex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitforex#fetchTrades
@@ -381,7 +382,7 @@ export default class bitforex extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bitforex#fetchTicker
@@ -437,7 +438,7 @@ export default class bitforex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitforex#fetchOHLCV
@@ -474,7 +475,7 @@ export default class bitforex extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitforex#fetchOrderBook
@@ -564,7 +565,7 @@ export default class bitforex extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitforex#fetchOrder
@@ -584,7 +585,7 @@ export default class bitforex extends Exchange {
         return order;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitforex#fetchOpenOrders
@@ -608,7 +609,7 @@ export default class bitforex extends Exchange {
         return this.parseOrders (response['data'], market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitforex#fetchClosedOrders
@@ -632,7 +633,7 @@ export default class bitforex extends Exchange {
         return this.parseOrders (response['data'], market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitforex#createOrder
@@ -667,7 +668,7 @@ export default class bitforex extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitforex#cancelOrder
@@ -690,7 +691,7 @@ export default class bitforex extends Exchange {
         return returnVal;
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
@@ -717,18 +718,19 @@ export default class bitforex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (typeof body !== 'string') {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ((body[0] === '{') || (body[0] === '[')) {
             const feedback = this.id + ' ' + body;
             const success = this.safeValue (response, 'success');
             if (success !== undefined) {
                 if (!success) {
-                    const code = this.safeString (response, 'code');
-                    this.throwExactlyMatchedException (this.exceptions, code, feedback);
+                    const codeInner = this.safeString (response, 'code');
+                    this.throwExactlyMatchedException (this.exceptions, codeInner, feedback);
                     throw new ExchangeError (feedback);
                 }
             }
         }
+        return undefined;
     }
 }

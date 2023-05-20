@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\okx as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -255,6 +256,7 @@ class okx extends Exchange {
                         'trade/orders-algo-history' => 1,
                         'trade/order-algo' => 1,
                         'account/subaccount/balances' => 10,
+                        'account/subaccount/interest-limits' => 4,
                         'asset/subaccount/bills' => 5 / 3,
                         'users/subaccount/list' => 10,
                         'users/subaccount/apikey' => 10,
@@ -315,6 +317,7 @@ class okx extends Exchange {
                         'account/quick-margin-borrow-repay' => 4,
                         'account/activate-option' => 4,
                         'account/set-auto-loan' => 4,
+                        'account/subaccount/set-loan-allocation' => 4,
                         'asset/transfer' => 10,
                         'asset/withdrawal' => 5 / 3,
                         'asset/withdrawal-lightning' => 5,
@@ -326,6 +329,7 @@ class okx extends Exchange {
                         'trade/cancel-batch-orders' => 1 / 15,
                         'trade/amend-order' => 1 / 3,
                         'trade/amend-batch-orders' => 1 / 3,
+                        'trade/amend-algos' => 1,
                         'trade/close-position' => 1,
                         'trade/order-algo' => 1,
                         'trade/cancel-algos' => 1,
@@ -1284,27 +1288,19 @@ class okx extends Exchange {
                 $chains = $dataByCurrencyId[$currencyId];
                 $networks = array();
                 $currencyActive = false;
-                $depositEnabled = null;
-                $withdrawEnabled = null;
+                $depositEnabled = false;
+                $withdrawEnabled = false;
                 $maxPrecision = null;
                 for ($j = 0; $j < count($chains); $j++) {
                     $chain = $chains[$j];
                     $canDeposit = $this->safe_value($chain, 'canDep');
+                    $depositEnabled = ($canDeposit) ? $canDeposit : $depositEnabled;
                     $canWithdraw = $this->safe_value($chain, 'canWd');
+                    $withdrawEnabled = ($canWithdraw) ? $canWithdraw : $withdrawEnabled;
                     $canInternal = $this->safe_value($chain, 'canInternal');
                     $active = ($canDeposit && $canWithdraw && $canInternal) ? true : false;
                     $currencyActive = ($active) ? $active : $currencyActive;
                     $networkId = $this->safe_string($chain, 'chain');
-                    if ($canDeposit && !$depositEnabled) {
-                        $depositEnabled = true;
-                    } elseif (!$canDeposit) {
-                        $depositEnabled = false;
-                    }
-                    if ($canWithdraw && !$withdrawEnabled) {
-                        $withdrawEnabled = true;
-                    } elseif (!$canWithdraw) {
-                        $withdrawEnabled = false;
-                    }
                     if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
                         $parts = explode('-', $networkId);
                         $chainPart = $this->safe_string($parts, 1, $networkId);
@@ -1357,7 +1353,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -1460,7 +1456,7 @@ class okx extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -1506,7 +1502,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers_by_type($type, $symbols = null, $params = array ()) {
+    public function fetch_tickers_by_type($type, ?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($type, $symbols, $params) {
             Async\await($this->load_markets());
             $request = array(
@@ -1553,7 +1549,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -1584,6 +1580,23 @@ class okx extends Exchange {
         //         "px" => "0.07065",
         //         "tradeId" => "15826757",
         //         "ts" => "1621446178316"
+        //     }
+        //
+        // option => fetchTrades
+        //
+        //     {
+        //         "fillVol" => "0.46387625976562497",
+        //         "fwdPx" => "26299.754935451125",
+        //         "indexPx" => "26309.7",
+        //         "instFamily" => "BTC-USD",
+        //         "instId" => "BTC-USD-230526-26000-C",
+        //         "markPx" => "0.042386283557554236",
+        //         "optType" => "C",
+        //         "px" => "0.0415",
+        //         "side" => "sell",
+        //         "sz" => "90",
+        //         "tradeId" => "112",
+        //         "ts" => "1683907480154"
         //     }
         //
         // private fetchMyTrades
@@ -1649,10 +1662,12 @@ class okx extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-trades
+             * @see https://www.okx.com/docs-v5/en/#rest-api-public-$data-get-option-trades
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of trades to fetch
@@ -1664,10 +1679,15 @@ class okx extends Exchange {
             $request = array(
                 'instId' => $market['id'],
             );
-            if ($limit !== null) {
-                $request['limit'] = $limit; // default 100
+            $response = null;
+            if ($market['option']) {
+                $response = Async\await($this->publicGetPublicOptionTrades (array_merge($request, $params)));
+            } else {
+                if ($limit !== null) {
+                    $request['limit'] = $limit; // default 100
+                }
+                $response = Async\await($this->publicGetMarketTrades (array_merge($request, $params)));
             }
-            $response = Async\await($this->publicGetMarketTrades (array_merge($request, $params)));
             //
             //     {
             //         "code" => "0",
@@ -1677,6 +1697,29 @@ class okx extends Exchange {
             //             array("instId":"ETH-BTC","side":"sell","sz":"0.03","px":"0.07068","tradeId":"15826756","ts":"1621446178066"),
             //             array("instId":"ETH-BTC","side":"buy","sz":"0.507","px":"0.07069","tradeId":"15826755","ts":"1621446175085"),
             //         )
+            //     }
+            //
+            // option
+            //
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             array(
+            //                 "fillVol" => "0.46387625976562497",
+            //                 "fwdPx" => "26299.754935451125",
+            //                 "indexPx" => "26309.7",
+            //                 "instFamily" => "BTC-USD",
+            //                 "instId" => "BTC-USD-230526-26000-C",
+            //                 "markPx" => "0.042386283557554236",
+            //                 "optType" => "C",
+            //                 "px" => "0.0415",
+            //                 "side" => "sell",
+            //                 "sz" => "90",
+            //                 "tradeId" => "112",
+            //                 "ts" => "1683907480154"
+            //             ),
+            //         ),
+            //         "msg" => ""
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
@@ -1711,7 +1754,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
@@ -1794,7 +1837,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding $rate prices
@@ -1845,7 +1888,7 @@ class okx extends Exchange {
             $data = $this->safe_value($response, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
                 $rate = $data[$i];
-                $timestamp = $this->safe_number($rate, 'fundingTime');
+                $timestamp = $this->safe_integer($rate, 'fundingTime');
                 $rates[] = array(
                     'info' => $rate,
                     'symbol' => $this->safe_symbol($this->safe_string($rate, 'instId')),
@@ -1935,7 +1978,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_trading_fee($symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -2108,7 +2151,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -2182,7 +2225,8 @@ class okx extends Exchange {
                 $request['tdMode'] = $marginMode;
             }
             $isMarketOrder = $type === 'market';
-            $postOnly = $this->is_post_only($isMarketOrder, $type === 'post_only', $params);
+            $postOnly = false;
+            list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $type === 'post_only', $params);
             $params = $this->omit($params, array( 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin' ));
             $ioc = ($timeInForce === 'IOC') || ($type === 'ioc');
             $fok = ($timeInForce === 'FOK') || ($type === 'fok');
@@ -2300,7 +2344,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade $order
@@ -2364,7 +2408,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open $order
@@ -2375,8 +2419,8 @@ class okx extends Exchange {
              */
             $stop = $this->safe_value($params, 'stop');
             if ($stop) {
-                $order = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
-                return $this->safe_value($order, 0);
+                $orderInner = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
+                return $this->safe_value($orderInner, 0);
             }
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -2416,7 +2460,7 @@ class okx extends Exchange {
         }
     }
 
-    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -2713,7 +2757,7 @@ class okx extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an $order by the $id
@@ -2856,7 +2900,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * Fetch orders that are still open
@@ -3006,7 +3050,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled orders made by the user
@@ -3180,7 +3224,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -3345,7 +3389,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
@@ -3406,7 +3450,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
@@ -3428,7 +3472,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
@@ -3773,7 +3817,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_deposit_addresses_by_network($code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch a dictionary of addresses for a $currency, indexed by network
@@ -3815,7 +3859,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a currency associated with this account
@@ -3856,7 +3900,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3880,10 +3924,10 @@ class okx extends Exchange {
                 'dest' => '4', // 2 = OKCoin International, 3 = OKX 4 = others
                 'amt' => $this->number_to_string($amount),
             );
-            $networks = $this->safe_value($this->options, 'networks', array());
-            $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-            $network = $this->safe_string($networks, $network, $network); // handle ETH>ERC20 alias
+            $network = $this->safe_string($params, 'network'); // this line allows the user to specify either ERC20 or ETH
             if ($network !== null) {
+                $networks = $this->safe_value($this->options, 'networks', array());
+                $network = $this->safe_string($networks, strtoupper($network), $network); // handle ETH>ERC20 alias
                 $request['chain'] = $currency['id'] . '-' . $network;
                 $params = $this->omit($params, 'network');
             }
@@ -3927,7 +3971,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -4001,7 +4045,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit($id, $code = null, $params = array ()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch $data on a $currency $deposit via the $deposit $id
@@ -4027,7 +4071,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -4093,7 +4137,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch $data on a $currency $withdrawal via the $withdrawal $id
@@ -4198,9 +4242,9 @@ class okx extends Exchange {
         //         "ccy" => "ETH",
         //         "from" => "13426335357",
         //         "to" => "0xA41446125D0B5b6785f6898c9D67874D763A1519",
-        //         'tag' => string,
-        //         'pmtId' => string,
-        //         'memo' => string,
+        //         'tag',
+        //         'pmtId',
+        //         'memo',
         //         "ts" => "1597026383085",
         //         "state" => "2"
         //     }
@@ -4272,7 +4316,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_leverage($symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
@@ -4315,7 +4359,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_position($symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch $data on a single open contract trade $position
@@ -4392,7 +4436,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-$positions
@@ -4590,7 +4634,7 @@ class okx extends Exchange {
         $percentage = $this->parse_number(Precise::string_mul($percentageString, '100'));
         $timestamp = $this->safe_integer($position, 'uTime');
         $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateralString, 4));
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
@@ -4603,10 +4647,12 @@ class okx extends Exchange {
             'contracts' => $contracts,
             'contractSize' => $contractSize,
             'markPrice' => $this->parse_number($markPriceString),
+            'lastPrice' => null,
             'side' => $side,
             'hedged' => $hedged,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'lastUpdateTimestamp' => null,
             'maintenanceMargin' => $maintenanceMargin,
             'maintenanceMarginPercentage' => $maintenanceMarginPercentage,
             'collateral' => $this->parse_number($collateralString),
@@ -4614,10 +4660,10 @@ class okx extends Exchange {
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
             'leverage' => $this->parse_number($leverageString),
             'marginRatio' => $marginRatio,
-        );
+        ));
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -4729,7 +4775,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_transfer($id, $code = null, $params = array ()) {
+    public function fetch_transfer(string $id, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             Async\await($this->load_markets());
             $request = array(
@@ -4845,7 +4891,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_funding_rate($symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -4884,7 +4930,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch the history of funding payments paid and received on this account
@@ -5024,12 +5070,12 @@ class okx extends Exchange {
                 $entry = $data[$i];
                 $timestamp = $this->safe_integer($entry, 'ts');
                 $instId = $this->safe_string($entry, 'instId');
-                $market = $this->safe_market($instId);
+                $marketInner = $this->safe_market($instId);
                 $currencyId = $this->safe_string($entry, 'ccy');
                 $code = $this->safe_currency_code($currencyId);
                 $result[] = array(
                     'info' => $entry,
-                    'symbol' => $market['symbol'],
+                    'symbol' => $marketInner['symbol'],
                     'code' => $code,
                     'timestamp' => $timestamp,
                     'datetime' => $this->iso8601($timestamp),
@@ -5042,7 +5088,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -5105,7 +5151,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function set_position_mode($hedged, $symbol = null, $params = array ()) {
+    public function set_position_mode($hedged, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($hedged, $symbol, $params) {
             /**
              * set $hedged to true or false for a market
@@ -5139,7 +5185,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
+    public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
@@ -5228,7 +5274,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_borrow_rate($code, $params = array ()) {
+    public function fetch_borrow_rate(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the $rate of interest to borrow a $currency for margin trading
@@ -5325,7 +5371,7 @@ class okx extends Exchange {
         return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
     }
 
-    public function fetch_borrow_rate_histories($codes = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_borrow_rate_histories($codes = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($codes, $since, $limit, $params) {
             /**
              * retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is null
@@ -5368,7 +5414,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {
+    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * retrieves a history of a currencies borrow interest rate at specific time slots
@@ -5412,7 +5458,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $type, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -5464,7 +5510,7 @@ class okx extends Exchange {
         );
     }
 
-    public function reduce_margin($symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -5477,7 +5523,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function add_margin($symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -5490,7 +5536,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_market_leverage_tiers($symbol, $params = array ()) {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
@@ -5589,7 +5635,7 @@ class okx extends Exchange {
         return $tiers;
     }
 
-    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing $currency for margin trading
@@ -5672,7 +5718,7 @@ class okx extends Exchange {
         );
     }
 
-    public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
              * create a $loan to borrow margin
@@ -5717,7 +5763,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
              * repay borrowed margin and interest
@@ -5786,7 +5832,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_open_interest($symbol, $params = array ()) {
+    public function fetch_open_interest(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * Retrieves the open interest of a currency
@@ -5828,7 +5874,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_open_interest_history($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_interest_history(string $symbol, $timeframe = '5m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * Retrieves the open interest history of a $currency
@@ -6052,7 +6098,7 @@ class okx extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         //
         //    {
@@ -6088,5 +6134,6 @@ class okx extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

@@ -4,6 +4,8 @@
 import huobijpRest from '../huobijp.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
 
@@ -46,7 +48,7 @@ export default class huobijp extends huobijpRest {
         return requestId.toString ();
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name huobijp#watchTicker
@@ -77,7 +79,7 @@ export default class huobijp extends huobijpRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         ch: 'market.btcusdt.detail',
@@ -110,7 +112,7 @@ export default class huobijp extends huobijpRest {
         return message;
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#watchTrades
@@ -144,10 +146,10 @@ export default class huobijp extends huobijpRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         ch: "market.btcusdt.trade.detail",
@@ -189,7 +191,7 @@ export default class huobijp extends huobijpRest {
         return message;
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#watchOHLCV
@@ -225,10 +227,10 @@ export default class huobijp extends huobijpRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         ch: 'market.btcusdt.kline.1min',
@@ -265,7 +267,7 @@ export default class huobijp extends huobijpRest {
         client.resolve (stored, ch);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#watchOrderBook
@@ -304,7 +306,7 @@ export default class huobijp extends huobijpRest {
         return orderbook.limit ();
     }
 
-    handleOrderBookSnapshot (client, message, subscription) {
+    handleOrderBookSnapshot (client: Client, message, subscription) {
         //
         //     {
         //         id: 1583473663565,
@@ -386,7 +388,7 @@ export default class huobijp extends huobijpRest {
         }
     }
 
-    handleOrderBookMessage (client, message, orderbook) {
+    handleOrderBookMessage (client: Client, message, orderbook) {
         //
         //     {
         //         ch: "market.btcusdt.mbp.150",
@@ -423,7 +425,7 @@ export default class huobijp extends huobijpRest {
         return orderbook;
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         // deltas
         //
@@ -460,7 +462,7 @@ export default class huobijp extends huobijpRest {
         }
     }
 
-    handleOrderBookSubscription (client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
@@ -471,7 +473,7 @@ export default class huobijp extends huobijpRest {
         this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     {
         //         "id": 1583414227,
@@ -496,7 +498,7 @@ export default class huobijp extends huobijpRest {
         return message;
     }
 
-    handleSystemStatus (client, message) {
+    handleSystemStatus (client: Client, message) {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -510,7 +512,7 @@ export default class huobijp extends huobijpRest {
         return message;
     }
 
-    handleSubject (client, message) {
+    handleSubject (client: Client, message) {
         //
         //     {
         //         ch: "market.btcusdt.mbp.150",
@@ -559,11 +561,11 @@ export default class huobijp extends huobijpRest {
         await client.send ({ 'pong': this.safeInteger (message, 'ping') });
     }
 
-    handlePing (client, message) {
+    handlePing (client: Client, message) {
         this.spawn (this.pong, client, message);
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         //     {
         //         ts: 1586323747018,
@@ -596,7 +598,7 @@ export default class huobijp extends huobijpRest {
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (this.handleErrorMessage (client, message)) {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}

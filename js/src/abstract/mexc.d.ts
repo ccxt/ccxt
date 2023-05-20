@@ -26,6 +26,7 @@ interface Exchange {
     spotPrivateGetCapitalWithdrawHistory(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalDepositAddress(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalTransfer(params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetCapitalTransferTranId(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalSubAccountUniversalTransfer(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalConvert(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalConvertList(params?: {}): Promise<implicitReturnType>;

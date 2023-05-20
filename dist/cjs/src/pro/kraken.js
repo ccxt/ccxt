@@ -252,7 +252,7 @@ class kraken extends kraken$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -315,7 +315,7 @@ class kraken extends kraken$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0);
     }
     async loadMarkets(reload = false, params = {}) {
         const markets = await super.loadMarkets(reload, params);
@@ -583,7 +583,7 @@ class kraken extends kraken$1 {
         if (this.newUpdates) {
             limit = result.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(result, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

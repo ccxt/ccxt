@@ -4,28 +4,31 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.poloniex import ImplicitAPI
 import hashlib
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class poloniex(Exchange):
+class poloniex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(poloniex, self).describe(), {
@@ -261,35 +264,113 @@ class poloniex(Exchange):
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'You may only place orders that reduce your position.': InvalidOrder,
-                    'Invalid order number, or you are not the person who placed the order.': OrderNotFound,
-                    'Permission denied': PermissionDenied,
-                    'Permission denied.': PermissionDenied,
-                    'Connection timed out. Please try again.': RequestTimeout,
-                    'Internal error. Please try again.': ExchangeNotAvailable,
-                    'Currently in maintenance mode.': OnMaintenance,
-                    'Order not found, or you are not the person who placed it.': OrderNotFound,
-                    'Invalid API key/secret pair.': AuthenticationError,
-                    'Please do not make more than 8 API calls per second.': RateLimitExceeded,
-                    'This IP has been temporarily throttled. Please ensure your requests are valid and try again in one minute.': RateLimitExceeded,
-                    'Rate must be greater than zero.': InvalidOrder,  # {"error":"Rate must be greater than zero."}
-                    'Invalid currency pair.': BadSymbol,  # {"error":"Invalid currency pair."}
-                    'Invalid currencyPair parameter.': BadSymbol,  # {"error":"Invalid currencyPair parameter."}
-                    'Trading is disabled in self market.': BadSymbol,  # {"error":"Trading is disabled in self market."}
-                    'Invalid orderNumber parameter.': OrderNotFound,
-                    'Order is beyond acceptable bounds.': InvalidOrder,  # {"error":"Order is beyond acceptable bounds.","fee":"0.00155000","currencyPair":"USDT_BOBA"}
-                    'This account is closed.': AccountSuspended,  # {"error":"This account is closed."}
+                    # General
+                    '200': CancelPending,  # {"orderId" : "173928661399957504", "clientOrderId" : "", "state" : "PENDING_CANCEL", "code" : 200, "message" : ""}
+                    '500': ExchangeNotAvailable,  # Internal System Error
+                    '603': RequestTimeout,  # Internal Request Timeout
+                    '601': BadRequest,  # Invalid Parameter
+                    '415': ExchangeError,  # System Error
+                    '602': ArgumentsRequired,  # Missing Required Parameters
+                    # Accounts
+                    '21604': BadRequest,  # Invalid UserId
+                    '21600': AuthenticationError,  # Account Not Found
+                    '21605': AuthenticationError,  # Invalid Account Type
+                    '21102': ExchangeError,  # Invalid Currency
+                    '21100': AuthenticationError,  # Invalid account
+                    '21704': AuthenticationError,  # Missing UserId and/or AccountId
+                    '21700': BadRequest,  # Error updating accounts
+                    '21705': BadRequest,  # Invalid currency type
+                    '21707': ExchangeError,  # Internal accounts Error
+                    '21708': BadRequest,  # Currency not available to User
+                    '21601': AccountSuspended,  # Account locked. Contact support
+                    '21711': ExchangeError,  # Currency locked. Contact support
+                    '21709': InsufficientFunds,  # Insufficient balance
+                    '250000': ExchangeError,  # Transfer error. Try again later
+                    '250001': BadRequest,  # Invalid toAccount for transfer
+                    '250002': BadRequest,  # Invalid fromAccount for transfer
+                    '250003': BadRequest,  # Invalid transfer amount
+                    '250004': BadRequest,  # Transfer is not supported
+                    '250005': InsufficientFunds,  # Insufficient transfer balance
+                    '250008': BadRequest,  # Invalid transfer currency
+                    '250012': ExchangeError,  # Futures account is not valid
+                    # Trading
+                    '21110': BadRequest,  # Invalid quote currency
+                    '10040': BadSymbol,  # Invalid symbol
+                    '10060': ExchangeError,  # Symbol setup error
+                    '10020': BadSymbol,  # Invalid currency
+                    '10041': BadSymbol,  # Symbol frozen for trading
+                    '21340': OnMaintenance,  # No order creation/cancelation is allowed is in Maintenane Mode
+                    '21341': InvalidOrder,  # Post-only orders type allowed is in Post Only Mode
+                    '21342': InvalidOrder,  # Price is higher than highest bid is in Maintenance Mode
+                    '21343': InvalidOrder,  # Price is lower than lowest bid is in Maintenance Mode
+                    '21351': AccountSuspended,  # Trading for self account is frozen. Contact support
+                    '21352': BadSymbol,  # Trading for self currency is frozen
+                    '21353': PermissionDenied,  # Trading for US customers is not supported
+                    '21354': PermissionDenied,  # Account needs to be verified via email before trading is enabled. Contact support
+                    '24106': BadRequest,  # Invalid market depth
+                    '24201': ExchangeNotAvailable,  # Service busy. Try again later
+                    # Orders
+                    '21301': OrderNotFound,  # Order not found
+                    '21302': ExchangeError,  # Batch cancel order error
+                    '21304': ExchangeError,  # Order is filled
+                    '21305': OrderNotFound,  # Order is canceled
+                    '21307': ExchangeError,  # Error during Order Cancelation
+                    '21309': InvalidOrder,  # Order price must be greater than 0
+                    '21310': InvalidOrder,  # Order price must be less than max price
+                    '21311': InvalidOrder,  # Order price must be greater than min price
+                    '21312': InvalidOrder,  # Client orderId already exists
+                    '21314': InvalidOrder,  # Max limit of open orders(2000) exceeded
+                    '21315': InvalidOrder,  # Client orderId exceeded max length of 17 digits
+                    '21317': InvalidOrder,  # Amount must be greater than 0
+                    '21319': InvalidOrder,  # Invalid order side
+                    '21320': InvalidOrder,  # Invalid order type
+                    '21321': InvalidOrder,  # Invalid timeInForce value
+                    '21322': InvalidOrder,  # Amount is less than minAmount trade limit
+                    '21324': BadRequest,  # Invalid account type
+                    '21327': InvalidOrder,  # Order pice must be greater than 0
+                    '21328': InvalidOrder,  # Order quantity must be greater than 0
+                    '21330': InvalidOrder,  # Quantity is less than minQuantity trade limit
+                    '21335': InvalidOrder,  # Invalid priceScale for self symbol
+                    '21336': InvalidOrder,  # Invalid quantityScale for self symbol
+                    '21337': InvalidOrder,  # Invalid amountScale for self symbol
+                    '21344': InvalidOrder,  # Value of limit param is greater than max value of 100
+                    '21345': InvalidOrder,  # Value of limit param value must be greater than 0
+                    '21346': InvalidOrder,  # Order Id must be of type Long
+                    '21348': InvalidOrder,  # Order type must be LIMIT_MAKER
+                    '21347': InvalidOrder,  # Stop price must be greater than 0
+                    '21349': InvalidOrder,  # Order value is too large
+                    '21350': InvalidOrder,  # Amount must be greater than 1 USDT
+                    '21355': ExchangeError,  # Interval between startTime and endTime in trade/order history has exceeded 7 day limit
+                    '21356': BadRequest,  # Order size would cause too much price movement. Reduce order size.
+                    '24101': BadSymbol,  # Invalid symbol
+                    '24102': InvalidOrder,  # Invalid K-line type
+                    '24103': InvalidOrder,  # Invalid endTime
+                    '24104': InvalidOrder,  # Invalid amount
+                    '24105': InvalidOrder,  # Invalid startTime
+                    '25020': InvalidOrder,  # No active kill switch
+                    # Smartorders
+                    '25000': InvalidOrder,  # Invalid userId
+                    '25001': InvalidOrder,  # Invalid parameter
+                    '25002': InvalidOrder,  # Invalid userId.
+                    '25003': ExchangeError,  # Unable to place order
+                    '25004': InvalidOrder,  # Client orderId already exists
+                    '25005': ExchangeError,  # Unable to place smart order
+                    '25006': InvalidOrder,  # OrderId and clientOrderId already exists
+                    '25007': InvalidOrder,  # Invalid orderid
+                    '25008': InvalidOrder,  # Both orderId and clientOrderId are required
+                    '25009': ExchangeError,  # Failed to cancel order
+                    '25010': PermissionDenied,  # Unauthorized to cancel order
+                    '25011': InvalidOrder,  # Failed to cancel due to invalid paramters
+                    '25012': ExchangeError,  # Failed to cancel
+                    '25013': OrderNotFound,  # Failed to cancel were not found
+                    '25014': OrderNotFound,  # Failed to cancel were not found
+                    '25015': OrderNotFound,  # Failed to cancel orders exist
+                    '25016': ExchangeError,  # Failed to cancel to release funds
+                    '25017': ExchangeError,  # No orders were canceled
+                    '25018': BadRequest,  # Invalid accountType
+                    '25019': BadSymbol,  # Invalid symbol
                 },
                 'broad': {
-                    'Total must be at least': InvalidOrder,  # {"error":"Total must be at least 0.0001."}
-                    'This account is frozen': AccountSuspended,  # {"error":"This account is frozen for trading."} or {"error":"This account is frozen."}
-                    'This account is locked.': AccountSuspended,  # {"error":"This account is locked."}
-                    'Not enough': InsufficientFunds,
-                    'Nonce must be greater': InvalidNonce,
-                    'You have already called cancelOrder': CancelPending,  # {"error":"You have already called cancelOrder, moveOrder, or cancelReplace on self order. Please wait for that call's response."}
-                    'Amount must be at least': InvalidOrder,  # {"error":"Amount must be at least 0.000001."}
-                    'is either completed or does not exist': OrderNotFound,  # {"error":"Order 587957810791 is either completed or does not exist."}
-                    'Error pulling ': ExchangeError,  # {"error":"Error pulling order book"}
                 },
             },
         })
@@ -324,7 +405,7 @@ class poloniex(Exchange):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -520,7 +601,7 @@ class poloniex(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -606,6 +687,7 @@ class poloniex(Exchange):
                 'withdraw': None,
                 'fee': fee,
                 'precision': None,
+                'networks': {},
                 'limits': {
                     'amount': {
                         'min': None,
@@ -619,7 +701,7 @@ class poloniex(Exchange):
             }
         return result
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -712,7 +794,7 @@ class poloniex(Exchange):
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
-        side = self.safe_string_lower(trade, 'side')
+        side = self.safe_string_lower_2(trade, 'side', 'takerSide')
         fee = None
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'quantity')
@@ -741,7 +823,7 @@ class poloniex(Exchange):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -773,7 +855,7 @@ class poloniex(Exchange):
         #
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -793,7 +875,7 @@ class poloniex(Exchange):
         if since is not None:
             request['startTime'] = since
         if limit is not None:
-            request['limit'] = int(limit)
+            request['limit'] = limit
         response = self.privateGetTrades(self.extend(request, params))
         #
         #     [
@@ -963,7 +1045,7 @@ class poloniex(Exchange):
             result.append(self.parse_order(extended, market))
         return result
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -1006,7 +1088,7 @@ class poloniex(Exchange):
         extension = {'status': 'open'}
         return self.parse_orders(response, market, since, limit, extension)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
@@ -1069,7 +1151,7 @@ class poloniex(Exchange):
         # remember the timestamp before issuing the request
         return [request, params]
 
-    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         """
         edit a trade order
         see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
@@ -1103,7 +1185,7 @@ class poloniex(Exchange):
         })
         return self.parse_order(response, market)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1120,7 +1202,7 @@ class poloniex(Exchange):
         params = self.omit(params, 'clientOrderId')
         return self.privateDeleteOrdersId(self.extend(request, params))
 
-    def cancel_all_orders(self, symbol=None, params={}):
+    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1157,7 +1239,7 @@ class poloniex(Exchange):
         #
         return response
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an order by it's id
         :param str id: order id
@@ -1195,13 +1277,13 @@ class poloniex(Exchange):
             'id': id,
         })
 
-    def fetch_order_status(self, id, symbol=None, params={}):
+    def fetch_order_status(self, id: str, symbol: Optional[str] = None, params={}):
         self.load_markets()
         orders = self.fetch_open_orders(symbol, None, None, params)
         indexed = self.index_by(orders, 'id')
         return 'open' if (id in indexed) else 'closed'
 
-    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1316,7 +1398,7 @@ class poloniex(Exchange):
             }
         return result
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -1365,7 +1447,7 @@ class poloniex(Exchange):
             'nonce': None,
         }
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -1408,7 +1490,7 @@ class poloniex(Exchange):
             'info': response,
         }
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1451,7 +1533,7 @@ class poloniex(Exchange):
             'info': response,
         }
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -1476,45 +1558,30 @@ class poloniex(Exchange):
         response = self.privatePostAccountsTransfer(self.extend(request, params))
         #
         #    {
-        #        success: '1',
-        #        message: 'Transferred 1.00000000 USDT from exchange to lending account.'
+        #        "transferId" : "168041074"
         #    }
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer_status(self, status):
-        statuses = {
-            '1': 'ok',
-        }
-        return self.safe_string(statuses, status, status)
-
     def parse_transfer(self, transfer, currency=None):
         #
         #    {
-        #        success: '1',
-        #        message: 'Transferred 1.00000000 USDT from exchange to lending account.'
+        #        "transferId" : "168041074"
         #    }
         #
-        message = self.safe_string(transfer, 'message')
-        words = message.split(' ')
-        amount = self.safe_number(words, 1)
-        currencyId = self.safe_string(words, 2)
-        fromAccountId = self.safe_string(words, 4)
-        toAccountId = self.safe_string(words, 6)
-        accountsById = self.safe_value(self.options, 'accountsById', {})
         return {
             'info': transfer,
-            'id': None,
+            'id': self.safe_string(transfer, 'transferId'),
             'timestamp': None,
             'datetime': None,
-            'currency': self.safe_currency_code(currencyId, currency),
-            'amount': amount,
-            'fromAccount': self.safe_string(accountsById, fromAccountId),
-            'toAccount': self.safe_string(accountsById, toAccountId),
-            'status': self.parse_order_status(self.safe_string(transfer, 'success', 'failed')),
+            'currency': self.safe_string(currency, 'id'),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': None,
         }
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1551,11 +1618,11 @@ class poloniex(Exchange):
         #
         return self.parse_transaction(response, currency)
 
-    def fetch_transactions_helper(self, code=None, since=None, limit=None, params={}):
+    def fetch_transactions_helper(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
         year = 31104000  # 60 * 60 * 24 * 30 * 12 = one year of history, why not
         now = self.seconds()
-        start = int((since / str(1000))) if (since is not None) else now - 10 * year
+        start = self.parse_to_int(since / 1000) if (since is not None) else now - 10 * year
         request = {
             'start': start,  # UNIX timestamp, required
             'end': now,  # UNIX timestamp, required
@@ -1634,7 +1701,7 @@ class poloniex(Exchange):
         #
         return response
 
-    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -1655,7 +1722,7 @@ class poloniex(Exchange):
         transactions = self.array_concat(depositTransactions, withdrawalTransactions)
         return self.filter_by_currency_since_limit(self.sort_by(transactions, 'timestamp'), code, since, limit)
 
-    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1789,7 +1856,7 @@ class poloniex(Exchange):
         }
         return depositWithdrawFee
 
-    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1887,9 +1954,11 @@ class poloniex(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'comment': None,
             'fee': {
                 'currency': code,
                 'cost': self.parse_number(feeCostString),
+                'rate': None,
             },
         }
 
@@ -1933,11 +2002,18 @@ class poloniex(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
-        # {"error":"Permission denied."}
-        if 'error' in response:
-            message = response['error']
+            return None
+        #
+        #     {
+        #         "code" : 21709,
+        #         "message" : "Low available balance"
+        #     }
+        #
+        if 'code' in response:
+            codeInner = response['code']
+            message = self.safe_string(response, 'message')
             feedback = self.id + ' ' + body
-            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeInner, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

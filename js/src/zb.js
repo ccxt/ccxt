@@ -747,7 +747,7 @@ export default class zb extends Exchange {
             const fees = {};
             for (let j = 0; j < currency.length; j++) {
                 const networkItem = currency[j];
-                const network = this.safeString(networkItem, 'chainName');
+                const network = this.safeString2(networkItem, 'chainName', 'mainChainName');
                 // const name = this.safeString (networkItem, 'name');
                 const withdrawFee = this.safeNumber(networkItem, 'fee');
                 const depositEnable = this.safeValue(networkItem, 'canDeposit');
@@ -3187,11 +3187,11 @@ export default class zb extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = this.safeString(entry, 'symbol');
-            const symbol = this.safeSymbol(marketId);
+            const symbolInner = this.safeSymbol(marketId);
             const timestamp = this.safeInteger(entry, 'fundingTime');
             rates.push({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': this.safeNumber(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
@@ -3679,7 +3679,7 @@ export default class zb extends Exchange {
         const notional = this.safeNumber(position, 'nominalValue');
         const percentage = Precise.stringMul(this.safeString(position, 'returnRate'), '100');
         const timestamp = this.safeNumber(position, 'createTime');
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -3694,6 +3694,7 @@ export default class zb extends Exchange {
             'marginMode': marginMode,
             'notional': notional,
             'markPrice': undefined,
+            'lastPrice': undefined,
             'liquidationPrice': liquidationPrice,
             'initialMargin': this.parseNumber(initialMargin),
             'initialMarginPercentage': undefined,
@@ -3702,7 +3703,8 @@ export default class zb extends Exchange {
             'marginRatio': marginRatio,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-        };
+            'lastUpdateTimestamp': undefined,
+        });
     }
     parseLedgerEntryType(type) {
         const types = {
@@ -3915,8 +3917,8 @@ export default class zb extends Exchange {
                 if (symbol === undefined) {
                     throw new ArgumentsRequired(this.id + ' transfer() requires a symbol argument for isolated margin');
                 }
-                const market = this.market(symbol);
-                request['marketName'] = this.safeSymbol(market['id'], market, '_');
+                const marketInner = this.market(symbol);
+                request['marketName'] = this.safeSymbol(marketInner['id'], marketInner, '_');
             }
             else if ((marginMode === 'cross') || (toAccount === 'cross') || (fromAccount === 'cross')) {
                 if (fromAccount === 'spot' || toAccount === 'cross') {
@@ -4254,8 +4256,8 @@ export default class zb extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' borrowMargin() requires a symbol argument for isolated margin');
             }
-            const market = this.market(symbol);
-            request['marketName'] = this.safeSymbol(market['id'], market, '_');
+            const marketInner = this.market(symbol);
+            request['marketName'] = this.safeSymbol(marketInner['id'], marketInner, '_');
             method = 'spotV1PrivateGetBorrow';
         }
         else if (marginMode === 'cross') {
@@ -4295,7 +4297,9 @@ export default class zb extends Exchange {
         return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const [section, version, access] = api;
+        const section = this.safeString(api, 0);
+        const version = this.safeString(api, 1);
+        const access = this.safeString(api, 2);
         let url = this.implodeHostname(this.urls['api'][section][version][access]);
         if (access === 'public') {
             if (path === 'getFeeInfo') {
@@ -4352,7 +4356,7 @@ export default class zb extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if (body[0] === '{') {
             const feedback = this.id + ' ' + body;
@@ -4378,5 +4382,6 @@ export default class zb extends Exchange {
                 }
             }
         }
+        return undefined;
     }
 }

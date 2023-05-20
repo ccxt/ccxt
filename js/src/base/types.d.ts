@@ -172,3 +172,7 @@ export declare type OHLCV = [number, number, number, number, number, number];
 /** [ timestamp, open, high, low, close, volume, count ] */
 export declare type OHLCVC = [number, number, number, number, number, number, number];
 export declare type implicitReturnType = any;
+export declare type IndexType = number | string;
+export declare type Int = number;
+export declare type OrderSide = 'buy' | 'sell' | string;
+export declare type OrderType = 'limit' | 'market' | string;

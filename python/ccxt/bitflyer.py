@@ -4,14 +4,18 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitflyer import ImplicitAPI
 import hashlib
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class bitflyer(Exchange):
+class bitflyer(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitflyer, self).describe(), {
@@ -327,7 +331,7 @@ class bitflyer(Exchange):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -370,7 +374,7 @@ class bitflyer(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -416,9 +420,9 @@ class bitflyer(Exchange):
                 side = None
         order = None
         if side is not None:
-            id = side + '_child_order_acceptance_id'
-            if id in trade:
-                order = trade[id]
+            idInner = side + '_child_order_acceptance_id'
+            if idInner in trade:
+                order = trade[idInner]
         if order is None:
             order = self.safe_string(trade, 'child_order_acceptance_id')
         timestamp = self.parse8601(self.safe_string(trade, 'exec_date'))
@@ -442,7 +446,7 @@ class bitflyer(Exchange):
             'fee': None,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -461,7 +465,7 @@ class bitflyer(Exchange):
         response = self.publicGetGetexecutions(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_trading_fee(self, symbol, params={}):
+    def fetch_trading_fee(self, symbol: str, params={}):
         """
         fetch the trading fees for a market
         :param str symbol: unified market symbol
@@ -487,7 +491,7 @@ class bitflyer(Exchange):
             'taker': fee,
         }
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -514,7 +518,7 @@ class bitflyer(Exchange):
             'info': result,
         })
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -586,7 +590,7 @@ class bitflyer(Exchange):
             'trades': None,
         }, market)
 
-    def fetch_orders(self, symbol=None, since=None, limit=100, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=100, params={}):
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -609,7 +613,7 @@ class bitflyer(Exchange):
             orders = self.filter_by(orders, 'symbol', symbol)
         return orders
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=100, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=100, params={}):
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -623,7 +627,7 @@ class bitflyer(Exchange):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol=None, since=None, limit=100, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=100, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -637,7 +641,7 @@ class bitflyer(Exchange):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -652,7 +656,7 @@ class bitflyer(Exchange):
             return ordersById[id]
         raise OrderNotFound(self.id + ' No order found with id ' + id)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -673,7 +677,7 @@ class bitflyer(Exchange):
         response = self.privateGetGetexecutions(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_positions(self, symbols=None, params={}):
+    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str] symbols: list of unified market symbols
@@ -707,7 +711,7 @@ class bitflyer(Exchange):
         # todo unify parsePosition/parsePositions
         return response
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -735,7 +739,7 @@ class bitflyer(Exchange):
         #
         return self.parse_transaction(response, currency)
 
-    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -768,7 +772,7 @@ class bitflyer(Exchange):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code

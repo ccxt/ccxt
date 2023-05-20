@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\gate as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -88,6 +89,7 @@ class gate extends Exchange {
                 'createMarketOrder' => true,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => true,
@@ -97,6 +99,7 @@ class gate extends Exchange {
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -137,6 +140,7 @@ class gate extends Exchange {
                 'repayMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
+                'signIn' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -336,6 +340,7 @@ class gate extends Exchange {
                             '{settle}/orders' => 1.5,
                             '{settle}/orders/{order_id}' => 1.5,
                             '{settle}/my_trades' => 1.5,
+                            '{settle}/my_trades_timerange' => 1.5,
                             '{settle}/position_close' => 1.5,
                             '{settle}/liquidates' => 1.5,
                             '{settle}/price_orders' => 1.5,
@@ -1104,8 +1109,8 @@ class gate extends Exchange {
                 //        }
                 //    )
                 //
-                for ($i = 0; $i < count($response); $i++) {
-                    $market = $response[$i];
+                for ($j = 0; $j < count($response); $j++) {
+                    $market = $response[$j];
                     $id = $this->safe_string($market, 'name');
                     $parts = explode('_', $underlying);
                     $baseId = $this->safe_string($parts, 0);
@@ -1371,13 +1376,14 @@ class gate extends Exchange {
                     'fee' => null,
                     'fees' => array(),
                     'limits' => $this->limits,
+                    'networks' => array(),
                 );
             }
             return $result;
         }) ();
     }
 
-    public function fetch_funding_rate($symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -1440,7 +1446,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rates($symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the funding rate for multiple markets
@@ -1573,7 +1579,7 @@ class gate extends Exchange {
         );
     }
 
-    public function fetch_network_deposit_address($code, $params = array ()) {
+    public function fetch_network_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1615,7 +1621,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * create a currency deposit address
@@ -1628,7 +1634,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -1687,7 +1693,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fee($symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -1825,8 +1831,8 @@ class gate extends Exchange {
                     $withdrawFees = $this->safe_number($entry, 'withdraw_fix');
                 } else {
                     $chainKeys = is_array($withdrawFixOnChains) ? array_keys($withdrawFixOnChains) : array();
-                    for ($i = 0; $i < count($chainKeys); $i++) {
-                        $chainKey = $chainKeys[$i];
+                    for ($j = 0; $j < count($chainKeys); $j++) {
+                        $chainKey = $chainKeys[$j];
                         $withdrawFees[$chainKey] = $this->parse_number($withdrawFixOnChains[$chainKey]);
                     }
                 }
@@ -1924,7 +1930,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch the history of funding payments paid and received on this account
@@ -2006,7 +2012,7 @@ class gate extends Exchange {
         );
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -2114,7 +2120,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -2229,7 +2235,7 @@ class gate extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -2437,7 +2443,7 @@ class gate extends Exchange {
                 $entry = $data[$i];
                 if ($isolated) {
                     $marketId = $this->safe_string($entry, 'currency_pair');
-                    $symbol = $this->safe_symbol($marketId, null, '_', 'margin');
+                    $symbolInner = $this->safe_symbol($marketId, null, '_', 'margin');
                     $base = $this->safe_value($entry, 'base', array());
                     $quote = $this->safe_value($entry, 'quote', array());
                     $baseCode = $this->safe_currency_code($this->safe_string($base, 'currency'));
@@ -2445,7 +2451,7 @@ class gate extends Exchange {
                     $subResult = array();
                     $subResult[$baseCode] = $this->parse_balance_helper($base);
                     $subResult[$quoteCode] = $this->parse_balance_helper($quote);
-                    $result[$symbol] = $this->safe_balance($subResult);
+                    $result[$symbolInner] = $this->safe_balance($subResult);
                 } else {
                     $code = $this->safe_currency_code($this->safe_string($entry, 'currency'));
                     $result[$code] = $this->parse_balance_helper($entry);
@@ -2455,7 +2461,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
@@ -2504,7 +2510,8 @@ class gate extends Exchange {
             if ($since !== null) {
                 $duration = $this->parse_timeframe($timeframe);
                 $request['from'] = $this->parse_to_int($since / 1000);
-                $toTimestamp = $this->sum($request['from'], $limit * $duration - 1);
+                $distance = ($limit - 1) * $duration;
+                $toTimestamp = $this->sum($request['from'], $distance);
                 $currentTimestamp = $this->seconds();
                 $to = min ($toTimestamp, $currentTimestamp);
                 if ($until !== null) {
@@ -2523,7 +2530,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding rate prices
@@ -2617,7 +2624,7 @@ class gate extends Exchange {
         }
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -2656,6 +2663,7 @@ class gate extends Exchange {
                 'margin' => 'publicSpotGetTrades',
                 'swap' => 'publicFuturesGetSettleTrades',
                 'future' => 'publicDeliveryGetSettleTrades',
+                'option' => 'publicOptionsGetTrades',
             ));
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100, max 1000
@@ -2692,11 +2700,23 @@ class gate extends Exchange {
             //         }
             //     )
             //
+            // option
+            //
+            //     array(
+            //         {
+            //             "size" => -5,
+            //             "id" => 25,
+            //             "create_time" => 1682378573,
+            //             "contract" => "ETH_USDT-20230526-2000-P",
+            //             "price" => "209.1"
+            //         }
+            //     )
+            //
             return $this->parse_trades($response, $market, $since, $limit);
         }) ();
     }
 
-    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
@@ -2735,7 +2755,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * Fetch personal trading history
@@ -2784,7 +2804,7 @@ class gate extends Exchange {
             $method = $this->get_supported_mapping($type, array(
                 'spot' => 'privateSpotGetMyTrades',
                 'margin' => 'privateSpotGetMyTrades',
-                'swap' => 'privateFuturesGetSettleMyTrades',
+                'swap' => 'privateFuturesGetSettleMyTradesTimerange',
                 'future' => 'privateDeliveryGetSettleMyTrades',
             ));
             $response = Async\await($this->$method (array_merge($request, $params)));
@@ -2907,6 +2927,16 @@ class gate extends Exchange {
         //         "role" => "taker"
         //     }
         //
+        // option rest
+        //
+        //     {
+        //         "size" => -5,
+        //         "id" => 25,
+        //         "create_time" => 1682378573,
+        //         "contract" => "ETH_USDT-20230526-2000-P",
+        //         "price" => "209.1"
+        //     }
+        //
         $id = $this->safe_string($trade, 'id');
         $timestamp = $this->safe_timestamp_2($trade, 'time', 'create_time');
         $timestamp = $this->safe_integer($trade, 'create_time_ms', $timestamp);
@@ -2965,7 +2995,7 @@ class gate extends Exchange {
         ), $market);
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -2995,7 +3025,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -3025,7 +3055,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3165,7 +3195,7 @@ class gate extends Exchange {
         );
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * Create an order on the exchange
@@ -3483,7 +3513,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order, gate currently only supports the modification of the $price or $amount fields
@@ -3825,7 +3855,7 @@ class gate extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * Retrieves information on an order
@@ -3867,7 +3897,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -3884,7 +3914,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -3901,7 +3931,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = null;
@@ -4060,8 +4090,8 @@ class gate extends Exchange {
             if ($openSpotOrders) {
                 $result = array();
                 for ($i = 0; $i < count($response); $i++) {
-                    $orders = $this->safe_value($response[$i], 'orders');
-                    $result = $this->array_concat($result, $orders);
+                    $ordersInner = $this->safe_value($response[$i], 'orders');
+                    $result = $this->array_concat($result, $ordersInner);
                 }
             }
             $orders = $this->parse_orders($result, $market, $since, $limit);
@@ -4069,7 +4099,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * Cancels an open order
@@ -4179,7 +4209,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
@@ -4233,7 +4263,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -4309,7 +4339,7 @@ class gate extends Exchange {
         );
     }
 
-    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -4431,13 +4461,13 @@ class gate extends Exchange {
         $takerFee = '0.00075';
         $feePaid = Precise::string_mul($takerFee, $notional);
         $initialMarginString = Precise::string_add(Precise::string_div($notional, $leverage), $feePaid);
-        $percentage = Precise::string_mul(Precise::string_div($unrealisedPnl, $initialMarginString), '100');
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => null,
             'datetime' => null,
+            'lastUpdateTimestamp' => null,
             'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number(Precise::string_div($initialMarginString, $notional)),
             'maintenanceMargin' => $this->parse_number(Precise::string_mul($maintenanceRate, $notional)),
@@ -4452,14 +4482,15 @@ class gate extends Exchange {
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'liq_price'),
             'markPrice' => $this->safe_number($position, 'mark_price'),
+            'lastPrice' => null,
             'collateral' => $this->safe_number($position, 'margin'),
             'marginMode' => $marginMode,
             'side' => $side,
-            'percentage' => $this->parse_number($percentage),
-        );
+            'percentage' => null,
+        ));
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -4527,7 +4558,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
@@ -4764,7 +4795,7 @@ class gate extends Exchange {
         return $tiers;
     }
 
-    public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
              * repay borrowed margin and interest
@@ -4848,7 +4879,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
              * create a loan to borrow margin
@@ -5044,7 +5075,7 @@ class gate extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function modify_margin_helper($symbol, $amount, $params = array ()) {
+    public function modify_margin_helper(string $symbol, $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -5100,7 +5131,7 @@ class gate extends Exchange {
         );
     }
 
-    public function reduce_margin($symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -5113,7 +5144,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function add_margin($symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -5126,7 +5157,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_open_interest_history($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_interest_history(string $symbol, $timeframe = '5m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * Retrieves the open interest of a currency
@@ -5212,7 +5243,7 @@ class gate extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         //
         //    array("label" => "ORDER_NOT_FOUND", "message" => "Order not found")
@@ -5227,5 +5258,6 @@ class gate extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $label, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

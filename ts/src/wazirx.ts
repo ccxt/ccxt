@@ -3,6 +3,7 @@ import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequi
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide } from './base/types.js';
 
 export default class wazirx extends Exchange {
     describe () {
@@ -95,15 +96,15 @@ export default class wazirx extends Exchange {
                         'funds': 1,
                         'historicalTrades': 1,
                         'openOrders': 1,
-                        'order': 1,
-                        'myTrades': 1,
+                        'order': 0.5,
+                        'myTrades': 0.5,
                     },
                     'post': {
-                        'order': 1,
-                        'order/test': 1,
+                        'order': 0.1,
+                        'order/test': 0.5,
                     },
                     'delete': {
-                        'order': 1,
+                        'order': 0.1,
                         'openOrders': 1,
                     },
                 },
@@ -150,6 +151,7 @@ export default class wazirx extends Exchange {
         /**
          * @method
          * @name wazirx#fetchMarkets
+         * @see https://docs.wazirx.com/#exchange-info
          * @description retrieves data on all markets for wazirx
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
@@ -260,10 +262,11 @@ export default class wazirx extends Exchange {
         return result;
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#fetchOHLCV
+         * @see https://docs.wazirx.com/#kline-candlestick-data
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents. Available values [1m,5m,15m,30m,1h,2h,4h,6h,12h,1d,1w]
@@ -314,10 +317,11 @@ export default class wazirx extends Exchange {
         ];
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#fetchOrderBook
+         * @see https://docs.wazirx.com/#order-book
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
@@ -350,10 +354,11 @@ export default class wazirx extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name wazirx#fetchTicker
+         * @see https://docs.wazirx.com/#24hr-ticker-price-change-statistics
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the wazirx api endpoint
@@ -387,6 +392,7 @@ export default class wazirx extends Exchange {
         /**
          * @method
          * @name wazirx#fetchTickers
+         * @see https://docs.wazirx.com/#24hr-tickers-price-change-statistics
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the wazirx api endpoint
@@ -421,10 +427,11 @@ export default class wazirx extends Exchange {
         return result;
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#fetchTrades
+         * @see https://docs.wazirx.com/#recent-trades-list
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
@@ -496,6 +503,7 @@ export default class wazirx extends Exchange {
         /**
          * @method
          * @name wazirx#fetchStatus
+         * @see https://docs.wazirx.com/#system-status
          * @description the latest known information on the availability of the exchange API
          * @param {object} params extra parameters specific to the wazirx api endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
@@ -521,6 +529,7 @@ export default class wazirx extends Exchange {
         /**
          * @method
          * @name wazirx#fetchTime
+         * @see https://docs.wazirx.com/#check-server-time
          * @description fetches the current integer timestamp in milliseconds from the exchange server
          * @param {object} params extra parameters specific to the wazirx api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
@@ -603,6 +612,7 @@ export default class wazirx extends Exchange {
         /**
          * @method
          * @name wazirx#fetchBalance
+         * @see https://docs.wazirx.com/#fund-details-user_data
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} params extra parameters specific to the wazirx api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
@@ -621,10 +631,11 @@ export default class wazirx extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#fetchOrders
+         * @see https://docs.wazirx.com/#all-orders-user_data
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
@@ -681,10 +692,11 @@ export default class wazirx extends Exchange {
         return orders;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#fetchOpenOrders
+         * @see https://docs.wazirx.com/#current-open-orders-user_data
          * @description fetch all unfilled currently open orders
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
@@ -735,6 +747,7 @@ export default class wazirx extends Exchange {
         /**
          * @method
          * @name wazirx#cancelAllOrders
+         * @see https://docs.wazirx.com/#cancel-all-open-orders-on-a-symbol-trade
          * @description cancel all open orders in a market
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} params extra parameters specific to the wazirx api endpoint
@@ -751,10 +764,11 @@ export default class wazirx extends Exchange {
         return await this.privateDeleteOpenOrders (this.extend (request, params));
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#cancelOrder
+         * @see https://docs.wazirx.com/#cancel-order-trade
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
@@ -774,10 +788,11 @@ export default class wazirx extends Exchange {
         return this.parseOrder (response);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#createOrder
+         * @see https://docs.wazirx.com/#new-order-trade
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -880,7 +895,7 @@ export default class wazirx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'] + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
@@ -908,7 +923,7 @@ export default class wazirx extends Exchange {
         // {"code":2098,"message":"Request out of receiving window."}
         //
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const errorCode = this.safeString (response, 'code');
         if (errorCode !== undefined) {
@@ -916,5 +931,6 @@ export default class wazirx extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 }

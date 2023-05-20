@@ -5,6 +5,8 @@
 import probitRest from '../probit.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -72,7 +74,7 @@ export default class probit extends probitRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //     {
         //         channel: 'balance',
@@ -121,7 +123,7 @@ export default class probit extends probitRest {
         this.balance = this.safeBalance (this.balance);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name probit#watchTicker
@@ -137,7 +139,7 @@ export default class probit extends probitRest {
         return await this.subscribeOrderBook (symbol, 'ticker', filter, params);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         channel: 'marketdata',
@@ -166,7 +168,7 @@ export default class probit extends probitRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name probit#watchTrades
@@ -185,10 +187,10 @@ export default class probit extends probitRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         channel: 'marketdata',
@@ -230,7 +232,7 @@ export default class probit extends probitRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name probit#watchMyTrades
@@ -260,10 +262,10 @@ export default class probit extends probitRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
-    handleMyTrades (client, message) {
+    handleMyTrades (client: Client, message) {
         //
         //     {
         //         channel: 'trade_history',
@@ -311,7 +313,7 @@ export default class probit extends probitRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name probit#watchOrders
@@ -343,10 +345,10 @@ export default class probit extends probitRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    handleOrders (client, message) {
+    handleOrders (client: Client, message) {
         //
         //     {
         //         channel: 'order_history',
@@ -399,7 +401,7 @@ export default class probit extends probitRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name probit#watchOrderBook
@@ -416,7 +418,7 @@ export default class probit extends probitRest {
         return orderbook.limit ();
     }
 
-    async subscribeOrderBook (symbol, messageHash, filter, params = {}) {
+    async subscribeOrderBook (symbol: string, messageHash, filter, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -448,7 +450,7 @@ export default class probit extends probitRest {
         return await this.watch (url, messageHash, request, messageHash, filters);
     }
 
-    handleOrderBook (client, message, orderBook) {
+    handleOrderBook (client: Client, message, orderBook) {
         //
         //     {
         //         channel: 'marketdata',
@@ -498,7 +500,7 @@ export default class probit extends probitRest {
         this.handleBidAsks (storedAsks, asks);
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         //     {
         //         errorCode: 'INVALID_ARGUMENT',
@@ -515,7 +517,7 @@ export default class probit extends probitRest {
         throw new ExchangeError (this.id + ' ' + code + ' ' + errMessage + ' ' + this.json (details));
     }
 
-    handleAuthenticate (client, message) {
+    handleAuthenticate (client: Client, message) {
         //
         //     { type: 'authorization', result: 'ok' }
         //
@@ -529,7 +531,7 @@ export default class probit extends probitRest {
         }
     }
 
-    handleMarketData (client, message) {
+    handleMarketData (client: Client, message) {
         const ticker = this.safeValue (message, 'ticker');
         if (ticker !== undefined) {
             this.handleTicker (client, message);
@@ -544,7 +546,7 @@ export default class probit extends probitRest {
         }
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         //
         //     {
         //         errorCode: 'INVALID_ARGUMENT',

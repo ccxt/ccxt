@@ -6,6 +6,9 @@
 from ccxt.async_support.base.exchange import Exchange
 import asyncio
 import hashlib
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -759,7 +762,7 @@ class zb(Exchange):
             fees = {}
             for j in range(0, len(currency)):
                 networkItem = currency[j]
-                network = self.safe_string(networkItem, 'chainName')
+                network = self.safe_string_2(networkItem, 'chainName', 'mainChainName')
                 # name = self.safe_string(networkItem, 'name')
                 withdrawFee = self.safe_number(networkItem, 'fee')
                 depositEnable = self.safe_value(networkItem, 'canDeposit')
@@ -1209,7 +1212,7 @@ class zb(Exchange):
         datas = self.safe_value(message, 'datas', [])
         return self.parse_deposit_addresses(datas, codes)
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1238,7 +1241,7 @@ class zb(Exchange):
         datas = self.safe_value(message, 'datas', {})
         return self.parse_deposit_address(datas, currency)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -1311,7 +1314,7 @@ class zb(Exchange):
             timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(result, symbol, timestamp)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1339,7 +1342,7 @@ class zb(Exchange):
                     result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -1488,7 +1491,7 @@ class zb(Exchange):
                 self.safe_number(ohlcv, 5),
             ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1667,7 +1670,7 @@ class zb(Exchange):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1744,7 +1747,7 @@ class zb(Exchange):
             response = self.safe_value(data, 'list')
         return self.parse_trades(response, market, since, limit)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1890,7 +1893,7 @@ class zb(Exchange):
             result = self.safe_value(response, 'data')
         return self.parse_order(result, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1936,7 +1939,7 @@ class zb(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def cancel_all_orders(self, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders in a market
         :param str symbol: unified market symbol of the market to cancel orders in
@@ -1961,7 +1964,7 @@ class zb(Exchange):
         query = self.omit(params, 'stop')
         return await getattr(self, method)(self.extend(request, query))
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -2093,7 +2096,7 @@ class zb(Exchange):
             result = self.safe_value(response, 'data')
         return self.parse_order(result, market)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -2246,7 +2249,7 @@ class zb(Exchange):
             result = self.safe_value(data, 'list', [])
         return self.parse_orders(result, market, since, limit)
 
-    async def fetch_canceled_orders(self, symbol=None, since=None, limit=10, params={}):
+    async def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=10, params={}):
         """
         fetches information on multiple canceled orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -2391,7 +2394,7 @@ class zb(Exchange):
             response = result
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=10, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=10, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -2501,7 +2504,7 @@ class zb(Exchange):
             result = self.safe_value(data, 'list', [])
         return self.parse_orders(result, market, since, limit)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -2942,7 +2945,7 @@ class zb(Exchange):
             'fee': fee,
         }
 
-    async def set_leverage(self, leverage, symbol=None, params={}):
+    async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -2968,7 +2971,7 @@ class zb(Exchange):
         }
         return await self.contractV2PrivatePostSettingSetLeverage(self.extend(request, params))
 
-    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical funding rate prices
         :param str|None symbol: unified symbol of the market to fetch the funding rate history for
@@ -3016,11 +3019,11 @@ class zb(Exchange):
         for i in range(0, len(data)):
             entry = data[i]
             marketId = self.safe_string(entry, 'symbol')
-            symbol = self.safe_symbol(marketId)
+            symbolInner = self.safe_symbol(marketId)
             timestamp = self.safe_integer(entry, 'fundingTime')
             rates.append({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': self.safe_number(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
@@ -3028,7 +3031,7 @@ class zb(Exchange):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def fetch_funding_rate(self, symbol, params={}):
+    async def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
         :param str symbol: unified market symbol
@@ -3100,7 +3103,7 @@ class zb(Exchange):
             'previousFundingDatetime': None,
         }
 
-    async def fetch_funding_rates(self, symbols=None, params={}):
+    async def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch the funding rate for multiple markets
         :param [str]|None symbols: list of unified market symbols
@@ -3129,7 +3132,7 @@ class zb(Exchange):
         result = self.parse_funding_rates(data)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -3176,7 +3179,7 @@ class zb(Exchange):
             'amount': amount,
         })
 
-    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -3229,7 +3232,7 @@ class zb(Exchange):
         withdrawals = self.safe_value(datas, 'list', [])
         return self.parse_transactions(withdrawals, currency, since, limit)
 
-    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -3284,7 +3287,7 @@ class zb(Exchange):
         deposits = self.safe_value(datas, 'list', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
-    async def fetch_position(self, symbol, params={}):
+    async def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
         :param str symbol: unified market symbol of the market the position is held in, default is None
@@ -3355,7 +3358,7 @@ class zb(Exchange):
         firstPosition = self.safe_value(data, 0)
         return self.parse_position(firstPosition, market)
 
-    async def fetch_positions(self, symbols=None, params={}):
+    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str]|None symbols: list of unified market symbols
@@ -3484,7 +3487,7 @@ class zb(Exchange):
         notional = self.safe_number(position, 'nominalValue')
         percentage = Precise.string_mul(self.safe_string(position, 'returnRate'), '100')
         timestamp = self.safe_number(position, 'createTime')
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': symbol,
@@ -3499,6 +3502,7 @@ class zb(Exchange):
             'marginMode': marginMode,
             'notional': notional,
             'markPrice': None,
+            'lastPrice': None,
             'liquidationPrice': liquidationPrice,
             'initialMargin': self.parse_number(initialMargin),
             'initialMarginPercentage': None,
@@ -3507,7 +3511,8 @@ class zb(Exchange):
             'marginRatio': marginRatio,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-        }
+            'lastUpdateTimestamp': None,
+        })
 
     def parse_ledger_entry_type(self, type):
         types = {
@@ -3604,7 +3609,7 @@ class zb(Exchange):
             'fee': fee,
         }
 
-    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None
@@ -3658,7 +3663,7 @@ class zb(Exchange):
         list = self.safe_value(data, 'list', [])
         return self.parse_ledger(list, currency, since, limit)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -3703,8 +3708,8 @@ class zb(Exchange):
                 symbol = self.safe_string_2(params, 'marketName', 'symbol')
                 if symbol is None:
                     raise ArgumentsRequired(self.id + ' transfer() requires a symbol argument for isolated margin')
-                market = self.market(symbol)
-                request['marketName'] = self.safe_symbol(market['id'], market, '_')
+                marketInner = self.market(symbol)
+                request['marketName'] = self.safe_symbol(marketInner['id'], marketInner, '_')
             elif (marginMode == 'cross') or (toAccount == 'cross') or (fromAccount == 'cross'):
                 if fromAccount == 'spot' or toAccount == 'cross':
                     method = 'spotV1PrivateGetTransferInCross'
@@ -3748,7 +3753,7 @@ class zb(Exchange):
             'status': None,
         }
 
-    async def modify_margin_helper(self, symbol, amount, type, params={}):
+    async def modify_margin_helper(self, symbol: str, amount, type, params={}):
         if params['positionsId'] is None:
             raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a positionsId argument in the params')
         await self.load_markets()
@@ -3821,7 +3826,7 @@ class zb(Exchange):
             'status': status,
         }
 
-    async def add_margin(self, symbol, amount, params={}):
+    async def add_margin(self, symbol: str, amount, params={}):
         """
         add margin
         :param str symbol: unified market symbol
@@ -3833,7 +3838,7 @@ class zb(Exchange):
             raise ArgumentsRequired(self.id + ' addMargin() requires a positionsId argument in the params')
         return await self.modify_margin_helper(symbol, amount, 1, params)
 
-    async def reduce_margin(self, symbol, amount, params={}):
+    async def reduce_margin(self, symbol: str, amount, params={}):
         """
         remove margin from a position
         :param str symbol: unified market symbol
@@ -3845,7 +3850,7 @@ class zb(Exchange):
             raise ArgumentsRequired(self.id + ' reduceMargin() requires a positionsId argument in the params')
         return await self.modify_margin_helper(symbol, amount, 0, params)
 
-    async def fetch_borrow_rate(self, code, params={}):
+    async def fetch_borrow_rate(self, code: str, params={}):
         """
         fetch the rate of interest to borrow a currency for margin trading
         :param str code: unified currency code
@@ -3933,7 +3938,7 @@ class zb(Exchange):
             })
         return rates
 
-    async def set_position_mode(self, hedged, symbol=None, params={}):
+    async def set_position_mode(self, hedged, symbol: Optional[str] = None, params={}):
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -3978,7 +3983,7 @@ class zb(Exchange):
         #
         return response
 
-    async def borrow_margin(self, code, amount, symbol=None, params={}):
+    async def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         :param str code: unified currency code of the currency to borrow
@@ -4012,8 +4017,8 @@ class zb(Exchange):
         if marginMode == 'isolated':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
-            market = self.market(symbol)
-            request['marketName'] = self.safe_symbol(market['id'], market, '_')
+            marketInner = self.market(symbol)
+            request['marketName'] = self.safe_symbol(marketInner['id'], marketInner, '_')
             method = 'spotV1PrivateGetBorrow'
         elif marginMode == 'cross':
             method = 'spotV1PrivateGetDoCrossLoan'
@@ -4051,7 +4056,9 @@ class zb(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        section, version, access = api
+        section = self.safe_string(api, 0)
+        version = self.safe_string(api, 1)
+        access = self.safe_string(api, 2)
         url = self.implode_hostname(self.urls['api'][section][version][access])
         if access == 'public':
             if path == 'getFeeInfo':
@@ -4099,7 +4106,7 @@ class zb(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if body[0] == '{':
             feedback = self.id + ' ' + body
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
@@ -4117,3 +4124,4 @@ class zb(Exchange):
                         raise ExchangeNotAvailable(feedback)
                     else:
                         raise ExchangeError(feedback)
+        return None

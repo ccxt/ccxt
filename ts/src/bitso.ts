@@ -6,6 +6,7 @@ import { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadReq
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -175,7 +176,7 @@ export default class bitso extends Exchange {
         });
     }
 
-    async fetchLedger (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchLedger
@@ -215,7 +216,8 @@ export default class bitso extends Exchange {
         //     }
         //
         const payload = this.safeValue (response, 'payload', []);
-        return this.parseLedger (payload, code, since, limit);
+        const currency = this.safeCurrency (code);
+        return this.parseLedger (payload, currency, since, limit);
     }
 
     parseLedgerEntryType (type) {
@@ -529,7 +531,7 @@ export default class bitso extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchOrderBook
@@ -595,7 +597,7 @@ export default class bitso extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bitso#fetchTicker
@@ -631,7 +633,7 @@ export default class bitso extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchOHLCV
@@ -684,7 +686,7 @@ export default class bitso extends Exchange {
         return this.parseOHLCVs (payload, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m') {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "bucket_start_time":1648219140000,
@@ -807,7 +809,7 @@ export default class bitso extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchTrades
@@ -899,7 +901,7 @@ export default class bitso extends Exchange {
         return result;
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = 25, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit = 25, params = {}) {
         /**
          * @method
          * @name bitso#fetchMyTrades
@@ -937,7 +939,7 @@ export default class bitso extends Exchange {
         return this.parseTrades (response['payload'], market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitso#createOrder
@@ -969,7 +971,7 @@ export default class bitso extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitso#cancelOrder
@@ -1107,7 +1109,7 @@ export default class bitso extends Exchange {
         }, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = 25, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit = 25, params = {}) {
         /**
          * @method
          * @name bitso#fetchOpenOrders
@@ -1146,7 +1148,7 @@ export default class bitso extends Exchange {
         return orders;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchOrder
@@ -1169,7 +1171,7 @@ export default class bitso extends Exchange {
         throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchOrderTrades
@@ -1190,7 +1192,7 @@ export default class bitso extends Exchange {
         return this.parseTrades (response['payload'], market);
     }
 
-    async fetchDeposit (id, code = undefined, params = {}) {
+    async fetchDeposit (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchDeposit
@@ -1233,7 +1235,7 @@ export default class bitso extends Exchange {
         return this.parseTransaction (first);
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchDeposits
@@ -1277,7 +1279,7 @@ export default class bitso extends Exchange {
         return this.parseTransactions (transactions, currency, since, limit, params);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bitso#fetchDepositAddress
@@ -1309,7 +1311,7 @@ export default class bitso extends Exchange {
         };
     }
 
-    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchTransactionFees
@@ -1403,7 +1405,7 @@ export default class bitso extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchDepositWithdrawFees
@@ -1462,7 +1464,7 @@ export default class bitso extends Exchange {
         return this.parseDepositWithdrawFees (payload, codes);
     }
 
-    parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined) {
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
         //
         //    {
         //        fees: [
@@ -1542,7 +1544,7 @@ export default class bitso extends Exchange {
         return result;
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitso#withdraw
@@ -1693,7 +1695,7 @@ export default class bitso extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET' || method === 'DELETE') {
@@ -1724,7 +1726,7 @@ export default class bitso extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('success' in response) {
             //
@@ -1749,5 +1751,6 @@ export default class bitso extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
+        return undefined;
     }
 }

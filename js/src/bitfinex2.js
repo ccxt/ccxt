@@ -328,6 +328,9 @@ export default class bitfinex2 extends Exchange {
                     'derivatives': 'margin',
                     'future': 'margin',
                 },
+                'withdraw': {
+                    'includeFee': false,
+                },
             },
             'exceptions': {
                 'exact': {
@@ -504,14 +507,16 @@ export default class bitfinex2 extends Exchange {
             baseId = this.getCurrencyId(baseId);
             quoteId = this.getCurrencyId(quoteId);
             let settle = undefined;
+            let settleId = undefined;
             if (swap) {
                 settle = quote;
+                settleId = quote;
                 symbol = symbol + ':' + settle;
             }
             const minOrderSizeString = this.safeString(market, 3);
             const maxOrderSizeString = this.safeString(market, 4);
             let margin = false;
-            if (this.inArray(id, marginIds)) {
+            if (spot && this.inArray(id, marginIds)) {
                 margin = true;
             }
             result.push({
@@ -522,7 +527,7 @@ export default class bitfinex2 extends Exchange {
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': quoteId,
+                'settleId': settleId,
                 'type': spot ? 'spot' : 'swap',
                 'spot': spot,
                 'margin': margin,
@@ -717,6 +722,7 @@ export default class bitfinex2 extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
             const networks = {};
             const currencyNetworks = this.safeValue(response, 8, []);
@@ -1963,10 +1969,14 @@ export default class bitfinex2 extends Exchange {
     parseTransactionStatus(status) {
         const statuses = {
             'SUCCESS': 'ok',
+            'COMPLETED': 'ok',
             'ERROR': 'failed',
             'FAILURE': 'failed',
             'CANCELED': 'canceled',
-            'COMPLETED': 'ok',
+            'PENDING APPROVAL': 'pending',
+            'PENDING': 'pending',
+            'PENDING REVIEW': 'pending',
+            'PENDING CANCELLATION': 'pending',
         };
         return this.safeString(statuses, status, status);
     }
@@ -2047,7 +2057,7 @@ export default class bitfinex2 extends Exchange {
                 feeCost = Precise.stringAbs(feeCost);
             }
             amount = this.safeNumber(data, 5);
-            id = this.safeValue(data, 0);
+            id = this.safeString(data, 0);
             status = 'ok';
             if (id === 0) {
                 id = undefined;
@@ -2301,7 +2311,7 @@ export default class bitfinex2 extends Exchange {
         const currencyNetwork = this.safeValue(currencyNetworks, network);
         const networkId = this.safeString(currencyNetwork, 'id');
         if (networkId === undefined) {
-            throw new ArgumentsRequired(this.id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
+            throw new ArgumentsRequired(this.id + " withdraw() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
         }
         const wallet = this.safeString(params, 'wallet', 'exchange'); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         params = this.omit(params, 'network', 'wallet');
@@ -2313,6 +2323,11 @@ export default class bitfinex2 extends Exchange {
         };
         if (tag !== undefined) {
             request['payment_id'] = tag;
+        }
+        const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
+        const includeFee = this.safeValue(withdrawOptions, 'includeFee', false);
+        if (includeFee) {
+            request['fee_deduct'] = 1;
         }
         const response = await this.privatePostAuthWWithdraw(this.extend(request, params));
         //

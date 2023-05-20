@@ -6,6 +6,8 @@ import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -55,7 +57,7 @@ export default class bitfinex extends bitfinexRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#watchTrades
@@ -72,10 +74,10 @@ export default class bitfinex extends bitfinexRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bitfinex#watchTicker
@@ -87,7 +89,7 @@ export default class bitfinex extends bitfinexRest {
         return await this.subscribe ('ticker', symbol, params);
     }
 
-    handleTrades (client, message, subscription) {
+    handleTrades (client: Client, message, subscription) {
         //
         // initial snapshot
         //
@@ -203,7 +205,7 @@ export default class bitfinex extends bitfinexRest {
         };
     }
 
-    handleTicker (client, message, subscription) {
+    handleTicker (client: Client, message, subscription) {
         //
         //     [
         //         2,             // 0 CHANNEL_ID integer Channel ID
@@ -256,7 +258,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (result, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#watchOrderBook
@@ -286,7 +288,7 @@ export default class bitfinex extends bitfinexRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message, subscription) {
+    handleOrderBook (client: Client, message, subscription) {
         //
         // first message (snapshot)
         //
@@ -371,7 +373,7 @@ export default class bitfinex extends bitfinexRest {
         }
     }
 
-    handleHeartbeat (client, message) {
+    handleHeartbeat (client: Client, message) {
         //
         // every second (approx) if no other updates are sent
         //
@@ -381,7 +383,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (message, event);
     }
 
-    handleSystemStatus (client, message) {
+    handleSystemStatus (client: Client, message) {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -397,7 +399,7 @@ export default class bitfinex extends bitfinexRest {
         return message;
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     {
         //         event: 'subscribed',
@@ -441,7 +443,7 @@ export default class bitfinex extends bitfinexRest {
         return await future;
     }
 
-    handleAuthenticationMessage (client, message) {
+    handleAuthenticationMessage (client: Client, message) {
         const status = this.safeString (message, 'status');
         if (status === 'OK') {
             // we resolve the future here permanently so authentication only happens once
@@ -465,7 +467,7 @@ export default class bitfinex extends bitfinexRest {
         return await this.watch (url, id, undefined, 1);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#watchOrders
@@ -486,10 +488,10 @@ export default class bitfinex extends bitfinexRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    handleOrders (client, message, subscription) {
+    handleOrders (client: Client, message, subscription) {
         //
         // order snapshot
         //
@@ -558,7 +560,7 @@ export default class bitfinex extends bitfinexRest {
         return this.safeString (statuses, status, status);
     }
 
-    handleOrder (client, order) {
+    handleOrder (client: Client, order) {
         // [ 45287766631,
         //     'ETHUST',
         //     -0.07,
@@ -624,7 +626,7 @@ export default class bitfinex extends bitfinexRest {
         return parsed;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (Array.isArray (message)) {
             const channelId = this.safeString (message, 0);
             //

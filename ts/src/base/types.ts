@@ -192,3 +192,12 @@ export type OHLCV = [number, number, number, number, number, number];
 export type OHLCVC = [number, number, number, number, number, number, number];
 
 export type implicitReturnType = any;
+
+// must be an integer in other langs
+export type IndexType = number | string;
+
+export type Int = number;
+
+export type OrderSide = 'buy' | 'sell' | string;
+
+export type OrderType = 'limit' | 'market' | string;

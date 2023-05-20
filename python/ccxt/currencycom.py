@@ -4,7 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.currencycom import ImplicitAPI
 import hashlib
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -20,7 +24,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class currencycom(Exchange):
+class currencycom(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(currencycom, self).describe(), {
@@ -452,11 +456,12 @@ class currencycom(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            type = self.safe_string(market, 'marketType')
-            spot = (type == 'SPOT')
+            typeRaw = self.safe_string(market, 'marketType')
+            spot = (typeRaw == 'SPOT')
             futures = False
-            swap = (type == 'LEVERAGE')
-            margin = swap  # decided to set
+            swap = (typeRaw == 'LEVERAGE')
+            type = 'swap' if swap else 'spot'
+            margin = None
             if swap:
                 symbol = symbol.replace(self.options['leverage_markets_suffix'], '')
                 symbol += ':' + quote
@@ -726,7 +731,7 @@ class currencycom(Exchange):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -839,7 +844,7 @@ class currencycom(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -874,7 +879,7 @@ class currencycom(Exchange):
         #
         return self.parse_ticker(response, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -923,7 +928,7 @@ class currencycom(Exchange):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1028,7 +1033,7 @@ class currencycom(Exchange):
             'info': trade,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1212,7 +1217,7 @@ class currencycom(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1299,7 +1304,7 @@ class currencycom(Exchange):
         #
         return self.parse_order(response, market)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -1341,7 +1346,7 @@ class currencycom(Exchange):
         #
         return self.parse_orders(response, market, since, limit, params)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1379,7 +1384,7 @@ class currencycom(Exchange):
         #
         return self.parse_order(response, market)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1418,7 +1423,7 @@ class currencycom(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1429,7 +1434,7 @@ class currencycom(Exchange):
         """
         return self.fetch_transactions_by_method('privateGetV2Deposits', code, since, limit, params)
 
-    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1440,7 +1445,7 @@ class currencycom(Exchange):
         """
         return self.fetch_transactions_by_method('privateGetV2Withdrawals', code, since, limit, params)
 
-    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -1451,7 +1456,7 @@ class currencycom(Exchange):
         """
         return self.fetch_transactions_by_method('privateGetV2Transactions', code, since, limit, params)
 
-    def fetch_transactions_by_method(self, method, code=None, since=None, limit=None, params={}):
+    def fetch_transactions_by_method(self, method, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
         request = {}
         currency = None
@@ -1544,7 +1549,7 @@ class currencycom(Exchange):
         }
         return self.safe_string(types, type, type)
 
-    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -1639,7 +1644,7 @@ class currencycom(Exchange):
         }
         return self.safe_string(types, type, type)
 
-    def fetch_leverage(self, symbol, params={}):
+    def fetch_leverage(self, symbol: str, params={}):
         """
         fetch the set leverage for a market
         :param str symbol: unified market symbol
@@ -1660,7 +1665,7 @@ class currencycom(Exchange):
         #
         return self.safe_number(response, 'value')
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1718,7 +1723,7 @@ class currencycom(Exchange):
         url = self.implode_hostname(url)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def fetch_positions(self, symbols=None, params={}):
+    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str]|None symbols: list of unified market symbols
@@ -1773,10 +1778,11 @@ class currencycom(Exchange):
         unrealizedProfit = self.safe_number(position, 'upl')
         marginCoeff = self.safe_string(position, 'margin')
         leverage = Precise.string_div('1', marginCoeff)
-        return {
+        return self.safe_position({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastUpdateTimestamp': None,
             'contracts': self.parse_number(quantity),
             'contractSize': None,
             'entryPrice': entryPrice,
@@ -1789,6 +1795,7 @@ class currencycom(Exchange):
             'marginMode': None,
             'notional': None,
             'markPrice': None,
+            'lastPrice': None,
             'liquidationPrice': None,
             'initialMargin': None,
             'initialMarginPercentage': None,
@@ -1797,7 +1804,7 @@ class currencycom(Exchange):
             'marginRatio': None,
             'info': position,
             'id': None,
-        }
+        })
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if (httpCode == 418) or (httpCode == 429):
@@ -1813,7 +1820,7 @@ class currencycom(Exchange):
             if body.find('PRICE_FILTER') >= 0:
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {"code":-1128,"msg":"Combination of optional parameters invalid."}
         #
@@ -1824,3 +1831,4 @@ class currencycom(Exchange):
             message = self.safe_string(response, 'msg')
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)
+        return None

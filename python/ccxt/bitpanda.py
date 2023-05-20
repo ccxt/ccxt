@@ -4,6 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitpanda import ImplicitAPI
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -19,7 +23,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bitpanda(Exchange):
+class bitpanda(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitpanda, self).describe(), {
@@ -28,6 +32,7 @@ class bitpanda(Exchange):
             'countries': ['AT'],  # Austria
             'rateLimit': 300,
             'version': 'v1',
+            'pro': True,
             # new metainfo interface
             'has': {
                 'CORS': None,
@@ -348,6 +353,7 @@ class bitpanda(Exchange):
                     'amount': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
                 },
+                'networks': {},
             }
         return result
 
@@ -598,7 +604,7 @@ class bitpanda(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -631,7 +637,7 @@ class bitpanda(Exchange):
         #
         return self.parse_ticker(response, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -668,7 +674,7 @@ class bitpanda(Exchange):
             result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -790,7 +796,7 @@ class bitpanda(Exchange):
             self.safe_number(ohlcv, volumeField),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -911,7 +917,7 @@ class bitpanda(Exchange):
             'info': trade,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1003,7 +1009,7 @@ class bitpanda(Exchange):
             'info': depositAddress,
         }
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -1026,7 +1032,7 @@ class bitpanda(Exchange):
         #
         return self.parse_deposit_address(response, currency)
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1050,7 +1056,7 @@ class bitpanda(Exchange):
         #
         return self.parse_deposit_address(response, currency)
 
-    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1108,7 +1114,7 @@ class bitpanda(Exchange):
         depositHistory = self.safe_value(response, 'deposit_history', [])
         return self.parse_transactions(depositHistory, currency, since, limit, {'type': 'deposit'})
 
-    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1167,7 +1173,7 @@ class bitpanda(Exchange):
         withdrawalHistory = self.safe_value(response, 'withdrawal_history', [])
         return self.parse_transactions(withdrawalHistory, currency, since, limit, {'type': 'withdrawal'})
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1429,7 +1435,7 @@ class bitpanda(Exchange):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1488,7 +1494,7 @@ class bitpanda(Exchange):
         #
         return self.parse_order(response, market)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1512,7 +1518,7 @@ class bitpanda(Exchange):
         #
         return response
 
-    def cancel_all_orders(self, symbol=None, params={}):
+    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1532,7 +1538,7 @@ class bitpanda(Exchange):
         #
         return response
 
-    def cancel_orders(self, ids, symbol=None, params={}):
+    def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
         """
         cancel multiple orders
         :param [str] ids: order ids
@@ -1552,7 +1558,7 @@ class bitpanda(Exchange):
         #
         return response
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by bitpanda fetchOrder
@@ -1607,7 +1613,7 @@ class bitpanda(Exchange):
         #
         return self.parse_order(response)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -1721,7 +1727,7 @@ class bitpanda(Exchange):
         orderHistory = self.safe_value(response, 'order_history', [])
         return self.parse_orders(orderHistory, market, since, limit)
 
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -1735,7 +1741,7 @@ class bitpanda(Exchange):
         }
         return self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1790,7 +1796,7 @@ class bitpanda(Exchange):
             market = self.market(symbol)
         return self.parse_trades(tradeHistory, market, since, limit)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -1874,7 +1880,7 @@ class bitpanda(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         #     {"error":"MISSING_FROM_PARAM"}
         #     {"error":"MISSING_TO_PARAM"}
@@ -1886,3 +1892,4 @@ class bitpanda(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

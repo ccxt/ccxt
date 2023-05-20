@@ -5,6 +5,8 @@ import currencycomRest from '../currencycom.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -62,12 +64,12 @@ export default class currencycom extends currencycomRest {
         };
     }
 
-    handlePong (client, message) {
+    handlePong (client: Client, message) {
         client.lastPong = this.milliseconds ();
         return message;
     }
 
-    handleBalance (client, message, subscription) {
+    handleBalance (client: Client, message, subscription) {
         //
         //     {
         //         status: 'OK',
@@ -112,7 +114,7 @@ export default class currencycom extends currencycomRest {
         }
     }
 
-    handleTicker (client, message, subscription) {
+    handleTicker (client: Client, message, subscription) {
         //
         //     {
         //         status: 'OK',
@@ -198,7 +200,7 @@ export default class currencycom extends currencycomRest {
         };
     }
 
-    handleTrades (client, message, subscription) {
+    handleTrades (client: Client, message, subscription) {
         //
         //     {
         //         status: 'OK',
@@ -243,7 +245,7 @@ export default class currencycom extends currencycomRest {
         return undefined;
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         status: 'OK',
@@ -348,7 +350,7 @@ export default class currencycom extends currencycomRest {
         return await this.watchPrivate ('/api/v1/account', params);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name currencycom#watchTicker
@@ -378,7 +380,7 @@ export default class currencycom extends currencycomRest {
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#watchTrades
@@ -395,10 +397,10 @@ export default class currencycom extends currencycomRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#watchOrderBook
@@ -414,7 +416,7 @@ export default class currencycom extends currencycomRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#watchOHLCV
@@ -443,7 +445,7 @@ export default class currencycom extends currencycomRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0);
     }
 
     handleDeltas (bookside, deltas) {
@@ -455,7 +457,7 @@ export default class currencycom extends currencycomRest {
         }
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         status: 'OK',
@@ -490,7 +492,7 @@ export default class currencycom extends currencycomRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         //
         //     {
         //         status: 'OK',

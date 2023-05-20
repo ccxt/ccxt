@@ -6,6 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -487,7 +488,7 @@ export default class coinbase extends Exchange {
         };
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name coinbase#createDepositAddress
@@ -562,7 +563,7 @@ export default class coinbase extends Exchange {
         };
     }
 
-    async fetchMySells (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMySells (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchMySells
@@ -581,7 +582,7 @@ export default class coinbase extends Exchange {
         return this.parseTrades (sells['data'], undefined, since, limit);
     }
 
-    async fetchMyBuys (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyBuys (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchMyBuys
@@ -600,7 +601,7 @@ export default class coinbase extends Exchange {
         return this.parseTrades (buys['data'], undefined, since, limit);
     }
 
-    async fetchTransactionsWithMethod (method, code = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTransactionsWithMethod (method, code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const request = await this.prepareAccountRequestWithCurrencyCode (code, limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
@@ -608,7 +609,7 @@ export default class coinbase extends Exchange {
         return this.parseTransactions (response['data'], undefined, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchWithdrawals
@@ -623,7 +624,7 @@ export default class coinbase extends Exchange {
         return await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params);
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchDeposits
@@ -1282,7 +1283,7 @@ export default class coinbase extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name coinbase#fetchTicker
@@ -1298,7 +1299,7 @@ export default class coinbase extends Exchange {
         return await this.fetchTickerV2 (symbol, params);
     }
 
-    async fetchTickerV2 (symbol, params = {}) {
+    async fetchTickerV2 (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.extend ({
@@ -1327,7 +1328,7 @@ export default class coinbase extends Exchange {
         return this.parseTicker (bidAskLast, market);
     }
 
-    async fetchTickerV3 (symbol, params = {}) {
+    async fetchTickerV3 (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1339,20 +1340,26 @@ export default class coinbase extends Exchange {
         //     {
         //         "trades": [
         //             {
-        //                 "trade_id": "10209805",
-        //                 "product_id": "BTC-USDT",
-        //                 "price": "19381.27",
-        //                 "size": "0.1",
-        //                 "time": "2023-01-13T20:35:41.865970Z",
+        //                 "trade_id": "518078013",
+        //                 "product_id": "BTC-USD",
+        //                 "price": "28208.1",
+        //                 "size": "0.00659179",
+        //                 "time": "2023-04-04T23:05:34.492746Z",
         //                 "side": "BUY",
         //                 "bid": "",
         //                 "ask": ""
         //             }
-        //         ]
+        //         ],
+        //         "best_bid": "28208.61",
+        //         "best_ask": "28208.62"
         //     }
         //
         const data = this.safeValue (response, 'trades', []);
-        return this.parseTicker (data[0], market);
+        const ticker = this.parseTicker (data[0], market);
+        return this.extend (ticker, {
+            'bid': this.safeNumber (response, 'best_bid'),
+            'ask': this.safeNumber (response, 'best_ask'),
+        });
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1529,7 +1536,7 @@ export default class coinbase extends Exchange {
         return this.parseBalance (response, params);
     }
 
-    async fetchLedger (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchLedger
@@ -1897,7 +1904,7 @@ export default class coinbase extends Exchange {
         return undefined;
     }
 
-    prepareAccountRequest (limit = undefined, params = {}) {
+    prepareAccountRequest (limit: Int = undefined, params = {}) {
         const accountId = this.safeString2 (params, 'account_id', 'accountId');
         if (accountId === undefined) {
             throw new ArgumentsRequired (this.id + ' prepareAccountRequest() method requires an account_id (or accountId) parameter');
@@ -1911,7 +1918,7 @@ export default class coinbase extends Exchange {
         return request;
     }
 
-    async prepareAccountRequestWithCurrencyCode (code: string = undefined, limit = undefined, params = {}) {
+    async prepareAccountRequestWithCurrencyCode (code: string = undefined, limit: Int = undefined, params = {}) {
         let accountId = this.safeString2 (params, 'account_id', 'accountId');
         if (accountId === undefined) {
             if (code === undefined) {
@@ -1931,7 +1938,7 @@ export default class coinbase extends Exchange {
         return request;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#createOrder
@@ -2252,7 +2259,7 @@ export default class coinbase extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#cancelOrder
@@ -2309,7 +2316,7 @@ export default class coinbase extends Exchange {
         return this.parseOrders (orders, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchOrder
@@ -2372,7 +2379,7 @@ export default class coinbase extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since = undefined, limit = 100, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit = 100, params = {}) {
         /**
          * @method
          * @name coinbase#fetchOrders
@@ -2397,7 +2404,7 @@ export default class coinbase extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['start_date'] = this.parse8601 (since);
+            request['start_date'] = this.iso8601 (since);
         }
         const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, params));
         //
@@ -2446,7 +2453,7 @@ export default class coinbase extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOrdersByStatus (status, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrdersByStatus (status, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -2463,7 +2470,7 @@ export default class coinbase extends Exchange {
         }
         request['limit'] = limit;
         if (since !== undefined) {
-            request['start_date'] = this.parse8601 (since);
+            request['start_date'] = this.iso8601 (since);
         }
         const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, params));
         //
@@ -2512,7 +2519,7 @@ export default class coinbase extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchOpenOrders
@@ -2527,7 +2534,7 @@ export default class coinbase extends Exchange {
         return await this.fetchOrdersByStatus ('OPEN', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchClosedOrders
@@ -2542,7 +2549,7 @@ export default class coinbase extends Exchange {
         return await this.fetchOrdersByStatus ('FILLED', symbol, since, limit, params);
     }
 
-    async fetchCanceledOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchCanceledOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchCanceledOrders
@@ -2557,7 +2564,7 @@ export default class coinbase extends Exchange {
         return await this.fetchOrdersByStatus ('CANCELLED', symbol, since, limit, params);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchOHLCV
@@ -2627,7 +2634,7 @@ export default class coinbase extends Exchange {
         ];
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchTrades
@@ -2668,7 +2675,7 @@ export default class coinbase extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchMyTrades
@@ -2723,7 +2730,7 @@ export default class coinbase extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    sign (path, api = [], method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
         const pathPart = (version === 'v3') ? 'api/v3' : 'v2';
@@ -2778,7 +2785,7 @@ export default class coinbase extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         const feedback = this.id + ' ' + body;
         //
@@ -2822,5 +2829,6 @@ export default class coinbase extends Exchange {
         if ((data === undefined) && (!advancedTrade)) {
             throw new ExchangeError (this.id + ' failed due to a malformed response ' + this.json (response));
         }
+        return undefined;
     }
 }

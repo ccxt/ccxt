@@ -6,6 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.async_support.base.ws.client import Client
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
@@ -62,7 +64,7 @@ class mexc(ccxt.async_support.mexc):
             },
         })
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -82,7 +84,7 @@ class mexc(ccxt.async_support.mexc):
             }
             return await self.watch_swap_public(channel, messageHash, requestParams, params)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #    {
         #        c: 'spot@public.bookTicker.v3.api@BTCUSDT',
@@ -189,7 +191,7 @@ class mexc(ccxt.async_support.mexc):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, channel)
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -219,9 +221,9 @@ class mexc(ccxt.async_support.mexc):
             ohlcv = await self.watch_swap_public(channel, messageHash, requestParams, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         # spot
         #
@@ -329,7 +331,7 @@ class mexc(ccxt.async_support.mexc):
             self.safe_number_2(ohlcv, 'v', 'q'),
         ]
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -354,7 +356,7 @@ class mexc(ccxt.async_support.mexc):
             orderbook = await self.watch_swap_public(channel, messageHash, requestParams, params)
         return orderbook.limit()
 
-    def handle_order_book_subscription(self, client, message):
+    def handle_order_book_subscription(self, client: Client, message):
         # spot
         #     {id: 0, code: 0, msg: 'spot@public.increase.depth.v3.api@BTCUSDT'}
         #
@@ -378,7 +380,7 @@ class mexc(ccxt.async_support.mexc):
                 return i
         return len(cache)
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         # spot
         #    {
@@ -436,11 +438,9 @@ class mexc(ccxt.async_support.mexc):
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         if nonce is None:
             cacheLength = len(storedOrderBook.cache)
-            subscription = client.subscriptions[messageHash]
-            limit = self.safe_integer(subscription, 'limit', 1000)
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 5)
             if cacheLength == snapshotDelay:
-                self.spawn(self.load_order_book, client, messageHash, symbol, limit)
+                self.spawn(self.load_order_book, client, messageHash, symbol)
             storedOrderBook.cache.append(data)
             return
         try:
@@ -482,7 +482,7 @@ class mexc(ccxt.async_support.mexc):
         self.handle_bookside_delta(asksOrderSide, asks)
         self.handle_bookside_delta(bidsOrderSide, bids)
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
         get the list of most recent trades for a particular symbol
@@ -508,9 +508,9 @@ class mexc(ccxt.async_support.mexc):
             trades = await self.watch_swap_public(channel, messageHash, requestParams, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #    {
         #        c: "spot@public.deals.v3.api@BTCUSDT",
@@ -562,7 +562,7 @@ class mexc(ccxt.async_support.mexc):
             stored.append(parsedTrade)
         client.resolve(stored, messageHash)
 
-    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
         watches information on multiple trades made by the user
@@ -589,9 +589,9 @@ class mexc(ccxt.async_support.mexc):
             trades = await self.watch_swap_private(messageHash, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
-    def handle_my_trade(self, client, message, subscription=None):
+    def handle_my_trade(self, client: Client, message, subscription=None):
         #
         #    {
         #        c: 'spot@private.deals.v3.api',
@@ -679,7 +679,7 @@ class mexc(ccxt.async_support.mexc):
             'fee': None,
         }, market)
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
@@ -709,9 +709,9 @@ class mexc(ccxt.async_support.mexc):
             orders = await self.watch_swap_private(messageHash, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         #
         # spot
         #    {
@@ -938,7 +938,7 @@ class mexc(ccxt.async_support.mexc):
         else:
             return await self.watch_swap_private(messageHash, params)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         # spot
         #    {
@@ -1024,11 +1024,11 @@ class mexc(ccxt.async_support.mexc):
             client.reject(error)
             del self.clients[url]
 
-    def handle_pong(self, client, message):
+    def handle_pong(self, client: Client, message):
         client.lastPong = self.milliseconds()
         return message
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         #    {
         #        id: 0,
@@ -1049,7 +1049,7 @@ class mexc(ccxt.async_support.mexc):
             if method is not None:
                 method(client, message)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         if isinstance(message, str):
             if message == 'Invalid listen key':
                 error = AuthenticationError(self.id + ' invalid listen key')

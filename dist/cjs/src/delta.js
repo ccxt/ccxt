@@ -359,6 +359,7 @@ class delta extends delta$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -1566,8 +1567,8 @@ class delta extends delta$1 {
         // 'order_types': types, // comma-separated, market, limit, stop_market, stop_limit, all_stop
         // 'start_time': since * 1000,
         // 'end_time': this.microseconds (),
-        // 'after': string, // after cursor for pagination
-        // 'before': string, // before cursor for pagination
+        // 'after', // after cursor for pagination
+        // 'before', // before cursor for pagination
         // 'page_size': limit, // number of records per page
         };
         let market = undefined;
@@ -1625,8 +1626,8 @@ class delta extends delta$1 {
         // 'contract_types': types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
         // 'start_time': since * 1000,
         // 'end_time': this.microseconds (),
-        // 'after': string, // after cursor for pagination
-        // 'before': string, // before cursor for pagination
+        // 'after', // after cursor for pagination
+        // 'before', // before cursor for pagination
         // 'page_size': limit, // number of records per page
         };
         let market = undefined;
@@ -1917,7 +1918,7 @@ class delta extends delta$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         // {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
@@ -1930,6 +1931,7 @@ class delta extends delta$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], errorCode, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }
 

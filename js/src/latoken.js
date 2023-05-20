@@ -192,7 +192,7 @@ export default class latoken extends Exchange {
                     'Unable to resolve currency by tag': BadSymbol,
                     "Can't find currency with tag": BadSymbol,
                     'Unable to place order because pair is in inactive state': BadSymbol,
-                    'API keys are not available for FROZEN user': AccountSuspended, // {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
+                    'API keys are not available for': AccountSuspended, // {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
                 },
             },
             'options': {
@@ -456,6 +456,7 @@ export default class latoken extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -1564,7 +1565,7 @@ export default class latoken extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return;
+            return undefined;
         }
         //
         // {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
@@ -1585,5 +1586,6 @@ export default class latoken extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }

@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\idex as Exchange;
 
 class idex extends Exchange {
 
@@ -14,12 +15,10 @@ class idex extends Exchange {
             'id' => 'idex',
             'name' => 'IDEX',
             'countries' => array( 'US' ),
-            // public data endpoints 5 requests a second => 1000ms / 5 = 200ms between requests roughly (without Authentication)
-            // all endpoints 10 requests a second => (1000ms / rateLimit) / 10 => 1 / 2 (with Authentication)
-            'rateLimit' => 200,
+            'rateLimit' => 1000,
             'version' => 'v3',
             'pro' => true,
-            'certified' => true,
+            'certified' => false,
             'requiresWeb3' => true,
             'has' => array(
                 'CORS' => null,
@@ -126,20 +125,20 @@ class idex extends Exchange {
                         'user' => 1,
                         'wallets' => 1,
                         'balances' => 1,
-                        'orders' => 1,
-                        'fills' => 1,
+                        'orders' => 0.1,
+                        'fills' => 0.1,
                         'deposits' => 1,
                         'withdrawals' => 1,
                         'wsToken' => 1,
                     ),
                     'post' => array(
                         'wallets' => 1,
-                        'orders' => 1,
-                        'orders/test' => 1,
+                        'orders' => 0.1,
+                        'orders/test' => 0.1,
                         'withdrawals' => 1,
                     ),
                     'delete' => array(
-                        'orders' => 1,
+                        'orders' => 0.1,
                     ),
                 ),
             ),
@@ -310,7 +309,7 @@ class idex extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
@@ -345,7 +344,7 @@ class idex extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -421,7 +420,7 @@ class idex extends Exchange {
         ), $market);
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -482,7 +481,7 @@ class idex extends Exchange {
         return array( $timestamp, $open, $high, $low, $close, $volume );
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
@@ -639,7 +638,7 @@ class idex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -808,7 +807,7 @@ class idex extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
          * @param {string|null} $symbol unified $market $symbol
@@ -873,7 +872,7 @@ class idex extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the market the order was made in
@@ -886,7 +885,7 @@ class idex extends Exchange {
         return $this->fetch_orders_helper($symbol, null, null, array_merge($request, $params));
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
          * @param {string|null} $symbol unified market $symbol
@@ -901,7 +900,7 @@ class idex extends Exchange {
         return $this->fetch_orders_helper($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
          * @param {string|null} $symbol unified market $symbol of the market orders were made in
@@ -916,7 +915,7 @@ class idex extends Exchange {
         return $this->fetch_orders_helper($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_orders_helper($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_helper(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'nonce' => $this->uuidv1(),
@@ -1114,7 +1113,7 @@ class idex extends Exchange {
         return $result;
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order, https://docs.idex.io/#create-order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1305,7 +1304,7 @@ class idex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1357,7 +1356,7 @@ class idex extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
          * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
@@ -1395,7 +1394,7 @@ class idex extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1443,9 +1442,10 @@ class idex extends Exchange {
         if ($errorCode !== null) {
             throw new ExchangeError($this->id . ' ' . $message);
         }
+        return null;
     }
 
-    public function fetch_deposit($id, $code = null, $params = array ()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch information on a deposit
          * @param {string} $id deposit $id
@@ -1464,7 +1464,7 @@ class idex extends Exchange {
         return $this->parse_transaction($response, $code);
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified currency $code
@@ -1492,7 +1492,7 @@ class idex extends Exchange {
         return $this->safe_number($response, 'serverTime');
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch data on a currency withdrawal via the withdrawal $id
          * @param {string} $id withdrawal $id
@@ -1511,7 +1511,7 @@ class idex extends Exchange {
         return $this->parse_transaction($response, $code);
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified currency $code
@@ -1526,7 +1526,7 @@ class idex extends Exchange {
         return $this->fetch_transactions_helper($code, $since, $limit, $params);
     }
 
-    public function fetch_transactions_helper($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         $nonce = $this->uuidv1();
         $request = array(
@@ -1650,7 +1650,7 @@ class idex extends Exchange {
         );
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         $hasApiKey = ($this->apiKey !== null);
         $hasSecret = ($this->secret !== null);
         $hasWalletAddress = ($this->walletAddress !== null);

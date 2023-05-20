@@ -4,9 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.binance import binance
+from ccxt.abstract.binanceus import ImplicitAPI
 
 
-class binanceus(binance):
+class binanceus(binance, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(binanceus, self).describe(), {

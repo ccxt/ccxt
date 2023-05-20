@@ -4,8 +4,9 @@ var lbank$1 = require('./abstract/lbank.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var md5 = require('./static_dependencies/noble-hashes/md5.js');
 var rsa = require('./base/functions/rsa.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -398,7 +399,7 @@ class lbank extends lbank$1 {
             'size': 100,
         };
         if (since !== undefined) {
-            request['time'] = parseInt(since);
+            request['time'] = since;
         }
         if (limit !== undefined) {
             request['size'] = limit;
@@ -802,11 +803,11 @@ class lbank extends lbank$1 {
         }
         else {
             this.checkRequiredCredentials();
-            const query = this.keysort(this.extend({
+            const queryInner = this.keysort(this.extend({
                 'api_key': this.apiKey,
             }, params));
-            const queryString = this.rawencode(query);
-            const message = this.hash(this.encode(queryString), sha256.sha256).toUpperCase();
+            const queryString = this.rawencode(queryInner);
+            const message = this.hash(this.encode(queryString), md5.md5).toUpperCase();
             const cacheSecretAsPem = this.safeValue(this.options, 'cacheSecretAsPem', true);
             let pem = undefined;
             if (cacheSecretAsPem) {
@@ -827,7 +828,7 @@ class lbank extends lbank$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const success = this.safeString(response, 'result');
         if (success === 'false') {
@@ -874,6 +875,7 @@ class lbank extends lbank$1 {
             }, errorCode, errors.ExchangeError);
             throw new ErrorClass(message);
         }
+        return undefined;
     }
 }
 

@@ -224,6 +224,9 @@ class hitbtc extends hitbtc$1 {
                     'trade': 'trading',
                     'trading': 'trading',
                 },
+                'withdraw': {
+                    'includeFee': false,
+                },
             },
             'commonCurrencies': {
                 'AUTO': 'Cube',
@@ -493,6 +496,7 @@ class hitbtc extends hitbtc$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -1346,7 +1350,7 @@ class hitbtc extends hitbtc$1 {
         this.checkAddress(address);
         const tag = this.safeString(response, 'paymentId');
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': tag,
             'info': response,
@@ -1435,6 +1439,11 @@ class hitbtc extends hitbtc$1 {
             request['currency'] += network; // when network the currency need to be changed to currency + network
             params = this.omit(params, 'network');
         }
+        const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
+        const includeFee = this.safeValue(withdrawOptions, 'includeFee', false);
+        if (includeFee) {
+            request['includeFee'] = true;
+        }
         const response = await this.privatePostAccountCryptoWithdraw(this.extend(request, params));
         //
         //     {
@@ -1478,7 +1487,7 @@ class hitbtc extends hitbtc$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (code >= 400) {
             const feedback = this.id + ' ' + body;
@@ -1489,7 +1498,7 @@ class hitbtc extends hitbtc$1 {
             // fallback to default error handler on rate limit errors
             // {"code":429,"message":"Too many requests","description":"Too many requests"}
             if (code === 429) {
-                return;
+                return undefined;
             }
             // {"error":{"code":20002,"message":"Order not found","description":""}}
             if (body[0] === '{') {
@@ -1504,6 +1513,7 @@ class hitbtc extends hitbtc$1 {
             }
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
 }
 

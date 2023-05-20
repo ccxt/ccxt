@@ -6,6 +6,7 @@ import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrd
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -482,9 +483,9 @@ export default class gemini extends Exchange {
         }
         promises = await Promise.all (promises);
         for (let i = 0; i < promises.length; i++) {
-            const response = promises[i];
-            const marketId = this.safeStringLower (response, 'symbol');
-            result[marketId] = this.parseMarket (response);
+            const responseInner = promises[i];
+            const marketId = this.safeStringLower (responseInner, 'symbol');
+            result[marketId] = this.parseMarket (responseInner);
         }
         return this.toArray (result);
     }
@@ -553,7 +554,7 @@ export default class gemini extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchOrderBook
@@ -576,7 +577,7 @@ export default class gemini extends Exchange {
         return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
-    async fetchTickerV1 (symbol, params = {}) {
+    async fetchTickerV1 (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -598,7 +599,7 @@ export default class gemini extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickerV2 (symbol, params = {}) {
+    async fetchTickerV2 (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -621,7 +622,7 @@ export default class gemini extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickerV1AndV2 (symbol, params = {}) {
+    async fetchTickerV1AndV2 (symbol: string, params = {}) {
         const tickerA = await this.fetchTickerV1 (symbol, params);
         const tickerB = await this.fetchTickerV2 (symbol, params);
         return this.deepExtend (tickerA, {
@@ -635,7 +636,7 @@ export default class gemini extends Exchange {
         });
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name gemini#fetchTicker
@@ -835,7 +836,7 @@ export default class gemini extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchTrades
@@ -1127,7 +1128,7 @@ export default class gemini extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchOrder
@@ -1167,7 +1168,7 @@ export default class gemini extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchOpenOrders
@@ -1212,7 +1213,7 @@ export default class gemini extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name gemini#createOrder
@@ -1308,7 +1309,7 @@ export default class gemini extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name gemini#cancelOrder
@@ -1350,7 +1351,7 @@ export default class gemini extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchMyTrades
@@ -1379,7 +1380,7 @@ export default class gemini extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name gemini#withdraw
@@ -1439,7 +1440,7 @@ export default class gemini extends Exchange {
         return this.seconds ();
     }
 
-    async fetchTransactions (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchTransactions
@@ -1545,7 +1546,7 @@ export default class gemini extends Exchange {
         };
     }
 
-    async fetchDepositAddressesByNetwork (code, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const network = this.safeString (params, 'network');
@@ -1565,7 +1566,7 @@ export default class gemini extends Exchange {
         return this.groupBy (results, 'network');
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
@@ -1581,7 +1582,7 @@ export default class gemini extends Exchange {
             }, query);
             let payload = this.json (request);
             payload = this.stringToBase64 (payload);
-            const signature = this.hmac (payload, this.encode (this.secret), sha384);
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384);
             headers = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': this.apiKey,
@@ -1606,7 +1607,7 @@ export default class gemini extends Exchange {
                 const feedback = this.id + ' ' + body;
                 this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             }
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {
@@ -1617,17 +1618,18 @@ export default class gemini extends Exchange {
         //
         const result = this.safeString (response, 'result');
         if (result === 'error') {
-            const reason = this.safeString (response, 'reason');
+            const reasonInner = this.safeString (response, 'reason');
             const message = this.safeString (response, 'message');
             const feedback = this.id + ' ' + message;
-            this.throwExactlyMatchedException (this.exceptions['exact'], reason, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], reasonInner, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name gemini#createDepositAddress
@@ -1652,7 +1654,7 @@ export default class gemini extends Exchange {
         };
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchOHLCV

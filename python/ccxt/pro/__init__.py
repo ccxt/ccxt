@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '3.0.43'
+__version__ = '3.1.3'
 
 # ----------------------------------------------------------------------------
 
@@ -26,10 +26,12 @@ from ccxt.pro.bitget import bitget                                        # noqa
 from ccxt.pro.bitmart import bitmart                                      # noqa: F401
 from ccxt.pro.bitmex import bitmex                                        # noqa: F401
 from ccxt.pro.bitopro import bitopro                                      # noqa: F401
+from ccxt.pro.bitpanda import bitpanda                                    # noqa: F401
 from ccxt.pro.bitrue import bitrue                                        # noqa: F401
 from ccxt.pro.bitstamp import bitstamp                                    # noqa: F401
 from ccxt.pro.bittrex import bittrex                                      # noqa: F401
 from ccxt.pro.bitvavo import bitvavo                                      # noqa: F401
+from ccxt.pro.blockchaincom import blockchaincom                          # noqa: F401
 from ccxt.pro.btcex import btcex                                          # noqa: F401
 from ccxt.pro.bybit import bybit                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
@@ -51,6 +53,7 @@ from ccxt.pro.huobipro import huobipro                                    # noqa
 from ccxt.pro.idex import idex                                            # noqa: F401
 from ccxt.pro.independentreserve import independentreserve                # noqa: F401
 from ccxt.pro.kraken import kraken                                        # noqa: F401
+from ccxt.pro.krakenfutures import krakenfutures                          # noqa: F401
 from ccxt.pro.kucoin import kucoin                                        # noqa: F401
 from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.pro.luno import luno                                            # noqa: F401
@@ -62,12 +65,10 @@ from ccxt.pro.okex import okex                                            # noqa
 from ccxt.pro.okx import okx                                              # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
 from ccxt.pro.probit import probit                                        # noqa: F401
-from ccxt.pro.ripio import ripio                                          # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
 from ccxt.pro.wazirx import wazirx                                        # noqa: F401
 from ccxt.pro.whitebit import whitebit                                    # noqa: F401
 from ccxt.pro.woo import woo                                              # noqa: F401
-from ccxt.pro.zb import zb                                                # noqa: F401
 
 exchanges = [
     'alpaca',
@@ -84,10 +85,12 @@ exchanges = [
     'bitmart',
     'bitmex',
     'bitopro',
+    'bitpanda',
     'bitrue',
     'bitstamp',
     'bittrex',
     'bitvavo',
+    'blockchaincom',
     'btcex',
     'bybit',
     'cex',
@@ -109,6 +112,7 @@ exchanges = [
     'idex',
     'independentreserve',
     'kraken',
+    'krakenfutures',
     'kucoin',
     'kucoinfutures',
     'luno',
@@ -120,10 +124,8 @@ exchanges = [
     'okx',
     'phemex',
     'probit',
-    'ripio',
     'upbit',
     'wazirx',
     'whitebit',
     'woo',
-    'zb',
 ]

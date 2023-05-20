@@ -753,12 +753,12 @@ class buda extends buda$1 {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
-        side = (side === 'buy') ? 'Bid' : 'Ask';
+        const requestSide = (side === 'buy') ? 'Bid' : 'Ask';
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
             'price_type': type,
-            'type': side,
+            'type': requestSide,
             'amount': this.amountToPrecision(symbol, amount),
         };
         if (type === 'limit') {
@@ -908,9 +908,9 @@ class buda extends buda$1 {
         for (let i = 1; i < receiveAddresses.length; i++) {
             const receiveAddress = receiveAddresses[i];
             if (receiveAddress['ready']) {
-                const address = receiveAddress['address'];
-                this.checkAddress(address);
-                addressPool.push(address);
+                const addressInner = receiveAddress['address'];
+                this.checkAddress(addressInner);
+                addressPool.push(addressInner);
             }
         }
         const addressPoolLength = addressPool.length;
@@ -1112,7 +1112,7 @@ class buda extends buda$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if (code >= 400) {
             const errorCode = this.safeString(response, 'code');
@@ -1123,6 +1123,7 @@ class buda extends buda$1 {
                 throw new errors.ExchangeError(feedback);
             }
         }
+        return undefined;
     }
 }
 

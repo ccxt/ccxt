@@ -389,7 +389,7 @@ class btcalpha extends btcalpha$1 {
         const marketId = this.safeString(trade, 'pair');
         market = this.safeMarket(marketId, market, '_');
         const timestampRaw = this.safeString(trade, 'timestamp');
-        const timestamp = this.parseNumber(Precise["default"].stringMul(timestampRaw, '1000000'));
+        const timestamp = this.parseToInt(Precise["default"].stringMul(timestampRaw, '1000000'));
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'amount');
         const id = this.safeString(trade, 'id');
@@ -887,7 +887,7 @@ class btcalpha extends btcalpha$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
@@ -905,7 +905,7 @@ class btcalpha extends btcalpha$1 {
             throw new errors.DDoSProtection(feedback);
         }
         if (code < 400) {
-            return;
+            return undefined;
         }
         throw new errors.ExchangeError(feedback);
     }

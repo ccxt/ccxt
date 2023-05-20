@@ -9,6 +9,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
+import { Int, OrderSide } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -18,12 +19,10 @@ export default class idex extends Exchange {
             'id': 'idex',
             'name': 'IDEX',
             'countries': [ 'US' ],
-            // public data endpoints 5 requests a second => 1000ms / 5 = 200ms between requests roughly (without Authentication)
-            // all endpoints 10 requests a second => (1000ms / rateLimit) / 10 => 1 / 2 (with Authentication)
-            'rateLimit': 200,
+            'rateLimit': 1000,
             'version': 'v3',
             'pro': true,
-            'certified': true,
+            'certified': false,
             'requiresWeb3': true,
             'has': {
                 'CORS': undefined,
@@ -130,20 +129,20 @@ export default class idex extends Exchange {
                         'user': 1,
                         'wallets': 1,
                         'balances': 1,
-                        'orders': 1,
-                        'fills': 1,
+                        'orders': 0.1,
+                        'fills': 0.1,
                         'deposits': 1,
                         'withdrawals': 1,
                         'wsToken': 1,
                     },
                     'post': {
                         'wallets': 1,
-                        'orders': 1,
-                        'orders/test': 1,
+                        'orders': 0.1,
+                        'orders/test': 0.1,
                         'withdrawals': 1,
                     },
                     'delete': {
-                        'orders': 1,
+                        'orders': 0.1,
                     },
                 },
             },
@@ -316,7 +315,7 @@ export default class idex extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name idex#fetchTicker
@@ -431,7 +430,7 @@ export default class idex extends Exchange {
         }, market);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchOHLCV
@@ -494,7 +493,7 @@ export default class idex extends Exchange {
         return [ timestamp, open, high, low, close, volume ];
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchTrades
@@ -655,7 +654,7 @@ export default class idex extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchOrderBook
@@ -830,7 +829,7 @@ export default class idex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchMyTrades
@@ -897,7 +896,7 @@ export default class idex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchOrder
@@ -912,7 +911,7 @@ export default class idex extends Exchange {
         return await this.fetchOrdersHelper (symbol, undefined, undefined, this.extend (request, params));
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchOpenOrders
@@ -929,7 +928,7 @@ export default class idex extends Exchange {
         return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchClosedOrders
@@ -946,7 +945,7 @@ export default class idex extends Exchange {
         return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrdersHelper (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrdersHelper (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'nonce': this.uuidv1 (),
@@ -1144,7 +1143,7 @@ export default class idex extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name idex#createOrder
@@ -1337,7 +1336,7 @@ export default class idex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name idex#withdraw
@@ -1431,7 +1430,7 @@ export default class idex extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name idex#cancelOrder
@@ -1481,9 +1480,10 @@ export default class idex extends Exchange {
         if (errorCode !== undefined) {
             throw new ExchangeError (this.id + ' ' + message);
         }
+        return undefined;
     }
 
-    async fetchDeposit (id, code = undefined, params = {}) {
+    async fetchDeposit (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchDeposit
@@ -1504,7 +1504,7 @@ export default class idex extends Exchange {
         return this.parseTransaction (response, code);
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchDeposits
@@ -1518,7 +1518,7 @@ export default class idex extends Exchange {
         params = this.extend ({
             'method': 'privateGetDeposits',
         }, params);
-        return this.fetchTransactionsHelper (code, since, limit, params);
+        return await this.fetchTransactionsHelper (code, since, limit, params);
     }
 
     async fetchTime (params = {}) {
@@ -1536,7 +1536,7 @@ export default class idex extends Exchange {
         return this.safeNumber (response, 'serverTime');
     }
 
-    async fetchWithdrawal (id, code = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchWithdrawal
@@ -1557,7 +1557,7 @@ export default class idex extends Exchange {
         return this.parseTransaction (response, code);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchWithdrawals
@@ -1571,10 +1571,10 @@ export default class idex extends Exchange {
         params = this.extend ({
             'method': 'privateGetWithdrawals',
         }, params);
-        return this.fetchTransactionsHelper (code, since, limit, params);
+        return await this.fetchTransactionsHelper (code, since, limit, params);
     }
 
-    async fetchTransactionsHelper (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTransactionsHelper (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const nonce = this.uuidv1 ();
         const request = {
@@ -1698,7 +1698,7 @@ export default class idex extends Exchange {
         };
     }
 
-    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost (api, method, path, params, config = {}) {
         const hasApiKey = (this.apiKey !== undefined);
         const hasSecret = (this.secret !== undefined);
         const hasWalletAddress = (this.walletAddress !== undefined);
@@ -1708,7 +1708,7 @@ export default class idex extends Exchange {
         return authenticated ? (defaultCost / 2) : defaultCost;
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const network = this.safeString (this.options, 'network', 'ETH');
         const version = this.safeString (this.options, 'version', 'v1');
         let url = this.urls['api'][network] + '/' + version + '/' + path;

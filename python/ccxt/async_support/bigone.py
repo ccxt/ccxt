@@ -4,6 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.bigone import ImplicitAPI
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -16,7 +20,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class bigone(Exchange):
+class bigone(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bigone, self).describe(), {
@@ -331,7 +335,7 @@ class bigone(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -363,7 +367,7 @@ class bigone(Exchange):
         ticker = self.safe_value(response, 'data', {})
         return self.parse_ticker(ticker, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -429,10 +433,10 @@ class bigone(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        timestamp = self.safe_integer(data, 'timestamp')
+        timestamp = self.safe_integer(data, 'Timestamp')
         return self.parse_to_int(timestamp / 1000000)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -591,7 +595,7 @@ class bigone(Exchange):
             result['fee'] = None
         return self.safe_trade(result, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -650,7 +654,7 @@ class bigone(Exchange):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -727,8 +731,11 @@ class bigone(Exchange):
         await self.load_markets()
         type = self.safe_string(params, 'type', '')
         params = self.omit(params, 'type')
-        method = 'privateGet' + self.capitalize(type) + 'Accounts'
-        response = await getattr(self, method)(params)
+        response = None
+        if type == 'funding' or type == 'fund':
+            response = await self.privateGetFundAccounts(params)
+        else:
+            response = await self.privateGetAccounts(params)
         #
         #     {
         #         "code":0,
@@ -796,7 +803,7 @@ class bigone(Exchange):
             'trades': None,
         }, market)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -809,11 +816,11 @@ class bigone(Exchange):
         """
         await self.load_markets()
         market = self.market(symbol)
-        side = 'BID' if (side == 'buy') else 'ASK'
+        requestSide = 'BID' if (side == 'buy') else 'ASK'
         uppercaseType = type.upper()
         request = {
             'asset_pair_name': market['id'],  # asset pair name BTC-USDT, required
-            'side': side,  # order side one of "ASK"/"BID", required
+            'side': requestSide,  # order side one of "ASK"/"BID", required
             'amount': self.amount_to_precision(symbol, amount),  # order amount, string, required
             # 'price': self.price_to_precision(symbol, price),  # order price, string, required
             'type': uppercaseType,
@@ -852,7 +859,7 @@ class bigone(Exchange):
         order = self.safe_value(response, 'data')
         return self.parse_order(order, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -878,7 +885,7 @@ class bigone(Exchange):
         order = self.safe_value(response, 'data')
         return self.parse_order(order)
 
-    async def cancel_all_orders(self, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -905,7 +912,7 @@ class bigone(Exchange):
         #
         return response
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by bigone fetchOrder
@@ -918,7 +925,7 @@ class bigone(Exchange):
         order = self.safe_value(response, 'data', {})
         return self.parse_order(order)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -964,7 +971,7 @@ class bigone(Exchange):
         orders = self.safe_value(response, 'data', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1029,7 +1036,7 @@ class bigone(Exchange):
         }
         return self.safe_string(statuses, status)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1043,7 +1050,7 @@ class bigone(Exchange):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1059,7 +1066,7 @@ class bigone(Exchange):
 
     def nonce(self):
         exchangeTimeCorrection = self.safe_integer(self.options, 'exchangeMillisecondsCorrection', 0) * 1000000
-        return self.microseconds() * 1000 + exchangeTimeCorrection
+        return self.sum(self.microseconds() * 1000, exchangeTimeCorrection)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
@@ -1089,7 +1096,7 @@ class bigone(Exchange):
         headers['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1230,7 +1237,7 @@ class bigone(Exchange):
             'fee': None,
         }
 
-    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1277,7 +1284,7 @@ class bigone(Exchange):
         deposits = self.safe_value(response, 'data', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1324,7 +1331,7 @@ class bigone(Exchange):
         withdrawals = self.safe_value(response, 'data', [])
         return self.parse_transactions(withdrawals, currency, since, limit)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -1392,7 +1399,7 @@ class bigone(Exchange):
         }
         return self.safe_string(statuses, status, 'failed')
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1440,7 +1447,7 @@ class bigone(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #      {"code":10013,"message":"Resource not found"}
         #      {"code":40004,"message":"invalid jwt"}
@@ -1453,3 +1460,4 @@ class bigone(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

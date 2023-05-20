@@ -435,7 +435,7 @@ export default class bigone extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const timestamp = this.safeInteger(data, 'timestamp');
+        const timestamp = this.safeInteger(data, 'Timestamp');
         return this.parseToInt(timestamp / 1000000);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -769,8 +769,13 @@ export default class bigone extends Exchange {
         await this.loadMarkets();
         const type = this.safeString(params, 'type', '');
         params = this.omit(params, 'type');
-        const method = 'privateGet' + this.capitalize(type) + 'Accounts';
-        const response = await this[method](params);
+        let response = undefined;
+        if (type === 'funding' || type === 'fund') {
+            response = await this.privateGetFundAccounts(params);
+        }
+        else {
+            response = await this.privateGetAccounts(params);
+        }
         //
         //     {
         //         "code":0,
@@ -855,11 +860,11 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        side = (side === 'buy') ? 'BID' : 'ASK';
+        const requestSide = (side === 'buy') ? 'BID' : 'ASK';
         const uppercaseType = type.toUpperCase();
         const request = {
             'asset_pair_name': market['id'],
-            'side': side,
+            'side': requestSide,
             'amount': this.amountToPrecision(symbol, amount),
             // 'price': this.priceToPrecision (symbol, price), // order price, string, required
             'type': uppercaseType,
@@ -1128,7 +1133,7 @@ export default class bigone extends Exchange {
     }
     nonce() {
         const exchangeTimeCorrection = this.safeInteger(this.options, 'exchangeMillisecondsCorrection', 0) * 1000000;
-        return this.microseconds() * 1000 + exchangeTimeCorrection;
+        return this.sum(this.microseconds() * 1000, exchangeTimeCorrection);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));
@@ -1532,7 +1537,7 @@ export default class bigone extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //      {"code":10013,"message":"Resource not found"}
@@ -1547,5 +1552,6 @@ export default class bigone extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }

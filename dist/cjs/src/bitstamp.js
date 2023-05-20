@@ -526,6 +526,7 @@ class bitstamp extends bitstamp$1 {
                     'max': undefined,
                 },
             },
+            'networks': {},
         };
     }
     async fetchMarketsFromCache(params = {}) {
@@ -2035,7 +2036,7 @@ class bitstamp extends bitstamp$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //     {"error": "No permission found"} // fetchDepositAddress returns this on apiKeys that don't have the permission required
@@ -2062,12 +2063,12 @@ class bitstamp extends bitstamp$1 {
                     }
                 }
             }
-            const reason = this.safeValue(response, 'reason', {});
-            if (typeof reason === 'string') {
-                errors$1.push(reason);
+            const reasonInner = this.safeValue(response, 'reason', {});
+            if (typeof reasonInner === 'string') {
+                errors$1.push(reasonInner);
             }
             else {
-                const all = this.safeValue(reason, '__all__', []);
+                const all = this.safeValue(reasonInner, '__all__', []);
                 for (let i = 0; i < all.length; i++) {
                     errors$1.push(all[i]);
                 }
@@ -2084,6 +2085,7 @@ class bitstamp extends bitstamp$1 {
             }
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
 }
 
