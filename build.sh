@@ -133,7 +133,11 @@ done
 ### BUILD SPECIFIC EXCHANGES ###
 # npm run pre-transpile
 # faster version of pre-transpile (without bundle and atomic linting)
-npm run export-exchanges && npm run tsBuild && npm run emitAPI
+npm run export-exchanges
+# delay for appveyor
+sleep 0.1
+echo "exportttt run"
+npm run tsBuild && npm run emitAPI
 echo "REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[@]}"
 PYTHON_FILES=()
 for exchange in "${REST_EXCHANGES[@]}"; do
@@ -150,9 +154,7 @@ for exchange in "${WS_EXCHANGES[@]}"; do
 done
 # faster version of post-transpile
 npm run check-php-syntax
-cd python
-ldconfig
-tox -e qa -- ${PYTHON_FILES[*]} && cd ..
+cd python && tox -e qa -- ${PYTHON_FILES[*]} && cd ..
 
 
 ### RUN SPECIFIC TESTS (ONLY IN TRAVIS) ###
