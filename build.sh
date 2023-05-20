@@ -53,20 +53,17 @@ function run_tests {
 }
 
 build_and_test_all () {
-  if [ "$IS_TRAVIS" == "TRUE" ]; then
-    npm run force-build
+  npm run force-build
+  if [[ "$IS_TRAVIS" == "TRUE" ]]; then
     npm run test-base
     npm run test-base-ws
     run_tests
-  else
-    sudo ldconfig
-    npm run force-build
   fi
   exit
 }
 
 ### CHECK IF THIS IS A PR ###
-if [ "$IS_TRAVIS" == "TRUE" ]; then
+if [[ "$IS_TRAVIS" == "TRUE" ]]; then
   if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
     echo "This is merger in master, will build everything"
     build_and_test_all
@@ -80,7 +77,7 @@ fi
 
 ##### DETECT CHANGES #####
 # temporarily remove the below scripts from diff
-if [ "$IS_TRAVIS" == "TRUE" ]; then
+if [[ "$IS_TRAVIS" == "TRUE" ]]; then
   diff=$(git diff origin/master --name-only)
   diff=$(echo "$diff" | sed -e "s/^build\.sh//")
   diff=$(echo "$diff" | sed -e "s/^\.travis\.yml//")
@@ -152,12 +149,13 @@ for exchange in "${WS_EXCHANGES[@]}"; do
   PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
 done
 # faster version of post-transpile
+sudo ldconfig
 npm run check-php-syntax
 cd python && tox -e qa -- ${PYTHON_FILES[*]} && cd ..
 
 
 ### RUN SPECIFIC TESTS (ONLY IN TRAVIS) ###
-if [ "$IS_TRAVIS" == "TRUE" ]; then
+if [[ "$IS_TRAVIS" == "TRUE" ]]; then
   if [  ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
     echo "no exchanges to test, exiting"
     exit
