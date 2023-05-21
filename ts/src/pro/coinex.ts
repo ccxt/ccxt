@@ -640,14 +640,7 @@ export default class coinex extends coinexRest {
             message['params'] = [ market['id'] ];
             messageHash += ':' + symbol;
         } else {
-            const allIds = [];
-            for (let i = 0; i < this.markets.length; i++) {
-                const innerMarket = this.markets[i];
-                if (type === innerMarket['type']) {
-                    allIds.push (innerMarket['id']);
-                }
-            }
-            message['params'] = allIds;
+            message['params'] = [];
         }
         const url = this.urls['api']['ws'][type];
         const request = this.deepExtend (message, query);
