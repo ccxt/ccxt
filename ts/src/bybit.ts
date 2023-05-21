@@ -7611,7 +7611,7 @@ export default class bybit extends Exchange {
                 request['category'] = market['linear'] ? 'linear' : 'inverse';
             } else {
                 let subType = undefined;
-                [ subType, params ] = this.handleSubTypeAndParams ('watchTickers', market, params);
+                [ subType, params ] = this.handleSubTypeAndParams ('setPositionMode', market, params);
                 request['category'] = subType;
             }
             response = await this.privatePostV5PositionSwitchMode (this.extend (request, params));
