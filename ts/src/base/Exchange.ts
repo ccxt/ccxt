@@ -1000,10 +1000,15 @@ export default class Exchange {
         if (this.has['fetchCurrencies'] === true) {
             currencies = await this.fetchCurrencies ()
         }
-        let markets = undefined
+        let markets
         const loadFromOutside = this.safeValue(params, 'loadFromOutside', undefined);
+        const loadedMarketCallback = this.safeValue(params, 'loadedMarketCallback', undefined);
         if (!loadFromOutside) {
+            // TODO strip loadFromOutside, loadedMarketCallback params to avoid side effects
             markets = await this.fetchMarkets (params)
+            if (loadedMarketCallback) {
+                loadedMarketCallback (markets)
+            }
         } else {
             markets = this.fetchMarketsFromOutside (loadFromOutside)
         }
