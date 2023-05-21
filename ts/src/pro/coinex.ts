@@ -77,7 +77,7 @@ export default class coinex extends coinexRest {
     requestId () {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
-        return requestId.toString ();
+        return requestId;
     }
 
     handleTicker (client: Client, message) {
@@ -640,7 +640,14 @@ export default class coinex extends coinexRest {
             message['params'] = [ market['id'] ];
             messageHash += ':' + symbol;
         } else {
-            message['params'] = this.ids;
+            const allIds = [];
+            for (let i = 0; i < this.markets.length; i++) {
+                const innerMarket = this.markets[i];
+                if (type === innerMarket['type']) {
+                    allIds.push (innerMarket['id']);
+                }
+            }
+            message['params'] = allIds;
         }
         const url = this.urls['api']['ws'][type];
         const request = this.deepExtend (message, query);
@@ -959,7 +966,7 @@ export default class coinex extends coinexRest {
     }
 
     handleSubscriptionStatus (client: Client, message) {
-        const id = this.safeString (message, 'id');
+        const id = this.safeInteger (message, 'id');
         const subscription = this.safeValue (client.subscriptions, id);
         if (subscription !== undefined) {
             const futureIndex = this.safeString (subscription, 'future');
