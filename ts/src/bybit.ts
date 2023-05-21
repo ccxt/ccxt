@@ -362,6 +362,7 @@ export default class bybit extends Exchange {
                         'v5/order/spot-borrow-check': 2.5,
                         'v5/order/realtime': 2.5,
                         'v5/position/list': 2.5,
+                        'v5/position/switch-mode': 2.5,
                         'v5/execution/list': 2.5,
                         'v5/position/closed-pnl': 2.5,
                         'v5/account/wallet-balance': 2.5,
@@ -7573,6 +7574,17 @@ export default class bybit extends Exchange {
     }
 
     async setPositionMode (hedged, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#setPositionMode
+         * @description set hedged to true or false for a market
+         * @see https://bybit-exchange.github.io/docs/v5/position/position-mode
+         * @see https://bybit-exchange.github.io/docs/derivatives/contract/position-mode
+         * @param {bool} hedged
+         * @param {string|undefined} symbol used for unified account with inverse market
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} response from the exchange
+         */
         await this.loadMarkets ();
         let market = undefined;
         let mode = undefined;
@@ -7585,16 +7597,16 @@ export default class bybit extends Exchange {
             'mode': mode,
         };
         const enableUnified = await this.isUnifiedEnabled ();
-        let method = undefined;
+        let response = undefined;
         if (enableUnified[1]) {
             this.checkRequiredSymbol ('setPositionMode', symbol);
             market = this.market (symbol);
             if (!market['inverse']) {
-                throw new NotSupported (this.id + ' setPositionMode () only support inverse market for unified trading account');
+                throw new NotSupported (this.id + ' setPositionMode () only support inverse market for unified trading account, all linear perpetual trading pairs are one-way mode');
             }
             request['symbol'] = market['id'];
             request['category'] = 'inverse';
-            method = 'privatePostV5PositionSwitchMode';
+            response = await this.privatePostV5PositionSwitchMode (this.extend (request, params));
         } else {
             if (symbol === undefined) {
                 request['coin'] = 'USDT';
@@ -7602,7 +7614,7 @@ export default class bybit extends Exchange {
                 market = this.market (symbol);
                 request['symbol'] = market['id'];
             }
-            method = 'privatePostContractV3PrivatePositionSwitchMode';
+            response = await this.privatePostContractV3PrivatePositionSwitchMode (this.extend (request, params));
         }
         //
         // contract v3
@@ -7626,7 +7638,7 @@ export default class bybit extends Exchange {
         //         "retExtInfo": {},
         //         "time": 1675249072814
         //     }
-        return await this[method] (this.extend (request, params));
+        return response;
     }
 
     async fetchDerivativesOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
