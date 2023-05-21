@@ -7606,7 +7606,7 @@ export default class bybit extends Exchange {
         }
         const enableUnified = await this.isUnifiedEnabled ();
         let response = undefined;
-        if (enableUnified[1]) {
+        if (enableUnified[1] || enableUnified[0]) {
             if (symbol !== undefined) {
                 request['category'] = market['linear'] ? 'linear' : 'inverse';
             } else {
