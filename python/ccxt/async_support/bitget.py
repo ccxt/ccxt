@@ -137,12 +137,15 @@ class bitget(Exchange, ImplicitAPI):
                     'mix': 'https://api.{hostname}',
                     'user': 'https://api.{hostname}',
                     'p2p': 'https://api.{hostname}',
+                    'broker': 'https://api.{hostname}',
+                    'margin': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
                     'https://bitgetlimited.github.io/apidoc/en/mix',
                     'https://bitgetlimited.github.io/apidoc/en/spot',
                     'https://bitgetlimited.github.io/apidoc/en/broker',
+                    'https://bitgetlimited.github.io/apidoc/en/margin',
                 ],
                 'fees': 'https://www.bitget.cc/zh-CN/rate?tab=1',
                 'referral': 'https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j',
@@ -152,12 +155,12 @@ class bitget(Exchange, ImplicitAPI):
                     'spot': {
                         'get': {
                             'public/time': 1,
-                            'public/currencies': 1,
+                            'public/currencies': 6.6667,  # 3 times/1s(IP) => 20/3 = 6.6667
                             'public/products': 1,
                             'public/product': 1,
                             'market/ticker': 1,
                             'market/tickers': 1,
-                            'market/fills': 1,
+                            'market/fills': 2,  # 10 times/1s(IP) => 20/10 = 2
                             'market/fills-history': 2,
                             'market/candles': 1,
                             'market/depth': 1,
@@ -170,7 +173,9 @@ class bitget(Exchange, ImplicitAPI):
                             'market/depth': 1,
                             'market/ticker': 1,
                             'market/tickers': 1,
+                            'market/contract-vip-level': 2,
                             'market/fills': 1,
+                            'market/fills-history': 2,
                             'market/candles': 1,
                             'market/index': 1,
                             'market/funding-time': 1,
@@ -179,93 +184,125 @@ class bitget(Exchange, ImplicitAPI):
                             'market/open-interest': 1,
                             'market/mark-price': 1,
                             'market/symbol-leverage': 1,
-                            'market/contract-vip-level': 2,
-                            'market/fills-history': 2,
                             'market/queryPositionLever': 1,
+                        },
+                    },
+                    'margin': {
+                        'get': {
+                            'cross/public/interestRateAndLimit': 2,  # 10 times/1s(IP) => 20/10 = 2
+                            'isolated/public/interestRateAndLimit': 2,  # 10 times/1s(IP) => 20/10 = 2
+                            'cross/public/tierData': 2,  # 10 times/1s(IP) => 20/10 = 2
+                            'isolated/public/tierData': 2,  # 10 times/1s(IP) => 20/10 = 2
+                            'public/currencies': 1,  # 20 times/1s(IP) => 20/20 = 1
+                            'cross/account/assets': 2,  # 10 times/1s(IP) => 20/10 = 2
+                            'isolated/account/assets': 2,  # 10 times/1s(IP) => 20/10 = 2
                         },
                     },
                 },
                 'private': {
                     'spot': {
                         'get': {
-                            'account/getInfo': 20,
-                            'account/assets': 2,
-                            'account/transferRecords': 4,
                             'wallet/deposit-address': 4,
-                            'wallet/withdrawal-inner': 4,
                             'wallet/withdrawal-list': 1,
                             'wallet/deposit-list': 1,
+                            'account/getInfo': 20,
+                            'account/assets': 2,
+                            'account/transferRecords': 1,  # 20 times/1s(UID) => 20/20 = 1
                         },
                         'post': {
-                            'account/bills': 2,
+                            'wallet/transfer': 4,
+                            'wallet/transfer-v2': 4,
+                            'wallet/subTransfer': 10,
+                            'wallet/withdrawal': 4,
+                            'wallet/withdrawal-v2': 4,
+                            'wallet/withdrawal-inner': 4,
+                            'wallet/withdrawal-inner-v2': 4,
                             'account/sub-account-spot-assets': 200,
+                            'account/bills': 2,
                             'trade/orders': 2,
                             'trade/batch-orders': 4,
                             'trade/cancel-order': 2,
+                            'trade/cancel-order-v2': 2,
+                            'trade/cancel-symbol-order': 2,
                             'trade/cancel-batch-orders': 4,
                             'trade/cancel-batch-orders-v2': 4,
                             'trade/orderInfo': 1,
                             'trade/open-orders': 1,
                             'trade/history': 1,
                             'trade/fills': 1,
-                            'trade/cancel-order-v2': 2,
-                            'trade/cancel-symbol-order': 2,
-                            'wallet/transfer': 4,
-                            'wallet/withdrawal': 4,
-                            'wallet/subTransfer': 10,
-                            'wallet/transfer-v2': 4,
-                            'wallet/withdrawal-v2': 4,
-                            'wallet/withdrawal-inner-v2': 4,
                             'plan/placePlan': 1,
                             'plan/modifyPlan': 1,
                             'plan/cancelPlan': 1,
                             'plan/currentPlan': 1,
                             'plan/historyPlan': 1,
+                            'plan/batchCancelPlan': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/order/orderCurrentList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/order/orderHistoryList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/order/closeTrackingOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/order/updateTpsl': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/order/followerEndOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/order/spotInfoList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/config/getTraderSettings': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/config/getFollowerSettings': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/user/myTraders': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/config/setFollowerConfig': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/user/myFollowers': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/config/setProductCode': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/user/removeTrader': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/profit/totalProfitInfo': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/profit/totalProfitList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/profit/profitHisList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/profit/profitHisDetailList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/profit/waitProfitDetailList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/user/getTraderInfo': 2,  # 10 times/1s(UID) => 20/10 = 2
                         },
                     },
                     'mix': {
                         'get': {
                             'account/account': 2,
                             'account/accounts': 2,
-                            'account/accountBill': 2,
-                            'account/accountBusinessBill': 4,
-                            'account/open-count': 1,
-                            'order/current': 2,
-                            'order/history': 2,
-                            'order/detail': 2,
-                            'order/fills': 2,
-                            'order/historyProductType': 8,
-                            'order/allFills': 2,
-                            'plan/currentPlan': 2,
-                            'plan/historyPlan': 2,
                             'position/singlePosition': 2,
                             'position/singlePosition-v2': 2,
-                            'position/allPosition': 2,
-                            'position/allPosition-v2': 2,
+                            'position/allPosition': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'position/allPosition-v2': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'account/accountBill': 2,
+                            'account/accountBusinessBill': 4,
+                            'order/current': 1,  # 20 times/1s(UID) => 20/20 = 1
+                            'order/marginCoinCurrent': 1,  # 20 times/1s(UID) => 20/20 = 1
+                            'order/history': 2,
+                            'order/historyProductType': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'order/detail': 2,
+                            'order/fills': 2,
+                            'order/allFills': 2,
+                            'plan/currentPlan': 1,  # 20 times/1s(UID) => 20/20 = 1
+                            'plan/historyPlan': 2,
                             'trace/currentTrack': 2,
                             'trace/followerOrder': 2,
+                            'trace/followerHistoryOrders': 2,
                             'trace/historyTrack': 2,
-                            'trace/summary': 2,
-                            'trace/profitSettleTokenIdGroup': 2,
-                            'trace/profitDateGroupList': 2,
+                            'trace/summary': 1,  # 20 times/1s(UID) => 20/20 = 1
+                            'trace/profitSettleTokenIdGroup': 1,  # 20 times/1s(UID) => 20/20 = 1
+                            'trace/profitDateGroupList': 1,  # 20 times/1s(UID) => 20/20 = 1
                             'trade/profitDateList': 2,
-                            'trace/waitProfitDateList': 2,
-                            'trace/traderSymbols': 2,
+                            'trace/waitProfitDateList': 1,  # 20 times/1s(UID) => 20/20 = 1
+                            'trace/traderSymbols': 1,  # 20 times/1s(UID) => 20/20 = 1
                             'trace/traderList': 2,
+                            'trace/traderDetail': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/queryTraceConfig': 2,
-                            'order/marginCoinCurrent': 2,
                         },
                         'post': {
-                            'account/setLeverage': 8,
-                            'account/setMargin': 8,
-                            'account/setMarginMode': 8,
-                            'account/setPositionMode': 8,
+                            'account/sub-account-contract-assets': 200,  # 0.1 times/1s(UID) => 20/0.1 = 200
+                            'account/open-count': 1,
+                            'account/setLeverage': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'account/setMargin': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'account/setMarginMode': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'account/setPositionMode': 4,  # 5 times/1s(UID) => 20/5 = 4
                             'order/placeOrder': 2,
                             'order/batch-orders': 2,
                             'order/cancel-order': 2,
-                            'order/cancel-all-orders': 2,
                             'order/cancel-batch-orders': 2,
                             'order/cancel-symbol-orders': 2,
+                            'order/cancel-all-orders': 2,
                             'plan/placePlan': 2,
                             'plan/modifyPlan': 2,
                             'plan/modifyPlanPreset': 2,
@@ -274,14 +311,16 @@ class bitget(Exchange, ImplicitAPI):
                             'plan/placePositionsTPSL': 2,
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
-                            'plan/cancelAllPlan': 2,
                             'plan/cancelSymbolPlan': 2,
+                            'plan/cancelAllPlan': 2,
                             'trace/closeTrackOrder': 2,
+                            'trace/modifyTPSL': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'trace/setUpCopySymbols': 2,
                             'trace/followerSetBatchTraceConfig': 2,
                             'trace/followerCloseByTrackingNo': 2,
                             'trace/followerCloseByAll': 2,
                             'trace/followerSetTpsl': 2,
+                            'trace/cancelCopyTrader': 4,  # 5 times/1s(UID) => 20/5 = 4
                         },
                     },
                     'user': {
@@ -293,17 +332,77 @@ class bitget(Exchange, ImplicitAPI):
                         'post': {
                             'sub/virtual-create': 4,
                             'sub/virtual-modify': 4,
-                            'sub/virtual-api-batch-create': 4,
+                            'sub/virtual-api-batch-create': 20,  # 1 times/1s(UID) => 20/1 = 20
                             'sub/virtual-api-create': 4,
                             'sub/virtual-api-modify': 4,
                         },
                     },
                     'p2p': {
                         'get': {
-                            'merchant/merchantList': 1,
-                            'merchant/merchantInfo': 1,
-                            'merchant/advList': 1,
-                            'merchant/orderList': 1,
+                            'merchant/merchantList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'merchant/merchantInfo': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'merchant/advList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'merchant/orderList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                        },
+                    },
+                    'broker': {
+                        'get': {
+                            'account/info': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'account/sub-list': 20,  # 1 times/1s(UID) => 20/1 = 20
+                            'account/sub-email': 20,  # 1 times/1s(UID) => 20/1 = 20
+                            'account/sub-spot-assets': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'account/sub-future-assets': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'account/sub-api-list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                        },
+                        'post': {
+                            'account/sub-create': 20,  # 1 times/1s(UID) => 20/1 = 20
+                            'account/sub-modify': 20,  # 1 times/1s(UID) => 20/1 = 20
+                            'account/sub-modify-email': 20,  # 1 times/1s(UID) => 20/1 = 20
+                            'account/sub-address': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'account/sub-withdrawal': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'account/sub-auto-transfer': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'account/sub-api-create': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'account/sub-api-modify': 2,  # 10 times/1s(UID) => 20/10 = 2
+                        },
+                    },
+                    'margin': {
+                        'get': {
+                            'cross/account/riskRate': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/account/maxTransferOutAmount': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/account/maxTransferOutAmount': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/order/openOrders': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/order/history': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/order/fills': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/loan/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/repay/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/interest/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/liquidation/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/fin/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/order/openOrders': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/order/history': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/order/fills': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/loan/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/repay/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/interest/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/liquidation/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/fin/list': 2,  # 10 times/1s(UID) => 20/10 = 2
+                        },
+                        'post': {
+                            'cross/account/borrow': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/account/borrow': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/account/repay': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/account/repay': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/account/riskRate': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/account/maxBorrowableAmount': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/account/maxBorrowableAmount': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/order/placeOrder': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'isolated/order/batchPlaceOrder': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'isolated/order/cancelOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'isolated/order/batchCancelOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/order/placeOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/order/batchPlaceOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/order/cancelOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'cross/order/batchCancelOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
                         },
                     },
                 },
@@ -2360,13 +2459,23 @@ class bitget(Exchange, ImplicitAPI):
 
     async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
+        see https://bitgetlimited.github.io/apidoc/en/spot/#place-order
+        see https://bitgetlimited.github.io/apidoc/en/mix/#place-order
+        see https://bitgetlimited.github.io/apidoc/en/mix/#place-stop-order
+        see https://bitgetlimited.github.io/apidoc/en/mix/#place-position-tpsl
+        see https://bitgetlimited.github.io/apidoc/en/mix/#place-plan-order
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
-        :param str side: 'buy' or 'sell'
+        :param str side: 'buy' or 'sell' or 'open_long' or 'open_short' or 'close_long' or 'close_short'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bitget api endpoint
+        :param float params['triggerPrice']: *swap only* The price at which a trigger order is triggered at
+        :param float|None params['stopLossPrice']: *swap only* The price at which a stop loss order is triggered at
+        :param float|None params['takeProfitPrice']: *swap only* The price at which a take profit order is triggered at
+        :param float|None params['stopLoss']: *swap only* *uses the Place Position TPSL* The price at which a stop loss order is triggered at
+        :param float|None params['takeProfit']: *swap only* *uses the Place Position TPSL* The price at which a take profit order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -2377,15 +2486,20 @@ class bitget(Exchange, ImplicitAPI):
             'orderType': type,
         }
         isMarketOrder = type == 'market'
-        triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
+        triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
+        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
+        stopLoss = self.safe_number(params, 'stopLoss')
+        takeProfit = self.safe_number(params, 'takeProfit')
         isTriggerOrder = triggerPrice is not None
-        stopLossPrice = self.safe_value(params, 'stopLossPrice')
-        isStopLossOrder = stopLossPrice is not None
-        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-        isTakeProfitOrder = takeProfitPrice is not None
-        isStopLossOrTakeProfit = isStopLossOrder or isTakeProfitOrder
-        if self.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder) > 1:
-            raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice')
+        isStopLossTriggerOrder = stopLossTriggerPrice is not None
+        isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
+        isStopLoss = stopLoss is not None
+        isTakeProfit = takeProfit is not None
+        isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
+        isStopLossOrTakeProfit = isStopLoss or isTakeProfit
+        if self.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isStopLoss, isTakeProfit) > 1:
+            raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, stopLoss, takeProfit')
         if (type == 'limit') and (triggerPrice is None):
             request['price'] = self.price_to_precision(symbol, price)
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
@@ -2398,7 +2512,7 @@ class bitget(Exchange, ImplicitAPI):
         postOnly = None
         postOnly, params = self.handle_post_only(isMarketOrder, exchangeSpecificTifParam == 'post_only', params)
         if marketType == 'spot':
-            if isStopLossOrTakeProfit:
+            if isStopLossOrTakeProfitTrigger or isStopLossOrTakeProfit:
                 raise InvalidOrder(self.id + ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets')
             timeInForceKey = 'force'
             quantityKey = 'quantity'
@@ -2435,36 +2549,58 @@ class bitget(Exchange, ImplicitAPI):
         else:
             if clientOrderId is not None:
                 request['clientOid'] = clientOrderId
-            request['size'] = self.amount_to_precision(symbol, amount)
-            if postOnly:
-                request['timeInForceValue'] = 'post_only'
-            reduceOnly = self.safe_value(params, 'reduceOnly', False)
-            if triggerPrice is not None:
+            if not isStopLossOrTakeProfit:
+                request['size'] = self.amount_to_precision(symbol, amount)
+                if postOnly:
+                    request['timeInForceValue'] = 'post_only'
+            if isTriggerOrder or isStopLossOrTakeProfit:
                 # default triggerType to market price for unification
                 triggerType = self.safe_string(params, 'triggerType', 'market_price')
                 request['triggerType'] = triggerType
+            if isStopLossOrTakeProfitTrigger or isStopLossOrTakeProfit:
+                if not isMarketOrder:
+                    raise ExchangeError(self.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders')
+                request['holdSide'] = 'long' if (side == 'buy') else 'short'
+            reduceOnly = self.safe_value(params, 'reduceOnly', False)
+            if isTriggerOrder:
                 request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
                 if price is not None:
                     request['executePrice'] = self.price_to_precision(symbol, price)
+                if side == 'buy':
+                    request['side'] = 'open_long'
+                elif side == 'sell':
+                    request['side'] = 'open_short'
+                else:
+                    request['side'] = side
                 method = 'privateMixPostPlanPlacePlan'
-            if isStopLossOrTakeProfit:
-                if not isMarketOrder:
-                    raise ExchangeError(self.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders')
-                if isStopLossOrder:
-                    request['triggerPrice'] = self.price_to_precision(symbol, stopLossPrice)
+            elif isStopLossOrTakeProfitTrigger:
+                if isStopLossTriggerOrder:
+                    request['triggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
                     request['planType'] = 'loss_plan'
-                elif isTakeProfitOrder:
-                    request['triggerPrice'] = self.price_to_precision(symbol, takeProfitPrice)
+                elif isTakeProfitTriggerOrder:
+                    request['triggerPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
                     request['planType'] = 'profit_plan'
-                request['holdSide'] = 'long' if (side == 'buy') else 'short'
                 method = 'privateMixPostPlanPlaceTPSL'
+            elif isStopLossOrTakeProfit:
+                if isStopLoss:
+                    request['triggerPrice'] = self.price_to_precision(symbol, stopLoss)
+                    request['planType'] = 'pos_loss'
+                elif isTakeProfit:
+                    request['triggerPrice'] = self.price_to_precision(symbol, takeProfit)
+                    request['planType'] = 'pos_profit'
+                method = 'privateMixPostPlanPlacePositionsTPSL'
             else:
                 if reduceOnly:
                     request['side'] = 'close_short' if (side == 'buy') else 'close_long'
                 else:
-                    request['side'] = 'open_long' if (side == 'buy') else 'open_short'
+                    if side == 'buy':
+                        request['side'] = 'open_long'
+                    elif side == 'sell':
+                        request['side'] = 'open_short'
+                    else:
+                        request['side'] = side
             request['marginCoin'] = market['settleId']
-        omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'postOnly'])
+        omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly'])
         response = await getattr(self, method)(self.extend(request, omitted))
         #
         #     {
@@ -2801,6 +2937,9 @@ class bitget(Exchange, ImplicitAPI):
         #       }
         #     }
         #
+        # response will be string after filled, see: ccxt/ccxt#17900
+        if isinstance(response, str):
+            response = json.loads(response)
         data = self.safe_value(response, 'data')
         first = self.safe_value(data, 0, data)
         return self.parse_order(first, market)
@@ -4182,6 +4321,10 @@ class bitget(Exchange, ImplicitAPI):
             pathPart = '/api/mix/v1'
         elif endpoint == 'user':
             pathPart = '/api/user/v1'
+        elif endpoint == 'broker':
+            pathPart = '/api/broker/v1'
+        elif endpoint == 'margin':
+            pathPart = '/api/margin/v1'
         else:
             pathPart = '/api/p2p/v1'
         request = '/' + self.implode_params(path, params)

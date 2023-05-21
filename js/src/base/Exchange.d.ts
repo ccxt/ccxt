@@ -180,7 +180,7 @@ export default class Exchange {
         outputLen: number;
         blockLen: number;
         create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
-    }, digest?: "hex" | "base64" | "binary") => any;
+    }, digest?: "binary" | "hex" | "base64") => any;
     arrayConcat: (a: any, b: any) => any;
     encode: (str: string) => Uint8Array;
     urlencode: (object: any) => string;
@@ -189,7 +189,7 @@ export default class Exchange {
         outputLen: number;
         blockLen: number;
         create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
-    }, digest?: "hex" | "base64" | "binary") => any;
+    }, digest?: "binary" | "hex" | "base64") => any;
     numberToString: typeof functions.numberToString;
     parseTimeframe: (timeframe: string) => number;
     safeInteger2: (o: any, k1: string | number, k2: string | number, $default?: number) => number;
@@ -680,6 +680,9 @@ export default class Exchange {
     amountToPrecision(symbol: string, amount: any): any;
     feeToPrecision(symbol: string, fee: any): any;
     currencyToPrecision(code: string, fee: any, networkCode?: any): any;
+    isTickPrecision(): boolean;
+    isDecimalPrecision(): boolean;
+    isSignificantPrecision(): boolean;
     safeNumber(obj: object, key: IndexType, defaultNumber?: number): number;
     safeNumberN(obj: object, arr: IndexType[], defaultNumber?: number): number;
     parsePrecision(precision?: string): string;

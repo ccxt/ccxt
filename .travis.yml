@@ -17,7 +17,7 @@ before_install:
 - npm install
 - git checkout package.json package-lock.json
 - git config pull.rebase false
-- git fetch --depth=1 --tags --verbose --progress
+- git fetch --depth=1 --no-tags --verbose --progress
 - pip install requests pyopenssl
 - pip install --ignore-installed six
 - pip install tox twine
@@ -26,11 +26,7 @@ before_install:
 - php --version
 - composer install
 script:
-- npm run force-build
-- npm run test-base
-- npm run test-base-ws
-- pip list
-- ./tests-manager.sh 2>&1
+- ./build.sh 2>&1
 - git checkout master composer.json
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
     export SHOULD_DEPLOY=false;
