@@ -650,13 +650,10 @@ async function exportEverything () {
 // main entry point
 let metaUrl = import.meta.url
 metaUrl = metaUrl.substring(0, metaUrl.lastIndexOf(".")) // remove extension
-console.log('runnnnnn000000')
-console.log(process.argv)
 const url = pathToFileURL(process.argv[1]);
 const href = (url.href.indexOf('.') !== -1) ? url.href.substring(0, url.href.lastIndexOf(".")) : url.href;
 if (metaUrl === href) {
 
-    console.log('runnnnnn11')
     // if called directly like `node module`
     try {
         await exportEverything ()
@@ -668,7 +665,6 @@ if (metaUrl === href) {
 
 } else {
 
-    console.log('norunnnnnn')
     // do nothing if required as a module
 }
 
