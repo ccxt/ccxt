@@ -152,7 +152,7 @@ for exchange in "${WS_EXCHANGES[@]}"; do
   PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
 done
 # faster version of post-transpile
-#npm run check-php-syntax
+npm run check-php-syntax
 cd python && tox -e qa -- ${PYTHON_FILES[*]} && cd ..
 
 
