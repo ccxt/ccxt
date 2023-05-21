@@ -129,23 +129,44 @@ done
 
 ### BUILD SPECIFIC EXCHANGES ###
 # faster version of pre-transpile (without bundle and atomic linting)
-npm run export-exchanges && npm run tsBuild && npm run emitAPI
+
+if [[ "$IS_TRAVIS" == "TRUE" ]]; then
+  npm run export-exchanges && npm run tsBuild && npm run emitAPI
+else
+  # in appveyor, `npm` command just does not work for some reason and it does not do anything, just silently hides away
+  node ./build/export-exchanges.js
+  tsc || true
+  node ./build/generateImplicitAPI.js
+fi
+
 echo "REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[@]}"
+lint () {
+  if [[ "$IS_TRAVIS" == "TRUE" ]]; then
+    npm run eslint "$1"
+  else
+    eslint "$1"
+  fi
+}
 PYTHON_FILES=()
 for exchange in "${REST_EXCHANGES[@]}"; do
-  npm run eslint "ts/src/$exchange.ts"
+  lint("ts/src/$exchange.ts")
   node build/transpile.js $exchange --force --child
   PYTHON_FILES+=("python/ccxt/$exchange.py")
   PYTHON_FILES+=("python/ccxt/async_support/$exchange.py")
 done
 echo "WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[@]}"
 for exchange in "${WS_EXCHANGES[@]}"; do
-  npm run eslint "ts/src/pro/$exchange.ts"
+  lint("ts/src/pro/$exchange.ts")
   node build/transpileWS.js $exchange --force --child
   PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
 done
 # faster version of post-transpile
-npm run check-php-syntax
+if [[ "$IS_TRAVIS" == "TRUE" ]]; then
+  npm run check-php-syntax
+else
+  php -f php/test/syntax.php
+  php -f php/pro/test/syntax.php
+fi
 cd python && tox -e qa -- ${PYTHON_FILES[*]} && cd ..
 
 
