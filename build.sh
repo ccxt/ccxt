@@ -149,14 +149,14 @@ lint () {
 }
 PYTHON_FILES=()
 for exchange in "${REST_EXCHANGES[@]}"; do
-  lint("ts/src/$exchange.ts")
+  lint "ts/src/$exchange.ts"
   node build/transpile.js $exchange --force --child
   PYTHON_FILES+=("python/ccxt/$exchange.py")
   PYTHON_FILES+=("python/ccxt/async_support/$exchange.py")
 done
 echo "WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[@]}"
 for exchange in "${WS_EXCHANGES[@]}"; do
-  lint("ts/src/pro/$exchange.ts")
+  lint "ts/src/pro/$exchange.ts"
   node build/transpileWS.js $exchange --force --child
   PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
 done
