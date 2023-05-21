@@ -7587,6 +7587,9 @@ export default class bybit extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         let mode = undefined;
         if (hedged) {
             mode = 3;
@@ -7596,24 +7599,23 @@ export default class bybit extends Exchange {
         const request = {
             'mode': mode,
         };
+        if (symbol === undefined) {
+            request['coin'] = 'USDT';
+        } else {
+            request['symbol'] = market['id'];
+        }
         const enableUnified = await this.isUnifiedEnabled ();
         let response = undefined;
         if (enableUnified[1]) {
-            this.checkRequiredSymbol ('setPositionMode', symbol);
-            market = this.market (symbol);
-            if (!market['inverse']) {
-                throw new NotSupported (this.id + ' setPositionMode () only support inverse market for unified trading account, all linear perpetual trading pairs are one-way mode');
+            if (symbol !== undefined) {
+                request['category'] = market['linear'] ? 'linear' : 'inverse';
+            } else {
+                let subType = undefined;
+                [ subType, params ] = this.handleSubTypeAndParams ('watchTickers', market, params);
+                request['category'] = subType;
             }
-            request['symbol'] = market['id'];
-            request['category'] = 'inverse';
             response = await this.privatePostV5PositionSwitchMode (this.extend (request, params));
         } else {
-            if (symbol === undefined) {
-                request['coin'] = 'USDT';
-            } else {
-                market = this.market (symbol);
-                request['symbol'] = market['id'];
-            }
             response = await this.privatePostContractV3PrivatePositionSwitchMode (this.extend (request, params));
         }
         //
