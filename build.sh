@@ -144,6 +144,7 @@ lint () {
   if [[ "$IS_TRAVIS" == "TRUE" ]]; then
     npm run eslint "$1"
   else
+    npm i eslint -g
     eslint "$1"
   fi
 }
