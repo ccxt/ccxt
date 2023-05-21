@@ -219,6 +219,7 @@ interface Exchange {
     privateGetV5OrderSpotBorrowCheck (params?: {}): Promise<implicitReturnType>;
     privateGetV5OrderRealtime (params?: {}): Promise<implicitReturnType>;
     privateGetV5PositionList (params?: {}): Promise<implicitReturnType>;
+    privateGetV5PositionSwitchMode (params?: {}): Promise<implicitReturnType>;
     privateGetV5ExecutionList (params?: {}): Promise<implicitReturnType>;
     privateGetV5PositionClosedPnl (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountWalletBalance (params?: {}): Promise<implicitReturnType>;

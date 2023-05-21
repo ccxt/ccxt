@@ -212,6 +212,7 @@ class ImplicitAPI:
     private_get_v5_order_spot_borrow_check = privateGetV5OrderSpotBorrowCheck = Entry('v5/order/spot-borrow-check', 'private', 'GET', {'cost': 2.5})
     private_get_v5_order_realtime = privateGetV5OrderRealtime = Entry('v5/order/realtime', 'private', 'GET', {'cost': 2.5})
     private_get_v5_position_list = privateGetV5PositionList = Entry('v5/position/list', 'private', 'GET', {'cost': 2.5})
+    private_get_v5_position_switch_mode = privateGetV5PositionSwitchMode = Entry('v5/position/switch-mode', 'private', 'GET', {'cost': 2.5})
     private_get_v5_execution_list = privateGetV5ExecutionList = Entry('v5/execution/list', 'private', 'GET', {'cost': 2.5})
     private_get_v5_position_closed_pnl = privateGetV5PositionClosedPnl = Entry('v5/position/closed-pnl', 'private', 'GET', {'cost': 2.5})
     private_get_v5_account_wallet_balance = privateGetV5AccountWalletBalance = Entry('v5/account/wallet-balance', 'private', 'GET', {'cost': 2.5})

@@ -180,7 +180,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '3.1.3';
+const version = '3.1.4';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
