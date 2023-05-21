@@ -1001,11 +1001,11 @@ export default class Exchange {
             currencies = await this.fetchCurrencies ()
         }
         let markets
+        // TODO strip loadFromOutside, loadedMarketCallback params to avoid side effects
         const loadFromOutside = this.safeValue(params, 'loadFromOutside', undefined);
-        const loadedMarketCallback = this.safeValue(params, 'loadedMarketCallback', undefined);
-        if (!loadFromOutside) {
-            // TODO strip loadFromOutside, loadedMarketCallback params to avoid side effects
+        if (!loadFromOutside || reload) {
             markets = await this.fetchMarkets (params)
+            const loadedMarketCallback = this.safeValue(params, 'loadedMarketCallback', undefined);
             if (loadedMarketCallback) {
                 loadedMarketCallback (markets)
             }
