@@ -129,19 +129,12 @@ done
 
 ### BUILD SPECIFIC EXCHANGES ###
 # faster version of pre-transpile (without bundle and atomic linting)
-echo "PRE_ERRROR"
-echo "${APPVEYOR_BUILD_FOLDER}"
-cd $APPVEYOR_BUILD_FOLDER
-dir
 npm run export-exchanges && npm run tsBuild && npm run emitAPI
 echo "REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[@]}"
 PYTHON_FILES=()
 for exchange in "${REST_EXCHANGES[@]}"; do
-  echo "RUNNNING : ${exchange}"
   npm run eslint "ts/src/$exchange.ts"
-  echo "LINTED : ${exchange}"
   node build/transpile.js $exchange --force --child
-  echo "TRANSED : ${exchange}"
   PYTHON_FILES+=("python/ccxt/$exchange.py")
   PYTHON_FILES+=("python/ccxt/async_support/$exchange.py")
 done
