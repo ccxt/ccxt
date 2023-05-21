@@ -4200,8 +4200,9 @@ export default class binance extends Exchange {
         const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);  // fallback to stopLoss
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
-        const isStopLoss = stopLossPrice !== undefined;
-        const isTakeProfit = takeProfitPrice !== undefined;
+        const trailingDelta = this.safeValue (params, 'trailingDelta');
+        const isStopLoss = stopLossPrice !== undefined || trailingDelta !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined || trailingDelta !== undefined;
         params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice' ]);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         const request = {
@@ -4391,7 +4392,6 @@ export default class binance extends Exchange {
                 }
             } else {
                 // check for delta price as well
-                const trailingDelta = this.safeValue (params, 'trailingDelta');
                 if (trailingDelta === undefined && stopPrice === undefined) {
                     throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice or trailingDelta param for a ' + type + ' order');
                 }
