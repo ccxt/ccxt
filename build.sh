@@ -67,6 +67,9 @@ fi
 ##### DETECT CHANGES #####
 diff=$(git diff origin/master --name-only)
 diff=$(echo "$diff" | sed -e "s/^build.sh//") # temporarily remove this script from diff
+diff=$(echo "$diff" | sed -e "s/^package.json//") # temporarily remove this script from diff
+diff=$(echo "$diff" | sed -e "s/python\/qa.py//") # temporarily remove this script from diff
+diff=$(echo "$diff" | sed -e "s/python\/tox.ini//") # temporarily remove this script from diff
 
 critical_pattern='Client(Trait)?\.php|Exchange\.php|\/test|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|ccxt\.ts|__init__.py'
 if [[ "$diff" =~ $critical_pattern ]]; then
@@ -92,16 +95,26 @@ for file in "${y[@]}"; do
 done
 
 ### BUILD SPECIFIC EXCHANGES ###
-npm run pre-transpile
+# npm run pre-transpile
+# faster version of pre-transpile (without bundle and atomic linting)
+npm run export-exchanges && npm run tsBuild && npm run emitAPI
 echo "REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[@]}"
+PYTHON_FILES=()
 for exchange in "${REST_EXCHANGES[@]}"; do
+  npm run eslint "ts/src/$exchange.ts"
   node build/transpile.js $exchange --force --child
+  PYTHON_FILES+=("python/ccxt/$exchange.py")
+  PYTHON_FILES+=("python/ccxt/async_support/$exchange.py")
 done
 echo "WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[@]}"
 for exchange in "${WS_EXCHANGES[@]}"; do
+  npm run eslint "ts/src/pro/$exchange.ts"
   node build/transpileWS.js $exchange --force --child
+  PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
 done
-npm run post-transpile
+# faster version of post-transpile
+npm run check-php-syntax
+cd python && tox -e qa -- ${PYTHON_FILES[*]} && cd ..
 
 ### RUN SPECIFIC TESTS ###
 if [  ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then

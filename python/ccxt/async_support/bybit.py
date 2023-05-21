@@ -2415,7 +2415,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         #     {
         #         "symbol": "AAVEUSDT",
-        #         "id": "1274785101965716992",
+        #         "id": "1274785101965716991",
         #         "orderId": "1274784252359089664",
         #         "tradeId": "2270000000031365639",
         #         "orderPrice": "82.5",

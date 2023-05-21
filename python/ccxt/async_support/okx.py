@@ -768,9 +768,11 @@ class okx(Exchange, ImplicitAPI):
                     'timeframes': {
                         '5m': '5m',
                         '1h': '1H',
+                        '8h': '8H',
                         '1d': '1D',
                         '5M': '5m',
                         '1H': '1H',
+                        '8H': '8H',
                         '1D': '1D',
                     },
                 },
@@ -5490,11 +5492,13 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_open_interest(data[0], market)
 
-    async def fetch_open_interest_history(self, symbol: str, timeframe='5m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_interest_history(self, symbol: str, timeframe='1d', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Retrieves the open interest history of a currency
-        :param str symbol: Unified CCXT currency code instead of a unified symbol
-        :param str timeframe: "5m", "1h", or "1d"
+        see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-contracts-open-interest-and-volume
+        see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-options-open-interest-and-volume
+        :param str symbol: Unified CCXT currency code or unified symbol
+        :param str timeframe: "5m", "1h", or "1d" for option only "1d" or "8h"
         :param int|None since: The time in ms of the earliest record to retrieve unix timestamp
         :param int|None limit: Not used by okx, but parsed internally by CCXT
         :param dict params: Exchange specific parameters
@@ -5507,18 +5511,32 @@ class okx(Exchange, ImplicitAPI):
         if timeframe != '5m' and timeframe != '1H' and timeframe != '1D':
             raise BadRequest(self.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe')
         await self.load_markets()
-        currency = self.currency(symbol)
+        # handle unified currency code or symbol
+        currencyId = None
+        market = None
+        if (symbol in self.markets) or (symbol in self.markets_by_id):
+            market = self.market(symbol)
+            currencyId = market['baseId']
+        else:
+            currency = self.currency(symbol)
+            currencyId = currency['id']
         request = {
-            'ccy': currency['id'],
+            'ccy': currencyId,
             'period': timeframe,
         }
-        if since is not None:
-            request['begin'] = since
-        until = self.safe_integer_2(params, 'till', 'until')
-        if until is not None:
-            request['end'] = until
-            params = self.omit(params, ['until', 'till'])
-        response = await self.publicGetRubikStatContractsOpenInterestVolume(self.extend(request, params))
+        type = None
+        response = None
+        type, params = self.handle_market_type_and_params('fetchOpenInterestHistory', market, params)
+        if type == 'option':
+            response = await self.publicGetRubikStatOptionOpenInterestVolume(self.extend(request, params))
+        else:
+            if since is not None:
+                request['begin'] = since
+            until = self.safe_integer_2(params, 'till', 'until')
+            if until is not None:
+                request['end'] = until
+                params = self.omit(params, ['until', 'till'])
+            response = await self.publicGetRubikStatContractsOpenInterestVolume(self.extend(request, params))
         #
         #    {
         #        code: '0',
@@ -5533,7 +5551,7 @@ class okx(Exchange, ImplicitAPI):
         #        msg: ''
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         return self.parse_open_interests(data, None, since, limit)
 
     def parse_open_interest(self, interest, market=None):
@@ -5542,33 +5560,46 @@ class okx(Exchange, ImplicitAPI):
         #
         #    [
         #        '1648221300000',  # timestamp
-        #        '2183354317.945',  # open interest(USD)
-        #        '74285877.617',  # volume(USD)
+        #        '2183354317.945',  # open interest(USD) - (coin) for options
+        #        '74285877.617',  # volume(USD) - (coin) for options
         #    ]
         #
         # fetchOpenInterest
         #
         #     {
-        #         "instId": "BTC-USDT-SWAP",
-        #         "instType": "SWAP",
-        #         "oi": "2125419",
-        #         "oiCcy": "21254.19",
-        #         "ts": "1664005108969"
+        #         "instId": "BTC-USD-230520-25500-P",
+        #         "instType": "OPTION",
+        #         "oi": "300",
+        #         "oiCcy": "3",
+        #         "ts": "1684551166251"
         #     }
         #
         id = self.safe_string(interest, 'instId')
         market = self.safe_market(id, market)
         time = self.safe_integer(interest, 'ts')
         timestamp = self.safe_number(interest, 0, time)
-        numContracts = self.safe_number(interest, 'oi')
-        inCurrency = self.safe_number(interest, 'oiCcy')
-        openInterest = self.safe_number(interest, 1, inCurrency)
+        baseVolume = None
+        quoteVolume = None
+        openInterestAmount = None
+        openInterestValue = None
+        type = self.safe_string(self.options, 'defaultType')
+        if isinstance(interest, list):
+            if type == 'option':
+                openInterestAmount = self.safe_number(interest, 1)
+                baseVolume = self.safe_number(interest, 2)
+            else:
+                openInterestValue = self.safe_number(interest, 1)
+                quoteVolume = self.safe_number(interest, 2)
+        else:
+            baseVolume = self.safe_number(interest, 'oiCcy')
+            openInterestAmount = self.safe_number(interest, 'oi')
+            openInterestValue = self.safe_number(interest, 'oiCcy')
         return {
             'symbol': self.safe_symbol(id),
-            'baseVolume': None,  # deprecated
-            'quoteVolume': openInterest,  # deprecated
-            'openInterestAmount': numContracts,
-            'openInterestValue': openInterest,
+            'baseVolume': baseVolume,  # deprecated
+            'quoteVolume': quoteVolume,  # deprecated
+            'openInterestAmount': openInterestAmount,
+            'openInterestValue': openInterestValue,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
