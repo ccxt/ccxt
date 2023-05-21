@@ -4,7 +4,7 @@ import * as functions from './src/base/functions.js';
 import * as errors from './src/base/errors.js';
 import { Market, Trade, Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax } from './src/base/types.js';
 import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending } from './src/base/errors.js';
-declare const version = "3.1.3";
+declare const version = "3.1.4";
 import ace from './src/ace.js';
 import alpaca from './src/alpaca.js';
 import ascendex from './src/ascendex.js';
