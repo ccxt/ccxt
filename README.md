@@ -21,8 +21,9 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![Join the CCXT x Gate.io Campaign: Win 100% Trading Fee Discount and VIP Upgrade on Gate.io](https://user-images.githubusercontent.com/1294454/233369442-eff6bee8-daab-4fcf-93d1-88563908bc12.jpg)](https://github.com/ccxt/ccxt/issues/17273)
+[![Bitget + CCXT Trading Competition](https://github.com/ccxt/ccxt/assets/1294454/60aeae70-6f72-4c4b-8f09-1963eb6909ab)](https://www.bitget.com/en/ctc?id=a48057a03408549cba00ecdd8ba6d8fe)
 
+[![Bitget + CCXT Messi Merch](https://github.com/ccxt/ccxt/assets/1294454/99eb5ce0-88bd-4ba0-aae1-9662b34b3cb3)](https://www.bitget.com/en/ctc?id=a48057a03408549cba00ecdd8ba6d8fe)
 
 
 
