@@ -2,6 +2,7 @@ environment:
   matrix:
     - nodejs_version: '16'
 install:
+  - bash a.sh
   - ps: Install-Product node $env:nodejs_version
   - set LIB=C:\OpenSSL-Win64\lib;%LIB%
   - set INCLUDE=C:\OpenSSL-Win64\include;%INCLUDE%

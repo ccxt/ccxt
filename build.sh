@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 if [ "${BASH_VERSION:0:1}" -lt 4 ]; then
   echo "EPROGMISMATCH: bash version must be at least 4" >&2
