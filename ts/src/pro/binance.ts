@@ -1566,7 +1566,7 @@ export default class binance extends binanceRest {
         this.handleOrder (client, message);
     }
 
-    async watchPositions (symbols = undefined, params = {}) {
+    async watchPositions (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchPositions
@@ -1593,8 +1593,14 @@ export default class binance extends binanceRest {
         if (fetchPositionsSnapshot && awaitPositionsSnapshot) {
             await client.future (type + ':fetchPositionsSnapshot');
         }
-        const positions = await this.watch (url, messageHash, undefined, type);
-        return positions.toArray (symbols, this.newUpdates);
+        let positions = await this.watch (url, messageHash, undefined, type);
+        positions = positions.toArray (symbols, this.newUpdates);
+        positions = this.filterBySinceLimit (positions, since, limit);
+        const positionsLength = positions.length;
+        if (positionsLength === 0) {
+            return await this.watchPositions (symbols, since, limit, params);
+        }
+        return positions;
     }
 
     setPositionsCache (client, type) {
@@ -1718,7 +1724,6 @@ export default class binance extends binanceRest {
         };
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
     async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method

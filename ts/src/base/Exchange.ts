@@ -143,7 +143,7 @@ export {Market, Trade, Fee, Ticker} from './types'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './ws/Cache.js'
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, PositionsCache } from './ws/Cache.js'
 import totp from './functions/totp.js';
 
 // ----------------------------------------------------------------------------
@@ -204,7 +204,7 @@ export default class Exchange {
     transactions = {}
     ohlcvs: any
     myTrades: any
-    positions    = {}
+    positions: any
     urls: {
         logo?: string;
         api?: string | Dictionary<string>;
@@ -2859,8 +2859,16 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPosition() is not supported yet');
     }
 
+    async watchPosition (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        return this.watchPositions ([ symbol ], since, limit, params);
+    }
+
     async fetchPositions (symbols: string[] = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchPositions() is not supported yet');
+    }
+
+    async watchPositions (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' watchPositions() is not supported yet');
     }
 
     async fetchPositionsRisk (symbols: string[] = undefined, params = {}) {
