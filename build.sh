@@ -69,7 +69,7 @@ if [[ "$IS_TRAVIS" == "TRUE" ]]; then
     build_and_test_all
   fi
 else
-  if [ -z "$APPVEYOR_REPO_BRANCH"] || [["$APPVEYOR_REPO_BRANCH" == "master" ]]; then
+  if [ -z "$APPVEYOR_REPO_BRANCH" ] || ["$APPVEYOR_REPO_BRANCH" = "master" ]; then
     echo "This is a master commit (not a PR), will build everything"
     build_and_test_all
   fi
@@ -81,6 +81,7 @@ if [[ "$IS_TRAVIS" != "TRUE" ]]; then
   git remote set-branches origin 'master'
   git fetch --depth=1
 fi
+
 diff=$(git diff origin/master --name-only)
 # temporarily remove the below scripts from diff
 diff=$(echo "$diff" | sed -e "s/^build\.sh//")
@@ -143,7 +144,7 @@ cd python && tox -e qa -- ${PYTHON_FILES[*]} && cd ..
 if [[ "$IS_TRAVIS" != "TRUE" ]]; then
   exit
 fi
-if [  ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
+if [ ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
   echo "no exchanges to test, exiting"
   exit
 fi
