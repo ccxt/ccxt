@@ -4180,8 +4180,13 @@ export default class binance extends Exchange {
          * @method
          * @name binance#createOrder
          * @description create a trade order
+         * @see https://binance-docs.github.io/apidocs/spot/en/#new-order-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#test-new-order-trade
+         * @see https://binance-docs.github.io/apidocs/futures/en/#new-order-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#new-order-trade
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#new-order-trade
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
