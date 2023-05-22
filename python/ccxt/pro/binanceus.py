@@ -35,6 +35,8 @@ class binanceus(binance):
             'options': {
                 'fetchCurrencies': False,
                 'quoteOrderQty': False,
+                'defaultType': 'spot',
+                'fetchMarkets': ['spot'],
             },
             'fees': {
                 'trading': {
