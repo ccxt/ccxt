@@ -25,7 +25,7 @@ before_install:
 - php -i | grep php.ini
 - composer install
 script:
-- ./build.sh 2>&1
+- ./.travis-build.sh 2>&1
 - git checkout master composer.json
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
     export SHOULD_DEPLOY=false;
