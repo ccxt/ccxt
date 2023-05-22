@@ -40,7 +40,7 @@ test_script:
   - pip --version
   - php --version
   #- move "C:\Program Files\Git\usr\bin\msys-2.0.dll" "C:\Program Files\Git\usr\bin\msys-2.0-bak.dll" # workaround for cygwin-related error
-  - cmd: appveyor-build.ps1
+  - bash build.sh
 cache:
   - '%APPDATA%\npm-cache'
   - '%LOCALAPPDATA%\pip\Cache'

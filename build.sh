@@ -10,6 +10,8 @@ if [ $# -gt 0 ]; then
   exit 7
 fi
 
+[[ -n "$TRAVIS_BUILD_ID" ]] && IS_TRAVIS="TRUE" || IS_TRAVIS="FALSE"
+
 function run_tests {
   local rest_args=
   local ws_args=
@@ -52,25 +54,55 @@ function run_tests {
 
 build_and_test_all () {
   npm run force-build
-  npm run test-base
-  npm run test-base-ws
-  run_tests
+  if [[ "$IS_TRAVIS" == "TRUE" ]]; then
+    npm run test-base
+    npm run test-base-ws
+    run_tests
+  fi
   exit
 }
 
 ### CHECK IF THIS IS A PR ###
-if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-  echo "This is a master commit (not a PR), will build everything"
-  build_and_test_all
+if [[ "$IS_TRAVIS" == "TRUE" ]]; then
+  if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+    echo "This is a master commit (not a PR), will build everything"
+    build_and_test_all
+  fi
+else
+  if [ -z "$APPVEYOR_PULL_REQUEST_NUMBER" ]; then
+    echo "This is a master commit (not a PR), will build everything"
+    build_and_test_all
+  fi
 fi
 
 ##### DETECT CHANGES #####
-diff=$(git diff origin/master --name-only)
 # temporarily remove the below scripts from diff
-diff=$(echo "$diff" | sed -e "s/^build\.sh//")
-diff=$(echo "$diff" | sed -e "s/^package\.json//")
-diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
-diff=$(echo "$diff" | sed -e "s/python\/tox\.ini//")
+if [[ "$IS_TRAVIS" == "TRUE" ]]; then
+  diff=$(git diff origin/master --name-only)
+  diff=$(echo "$diff" | sed -e "s/^build\.sh//")
+  diff=$(echo "$diff" | sed -e "s/^\.travis\.yml//")
+  diff=$(echo "$diff" | sed -e "s/^appveyor\.yml//")
+  diff=$(echo "$diff" | sed -e "s/^package\.json//")
+  diff=$(echo "$diff" | sed -e "s/^package\-lock\.json//")
+  diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
+  diff=$(echo "$diff" | sed -e "s/python\/tox\.ini//")
+else
+  # in appveyor, there is no origin/master locally, so we need to fetch it
+  git remote set-branches origin 'master'
+  git fetch --depth=1
+  diff=$(git diff origin/master --name-only)
+  # for some reason using "sed" commands (in appveyor) turns variable into empty string, so manually replacing them
+  replace_with=""
+  diff="${diff//build\.sh/${replace_with}}"
+  diff="${diff//\.travis\.yml/${replace_with}}"
+  diff="${diff//appveyor\.yml/${replace_with}}"
+  diff="${diff//package\.json/${replace_with}}"
+  diff="${diff//package\-lock\.json/${replace_with}}"
+  diff="${diff//python\/qa\.py/${replace_with}}"
+  diff="${diff//python\/tox\.ini/${replace_with}}"
+fi
+
+# echo "TEMP: CHANGED FILES: $diff"
 
 critical_pattern='Client(Trait)?\.php|Exchange\.php|\/test|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py'
 if [[ "$diff" =~ $critical_pattern ]]; then
@@ -96,9 +128,10 @@ for file in "${y[@]}"; do
 done
 
 ### BUILD SPECIFIC EXCHANGES ###
-# npm run pre-transpile
 # faster version of pre-transpile (without bundle and atomic linting)
 npm run export-exchanges && npm run tsBuild && npm run emitAPI
+
+
 echo "REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[@]}"
 PYTHON_FILES=()
 for exchange in "${REST_EXCHANGES[@]}"; do
@@ -117,7 +150,11 @@ done
 npm run check-php-syntax
 cd python && tox -e qa -- ${PYTHON_FILES[*]} && cd ..
 
-### RUN SPECIFIC TESTS ###
+
+### RUN SPECIFIC TESTS (ONLY IN TRAVIS) ###
+if [[ "$IS_TRAVIS" != "TRUE" ]]; then
+  exit
+fi
 if [  ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
   echo "no exchanges to test, exiting"
   exit
