@@ -90,7 +90,7 @@ diff=$(echo "$diff" | sed -e "s/^package\.json//")
 diff=$(echo "$diff" | sed -e "s/^package\-lock\.json//")
 diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
 diff=$(echo "$diff" | sed -e "s/python\/tox\.ini//")
-echo $diff
+#echo $diff
 
 critical_pattern='Client(Trait)?\.php|Exchange\.php|\/test|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py'
 if [[ "$diff" =~ $critical_pattern ]]; then
