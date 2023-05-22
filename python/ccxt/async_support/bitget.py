@@ -1169,6 +1169,7 @@ class bitget(Exchange, ImplicitAPI):
         minCost = None
         if quote == 'USDT':
             minCost = self.safe_number(market, 'minTradeUSDT')
+        contractSize = 1 if contract else None
         return {
             'id': marketId,
             'symbol': symbol,
@@ -1190,7 +1191,7 @@ class bitget(Exchange, ImplicitAPI):
             'inverse': inverse,
             'taker': self.safe_number(market, 'takerFeeRate'),
             'maker': self.safe_number(market, 'makerFeeRate'),
-            'contractSize': 1,
+            'contractSize': contractSize,
             'expiry': expiry,
             'expiryDatetime': expiryDatetime,
             'strike': None,

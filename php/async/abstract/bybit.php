@@ -637,6 +637,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function private_get_v5_position_list($params = array()) {
         return $this->request('v5/position/list', 'private', 'GET', $params, null, null, array("cost" => 2.5));
     }
+    public function private_get_v5_position_switch_mode($params = array()) {
+        return $this->request('v5/position/switch-mode', 'private', 'GET', $params, null, null, array("cost" => 2.5));
+    }
     public function private_get_v5_execution_list($params = array()) {
         return $this->request('v5/execution/list', 'private', 'GET', $params, null, null, array("cost" => 2.5));
     }
@@ -1923,6 +1926,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function privateGetV5PositionList($params = array()) {
         return $this->request('v5/position/list', 'private', 'GET', $params, null, null, array("cost" => 2.5));
+    }
+    public function privateGetV5PositionSwitchMode($params = array()) {
+        return $this->request('v5/position/switch-mode', 'private', 'GET', $params, null, null, array("cost" => 2.5));
     }
     public function privateGetV5ExecutionList($params = array()) {
         return $this->request('v5/execution/list', 'private', 'GET', $params, null, null, array("cost" => 2.5));
