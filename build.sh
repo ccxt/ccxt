@@ -69,7 +69,7 @@ if [[ "$IS_TRAVIS" == "TRUE" ]]; then
     build_and_test_all
   fi
 else
-  if [ -z "$APPVEYOR_REPO_BRANCH" || "$APPVEYOR_REPO_BRANCH" = "master" ]; then
+  if [ -z "$APPVEYOR_REPO_BRANCH" ] || [[ "$APPVEYOR_REPO_BRANCH" == "master" ]]; then
     echo "This is a master commit (not a PR), will build everything"
     build_and_test_all
   fi
