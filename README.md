@@ -21,9 +21,9 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![Bitget + CCXT Trading Competition](https://github.com/ccxt/ccxt/assets/1294454/60aeae70-6f72-4c4b-8f09-1963eb6909ab)](https://www.bitget.com/en/ctc?id=a48057a03408549cba00ecdd8ba6d8fe)
+[![Bitget + CCXT Trading Competition](https://github.com/ccxt/ccxt/assets/1294454/60aeae70-6f72-4c4b-8f09-1963eb6909ab)]([https://www.bitget.com/en/ctc?id=a48057a03408549cba00ecdd8ba6d8fe](https://github.com/ccxt/ccxt/issues/17983)
 
-[![Bitget + CCXT Messi Merch](https://github.com/ccxt/ccxt/assets/1294454/99eb5ce0-88bd-4ba0-aae1-9662b34b3cb3)](https://www.bitget.com/en/ctc?id=a48057a03408549cba00ecdd8ba6d8fe)
+[![Bitget + CCXT Messi Merch](https://github.com/ccxt/ccxt/assets/1294454/99eb5ce0-88bd-4ba0-aae1-9662b34b3cb3)]([https://www.bitget.com/en/ctc?id=a48057a03408549cba00ecdd8ba6d8fe](https://github.com/ccxt/ccxt/issues/17983)
 
 
 
