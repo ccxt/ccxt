@@ -64,21 +64,14 @@ build_and_test_all () {
 }
 
 ### CHECK IF THIS IS A PR ###
-if [[ "$IS_TRAVIS" == "TRUE" ]]; then
-  if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-    echo "This is a master commit (not a PR), will build everything"
-    build_and_test_all
-  fi
-else
-  if [ -z "$APPVEYOR_REPO_BRANCH" ] || [[ "$APPVEYOR_REPO_BRANCH" == "master" ]]; then
-    echo "This is a master commit (not a PR), will build everything"
-    build_and_test_all
-  fi
+if ([[ "$IS_TRAVIS" == "TRUE" ]] && [ "$TRAVIS_PULL_REQUEST" = "false" ]) || ([[ "$IS_TRAVIS" != "TRUE" ]] && [[ "$APPVEYOR_REPO_BRANCH" == "master" ]]); then
+  echo "This is a master commit (not a PR), will build everything"
+  build_and_test_all
 fi
 
 ##### DETECT CHANGES #####
+# in appveyor, there is no origin/master locally, so we need to fetch it
 if [[ "$IS_TRAVIS" != "TRUE" ]]; then
-  # in appveyor, there is no origin/master locally, so we need to fetch it
   git remote set-branches origin 'master'
   git fetch --depth=1
 fi
@@ -94,7 +87,7 @@ diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
 diff=$(echo "$diff" | sed -e "s/python\/tox\.ini//")
 #echo $diff
 
-critical_pattern='Client(Trait)?\.php|Exchange\.php|\/test|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py'
+critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py' # add \/test|
 if [[ "$diff" =~ $critical_pattern ]]; then
   echo "- Important changes detected - doing full build & test"
   build_and_test_all

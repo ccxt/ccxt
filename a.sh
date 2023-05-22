@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -e
+echo "APPVEYOR_REPO_BRANCH"
 echo $APPVEYOR_REPO_BRANCH
-if [ -z "$APPVEYOR_REPO_BRANCH" ]; then
-  echo "-z"
-fi
-if [[ "$APPVEYOR_REPO_BRANCH" == "master" ]]; then
-  echo "ismaset"
-fi
+
+echo "APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH"
+echo $APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH
+
+echo "APPVEYOR_PULL_REQUEST_NUMBER"
+echo $APPVEYOR_PULL_REQUEST_NUMBER
