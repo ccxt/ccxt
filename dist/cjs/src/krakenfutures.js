@@ -18,6 +18,7 @@ class krakenfutures extends krakenfutures$1 {
             'version': 'v3',
             'userAgent': undefined,
             'rateLimit': 600,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -304,8 +305,9 @@ class krakenfutures extends krakenfutures$1 {
             let settleId = undefined;
             const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'contractValueTradePrecision', '0')));
             const pricePrecision = this.safeNumber(market, 'tickSize');
-            const contract = (swap || future);
-            if (contract) {
+            const contract = (swap || future || index);
+            const swapOrFutures = (swap || future);
+            if (swapOrFutures) {
                 const exchangeType = this.safeString(market, 'type');
                 if (exchangeType === 'futures_inverse') {
                     settle = base;
@@ -805,7 +807,8 @@ class krakenfutures extends krakenfutures$1 {
         type = this.safeString(params, 'orderType', type);
         const timeInForce = this.safeString(params, 'timeInForce');
         const stopPrice = this.safeString(params, 'stopPrice');
-        const postOnly = this.safeString(params, 'postOnly');
+        let postOnly = false;
+        [postOnly, params] = this.handlePostOnly(type === 'market', type === 'post', params);
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'cliOrdId');
         params = this.omit(params, ['clientOrderId', 'cliOrdId']);
         if ((type === 'stp' || type === 'take_profit') && stopPrice === undefined) {
@@ -815,7 +818,7 @@ class krakenfutures extends krakenfutures$1 {
             type = 'stp';
         }
         else if (postOnly) {
-            type = 'postOnly';
+            type = 'post';
         }
         else if (timeInForce === 'ioc') {
             type = 'ioc';
@@ -1910,7 +1913,7 @@ class krakenfutures extends krakenfutures$1 {
         const currency = this.currency(code);
         let method = 'privatePostTransfer';
         const request = {
-            'amount': this.currencyToPrecision(code, amount),
+            'amount': amount,
         };
         if (fromAccount === 'spot') {
             throw new errors.BadRequest(this.id + ' transfer does not yet support transfers from spot');

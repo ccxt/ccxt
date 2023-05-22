@@ -1266,6 +1266,25 @@ class ascendex extends Exchange {
         //         "execInst" =>     "NULL_VAL" // "Post" (for $postOnly orders), "reduceOnly" (for $reduceOnly orders)
         //     }
         //
+        //     {
+        //         "orderId" => "a173ad938fc3U22666567717788c3b66",   // orderId
+        //         "seqNum" => 18777366360,                           // sequence number
+        //         "accountId" => "cshwSjbpPjSwHmxPdz2CPQVU9mnbzPpt", // accountId
+        //         "symbol" => "BTC/USDT",                            // $symbol
+        //         "orderType" => "Limit",                            // $order $type (Limit/Market/StopMarket/StopLimit)
+        //         "side" => "Sell",                                  // $order $side (Buy/Sell)
+        //         "price" => "11346.77",                             // $order $price
+        //         "stopPrice" => "0",                                // stop $price (0 by default)
+        //         "orderQty" => "0.01",                              // $order quantity (in base asset)
+        //         "status" => "Canceled",                            // $order $status (Filled/Canceled/Rejected)
+        //         "createTime" => 1596344995793,                     // $order creation time
+        //         "lastExecTime" => 1596344996053,                   // last execution time
+        //         "avgFillPrice" => "11346.77",                      // $average $filled $price
+        //         "fillQty" => "0.01",                               // $filled quantity (in base asset)
+        //         "fee" => "-0.004992579",                           // cummulative $fee-> if negative, this value is the commission charged; if possitive, this value is the rebate received.
+        //         "feeAsset" => "USDT"                               // $fee asset
+        //     }
+        //
         //     array(
         //         "ac" => "FUTURES",
         //         "accountId" => "testabcdefg",
@@ -1299,7 +1318,7 @@ class ascendex extends Exchange {
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'orderQty');
         $average = $this->safe_string($order, 'avgPx');
-        $filled = $this->safe_string_2($order, 'cumFilledQty', 'cumQty');
+        $filled = $this->safe_string_n($order, array( 'cumFilledQty', 'cumQty', 'fillQty' ));
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'id');
         if ($clientOrderId !== null) {
@@ -1318,7 +1337,7 @@ class ascendex extends Exchange {
             }
         }
         $side = $this->safe_string_lower($order, 'side');
-        $feeCost = $this->safe_number($order, 'cumFee');
+        $feeCost = $this->safe_number_2($order, 'cumFee', 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($order, 'feeAsset');

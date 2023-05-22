@@ -36,6 +36,7 @@
     "huobipro": "BTC/USDT",
     "idex": "USDT/USDC",
     "kraken": "BTC/USDT",
+    "krakenfutures": "BTC/USD:BTC",
     "kucoin": "BTC/USDT",
     "kucoinfutures": "BTC/USDT:USDT",
     "luno": "ETH/BTC",

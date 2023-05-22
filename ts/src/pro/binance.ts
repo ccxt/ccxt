@@ -1455,6 +1455,7 @@ export default class binance extends binanceRest {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': undefined,
+            'reduceOnly': this.safeValue (order, 'R'),
             'side': side,
             'price': price,
             'stopPrice': stopPrice,

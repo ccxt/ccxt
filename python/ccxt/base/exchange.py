@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.90'
+__version__ = '3.1.5'
 
 # -----------------------------------------------------------------------------
 
@@ -1429,7 +1429,7 @@ class Exchange(object):
         ohlcvs = []
         (timestamp, open, high, low, close, volume, count) = (0, 1, 2, 3, 4, 5, 6)
         num_trades = len(trades)
-        oldest = (num_trades - 1) if limit is None else min(num_trades - 1, limit)
+        oldest = num_trades if limit is None else min(num_trades, limit)
         for i in range(0, oldest):
             trade = trades[i]
             if (since is not None) and (trade['timestamp'] < since):
@@ -1487,26 +1487,6 @@ class Exchange(object):
         # Get offset based on timeframe in milliseconds
         offset = timestamp % ms
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
-
-    def filter_by_limit(self, array, limit=None, key='timestamp'):
-        if (limit is not None) and (len(array) > 0) and (key in array[0]):
-            ascending = (array[0][key] < array[len(array) - 1][key])  # true if array is sorted in ascending order based on 'timestamp'
-            array = array[-limit:] if ascending else array[:limit]
-        return array
-
-    def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp'):
-        array = self.to_array(array)
-        if value is not None:
-            array = [entry for entry in array if entry[field] == value]
-        if since is not None:
-            array = [entry for entry in array if entry[key] >= since]
-        return self.filter_by_limit(array, limit, key)
-
-    def filter_by_since_limit(self, array, since=None, limit=None, key='timestamp'):
-        array = self.to_array(array)
-        if since is not None:
-            array = [entry for entry in array if entry[key] >= since]
-        return self.filter_by_limit(array, limit, key)
 
     def vwap(self, baseVolume, quoteVolume):
         return (quoteVolume / baseVolume) if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0) else None
@@ -1645,6 +1625,12 @@ class Exchange(object):
     def convert_to_big_int(self, value):
         return int(value) if isinstance(value, str) else value
 
+    def valueIsDefined(self, value):
+        return value is not None
+
+    def arraySlice(self, array, first, second=None):
+        return array[first:second] if second else array[first:]
+
     # ########################################################################
     # ########################################################################
     # ########################################################################
@@ -1683,6 +1669,49 @@ class Exchange(object):
     # ########################################################################
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def filter_by_limit(self, array: List[object], limit: Optional[int] = None, key: IndexType = 'timestamp'):
+        if self.valueIsDefined(limit):
+            arrayLength = len(array)
+            if arrayLength > 0:
+                ascending = True
+                if (key in array[0]):
+                    first = array[0][key]
+                    last = array[arrayLength - 1][key]
+                    if first is not None and last is not None:
+                        ascending = first <= last  # True if array is sorted in ascending order based on 'timestamp'
+                array = self.arraySlice(array, -limit) if ascending else self.arraySlice(array, 0, limit)
+        return array
+
+    def filter_by_since_limit(self, array: List[object], since: Optional[int] = None, limit: Optional[int] = None, key: IndexType = 'timestamp'):
+        sinceIsDefined = self.valueIsDefined(since)
+        parsedArray = self.to_array(array)
+        if sinceIsDefined:
+            result = []
+            for i in range(0, len(parsedArray)):
+                entry = parsedArray[i]
+                if entry[key] >= since:
+                    result.append(entry)
+            return self.filterByLimit(result, limit, key)
+        return self.filterByLimit(parsedArray, limit, key)
+
+    def filter_by_value_since_limit(self, array: List[object], field: IndexType, value=None, since: Optional[int] = None, limit: Optional[int] = None, key='timestamp'):
+        valueIsDefined = self.valueIsDefined(value)
+        sinceIsDefined = self.valueIsDefined(since)
+        parsedArray = self.to_array(array)
+        # single-pass filter for both symbol and since
+        if valueIsDefined or sinceIsDefined:
+            result = []
+            for i in range(0, len(parsedArray)):
+                entry = parsedArray[i]
+                entryFiledEqualValue = entry[field] == value
+                firstCondition = entryFiledEqualValue if valueIsDefined else True
+                entryKeyGESince = entry[key] and since and (entry[key] >= since)
+                secondCondition = entryKeyGESince if sinceIsDefined else True
+                if firstCondition and secondCondition:
+                    result.append(entry)
+            return self.filterByLimit(result, limit, key)
+        return self.filterByLimit(parsedArray, limit, key)
 
     def sign(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None):
         return {}
@@ -1823,6 +1852,33 @@ class Exchange(object):
             'info': entry,
         }
 
+    def safe_currency_structure(self, currency: object):
+        return self.extend({
+            'info': None,
+            'id': None,
+            'numericId': None,
+            'code': None,
+            'precision': None,
+            'type': None,
+            'name': None,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'fees': {},
+            'networks': {},
+            'limits': {
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+        }, currency)
+
     def set_markets(self, markets, currencies=None):
         values = []
         self.markets_by_id = {}
@@ -1846,6 +1902,7 @@ class Exchange(object):
         self.symbols = list(marketsSortedBySymbol.keys())
         self.ids = list(marketsSortedById.keys())
         if currencies is not None:
+            # currencies is always None when called in constructor but not when called from loadMarkets
             self.currencies = self.deep_extend(self.currencies, currencies)
         else:
             baseCurrencies = []
@@ -1855,22 +1912,20 @@ class Exchange(object):
                 defaultCurrencyPrecision = 8 if (self.precisionMode == DECIMAL_PLACES) else self.parse_number('1e-8')
                 marketPrecision = self.safe_value(market, 'precision', {})
                 if 'base' in market:
-                    currencyPrecision = self.safe_value_2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision)
-                    currency = {
+                    currency = self.safe_currency_structure({
                         'id': self.safe_string_2(market, 'baseId', 'base'),
                         'numericId': self.safe_integer(market, 'baseNumericId'),
                         'code': self.safe_string(market, 'base'),
-                        'precision': currencyPrecision,
-                    }
+                        'precision': self.safe_value_2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision),
+                    })
                     baseCurrencies.append(currency)
                 if 'quote' in market:
-                    currencyPrecision = self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision)
-                    currency = {
+                    currency = self.safe_currency_structure({
                         'id': self.safe_string_2(market, 'quoteId', 'quote'),
                         'numericId': self.safe_integer(market, 'quoteNumericId'),
                         'code': self.safe_string(market, 'quote'),
-                        'precision': currencyPrecision,
-                    }
+                        'precision': self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
+                    })
                     quoteCurrencies.append(currency)
             baseCurrencies = self.sort_by(baseCurrencies, 'code')
             quoteCurrencies = self.sort_by(quoteCurrencies, 'code')
@@ -2993,6 +3048,7 @@ class Exchange(object):
             time = self.fetchTime(params)
             self.status = self.extend(self.status, {
                 'updated': time,
+                'info': time,
             })
         if not ('info' in self.status):
             self.status['info'] = None
@@ -3328,6 +3384,15 @@ class Exchange(object):
             return fee
         else:
             return self.decimal_to_precision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
+
+    def is_tick_precision(self):
+        return self.precisionMode == TICK_SIZE
+
+    def is_decimal_precision(self):
+        return self.precisionMode == DECIMAL_PLACES
+
+    def is_significant_precision(self):
+        return self.precisionMode == SIGNIFICANT_DIGITS
 
     def safe_number(self, obj: object, key: IndexType, defaultNumber: Optional[float] = None):
         value = self.safe_string(obj, key)

@@ -10,7 +10,7 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/test_shared_methods.php';
 
-function test_borrow_interest($exchange, $method, $entry, $requested_code, $requested_symbol) {
+function test_borrow_interest($exchange, $skipped_properties, $method, $entry, $requested_code, $requested_symbol) {
     $format = array(
         'info' => array(),
         'account' => 'BTC/USDT',
@@ -21,12 +21,12 @@ function test_borrow_interest($exchange, $method, $entry, $requested_code, $requ
         'timestamp' => 1638230400000,
         'datetime' => '2021-11-30T00:00:00.000Z',
     );
-    $empty_not_allowed_for = ['currency', 'interest', 'interestRate', 'amountBorrowed', 'timestamp'];
-    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
-    assert_timestamp($exchange, $method, $entry);
-    assert_currency_code($exchange, $method, $entry, $entry['currency'], $requested_code);
-    assert_symbol($exchange, $method, $entry, $entry['account'], $requested_symbol);
-    assert_greater($exchange, $method, $entry, 'interest', '0');
-    assert_greater($exchange, $method, $entry, 'interestRate', '0');
-    assert_greater($exchange, $method, $entry, 'amountBorrowed', '0');
+    $empty_allowed_for = ['account'];
+    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+    assert_timestamp($exchange, $skipped_properties, $method, $entry);
+    assert_currency_code($exchange, $skipped_properties, $method, $entry, $entry['currency'], $requested_code);
+    assert_symbol($exchange, $skipped_properties, $method, $entry, $entry['account'], $requested_symbol);
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'interest', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'interestRate', '0');
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'amountBorrowed', '0');
 }

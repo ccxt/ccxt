@@ -180,7 +180,7 @@ export default class Exchange {
         outputLen: number;
         blockLen: number;
         create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
-    }, digest?: "hex" | "base64" | "binary") => any;
+    }, digest?: "binary" | "hex" | "base64") => any;
     arrayConcat: (a: any, b: any) => any;
     encode: (str: string) => Uint8Array;
     urlencode: (object: any) => string;
@@ -189,7 +189,7 @@ export default class Exchange {
         outputLen: number;
         blockLen: number;
         create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
-    }, digest?: "hex" | "base64" | "binary") => any;
+    }, digest?: "binary" | "hex" | "base64") => any;
     numberToString: typeof functions.numberToString;
     parseTimeframe: (timeframe: string) => number;
     safeInteger2: (o: any, k1: string | number, k2: string | number, $default?: number) => number;
@@ -458,9 +458,6 @@ export default class Exchange {
     loadMarkets(reload?: boolean, params?: {}): Promise<Dictionary<Market>>;
     fetchCurrencies(params?: {}): Promise<unknown>;
     fetchMarkets(params?: {}): Promise<Market[]>;
-    filterByLimit(array: object[], limit?: Int, key?: IndexType): any;
-    filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType): any;
-    filterByValueSinceLimit(array: object[], field: IndexType, value?: any, since?: Int, limit?: Int, key?: string): any;
     checkRequiredDependencies(): void;
     parseNumber(value: any, d?: number): number;
     checkOrderArguments(market: any, type: any, side: any, amount: any, price: any, params: any): void;
@@ -484,6 +481,11 @@ export default class Exchange {
     handleDeltas(orderbook: any, deltas: any, nonce?: any): void;
     getCacheIndex(orderbook: any, deltas: any): number;
     convertToBigInt(value: string): bigint;
+    valueIsDefined(value: any): boolean;
+    arraySlice(array: any, first: any, second?: any): any;
+    filterByLimit(array: object[], limit?: Int, key?: IndexType): any;
+    filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType): any;
+    filterByValueSinceLimit(array: object[], field: IndexType, value?: any, since?: Int, limit?: Int, key?: string): any;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {};
     fetchAccounts(params?: {}): Promise<any>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -543,6 +545,7 @@ export default class Exchange {
         fee: any;
         info: object;
     };
+    safeCurrencyStructure(currency: object): any;
     setMarkets(markets: any, currencies?: any): Dictionary<any>;
     safeBalance(balance: object): Balances;
     safeOrder(order: object, market?: object): any;
@@ -677,6 +680,9 @@ export default class Exchange {
     amountToPrecision(symbol: string, amount: any): any;
     feeToPrecision(symbol: string, fee: any): any;
     currencyToPrecision(code: string, fee: any, networkCode?: any): any;
+    isTickPrecision(): boolean;
+    isDecimalPrecision(): boolean;
+    isSignificantPrecision(): boolean;
     safeNumber(obj: object, key: IndexType, defaultNumber?: number): number;
     safeNumberN(obj: object, arr: IndexType[], defaultNumber?: number): number;
     parsePrecision(precision?: string): string;

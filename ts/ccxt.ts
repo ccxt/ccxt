@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '3.0.90';
+const version = '3.1.5';
 
 (Exchange as any).ccxtVersion = version
 
@@ -171,10 +171,12 @@ import bitgetPro from  './src/pro/bitget.js'
 import bitmartPro from  './src/pro/bitmart.js'
 import bitmexPro from  './src/pro/bitmex.js'
 import bitoproPro from  './src/pro/bitopro.js'
+import bitpandaPro from  './src/pro/bitpanda.js'
 import bitruePro from  './src/pro/bitrue.js'
 import bitstampPro from  './src/pro/bitstamp.js'
 import bittrexPro from  './src/pro/bittrex.js'
 import bitvavoPro from  './src/pro/bitvavo.js'
+import blockchaincomPro from  './src/pro/blockchaincom.js'
 import btcexPro from  './src/pro/btcex.js'
 import bybitPro from  './src/pro/bybit.js'
 import cexPro from  './src/pro/cex.js'
@@ -196,6 +198,7 @@ import huobiproPro from  './src/pro/huobipro.js'
 import idexPro from  './src/pro/idex.js'
 import independentreservePro from  './src/pro/independentreserve.js'
 import krakenPro from  './src/pro/kraken.js'
+import krakenfuturesPro from  './src/pro/krakenfutures.js'
 import kucoinPro from  './src/pro/kucoin.js'
 import kucoinfuturesPro from  './src/pro/kucoinfutures.js'
 import lunoPro from  './src/pro/luno.js'
@@ -338,10 +341,12 @@ const pro = {
     'bitmart':                bitmartPro,
     'bitmex':                 bitmexPro,
     'bitopro':                bitoproPro,
+    'bitpanda':               bitpandaPro,
     'bitrue':                 bitruePro,
     'bitstamp':               bitstampPro,
     'bittrex':                bittrexPro,
     'bitvavo':                bitvavoPro,
+    'blockchaincom':          blockchaincomPro,
     'btcex':                  btcexPro,
     'bybit':                  bybitPro,
     'cex':                    cexPro,
@@ -363,6 +368,7 @@ const pro = {
     'idex':                   idexPro,
     'independentreserve':     independentreservePro,
     'kraken':                 krakenPro,
+    'krakenfutures':          krakenfuturesPro,
     'kucoin':                 kucoinPro,
     'kucoinfutures':          kucoinfuturesPro,
     'luno':                   lunoPro,

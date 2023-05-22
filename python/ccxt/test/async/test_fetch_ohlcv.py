@@ -16,7 +16,7 @@ sys.path.append(root)
 from ccxt.test.base import test_ohlcv  # noqa E402
 
 
-async def test_fetch_ohlcv(exchange, symbol):
+async def test_fetch_ohlcv(exchange, skipped_properties, symbol):
     method = 'fetchOHLCV'
     timeframe_keys = list(exchange.timeframes.keys())
     assert len(timeframe_keys) > 0, exchange.id + ' ' + method + ' - no timeframes found'
@@ -31,4 +31,4 @@ async def test_fetch_ohlcv(exchange, symbol):
     assert isinstance(ohlcvs, list), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json(ohlcvs)
     now = exchange.milliseconds()
     for i in range(0, len(ohlcvs)):
-        test_ohlcv(exchange, method, ohlcvs[i], symbol, now)
+        test_ohlcv(exchange, skipped_properties, method, ohlcvs[i], symbol, now)

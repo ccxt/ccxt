@@ -29,7 +29,7 @@ function _interopNamespace(e) {
 }
 
 // ----------------------------------------------------------------------------
-const { isNode, keys, values, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, buildOHLCVC, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, vwap, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, isArray, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE } = functions;
+const { isNode, keys, values, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, buildOHLCVC, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, vwap, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, isArray, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS } = functions;
 // ----------------------------------------------------------------------------
 class Exchange {
     constructor(userConfig = {}) {
@@ -814,33 +814,6 @@ class Exchange {
         // and may be changed for consistency later
         return new Promise((resolve, reject) => resolve(Object.values(this.markets)));
     }
-    filterByLimit(array, limit = undefined, key = 'timestamp') {
-        if (limit !== undefined && limit !== null) {
-            const arrayLength = array.length;
-            if (arrayLength > 0) {
-                const ascending = (key in array[0]) && (array[0][key] < array[arrayLength - 1][key]); // true if array is sorted in ascending order based on 'timestamp'
-                array = ascending ? array.slice(-limit) : array.slice(0, limit);
-            }
-        }
-        return array;
-    }
-    filterBySinceLimit(array, since = undefined, limit = undefined, key = 'timestamp') {
-        const sinceIsDefined = (since !== undefined && since !== null);
-        if (sinceIsDefined) {
-            array = array.filter((entry) => entry[key] >= since);
-        }
-        return this.filterByLimit(array, limit, key);
-    }
-    filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp') {
-        const valueIsDefined = value !== undefined && value !== null;
-        const sinceIsDefined = since !== undefined && since !== null;
-        // single-pass filter for both symbol and since
-        if (valueIsDefined || sinceIsDefined) {
-            array = array.filter((entry) => ((valueIsDefined ? (entry[field] === value) : true) &&
-                (sinceIsDefined ? (entry[key] >= since) : true)));
-        }
-        return this.filterByLimit(array, limit, key);
-    }
     checkRequiredDependencies() {
         return;
     }
@@ -977,6 +950,12 @@ class Exchange {
             return client.futures[messageHash];
         }
         const future = client.future(messageHash);
+        // read and write subscription, this is done before connecting the client
+        // to avoid race conditions when other parts of the code read or write to the client.subscriptions
+        const clientSubscription = client.subscriptions[subscribeHash];
+        if (!clientSubscription) {
+            client.subscriptions[subscribeHash] = subscription || true;
+        }
         // we intentionally do not use await here to avoid unhandled exceptions
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
@@ -985,11 +964,8 @@ class Exchange {
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
         // (connection established successfully)
-        connected.then(() => {
-            if (!client.subscriptions[subscribeHash]) {
-                if (subscribeHash !== undefined) {
-                    client.subscriptions[subscribeHash] = subscription || true;
-                }
+        if (!clientSubscription) {
+            connected.then(() => {
                 const options = this.safeValue(this.options, 'ws');
                 const cost = this.safeValue(options, 'cost', 1);
                 if (message) {
@@ -1006,8 +982,11 @@ class Exchange {
                             .catch((e) => { throw e; });
                     }
                 }
-            }
-        });
+            }).catch((e) => {
+                delete (client.subscriptions[subscribeHash]);
+                throw e;
+            });
+        }
         return future;
     }
     onConnected(client, message = undefined) {
@@ -1082,6 +1061,15 @@ class Exchange {
     convertToBigInt(value) {
         return BigInt(value); // used on XT
     }
+    valueIsDefined(value) {
+        return value !== undefined && value !== null;
+    }
+    arraySlice(array, first, second = undefined) {
+        if (second === undefined) {
+            return array.slice(first);
+        }
+        return array.slice(first, second);
+    }
     /* eslint-enable */
     // ------------------------------------------------------------------------
     // ########################################################################
@@ -1122,6 +1110,59 @@ class Exchange {
     // ########################################################################
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    filterByLimit(array, limit = undefined, key = 'timestamp') {
+        if (this.valueIsDefined(limit)) {
+            const arrayLength = array.length;
+            if (arrayLength > 0) {
+                let ascending = true;
+                if ((key in array[0])) {
+                    const first = array[0][key];
+                    const last = array[arrayLength - 1][key];
+                    if (first !== undefined && last !== undefined) {
+                        ascending = first <= last; // true if array is sorted in ascending order based on 'timestamp'
+                    }
+                }
+                array = ascending ? this.arraySlice(array, -limit) : this.arraySlice(array, 0, limit);
+            }
+        }
+        return array;
+    }
+    filterBySinceLimit(array, since = undefined, limit = undefined, key = 'timestamp') {
+        const sinceIsDefined = this.valueIsDefined(since);
+        const parsedArray = this.toArray(array);
+        if (sinceIsDefined) {
+            const result = [];
+            for (let i = 0; i < parsedArray.length; i++) {
+                const entry = parsedArray[i];
+                if (entry[key] >= since) {
+                    result.push(entry);
+                }
+            }
+            return this.filterByLimit(result, limit, key);
+        }
+        return this.filterByLimit(parsedArray, limit, key);
+    }
+    filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp') {
+        const valueIsDefined = this.valueIsDefined(value);
+        const sinceIsDefined = this.valueIsDefined(since);
+        const parsedArray = this.toArray(array);
+        // single-pass filter for both symbol and since
+        if (valueIsDefined || sinceIsDefined) {
+            const result = [];
+            for (let i = 0; i < parsedArray.length; i++) {
+                const entry = parsedArray[i];
+                const entryFiledEqualValue = entry[field] === value;
+                const firstCondition = valueIsDefined ? entryFiledEqualValue : true;
+                const entryKeyGESince = entry[key] && since && (entry[key] >= since);
+                const secondCondition = sinceIsDefined ? entryKeyGESince : true;
+                if (firstCondition && secondCondition) {
+                    result.push(entry);
+                }
+            }
+            return this.filterByLimit(result, limit, key);
+        }
+        return this.filterByLimit(parsedArray, limit, key);
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         return {};
     }
@@ -1269,6 +1310,33 @@ class Exchange {
             'info': entry,
         };
     }
+    safeCurrencyStructure(currency) {
+        return this.extend({
+            'info': undefined,
+            'id': undefined,
+            'numericId': undefined,
+            'code': undefined,
+            'precision': undefined,
+            'type': undefined,
+            'name': undefined,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'fees': {},
+            'networks': {},
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+        }, currency);
+    }
     setMarkets(markets, currencies = undefined) {
         const values = [];
         this.markets_by_id = {};
@@ -1295,6 +1363,7 @@ class Exchange {
         this.symbols = Object.keys(marketsSortedBySymbol);
         this.ids = Object.keys(marketsSortedById);
         if (currencies !== undefined) {
+            // currencies is always undefined when called in constructor but not when called from loadMarkets
             this.currencies = this.deepExtend(this.currencies, currencies);
         }
         else {
@@ -1305,23 +1374,21 @@ class Exchange {
                 const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber('1e-8');
                 const marketPrecision = this.safeValue(market, 'precision', {});
                 if ('base' in market) {
-                    const currencyPrecision = this.safeValue2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision);
-                    const currency = {
+                    const currency = this.safeCurrencyStructure({
                         'id': this.safeString2(market, 'baseId', 'base'),
                         'numericId': this.safeInteger(market, 'baseNumericId'),
                         'code': this.safeString(market, 'base'),
-                        'precision': currencyPrecision,
-                    };
+                        'precision': this.safeValue2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision),
+                    });
                     baseCurrencies.push(currency);
                 }
                 if ('quote' in market) {
-                    const currencyPrecision = this.safeValue2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision);
-                    const currency = {
+                    const currency = this.safeCurrencyStructure({
                         'id': this.safeString2(market, 'quoteId', 'quote'),
                         'numericId': this.safeInteger(market, 'quoteNumericId'),
                         'code': this.safeString(market, 'quote'),
-                        'precision': currencyPrecision,
-                    };
+                        'precision': this.safeValue2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
+                    });
                     quoteCurrencies.push(currency);
                 }
             }
@@ -2643,6 +2710,7 @@ class Exchange {
             const time = await this.fetchTime(params);
             this.status = this.extend(this.status, {
                 'updated': time,
+                'info': time,
             });
         }
         if (!('info' in this.status)) {
@@ -3034,6 +3102,15 @@ class Exchange {
         else {
             return this.decimalToPrecision(fee, ROUND, precision, this.precisionMode, this.paddingMode);
         }
+    }
+    isTickPrecision() {
+        return this.precisionMode === TICK_SIZE;
+    }
+    isDecimalPrecision() {
+        return this.precisionMode === DECIMAL_PLACES;
+    }
+    isSignificantPrecision() {
+        return this.precisionMode === SIGNIFICANT_DIGITS;
     }
     safeNumber(obj, key, defaultNumber = undefined) {
         const value = this.safeString(obj, key);

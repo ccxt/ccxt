@@ -37,6 +37,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'version': 'v3',
             'userAgent': None,
             'rateLimit': 600,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': False,
@@ -319,8 +320,9 @@ class krakenfutures(Exchange, ImplicitAPI):
             settleId = None
             amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'contractValueTradePrecision', '0')))
             pricePrecision = self.safe_number(market, 'tickSize')
-            contract = (swap or future)
-            if contract:
+            contract = (swap or future or index)
+            swapOrFutures = (swap or future)
+            if swapOrFutures:
                 exchangeType = self.safe_string(market, 'type')
                 if exchangeType == 'futures_inverse':
                     settle = base
@@ -787,7 +789,8 @@ class krakenfutures(Exchange, ImplicitAPI):
         type = self.safe_string(params, 'orderType', type)
         timeInForce = self.safe_string(params, 'timeInForce')
         stopPrice = self.safe_string(params, 'stopPrice')
-        postOnly = self.safe_string(params, 'postOnly')
+        postOnly = False
+        postOnly, params = self.handle_post_only(type == 'market', type == 'post', params)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'cliOrdId')
         params = self.omit(params, ['clientOrderId', 'cliOrdId'])
         if (type == 'stp' or type == 'take_profit') and stopPrice is None:
@@ -795,7 +798,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         if stopPrice is not None and type != 'take_profit':
             type = 'stp'
         elif postOnly:
-            type = 'postOnly'
+            type = 'post'
         elif timeInForce == 'ioc':
             type = 'ioc'
         elif type == 'limit':
@@ -1819,7 +1822,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         currency = self.currency(code)
         method = 'privatePostTransfer'
         request = {
-            'amount': self.currency_to_precision(code, amount),
+            'amount': amount,
         }
         if fromAccount == 'spot':
             raise BadRequest(self.id + ' transfer does not yet support transfers from spot')

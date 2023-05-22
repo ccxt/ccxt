@@ -498,7 +498,7 @@ class mexc extends mexc$1 {
                     '30010': errors.InvalidOrder,
                     '30014': errors.InvalidOrder,
                     '30016': errors.InvalidOrder,
-                    '30018': errors.InvalidOrder,
+                    '30018': errors.AccountSuspended,
                     '30020': errors.AuthenticationError,
                     '30021': errors.BadRequest,
                     '30025': errors.InvalidOrder,

@@ -10,7 +10,7 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 
 
-function test_sign_in($exchange) {
+function test_sign_in($exchange, $skipped_properties) {
     $method = 'signIn';
     if ($exchange->has[$method]) {
         $exchange->sign_in();

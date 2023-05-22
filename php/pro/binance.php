@@ -1465,6 +1465,7 @@ class binance extends \ccxt\async\binance {
             'type' => $type,
             'timeInForce' => $timeInForce,
             'postOnly' => null,
+            'reduceOnly' => $this->safe_value($order, 'R'),
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,

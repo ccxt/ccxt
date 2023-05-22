@@ -169,6 +169,7 @@ class coinex extends coinex$1 {
                         'order/market/trade/info': 1,
                         'sub_account/balance': 1,
                         'sub_account/transfer/history': 40,
+                        'sub_account/auth/api': 40,
                         'sub_account/auth/api/{user_auth_id}': 40,
                     },
                     'post': {
@@ -1112,7 +1113,7 @@ class coinex extends coinex$1 {
         //      }
         //
         const data = this.safeValue(response, 'data', {});
-        return this.parseTradingFee(data);
+        return this.parseTradingFee(data, market);
     }
     async fetchTradingFees(params = {}) {
         /**
@@ -1719,6 +1720,12 @@ class coinex extends coinex$1 {
          * @method
          * @name coinex#createOrder
          * @description create a trade order
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http017_put_limit
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http018_put_market
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http019_put_limit_stop
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http020_put_market_stop
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http031_market_close
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http030_limit_close
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1732,6 +1739,7 @@ class coinex extends coinex$1 {
          * @param {string} params.timeInForce "GTC", "IOC", "FOK", "PO"
          * @param {bool} params.postOnly
          * @param {bool} params.reduceOnly
+         * @param {bool|undefined} params.position_id *required for reduce only orders* the position id to reduce
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1746,9 +1754,12 @@ class coinex extends coinex$1 {
         const positionId = this.safeInteger2(params, 'position_id', 'positionId'); // Required for closing swap positions
         const timeInForceRaw = this.safeString(params, 'timeInForce'); // Spot: IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
         const reduceOnly = this.safeValue(params, 'reduceOnly');
-        if (reduceOnly !== undefined) {
+        if (reduceOnly) {
             if (market['type'] !== 'swap') {
                 throw new errors.InvalidOrder(this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap markets only');
+            }
+            if (positionId === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a position_id/positionId parameter for reduceOnly orders');
             }
         }
         let method = undefined;
@@ -2711,7 +2722,7 @@ class coinex extends coinex$1 {
         let address = undefined;
         let tag = undefined;
         const partsLength = parts.length;
-        if (partsLength > 1) {
+        if (partsLength > 1 && parts[0] !== 'cfx') {
             address = parts[0];
             tag = parts[1];
         }

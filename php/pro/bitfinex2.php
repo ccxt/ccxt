@@ -673,10 +673,16 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $asks = $book['asks'];
         // pepperoni pizza from bitfinex
         for ($i = 0; $i < $depth; $i++) {
-            $stringArray[] = $this->number_to_string($bids[$i][0]);
-            $stringArray[] = $this->number_to_string($bids[$i][1]);
-            $stringArray[] = $this->number_to_string($asks[$i][0]);
-            $stringArray[] = $this->number_to_string(-$asks[$i][1]);
+            $bid = $this->safe_value($bids, $i);
+            $ask = $this->safe_value($asks, $i);
+            if ($bid !== null) {
+                $stringArray[] = $this->number_to_string($bids[$i][0]);
+                $stringArray[] = $this->number_to_string($bids[$i][1]);
+            }
+            if ($ask !== null) {
+                $stringArray[] = $this->number_to_string($asks[$i][0]);
+                $stringArray[] = $this->number_to_string(-$asks[$i][1]);
+            }
         }
         $payload = implode(':', $stringArray);
         $localChecksum = $this->crc32($payload, true);

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.0.90';
+$version = '3.1.5';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.0.90';
+    const VERSION = '3.1.5';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -852,6 +852,9 @@ class Exchange {
     }
 
     public static function to_array($object) {
+        if ($object instanceof \JsonSerializable) {
+            $object = $object->jsonSerialize();
+        }
         return array_values($object);
     }
 
@@ -1563,52 +1566,6 @@ class Exchange {
         return call_user_func($this->number, $n);
     }
 
-    public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp') {
-        $result = array();
-        $since_is_set = isset($since);
-        if ($since_is_set) {
-            foreach ($array as $entry) {
-                if ($entry[$key] > $since) {
-                    $result[] = $entry;
-                }
-            }
-        } else {
-            $result = $array;
-        }
-        if (isset($limit)) {
-            $ascending = $result[0][$key] < $result[count($array) - 1][$key];  // true if array is sorted in ascending order based on 'timestamp'
-            if (is_array($result)) {
-                $result = $ascending ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
-            } else {
-                $length = count($result);
-                $start = $ascending ? max($length - $limit, 0) : 0;
-                $end = min($start + $limit, $length);
-                $result_copy = array();
-                for ($i = $start; $i < $end; $i++) {
-                    $result_copy[] = $result[$i];
-                }
-                $result = $result_copy;
-            }
-        }
-        return $result;
-    }
-
-    public function filter_by_value_since_limit($array, $field, $value = null, $since = null, $limit = null, $key = 'timestamp') {
-        $valueIsSet = isset($value);
-        $sinceIsSet = isset($since);
-        $result = array();
-        foreach ($array as $k => $v) {
-            if (($valueIsSet ? ($v[$field] === $value) : true) && ($sinceIsSet ? ($v[$key] >= $since) : true)) {
-                $result[] = $v;
-            }
-        }
-        if (isset($limit)) {
-            $ascending = $result[0]['timestamp'] < $result[count($array) - 1]['timestamp'];  // true if array is sorted in ascending order based on 'timestamp'
-            return $ascending ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
-        }
-        return $result;
-    }
-
     public function fetch_markets($params = array()) {
         // markets are returned as a list
         // currencies are returned as a dict
@@ -2127,6 +2084,18 @@ class Exchange {
         return intval($value);
     }
 
+    function valueIsDefined($value){
+        return isset($value) && !is_null($value);
+    }
+
+    function arraySlice($array, $first, $second = null){
+        if ($second === null) {
+            return array_slice($array, $first);
+        } else {
+            return array_slice($array, $first, $second);
+        }
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################
@@ -2165,6 +2134,62 @@ class Exchange {
     // ########################################################################
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function filter_by_limit(mixed $array, ?int $limit = null, int|string $key = 'timestamp') {
+        if ($this->valueIsDefined ($limit)) {
+            $arrayLength = count($array);
+            if ($arrayLength > 0) {
+                $ascending = true;
+                if ((is_array($array[0]) && array_key_exists($key, $array[0]))) {
+                    $first = $array[0][$key];
+                    $last = $array[$arrayLength - 1][$key];
+                    if ($first !== null && $last !== null) {
+                        $ascending = $first <= $last;  // true if $array is sorted in $ascending order based on 'timestamp'
+                    }
+                }
+                $array = $ascending ? $this->arraySlice ($array, -$limit) : $this->arraySlice ($array, 0, $limit);
+            }
+        }
+        return $array;
+    }
+
+    public function filter_by_since_limit(mixed $array, ?int $since = null, ?int $limit = null, int|string $key = 'timestamp') {
+        $sinceIsDefined = $this->valueIsDefined ($since);
+        $parsedArray = $this->to_array($array);
+        if ($sinceIsDefined) {
+            $result = [ ];
+            for ($i = 0; $i < count($parsedArray); $i++) {
+                $entry = $parsedArray[$i];
+                if ($entry[$key] >= $since) {
+                    $result[] = $entry;
+                }
+            }
+            return $this->filterByLimit ($result, $limit, $key);
+        }
+        return $this->filterByLimit ($parsedArray, $limit, $key);
+    }
+
+    public function filter_by_value_since_limit(mixed $array, int|string $field, $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp') {
+        $valueIsDefined = $this->valueIsDefined ($value);
+        $sinceIsDefined = $this->valueIsDefined ($since);
+        $parsedArray = $this->to_array($array);
+        // single-pass filter for both symbol and $since
+        if ($valueIsDefined || $sinceIsDefined) {
+            $result = [ ];
+            for ($i = 0; $i < count($parsedArray); $i++) {
+                $entry = $parsedArray[$i];
+                $entryFiledEqualValue = $entry[$field] === $value;
+                $firstCondition = $valueIsDefined ? $entryFiledEqualValue : true;
+                $entryKeyGESince = $entry[$key] && $since && ($entry[$key] >= $since);
+                $secondCondition = $sinceIsDefined ? $entryKeyGESince : true;
+                if ($firstCondition && $secondCondition) {
+                    $result[] = $entry;
+                }
+            }
+            return $this->filterByLimit ($result, $limit, $key);
+        }
+        return $this->filterByLimit ($parsedArray, $limit, $key);
+    }
 
     public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null) {
         return array();
@@ -2343,6 +2368,34 @@ class Exchange {
         );
     }
 
+    public function safe_currency_structure(array $currency) {
+        return array_merge(array(
+            'info' => null,
+            'id' => null,
+            'numericId' => null,
+            'code' => null,
+            'precision' => null,
+            'type' => null,
+            'name' => null,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'fees' => array(),
+            'networks' => array(),
+            'limits' => array(
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+        ), $currency);
+    }
+
     public function set_markets($markets, $currencies = null) {
         $values = array();
         $this->markets_by_id = array();
@@ -2368,6 +2421,7 @@ class Exchange {
         $this->symbols = is_array($marketsSortedBySymbol) ? array_keys($marketsSortedBySymbol) : array();
         $this->ids = is_array($marketsSortedById) ? array_keys($marketsSortedById) : array();
         if ($currencies !== null) {
+            // $currencies is always null when called in constructor but not when called from loadMarkets
             $this->currencies = $this->deep_extend($this->currencies, $currencies);
         } else {
             $baseCurrencies = array();
@@ -2377,23 +2431,21 @@ class Exchange {
                 $defaultCurrencyPrecision = ($this->precisionMode === DECIMAL_PLACES) ? 8 : $this->parse_number('1e-8');
                 $marketPrecision = $this->safe_value($market, 'precision', array());
                 if (is_array($market) && array_key_exists('base', $market)) {
-                    $currencyPrecision = $this->safe_value_2($marketPrecision, 'base', 'amount', $defaultCurrencyPrecision);
-                    $currency = array(
+                    $currency = $this->safe_currency_structure(array(
                         'id' => $this->safe_string_2($market, 'baseId', 'base'),
                         'numericId' => $this->safe_integer($market, 'baseNumericId'),
                         'code' => $this->safe_string($market, 'base'),
-                        'precision' => $currencyPrecision,
-                    );
+                        'precision' => $this->safe_value_2($marketPrecision, 'base', 'amount', $defaultCurrencyPrecision),
+                    ));
                     $baseCurrencies[] = $currency;
                 }
                 if (is_array($market) && array_key_exists('quote', $market)) {
-                    $currencyPrecision = $this->safe_value_2($marketPrecision, 'quote', 'price', $defaultCurrencyPrecision);
-                    $currency = array(
+                    $currency = $this->safe_currency_structure(array(
                         'id' => $this->safe_string_2($market, 'quoteId', 'quote'),
                         'numericId' => $this->safe_integer($market, 'quoteNumericId'),
                         'code' => $this->safe_string($market, 'quote'),
-                        'precision' => $currencyPrecision,
-                    );
+                        'precision' => $this->safe_value_2($marketPrecision, 'quote', 'price', $defaultCurrencyPrecision),
+                    ));
                     $quoteCurrencies[] = $currency;
                 }
             }
@@ -3337,7 +3389,7 @@ class Exchange {
         );
     }
 
-    public function parse_ohlcvs(array $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
+    public function parse_ohlcvs(mixed $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
         $results = array();
         for ($i = 0; $i < count($ohlcvs); $i++) {
             $results[] = $this->parse_ohlcv($ohlcvs[$i], $market);
@@ -3750,6 +3802,7 @@ class Exchange {
             $time = $this->fetchTime ($params);
             $this->status = array_merge($this->status, array(
                 'updated' => $time,
+                'info' => $time,
             ));
         }
         if (!(is_array($this->status) && array_key_exists('info', $this->status))) {
@@ -4185,6 +4238,18 @@ class Exchange {
         } else {
             return $this->decimal_to_precision($fee, ROUND, $precision, $this->precisionMode, $this->paddingMode);
         }
+    }
+
+    public function is_tick_precision() {
+        return $this->precisionMode === TICK_SIZE;
+    }
+
+    public function is_decimal_precision() {
+        return $this->precisionMode === DECIMAL_PLACES;
+    }
+
+    public function is_significant_precision() {
+        return $this->precisionMode === SIGNIFICANT_DIGITS;
     }
 
     public function safe_number(array $obj, int|string $key, ?float $defaultNumber = null) {

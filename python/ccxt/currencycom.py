@@ -456,11 +456,12 @@ class currencycom(Exchange, ImplicitAPI):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            type = self.safe_string(market, 'marketType')
-            spot = (type == 'SPOT')
+            typeRaw = self.safe_string(market, 'marketType')
+            spot = (typeRaw == 'SPOT')
             futures = False
-            swap = (type == 'LEVERAGE')
-            margin = swap  # decided to set
+            swap = (typeRaw == 'LEVERAGE')
+            type = 'swap' if swap else 'spot'
+            margin = None
             if swap:
                 symbol = symbol.replace(self.options['leverage_markets_suffix'], '')
                 symbol += ':' + quote

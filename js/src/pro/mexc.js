@@ -157,7 +157,7 @@ export default class mexc extends mexcRest {
         return await this.watch(url, messageHash, this.extend(request, params), channel);
     }
     async watchSpotPrivate(channel, messageHash, params = {}) {
-        await this.checkRequiredCredentials();
+        this.checkRequiredCredentials();
         const listenKey = await this.authenticate(channel);
         const url = this.urls['api']['ws']['spot'] + '?listenKey=' + listenKey;
         const request = {

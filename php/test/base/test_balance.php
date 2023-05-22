@@ -10,34 +10,41 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/test_shared_methods.php';
 
-function test_balance($exchange, $method, $entry) {
+function test_balance($exchange, $skipped_properties, $method, $entry) {
     $format = array(
         'free' => array(),
         'used' => array(),
         'total' => array(),
         'info' => array(),
     );
-    $empty_not_allowed_for = ['free', 'used', 'total'];
-    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
+    assert_structure($exchange, $skipped_properties, $method, $entry, $format);
     $log_text = log_template($exchange, $method, $entry);
     //
-    $codes = is_array($entry['total']) ? array_keys($entry['total']) : array();
-    for ($i = 0; $i < count($codes); $i++) {
-        $code = $codes[$i];
-        assert_currency_code($exchange, $method, $entry, $code);
+    $codes_total = is_array($entry['total']) ? array_keys($entry['total']) : array();
+    $codes_free = is_array($entry['free']) ? array_keys($entry['free']) : array();
+    $codes_used = is_array($entry['used']) ? array_keys($entry['used']) : array();
+    $all_codes = $codes_total->concat($codes_free);
+    $all_codes = $all_codes->concat($codes_used);
+    $codes_length = count($codes_total);
+    $free_length = count($codes_free);
+    $used_length = count($codes_used);
+    assert(($codes_length === $free_length) || ($codes_length === $used_length), 'free and total and used codes have different lengths' . $log_text);
+    for ($i = 0; $i < count($all_codes); $i++) {
+        $code = $all_codes[$i];
+        assert_currency_code($exchange, $skipped_properties, $method, $entry, $code);
+        assert(is_array($entry['total']) && array_key_exists($code, $entry['total']), 'code ' . $code . ' not in total' . $log_text);
+        assert(is_array($entry['free']) && array_key_exists($code, $entry['free']), 'code ' . $code . ' not in free' . $log_text);
+        assert(is_array($entry['used']) && array_key_exists($code, $entry['used']), 'code ' . $code . ' not in used' . $log_text);
         $total = $exchange->safe_string($entry['total'], $code);
         $free = $exchange->safe_string($entry['free'], $code);
         $used = $exchange->safe_string($entry['used'], $code);
-        $total_defined = $total !== null;
-        $free_defined = $free !== null;
-        $used_defined = $used !== null;
-        if ($total_defined && $free_defined && $used_defined) {
-            $free_and_used = Precise::string_add($free, $used);
-            assert(Precise::string_eq($total, $free_and_used), 'free and used do not sum to total' . $log_text);
-        } else {
-            assert(!$total_defined && $free_defined && $used_defined, 'value of \"total\" is missing from balance calculations' . $log_text);
-            assert($total_defined && !$free_defined && $used_defined, 'value of \"free\" is missing from balance calculations' . $log_text);
-            assert($total_defined && $free_defined && !$used_defined, 'value of \"used\" is missing from balance calculations' . $log_text);
-        }
+        assert($total !== null, 'total is undefined' . $log_text);
+        assert($free !== null, 'free is undefined' . $log_text);
+        assert($used !== null, 'used is undefined' . $log_text);
+        assert(Precise::string_ge($total, '0'), 'total is not positive' . $log_text);
+        assert(Precise::string_ge($free, '0'), 'free is not positive' . $log_text);
+        assert(Precise::string_ge($used, '0'), 'used is not positive' . $log_text);
+        $sum_free_used = Precise::string_add($free, $used);
+        assert(Precise::string_eq($total, $sum_free_used), 'free and used do not sum to total' . $log_text);
     }
 }

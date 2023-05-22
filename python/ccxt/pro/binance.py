@@ -1331,6 +1331,7 @@ class binance(ccxt.async_support.binance):
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': None,
+            'reduceOnly': self.safe_value(order, 'R'),
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
