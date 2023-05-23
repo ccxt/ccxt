@@ -13,7 +13,7 @@ fi
 
 [[ -n "$TRAVIS_BUILD_ID" ]] && IS_TRAVIS="TRUE" || IS_TRAVIS="FALSE"
 
-msgPrefix="BUILD.SH> "
+msgPrefix="⬤ BUILD.SH : "
 
 function run_tests {
   local rest_args=
