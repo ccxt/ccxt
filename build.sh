@@ -122,7 +122,7 @@ do
   # remove dir & ext
   entry="${entry/\.ts/''}"
   exchangeid="${entry/$REST_dir\//''}"
-  js_file_to_check=./js/src/$exchangeid.js
+  js_file_to_check=$REST_dir$exchangeid.js
   if [ ! -f "$js_file_to_check" ]; then
     REST_EXCHANGES+=$exchangeid
   fi
@@ -132,7 +132,7 @@ do
   # remove dir & ext
   entry="${entry/\.ts/''}"
   exchangeid="${entry/$WS_dir\//''}"
-  js_file_to_check=./js/src/$exchangeid.js
+  js_file_to_check=$WS_dir$exchangeid.js
   if [ ! -f "$js_file_to_check" ]; then
     WS_EXCHANGES+=$exchangeid
   fi
