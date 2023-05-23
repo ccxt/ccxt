@@ -107,6 +107,7 @@ const {
     , DECIMAL_PLACES
     , NO_PADDING
     , TICK_SIZE
+    , SIGNIFICANT_DIGITS
 } = functions
 
 // import exceptions from "./errors.js"
@@ -1366,7 +1367,7 @@ export default class Exchange {
                     const first = array[0][key];
                     const last = array[arrayLength - 1][key];
                     if (first !== undefined && last !== undefined) {
-                        ascending = first < last;  // true if array is sorted in ascending order based on 'timestamp'
+                        ascending = first <= last;  // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
                 array = ascending ? this.arraySlice (array, -limit) : this.arraySlice (array, 0, limit);
@@ -2516,26 +2517,6 @@ export default class Exchange {
         return networkCode;
     }
 
-    networkCodesToIds (networkCodes = undefined) {
-        /**
-         * @ignore
-         * @method
-         * @name exchange#networkCodesToIds
-         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
-         * @param {[string]|undefined} networkCodes unified network codes
-         * @returns {[string|undefined]} exchange-specific network ids
-         */
-        if (networkCodes === undefined) {
-            return undefined;
-        }
-        const ids = [];
-        for (let i = 0; i < networkCodes.length; i++) {
-            const networkCode = networkCodes[i];
-            ids.push (this.networkCodeToId (networkCode));
-        }
-        return ids;
-    }
-
     handleNetworkCodeAndParams (params) {
         const networkCodeInParams = this.safeString2 (params, 'networkCode', 'network');
         if (networkCodeInParams !== undefined) {
@@ -3467,6 +3448,18 @@ export default class Exchange {
         } else {
             return this.decimalToPrecision (fee, ROUND, precision, this.precisionMode, this.paddingMode);
         }
+    }
+
+    isTickPrecision () {
+        return this.precisionMode === TICK_SIZE;
+    }
+
+    isDecimalPrecision () {
+        return this.precisionMode === DECIMAL_PLACES;
+    }
+
+    isSignificantPrecision () {
+        return this.precisionMode === SIGNIFICANT_DIGITS;
     }
 
     safeNumber (obj: object, key: IndexType, defaultNumber: number = undefined): number {

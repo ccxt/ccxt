@@ -136,7 +136,7 @@ export default class xt extends Exchange {
         tagFrom: any;
         tagTo: any;
         tag: string;
-        type: any;
+        type: string;
         amount: number;
         currency: any;
         network: string;
@@ -161,7 +161,7 @@ export default class xt extends Exchange {
         tagFrom: any;
         tagTo: any;
         tag: string;
-        type: any;
+        type: string;
         amount: number;
         currency: any;
         network: string;

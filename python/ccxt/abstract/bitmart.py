@@ -19,6 +19,7 @@ class ImplicitAPI:
     public_get_contract_public_open_interest = publicGetContractPublicOpenInterest = Entry('contract/public/open-interest', 'public', 'GET', {'cost': 30})
     public_get_contract_public_funding_rate = publicGetContractPublicFundingRate = Entry('contract/public/funding-rate', 'public', 'GET', {'cost': 30})
     public_get_contract_public_kline = publicGetContractPublicKline = Entry('contract/public/kline', 'public', 'GET', {'cost': 5})
+    public_get_account_v1_currencies = publicGetAccountV1Currencies = Entry('account/v1/currencies', 'public', 'GET', {'cost': 30})
     private_get_account_sub_account_v1_transfer_list = privateGetAccountSubAccountV1TransferList = Entry('account/sub-account/v1/transfer-list', 'private', 'GET', {'cost': 7.5})
     private_get_account_sub_account_v1_transfer_history = privateGetAccountSubAccountV1TransferHistory = Entry('account/sub-account/v1/transfer-history', 'private', 'GET', {'cost': 7.5})
     private_get_account_sub_account_main_v1_wallet = privateGetAccountSubAccountMainV1Wallet = Entry('account/sub-account/main/v1/wallet', 'private', 'GET', {'cost': 5})

@@ -377,6 +377,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/order/spot-borrow-check': 2.5,
                         'v5/order/realtime': 2.5,
                         'v5/position/list': 2.5,
+                        'v5/position/switch-mode': 2.5,
                         'v5/execution/list': 2.5,
                         'v5/position/closed-pnl': 2.5,
                         'v5/account/wallet-balance': 2.5,
@@ -579,6 +580,9 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/position/set-tpsl-mode': 2.5,
                         'v5/position/set-risk-limit': 2.5,
                         'v5/position/trading-stop': 2.5,
+                        'v5/position/switch-isolated': 2.5,
+                        'v5/position/switch-mode': 2.5,
+                        'v5/position/set-auto-add-margin': 2.5,
                         'v5/account/upgrade-to-uta': 2.5,
                         'v5/account/set-margin-mode': 2.5,
                         'v5/asset/transfer/inter-transfer': 2.5,
@@ -1282,6 +1286,11 @@ class bybit(Exchange, ImplicitAPI):
             chains = self.safe_value(currency, 'chains', [])
             networks = {}
             minPrecision = None
+            minWithdrawFeeString = None
+            minWithdrawString = None
+            minDepositString = None
+            deposit = False
+            withdraw = False
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
@@ -1289,23 +1298,34 @@ class bybit(Exchange, ImplicitAPI):
                 precision = self.parse_number(self.parse_precision(self.safe_string(chain, 'minAccuracy')))
                 minPrecision = precision if (minPrecision is None) else min(minPrecision, precision)
                 depositAllowed = self.safe_integer(chain, 'chainDeposit') == 1
+                deposit = depositAllowed if (depositAllowed) else deposit
                 withdrawAllowed = self.safe_integer(chain, 'chainWithdraw') == 1
+                withdraw = withdrawAllowed if (withdrawAllowed) else withdraw
+                withdrawFeeString = self.safe_string(chain, 'withdrawFee')
+                if withdrawFeeString is not None:
+                    minWithdrawFeeString = withdrawFeeString if (minWithdrawFeeString is None) else Precise.string_min(withdrawFeeString, minWithdrawFeeString)
+                minNetworkWithdrawString = self.safe_string(chain, 'withdrawMin')
+                if minNetworkWithdrawString is not None:
+                    minWithdrawString = minNetworkWithdrawString if (minWithdrawString is None) else Precise.string_min(minNetworkWithdrawString, minWithdrawString)
+                minNetworkDepositString = self.safe_string(chain, 'depositMin')
+                if minNetworkDepositString is not None:
+                    minDepositString = minNetworkDepositString if (minDepositString is None) else Precise.string_min(minNetworkDepositString, minDepositString)
                 networks[networkCode] = {
                     'info': chain,
                     'id': networkId,
                     'network': networkCode,
-                    'active': None,
+                    'active': depositAllowed and withdrawAllowed,
                     'deposit': depositAllowed,
                     'withdraw': withdrawAllowed,
-                    'fee': self.safe_number(chain, 'withdrawFee'),
+                    'fee': self.parse_number(withdrawFeeString),
                     'precision': precision,
                     'limits': {
                         'withdraw': {
-                            'min': self.safe_number(chain, 'withdrawMin'),
+                            'min': self.parse_number(minNetworkWithdrawString),
                             'max': None,
                         },
                         'deposit': {
-                            'min': self.safe_number(chain, 'depositMin'),
+                            'min': self.parse_number(minNetworkDepositString),
                             'max': None,
                         },
                     },
@@ -1315,14 +1335,22 @@ class bybit(Exchange, ImplicitAPI):
                 'code': code,
                 'id': currencyId,
                 'name': name,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
+                'active': deposit and withdraw,
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'fee': self.parse_number(minWithdrawFeeString),
                 'precision': minPrecision,
                 'limits': {
                     'amount': {
                         'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': self.parse_number(minWithdrawString),
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': self.parse_number(minDepositString),
                         'max': None,
                     },
                 },
@@ -2387,7 +2415,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         #     {
         #         "symbol": "AAVEUSDT",
-        #         "id": "1274785101965716992",
+        #         "id": "1274785101965716991",
         #         "orderId": "1274784252359089664",
         #         "tradeId": "2270000000031365639",
         #         "orderPrice": "82.5",
@@ -7067,7 +7095,19 @@ class bybit(Exchange, ImplicitAPI):
         return getattr(self, method)(self.extend(request, params))
 
     def set_position_mode(self, hedged, symbol: Optional[str] = None, params={}):
+        """
+        set hedged to True or False for a market
+        see https://bybit-exchange.github.io/docs/v5/position/position-mode
+        see https://bybit-exchange.github.io/docs/derivatives/contract/position-mode
+        :param bool hedged:
+        :param str|None symbol: used for unified account with inverse market
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: response from the exchange
+        """
         self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         mode = None
         if hedged:
             mode = 3
@@ -7079,9 +7119,21 @@ class bybit(Exchange, ImplicitAPI):
         if symbol is None:
             request['coin'] = 'USDT'
         else:
-            market = self.market(symbol)
             request['symbol'] = market['id']
+        enableUnified = self.is_unified_enabled()
+        response = None
+        if enableUnified[1] or enableUnified[0]:
+            if symbol is not None:
+                request['category'] = 'linear' if market['linear'] else 'inverse'
+            else:
+                subType = None
+                subType, params = self.handle_sub_type_and_params('setPositionMode', market, params)
+                request['category'] = subType
+            response = self.privatePostV5PositionSwitchMode(self.extend(request, params))
+        else:
+            response = self.privatePostContractV3PrivatePositionSwitchMode(self.extend(request, params))
         #
+        # contract v3
         #     {
         #         "ret_code": 0,
         #         "ret_msg": "ok",
@@ -7094,7 +7146,15 @@ class bybit(Exchange, ImplicitAPI):
         #         "rate_limit": 75
         #     }
         #
-        return self.privatePostContractV3PrivatePositionSwitchMode(self.extend(request, params))
+        # v5
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {},
+        #         "retExtInfo": {},
+        #         "time": 1675249072814
+        #     }
+        return response
 
     def fetch_derivatives_open_interest_history(self, symbol: str, timeframe='1h', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
