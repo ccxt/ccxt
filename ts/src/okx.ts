@@ -743,9 +743,11 @@ export default class okx extends Exchange {
                     'timeframes': {
                         '5m': '5m',
                         '1h': '1H',
+                        '8h': '8H',
                         '1d': '1D',
                         '5M': '5m',
                         '1H': '1H',
+                        '8H': '8H',
                         '1D': '1D',
                     },
                 },
@@ -1570,6 +1572,23 @@ export default class okx extends Exchange {
         //         "ts": "1621446178316"
         //     }
         //
+        // option: fetchTrades
+        //
+        //     {
+        //         "fillVol": "0.46387625976562497",
+        //         "fwdPx": "26299.754935451125",
+        //         "indexPx": "26309.7",
+        //         "instFamily": "BTC-USD",
+        //         "instId": "BTC-USD-230526-26000-C",
+        //         "markPx": "0.042386283557554236",
+        //         "optType": "C",
+        //         "px": "0.0415",
+        //         "side": "sell",
+        //         "sz": "90",
+        //         "tradeId": "112",
+        //         "ts": "1683907480154"
+        //     }
+        //
         // private fetchMyTrades
         //
         //     {
@@ -1638,6 +1657,8 @@ export default class okx extends Exchange {
          * @method
          * @name okx#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades
+         * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-option-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
@@ -1649,10 +1670,15 @@ export default class okx extends Exchange {
         const request = {
             'instId': market['id'],
         };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 100
+        let response = undefined;
+        if (market['option']) {
+            response = await this.publicGetPublicOptionTrades (this.extend (request, params));
+        } else {
+            if (limit !== undefined) {
+                request['limit'] = limit; // default 100
+            }
+            response = await this.publicGetMarketTrades (this.extend (request, params));
         }
-        const response = await this.publicGetMarketTrades (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -1662,6 +1688,29 @@ export default class okx extends Exchange {
         //             {"instId":"ETH-BTC","side":"sell","sz":"0.03","px":"0.07068","tradeId":"15826756","ts":"1621446178066"},
         //             {"instId":"ETH-BTC","side":"buy","sz":"0.507","px":"0.07069","tradeId":"15826755","ts":"1621446175085"},
         //         ]
+        //     }
+        //
+        // option
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "fillVol": "0.46387625976562497",
+        //                 "fwdPx": "26299.754935451125",
+        //                 "indexPx": "26309.7",
+        //                 "instFamily": "BTC-USD",
+        //                 "instId": "BTC-USD-230526-26000-C",
+        //                 "markPx": "0.042386283557554236",
+        //                 "optType": "C",
+        //                 "px": "0.0415",
+        //                 "side": "sell",
+        //                 "sz": "90",
+        //                 "tradeId": "112",
+        //                 "ts": "1683907480154"
+        //             },
+        //         ],
+        //         "msg": ""
         //     }
         //
         const data = this.safeValue (response, 'data', []);
@@ -5814,13 +5863,15 @@ export default class okx extends Exchange {
         return this.parseOpenInterest (data[0], market);
     }
 
-    async fetchOpenInterestHistory (symbol: string, timeframe = '5m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenInterestHistory (symbol: string, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchOpenInterestHistory
          * @description Retrieves the open interest history of a currency
-         * @param {string} symbol Unified CCXT currency code instead of a unified symbol
-         * @param {string} timeframe "5m", "1h", or "1d"
+         * @see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-contracts-open-interest-and-volume
+         * @see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-options-open-interest-and-volume
+         * @param {string} symbol Unified CCXT currency code or unified symbol
+         * @param {string} timeframe "5m", "1h", or "1d" for option only "1d" or "8h"
          * @param {int|undefined} since The time in ms of the earliest record to retrieve as a unix timestamp
          * @param {int|undefined} limit Not used by okx, but parsed internally by CCXT
          * @param {object} params Exchange specific parameters
@@ -5834,20 +5885,36 @@ export default class okx extends Exchange {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');
         }
         await this.loadMarkets ();
-        const currency = this.currency (symbol);
+        // handle unified currency code or symbol
+        let currencyId = undefined;
+        let market = undefined;
+        if ((symbol in this.markets) || (symbol in this.markets_by_id)) {
+            market = this.market (symbol);
+            currencyId = market['baseId'];
+        } else {
+            const currency = this.currency (symbol);
+            currencyId = currency['id'];
+        }
         const request = {
-            'ccy': currency['id'],
+            'ccy': currencyId,
             'period': timeframe,
         };
-        if (since !== undefined) {
-            request['begin'] = since;
+        let type = undefined;
+        let response = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenInterestHistory', market, params);
+        if (type === 'option') {
+            response = await this.publicGetRubikStatOptionOpenInterestVolume (this.extend (request, params));
+        } else {
+            if (since !== undefined) {
+                request['begin'] = since;
+            }
+            const until = this.safeInteger2 (params, 'till', 'until');
+            if (until !== undefined) {
+                request['end'] = until;
+                params = this.omit (params, [ 'until', 'till' ]);
+            }
+            response = await this.publicGetRubikStatContractsOpenInterestVolume (this.extend (request, params));
         }
-        const until = this.safeInteger2 (params, 'till', 'until');
-        if (until !== undefined) {
-            request['end'] = until;
-            params = this.omit (params, [ 'until', 'till' ]);
-        }
-        const response = await this.publicGetRubikStatContractsOpenInterestVolume (this.extend (request, params));
         //
         //    {
         //        code: '0',
@@ -5862,7 +5929,7 @@ export default class okx extends Exchange {
         //        msg: ''
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         return this.parseOpenInterests (data, undefined, since, limit);
     }
 
@@ -5872,33 +5939,48 @@ export default class okx extends Exchange {
         //
         //    [
         //        '1648221300000',  // timestamp
-        //        '2183354317.945',  // open interest (USD)
-        //        '74285877.617',  // volume (USD)
+        //        '2183354317.945',  // open interest (USD) - (coin) for options
+        //        '74285877.617',  // volume (USD) - (coin) for options
         //    ]
         //
         // fetchOpenInterest
         //
         //     {
-        //         "instId": "BTC-USDT-SWAP",
-        //         "instType": "SWAP",
-        //         "oi": "2125419",
-        //         "oiCcy": "21254.19",
-        //         "ts": "1664005108969"
+        //         "instId": "BTC-USD-230520-25500-P",
+        //         "instType": "OPTION",
+        //         "oi": "300",
+        //         "oiCcy": "3",
+        //         "ts": "1684551166251"
         //     }
         //
         const id = this.safeString (interest, 'instId');
         market = this.safeMarket (id, market);
         const time = this.safeInteger (interest, 'ts');
         const timestamp = this.safeNumber (interest, 0, time);
-        const numContracts = this.safeNumber (interest, 'oi');
-        const inCurrency = this.safeNumber (interest, 'oiCcy');
-        const openInterest = this.safeNumber (interest, 1, inCurrency);
+        let baseVolume = undefined;
+        let quoteVolume = undefined;
+        let openInterestAmount = undefined;
+        let openInterestValue = undefined;
+        const type = this.safeString (this.options, 'defaultType');
+        if (Array.isArray (interest)) {
+            if (type === 'option') {
+                openInterestAmount = this.safeNumber (interest, 1);
+                baseVolume = this.safeNumber (interest, 2);
+            } else {
+                openInterestValue = this.safeNumber (interest, 1);
+                quoteVolume = this.safeNumber (interest, 2);
+            }
+        } else {
+            baseVolume = this.safeNumber (interest, 'oiCcy');
+            openInterestAmount = this.safeNumber (interest, 'oi');
+            openInterestValue = this.safeNumber (interest, 'oiCcy');
+        }
         return {
             'symbol': this.safeSymbol (id),
-            'baseVolume': undefined,  // deprecated
-            'quoteVolume': openInterest,  // deprecated
-            'openInterestAmount': numContracts,
-            'openInterestValue': openInterest,
+            'baseVolume': baseVolume,  // deprecated
+            'quoteVolume': quoteVolume,  // deprecated
+            'openInterestAmount': openInterestAmount,
+            'openInterestValue': openInterestValue,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,

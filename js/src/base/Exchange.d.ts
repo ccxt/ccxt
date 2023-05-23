@@ -180,7 +180,7 @@ export default class Exchange {
         outputLen: number;
         blockLen: number;
         create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
-    }, digest?: "hex" | "base64" | "binary") => any;
+    }, digest?: "binary" | "hex" | "base64") => any;
     arrayConcat: (a: any, b: any) => any;
     encode: (str: string) => Uint8Array;
     urlencode: (object: any) => string;
@@ -189,7 +189,7 @@ export default class Exchange {
         outputLen: number;
         blockLen: number;
         create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
-    }, digest?: "hex" | "base64" | "binary") => any;
+    }, digest?: "binary" | "hex" | "base64") => any;
     numberToString: typeof functions.numberToString;
     parseTimeframe: (timeframe: string) => number;
     safeInteger2: (o: any, k1: string | number, k2: string | number, $default?: number) => number;
@@ -573,7 +573,6 @@ export default class Exchange {
     getNetwork(network: string, code: string): string;
     networkCodeToId(networkCode: any, currencyCode?: any): string;
     networkIdToCode(networkId: any, currencyCode?: any): string;
-    networkCodesToIds(networkCodes?: any): any[];
     handleNetworkCodeAndParams(params: any): any[];
     defaultNetworkCode(currencyCode: any): any;
     selectNetworkCodeFromUnifiedNetworks(currencyCode: any, networkCode: any, indexedNetworkEntries: any): any;

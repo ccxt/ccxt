@@ -1159,6 +1159,7 @@ class bitget extends Exchange {
         if ($quote === 'USDT') {
             $minCost = $this->safe_number($market, 'minTradeUSDT');
         }
+        $contractSize = $contract ? 1 : null;
         return array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -1180,7 +1181,7 @@ class bitget extends Exchange {
             'inverse' => $inverse,
             'taker' => $this->safe_number($market, 'takerFeeRate'),
             'maker' => $this->safe_number($market, 'makerFeeRate'),
-            'contractSize' => 1,
+            'contractSize' => $contractSize,
             'expiry' => $expiry,
             'expiryDatetime' => $expiryDatetime,
             'strike' => null,
@@ -2514,13 +2515,23 @@ class bitget extends Exchange {
 
     public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#place-order
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-order
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-stop-order
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-position-tpsl
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-plan-order
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
+         * @param {string} $side 'buy' or 'sell' or 'open_long' or 'open_short' or 'close_long' or 'close_short'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {float} $params->triggerPrice *swap only* The $price at which a trigger order is triggered at
+         * @param {float|null} $params->stopLossPrice *swap only* The $price at which a stop loss order is triggered at
+         * @param {float|null} $params->takeProfitPrice *swap only* The $price at which a take profit order is triggered at
+         * @param {float|null} $params->stopLoss *swap only* *uses the Place Position TPSL* The $price at which a stop loss order is triggered at
+         * @param {float|null} $params->takeProfit *swap only* *uses the Place Position TPSL* The $price at which a take profit order is triggered at
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -2531,15 +2542,20 @@ class bitget extends Exchange {
             'orderType' => $type,
         );
         $isMarketOrder = $type === 'market';
-        $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
+        $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
+        $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
+        $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
+        $stopLoss = $this->safe_number($params, 'stopLoss');
+        $takeProfit = $this->safe_number($params, 'takeProfit');
         $isTriggerOrder = $triggerPrice !== null;
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
-        $isStopLossOrder = $stopLossPrice !== null;
-        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
-        $isTakeProfitOrder = $takeProfitPrice !== null;
-        $isStopLossOrTakeProfit = $isStopLossOrder || $isTakeProfitOrder;
-        if ($this->sum($isTriggerOrder, $isStopLossOrder, $isTakeProfitOrder) > 1) {
-            throw new ExchangeError($this->id . ' createOrder() $params can only contain one of $triggerPrice, $stopLossPrice, takeProfitPrice');
+        $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
+        $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
+        $isStopLoss = $stopLoss !== null;
+        $isTakeProfit = $takeProfit !== null;
+        $isStopLossOrTakeProfitTrigger = $isStopLossTriggerOrder || $isTakeProfitTriggerOrder;
+        $isStopLossOrTakeProfit = $isStopLoss || $isTakeProfit;
+        if ($this->sum($isTriggerOrder, $isStopLossTriggerOrder, $isTakeProfitTriggerOrder, $isStopLoss, $isTakeProfit) > 1) {
+            throw new ExchangeError($this->id . ' createOrder() $params can only contain one of $triggerPrice, stopLossPrice, takeProfitPrice, $stopLoss, takeProfit');
         }
         if (($type === 'limit') && ($triggerPrice === null)) {
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -2554,7 +2570,7 @@ class bitget extends Exchange {
         $postOnly = null;
         list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $exchangeSpecificTifParam === 'post_only', $params);
         if ($marketType === 'spot') {
-            if ($isStopLossOrTakeProfit) {
+            if ($isStopLossOrTakeProfitTrigger || $isStopLossOrTakeProfit) {
                 throw new InvalidOrder($this->id . ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets');
             }
             $timeInForceKey = 'force';
@@ -2599,44 +2615,71 @@ class bitget extends Exchange {
             if ($clientOrderId !== null) {
                 $request['clientOid'] = $clientOrderId;
             }
-            $request['size'] = $this->amount_to_precision($symbol, $amount);
-            if ($postOnly) {
-                $request['timeInForceValue'] = 'post_only';
+            if (!$isStopLossOrTakeProfit) {
+                $request['size'] = $this->amount_to_precision($symbol, $amount);
+                if ($postOnly) {
+                    $request['timeInForceValue'] = 'post_only';
+                }
             }
-            $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
-            if ($triggerPrice !== null) {
+            if ($isTriggerOrder || $isStopLossOrTakeProfit) {
                 // default $triggerType to $market $price for unification
                 $triggerType = $this->safe_string($params, 'triggerType', 'market_price');
                 $request['triggerType'] = $triggerType;
+            }
+            if ($isStopLossOrTakeProfitTrigger || $isStopLossOrTakeProfit) {
+                if (!$isMarketOrder) {
+                    throw new ExchangeError($this->id . ' createOrder() bitget $stopLoss or $takeProfit orders must be $market orders');
+                }
+                $request['holdSide'] = ($side === 'buy') ? 'long' : 'short';
+            }
+            $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+            if ($isTriggerOrder) {
                 $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 if ($price !== null) {
                     $request['executePrice'] = $this->price_to_precision($symbol, $price);
                 }
-                $method = 'privateMixPostPlanPlacePlan';
-            }
-            if ($isStopLossOrTakeProfit) {
-                if (!$isMarketOrder) {
-                    throw new ExchangeError($this->id . ' createOrder() bitget stopLoss or takeProfit orders must be $market orders');
+                if ($side === 'buy') {
+                    $request['side'] = 'open_long';
+                } elseif ($side === 'sell') {
+                    $request['side'] = 'open_short';
+                } else {
+                    $request['side'] = $side;
                 }
-                if ($isStopLossOrder) {
-                    $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
+                $method = 'privateMixPostPlanPlacePlan';
+            } elseif ($isStopLossOrTakeProfitTrigger) {
+                if ($isStopLossTriggerOrder) {
+                    $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
                     $request['planType'] = 'loss_plan';
-                } elseif ($isTakeProfitOrder) {
-                    $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
+                } elseif ($isTakeProfitTriggerOrder) {
+                    $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
                     $request['planType'] = 'profit_plan';
                 }
-                $request['holdSide'] = ($side === 'buy') ? 'long' : 'short';
                 $method = 'privateMixPostPlanPlaceTPSL';
+            } elseif ($isStopLossOrTakeProfit) {
+                if ($isStopLoss) {
+                    $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLoss);
+                    $request['planType'] = 'pos_loss';
+                } elseif ($isTakeProfit) {
+                    $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfit);
+                    $request['planType'] = 'pos_profit';
+                }
+                $method = 'privateMixPostPlanPlacePositionsTPSL';
             } else {
                 if ($reduceOnly) {
                     $request['side'] = ($side === 'buy') ? 'close_short' : 'close_long';
                 } else {
-                    $request['side'] = ($side === 'buy') ? 'open_long' : 'open_short';
+                    if ($side === 'buy') {
+                        $request['side'] = 'open_long';
+                    } elseif ($side === 'sell') {
+                        $request['side'] = 'open_short';
+                    } else {
+                        $request['side'] = $side;
+                    }
                 }
             }
             $request['marginCoin'] = $market['settleId'];
         }
-        $omitted = $this->omit($query, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'postOnly' ));
+        $omitted = $this->omit($query, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly' ));
         $response = $this->$method (array_merge($request, $omitted));
         //
         //     {
