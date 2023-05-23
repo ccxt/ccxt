@@ -3985,17 +3985,21 @@ export default class phemex extends Exchange {
         }
         await this.loadMarkets ();
         const isHedged = this.safeValue (params, 'hedged', false);
+        const longLeverageRr = this.safeInteger (params, 'longLeverageRr');
+        const shortLeverageRr = this.safeInteger (params, 'shortLeverageRr');
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
         let response = undefined;
         if (market['settle'] === 'USDT') {
-            if (!isHedged) {
+            if (!isHedged && longLeverageRr === undefined && shortLeverageRr === undefined) {
                 request['leverageRr'] = leverage;
             } else {
-                request['longLeverageRr'] = this.safeInteger (params, 'longLeverageRr', leverage);
-                request['shortLeverageRr'] = this.safeInteger (params, 'shortLeverageRr', leverage);
+                const long = (longLeverageRr !== undefined) ? longLeverageRr : leverage;
+                const short = (shortLeverageRr !== undefined) ? shortLeverageRr : leverage;
+                request['longLeverageRr'] = long;
+                request['shortLeverageRr'] = short;
             }
             response = await this.privatePutPositionsLeverage (this.extend (request, params));
         } else {
