@@ -4001,10 +4001,10 @@ export default class phemex extends Exchange {
                 request['longLeverageRr'] = long;
                 request['shortLeverageRr'] = short;
             }
-            response = await this.privatePutPositionsLeverage (this.extend (request, params));
+            response = await this.privatePutGPositionsLeverage (this.extend (request, params));
         } else {
             request['leverage'] = leverage;
-            response = await this.privatePutGPositionsLeverage (this.extend (request, params));
+            response = await this.privatePutPositionsLeverage (this.extend (request, params));
         }
         return response;
     }
