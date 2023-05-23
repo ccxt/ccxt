@@ -3913,7 +3913,10 @@ class phemex extends Exchange {
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {array} response from the exchange
+         * @param {bool} $params->hedged set to true if hedged position mode is enabled (by default $long and $short $leverage are set to the same value)
+         * @param {float} $params->longLeverageRr *hedged mode only* set the $leverage for $long positions
+         * @param {float} $params->shortLeverageRr *hedged mode only* set the $leverage for $short positions
+         * @return {array} $response from the exchange
          */
         // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
@@ -3924,18 +3927,29 @@ class phemex extends Exchange {
             throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 100');
         }
         $this->load_markets();
+        $isHedged = $this->safe_value($params, 'hedged', false);
+        $longLeverageRr = $this->safe_integer($params, 'longLeverageRr');
+        $shortLeverageRr = $this->safe_integer($params, 'shortLeverageRr');
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
-        $method = 'privatePutPositionsLeverage';
+        $response = null;
         if ($market['settle'] === 'USDT') {
-            $method = 'privatePutGPositionsLeverage';
-            $request['leverageRr'] = $leverage;
+            if (!$isHedged && $longLeverageRr === null && $shortLeverageRr === null) {
+                $request['leverageRr'] = $leverage;
+            } else {
+                $long = ($longLeverageRr !== null) ? $longLeverageRr : $leverage;
+                $short = ($shortLeverageRr !== null) ? $shortLeverageRr : $leverage;
+                $request['longLeverageRr'] = $long;
+                $request['shortLeverageRr'] = $short;
+            }
+            $response = $this->privatePutGPositionsLeverage (array_merge($request, $params));
         } else {
             $request['leverage'] = $leverage;
+            $response = $this->privatePutPositionsLeverage (array_merge($request, $params));
         }
-        return $this->$method (array_merge($request, $params));
+        return $response;
     }
 
     public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
