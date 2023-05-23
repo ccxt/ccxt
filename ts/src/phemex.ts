@@ -3971,8 +3971,8 @@ export default class phemex extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the phemex api endpoint
          * @param {bool} params.hedged set to true if hedged position mode is enabled (by default long and short leverage are set to the same value)
-         * @param {bool} params.longLeverageRr *hedged mode only* set the leverage for long positions
-         * @param {bool} params.shortLeverageRr *hedged mode only* set the leverage for short positions
+         * @param {float} params.longLeverageRr *hedged mode only* set the leverage for long positions
+         * @param {float} params.shortLeverageRr *hedged mode only* set the leverage for short positions
          * @returns {object} response from the exchange
          */
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
