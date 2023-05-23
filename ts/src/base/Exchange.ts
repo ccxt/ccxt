@@ -161,7 +161,15 @@ export default class Exchange {
     api = undefined
 
     // prepended to URL, like https://proxy.com/https://exchange.com/api...
-    proxy = ''
+    proxy: string;
+    proxyUrl: string;
+    proxy_url: string;
+    proxyHttp: string;
+    proxy_http: string;
+    proxySocks: string;
+    proxy_socks: string;
+    proxyCallback: any;
+    proxy_callback: any;
     origin = '*' // CORS origin
 
     minFundingAddressLength = 1 // used in checkAddress
@@ -615,7 +623,11 @@ export default class Exchange {
         }
         this.headers = {}
         // prepended to URL, like https://proxy.com/https://exchange.com/api...
-        this.proxy = ''
+        this.proxy = undefined
+        this.setExchangePropAllCase ('proxyUrl', undefined);
+        this.setExchangePropAllCase ('proxyHttp', undefined);
+        this.setExchangePropAllCase ('proxySocks', undefined);
+        this.setExchangePropAllCase ('proxyCallback', undefined);
         this.origin = '*' // CORS origin
         // underlying properties
         this.minFundingAddressLength = 1 // used in checkAddress
@@ -863,17 +875,54 @@ export default class Exchange {
                 headers = this.extend (this.userAgent, headers)
             }
         }
-        if (typeof this.proxy === 'function') {
-            url = (this as any).proxy (url)
-            if (isNode) {
-                headers = this.extend ({ 'Origin': this.origin }, headers)
+
+        // ################## PROXY ##################
+        // old approach, kept for backward-compatibility
+        if (this.proxy !== undefined) {
+            if (typeof this.proxy === 'function') {
+                url = (this as any).proxy (url)
+                if (isNode) {
+                    headers = this.extend ({ 'Origin': this.origin }, headers)
+                }
+            } else if (typeof this.proxy === 'string') {
+                if (this.proxy.length && isNode) {
+                    headers = this.extend ({ 'Origin': this.origin }, headers)
+                }
+                url = this.proxy + url
             }
-        } else if (typeof this.proxy === 'string') {
-            if (this.proxy.length && isNode) {
-                headers = this.extend ({ 'Origin': this.origin }, headers)
-            }
-            url = this.proxy + url
         }
+        // new code
+        else {
+            const proxyUrl = this.getExchangePropAllCase ('proxyUrl');
+            if (proxyUrl !== undefined) {
+                // in node we need to set header to *
+                if (isNode) {
+                    headers = this.extend ({ 'Origin': this.origin }, headers)
+                }
+                url = proxyUrl + url
+            } else {
+                const proxyHttp = this.getExchangePropAllCase ('proxyHttp');
+                if (proxyHttp !== undefined) {
+                    const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js')
+                    const proxyAgent = new module.HttpsProxyAgent(proxyHttp);
+                    proxyAgent.keepAlive = true;
+                    this.agent = proxyAgent;
+                } else {
+                    const proxySocks = this.getExchangePropAllCase ('proxySocks');
+                    if (proxySocks !== undefined) {
+                        const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/socks-proxy-agent/index.js')
+                        const proxyAgent = new module.SocksProxyAgent(proxySocks);
+                        this.agent = proxyAgent;
+                    }
+                }
+            }
+            // todo: callback
+        }
+
+
+        // ####################################
+        // ####################################
+
         headers = this.extend (this.headers, headers)
         headers = this.setHeaders (headers)
         if (this.verbose) {
@@ -1357,6 +1406,24 @@ export default class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    getExchangePropAllCase (key: string, defaultValue: any = undefined): any {
+        if (key in this) {
+            return this[key];
+        } else {
+            const unCamelCasedKey = this.unCamelCase (key);
+            if (unCamelCasedKey !== key && unCamelCasedKey in this) {
+                return this[unCamelCasedKey];
+            }
+            return defaultValue;
+        }
+    }
+
+    setExchangePropAllCase (key: string, value: any = undefined): any {
+        this[key] = value;
+        const unCamelCasedKey = this.unCamelCase (key);
+        this[unCamelCasedKey] = value;
+    }
 
     filterByLimit (array: object[], limit: Int = undefined, key: IndexType = 'timestamp'): any {
         if (this.valueIsDefined (limit)) {

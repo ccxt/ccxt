@@ -218,6 +218,7 @@ class Transpiler {
             [ /\.checkRequiredCredentials\s/g, '.check_required_credentials'],
             [ /\.checkRequiredDependencies\s/g, '.check_required_dependencies'],
             [ /\.checkAddress\s/g, '.check_address'],
+            [ /\.unCamelCase\s/g, '.un_camel_case'],
             [ /\.convertTradingViewToOHLCV\s/g, '.convert_trading_view_to_ohlcv'],
             [ /\.convertOHLCVToTradingView\s/g, '.convert_ohlcv_to_trading_view'],
             [ /\.signBodyWithSecret\s/g, '.sign_body_with_secret'],
