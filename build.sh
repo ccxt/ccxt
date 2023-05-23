@@ -74,7 +74,7 @@ fi
 # in appveyor, there is no origin/master locally, so we need to fetch it
 if [[ "$IS_TRAVIS" != "TRUE" ]]; then
   git remote set-branches origin 'master'
-  git fetch --depth=1
+  git fetch --depth=1 --no-tages
 fi
 
 diff=$(git diff origin/master --name-only)
