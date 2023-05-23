@@ -943,29 +943,29 @@ export default class xt extends xtRest {
         //
         // contract
         //
-        //    {
-        //        "topic": "balance",
-        //        "event": "balance@123456",
-        //        "data": {
-        //             "coin": "usdt",
-        //             "underlyingType": 1,             // 1:Coin-M,2:USDT-M
-        //             "walletBalance": "123",          // Balance
-        //             "openOrderMarginFrozen": "123",  // Frozen order
-        //             "isolatedMargin": "213",         // Isolated Margin
-        //             "crossedMargin": "0"             // Crossed Margin
-        //           }
-        //    }
+        //   {
+        //       "topic": "balance",
+        //       "event": "balance@123456",
+        //       "data": {
+        //            "coin": "usdt",
+        //            "underlyingType": 1,                          // 1:Coin-M,2:USDT-M
+        //            "walletBalance": "123",                       // Balance
+        //            "openOrderMarginFrozen": "123",               // Frozen order
+        //            "isolatedMargin": "213",                      // Isolated Margin
+        //            "crossedMargin": "0"                          // Crossed Margin
+        //            "availableBalance": '2.256114450000000000',
+        //            "coupon": '0',
+        //            "bonus": '0'
+        //          }
+        //   }
         //
         const data = this.safeValue (message, 'data', {});
-        const currencyId = this.safeString (data, 'c');
+        const currencyId = this.safeString2 (data, 'c', 'coin');
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
-        const free = this.safeString (data, 'b');
-        const used = this.safeString (data, 'f');
-        const total = this.safeString (data, 'walletBalance');
-        account['free'] = free;
-        account['used'] = used;
-        account['total'] = total;
+        account['free'] = this.safeString2 (data, 'b', 'availableBalance');
+        account['used'] = this.safeString (data, 'f');
+        account['total'] = this.safeString (data, 'walletBalance');
         this.balance[code] = account;
         this.balance = this.safeBalance (this.balance);
         const tradeType = ('coin' in data) ? 'contract' : 'spot';
