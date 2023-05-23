@@ -1164,6 +1164,7 @@ export default class bitget extends Exchange {
         if (quote === 'USDT') {
             minCost = this.safeNumber (market, 'minTradeUSDT');
         }
+        const contractSize = contract ? 1 : undefined;
         return {
             'id': marketId,
             'symbol': symbol,
@@ -1185,7 +1186,7 @@ export default class bitget extends Exchange {
             'inverse': inverse,
             'taker': this.safeNumber (market, 'takerFeeRate'),
             'maker': this.safeNumber (market, 'makerFeeRate'),
-            'contractSize': 1,
+            'contractSize': contractSize,
             'expiry': expiry,
             'expiryDatetime': expiryDatetime,
             'strike': undefined,

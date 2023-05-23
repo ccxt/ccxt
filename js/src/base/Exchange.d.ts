@@ -572,7 +572,6 @@ export default class Exchange {
     getNetwork(network: string, code: string): string;
     networkCodeToId(networkCode: any, currencyCode?: any): string;
     networkIdToCode(networkId: any, currencyCode?: any): string;
-    networkCodesToIds(networkCodes?: any): any[];
     handleNetworkCodeAndParams(params: any): any[];
     defaultNetworkCode(currencyCode: any): any;
     selectNetworkCodeFromUnifiedNetworks(currencyCode: any, networkCode: any, indexedNetworkEntries: any): any;

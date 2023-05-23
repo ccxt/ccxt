@@ -362,6 +362,7 @@ export default class bybit extends Exchange {
                         'v5/order/spot-borrow-check': 2.5,
                         'v5/order/realtime': 2.5,
                         'v5/position/list': 2.5,
+                        'v5/position/switch-mode': 2.5,
                         'v5/execution/list': 2.5,
                         'v5/position/closed-pnl': 2.5,
                         'v5/account/wallet-balance': 2.5,
@@ -7573,7 +7574,22 @@ export default class bybit extends Exchange {
     }
 
     async setPositionMode (hedged, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#setPositionMode
+         * @description set hedged to true or false for a market
+         * @see https://bybit-exchange.github.io/docs/v5/position/position-mode
+         * @see https://bybit-exchange.github.io/docs/derivatives/contract/position-mode
+         * @param {bool} hedged
+         * @param {string|undefined} symbol used for unified account with inverse market
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} response from the exchange
+         */
         await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         let mode = undefined;
         if (hedged) {
             mode = 3;
@@ -7586,10 +7602,24 @@ export default class bybit extends Exchange {
         if (symbol === undefined) {
             request['coin'] = 'USDT';
         } else {
-            const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
+        const enableUnified = await this.isUnifiedEnabled ();
+        let response = undefined;
+        if (enableUnified[1] || enableUnified[0]) {
+            if (symbol !== undefined) {
+                request['category'] = market['linear'] ? 'linear' : 'inverse';
+            } else {
+                let subType = undefined;
+                [ subType, params ] = this.handleSubTypeAndParams ('setPositionMode', market, params);
+                request['category'] = subType;
+            }
+            response = await this.privatePostV5PositionSwitchMode (this.extend (request, params));
+        } else {
+            response = await this.privatePostContractV3PrivatePositionSwitchMode (this.extend (request, params));
+        }
         //
+        // contract v3
         //     {
         //         "ret_code": 0,
         //         "ret_msg": "ok",
@@ -7602,7 +7632,15 @@ export default class bybit extends Exchange {
         //         "rate_limit": 75
         //     }
         //
-        return await this.privatePostContractV3PrivatePositionSwitchMode (this.extend (request, params));
+        // v5
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {},
+        //         "retExtInfo": {},
+        //         "time": 1675249072814
+        //     }
+        return response;
     }
 
     async fetchDerivativesOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
