@@ -726,6 +726,10 @@ class kucoinfutures extends kucoin {
         return $this->parse_ticker($response['data'], $market);
     }
 
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
+    }
+
     public function parse_ticker($ticker, $market = null) {
         //
         //     {
