@@ -1,0 +1,46 @@
+import poloniexfuturesRest from '../poloniexfutures.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
+export default class poloniexfutures extends poloniexfuturesRest {
+    describe(): any;
+    negotiate(privateChannel: any, params?: {}): any;
+    negotiateHelper(privateChannel: any, params?: {}): Promise<string>;
+    requestId(): any;
+    subscribe(name: string, isPrivate: boolean, symbol?: string, subscription?: any, params?: {}): Promise<any>;
+    onClose(client: any, error: any): void;
+    stream(url: any, subscriptionHash: any): Promise<string>;
+    handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
+    handleSubscriptionStatus(client: Client, message: any): any;
+    handleNewStream(client: Client, message: any, subscription: any): void;
+    watchTicker(symbol: string, params?: {}): Promise<any>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): any;
+    watchBalance(params?: {}): Promise<any>;
+    handleTrade(client: Client, message: any): any;
+    parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
+    parseWsOrderTrade(trade: any, market?: any): import("../base/types.js").Trade;
+    handleOrder(client: Client, message: any): any;
+    parseOrderStatus(status: string, type: string): string;
+    parseWsOrder(order: any, market?: any): any;
+    handleTicker(client: Client, message: any): any;
+    handleL3OrderBook(client: Client, message: any): any;
+    handleLevel2(client: Client, message: any): void;
+    handleL2OrderBook(client: Client, message: any): void;
+    handeL2Snapshot(client: Client, message: any): void;
+    getSymbolFromTopic(topic: string): any;
+    getCacheIndex(orderbook: any, cache: any): any;
+    handleDelta(orderbook: any, delta: any): void;
+    handleBalance(client: Client, message: any): any;
+    parseWsBalance(response: any): import("../base/types.js").Balances;
+    handleSystemStatus(client: Client, message: any): any;
+    handleSubject(client: Client, message: any): any;
+    ping(client: Client): {
+        id: any;
+        type: string;
+    };
+    handlePong(client: Client, message: any): any;
+    handleErrorMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: any): any;
+    handleAuthenticate(client: any, message: any): any;
+}
