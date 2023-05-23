@@ -1,7 +1,7 @@
 <?php
 
 echo "Checking PHP Syntax...\n";
-echo "In case of failure, follow the rules: https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md\n";
+echo "In case of failure, follow the rules: https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md\n\n";
 
 function on_error ($errno, $message, $file, $line) {
     $message = "$message in $file on line $line";

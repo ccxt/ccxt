@@ -13,6 +13,8 @@ fi
 
 [[ -n "$TRAVIS_BUILD_ID" ]] && IS_TRAVIS="TRUE" || IS_TRAVIS="FALSE"
 
+msgPrefix="BUILD.SH> "
+
 function run_tests {
   local rest_args=
   local ws_args=
@@ -66,7 +68,7 @@ build_and_test_all () {
 ### CHECK IF THIS IS A PR ###
 # for appveyor, when PR is from fork, APPVEYOR_REPO_BRANCH is "master" and "APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" is branch name. if PR is from same repo, only APPVEYOR_REPO_BRANCH is set (and it is branch name)
 if ([[ "$IS_TRAVIS" == "TRUE" ]] && [ "$TRAVIS_PULL_REQUEST" = "false" ]) || ([[ "$IS_TRAVIS" != "TRUE" ]] && [ -z "$APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" ]); then
-  echo "This is a master commit (not a PR), will build everything"
+  echo "$msgPrefix This is a master commit (not a PR), will build everything"
   build_and_test_all
 fi
 
@@ -90,11 +92,11 @@ diff=$(echo "$diff" | sed -e "s/python\/tox\.ini//")
 
 critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py' # add \/test|
 if [[ "$diff" =~ $critical_pattern ]]; then
-  echo "- Important changes detected - doing full build & test"
+  echo "$msgPrefix Important changes detected - doing full build & test"
   build_and_test_all
 fi
 
-echo "- Unimportant changes detected - build & test only specific exchange(s)"
+echo "$msgPrefix Unimportant changes detected - build & test only specific exchange(s)"
 readarray -t y <<<"$diff"
 rest_pattern='ts\/src\/([A-Za-z0-9_-]+).ts' # \w not working for some reason
 ws_pattern='ts\/src\/pro\/([A-Za-z0-9_-]+)\.ts'
@@ -117,7 +119,7 @@ done
 npm run export-exchanges && npm run tsBuild && npm run emitAPI
 
 
-echo "REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[@]}"
+echo "$msgPrefix REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[@]}"
 PYTHON_FILES=()
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run eslint "ts/src/$exchange.ts"
@@ -125,7 +127,7 @@ for exchange in "${REST_EXCHANGES[@]}"; do
   PYTHON_FILES+=("python/ccxt/$exchange.py")
   PYTHON_FILES+=("python/ccxt/async_support/$exchange.py")
 done
-echo "WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[@]}"
+echo "$msgPrefix WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[@]}"
 for exchange in "${WS_EXCHANGES[@]}"; do
   npm run eslint "ts/src/pro/$exchange.ts"
   node build/transpileWS.js $exchange --force --child
@@ -141,7 +143,7 @@ if [[ "$IS_TRAVIS" != "TRUE" ]]; then
   exit
 fi
 if [ ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
-  echo "no exchanges to test, exiting"
+  echo "$msgPrefix no exchanges to test, exiting"
   exit
 fi
 
