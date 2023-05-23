@@ -13,7 +13,7 @@ export default class bitforex extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseOrderStatus(status: any): any;
-    parseSide(sideId: any): "sell" | "buy";
+    parseSide(sideId: any): "buy" | "sell";
     parseOrder(order: any, market?: any): any;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
