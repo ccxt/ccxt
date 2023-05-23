@@ -1,11 +1,11 @@
-//import ccxt from '../../ts/ccxt.js';
-import { okx } from '../../ts/ccxt.js';
+import ccxt from '../../js/ccxt.js';
+//import { okx } from '../../ts/ccxt.js';
 
 // AUTO-TRANSPILE //
 
 async function example () {
     // const myEx = new ccxt.okx ({});
-    const myEx = new okx ({});
+    const myEx = new ccxt.okx ({});
     //
     //
     //
