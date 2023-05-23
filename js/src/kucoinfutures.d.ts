@@ -23,8 +23,10 @@ export default class kucoinfutures extends kucoin {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     fetchL3OrderBook(symbol: string, limit?: Int, params?: {}): Promise<void>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<void>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
+    fetchPosition(symbol: string, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     parsePosition(position: any, market?: any): any;
     createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<{

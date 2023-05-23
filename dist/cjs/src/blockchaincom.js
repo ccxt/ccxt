@@ -16,6 +16,7 @@ class blockchaincom extends blockchaincom$1 {
             'countries': ['LX'],
             'rateLimit': 500,
             'version': 'v3',
+            'pro': true,
             'has': {
                 'CORS': false,
                 'spot': true,

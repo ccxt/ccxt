@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.98'
+__version__ = '3.1.6'
 
 # -----------------------------------------------------------------------------
 
@@ -340,29 +340,37 @@ class Exchange(BaseExchange):
             return client.futures[message_hash]
         future = client.future(message_hash)
 
+        subscribed = client.subscriptions.get(subscribe_hash)
+
+        if not subscribed:
+            client.subscriptions[subscribe_hash] = subscription or True
+
         # base exchange self.open starts the aiohttp Session in an async context
         self.open()
         connected = client.connected if client.connected.done() \
             else asyncio.ensure_future(client.connect(self.session, backoff_delay))
 
         def after(fut):
-            if subscribe_hash not in client.subscriptions:
-                if subscribe_hash is not None:
-                    client.subscriptions[subscribe_hash] = subscription or True
-                # todo: decouple signing from subscriptions
-                options = self.safe_value(self.options, 'ws')
-                cost = self.safe_value(options, 'cost', 1)
-                if message:
-                    async def send_message():
-                        if self.enableRateLimit:
-                            await client.throttle(cost)
-                        try:
-                            await client.send(message)
-                        except ConnectionError as e:
-                            future.reject(e)
-                    asyncio.ensure_future(send_message())
+            # todo: decouple signing from subscriptions
+            options = self.safe_value(self.options, 'ws')
+            cost = self.safe_value(options, 'cost', 1)
+            if message:
+                async def send_message():
+                    if self.enableRateLimit:
+                        await client.throttle(cost)
+                    try:
+                        await client.send(message)
+                    except ConnectionError as e:
+                        del client.subscriptions[subscribe_hash]
+                        future.reject(e)
+                asyncio.ensure_future(send_message())
 
-        connected.add_done_callback(after)
+        if not subscribed:
+            try:
+                connected.add_done_callback(after)
+            except Exception as e:
+                del client.subscriptions[subscribe_hash]
+                future.reject(e)
 
         return future
 
@@ -483,7 +491,7 @@ class Exchange(BaseExchange):
                     first = array[0][key]
                     last = array[arrayLength - 1][key]
                     if first is not None and last is not None:
-                        ascending = first < last  # True if array is sorted in ascending order based on 'timestamp'
+                        ascending = first <= last  # True if array is sorted in ascending order based on 'timestamp'
                 array = self.arraySlice(array, -limit) if ascending else self.arraySlice(array, 0, limit)
         return array
 
@@ -656,6 +664,33 @@ class Exchange(BaseExchange):
             'info': entry,
         }
 
+    def safe_currency_structure(self, currency: object):
+        return self.extend({
+            'info': None,
+            'id': None,
+            'numericId': None,
+            'code': None,
+            'precision': None,
+            'type': None,
+            'name': None,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'fees': {},
+            'networks': {},
+            'limits': {
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+        }, currency)
+
     def set_markets(self, markets, currencies=None):
         values = []
         self.markets_by_id = {}
@@ -679,6 +714,7 @@ class Exchange(BaseExchange):
         self.symbols = list(marketsSortedBySymbol.keys())
         self.ids = list(marketsSortedById.keys())
         if currencies is not None:
+            # currencies is always None when called in constructor but not when called from loadMarkets
             self.currencies = self.deep_extend(self.currencies, currencies)
         else:
             baseCurrencies = []
@@ -688,22 +724,20 @@ class Exchange(BaseExchange):
                 defaultCurrencyPrecision = 8 if (self.precisionMode == DECIMAL_PLACES) else self.parse_number('1e-8')
                 marketPrecision = self.safe_value(market, 'precision', {})
                 if 'base' in market:
-                    currencyPrecision = self.safe_value_2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision)
-                    currency = {
+                    currency = self.safe_currency_structure({
                         'id': self.safe_string_2(market, 'baseId', 'base'),
                         'numericId': self.safe_integer(market, 'baseNumericId'),
                         'code': self.safe_string(market, 'base'),
-                        'precision': currencyPrecision,
-                    }
+                        'precision': self.safe_value_2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision),
+                    })
                     baseCurrencies.append(currency)
                 if 'quote' in market:
-                    currencyPrecision = self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision)
-                    currency = {
+                    currency = self.safe_currency_structure({
                         'id': self.safe_string_2(market, 'quoteId', 'quote'),
                         'numericId': self.safe_integer(market, 'quoteNumericId'),
                         'code': self.safe_string(market, 'quote'),
-                        'precision': currencyPrecision,
-                    }
+                        'precision': self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
+                    })
                     quoteCurrencies.append(currency)
             baseCurrencies = self.sort_by(baseCurrencies, 'code')
             quoteCurrencies = self.sort_by(quoteCurrencies, 'code')
@@ -1409,21 +1443,6 @@ class Exchange(BaseExchange):
                 replacementObject = self.safe_value(defaultNetworkCodeReplacements, currencyCode, {})
                 networkCode = self.safe_string(replacementObject, networkCode, networkCode)
         return networkCode
-
-    def network_codes_to_ids(self, networkCodes=None):
-        """
-         * @ignore
-        tries to convert the provided networkCode(which is expected to be an unified network code) to a network id. In order to achieve self, derived class needs to have 'options->networks' defined.
-        :param [str]|None networkCodes: unified network codes
-        :returns [str|None]: exchange-specific network ids
-        """
-        if networkCodes is None:
-            return None
-        ids = []
-        for i in range(0, len(networkCodes)):
-            networkCode = networkCodes[i]
-            ids.append(self.networkCodeToId(networkCode))
-        return ids
 
     def handle_network_code_and_params(self, params):
         networkCodeInParams = self.safe_string_2(params, 'networkCode', 'network')
@@ -2162,6 +2181,15 @@ class Exchange(BaseExchange):
             return fee
         else:
             return self.decimal_to_precision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
+
+    def is_tick_precision(self):
+        return self.precisionMode == TICK_SIZE
+
+    def is_decimal_precision(self):
+        return self.precisionMode == DECIMAL_PLACES
+
+    def is_significant_precision(self):
+        return self.precisionMode == SIGNIFICANT_DIGITS
 
     def safe_number(self, obj: object, key: IndexType, defaultNumber: Optional[float] = None):
         value = self.safe_string(obj, key)

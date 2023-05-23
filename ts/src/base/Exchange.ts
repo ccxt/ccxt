@@ -107,6 +107,7 @@ const {
     , DECIMAL_PLACES
     , NO_PADDING
     , TICK_SIZE
+    , SIGNIFICANT_DIGITS
 } = functions
 
 // import exceptions from "./errors.js"
@@ -1183,6 +1184,12 @@ export default class Exchange {
             return client.futures[messageHash];
         }
         const future = client.future (messageHash);
+        // read and write subscription, this is done before connecting the client
+        // to avoid race conditions when other parts of the code read or write to the client.subscriptions
+        const clientSubscription = client.subscriptions[subscribeHash];
+        if (!clientSubscription) {
+            client.subscriptions[subscribeHash] = subscription || true;
+        }
         // we intentionally do not use await here to avoid unhandled exceptions
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
@@ -1191,28 +1198,28 @@ export default class Exchange {
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
         // (connection established successfully)
-        connected.then (() => {
-            if (!client.subscriptions[subscribeHash]) {
-                if (subscribeHash !== undefined) {
-                    client.subscriptions[subscribeHash] = subscription || true;
-                }
-                const options = this.safeValue (this.options, 'ws');
-                const cost = this.safeValue (options, 'cost', 1);
-                if (message) {
-                    if (this.enableRateLimit && client.throttle) {
-                        // add cost here |
-                        //               |
-                        //               V
-                        client.throttle (cost).then (() => {
-                            client.send (message);
-                        }).catch ((e) => { throw e });
-                    } else {
-                        client.send (message)
-                        .catch ((e) => { throw e });;
+        if (!clientSubscription) {
+            connected.then (() => {
+                    const options = this.safeValue (this.options, 'ws');
+                    const cost = this.safeValue (options, 'cost', 1);
+                    if (message) {
+                        if (this.enableRateLimit && client.throttle) {
+                            // add cost here |
+                            //               |
+                            //               V
+                            client.throttle (cost).then (() => {
+                                client.send (message);
+                            }).catch ((e) => { throw e });
+                        } else {
+                            client.send (message)
+                            .catch ((e) => { throw e });;
+                        }
                     }
-                }
-            }
-        })
+                }).catch ((e)=> {
+                    delete (client.subscriptions[subscribeHash])
+                    throw e
+            });
+        }
         return future;
     }
 
@@ -1360,7 +1367,7 @@ export default class Exchange {
                     const first = array[0][key];
                     const last = array[arrayLength - 1][key];
                     if (first !== undefined && last !== undefined) {
-                        ascending = first < last;  // true if array is sorted in ascending order based on 'timestamp'
+                        ascending = first <= last;  // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
                 array = ascending ? this.arraySlice (array, -limit) : this.arraySlice (array, 0, limit);
@@ -1584,6 +1591,34 @@ export default class Exchange {
         };
     }
 
+    safeCurrencyStructure (currency: object) {
+        return this.extend ({
+            'info': undefined,
+            'id': undefined,
+            'numericId': undefined,
+            'code': undefined,
+            'precision': undefined,
+            'type': undefined,
+            'name': undefined,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'fees': {},
+            'networks': {},
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+        }, currency);
+    }
+
     setMarkets (markets, currencies = undefined) {
         const values = [];
         this.markets_by_id = {};
@@ -1609,6 +1644,7 @@ export default class Exchange {
         this.symbols = Object.keys (marketsSortedBySymbol);
         this.ids = Object.keys (marketsSortedById);
         if (currencies !== undefined) {
+            // currencies is always undefined when called in constructor but not when called from loadMarkets
             this.currencies = this.deepExtend (this.currencies, currencies);
         } else {
             let baseCurrencies = [];
@@ -1618,23 +1654,21 @@ export default class Exchange {
                 const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('1e-8');
                 const marketPrecision = this.safeValue (market, 'precision', {});
                 if ('base' in market) {
-                    const currencyPrecision = this.safeValue2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision);
-                    const currency = {
+                    const currency = this.safeCurrencyStructure ({
                         'id': this.safeString2 (market, 'baseId', 'base'),
                         'numericId': this.safeInteger (market, 'baseNumericId'),
                         'code': this.safeString (market, 'base'),
-                        'precision': currencyPrecision,
-                    };
+                        'precision': this.safeValue2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision),
+                    });
                     baseCurrencies.push (currency);
                 }
                 if ('quote' in market) {
-                    const currencyPrecision = this.safeValue2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision);
-                    const currency = {
+                    const currency = this.safeCurrencyStructure ({
                         'id': this.safeString2 (market, 'quoteId', 'quote'),
                         'numericId': this.safeInteger (market, 'quoteNumericId'),
                         'code': this.safeString (market, 'quote'),
-                        'precision': currencyPrecision,
-                    };
+                        'precision': this.safeValue2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
+                    });
                     quoteCurrencies.push (currency);
                 }
             }
@@ -2481,26 +2515,6 @@ export default class Exchange {
             }
         }
         return networkCode;
-    }
-
-    networkCodesToIds (networkCodes = undefined) {
-        /**
-         * @ignore
-         * @method
-         * @name exchange#networkCodesToIds
-         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
-         * @param {[string]|undefined} networkCodes unified network codes
-         * @returns {[string|undefined]} exchange-specific network ids
-         */
-        if (networkCodes === undefined) {
-            return undefined;
-        }
-        const ids = [];
-        for (let i = 0; i < networkCodes.length; i++) {
-            const networkCode = networkCodes[i];
-            ids.push (this.networkCodeToId (networkCode));
-        }
-        return ids;
     }
 
     handleNetworkCodeAndParams (params) {
@@ -3434,6 +3448,18 @@ export default class Exchange {
         } else {
             return this.decimalToPrecision (fee, ROUND, precision, this.precisionMode, this.paddingMode);
         }
+    }
+
+    isTickPrecision () {
+        return this.precisionMode === TICK_SIZE;
+    }
+
+    isDecimalPrecision () {
+        return this.precisionMode === DECIMAL_PLACES;
+    }
+
+    isSignificantPrecision () {
+        return this.precisionMode === SIGNIFICANT_DIGITS;
     }
 
     safeNumber (obj: object, key: IndexType, defaultNumber: number = undefined): number {

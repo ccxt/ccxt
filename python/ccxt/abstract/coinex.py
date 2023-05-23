@@ -44,6 +44,7 @@ class ImplicitAPI:
     private_get_order_market_trade_info = privateGetOrderMarketTradeInfo = Entry('order/market/trade/info', 'private', 'GET', {'cost': 1})
     private_get_sub_account_balance = privateGetSubAccountBalance = Entry('sub_account/balance', 'private', 'GET', {'cost': 1})
     private_get_sub_account_transfer_history = privateGetSubAccountTransferHistory = Entry('sub_account/transfer/history', 'private', 'GET', {'cost': 40})
+    private_get_sub_account_auth_api = privateGetSubAccountAuthApi = Entry('sub_account/auth/api', 'private', 'GET', {'cost': 40})
     private_get_sub_account_auth_api_user_auth_id = privateGetSubAccountAuthApiUserAuthId = Entry('sub_account/auth/api/{user_auth_id}', 'private', 'GET', {'cost': 40})
     private_post_balance_coin_withdraw = privatePostBalanceCoinWithdraw = Entry('balance/coin/withdraw', 'private', 'POST', {'cost': 40})
     private_post_contract_balance_transfer = privatePostContractBalanceTransfer = Entry('contract/balance/transfer', 'private', 'POST', {'cost': 40})

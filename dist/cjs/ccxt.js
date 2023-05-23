@@ -134,10 +134,12 @@ var bitget$1 = require('./src/pro/bitget.js');
 var bitmart$1 = require('./src/pro/bitmart.js');
 var bitmex$1 = require('./src/pro/bitmex.js');
 var bitopro$1 = require('./src/pro/bitopro.js');
+var bitpanda$1 = require('./src/pro/bitpanda.js');
 var bitrue$1 = require('./src/pro/bitrue.js');
 var bitstamp$1 = require('./src/pro/bitstamp.js');
 var bittrex$1 = require('./src/pro/bittrex.js');
 var bitvavo$1 = require('./src/pro/bitvavo.js');
+var blockchaincom$1 = require('./src/pro/blockchaincom.js');
 var btcex$1 = require('./src/pro/btcex.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
@@ -170,6 +172,7 @@ var okcoin$1 = require('./src/pro/okcoin.js');
 var okex$1 = require('./src/pro/okex.js');
 var okx$1 = require('./src/pro/okx.js');
 var phemex$1 = require('./src/pro/phemex.js');
+var poloniexfutures$1 = require('./src/pro/poloniexfutures.js');
 var probit$1 = require('./src/pro/probit.js');
 var upbit$1 = require('./src/pro/upbit.js');
 var wazirx$1 = require('./src/pro/wazirx.js');
@@ -178,7 +181,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '3.0.98';
+const version = '3.1.6';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -305,10 +308,12 @@ const pro = {
     'bitmart': bitmart$1,
     'bitmex': bitmex$1,
     'bitopro': bitopro$1,
+    'bitpanda': bitpanda$1,
     'bitrue': bitrue$1,
     'bitstamp': bitstamp$1,
     'bittrex': bittrex$1,
     'bitvavo': bitvavo$1,
+    'blockchaincom': blockchaincom$1,
     'btcex': btcex$1,
     'bybit': bybit$1,
     'cex': cex$1,
@@ -341,6 +346,7 @@ const pro = {
     'okex': okex$1,
     'okx': okx$1,
     'phemex': phemex$1,
+    'poloniexfutures': poloniexfutures$1,
     'probit': probit$1,
     'upbit': upbit$1,
     'wazirx': wazirx$1,

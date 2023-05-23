@@ -250,6 +250,10 @@ class Transpiler {
             [ /\.isPostOnly\s/g, '.is_post_only'],
             [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
             [ /\.omitZero\s/g, '.omit_zero'],
+            [ /\.safeCurrencyStructure\s/g, '.safe_currency_structure'],
+            [ /\.isTickPrecision\s/g, '.is_tick_precision'],
+            [ /\.isDecimalPrecision\s/g, '.is_decimal_precision'],
+            [ /\.isSignificantPrecision\s/g, '.is_significant_precision'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -260,6 +264,7 @@ class Transpiler {
 
         return [
             [ /Array\.isArray\s*\(([^\)]+)\)/g, 'isinstance($1, list)' ],
+            [ /Number\.isInteger\s*\(([^\)]+)\)/g, 'isinstance($1, int)' ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'isinstance($1, str)' ],
             [ /([^\(\s]+)\s+instanceof\s+([^\)\s]+)/g, 'isinstance($1, $2)' ],
 
@@ -479,6 +484,7 @@ class Transpiler {
             [ /(\s+)\* @returns/g, '$1\* @return' ], // docstring return
             [ /\!Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) !== 'array' || array_keys($1) !== array_keys(array_keys($1))" ],
             [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && array_keys($1) === array_keys(array_keys($1))" ],
+            [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
@@ -1786,7 +1792,7 @@ class Transpiler {
             "",
         ].join ("\n")
 
-        const python = this.getPythonPreamble (4) + pythonHeader + python2Body
+        const python = this.getPythonPreamble (4) + pythonHeader + python2Body + "\n"
         const php = this.getPHPPreamble (true, 3) + phpBody
 
         log.magenta ('→', pyFile.yellow)
@@ -1861,7 +1867,7 @@ class Transpiler {
             "",
         ].join ("\n")
 
-        const python = this.getPythonPreamble (4) + pythonHeader + python2Body
+        const python = this.getPythonPreamble (4) + pythonHeader + python2Body + "\n"
         const php = this.getPHPPreamble (true, 3) + phpHeader + phpBody
 
         log.magenta ('→', pyFile.yellow)
@@ -1951,7 +1957,7 @@ class Transpiler {
             "}",
         ].join ("\n")
 
-        const python = this.getPythonPreamble (4) + pythonHeader + python2Body
+        const python = this.getPythonPreamble (4) + pythonHeader + python2Body + "\n"
         const php = this.getPHPPreamble (true, 3) + phpHeader + phpBody
 
         log.magenta ('→', pyFile.yellow)
@@ -2103,6 +2109,7 @@ class Transpiler {
         let bodyPhpSync = phpReform (phpRemovedStart);
         bodyPhpSync = bodyPhpSync.replace (/ccxt(\\)+async/g, 'ccxt');
         bodyPhpSync = bodyPhpSync.replace ('(this,','($this,');
+        bodyPhpSync = bodyPhpSync.replace (/Async\\await\((.*?)\);/g, '$1;');
         overwriteFile (files.phpFileSync, bodyPhpSync);
     }
 
@@ -2182,26 +2189,46 @@ class Transpiler {
         ]));
 
         const flatResult = await this.webworkerTranspile (allFiles, fileConfig, parserConfig);
-        const replaceAsert = (str) => str.replace (/assert\((.*)\)(?!$)/g, 'assert $1');
+
+        const exchangeCamelCaseProps = (str) => {
+            // replace all snake_case exchange props to camelCase
+            return str.
+                replace (/precision_mode/g, 'precisionMode');
+        };
+
+        const pyFixes = (str) => {
+            str = str.replace (/assert\((.*)\)(?!$)/g, 'assert $1');
+            str = str.replace (/ == True/g, ' is True');
+            str = str.replace (/ == False/g, ' is False');
+            return exchangeCamelCaseProps(str);
+        }
+
+        const phpFixes = (str) => {
+            str = str.
+                replace (/\$exchange\[\$method\]/g, '$exchange->$method').
+                replace (/\$test_shared_methods\->/g, '').
+                replace (/TICK_SIZE/g, '\\ccxt\\TICK_SIZE').
+                replace (/Precise\->/g, 'Precise::');
+            return exchangeCamelCaseProps(str);
+        }
 
         for (let i = 0; i < flatResult.length; i++) {
             const result = flatResult[i];
             const test = tests[i];
-            const phpVarNameFix = (str) => {
-                return str.
-                    replace (/\$exchange\[\$method\]/g, '$exchange->$method').
-                    replace (/\$test_shared_methods\->/g, '').
-                    replace (/Precise\->/g, 'Precise::');
+            let phpAsync = phpFixes(result[0].content);
+            let phpSync = phpFixes(result[1].content);
+            let pythonSync = pyFixes (result[2].content);
+            let pythonAsync = pyFixes (result[3].content);
+            if (tests.base) {
+                phpAsync = '';
+                pythonAsync = '';
             }
-            const phpAsync = !tests.base ? phpVarNameFix(result[0].content) : '';
-            const phpSync = phpVarNameFix(result[1].content);
-            const pythonSync = replaceAsert (result[2].content);
-            const pythonAsync = !tests.base ? replaceAsert (result[3].content): '';
 
             const imports = result[0].imports;
 
             const usesPrecise = imports.find(x => x.name.includes('Precise'));
             const usesNumber = pythonAsync.indexOf ('numbers.') >= 0;
+            const usesTickSize = pythonAsync.indexOf ('TICK_SIZE') >= 0;
             const requiredSubTests  = imports.filter(x => x.name.includes('test')).map(x => x.name);
 
             let pythonHeaderSync = []
@@ -2209,6 +2236,10 @@ class Transpiler {
             let phpHeaderSync = []
             let phpHeaderAsync = []
 
+            if (usesTickSize) {
+                pythonHeaderSync.push ('from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402')
+                pythonHeaderAsync.push ('from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402')
+            }
             if (usesNumber) {
                 pythonHeaderSync.push ('import numbers  # noqa E402')
                 pythonHeaderAsync.push ('import numbers  # noqa E402')
@@ -2260,9 +2291,6 @@ class Transpiler {
             let phpPreambleSync = phpPreamble + phpHeaderSync.join ('\n') + "\n\n";
             phpPreambleSync = phpPreambleSync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;');
 
-            const finalPhpContentSync = phpPreambleSync + phpSync;
-            const finalPyContentSync = pythonPreambleSync + pythonSync;
-
             if (!test.base) {
                 let phpPreambleAsync = phpPreamble + phpHeaderAsync.join ('\n') + "\n\n";
                 phpPreambleAsync = phpPreambleAsync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;\nuse React\\\Async;\nuse React\\\Promise;');
@@ -2274,6 +2302,9 @@ class Transpiler {
                 log.magenta ('→', test.phpFileAsync.yellow)
                 overwriteFile (test.phpFileAsync, finalPhpContentAsync)
             }
+
+            const finalPhpContentSync = phpPreambleSync + phpSync;
+            const finalPyContentSync = pythonPreambleSync + pythonSync;
 
             log.magenta ('→', test.phpFile.yellow)
             overwriteFile (test.phpFile, finalPhpContentSync)

@@ -10,14 +10,14 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/test_shared_methods.php';
 
-function test_account($exchange, $method, $entry) {
+function test_account($exchange, $skipped_properties, $method, $entry) {
     $format = array(
         'info' => array(),
         'code' => 'BTC',
         'type' => 'spot',
         'id' => '12345',
     );
-    $empty_not_allowed_for = ['type'];
-    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
-    assert_currency_code($exchange, $method, $entry, $entry['code']);
+    $empty_allowed_for = ['code', 'id'];
+    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+    assert_currency_code($exchange, $skipped_properties, $method, $entry, $entry['code']);
 }

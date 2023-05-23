@@ -17,6 +17,7 @@ class bitpanda extends Exchange {
             'countries' => array( 'AT' ), // Austria
             'rateLimit' => 300,
             'version' => 'v1',
+            'pro' => true,
             // new metainfo interface
             'has' => array(
                 'CORS' => null,

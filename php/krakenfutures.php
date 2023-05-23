@@ -1901,7 +1901,7 @@ class krakenfutures extends Exchange {
         $currency = $this->currency($code);
         $method = 'privatePostTransfer';
         $request = array(
-            'amount' => $this->currency_to_precision($code, $amount),
+            'amount' => $amount,
         );
         if ($fromAccount === 'spot') {
             throw new BadRequest($this->id . ' $transfer does not yet support transfers from spot');

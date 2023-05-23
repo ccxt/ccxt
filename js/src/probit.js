@@ -429,7 +429,7 @@ export default class probit extends Exchange {
                 if (currentActive) {
                     platform = network;
                 }
-                const precision = this.safeString(network, 'precision');
+                const precision = this.parsePrecision(this.safeString(network, 'precision'));
                 const withdrawFee = this.safeValue(network, 'withdrawal_fee', []);
                 const fee = this.safeValue(withdrawFee, 0, {});
                 networkList[networkCode] = {

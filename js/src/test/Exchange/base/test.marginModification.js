@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import testSharedMethods from './test.sharedMethods.js';
-function testMarginModification(exchange, method, entry) {
+function testMarginModification(exchange, skippedProperties, method, entry) {
     const format = {
         'info': {},
         'type': 'add',
@@ -15,14 +15,14 @@ function testMarginModification(exchange, method, entry) {
         'symbol': 'ADA/USDT:USDT',
         'status': 'ok',
     };
-    const emptyNotAllowedFor = ['type', 'status'];
-    testSharedMethods.assertStructure(exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.assertCurrencyCode(exchange, method, entry, entry['code']);
+    const emptyAllowedFor = ['status', 'symbol', 'code', 'total', 'amount'];
+    testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+    testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, entry['code']);
     //
-    testSharedMethods.assertGreaterOrEqual(exchange, method, entry, 'amount', '0');
-    testSharedMethods.assertGreaterOrEqual(exchange, method, entry, 'total', '0');
-    testSharedMethods.assertInArray(exchange, method, entry, 'type', ['add', 'reduce', 'set']);
-    testSharedMethods.assertInArray(exchange, method, entry, 'status', ['ok', 'pending', 'canceled', 'failed']);
-    testSharedMethods.assertSymbol(exchange, method, entry, 'symbol');
+    testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, 'amount', '0');
+    testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, 'total', '0');
+    testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'type', ['add', 'reduce', 'set']);
+    testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'status', ['ok', 'pending', 'canceled', 'failed']);
+    testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, 'symbol');
 }
 export default testMarginModification;
