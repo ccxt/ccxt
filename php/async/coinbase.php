@@ -2433,7 +2433,7 @@ class coinbase extends Exchange {
                 $request['limit'] = $limit;
             }
             if ($since !== null) {
-                $request['start_date'] = $this->parse8601($since);
+                $request['start_date'] = $this->iso8601($since);
             }
             $response = Async\await($this->v3PrivateGetBrokerageOrdersHistoricalBatch (array_merge($request, $params)));
             //
@@ -2501,7 +2501,7 @@ class coinbase extends Exchange {
             }
             $request['limit'] = $limit;
             if ($since !== null) {
-                $request['start_date'] = $this->parse8601($since);
+                $request['start_date'] = $this->iso8601($since);
             }
             $response = Async\await($this->v3PrivateGetBrokerageOrdersHistoricalBatch (array_merge($request, $params)));
             //
@@ -2817,7 +2817,7 @@ class coinbase extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         $feedback = $this->id . ' ' . $body;
         //
@@ -2861,5 +2861,6 @@ class coinbase extends Exchange {
         if (($data === null) && (!$advancedTrade)) {
             throw new ExchangeError($this->id . ' failed due to a malformed $response ' . $this->json($response));
         }
+        return null;
     }
 }

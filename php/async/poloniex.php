@@ -250,6 +250,7 @@ class poloniex extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     // General
+                    '200' => '\\ccxt\\CancelPending', // array( "orderId" : "173928661399957504", "clientOrderId" : "", "state" : "PENDING_CANCEL", "code" : 200, "message" : "" )
                     '500' => '\\ccxt\\ExchangeNotAvailable', // Internal System Error
                     '603' => '\\ccxt\\RequestTimeout', // Internal Request Timeout
                     '601' => '\\ccxt\\BadRequest', // Invalid Parameter
@@ -395,6 +396,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://docs.poloniex.com/#public-endpoints-$market-data-candles
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
@@ -455,6 +457,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for poloniex
+             * @see https://docs.poloniex.com/#public-endpoints-reference-data-symbol-information
              * @param {array} $params extra parameters specific to the exchange api endpoint
              * @return {[array]} an array of objects representing $market data
              */
@@ -547,6 +550,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
+             * @see https://docs.poloniex.com/#public-endpoints-reference-data-system-timestamp
              * @param {array} $params extra parameters specific to the poloniex api endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
@@ -608,6 +612,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * @see https://docs.poloniex.com/#public-endpoints-market-data-ticker
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the poloniex api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -642,6 +647,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
+             * @see https://docs.poloniex.com/#public-endpoints-reference-data-$currency-information
              * @param {array} $params extra parameters specific to the poloniex api endpoint
              * @return {array} an associative dictionary of currencies
              */
@@ -694,6 +700,7 @@ class poloniex extends Exchange {
                     'withdraw' => null,
                     'fee' => $fee,
                     'precision' => null,
+                    'networks' => array(),
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
@@ -714,6 +721,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://docs.poloniex.com/#public-endpoints-$market-data-ticker
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the poloniex api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -841,6 +849,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             * @see https://docs.poloniex.com/#public-endpoints-$market-data-$trades
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
@@ -877,6 +886,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             * @see https://docs.poloniex.com/#authenticated-endpoints-trades-trade-history
              * @param {string|null} $symbol unified $market $symbol
              * @param {int|null} $since the earliest time in ms to fetch trades for
              * @param {int|null} $limit the maximum number of trades structures to retrieve
@@ -1082,6 +1092,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             * @see https://docs.poloniex.com/#authenticated-endpoints-orders-open-orders
              * @param {string|null} $symbol unified $market $symbol
              * @param {int|null} $since the earliest time in ms to fetch open orders for
              * @param {int|null} $limit the maximum number of  open orders structures to retrieve
@@ -1240,6 +1251,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-order-by-$id
              * @param {string} $id order $id
              * @param {string|null} $symbol unified $symbol of the market the order was made in
              * @param {array} $params extra parameters specific to the poloniex api endpoint
@@ -1261,6 +1273,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
+             * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-all-orders
              * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} $params extra parameters specific to the poloniex api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1302,6 +1315,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an order by it's $id
+             * @see https://docs.poloniex.com/#authenticated-endpoints-orders-order-details
              * @param {string} $id order $id
              * @param {string|null} $symbol unified market $symbol, default is null
              * @param {array} $params extra parameters specific to the poloniex api endpoint
@@ -1352,6 +1366,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the $trades made from a single order
+             * @see https://docs.poloniex.com/#authenticated-endpoints-$trades-trades-by-order-$id
              * @param {string} $id order $id
              * @param {string|null} $symbol unified market $symbol
              * @param {int|null} $since the earliest time in ms to fetch $trades for
@@ -1415,6 +1430,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-all-account-balances
              * @param {array} $params extra parameters specific to the poloniex api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
@@ -1447,6 +1463,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
+             * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-fee-info
              * @param {array} $params extra parameters specific to the poloniex api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
              */
@@ -1480,6 +1497,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://docs.poloniex.com/#public-endpoints-$market-data-order-book
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum $amount of order book entries to return
              * @param {array} $params extra parameters specific to the poloniex api endpoint
@@ -1537,6 +1555,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * create a $currency deposit $address
+             * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-deposit-addresses
              * @param {string} $code unified $currency $code of the $currency for the deposit $address
              * @param {array} $params extra parameters specific to the poloniex api endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
@@ -1587,6 +1606,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
+             * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-deposit-addresses
              * @param {string} $code unified $currency $code
              * @param {array} $params extra parameters specific to the poloniex api endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
@@ -1637,6 +1657,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
+             * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-accounts-transfer
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from
@@ -1689,6 +1710,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-withdraw-$currency
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -1817,6 +1839,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of $deposits and $withdrawals
+             * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
              * @param {string|null} $code unified $currency $code for the $currency of the $transactions, default is null
              * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
              * @param {int|null} $limit max number of $transactions to return, default is null
@@ -1842,6 +1865,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all $withdrawals made from an account
+             * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
              * @param {string|null} $code unified $currency $code
              * @param {int|null} $since the earliest time in ms to fetch $withdrawals for
              * @param {int|null} $limit the maximum number of $withdrawals structures to retrieve
@@ -1990,6 +2014,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all $deposits made to an account
+             * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
              * @param {string|null} $code unified $currency $code
              * @param {int|null} $since the earliest time in ms to fetch $deposits for
              * @param {int|null} $limit the maximum number of $deposits structures to retrieve
@@ -2090,9 +2115,11 @@ class poloniex extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'comment' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $this->parse_number($feeCostString),
+                'rate' => null,
             ),
         );
     }
@@ -2144,7 +2171,7 @@ class poloniex extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         //
         //     {
@@ -2153,12 +2180,13 @@ class poloniex extends Exchange {
         //     }
         //
         if (is_array($response) && array_key_exists('code', $response)) {
-            $code = $response['code'];
+            $codeInner = $response['code'];
             $message = $this->safe_string($response, 'message');
             $feedback = $this->id . ' ' . $body;
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeInner, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

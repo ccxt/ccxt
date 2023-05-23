@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.kuna import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -15,7 +16,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class kuna(Exchange):
+class kuna(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(kuna, self).describe(), {
@@ -345,8 +346,8 @@ class kuna(Exchange):
                 # https://github.com/ccxt/ccxt/issues/9868
                 slicedId = id[1:]
                 index = slicedId.find(quoteId)
-                slice = slicedId[index:]
-                if (index > 0) and (slice == quoteId):
+                slicePart = slicedId[index:]
+                if (index > 0) and (slicePart == quoteId):
                     # usd gets matched before usdt in usdtusd USDT/USD
                     # https://github.com/ccxt/ccxt/issues/9868
                     baseId = id[0] + slicedId.replace(quoteId, '')
@@ -831,11 +832,11 @@ class kuna(Exchange):
             else:
                 self.check_required_credentials()
                 nonce = str(self.nonce())
-                query = self.encode_params(self.extend({
+                queryInner = self.encode_params(self.extend({
                     'access_key': self.apiKey,
                     'tonce': nonce,
                 }, params))
-                auth = method + '|' + request + '|' + query
+                auth = method + '|' + request + '|' + queryInner
                 signed = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
                 suffix = query + '&signature=' + signed
                 if method == 'GET':
@@ -847,10 +848,11 @@ class kuna(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         if code == 400:
             error = self.safe_value(response, 'error')
             errorCode = self.safe_string(error, 'code')
             feedback = self.id + ' ' + self.json(response)
             self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
             # fallback to default error handler
+        return None

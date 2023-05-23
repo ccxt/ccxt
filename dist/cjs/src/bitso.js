@@ -213,7 +213,8 @@ class bitso extends bitso$1 {
         //     }
         //
         const payload = this.safeValue(response, 'payload', []);
-        return this.parseLedger(payload, code, since, limit);
+        const currency = this.safeCurrency(code);
+        return this.parseLedger(payload, currency, since, limit);
     }
     parseLedgerEntryType(type) {
         const types = {
@@ -676,7 +677,7 @@ class bitso extends bitso$1 {
         const payload = this.safeValue(response, 'payload', []);
         return this.parseOHLCVs(payload, market, timeframe, since, limit);
     }
-    parseOHLCV(ohlcv, market = undefined, timeframe = '1m') {
+    parseOHLCV(ohlcv, market = undefined) {
         //
         //     {
         //         "bucket_start_time":1648219140000,
@@ -1693,7 +1694,7 @@ class bitso extends bitso$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('success' in response) {
             //
@@ -1719,6 +1720,7 @@ class bitso extends bitso$1 {
                 throw new errors.ExchangeError(feedback);
             }
         }
+        return undefined;
     }
 }
 

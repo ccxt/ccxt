@@ -828,6 +828,8 @@ class cryptocom extends Exchange {
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-candlestick
+         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-candlestick
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
@@ -842,20 +844,27 @@ class cryptocom extends Exchange {
             'instrument_name' => $market['id'],
             'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOHLCV', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'v2PublicGetPublicGetCandlestick',
-            'future' => 'derivativesPublicGetPublicGetCandlestick',
-            'swap' => 'derivativesPublicGetPublicGetCandlestick',
-        ));
-        if ($marketType !== 'spot') {
+        if (!$market['spot']) {
             $reqLimit = 100;
             if ($limit !== null) {
                 $reqLimit = $limit;
             }
             $request['count'] = $reqLimit;
         }
-        $response = $this->$method (array_merge($request, $query));
+        if ($since !== null) {
+            $request['start_ts'] = $since;
+        }
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'until', 'till' ));
+        if ($until !== null) {
+            $request['end_ts'] = $until;
+        }
+        $response = null;
+        if ($market['spot']) {
+            $response = $this->v2PublicGetPublicGetCandlestick (array_merge($request, $params));
+        } elseif ($market['contract']) {
+            $response = $this->derivativesPublicGetPublicGetCandlestick (array_merge($request, $params));
+        }
         // {
         //     "code":0,
         //     "method":"public/get-candlestick",
@@ -2518,7 +2527,8 @@ class cryptocom extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        list($type, $access) = $api;
+        $type = $this->safe_string($api, 0);
+        $access = $this->safe_string($api, 1);
         $url = $this->urls['api'][$type] . '/' . $path;
         $query = $this->omit($params, $this->extract_params($path));
         if ($access === 'public') {
@@ -2570,5 +2580,6 @@ class cryptocom extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             throw new ExchangeError($this->id . ' ' . $body);
         }
+        return null;
     }
 }

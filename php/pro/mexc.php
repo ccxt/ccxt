@@ -165,7 +165,7 @@ class mexc extends \ccxt\async\mexc {
 
     public function watch_spot_private($channel, $messageHash, $params = array ()) {
         return Async\async(function () use ($channel, $messageHash, $params) {
-            Async\await($this->check_required_credentials());
+            $this->check_required_credentials();
             $listenKey = Async\await($this->authenticate($channel));
             $url = $this->urls['api']['ws']['spot'] . '?$listenKey=' . $listenKey;
             $request = array(
@@ -242,7 +242,7 @@ class mexc extends \ccxt\async\mexc {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
         }) ();
     }
 
@@ -556,7 +556,7 @@ class mexc extends \ccxt\async\mexc {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
         }) ();
     }
 
@@ -647,7 +647,7 @@ class mexc extends \ccxt\async\mexc {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
         }) ();
     }
 
@@ -778,7 +778,7 @@ class mexc extends \ccxt\async\mexc {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
         }) ();
     }
 

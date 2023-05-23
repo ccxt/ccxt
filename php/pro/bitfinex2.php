@@ -110,7 +110,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
         }) ();
     }
 
@@ -211,7 +211,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
         }) ();
     }
 
@@ -235,7 +235,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
         }) ();
     }
 
@@ -667,16 +667,22 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         if ($book === null) {
             return;
         }
-        $depth = $this->safe_integer($subscription, 'len');
+        $depth = 25; // covers the first 25 $bids and $asks
         $stringArray = array();
         $bids = $book['bids'];
         $asks = $book['asks'];
         // pepperoni pizza from bitfinex
         for ($i = 0; $i < $depth; $i++) {
-            $stringArray[] = $bids[$i][0];
-            $stringArray[] = $bids[$i][1];
-            $stringArray[] = $asks[$i][0];
-            $stringArray[] = -$asks[$i][1];
+            $bid = $this->safe_value($bids, $i);
+            $ask = $this->safe_value($asks, $i);
+            if ($bid !== null) {
+                $stringArray[] = $this->number_to_string($bids[$i][0]);
+                $stringArray[] = $this->number_to_string($bids[$i][1]);
+            }
+            if ($ask !== null) {
+                $stringArray[] = $this->number_to_string($asks[$i][0]);
+                $stringArray[] = $this->number_to_string(-$asks[$i][1]);
+            }
         }
         $payload = implode(':', $stringArray);
         $localChecksum = $this->crc32($payload, true);
@@ -906,7 +912,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
         }) ();
     }
 

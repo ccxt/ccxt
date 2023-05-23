@@ -64,6 +64,7 @@ class kucoinfutures extends kucoinfutures$1 {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPosition': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
@@ -151,14 +152,19 @@ class kucoinfutures extends kucoinfutures$1 {
                         'position': 1,
                         'positions': 4.44,
                         'funding-history': 4.44,
+                        'sub/api-key': 1,
                     },
                     'post': {
                         'withdrawals': 1,
                         'transfer-out': 1,
+                        'transfer-in': 1,
                         'orders': 1.33,
                         'position/margin/auto-deposit-status': 1,
                         'position/margin/deposit-margin': 1,
+                        'position/risk-limit-level/change': 1,
                         'bullet-private': 1,
+                        'sub/api-key': 1,
+                        'sub/api-key/update': 1,
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -166,6 +172,7 @@ class kucoinfutures extends kucoinfutures$1 {
                         'orders/{orderId}': 1,
                         'orders': 4.44,
                         'stopOrders': 1,
+                        'sub/api-key': 1,
                     },
                 },
                 'webFront': {
@@ -725,6 +732,9 @@ class kucoinfutures extends kucoinfutures$1 {
         //
         return this.parseTicker(response['data'], market);
     }
+    async fetchTickers(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchTickers() is not supported yet');
+    }
     parseTicker(ticker, market = undefined) {
         //
         //     {
@@ -843,11 +853,80 @@ class kucoinfutures extends kucoinfutures$1 {
         }
         return fees;
     }
+    async fetchPosition(symbol, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchPosition
+         * @see https://docs.kucoin.com/futures/#get-position-details
+         * @description fetch data on an open position
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.futuresPrivateGetPositions(this.extend(request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": [
+        //             {
+        //                 "id": "63b3599e6c41f50001c47d44",
+        //                 "symbol": "XBTUSDTM",
+        //                 "autoDeposit": false,
+        //                 "maintMarginReq": 0.004,
+        //                 "riskLimit": 25000,
+        //                 "realLeverage": 5.0,
+        //                 "crossMode": false,
+        //                 "delevPercentage": 0.57,
+        //                 "openingTimestamp": 1684000025528,
+        //                 "currentTimestamp": 1684000052160,
+        //                 "currentQty": 1,
+        //                 "currentCost": 26.821,
+        //                 "currentComm": 0.0160926,
+        //                 "unrealisedCost": 26.821,
+        //                 "realisedGrossCost": 0.0,
+        //                 "realisedCost": 0.0160926,
+        //                 "isOpen": true,
+        //                 "markPrice": 26821.13,
+        //                 "markValue": 26.82113,
+        //                 "posCost": 26.821,
+        //                 "posCross": 0.0,
+        //                 "posCrossMargin": 0.0,
+        //                 "posInit": 5.3642,
+        //                 "posComm": 0.01931112,
+        //                 "posCommCommon": 0.01931112,
+        //                 "posLoss": 0.0,
+        //                 "posMargin": 5.38351112,
+        //                 "posMaint": 0.12927722,
+        //                 "maintMargin": 5.38364112,
+        //                 "realisedGrossPnl": 0.0,
+        //                 "realisedPnl": -0.0160926,
+        //                 "unrealisedPnl": 1.3E-4,
+        //                 "unrealisedPnlPcnt": 0.0,
+        //                 "unrealisedRoePcnt": 0.0,
+        //                 "avgEntryPrice": 26821.0,
+        //                 "liquidationPrice": 21567.0,
+        //                 "bankruptPrice": 21456.0,
+        //                 "settleCurrency": "USDT",
+        //                 "isInverse": false,
+        //                 "maintainMargin": 0.004
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue(response, 'data', []);
+        return this.parsePosition(data[0], market);
+    }
     async fetchPositions(symbols = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#fetchPositions
          * @description fetch all open positions
+         * @see https://docs.kucoin.com/futures/#get-position-list
          * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -971,7 +1050,7 @@ class kucoinfutures extends kucoinfutures$1 {
         const marginMode = crossMode ? 'cross' : 'isolated';
         return this.safePosition({
             'info': position,
-            'id': undefined,
+            'id': this.safeString(position, 'id'),
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -1327,6 +1406,8 @@ class kucoinfutures extends kucoinfutures$1 {
          * @method
          * @name kucoinfutures#fetchOrdersByStatus
          * @description fetches a list of orders placed on the exchange
+         * @see https://docs.kucoin.com/futures/#get-order-list
+         * @see https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
          * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
          * @param {string|undefined} symbol unified symbol for the market to retrieve orders from
          * @param {int|undefined} since timestamp in ms of the earliest order to retrieve
@@ -1368,6 +1449,57 @@ class kucoinfutures extends kucoinfutures$1 {
         }
         const method = stop ? 'futuresPrivateGetStopOrders' : 'futuresPrivateGetOrders';
         const response = await this[method](this.extend(request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "currentPage": 1,
+        //             "pageSize": 50,
+        //             "totalNum": 4,
+        //             "totalPage": 1,
+        //             "items": [
+        //                 {
+        //                     "id": "64507d02921f1c0001ff6892",
+        //                     "symbol": "XBTUSDTM",
+        //                     "type": "market",
+        //                     "side": "buy",
+        //                     "price": null,
+        //                     "size": 1,
+        //                     "value": "27.992",
+        //                     "dealValue": "27.992",
+        //                     "dealSize": 1,
+        //                     "stp": "",
+        //                     "stop": "",
+        //                     "stopPriceType": "",
+        //                     "stopTriggered": false,
+        //                     "stopPrice": null,
+        //                     "timeInForce": "GTC",
+        //                     "postOnly": false,
+        //                     "hidden": false,
+        //                     "iceberg": false,
+        //                     "leverage": "17",
+        //                     "forceHold": false,
+        //                     "closeOrder": false,
+        //                     "visibleSize": null,
+        //                     "clientOid": null,
+        //                     "remark": null,
+        //                     "tags": null,
+        //                     "isActive": false,
+        //                     "cancelExist": false,
+        //                     "createdAt": 1682996482000,
+        //                     "updatedAt": 1682996483062,
+        //                     "endAt": 1682996483062,
+        //                     "orderTime": 1682996482953900677,
+        //                     "settleCurrency": "USDT",
+        //                     "status": "done",
+        //                     "filledValue": "27.992",
+        //                     "filledSize": 1,
+        //                     "reduceOnly": false
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
         const responseData = this.safeValue(response, 'data', {});
         const orders = this.safeValue(responseData, 'items', []);
         return this.parseOrders(orders, market, since, limit);
@@ -1377,6 +1509,7 @@ class kucoinfutures extends kucoinfutures$1 {
          * @method
          * @name kucoinfutures#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://docs.kucoin.com/futures/#get-order-list
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
@@ -1393,6 +1526,7 @@ class kucoinfutures extends kucoinfutures$1 {
          * @method
          * @name kucoinfutures#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://docs.kucoin.com/futures/#get-details-of-a-single-order
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1413,11 +1547,96 @@ class kucoinfutures extends kucoinfutures$1 {
             request['orderId'] = id;
         }
         const response = await this[method](this.extend(request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "id": "64507d02921f1c0001ff6892",
+        //             "symbol": "XBTUSDTM",
+        //             "type": "market",
+        //             "side": "buy",
+        //             "price": null,
+        //             "size": 1,
+        //             "value": "27.992",
+        //             "dealValue": "27.992",
+        //             "dealSize": 1,
+        //             "stp": "",
+        //             "stop": "",
+        //             "stopPriceType": "",
+        //             "stopTriggered": false,
+        //             "stopPrice": null,
+        //             "timeInForce": "GTC",
+        //             "postOnly": false,
+        //             "hidden": false,
+        //             "iceberg": false,
+        //             "leverage": "17",
+        //             "forceHold": false,
+        //             "closeOrder": false,
+        //             "visibleSize": null,
+        //             "clientOid": null,
+        //             "remark": null,
+        //             "tags": null,
+        //             "isActive": false,
+        //             "cancelExist": false,
+        //             "createdAt": 1682996482000,
+        //             "updatedAt": 1682996483000,
+        //             "endAt": 1682996483000,
+        //             "orderTime": 1682996482953900677,
+        //             "settleCurrency": "USDT",
+        //             "status": "done",
+        //             "filledSize": 1,
+        //             "filledValue": "27.992",
+        //             "reduceOnly": false
+        //         }
+        //     }
+        //
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
         const responseData = this.safeValue(response, 'data');
         return this.parseOrder(responseData, market);
     }
     parseOrder(order, market = undefined) {
+        //
+        // fetchOrder, fetchOrdersByStatus
+        //
+        //     {
+        //         "id": "64507d02921f1c0001ff6892",
+        //         "symbol": "XBTUSDTM",
+        //         "type": "market",
+        //         "side": "buy",
+        //         "price": null,
+        //         "size": 1,
+        //         "value": "27.992",
+        //         "dealValue": "27.992",
+        //         "dealSize": 1,
+        //         "stp": "",
+        //         "stop": "",
+        //         "stopPriceType": "",
+        //         "stopTriggered": false,
+        //         "stopPrice": null,
+        //         "timeInForce": "GTC",
+        //         "postOnly": false,
+        //         "hidden": false,
+        //         "iceberg": false,
+        //         "leverage": "17",
+        //         "forceHold": false,
+        //         "closeOrder": false,
+        //         "visibleSize": null,
+        //         "clientOid": null,
+        //         "remark": null,
+        //         "tags": null,
+        //         "isActive": false,
+        //         "cancelExist": false,
+        //         "createdAt": 1682996482000,
+        //         "updatedAt": 1682996483062,
+        //         "endAt": 1682996483062,
+        //         "orderTime": 1682996482953900677,
+        //         "settleCurrency": "USDT",
+        //         "status": "done",
+        //         "filledValue": "27.992",
+        //         "filledSize": 1,
+        //         "reduceOnly": false
+        //     }
+        //
         const marketId = this.safeString(order, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
@@ -1433,22 +1652,20 @@ class kucoinfutures extends kucoinfutures$1 {
         const feeCurrency = this.safeCurrencyCode(feeCurrencyId);
         const feeCost = this.safeNumber(order, 'fee');
         const amount = this.safeString(order, 'size');
-        const filled = this.safeString(order, 'dealSize');
-        const rawCost = this.safeString2(order, 'dealFunds', 'filledValue');
-        const leverage = this.safeString(order, 'leverage');
-        const cost = Precise["default"].stringDiv(rawCost, leverage);
+        const filled = this.safeString(order, 'filledSize');
+        const cost = this.safeString(order, 'filledValue');
         let average = undefined;
         if (Precise["default"].stringGt(filled, '0')) {
             const contractSize = this.safeString(market, 'contractSize');
             if (market['linear']) {
-                average = Precise["default"].stringDiv(rawCost, Precise["default"].stringMul(contractSize, filled));
+                average = Precise["default"].stringDiv(cost, Precise["default"].stringMul(contractSize, filled));
             }
             else {
-                average = Precise["default"].stringDiv(Precise["default"].stringMul(contractSize, filled), rawCost);
+                average = Precise["default"].stringDiv(Precise["default"].stringMul(contractSize, filled), cost);
             }
         }
         // precision reported by their api is 8 d.p.
-        // const average = Precise.stringDiv (rawCost, Precise.stringMul (filled, market['contractSize']));
+        // const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         // bool
         const isActive = this.safeValue(order, 'isActive', false);
         const cancelExist = this.safeValue(order, 'cancelExist', false);
@@ -2001,33 +2218,6 @@ class kucoinfutures extends kucoinfutures$1 {
         //
         const responseData = response['data']['items'];
         return this.parseTransactions(responseData, currency, since, limit, { 'type': 'withdrawal' });
-    }
-    async fetchTransactionFee(code, params = {}) {
-        /**
-         * @method
-         * @name kucoinfutures#fetchTransactionFee
-         * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
-         * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-         */
-        // throw new BadRequest (this.id + ' fetchTransactionFee() is not supported');
-        return undefined;
-    }
-    async fetchDepositWithdrawFee(code, params = {}) {
-        /**
-         * @method
-         * @name kucoinfutures#fetchDepositWithdrawFee
-         * @description Not supported
-         * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-         */
-        throw new errors.BadRequest(this.id + ' fetchDepositWithdrawFee() is not supported');
-    }
-    async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        // throw new BadRequest (this.id + ' fetchLedger() is not supported yet');
-        return undefined;
     }
     async fetchMarketLeverageTiers(symbol, params = {}) {
         /**

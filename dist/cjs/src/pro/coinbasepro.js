@@ -98,7 +98,7 @@ class coinbasepro extends coinbasepro$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -123,7 +123,7 @@ class coinbasepro extends coinbasepro$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -148,7 +148,7 @@ class coinbasepro extends coinbasepro$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(orders, since, limit, 'timestamp');
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -675,6 +675,7 @@ class coinbasepro extends coinbasepro$1 {
             this.handleDeltas(orderbook['bids'], this.safeValue(message, 'bids', []));
             orderbook['timestamp'] = undefined;
             orderbook['datetime'] = undefined;
+            orderbook['symbol'] = symbol;
             client.resolve(orderbook, messageHash);
         }
         else if (type === 'l2update') {
@@ -713,6 +714,37 @@ class coinbasepro extends coinbasepro$1 {
         //
         return message;
     }
+    handleErrorMessage(client, message) {
+        //
+        //     {
+        //         "type": "error",
+        //         "message": "error message",
+        //         /* ... */
+        //     }
+        //
+        // auth error
+        //
+        //     {
+        //         type: 'error',
+        //         message: 'Authentication Failed',
+        //         reason: '{"message":"Invalid API Key"}'
+        //     }
+        //
+        const errMsg = this.safeString(message, 'message');
+        const reason = this.safeString(message, 'reason');
+        try {
+            if (errMsg === 'Authentication Failed') {
+                throw new errors.AuthenticationError('Authentication failed: ' + reason);
+            }
+            else {
+                throw new errors.ExchangeError(this.id + ' ' + reason);
+            }
+        }
+        catch (error) {
+            client.reject(error);
+            return true;
+        }
+    }
     handleMessage(client, message) {
         const type = this.safeString(message, 'type');
         const methods = {
@@ -724,6 +756,7 @@ class coinbasepro extends coinbasepro$1 {
             'open': this.handleOrder,
             'change': this.handleOrder,
             'done': this.handleOrder,
+            'error': this.handleErrorMessage,
         };
         const length = client.url.length - 0;
         const authenticated = client.url[length - 1] === '?';

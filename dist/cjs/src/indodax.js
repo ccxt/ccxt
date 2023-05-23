@@ -1030,17 +1030,17 @@ class indodax extends indodax$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         // { success: 0, error: "invalid order." }
         // or
         // [{ data, ... }, { ... }, ... ]
         if (Array.isArray(response)) {
-            return; // public endpoints may return []-arrays
+            return undefined; // public endpoints may return []-arrays
         }
         const error = this.safeValue(response, 'error', '');
         if (!('success' in response) && error === '') {
-            return; // no 'success' property on public responses
+            return undefined; // no 'success' property on public responses
         }
         if (this.safeInteger(response, 'success', 0) === 1) {
             // { success: 1, return: { orders: [] }}
@@ -1048,7 +1048,7 @@ class indodax extends indodax$1 {
                 throw new errors.ExchangeError(this.id + ': malformed response: ' + this.json(response));
             }
             else {
-                return;
+                return undefined;
             }
         }
         const feedback = this.id + ' ' + body;

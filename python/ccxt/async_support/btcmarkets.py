@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.btcmarkets import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -18,7 +19,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class btcmarkets(Exchange):
+class btcmarkets(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(btcmarkets, self).describe(), {
@@ -1131,7 +1132,7 @@ class btcmarkets(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if 'success' in response:
             if not response['success']:
                 error = self.safe_string(response, 'errorCode')
@@ -1146,3 +1147,4 @@ class btcmarkets(Exchange):
             self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
             self.throw_exactly_matched_exception(self.exceptions, message, feedback)
             raise ExchangeError(feedback)
+        return None

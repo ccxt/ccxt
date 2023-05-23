@@ -432,7 +432,7 @@ class coinex(ccxt.async_support.coinex):
         self.options['watchTradesSubscriptions'] = subscribedSymbols
         request = self.deep_extend(message, params)
         trades = await self.watch(url, messageHash, request, subscriptionHash)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -519,7 +519,7 @@ class coinex(ccxt.async_support.coinex):
         ohlcvs = await self.watch(url, messageHash, request, messageHash, subscription)
         if self.newUpdates:
             limit = ohlcvs.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcvs, since, limit, 0, True)
+        return self.filter_by_since_limit(ohlcvs, since, limit, 0)
 
     def handle_delta(self, bookside, delta):
         bidAsk = self.parse_bid_ask(delta, 0, 1)
@@ -600,13 +600,13 @@ class coinex(ccxt.async_support.coinex):
             message['params'] = [market['id']]
             messageHash += ':' + symbol
         else:
-            message['params'] = self.ids
+            message['params'] = []
         url = self.urls['api']['ws'][type]
         request = self.deep_extend(message, query)
         orders = await self.watch(url, messageHash, request, messageHash, request)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_orders(self, client: Client, message):
         #
@@ -899,13 +899,14 @@ class coinex(ccxt.async_support.coinex):
         #         id: 1
         #     }
         #
-        future = self.safe_value(client.futures, 'authenticated')
-        if future is not None:
-            future.resolve(True)
+        messageHashSpot = 'authenticated:spot'
+        messageHashSwap = 'authenticated:swap'
+        client.resolve(message, messageHashSpot)
+        client.resolve(message, messageHashSwap)
         return message
 
     def handle_subscription_status(self, client: Client, message):
-        id = self.safe_string(message, 'id')
+        id = self.safe_integer(message, 'id')
         subscription = self.safe_value(client.subscriptions, id)
         if subscription is not None:
             futureIndex = self.safe_string(subscription, 'future')
@@ -922,10 +923,9 @@ class coinex(ccxt.async_support.coinex):
         time = self.milliseconds()
         if type == 'spot':
             messageHash = 'authenticated:spot'
-            authenticated = self.safe_value(client.futures, messageHash)
-            if authenticated is not None:
-                return
-            future = client.future(messageHash)
+            future = self.safe_value(client.subscriptions, messageHash)
+            if future is not None:
+                return future
             requestId = self.request_id()
             subscribe = {
                 'id': requestId,
@@ -942,14 +942,14 @@ class coinex(ccxt.async_support.coinex):
                 ],
                 'id': requestId,
             }
-            self.spawn(self.watch, url, messageHash, request, requestId, subscribe)
+            future = self.watch(url, messageHash, request, requestId, subscribe)
+            client.subscriptions[messageHash] = future
             return future
         else:
             messageHash = 'authenticated:swap'
-            authenticated = self.safe_value(client.futures, messageHash)
-            if authenticated is not None:
-                return
-            future = client.future('authenticated:swap')
+            future = self.safe_value(client.subscriptions, messageHash)
+            if future is not None:
+                return future
             requestId = self.request_id()
             subscribe = {
                 'id': requestId,
@@ -966,5 +966,6 @@ class coinex(ccxt.async_support.coinex):
                 ],
                 'id': requestId,
             }
-            self.spawn(self.watch, url, messageHash, request, requestId, subscribe)
+            future = self.watch(url, messageHash, request, requestId, subscribe)
+            client.subscriptions[messageHash] = future
             return future

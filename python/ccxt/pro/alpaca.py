@@ -148,7 +148,7 @@ class alpaca(ccxt.async_support.alpaca):
         ohlcv = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -272,7 +272,7 @@ class alpaca(ccxt.async_support.alpaca):
         trades = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     def handle_trades(self, client: Client, message):
         #
@@ -324,7 +324,7 @@ class alpaca(ccxt.async_support.alpaca):
         trades = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -352,7 +352,7 @@ class alpaca(ccxt.async_support.alpaca):
         orders = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_trade_update(self, client: Client, message):
         self.handle_order(client, message)

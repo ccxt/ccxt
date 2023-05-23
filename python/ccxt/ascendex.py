@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.ascendex import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -20,7 +21,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class ascendex(Exchange):
+class ascendex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(ascendex, self).describe(), {
@@ -211,6 +212,11 @@ class ascendex(Exchange):
                         },
                     },
                     'private': {
+                        'data': {
+                            'get': {
+                                'order/hist': 1,
+                            },
+                        },
                         'get': {
                             'account/info': 1,
                         },
@@ -258,7 +264,7 @@ class ascendex(Exchange):
                 'account-category': 'cash',  # 'cash', 'margin', 'futures'  # obsolete
                 'account-group': None,
                 'fetchClosedOrders': {
-                    'method': 'v1PrivateAccountGroupGetOrderHist',  # 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
+                    'method': 'v2PrivateDataGetOrderHist',  # 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 },
                 'defaultType': 'spot',  # 'spot', 'margin', 'swap'
                 'accountsByType': {
@@ -431,13 +437,13 @@ class ascendex(Exchange):
             fee = self.safe_number_2(currency, 'withdrawFee', 'withdrawalFee')
             status = self.safe_string_2(currency, 'status', 'statusCode')
             active = (status == 'Normal')
-            margin = ('borrowAssetCode' in currency)
+            marginInside = ('borrowAssetCode' in currency)
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'type': None,
-                'margin': margin,
+                'margin': marginInside,
                 'name': self.safe_string(currency, 'assetName'),
                 'active': active,
                 'deposit': None,
@@ -454,6 +460,7 @@ class ascendex(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 
@@ -1238,6 +1245,25 @@ class ascendex(Exchange):
         #     }
         #
         #     {
+        #         "orderId": "a173ad938fc3U22666567717788c3b66",   # orderId
+        #         "seqNum": 18777366360,                           # sequence number
+        #         "accountId": "cshwSjbpPjSwHmxPdz2CPQVU9mnbzPpt",  # accountId
+        #         "symbol": "BTC/USDT",                            # symbol
+        #         "orderType": "Limit",                            # order type(Limit/Market/StopMarket/StopLimit)
+        #         "side": "Sell",                                  # order side(Buy/Sell)
+        #         "price": "11346.77",                             # order price
+        #         "stopPrice": "0",                                # stop price(0 by default)
+        #         "orderQty": "0.01",                              # order quantity(in base asset)
+        #         "status": "Canceled",                            # order status(Filled/Canceled/Rejected)
+        #         "createTime": 1596344995793,                     # order creation time
+        #         "lastExecTime": 1596344996053,                   # last execution time
+        #         "avgFillPrice": "11346.77",                      # average filled price
+        #         "fillQty": "0.01",                               # filled quantity(in base asset)
+        #         "fee": "-0.004992579",                           # cummulative fee. if negative, self value is the commission charged; if possitive, self value is the rebate received.
+        #         "feeAsset": "USDT"                               # fee asset
+        #     }
+        #
+        #     {
         #         "ac": "FUTURES",
         #         "accountId": "testabcdefg",
         #         "avgPx": "0",
@@ -1269,7 +1295,7 @@ class ascendex(Exchange):
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'orderQty')
         average = self.safe_string(order, 'avgPx')
-        filled = self.safe_string_2(order, 'cumFilledQty', 'cumQty')
+        filled = self.safe_string_n(order, ['cumFilledQty', 'cumQty', 'fillQty'])
         id = self.safe_string(order, 'orderId')
         clientOrderId = self.safe_string(order, 'id')
         if clientOrderId is not None:
@@ -1283,7 +1309,7 @@ class ascendex(Exchange):
             if rawTypeLower == 'stopmarket':
                 type = 'market'
         side = self.safe_string_lower(order, 'side')
-        feeCost = self.safe_number(order, 'cumFee')
+        feeCost = self.safe_number_2(order, 'cumFee', 'fee')
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(order, 'feeAsset')
@@ -1737,10 +1763,12 @@ class ascendex(Exchange):
     def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
+        see https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
         :param str|None symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the ascendex api endpoint
+        :param int|None params['until']: the latest time in ms to fetch orders for
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1765,23 +1793,27 @@ class ascendex(Exchange):
             request['symbol'] = market['id']
         type, query = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         options = self.safe_value(self.options, 'fetchClosedOrders', {})
-        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountGroupGetOrderHist')
+        defaultMethod = self.safe_string(options, 'method', 'v2PrivateDataGetOrderHist')
         method = self.get_supported_mapping(type, {
             'spot': defaultMethod,
             'margin': defaultMethod,
             'swap': 'v2PrivateAccountGroupGetFuturesOrderHistCurrent',
         })
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        accountCategory = self.safe_string(accountsByType, type, 'cash')
-        if method == 'v1PrivateAccountGroupGetOrderHist':
-            if accountCategory is not None:
-                request['category'] = accountCategory
+        accountCategory = self.safe_string(accountsByType, type, 'cash')  # margin, futures
+        if method == 'v2PrivateDataGetOrderHist':
+            request['account'] = accountCategory
+            if limit is not None:
+                request['limit'] = limit
         else:
             request['account-category'] = accountCategory
+            if limit is not None:
+                request['pageSize'] = limit
         if since is not None:
             request['startTime'] = since
-        if limit is not None:
-            request['pageSize'] = limit
+        until = self.safe_string(params, 'until')
+        if until is not None:
+            request['endTime'] = until
         response = getattr(self, method)(self.extend(request, query))
         #
         # accountCategoryGetOrderHistCurrent
@@ -1812,40 +1844,29 @@ class ascendex(Exchange):
         #         ]
         #     }
         #
-        # accountGroupGetOrderHist
-        #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "data": [
-        #                 {
-        #                     "ac": "FUTURES",
-        #                     "accountId": "testabcdefg",
-        #                     "avgPx": "0",
-        #                     "cumFee": "0",
-        #                     "cumQty": "0",
-        #                     "errorCode": "NULL_VAL",
-        #                     "execInst": "NULL_VAL",
-        #                     "feeAsset": "USDT",
-        #                     "lastExecTime": 1584072844085,
-        #                     "orderId": "r170d21956dd5450276356bbtcpKa74",
-        #                     "orderQty": "1.1499",
-        #                     "orderType": "Limit",
-        #                     "price": "4000",
-        #                     "sendingTime": 1584072841033,
-        #                     "seqNum": 24105338,
-        #                     "side": "Buy",
-        #                     "status": "Canceled",
-        #                     "stopPrice": "",
-        #                     "symbol": "BTC-PERP"
-        #                 },
-        #             ],
-        #             "hasNext": False,
-        #             "limit": 500,
-        #             "page": 1,
-        #             "pageSize": 20
-        #         }
-        #     }
+        #    {
+        #        "code": 0,
+        #        "data": [
+        #            {
+        #                "orderId"     :  "a173ad938fc3U22666567717788c3b66",  # orderId
+        #                "seqNum"      :  18777366360,                        # sequence number
+        #                "accountId"   :  "cshwSjbpPjSwHmxPdz2CPQVU9mnbzPpt",  # accountId
+        #                "symbol"      :  "BTC/USDT",                         # symbol
+        #                "orderType"   :  "Limit",                            # order type(Limit/Market/StopMarket/StopLimit)
+        #                "side"        :  "Sell",                             # order side(Buy/Sell)
+        #                "price"       :  "11346.77",                         # order price
+        #                "stopPrice"   :  "0",                                # stop price(0 by default)
+        #                "orderQty"    :  "0.01",                             # order quantity(in base asset)
+        #                "status"      :  "Canceled",                         # order status(Filled/Canceled/Rejected)
+        #                "createTime"  :  1596344995793,                      # order creation time
+        #                "lastExecTime":  1596344996053,                      # last execution time
+        #                "avgFillPrice":  "11346.77",                         # average filled price
+        #                "fillQty"     :  "0.01",                             # filled quantity(in base asset)
+        #                "fee"         :  "-0.004992579",                     # cummulative fee. if negative, self value is the commission charged; if possitive, self value is the rebate received.
+        #                "feeAsset"    :  "USDT"                              # fee asset
+        #            }
+        #        ]
+        #    }
         #
         # accountGroupGetFuturesOrderHistCurrent
         #
@@ -2810,7 +2831,10 @@ class ascendex(Exchange):
         request = self.implode_params(path, params)
         url += '/api/pro/'
         if version == 'v2':
-            request = version + '/' + request
+            if type == 'data':
+                request = 'data/' + version + '/' + request
+            else:
+                request = version + '/' + request
         else:
             url += version + '/'
         if accountCategory:
@@ -2849,7 +2873,7 @@ class ascendex(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {'code': 6010, 'message': 'Not enough balance.'}
         #     {'code': 60060, 'message': 'The order is already filled or canceled.'}
@@ -2865,3 +2889,4 @@ class ascendex(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

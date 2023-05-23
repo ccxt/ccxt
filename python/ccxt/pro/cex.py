@@ -140,7 +140,7 @@ class cex(ccxt.async_support.cex):
         # assing symbol to the trades does not contain symbol information
         for i in range(0, len(trades)):
             trades[i]['symbol'] = symbol
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     def handle_trades_snapshot(self, client: Client, message):
         #
@@ -389,7 +389,7 @@ class cex(ccxt.async_support.cex):
         orders = await self.watch(url, messageHash, request, messageHash, request)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -421,7 +421,7 @@ class cex(ccxt.async_support.cex):
         }
         request = self.deep_extend(message, params)
         orders = await self.watch(url, messageHash, request, subscriptionHash, request)
-        return self.filter_by_symbol_since_limit(orders, market['symbol'], since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, market['symbol'], since, limit)
 
     def handle_transaction(self, client: Client, message):
         data = self.safe_value(message, 'data')
@@ -949,7 +949,7 @@ class cex(ccxt.async_support.cex):
         ohlcv = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0)
 
     def handle_init_ohlcv(self, client: Client, message):
         #

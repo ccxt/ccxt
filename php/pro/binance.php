@@ -297,8 +297,10 @@ class binance extends \ccxt\async\binance {
         //         )
         //     }
         //
-        $index = mb_strpos($client->url, '/stream');
-        $marketType = ($index >= 0) ? 'spot' : 'contract';
+        $isTestnetSpot = mb_strpos($client->url, 'testnet') > 0;
+        $isSpotMainNet = mb_strpos($client->url, '/stream.binance.') > 0;
+        $isSpot = $isTestnetSpot || $isSpotMainNet;
+        $marketType = $isSpot ? 'spot' : 'contract';
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
@@ -438,7 +440,7 @@ class binance extends \ccxt\async\binance {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($market['symbol'], $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
         }) ();
     }
 
@@ -671,7 +673,7 @@ class binance extends \ccxt\async\binance {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
         }) ();
     }
 
@@ -1326,7 +1328,7 @@ class binance extends \ccxt\async\binance {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
         }) ();
     }
 
@@ -1463,6 +1465,7 @@ class binance extends \ccxt\async\binance {
             'type' => $type,
             'timeInForce' => $timeInForce,
             'postOnly' => null,
+            'reduceOnly' => $this->safe_value($order, 'R'),
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
@@ -1603,7 +1606,7 @@ class binance extends \ccxt\async\binance {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
         }) ();
     }
 

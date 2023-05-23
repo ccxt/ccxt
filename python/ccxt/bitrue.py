@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitrue import ImplicitAPI
 import hashlib
 import json
 from ccxt.base.types import OrderSide
@@ -30,7 +31,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bitrue(Exchange):
+class bitrue(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitrue, self).describe(), {
@@ -988,6 +989,8 @@ class bitrue(Exchange):
     def parse_trade(self, trade, market=None):
         #
         # aggregate trades
+        #  - "T" is timestamp of *api-call* not trades. Use more expensive v1PublicGetHistoricalTrades if actual timestamp of trades matter
+        #  - Trades are aggregated by timestamp, price, and side. But "m" is always True. Use method above if side of trades matter
         #
         #     {
         #         "a": 26129,         # Aggregate tradeId
@@ -995,8 +998,8 @@ class bitrue(Exchange):
         #         "q": "4.70443515",  # Quantity
         #         "f": 27781,         # First tradeId
         #         "l": 27781,         # Last tradeId
-        #         "T": 1498793709153,  # Timestamp
-        #         "m": True,          # Was the buyer the maker?
+        #         "T": 1498793709153,  # Timestamp of *Api-call* not trade!
+        #         "m": True,          # Was the buyer the maker?  # Always True -> ignore it and leave side None
         #         "M": True           # Was the trade the best price match?
         #     }
         #
@@ -1006,7 +1009,7 @@ class bitrue(Exchange):
         #         "id": 28457,
         #         "price": "4.00000100",
         #         "qty": "12.00000000",
-        #         "time": 1499865549590,
+        #         "time": 1499865549590,  # Actual timestamp of trade
         #         "isBuyerMaker": True,
         #         "isBestMatch": True
         #     }
@@ -1033,19 +1036,16 @@ class bitrue(Exchange):
         amountString = self.safe_string_2(trade, 'q', 'qty')
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market)
+        orderId = self.safe_string(trade, 'orderId')
         id = self.safe_string_2(trade, 't', 'a')
         id = self.safe_string_2(trade, 'id', 'tradeId', id)
         side = None
-        orderId = self.safe_string(trade, 'orderId')
-        if 'm' in trade:
-            side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
-        elif 'isBuyerMaker' in trade:
-            side = 'sell' if trade['isBuyerMaker'] else 'buy'
-        elif 'side' in trade:
-            side = self.safe_string_lower(trade, 'side')
-        else:
-            if 'isBuyer' in trade:
-                side = 'buy' if trade['isBuyer'] else 'sell'  # self is a True side
+        buyerMaker = self.safe_value(trade, 'isBuyerMaker')  # ignore "m" until Bitrue fixes api
+        isBuyer = self.safe_value(trade, 'isBuyer')
+        if buyerMaker is not None:
+            side = 'sell' if buyerMaker else 'buy'
+        if isBuyer is not None:
+            side = 'buy' if isBuyer else 'sell'  # self is a True side
         fee = None
         if 'commission' in trade:
             fee = {
@@ -1053,10 +1053,9 @@ class bitrue(Exchange):
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAssert')),
             }
         takerOrMaker = None
-        if 'isMaker' in trade:
-            takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
-        if 'maker' in trade:
-            takerOrMaker = 'maker' if trade['maker'] else 'taker'
+        isMaker = self.safe_value_2(trade, 'isMaker', 'maker')
+        if isMaker is not None:
+            takerOrMaker = 'maker' if isMaker else 'taker'
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -1834,7 +1833,8 @@ class bitrue(Exchange):
         return self.parse_deposit_withdraw_fees(coins, codes, 'coin')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        version, access = api
+        version = self.safe_string(api, 0)
+        access = self.safe_string(api, 1)
         url = self.urls['api'][version] + '/' + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
         if access == 'private':
@@ -1873,16 +1873,16 @@ class bitrue(Exchange):
             if body.find('PRICE_FILTER') >= 0:
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         # check success value for wapi endpoints
         # response in format {'msg': 'The coin does not exist.', 'success': True/false}
         success = self.safe_value(response, 'success', True)
         if not success:
-            message = self.safe_string(response, 'msg')
+            messageInner = self.safe_string(response, 'msg')
             parsedMessage = None
-            if message is not None:
+            if messageInner is not None:
                 try:
-                    parsedMessage = json.loads(message)
+                    parsedMessage = json.loads(messageInner)
                 except Exception as e:
                     # do nothing
                     parsedMessage = None
@@ -1898,7 +1898,7 @@ class bitrue(Exchange):
             # https://github.com/ccxt/ccxt/issues/6501
             # https://github.com/ccxt/ccxt/issues/7742
             if (error == '200') or Precise.string_equals(error, '0'):
-                return
+                return None
             # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             # despite that their message is very confusing, it is raised by Binance
             # on a temporary ban, the API key is valid, but disabled for a while
@@ -1909,8 +1909,9 @@ class bitrue(Exchange):
             raise ExchangeError(feedback)
         if not success:
             raise ExchangeError(self.id + ' ' + body)
+        return None
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         if ('noSymbol' in config) and not ('symbol' in params):
             return config['noSymbol']
         elif ('byLimit' in config) and ('limit' in params):

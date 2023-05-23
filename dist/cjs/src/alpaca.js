@@ -804,7 +804,7 @@ class alpaca extends alpaca$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // default error handler
+            return undefined; // default error handler
         }
         // {
         //     "code": 40110000,
@@ -821,6 +821,7 @@ class alpaca extends alpaca$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
 }
 

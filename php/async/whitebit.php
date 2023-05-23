@@ -314,11 +314,19 @@ class whitebit extends Exchange {
                 $symbol = $base . '/' . $quote;
                 $swap = $typeId === 'futures';
                 $margin = $isCollateral && !$swap;
+                $contract = false;
+                $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'stockPrec')));
+                $contractSize = $amountPrecision;
+                $linear = null;
+                $inverse = null;
                 if ($swap) {
                     $settleId = $quoteId;
                     $settle = $this->safe_currency_code($settleId);
                     $symbol = $symbol . ':' . $settle;
                     $type = 'swap';
+                    $contract = true;
+                    $linear = true;
+                    $inverse = false;
                 } else {
                     $type = 'spot';
                 }
@@ -338,18 +346,18 @@ class whitebit extends Exchange {
                     'future' => false,
                     'option' => false,
                     'active' => $active,
-                    'contract' => false,
-                    'linear' => null,
-                    'inverse' => null,
+                    'contract' => $contract,
+                    'linear' => $linear,
+                    'inverse' => $inverse,
                     'taker' => $this->safe_number($market, 'makerFee'),
                     'maker' => $this->safe_number($market, 'takerFee'),
-                    'contractSize' => null,
+                    'contractSize' => $contractSize,
                     'expiry' => null,
                     'expiryDatetime' => null,
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'stockPrec'))),
+                        'amount' => $amountPrecision,
                         'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'moneyPrec'))),
                     ),
                     'limits' => array(
@@ -950,14 +958,13 @@ class whitebit extends Exchange {
                 $keys = is_array($response) ? array_keys($response) : array();
                 for ($i = 0; $i < count($keys); $i++) {
                     $marketId = $keys[$i];
-                    $market = $this->safe_market($marketId, null, '_');
+                    $marketNew = $this->safe_market($marketId, null, '_');
                     $rawTrades = $this->safe_value($response, $marketId, array());
-                    $parsed = $this->parse_trades($rawTrades, $market, $since, $limit);
+                    $parsed = $this->parse_trades($rawTrades, $marketNew, $since, $limit);
                     $results = $this->array_concat($results, $parsed);
                 }
                 $results = $this->sort_by_2($results, 'timestamp', 'id');
-                $tail = ($since === null);
-                return $this->filter_by_since_limit($results, $since, $limit, 'timestamp', $tail);
+                return $this->filter_by_since_limit($results, $since, $limit, 'timestamp');
             }
         }) ();
     }
@@ -1417,10 +1424,10 @@ class whitebit extends Exchange {
             $results = array();
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
-                $market = $this->safe_market($marketId, null, '_');
+                $marketNew = $this->safe_market($marketId, null, '_');
                 $orders = $response[$marketId];
                 for ($j = 0; $j < count($orders); $j++) {
-                    $order = $this->parse_order($orders[$j], $market);
+                    $order = $this->parse_order($orders[$j], $marketNew);
                     $results[] = array_merge($order, array( 'status' => 'closed' ));
                 }
             }
@@ -2080,6 +2087,10 @@ class whitebit extends Exchange {
         return $this->in_array($currency, $fiatCurrencies);
     }
 
+    public function nonce() {
+        return $this->milliseconds();
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $version = $this->safe_value($api, 0);
@@ -2098,7 +2109,7 @@ class whitebit extends Exchange {
             $request = '/' . 'api' . '/' . $version . $pathWithParams;
             $body = $this->json(array_merge(array( 'request' => $request, 'nonce' => $nonce ), $params));
             $payload = base64_encode($body);
-            $signature = $this->hmac($payload, $secret, 'sha512');
+            $signature = $this->hmac($this->encode($payload), $secret, 'sha512');
             $headers = array(
                 'Content-Type' => 'application/json',
                 'X-TXC-APIKEY' => $this->apiKey,
@@ -2124,9 +2135,9 @@ class whitebit extends Exchange {
             $message = $this->safe_string($response, 'message');
             // For these cases where we have a generic $code variable error key
             // array("code":0,"message":"Validation failed","errors":array("amount":["Amount must be greater than 0"]))
-            $code = $this->safe_integer($response, 'code');
+            $codeNew = $this->safe_integer($response, 'code');
             $hasErrorStatus = $status !== null && $status !== '200';
-            if ($hasErrorStatus || $code !== null) {
+            if ($hasErrorStatus || $codeNew !== null) {
                 $feedback = $this->id . ' ' . $body;
                 $errorInfo = $message;
                 if ($hasErrorStatus) {
@@ -2145,5 +2156,6 @@ class whitebit extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+        return null;
     }
 }

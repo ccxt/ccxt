@@ -198,7 +198,7 @@ export default class hitbtc3 extends Exchange {
     fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

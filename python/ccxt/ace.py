@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.ace import ImplicitAPI
 from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
@@ -16,7 +17,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class ace(Exchange):
+class ace(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(ace, self).describe(), {
@@ -995,9 +996,10 @@ class ace(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to the default error handler
+            return None  # fallback to the default error handler
         feedback = self.id + ' ' + body
         status = self.safe_number(response, 'status', 200)
         if status > 200:
             self.throw_exactly_matched_exception(self.exceptions['exact'], status, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], status, feedback)
+        return None

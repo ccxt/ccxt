@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.okx import ImplicitAPI
 import asyncio
 import hashlib
 from ccxt.base.types import OrderSide
@@ -33,7 +34,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class okx(Exchange):
+class okx(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(okx, self).describe(), {
@@ -272,6 +273,7 @@ class okx(Exchange):
                         'trade/orders-algo-history': 1,
                         'trade/order-algo': 1,
                         'account/subaccount/balances': 10,
+                        'account/subaccount/interest-limits': 4,
                         'asset/subaccount/bills': 5 / 3,
                         'users/subaccount/list': 10,
                         'users/subaccount/apikey': 10,
@@ -332,6 +334,7 @@ class okx(Exchange):
                         'account/quick-margin-borrow-repay': 4,
                         'account/activate-option': 4,
                         'account/set-auto-loan': 4,
+                        'account/subaccount/set-loan-allocation': 4,
                         'asset/transfer': 10,
                         'asset/withdrawal': 5 / 3,
                         'asset/withdrawal-lightning': 5,
@@ -343,6 +346,7 @@ class okx(Exchange):
                         'trade/cancel-batch-orders': 1 / 15,
                         'trade/amend-order': 1 / 3,
                         'trade/amend-batch-orders': 1 / 3,
+                        'trade/amend-algos': 1,
                         'trade/close-position': 1,
                         'trade/order-algo': 1,
                         'trade/cancel-algos': 1,
@@ -764,9 +768,11 @@ class okx(Exchange):
                     'timeframes': {
                         '5m': '5m',
                         '1h': '1H',
+                        '8h': '8H',
                         '1d': '1D',
                         '5M': '5m',
                         '1H': '1H',
+                        '8H': '8H',
                         '1D': '1D',
                     },
                 },
@@ -1265,25 +1271,19 @@ class okx(Exchange):
             chains = dataByCurrencyId[currencyId]
             networks = {}
             currencyActive = False
-            depositEnabled = None
-            withdrawEnabled = None
+            depositEnabled = False
+            withdrawEnabled = False
             maxPrecision = None
             for j in range(0, len(chains)):
                 chain = chains[j]
                 canDeposit = self.safe_value(chain, 'canDep')
+                depositEnabled = canDeposit if (canDeposit) else depositEnabled
                 canWithdraw = self.safe_value(chain, 'canWd')
+                withdrawEnabled = canWithdraw if (canWithdraw) else withdrawEnabled
                 canInternal = self.safe_value(chain, 'canInternal')
                 active = True if (canDeposit and canWithdraw and canInternal) else False
                 currencyActive = active if (active) else currencyActive
                 networkId = self.safe_string(chain, 'chain')
-                if canDeposit and not depositEnabled:
-                    depositEnabled = True
-                elif not canDeposit:
-                    depositEnabled = False
-                if canWithdraw and not withdrawEnabled:
-                    withdrawEnabled = True
-                elif not canWithdraw:
-                    withdrawEnabled = False
                 if (networkId is not None) and (networkId.find('-') >= 0):
                     parts = networkId.split('-')
                     chainPart = self.safe_string(parts, 1, networkId)
@@ -1542,6 +1542,23 @@ class okx(Exchange):
         #         "ts": "1621446178316"
         #     }
         #
+        # option: fetchTrades
+        #
+        #     {
+        #         "fillVol": "0.46387625976562497",
+        #         "fwdPx": "26299.754935451125",
+        #         "indexPx": "26309.7",
+        #         "instFamily": "BTC-USD",
+        #         "instId": "BTC-USD-230526-26000-C",
+        #         "markPx": "0.042386283557554236",
+        #         "optType": "C",
+        #         "px": "0.0415",
+        #         "side": "sell",
+        #         "sz": "90",
+        #         "tradeId": "112",
+        #         "ts": "1683907480154"
+        #     }
+        #
         # private fetchMyTrades
         #
         #     {
@@ -1605,6 +1622,8 @@ class okx(Exchange):
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
+        see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades
+        see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-option-trades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
@@ -1616,9 +1635,13 @@ class okx(Exchange):
         request = {
             'instId': market['id'],
         }
-        if limit is not None:
-            request['limit'] = limit  # default 100
-        response = await self.publicGetMarketTrades(self.extend(request, params))
+        response = None
+        if market['option']:
+            response = await self.publicGetPublicOptionTrades(self.extend(request, params))
+        else:
+            if limit is not None:
+                request['limit'] = limit  # default 100
+            response = await self.publicGetMarketTrades(self.extend(request, params))
         #
         #     {
         #         "code": "0",
@@ -1628,6 +1651,29 @@ class okx(Exchange):
         #             {"instId":"ETH-BTC","side":"sell","sz":"0.03","px":"0.07068","tradeId":"15826756","ts":"1621446178066"},
         #             {"instId":"ETH-BTC","side":"buy","sz":"0.507","px":"0.07069","tradeId":"15826755","ts":"1621446175085"},
         #         ]
+        #     }
+        #
+        # option
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "fillVol": "0.46387625976562497",
+        #                 "fwdPx": "26299.754935451125",
+        #                 "indexPx": "26309.7",
+        #                 "instFamily": "BTC-USD",
+        #                 "instId": "BTC-USD-230526-26000-C",
+        #                 "markPx": "0.042386283557554236",
+        #                 "optType": "C",
+        #                 "px": "0.0415",
+        #                 "side": "sell",
+        #                 "sz": "90",
+        #                 "tradeId": "112",
+        #                 "ts": "1683907480154"
+        #             },
+        #         ],
+        #         "msg": ""
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -1780,7 +1826,7 @@ class okx(Exchange):
         data = self.safe_value(response, 'data', [])
         for i in range(0, len(data)):
             rate = data[i]
-            timestamp = self.safe_number(rate, 'fundingTime')
+            timestamp = self.safe_integer(rate, 'fundingTime')
             rates.append({
                 'info': rate,
                 'symbol': self.safe_symbol(self.safe_string(rate, 'instId')),
@@ -2260,8 +2306,8 @@ class okx(Exchange):
         """
         stop = self.safe_value(params, 'stop')
         if stop:
-            order = await self.cancel_orders([id], symbol, params)
-            return self.safe_value(order, 0)
+            orderInner = await self.cancel_orders([id], symbol, params)
+            return self.safe_value(orderInner, 0)
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
@@ -4730,12 +4776,12 @@ class okx(Exchange):
             entry = data[i]
             timestamp = self.safe_integer(entry, 'ts')
             instId = self.safe_string(entry, 'instId')
-            market = self.safe_market(instId)
+            marketInner = self.safe_market(instId)
             currencyId = self.safe_string(entry, 'ccy')
             code = self.safe_currency_code(currencyId)
             result.append({
                 'info': entry,
-                'symbol': market['symbol'],
+                'symbol': marketInner['symbol'],
                 'code': code,
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
@@ -5446,11 +5492,13 @@ class okx(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_open_interest(data[0], market)
 
-    async def fetch_open_interest_history(self, symbol: str, timeframe='5m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_interest_history(self, symbol: str, timeframe='1d', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Retrieves the open interest history of a currency
-        :param str symbol: Unified CCXT currency code instead of a unified symbol
-        :param str timeframe: "5m", "1h", or "1d"
+        see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-contracts-open-interest-and-volume
+        see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-options-open-interest-and-volume
+        :param str symbol: Unified CCXT currency code or unified symbol
+        :param str timeframe: "5m", "1h", or "1d" for option only "1d" or "8h"
         :param int|None since: The time in ms of the earliest record to retrieve unix timestamp
         :param int|None limit: Not used by okx, but parsed internally by CCXT
         :param dict params: Exchange specific parameters
@@ -5463,18 +5511,32 @@ class okx(Exchange):
         if timeframe != '5m' and timeframe != '1H' and timeframe != '1D':
             raise BadRequest(self.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe')
         await self.load_markets()
-        currency = self.currency(symbol)
+        # handle unified currency code or symbol
+        currencyId = None
+        market = None
+        if (symbol in self.markets) or (symbol in self.markets_by_id):
+            market = self.market(symbol)
+            currencyId = market['baseId']
+        else:
+            currency = self.currency(symbol)
+            currencyId = currency['id']
         request = {
-            'ccy': currency['id'],
+            'ccy': currencyId,
             'period': timeframe,
         }
-        if since is not None:
-            request['begin'] = since
-        until = self.safe_integer_2(params, 'till', 'until')
-        if until is not None:
-            request['end'] = until
-            params = self.omit(params, ['until', 'till'])
-        response = await self.publicGetRubikStatContractsOpenInterestVolume(self.extend(request, params))
+        type = None
+        response = None
+        type, params = self.handle_market_type_and_params('fetchOpenInterestHistory', market, params)
+        if type == 'option':
+            response = await self.publicGetRubikStatOptionOpenInterestVolume(self.extend(request, params))
+        else:
+            if since is not None:
+                request['begin'] = since
+            until = self.safe_integer_2(params, 'till', 'until')
+            if until is not None:
+                request['end'] = until
+                params = self.omit(params, ['until', 'till'])
+            response = await self.publicGetRubikStatContractsOpenInterestVolume(self.extend(request, params))
         #
         #    {
         #        code: '0',
@@ -5489,7 +5551,7 @@ class okx(Exchange):
         #        msg: ''
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         return self.parse_open_interests(data, None, since, limit)
 
     def parse_open_interest(self, interest, market=None):
@@ -5498,33 +5560,46 @@ class okx(Exchange):
         #
         #    [
         #        '1648221300000',  # timestamp
-        #        '2183354317.945',  # open interest(USD)
-        #        '74285877.617',  # volume(USD)
+        #        '2183354317.945',  # open interest(USD) - (coin) for options
+        #        '74285877.617',  # volume(USD) - (coin) for options
         #    ]
         #
         # fetchOpenInterest
         #
         #     {
-        #         "instId": "BTC-USDT-SWAP",
-        #         "instType": "SWAP",
-        #         "oi": "2125419",
-        #         "oiCcy": "21254.19",
-        #         "ts": "1664005108969"
+        #         "instId": "BTC-USD-230520-25500-P",
+        #         "instType": "OPTION",
+        #         "oi": "300",
+        #         "oiCcy": "3",
+        #         "ts": "1684551166251"
         #     }
         #
         id = self.safe_string(interest, 'instId')
         market = self.safe_market(id, market)
         time = self.safe_integer(interest, 'ts')
         timestamp = self.safe_number(interest, 0, time)
-        numContracts = self.safe_number(interest, 'oi')
-        inCurrency = self.safe_number(interest, 'oiCcy')
-        openInterest = self.safe_number(interest, 1, inCurrency)
+        baseVolume = None
+        quoteVolume = None
+        openInterestAmount = None
+        openInterestValue = None
+        type = self.safe_string(self.options, 'defaultType')
+        if isinstance(interest, list):
+            if type == 'option':
+                openInterestAmount = self.safe_number(interest, 1)
+                baseVolume = self.safe_number(interest, 2)
+            else:
+                openInterestValue = self.safe_number(interest, 1)
+                quoteVolume = self.safe_number(interest, 2)
+        else:
+            baseVolume = self.safe_number(interest, 'oiCcy')
+            openInterestAmount = self.safe_number(interest, 'oi')
+            openInterestValue = self.safe_number(interest, 'oiCcy')
         return {
             'symbol': self.safe_symbol(id),
-            'baseVolume': None,  # deprecated
-            'quoteVolume': openInterest,  # deprecated
-            'openInterestAmount': numContracts,
-            'openInterestValue': openInterest,
+            'baseVolume': baseVolume,  # deprecated
+            'quoteVolume': quoteVolume,  # deprecated
+            'openInterestAmount': openInterestAmount,
+            'openInterestValue': openInterestValue,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
@@ -5653,7 +5728,7 @@ class okx(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #    {
         #        "code": "1",
@@ -5686,3 +5761,4 @@ class okx(Exchange):
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

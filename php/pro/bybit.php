@@ -108,12 +108,6 @@ class bybit extends \ccxt\async\bybit {
                 'ping' => array($this, 'ping'),
                 'keepAlive' => 20000,
             ),
-            'exceptions' => array(
-                'ws' => array(
-                    'exact' => array(
-                    ),
-                ),
-            ),
         ));
     }
 
@@ -176,7 +170,8 @@ class bybit extends \ccxt\async\bybit {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $messageHash = 'ticker:' . $market['symbol'];
+            $symbol = $market['symbol'];
+            $messageHash = 'ticker:' . $symbol;
             $url = $this->get_url_by_market_type($symbol, false, $params);
             $params = $this->clean_params($params);
             $options = $this->safe_value($this->options, 'watchTicker', array());
@@ -346,7 +341,7 @@ class bybit extends \ccxt\async\bybit {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
         }) ();
     }
 
@@ -559,7 +554,7 @@ class bybit extends \ccxt\async\bybit {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
         }) ();
     }
 
@@ -718,7 +713,7 @@ class bybit extends \ccxt\async\bybit {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
         }) ();
     }
 
@@ -845,7 +840,7 @@ class bybit extends \ccxt\async\bybit {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
         }) ();
     }
 

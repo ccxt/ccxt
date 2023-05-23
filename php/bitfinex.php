@@ -869,7 +869,7 @@ class bitfinex extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-        $marketId = $this->safe_string($market, 'pair');
+        $marketId = $this->safe_string($ticker, 'pair');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'last_price');
@@ -1615,7 +1615,7 @@ class bitfinex extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         $throwError = false;
         if ($code >= 400) {
@@ -1638,5 +1638,6 @@ class bitfinex extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

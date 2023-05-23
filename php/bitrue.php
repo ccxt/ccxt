@@ -995,6 +995,8 @@ class bitrue extends Exchange {
     public function parse_trade($trade, $market = null) {
         //
         // aggregate trades
+        //  - "T" is $timestamp of *api-call* not trades. Use more expensive v1PublicGetHistoricalTrades if actual $timestamp of trades matter
+        //  - Trades are aggregated by $timestamp, price, and $side-> But "m" is always True. Use method above if $side of trades matter
         //
         //     {
         //         "a" => 26129,         // Aggregate tradeId
@@ -1002,8 +1004,8 @@ class bitrue extends Exchange {
         //         "q" => "4.70443515",  // Quantity
         //         "f" => 27781,         // First tradeId
         //         "l" => 27781,         // Last tradeId
-        //         "T" => 1498793709153, // Timestamp
-        //         "m" => true,          // Was the buyer the maker?
+        //         "T" => 1498793709153, // Timestamp of *Api-call* not $trade!
+        //         "m" => true,          // Was the buyer the maker?  // Always True -> ignore it and leave $side null
         //         "M" => true           // Was the $trade the best price match?
         //     }
         //
@@ -1013,7 +1015,7 @@ class bitrue extends Exchange {
         //         "id" => 28457,
         //         "price" => "4.00000100",
         //         "qty" => "12.00000000",
-        //         "time" => 1499865549590,
+        //         "time" => 1499865549590,  // Actual $timestamp of $trade
         //         "isBuyerMaker" => true,
         //         "isBestMatch" => true
         //     }
@@ -1040,20 +1042,17 @@ class bitrue extends Exchange {
         $amountString = $this->safe_string_2($trade, 'q', 'qty');
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
+        $orderId = $this->safe_string($trade, 'orderId');
         $id = $this->safe_string_2($trade, 't', 'a');
         $id = $this->safe_string_2($trade, 'id', 'tradeId', $id);
         $side = null;
-        $orderId = $this->safe_string($trade, 'orderId');
-        if (is_array($trade) && array_key_exists('m', $trade)) {
-            $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
-        } elseif (is_array($trade) && array_key_exists('isBuyerMaker', $trade)) {
-            $side = $trade['isBuyerMaker'] ? 'sell' : 'buy';
-        } elseif (is_array($trade) && array_key_exists('side', $trade)) {
-            $side = $this->safe_string_lower($trade, 'side');
-        } else {
-            if (is_array($trade) && array_key_exists('isBuyer', $trade)) {
-                $side = $trade['isBuyer'] ? 'buy' : 'sell'; // this is a true $side
-            }
+        $buyerMaker = $this->safe_value($trade, 'isBuyerMaker');  // ignore "m" until Bitrue fixes api
+        $isBuyer = $this->safe_value($trade, 'isBuyer');
+        if ($buyerMaker !== null) {
+            $side = $buyerMaker ? 'sell' : 'buy';
+        }
+        if ($isBuyer !== null) {
+            $side = $isBuyer ? 'buy' : 'sell'; // this is a true $side
         }
         $fee = null;
         if (is_array($trade) && array_key_exists('commission', $trade)) {
@@ -1063,11 +1062,9 @@ class bitrue extends Exchange {
             );
         }
         $takerOrMaker = null;
-        if (is_array($trade) && array_key_exists('isMaker', $trade)) {
-            $takerOrMaker = $trade['isMaker'] ? 'maker' : 'taker';
-        }
-        if (is_array($trade) && array_key_exists('maker', $trade)) {
-            $takerOrMaker = $trade['maker'] ? 'maker' : 'taker';
+        $isMaker = $this->safe_value_2($trade, 'isMaker', 'maker');
+        if ($isMaker !== null) {
+            $takerOrMaker = $isMaker ? 'maker' : 'taker';
         }
         return $this->safe_trade(array(
             'info' => $trade,
@@ -1903,7 +1900,8 @@ class bitrue extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        list($version, $access) = $api;
+        $version = $this->safe_string($api, 0);
+        $access = $this->safe_string($api, 1);
         $url = $this->urls['api'][$version] . '/' . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         if ($access === 'private') {
@@ -1951,17 +1949,17 @@ class bitrue extends Exchange {
             }
         }
         if ($response === null) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         // check $success value for wapi endpoints
         // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
         $success = $this->safe_value($response, 'success', true);
         if (!$success) {
-            $message = $this->safe_string($response, 'msg');
+            $messageInner = $this->safe_string($response, 'msg');
             $parsedMessage = null;
-            if ($message !== null) {
+            if ($messageInner !== null) {
                 try {
-                    $parsedMessage = json_decode($message, $as_associative_array = true);
+                    $parsedMessage = json_decode($messageInner, $as_associative_array = true);
                 } catch (Exception $e) {
                     // do nothing
                     $parsedMessage = null;
@@ -1982,7 +1980,7 @@ class bitrue extends Exchange {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
             if (($error === '200') || Precise::string_equals($error, '0')) {
-                return;
+                return null;
             }
             // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
             // despite that their $message is very confusing, it is raised by Binance
@@ -1997,9 +1995,10 @@ class bitrue extends Exchange {
         if (!$success) {
             throw new ExchangeError($this->id . ' ' . $body);
         }
+        return null;
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         if ((is_array($config) && array_key_exists('noSymbol', $config)) && !(is_array($params) && array_key_exists('symbol', $params))) {
             return $config['noSymbol'];
         } elseif ((is_array($config) && array_key_exists('byLimit', $config)) && (is_array($params) && array_key_exists('limit', $params))) {

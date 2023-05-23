@@ -155,7 +155,7 @@ class mexc(ccxt.async_support.mexc):
         return await self.watch(url, messageHash, self.extend(request, params), channel)
 
     async def watch_spot_private(self, channel, messageHash, params={}):
-        await self.check_required_credentials()
+        self.check_required_credentials()
         listenKey = await self.authenticate(channel)
         url = self.urls['api']['ws']['spot'] + '?listenKey=' + listenKey
         request = {
@@ -221,7 +221,7 @@ class mexc(ccxt.async_support.mexc):
             ohlcv = await self.watch_swap_public(channel, messageHash, requestParams, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -508,7 +508,7 @@ class mexc(ccxt.async_support.mexc):
             trades = await self.watch_swap_public(channel, messageHash, requestParams, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     def handle_trades(self, client: Client, message):
         #
@@ -589,7 +589,7 @@ class mexc(ccxt.async_support.mexc):
             trades = await self.watch_swap_private(messageHash, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
     def handle_my_trade(self, client: Client, message, subscription=None):
         #
@@ -709,7 +709,7 @@ class mexc(ccxt.async_support.mexc):
             orders = await self.watch_swap_private(messageHash, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_order(self, client: Client, message):
         #

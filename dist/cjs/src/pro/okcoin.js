@@ -79,7 +79,7 @@ class okcoin extends okcoin$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -102,7 +102,7 @@ class okcoin extends okcoin$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     handleOrders(client, message, subscription = undefined) {
         //
@@ -267,7 +267,7 @@ class okcoin extends okcoin$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0);
     }
     handleOHLCV(client, message) {
         //

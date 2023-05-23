@@ -814,7 +814,7 @@ class coincheck extends coincheck$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //     {"success":false,"error":"disabled API Key"}'
@@ -828,6 +828,7 @@ class coincheck extends coincheck$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             throw new errors.ExchangeError(this.id + ' ' + this.json(response));
         }
+        return undefined;
     }
 }
 

@@ -24,6 +24,7 @@ class krakenfutures extends Exchange {
             'version' => 'v3',
             'userAgent' => null,
             'rateLimit' => 600,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => false,
@@ -69,8 +70,8 @@ class krakenfutures extends Exchange {
             ),
             'urls' => array(
                 'test' => array(
-                    'public' => 'https://demo-futures.kraken.com/derivatives',
-                    'private' => 'https://demo-futures.kraken.com/derivatives',
+                    'public' => 'https://demo-futures.kraken.com/derivatives/api/',
+                    'private' => 'https://demo-futures.kraken.com/derivatives/api/',
                     'www' => 'https://demo-futures.kraken.com',
                 ),
                 'logo' => 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -309,8 +310,9 @@ class krakenfutures extends Exchange {
                 $settleId = null;
                 $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'contractValueTradePrecision', '0')));
                 $pricePrecision = $this->safe_number($market, 'tickSize');
-                $contract = ($swap || $future);
-                if ($contract) {
+                $contract = ($swap || $future || $index);
+                $swapOrFutures = ($swap || $future);
+                if ($swapOrFutures) {
                     $exchangeType = $this->safe_string($market, 'type');
                     if ($exchangeType === 'futures_inverse') {
                         $settle = $base;
@@ -815,7 +817,8 @@ class krakenfutures extends Exchange {
             $type = $this->safe_string($params, 'orderType', $type);
             $timeInForce = $this->safe_string($params, 'timeInForce');
             $stopPrice = $this->safe_string($params, 'stopPrice');
-            $postOnly = $this->safe_string($params, 'postOnly');
+            $postOnly = false;
+            list($postOnly, $params) = $this->handle_post_only($type === 'market', $type === 'post', $params);
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'cliOrdId');
             $params = $this->omit($params, array( 'clientOrderId', 'cliOrdId' ));
             if (($type === 'stp' || $type === 'take_profit') && $stopPrice === null) {
@@ -824,7 +827,7 @@ class krakenfutures extends Exchange {
             if ($stopPrice !== null && $type !== 'take_profit') {
                 $type = 'stp';
             } elseif ($postOnly) {
-                $type = 'postOnly';
+                $type = 'post';
             } elseif ($timeInForce === 'ioc') {
                 $type = 'ioc';
             } elseif ($type === 'limit') {
@@ -1937,7 +1940,7 @@ class krakenfutures extends Exchange {
             $currency = $this->currency($code);
             $method = 'privatePostTransfer';
             $request = array(
-                'amount' => $this->currency_to_precision($code, $amount),
+                'amount' => $amount,
             );
             if ($fromAccount === 'spot') {
                 throw new BadRequest($this->id . ' $transfer does not yet support transfers from spot');
@@ -1971,14 +1974,14 @@ class krakenfutures extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         if ($code === 429) {
             throw new DDoSProtection($this->id . ' ' . $body);
         }
         $message = $this->safe_string($response, 'error');
         if ($message === null) {
-            return;
+            return null;
         }
         $feedback = $this->id . ' ' . $body;
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);

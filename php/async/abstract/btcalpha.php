@@ -8,87 +8,87 @@ namespace ccxt\async\abstract;
 
 abstract class btcalpha extends \ccxt\async\Exchange {
     public function public_get_currencies($params = array()) {
-        return $this->request('currencies/', 'public', 'GET', $params);
+        return $this->request('currencies/', 'public', 'GET', $params, null, null, array());
     }
     public function public_get_pairs($params = array()) {
-        return $this->request('pairs/', 'public', 'GET', $params);
+        return $this->request('pairs/', 'public', 'GET', $params, null, null, array());
     }
     public function public_get_orderbook_pair_name($params = array()) {
-        return $this->request('orderbook/{pair_name}', 'public', 'GET', $params);
+        return $this->request('orderbook/{pair_name}', 'public', 'GET', $params, null, null, array());
     }
     public function public_get_exchanges($params = array()) {
-        return $this->request('exchanges/', 'public', 'GET', $params);
+        return $this->request('exchanges/', 'public', 'GET', $params, null, null, array());
     }
     public function public_get_charts_pair_type_chart($params = array()) {
-        return $this->request('charts/{pair}/{type}/chart/', 'public', 'GET', $params);
+        return $this->request('charts/{pair}/{type}/chart/', 'public', 'GET', $params, null, null, array());
     }
     public function public_get_ticker($params = array()) {
-        return $this->request('ticker/', 'public', 'GET', $params);
+        return $this->request('ticker/', 'public', 'GET', $params, null, null, array());
     }
     public function private_get_wallets($params = array()) {
-        return $this->request('wallets/', 'private', 'GET', $params);
+        return $this->request('wallets/', 'private', 'GET', $params, null, null, array());
     }
     public function private_get_orders_own($params = array()) {
-        return $this->request('orders/own/', 'private', 'GET', $params);
+        return $this->request('orders/own/', 'private', 'GET', $params, null, null, array());
     }
     public function private_get_order_id($params = array()) {
-        return $this->request('order/{id}/', 'private', 'GET', $params);
+        return $this->request('order/{id}/', 'private', 'GET', $params, null, null, array());
     }
     public function private_get_exchanges_own($params = array()) {
-        return $this->request('exchanges/own/', 'private', 'GET', $params);
+        return $this->request('exchanges/own/', 'private', 'GET', $params, null, null, array());
     }
     public function private_get_deposits($params = array()) {
-        return $this->request('deposits/', 'private', 'GET', $params);
+        return $this->request('deposits/', 'private', 'GET', $params, null, null, array());
     }
     public function private_get_withdraws($params = array()) {
-        return $this->request('withdraws/', 'private', 'GET', $params);
+        return $this->request('withdraws/', 'private', 'GET', $params, null, null, array());
     }
     public function private_post_order($params = array()) {
-        return $this->request('order/', 'private', 'POST', $params);
+        return $this->request('order/', 'private', 'POST', $params, null, null, array());
     }
     public function private_post_order_cancel($params = array()) {
-        return $this->request('order-cancel/', 'private', 'POST', $params);
+        return $this->request('order-cancel/', 'private', 'POST', $params, null, null, array());
     }
     public function publicGetCurrencies($params = array()) {
-        return $this->request('currencies/', 'public', 'GET', $params);
+        return $this->request('currencies/', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetPairs($params = array()) {
-        return $this->request('pairs/', 'public', 'GET', $params);
+        return $this->request('pairs/', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetOrderbookPairName($params = array()) {
-        return $this->request('orderbook/{pair_name}', 'public', 'GET', $params);
+        return $this->request('orderbook/{pair_name}', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetExchanges($params = array()) {
-        return $this->request('exchanges/', 'public', 'GET', $params);
+        return $this->request('exchanges/', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetChartsPairTypeChart($params = array()) {
-        return $this->request('charts/{pair}/{type}/chart/', 'public', 'GET', $params);
+        return $this->request('charts/{pair}/{type}/chart/', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetTicker($params = array()) {
-        return $this->request('ticker/', 'public', 'GET', $params);
+        return $this->request('ticker/', 'public', 'GET', $params, null, null, array());
     }
     public function privateGetWallets($params = array()) {
-        return $this->request('wallets/', 'private', 'GET', $params);
+        return $this->request('wallets/', 'private', 'GET', $params, null, null, array());
     }
     public function privateGetOrdersOwn($params = array()) {
-        return $this->request('orders/own/', 'private', 'GET', $params);
+        return $this->request('orders/own/', 'private', 'GET', $params, null, null, array());
     }
     public function privateGetOrderId($params = array()) {
-        return $this->request('order/{id}/', 'private', 'GET', $params);
+        return $this->request('order/{id}/', 'private', 'GET', $params, null, null, array());
     }
     public function privateGetExchangesOwn($params = array()) {
-        return $this->request('exchanges/own/', 'private', 'GET', $params);
+        return $this->request('exchanges/own/', 'private', 'GET', $params, null, null, array());
     }
     public function privateGetDeposits($params = array()) {
-        return $this->request('deposits/', 'private', 'GET', $params);
+        return $this->request('deposits/', 'private', 'GET', $params, null, null, array());
     }
     public function privateGetWithdraws($params = array()) {
-        return $this->request('withdraws/', 'private', 'GET', $params);
+        return $this->request('withdraws/', 'private', 'GET', $params, null, null, array());
     }
     public function privatePostOrder($params = array()) {
-        return $this->request('order/', 'private', 'POST', $params);
+        return $this->request('order/', 'private', 'POST', $params, null, null, array());
     }
     public function privatePostOrderCancel($params = array()) {
-        return $this->request('order-cancel/', 'private', 'POST', $params);
+        return $this->request('order-cancel/', 'private', 'POST', $params, null, null, array());
     }
 }
