@@ -124,7 +124,7 @@ do
   exchangeid="${entry/$REST_dir\//''}"
   js_file_to_check=$REST_dir$exchangeid.js
   if [ ! -f "$js_file_to_check" ]; then
-    REST_EXCHANGES+=$exchangeid
+    REST_EXCHANGES+=($exchangeid)
   fi
 done
 for entry in "$WS_dir"/*.ts
@@ -134,7 +134,7 @@ do
   exchangeid="${entry/$WS_dir\//''}"
   js_file_to_check=$WS_dir$exchangeid.js
   if [ ! -f "$js_file_to_check" ]; then
-    WS_EXCHANGES+=$exchangeid
+    WS_EXCHANGES+=($exchangeid)
   fi
 done
 #########################################
