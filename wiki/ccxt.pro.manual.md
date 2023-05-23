@@ -725,7 +725,7 @@ If your application is not very time-critical, you can still subscribe to OHLCV 
 if (exchange.has['watchOHLCV']) {
     while (true) {
         try {
-            const candles = await exchange.watchOHLCV (symbol, since, limit, params)
+            const candles = await exchange.watchOHLCV (symbol, timeframe, since, limit, params)
             console.log (new Date (), candles)
         } catch (e) {
             console.log (e)
@@ -741,7 +741,7 @@ if (exchange.has['watchOHLCV']) {
 if exchange.has['watchOHLCV']:
     while True:
         try:
-            candles = await exchange.watch_ohlcv(symbol, since, limit, params)
+            candles = await exchange.watch_ohlcv(symbol, timeframe, since, limit, params)
             print(exchange.iso8601(exchange.milliseconds()), candles)
         except Exception as e:
             print(e)
