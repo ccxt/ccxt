@@ -12,8 +12,8 @@ interface Exchange {
     spotV1PublicGetCommonSymbols (params?: {}): Promise<implicitReturnType>;
     spotV1PublicGetMarketTrades (params?: {}): Promise<implicitReturnType>;
     spotV1PublicGetMarketDepth (params?: {}): Promise<implicitReturnType>;
-    spotV1PublicGetTradeQuery (params?: {}): Promise<implicitReturnType>;
-    spotV1PublicGetTradeOpenOrders (params?: {}): Promise<implicitReturnType>;
+    spotV1PrivateGetTradeQuery (params?: {}): Promise<implicitReturnType>;
+    spotV1PrivateGetTradeOpenOrders (params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetTradeHistoryOrders (params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetAccountBalance (params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeOrder (params?: {}): Promise<implicitReturnType>;
