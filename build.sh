@@ -111,6 +111,40 @@ for file in "${y[@]}"; do
   fi
 done
 
+#########################################
+######### ADD MISSING EXCHANGES #########
+#########################################
+# sometimes, when master has merged a PR, but build is not finished, some exchanges might be missing
+REST_exchanges=()
+WS_exchanges=()
+REST_dir=./ts/src/
+WS_dir=./ts/src/pro/
+for entry in "$REST_dir"/*.ts
+do
+  # remove dir & ext
+  entry="${entry/\.ts/''}"
+  exchangeid="${entry/$REST_dir\//''}"
+  js_file_to_check=./js/src/$exchangeid.js
+  if [ ! -f "$js_file_to_check" ]; then
+    REST_exchanges+=$exchangeid
+  fi
+done
+for entry in "$WS_dir"/*.ts
+do
+  # remove dir & ext
+  entry="${entry/\.ts/''}"
+  exchangeid="${entry/$WS_dir\//''}"
+  js_file_to_check=./js/src/$exchangeid.js
+  if [ ! -f "$js_file_to_check" ]; then
+    WS_exchanges+=$exchangeid
+  fi
+done
+#########################################
+#########################################
+#########################################
+
+
+
 ### BUILD SPECIFIC EXCHANGES ###
 # faster version of pre-transpile (without bundle and atomic linting)
 npm run export-exchanges && npm run tsBuild && npm run emitAPI
