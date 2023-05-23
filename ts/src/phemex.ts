@@ -3970,6 +3970,9 @@ export default class phemex extends Exchange {
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the phemex api endpoint
+         * @param {bool} params.hedged set to true if hedged position mode is enabled (by default long and short leverage are set to the same value)
+         * @param {bool} params.longLeverageRr *hedged mode only* set the leverage for long positions
+         * @param {bool} params.shortLeverageRr *hedged mode only* set the leverage for short positions
          * @returns {object} response from the exchange
          */
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
@@ -3981,18 +3984,25 @@ export default class phemex extends Exchange {
             throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100');
         }
         await this.loadMarkets ();
+        const isHedged = this.safeValue (params, 'hedged', false);
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        let method = 'privatePutPositionsLeverage';
+        let response = undefined;
         if (market['settle'] === 'USDT') {
-            method = 'privatePutGPositionsLeverage';
-            request['leverageRr'] = leverage;
+            if (!isHedged) {
+                request['leverageRr'] = leverage;
+            } else {
+                request['longLeverageRr'] = this.safeInteger (params, 'longLeverageRr', leverage);
+                request['shortLeverageRr'] = this.safeInteger (params, 'shortLeverageRr', leverage);
+            }
+            response = await this.privatePutPositionsLeverage (this.extend (request, params));
         } else {
             request['leverage'] = leverage;
+            response = await this.privatePutGPositionsLeverage (this.extend (request, params));
         }
-        return await this[method] (this.extend (request, params));
+        return response;
     }
 
     async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
