@@ -1583,6 +1583,9 @@ export default class binance extends binanceRest {
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
+        if (type === 'swap') {
+            type = 'future';
+        }
         const messageHash = type + ':positions';
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
