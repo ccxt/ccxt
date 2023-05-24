@@ -45,7 +45,7 @@ class mexc extends mexc$1 {
                     '1M': 'Month1',
                 },
                 'watchOrderBook': {
-                    'snapshotDelay': 5,
+                    'snapshotDelay': 25,
                     'maxRetries': 3,
                 },
                 'listenKey': undefined,
@@ -451,7 +451,7 @@ class mexc extends mexc$1 {
         const nonce = this.safeInteger(storedOrderBook, 'nonce');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
-            const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 5);
+            const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 25);
             if (cacheLength === snapshotDelay) {
                 this.spawn(this.loadOrderBook, client, messageHash, symbol);
             }
