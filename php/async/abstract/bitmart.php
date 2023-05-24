@@ -58,6 +58,9 @@ abstract class bitmart extends \ccxt\async\Exchange {
     public function public_get_contract_public_kline($params = array()) {
         return $this->request('contract/public/kline', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function public_get_account_v1_currencies($params = array()) {
+        return $this->request('account/v1/currencies', 'public', 'GET', $params, null, null, array("cost" => 30));
+    }
     public function private_get_account_sub_account_v1_transfer_list($params = array()) {
         return $this->request('account/sub-account/v1/transfer-list', 'private', 'GET', $params, null, null, array("cost" => 7.5));
     }
@@ -243,6 +246,9 @@ abstract class bitmart extends \ccxt\async\Exchange {
     }
     public function publicGetContractPublicKline($params = array()) {
         return $this->request('contract/public/kline', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetAccountV1Currencies($params = array()) {
+        return $this->request('account/v1/currencies', 'public', 'GET', $params, null, null, array("cost" => 30));
     }
     public function privateGetAccountSubAccountV1TransferList($params = array()) {
         return $this->request('account/sub-account/v1/transfer-list', 'private', 'GET', $params, null, null, array("cost" => 7.5));

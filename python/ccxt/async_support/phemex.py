@@ -3726,6 +3726,9 @@ class phemex(Exchange, ImplicitAPI):
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the phemex api endpoint
+        :param bool params['hedged']: set to True if hedged position mode is enabled(by default long and short leverage are set to the same value)
+        :param float params['longLeverageRr']: *hedged mode only* set the leverage for long positions
+        :param float params['shortLeverageRr']: *hedged mode only* set the leverage for short positions
         :returns dict: response from the exchange
         """
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
@@ -3735,17 +3738,27 @@ class phemex(Exchange, ImplicitAPI):
         if (leverage < 1) or (leverage > 100):
             raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
         await self.load_markets()
+        isHedged = self.safe_value(params, 'hedged', False)
+        longLeverageRr = self.safe_integer(params, 'longLeverageRr')
+        shortLeverageRr = self.safe_integer(params, 'shortLeverageRr')
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
-        method = 'privatePutPositionsLeverage'
+        response = None
         if market['settle'] == 'USDT':
-            method = 'privatePutGPositionsLeverage'
-            request['leverageRr'] = leverage
+            if not isHedged and longLeverageRr is None and shortLeverageRr is None:
+                request['leverageRr'] = leverage
+            else:
+                long = longLeverageRr if (longLeverageRr is not None) else leverage
+                short = shortLeverageRr if (shortLeverageRr is not None) else leverage
+                request['longLeverageRr'] = long
+                request['shortLeverageRr'] = short
+            response = await self.privatePutGPositionsLeverage(self.extend(request, params))
         else:
             request['leverage'] = leverage
-        return await getattr(self, method)(self.extend(request, params))
+            response = await self.privatePutPositionsLeverage(self.extend(request, params))
+        return response
 
     async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """

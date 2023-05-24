@@ -155,7 +155,7 @@ class mexc(ccxt.async_support.mexc):
         return await self.watch(url, messageHash, self.extend(request, params), channel)
 
     async def watch_spot_private(self, channel, messageHash, params={}):
-        await self.check_required_credentials()
+        self.check_required_credentials()
         listenKey = await self.authenticate(channel)
         url = self.urls['api']['ws']['spot'] + '?listenKey=' + listenKey
         request = {

@@ -720,6 +720,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #
         return self.parse_ticker(response['data'], market)
 
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+        raise NotSupported(self.id + ' fetchTickers() is not supported yet')
+
     def parse_ticker(self, ticker, market=None):
         #
         #     {

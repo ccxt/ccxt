@@ -147,6 +147,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/public/open-interest': 30,
                         'contract/public/funding-rate': 30,
                         'contract/public/kline': 5,
+                        'account/v1/currencies': 30,
                     },
                 },
                 'private': {

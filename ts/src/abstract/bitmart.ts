@@ -26,6 +26,7 @@ interface Exchange {
     publicGetContractPublicOpenInterest (params?: {}): Promise<implicitReturnType>;
     publicGetContractPublicFundingRate (params?: {}): Promise<implicitReturnType>;
     publicGetContractPublicKline (params?: {}): Promise<implicitReturnType>;
+    publicGetAccountV1Currencies (params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubAccountV1TransferList (params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubAccountV1TransferHistory (params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubAccountMainV1Wallet (params?: {}): Promise<implicitReturnType>;

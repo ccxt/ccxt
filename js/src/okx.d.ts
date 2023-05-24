@@ -347,9 +347,9 @@ export default class okx extends Exchange {
     fetchOpenInterest(symbol: string, params?: {}): Promise<{
         symbol: any;
         baseVolume: any;
-        quoteVolume: number;
-        openInterestAmount: number;
-        openInterestValue: number;
+        quoteVolume: any;
+        openInterestAmount: any;
+        openInterestValue: any;
         timestamp: number;
         datetime: string;
         info: any;
@@ -358,9 +358,9 @@ export default class okx extends Exchange {
     parseOpenInterest(interest: any, market?: any): {
         symbol: any;
         baseVolume: any;
-        quoteVolume: number;
-        openInterestAmount: number;
-        openInterestValue: number;
+        quoteVolume: any;
+        openInterestAmount: any;
+        openInterestValue: any;
         timestamp: number;
         datetime: string;
         info: any;

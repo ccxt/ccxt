@@ -17,7 +17,7 @@ class poloniexfutures extends poloniexfutures$1 {
             // 30 requests per second
             'rateLimit': 33.3,
             'certified': false,
-            'pro': false,
+            'pro': true,
             'version': 'v1',
             'has': {
                 'CORS': undefined,
@@ -336,10 +336,34 @@ class poloniexfutures extends poloniexfutures$1 {
         return result;
     }
     parseTicker(ticker, market = undefined) {
+        //
+        //    {
+        //        "symbol": "BTCUSDTPERP",                   // Market of the symbol
+        //        "sequence": 45,                            // Sequence number which is used to judge the continuity of the pushed messages
+        //        "side": "sell",                            // Transaction side of the last traded taker order
+        //        "price": 3600.00,                          // Filled price
+        //        "size": 16,                                // Filled quantity
+        //        "tradeId": "5c9dcf4170744d6f5a3d32fb",     // Order ID
+        //        "bestBidSize": 795,                        // Best bid size
+        //        "bestBidPrice": 3200.00,                   // Best bid
+        //        "bestAskPrice": 3600.00,                   // Best ask size
+        //        "bestAskSize": 284,                        // Best ask
+        //        "ts": 1553846081210004941                  // Filled time - nanosecond
+        //    }
+        //
+        //    {
+        //        "volume": 30449670,            //24h Volume
+        //        "turnover": 845169919063,      //24h Turnover
+        //        "lastPrice": 3551,           //Last price
+        //        "priceChgPct": 0.0043,         //24h Change
+        //        "ts": 1547697294838004923      //Snapshot time (nanosecond)
+        //    }
+        //
         const marketId = this.safeString(ticker, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
         const timestamp = this.safeIntegerProduct(ticker, 'ts', 0.000001);
-        const last = this.safeString(ticker, 'price');
+        const last = this.safeString2(ticker, 'price', 'lastPrice');
+        const percentage = Precise["default"].stringMul(this.safeString(ticker, 'priceChgPct'), '100');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -356,10 +380,10 @@ class poloniexfutures extends poloniexfutures$1 {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': undefined,
+            'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeString(ticker, 'size'),
-            'quoteVolume': undefined,
+            'baseVolume': this.safeString2(ticker, 'size', 'volume'),
+            'quoteVolume': this.safeString(ticker, 'turnover'),
             'info': ticker,
         }, market);
     }

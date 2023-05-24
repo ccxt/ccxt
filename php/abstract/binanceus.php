@@ -577,6 +577,9 @@ abstract class binanceus extends \ccxt\binance {
     public function sapi_post_capital_contract_convertible_coins($params = array()) {
         return $this->request('capital/contract/convertible-coins', 'sapi', 'POST', $params, null, null, array("cost" => 4.0002));
     }
+    public function sapi_post_capital_deposit_credit_apply($params = array()) {
+        return $this->request('capital/deposit/credit-apply', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
     public function sapi_post_margin_transfer($params = array()) {
         return $this->request('margin/transfer', 'sapi', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -2196,6 +2199,9 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function sapiPostCapitalContractConvertibleCoins($params = array()) {
         return $this->request('capital/contract/convertible-coins', 'sapi', 'POST', $params, null, null, array("cost" => 4.0002));
+    }
+    public function sapiPostCapitalDepositCreditApply($params = array()) {
+        return $this->request('capital/deposit/credit-apply', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
     public function sapiPostMarginTransfer($params = array()) {
         return $this->request('margin/transfer', 'sapi', 'POST', $params, null, null, array("cost" => 1));

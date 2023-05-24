@@ -407,6 +407,7 @@ class binance extends Exchange {
                         // 'account/apiRestrictions/ipRestriction/ipList' => 1, discontinued
                         'capital/withdraw/apply' => 4.0002, // Weight(UID) => 600 => cost = 0.006667 * 600 = 4.0002
                         'capital/contract/convertible-coins' => 4.0002,
+                        'capital/deposit/credit-apply' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
                         'margin/transfer' => 1, // Weight(IP) => 600 => cost = 0.1 * 600 = 60
                         'margin/loan' => 20.001, // Weight(UID) => 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay' => 20.001,
@@ -4189,8 +4190,13 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://binance-docs.github.io/apidocs/spot/en/#new-order-trade
+             * @see https://binance-docs.github.io/apidocs/spot/en/#$test-new-order-trade
+             * @see https://binance-docs.github.io/apidocs/futures/en/#new-order-trade
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#new-order-trade
+             * @see https://binance-docs.github.io/apidocs/voptions/en/#new-order-trade
              * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type 'market' or 'limit'
+             * @param {string} $type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
@@ -4209,7 +4215,8 @@ class binance extends Exchange {
             $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
             $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);  // fallback to stopLoss
             $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
-            $isStopLoss = $stopLossPrice !== null;
+            $trailingDelta = $this->safe_value($params, 'trailingDelta');
+            $isStopLoss = $stopLossPrice !== null || $trailingDelta !== null;
             $isTakeProfit = $takeProfitPrice !== null;
             $params = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice' ));
             list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
@@ -4400,7 +4407,6 @@ class binance extends Exchange {
                     }
                 } else {
                     // check for delta $price
-                    $trailingDelta = $this->safe_value($params, 'trailingDelta');
                     if ($trailingDelta === null && $stopPrice === null) {
                         throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice or $trailingDelta param for a ' . $type . ' order');
                     }

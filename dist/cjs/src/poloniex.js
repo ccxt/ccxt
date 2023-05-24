@@ -388,6 +388,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.poloniex.com/#public-endpoints-market-data-candles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
@@ -444,6 +445,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchMarkets
          * @description retrieves data on all markets for poloniex
+         * @see https://docs.poloniex.com/#public-endpoints-reference-data-symbol-information
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
@@ -535,6 +537,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://docs.poloniex.com/#public-endpoints-reference-data-system-timestamp
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -594,6 +597,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://docs.poloniex.com/#public-endpoints-market-data-ticker
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -627,6 +631,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://docs.poloniex.com/#public-endpoints-reference-data-currency-information
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -699,6 +704,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.poloniex.com/#public-endpoints-market-data-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -824,6 +830,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.poloniex.com/#public-endpoints-market-data-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
@@ -859,6 +866,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://docs.poloniex.com/#authenticated-endpoints-trades-trade-history
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
@@ -1060,6 +1068,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-open-orders
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
@@ -1216,6 +1225,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#cancelOrder
          * @description cancels an open order
+         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-order-by-id
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the poloniex api endpoint
@@ -1236,6 +1246,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#cancelAllOrders
          * @description cancel all open orders
+         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-all-orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1276,6 +1287,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchOrder
          * @description fetch an order by it's id
+         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-order-details
          * @param {string} id order id
          * @param {string|undefined} symbol unified market symbol, default is undefined
          * @param {object} params extra parameters specific to the poloniex api endpoint
@@ -1322,6 +1334,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://docs.poloniex.com/#authenticated-endpoints-trades-trades-by-order-id
          * @param {string} id order id
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
@@ -1383,6 +1396,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-all-account-balances
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
@@ -1414,6 +1428,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-fee-info
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -1446,6 +1461,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.poloniex.com/#public-endpoints-market-data-order-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the poloniex api endpoint
@@ -1502,6 +1518,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#createDepositAddress
          * @description create a currency deposit address
+         * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-deposit-addresses
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1552,6 +1569,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-deposit-addresses
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1602,6 +1620,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-accounts-transfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -1652,6 +1671,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#withdraw
          * @description make a withdrawal
+         * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-withdraw-currency
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -1776,6 +1796,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchTransactions
          * @description fetch history of deposits and withdrawals
+         * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined
@@ -1800,6 +1821,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
          * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
@@ -1944,6 +1966,7 @@ class poloniex extends poloniex$1 {
          * @method
          * @name poloniex#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
          * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
