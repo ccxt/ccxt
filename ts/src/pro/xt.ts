@@ -943,10 +943,10 @@ export default class xt extends xtRest {
         //
         // contract
         //
-        //   {
-        //       "topic": "balance",
-        //       "event": "balance@123456",
-        //       "data": {
+        //    {
+        //        "topic": "balance",
+        //        "event": "balance@123456",
+        //        "data": {
         //            "coin": "usdt",
         //            "underlyingType": 1,                          // 1:Coin-M,2:USDT-M
         //            "walletBalance": "123",                       // Balance
@@ -956,8 +956,8 @@ export default class xt extends xtRest {
         //            "availableBalance": '2.256114450000000000',
         //            "coupon": '0',
         //            "bonus": '0'
-        //          }
-        //   }
+        //        }
+        //    }
         //
         const data = this.safeValue (message, 'data', {});
         const currencyId = this.safeString2 (data, 'c', 'coin');
@@ -973,6 +973,8 @@ export default class xt extends xtRest {
     }
 
     handleMyTrades (client: Client, message) {
+        //
+        // spot
         //
         //    {
         //        "topic": "trade",
@@ -991,14 +993,17 @@ export default class xt extends xtRest {
         // contract
         //
         //    {
-        //        "topic": "trade",
-        //        "event": "trade@123456",
-        //        "data": {
-        //            "orderId": "12312312",           // Order ID
-        //            "price": "34244",                // Price
-        //            "quantity": "123",               // Quantity
-        //            "marginUnfrozen": "123",         // Quantity of unfrozen margin
-        //            "timestamp": 1731231231          // Timestamp
+        //       "topic": "trade",
+        //       "event": "trade@123456",
+        //       "data": {
+        //            "symbol": 'btc_usdt',
+        //            "orderSide": 'SELL',
+        //            "positionSide": 'LONG',
+        //            "orderId": '231485367663419328',
+        //            "price": '27152.7',
+        //            "quantity": '33',
+        //            "marginUnfrozen": '2.85318000',
+        //            "timestamp": 1684892412565
         //        }
         //    }
         //
@@ -1010,8 +1015,9 @@ export default class xt extends xtRest {
             this.myTrades = stored;
         }
         const parsedTrade = this.parseTrade (data);
+        const market = this.market (parsedTrade['symbol']);
         stored.append (parsedTrade);
-        const tradeType = parsedTrade['contract'] ? 'contract' : 'spot';
+        const tradeType = market['contract'] ? 'contract' : 'spot';
         client.resolve (stored, 'trade:' + tradeType);
     }
 
