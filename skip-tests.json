@@ -464,6 +464,11 @@
             "fetchL2OrderBook": "same"
         }
     },
+    "btcturk": {
+        "skipMethods": {
+            "fetchOrderBook": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263287870#L2201"
+        }
+    },
     "bybit": {
         "httpProxy": "http://51.83.140.52:11230",
         "skipPhpAsync": "missing php async proxy",
