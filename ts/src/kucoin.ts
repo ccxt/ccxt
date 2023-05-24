@@ -826,6 +826,14 @@ export default class kucoin extends Exchange {
         return this.safeInteger (response, 'data');
     }
 
+    // Override
+    isUsingForcedProxy (params = {}, api = 'public') {
+        if (api === 'private') {
+            return true;
+        }
+        return false;
+    }
+
     async fetchStatus (params = {}) {
         /**
          * @method
