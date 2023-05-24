@@ -64,7 +64,6 @@ from ccxt.async_support.binanceus import binanceus                              
 from ccxt.async_support.binanceusdm import binanceusdm                          # noqa: F401
 from ccxt.async_support.bit2c import bit2c                                      # noqa: F401
 from ccxt.async_support.bitbank import bitbank                                  # noqa: F401
-from ccxt.async_support.bitbay import bitbay                                    # noqa: F401
 from ccxt.async_support.bitbns import bitbns                                    # noqa: F401
 from ccxt.async_support.bitcoincom import bitcoincom                            # noqa: F401
 from ccxt.async_support.bitfinex import bitfinex                                # noqa: F401
@@ -112,14 +111,12 @@ from ccxt.async_support.digifinex import digifinex                              
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
 from ccxt.async_support.gate import gate                                        # noqa: F401
-from ccxt.async_support.gateio import gateio                                    # noqa: F401
 from ccxt.async_support.gemini import gemini                                    # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                                    # noqa: F401
 from ccxt.async_support.hitbtc3 import hitbtc3                                  # noqa: F401
 from ccxt.async_support.hollaex import hollaex                                  # noqa: F401
 from ccxt.async_support.huobi import huobi                                      # noqa: F401
 from ccxt.async_support.huobijp import huobijp                                  # noqa: F401
-from ccxt.async_support.huobipro import huobipro                                # noqa: F401
 from ccxt.async_support.idex import idex                                        # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve            # noqa: F401
 from ccxt.async_support.indodax import indodax                                  # noqa: F401
@@ -140,8 +137,6 @@ from ccxt.async_support.ndax import ndax                                        
 from ccxt.async_support.novadax import novadax                                  # noqa: F401
 from ccxt.async_support.oceanex import oceanex                                  # noqa: F401
 from ccxt.async_support.okcoin import okcoin                                    # noqa: F401
-from ccxt.async_support.okex import okex                                        # noqa: F401
-from ccxt.async_support.okex5 import okex5                                      # noqa: F401
 from ccxt.async_support.okx import okx                                          # noqa: F401
 from ccxt.async_support.paymium import paymium                                  # noqa: F401
 from ccxt.async_support.phemex import phemex                                    # noqa: F401
@@ -174,7 +169,6 @@ exchanges = [
     'binanceusdm',
     'bit2c',
     'bitbank',
-    'bitbay',
     'bitbns',
     'bitcoincom',
     'bitfinex',
@@ -222,14 +216,12 @@ exchanges = [
     'exmo',
     'fmfwio',
     'gate',
-    'gateio',
     'gemini',
     'hitbtc',
     'hitbtc3',
     'hollaex',
     'huobi',
     'huobijp',
-    'huobipro',
     'idex',
     'independentreserve',
     'indodax',
@@ -250,8 +242,6 @@ exchanges = [
     'novadax',
     'oceanex',
     'okcoin',
-    'okex',
-    'okex5',
     'okx',
     'paymium',
     'phemex',

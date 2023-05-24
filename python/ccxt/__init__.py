@@ -84,7 +84,6 @@ from ccxt.binanceus import binanceus                                  # noqa: F4
 from ccxt.binanceusdm import binanceusdm                              # noqa: F401
 from ccxt.bit2c import bit2c                                          # noqa: F401
 from ccxt.bitbank import bitbank                                      # noqa: F401
-from ccxt.bitbay import bitbay                                        # noqa: F401
 from ccxt.bitbns import bitbns                                        # noqa: F401
 from ccxt.bitcoincom import bitcoincom                                # noqa: F401
 from ccxt.bitfinex import bitfinex                                    # noqa: F401
@@ -132,14 +131,12 @@ from ccxt.digifinex import digifinex                                  # noqa: F4
 from ccxt.exmo import exmo                                            # noqa: F401
 from ccxt.fmfwio import fmfwio                                        # noqa: F401
 from ccxt.gate import gate                                            # noqa: F401
-from ccxt.gateio import gateio                                        # noqa: F401
 from ccxt.gemini import gemini                                        # noqa: F401
 from ccxt.hitbtc import hitbtc                                        # noqa: F401
 from ccxt.hitbtc3 import hitbtc3                                      # noqa: F401
 from ccxt.hollaex import hollaex                                      # noqa: F401
 from ccxt.huobi import huobi                                          # noqa: F401
 from ccxt.huobijp import huobijp                                      # noqa: F401
-from ccxt.huobipro import huobipro                                    # noqa: F401
 from ccxt.idex import idex                                            # noqa: F401
 from ccxt.independentreserve import independentreserve                # noqa: F401
 from ccxt.indodax import indodax                                      # noqa: F401
@@ -160,8 +157,6 @@ from ccxt.ndax import ndax                                            # noqa: F4
 from ccxt.novadax import novadax                                      # noqa: F401
 from ccxt.oceanex import oceanex                                      # noqa: F401
 from ccxt.okcoin import okcoin                                        # noqa: F401
-from ccxt.okex import okex                                            # noqa: F401
-from ccxt.okex5 import okex5                                          # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
 from ccxt.paymium import paymium                                      # noqa: F401
 from ccxt.phemex import phemex                                        # noqa: F401
@@ -194,7 +189,6 @@ exchanges = [
     'binanceusdm',
     'bit2c',
     'bitbank',
-    'bitbay',
     'bitbns',
     'bitcoincom',
     'bitfinex',
@@ -242,14 +236,12 @@ exchanges = [
     'exmo',
     'fmfwio',
     'gate',
-    'gateio',
     'gemini',
     'hitbtc',
     'hitbtc3',
     'hollaex',
     'huobi',
     'huobijp',
-    'huobipro',
     'idex',
     'independentreserve',
     'indodax',
@@ -270,8 +262,6 @@ exchanges = [
     'novadax',
     'oceanex',
     'okcoin',
-    'okex',
-    'okex5',
     'okx',
     'paymium',
     'phemex',
