@@ -80,7 +80,7 @@ export default class okcoin extends Exchange {
                     'rest': 'https://www.{hostname}',
                 },
                 'www': 'https://www.okcoin.com',
-                'doc': 'https://www.okcoin.com/docs/en/',
+                'doc': 'https://www.okcoin.com/docs-v5/en/',
                 'fees': 'https://www.okcoin.com/coin-fees',
                 'referral': 'https://www.okcoin.com/account/register?flag=activity&channelId=600001513',
                 'test': {
@@ -89,301 +89,83 @@ export default class okcoin extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': {
-                        'instruments': 1,
-                        'time': 1,
-                    },
-                },
-                'general': {
-                    'get': {
-                        'time': 8.3334,
-                    },
-                },
-                'account': {
-                    'get': {
-                        'wallet': 8.3334,
-                        'sub-account': 1000,
-                        'asset-valuation': 1000,
-                        'wallet/{currency}': 8.3334,
-                        'withdrawal/history': 8.3334,
-                        'withdrawal/history/{currency}': 8.3334,
-                        'ledger': 5,
-                        'deposit/address': 8.3334,
-                        'deposit/history': 8.3334,
-                        'deposit/history/{currency}': 8.3334,
-                        'currencies': 8.3334,
-                        'withdrawal/fee': 8.3334,
-                        'deposit-lightning': 50,
-                        'withdrawal-lightning': 50,
-                        'fiat/deposit/detail': 5,
-                        'fiat/deposit/details': 8.3334,
-                        'fiat/withdraw/detail': 5,
-                        'fiat/withdraw/details': 8.3334,
-                        'fiat/channel': 8.3334,
-                    },
-                    'post': {
-                        'transfer': 100, // 1 request per 2 seconds (per currency)
-                        'withdrawal': 8.3334,
-                        'fiat/cancel_deposit': 1,
-                        'fiat/deposit': 8.3334,
-                        'fiat/withdraw': 8.3334,
-                        'fiat/cancel_withdrawal': 1,
-                    },
-                },
-                // TODO fix signing issue in sign ()
-                // all other endpoints of the format
-                // api/account/v3/wallet
-                // otc endpoints actually of the format: (exchanged places)
-                // api/v3/otc/rfq/instruments
-                'otc': {
-                    'get': {
-                        'rfq/instruments': 50, // represents: GET api/v3/otc/rfq/instruments
-                        'rfq/trade': 50,
-                        'rfq/history': 50,
-                    },
-                    'post': {
-                        'rfq/quote': 50,
-                        'rfq/trade': 50,
-                    },
-                },
-                // TODO fix signing issue as above
-                'users': {
-                    'get': {
-                        'subaccount-info': 20,
-                        'account-info': 20,
-                        'subaccount/apikey': 20,
-                    },
-                    'post': {
-                        'create-subaccount': 5, // represents: POST api/v3/users/create-subaccount
-                        'delete-subaccount': 5,
-                        'subaccount/apikey': 50,
-                        'subacount/delete-apikey': 20,
-                        'subacount/modify-apikey': 20,
-                    },
-                },
-                'earning': {
-                    'get': {
-                        'offers': 5,
-                        'orders': 5,
-                        'positions': 8.3334,
-                    },
-                    'post': {
-                        'purchase': 5,
-                        'redeem': 5,
-                        'cancel': 5,
-                    },
-                },
-                'spot': {
-                    'get': {
-                        'accounts': 5,
-                        'accounts/{currency}': 5,
-                        'accounts/{currency}/ledger': 5,
-                        'orders': 10,
-                        'orders_pending': 5,
-                        'orders/{order_id}': 5,
-                        'orders/{client_oid}': 5,
-                        'trade_fee': 5,
-                        'fills': 10,
-                        'algo': 5,
-                        // public
-                        'instruments': 5,
-                        'instruments/{instrument_id}/book': 5,
-                        'instruments/ticker': 5,
-                        'instruments/{instrument_id}/ticker': 5,
-                        'instruments/{instrument_id}/trades': 5,
-                        'instruments/{instrument_id}/candles': 5,
-                    },
-                    'post': {
-                        'order_algo': 2.5,
-                        'orders': 1,
-                        'batch_orders': 2,
-                        'cancel_orders/{order_id}': 1,
-                        'cancel_orders/{client_oid}': 1,
-                        'cancel_batch_algos': 5,
-                        'cancel_batch_orders': 5,
-                        'amend_order/{instrument_id}': 2.5,
-                        'amend_batch_orders': 5,
-                    },
-                },
-                'margin': {
-                    // Margin trading closed down on February 21, 2022
-                    'get': {
-                        'accounts': 5,
-                        'accounts/{instrument_id}': 5,
-                        'accounts/{instrument_id}/ledger': 5,
-                        'accounts/availability': 5,
-                        'accounts/{instrument_id}/availability': 5,
-                        'accounts/borrowed': 5,
-                        'accounts/{instrument_id}/borrowed': 5,
-                        'orders': 10,
-                        'accounts/{instrument_id}/leverage': 1,
-                        'orders/{order_id}': 5,
-                        'orders/{client_oid}': 5,
-                        'orders_pending': 5,
-                        'fills': 10,
-                        // public
-                        'instruments/{instrument_id}/mark_price': 5,
-                    },
-                    'post': {
-                        'accounts/borrow': 1,
-                        'accounts/repayment': 1,
-                        'orders': 1,
-                        'batch_orders': 2,
-                        'cancel_orders': 1,
-                        'cancel_orders/{order_id}': 1,
-                        'cancel_orders/{client_oid}': 1,
-                        'cancel_batch_orders': 2,
-                        'amend_order/{instrument_id}': 2.5,
-                        'amend_batch_orders': 5,
-                        'accounts/{instrument_id}/leverage': 1,
-                    },
-                },
-                'system': {
-                    'get': {
-                        'status': 250,
-                    },
-                },
-                'market': {
-                    'get': {
-                        'oracle': 250,
-                    },
-                },
-                'futures': {
                     'get': [
-                        'position',
-                        '{instrument_id}/position',
-                        'accounts',
-                        'accounts/{underlying}',
-                        'accounts/{underlying}/leverage',
-                        'accounts/{underlying}/ledger',
-                        'order_algo/{instrument_id}',
-                        'orders/{instrument_id}',
-                        'orders/{instrument_id}/{order_id}',
-                        'orders/{instrument_id}/{client_oid}',
-                        'fills',
-                        'trade_fee',
-                        'accounts/{instrument_id}/holds',
-                        // public
-                        'instruments',
-                        'instruments/{instrument_id}/book',
-                        'instruments/ticker',
-                        'instruments/{instrument_id}/ticker',
-                        'instruments/{instrument_id}/trades',
-                        'instruments/{instrument_id}/candles',
-                        'instruments/{instrument_id}/history/candles',
-                        'instruments/{instrument_id}/index',
-                        'rate',
-                        'instruments/{instrument_id}/estimated_price',
-                        'instruments/{instrument_id}/open_interest',
-                        'instruments/{instrument_id}/price_limit',
-                        'instruments/{instrument_id}/mark_price',
-                        'instruments/{instrument_id}/liquidation',
+                        'market/tickers',
+                        'market/ticker',
+                        'market/books',
+                        'market/books-lite',
+                        'market/candles',
+                        'market/history-candles',
+                        'market/trades',
+                        'market/history-trades',
+                        'market/platform-24-volume',
+                        'market/open-oracle',
+                        'market/exchange-rate',
+                        'public/instruments',
+                        'public/time',
+                        'system/status',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'trade/order',
+                        'trade/orders-pending',
+                        'trade/orders-history',
+                        'trade/orders-history-archive',
+                        'trade/fills',
+                        'trade/fills-history',
+                        'trade/orders-algo-pending',
+                        'trade/orders-algo-history',
+                        'asset/currencies',
+                        'asset/balances',
+                        'asset/asset-valuation',
+                        'asset/transfer-state',
+                        'asset/bills',
+                        'asset/deposit-lightning',
+                        'asset/deposit-address',
+                        'asset/deposit-history',
+                        'asset/withdrawal-history',
+                        'account/balance',
+                        'account/bills',
+                        'account/bills-archive',
+                        'account/config',
+                        'account/max-size',
+                        'account/max-avail-size',
+                        'account/trade-fee',
+                        'account/max-withdrawal',
+                        'otc/rfq/instruments',
+                        'otc/rfq/trade',
+                        'otc/rfq/history',
+                        'fiat/deposit-history',
+                        'fiat/withdrawal-history',
+                        'fiat/channel',
+                        'users/subaccount/list',
+                        'users/subaccount/apikey',
+                        'account/subaccount/balances',
+                        'asset/subaccount/balances',
+                        'asset/subaccount/bills',
                     ],
                     'post': [
-                        'accounts/{underlying}/leverage',
-                        'order',
-                        'amend_order/{instrument_id}',
-                        'orders',
-                        'cancel_order/{instrument_id}/{order_id}',
-                        'cancel_order/{instrument_id}/{client_oid}',
-                        'cancel_batch_orders/{instrument_id}',
-                        'accounts/margin_mode',
-                        'close_position',
-                        'cancel_all',
-                        'order_algo',
-                        'cancel_algos',
-                    ],
-                },
-                'swap': {
-                    'get': [
-                        'position',
-                        '{instrument_id}/position',
-                        'accounts',
-                        '{instrument_id}/accounts',
-                        'accounts/{instrument_id}/settings',
-                        'accounts/{instrument_id}/ledger',
-                        'orders/{instrument_id}',
-                        'orders/{instrument_id}/{order_id}',
-                        'orders/{instrument_id}/{client_oid}',
-                        'fills',
-                        'accounts/{instrument_id}/holds',
-                        'trade_fee',
-                        'order_algo/{instrument_id}',
-                        // public
-                        'instruments',
-                        'instruments/{instrument_id}/depth',
-                        'instruments/ticker',
-                        'instruments/{instrument_id}/ticker',
-                        'instruments/{instrument_id}/trades',
-                        'instruments/{instrument_id}/candles',
-                        'instruments/{instrument_id}/history/candles',
-                        'instruments/{instrument_id}/index',
-                        'rate',
-                        'instruments/{instrument_id}/open_interest',
-                        'instruments/{instrument_id}/price_limit',
-                        'instruments/{instrument_id}/liquidation',
-                        'instruments/{instrument_id}/funding_time',
-                        'instruments/{instrument_id}/mark_price',
-                        'instruments/{instrument_id}/historical_funding_rate',
-                    ],
-                    'post': [
-                        'accounts/{instrument_id}/leverage',
-                        'order',
-                        'amend_order/{instrument_id}',
-                        'orders',
-                        'cancel_order/{instrument_id}/{order_id}',
-                        'cancel_order/{instrument_id}/{client_oid}',
-                        'cancel_batch_orders/{instrument_id}',
-                        'order_algo',
-                        'cancel_algos',
-                        'close_position',
-                        'cancel_all',
-                    ],
-                },
-                'option': {
-                    'get': [
-                        'accounts',
-                        'position',
-                        '{underlying}/position',
-                        'accounts/{underlying}',
-                        'orders/{underlying}',
-                        'fills/{underlying}',
-                        'accounts/{underlying}/ledger',
-                        'trade_fee',
-                        'orders/{underlying}/{order_id}',
-                        'orders/{underlying}/{client_oid}',
-                        // public
-                        'underlying',
-                        'instruments/{underlying}',
-                        'instruments/{underlying}/summary',
-                        'instruments/{underlying}/summary/{instrument_id}',
-                        'instruments/{instrument_id}/book',
-                        'instruments/{instrument_id}/trades',
-                        'instruments/{instrument_id}/ticker',
-                        'instruments/{instrument_id}/candles',
-                    ],
-                    'post': [
-                        'order',
-                        'orders',
-                        'cancel_order/{underlying}/{order_id}',
-                        'cancel_order/{underlying}/{client_oid}',
-                        'cancel_batch_orders/{underlying}',
-                        'amend_order/{underlying}',
-                        'amend_batch_orders/{underlying}',
-                    ],
-                },
-                'information': {
-                    'get': [
-                        '{currency}/long_short_ratio',
-                        '{currency}/volume',
-                        '{currency}/taker',
-                        '{currency}/sentiment',
-                        '{currency}/margin',
-                    ],
-                },
-                'index': {
-                    'get': [
-                        '{instrument_id}/constituents',
+                        'trade/order',
+                        'trade/batch-orders',
+                        'trade/cancel-order',
+                        'trade/cancel-batch-orders',
+                        'trade/amend-order',
+                        'trade/amend-batch-orders',
+                        'trade/order-algo',
+                        'trade/cancel-algos',
+                        'trade/cancel-advance-algos',
+                        'asset/transfer',
+                        'asset/withdrawal',
+                        'asset/withdrawal-lightning',
+                        'asset/cancel-withdrawal',
+                        'otc/rfq/quote',
+                        'otc/rfq/trade',
+                        'fiat/deposit',
+                        'fiat/cancel-deposit',
+                        'fiat/withdrawal',
+                        'fiat/cancel-withdrawal',
+                        'asset/subaccount/transfer',
                     ],
                 },
             },
@@ -790,10 +572,11 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-public-data-get-system-time
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetTime (params);
+        const response = await this.publicGetPublicTime (params);
         //
         //     {
         //         "iso": "2015-01-07T23:47:25.201Z",
@@ -808,6 +591,7 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#fetchMarkets
          * @description retrieves data on all markets for okcoin
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-public-data-get-instruments
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
@@ -829,8 +613,6 @@ export default class okcoin extends Exchange {
     }
 
     parseMarket (market) {
-        //
-        // spot markets
         //
         //     {
         //         "alias": "",
@@ -861,62 +643,6 @@ export default class okcoin extends Exchange {
         //         "stk": "",
         //         "tickSz": "0.01",
         //         "uly": ""
-        //     }
-        //
-        // futures markets
-        //
-        //     {
-        //         instrument_id: "XRP-USD-200320",
-        //         underlying_index: "XRP",
-        //         quote_currency: "USD",
-        //         tick_size: "0.0001",
-        //         contract_val: "10",
-        //         listing: "2020-03-06",
-        //         delivery: "2020-03-20",
-        //         trade_increment: "1",
-        //         alias: "this_week",
-        //         underlying: "XRP-USD",
-        //         base_currency: "XRP",
-        //         settlement_currency: "XRP",
-        //         is_inverse: "true",
-        //         contract_val_currency: "USD",
-        //     }
-        //
-        // swap markets
-        //
-        //     {
-        //         instrument_id: "BSV-USD-SWAP",
-        //         underlying_index: "BSV",
-        //         quote_currency: "USD",
-        //         coin: "BSV",
-        //         contract_val: "10",
-        //         listing: "2018-12-21T07:53:47.000Z",
-        //         delivery: "2020-03-14T08:00:00.000Z",
-        //         size_increment: "1",
-        //         tick_size: "0.01",
-        //         base_currency: "BSV",
-        //         underlying: "BSV-USD",
-        //         settlement_currency: "BSV",
-        //         is_inverse: "true",
-        //         contract_val_currency: "USD"
-        //     }
-        //
-        // options markets
-        //
-        //     {
-        //         instrument_id: 'BTC-USD-200327-4000-C',
-        //         underlying: 'BTC-USD',
-        //         settlement_currency: 'BTC',
-        //         contract_val: '0.1000',
-        //         option_type: 'C',
-        //         strike: '4000',
-        //         tick_size: '0.0005',
-        //         lot_size: '1.0000',
-        //         listing: '2019-12-25T08:30:36.302Z',
-        //         delivery: '2020-03-27T08:00:00.000Z',
-        //         state: '2',
-        //         trading_start_time: '2019-12-25T08:30:36.302Z',
-        //         timestamp: '2020-03-13T08:05:09.456Z',
         //     }
         //
         const id = this.safeString2 (market, 'instrument_id', 'instId');
@@ -1024,42 +750,9 @@ export default class okcoin extends Exchange {
     }
 
     async fetchMarketsByType (type, params = {}) {
-        if (type === 'option') {
-            const underlying = await this.optionGetUnderlying (params);
-            let result = [];
-            for (let i = 0; i < underlying.length; i++) {
-                const response = await this.optionGetInstrumentsUnderlying ({
-                    'underlying': underlying[i],
-                });
-                //
-                // options markets
-                //
-                //     [
-                //         {
-                //             instrument_id: 'BTC-USD-200327-4000-C',
-                //             underlying: 'BTC-USD',
-                //             settlement_currency: 'BTC',
-                //             contract_val: '0.1000',
-                //             option_type: 'C',
-                //             strike: '4000',
-                //             tick_size: '0.0005',
-                //             lot_size: '1.0000',
-                //             listing: '2019-12-25T08:30:36.302Z',
-                //             delivery: '2020-03-27T08:00:00.000Z',
-                //             state: '2',
-                //             trading_start_time: '2019-12-25T08:30:36.302Z',
-                //             timestamp: '2020-03-13T08:05:09.456Z',
-                //         },
-                //     ]
-                //
-                result = this.arrayConcat (result, response);
-            }
-            return this.parseMarkets (result);
-        } else if ((type === 'spot') || (type === 'futures') || (type === 'swap')) {
+        if ((type === 'spot') || (type === 'futures') || (type === 'swap')) {
             params['instType'] = type.toUpperCase ();
-            const response = await this.publicGetInstruments (params);
-            //
-            // spot markets
+            const response = await this.publicGetPublicInstruments (params);
             //
             //     [
             //         {
@@ -1094,48 +787,6 @@ export default class okcoin extends Exchange {
             //         }
             //     ]
             //
-            // futures markets
-            //
-            //     [
-            //         {
-            //             instrument_id: "XRP-USD-200320",
-            //             underlying_index: "XRP",
-            //             quote_currency: "USD",
-            //             tick_size: "0.0001",
-            //             contract_val: "10",
-            //             listing: "2020-03-06",
-            //             delivery: "2020-03-20",
-            //             trade_increment: "1",
-            //             alias: "this_week",
-            //             underlying: "XRP-USD",
-            //             base_currency: "XRP",
-            //             settlement_currency: "XRP",
-            //             is_inverse: "true",
-            //             contract_val_currency: "USD",
-            //         }
-            //     ]
-            //
-            // swap markets
-            //
-            //     [
-            //         {
-            //             instrument_id: "BSV-USD-SWAP",
-            //             underlying_index: "BSV",
-            //             quote_currency: "USD",
-            //             coin: "BSV",
-            //             contract_val: "10",
-            //             listing: "2018-12-21T07:53:47.000Z",
-            //             delivery: "2020-03-14T08:00:00.000Z",
-            //             size_increment: "1",
-            //             tick_size: "0.01",
-            //             base_currency: "BSV",
-            //             underlying: "BSV-USD",
-            //             settlement_currency: "BSV",
-            //             is_inverse: "true",
-            //             contract_val_currency: "USD"
-            //         }
-            //     ]
-            //
             return this.parseMarkets (response['data']);
         } else {
             throw new NotSupported (this.id + ' fetchMarketsByType() does not support market type ' + type);
@@ -1147,65 +798,68 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-currencies
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        // despite that their docs say these endpoints are public:
-        //     https://www.okex.com/api/account/v3/withdrawal/fee
-        //     https://www.okex.com/api/account/v3/currencies
-        // it will still reply with { "code":30001, "message": "OK-ACCESS-KEY header is required" }
-        // if you attempt to access it without authentication
-        if (!this.checkRequiredCredentials (false)) {
-            if (this.options['warnOnFetchCurrenciesWithoutAuthorization']) {
-                throw new ExchangeError (this.id + ' fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options["warnOnFetchCurrenciesWithoutAuthorization"] = false to suppress this warning message.');
-            }
-            return undefined;
-        } else {
-            const response = await this.accountGetCurrencies (params);
-            //
-            //     [
-            //         {
-            //             name: '',
-            //             currency: 'BTC',
-            //             can_withdraw: '1',
-            //             can_deposit: '1',
-            //             min_withdrawal: '0.0100000000000000'
-            //         },
-            //     ]
-            //
-            const result = {};
-            for (let i = 0; i < response.length; i++) {
-                const currency = response[i];
-                const id = this.safeString (currency, 'currency');
-                const code = this.safeCurrencyCode (id);
-                const name = this.safeString (currency, 'name');
-                const canDeposit = this.safeInteger (currency, 'can_deposit');
-                const canWithdraw = this.safeInteger (currency, 'can_withdraw');
-                const depositEnabled = (canDeposit === 1);
-                const withdrawEnabled = (canWithdraw === 1);
-                const active = (canDeposit && canWithdraw) ? true : false;
-                result[code] = {
-                    'id': id,
-                    'code': code,
-                    'info': currency,
-                    'type': undefined,
-                    'name': name,
-                    'active': active,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'fee': undefined, // todo: redesign
-                    'precision': this.parseNumber ('1e-8'), // todo: fix
-                    'limits': {
-                        'amount': { 'min': undefined, 'max': undefined },
-                        'withdraw': {
-                            'min': this.safeNumber (currency, 'min_withdrawal'),
-                            'max': undefined,
-                        },
+        const response = await this.privateGetAssetCurrencies (params);
+        // [
+        //     {
+        //         "canDep": true,
+        //         "canInternal": false,
+        //         "canWd": true,
+        //         "ccy": "EUR",
+        //         "chain": "EUR-fiat",
+        //         "depQuotaFixed": "",
+        //         "depQuoteDailyLayer2": "",
+        //         "logoLink": "https://static.okcoin.com/cdn/assets/imgs/218/3CE0A0023386E9EA.png",
+        //         "mainNet": true,
+        //         "maxFee": "0",
+        //         "maxWd": "1586886",
+        //         "minDep": "0.00000001",
+        //         "minDepArrivalConfirm": "0",
+        //         "minFee": "0",
+        //         "minWd": "0",
+        //         "minWdUnlockConfirm": "0",
+        //         "name": "Euro",
+        //         "needTag": false,
+        //         "usedDepQuotaFixed": "",
+        //         "usedWdQuota": "0",
+        //         "wdQuota": "1000000",
+        //         "wdTickSz": "4"
+        //     }
+        // ]
+        const result = {};
+        const data = response['data'];
+        for (let i = 0; i < data.length; i++) {
+            const currency = data[i];
+            const id = this.safeString (currency, 'ccy');
+            const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'name');
+            const canDeposit = this.safeValue (currency, 'canDep');
+            const canWithdraw = this.safeValue (currency, 'canWd');
+            const active = (canDeposit && canWithdraw) ? true : false;
+            result[code] = {
+                'info': currency,
+                'id': id,
+                'code': code,
+                'networks': undefined,
+                'type': undefined,
+                'name': name,
+                'active': active,
+                'deposit': canDeposit,
+                'withdraw': canWithdraw,
+                'precision': this.safeValue (currency, 'wdTickSz'),
+                'limits': {
+                    'amount': { 'min': undefined, 'max': undefined },
+                    'withdraw': {
+                        'min': this.safeNumber (currency, 'minWd'),
+                        'max': this.safeNumber (currency, 'maxWd'),
                     },
-                };
-            }
-            return result;
+                },
+            };
         }
+        return result;
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -3820,16 +3474,15 @@ export default class okcoin extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const isArray = Array.isArray (params);
-        let request = '/api/' + this.version + '/' + api + '/';
+        let request = '/api/' + this.version + '/';
         request += isArray ? path : this.implodeParams (path, params);
         const query = isArray ? params : this.omit (params, this.extractParams (path));
         let url = this.implodeHostname (this.urls['api']['rest']) + request;
-        const type = this.getPathAuthenticationType (path);
-        if ((type === 'public') || (type === 'information')) {
+        if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (type === 'private') {
+        } else if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.iso8601 (this.milliseconds ());
             headers = {
