@@ -454,6 +454,7 @@
         }
     },
     "btctradeua": {
+        "skip": "24/05 exchange not available",
         "skipMethods": {
             "loadMarkets": {
                 "precision":"is undefined",
