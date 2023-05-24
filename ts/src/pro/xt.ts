@@ -901,7 +901,9 @@ export default class xt extends xtRest {
                 if (previousOrder['filled'] !== undefined) {
                     previousOrder['filled'] = Precise.stringAdd (previousOrder['filled'], this.numberToString (trade['amount']));
                     if (previousOrder['amount'] !== undefined) {
-                        previousOrder['remaining'] = Precise.stringSub (previousOrder['amount'], previousOrder['filled']);
+                        const stringAmount = this.numberToString (previousOrder['amount']);
+                        const stringFilled = this.numberToString (previousOrder['filled']);
+                        previousOrder['remaining'] = Precise.stringSub (stringAmount, stringFilled);
                     }
                 }
                 if (previousOrder['fee'] === undefined) {
