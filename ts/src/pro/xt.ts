@@ -878,7 +878,7 @@ export default class xt extends xtRest {
             if (previousOrder === undefined) {
                 const parsed = this.parseWsOrder (order, market);
                 orders.append (parsed);
-                client.resolve (orders, 'order');
+                client.resolve (orders, 'order:' + tradeType);
             } else {
                 const trade = this.parseWsOrderTrade (order);
                 if (previousOrder['trades'] === undefined) {
