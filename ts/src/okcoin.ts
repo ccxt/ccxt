@@ -16,7 +16,7 @@ export default class okcoin extends Exchange {
             'id': 'okcoin',
             'name': 'OKCoin',
             'countries': [ 'CN', 'US' ],
-            'version': 'v3',
+            'version': 'v5',
             // cheapest endpoint is 100 requests per 2 seconds
             // 50 requests per second => 1000 / 50 = 20ms
             'rateLimit': 20,
@@ -88,6 +88,12 @@ export default class okcoin extends Exchange {
                 },
             },
             'api': {
+                'public': {
+                    'get': {
+                        'instruments': 1,
+                        'time': 1,
+                    },
+                },
                 'general': {
                     'get': {
                         'time': 8.3334,
@@ -787,7 +793,7 @@ export default class okcoin extends Exchange {
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.generalGetTime (params);
+        const response = await this.publicGetTime (params);
         //
         //     {
         //         "iso": "2015-01-07T23:47:25.201Z",
@@ -827,12 +833,34 @@ export default class okcoin extends Exchange {
         // spot markets
         //
         //     {
-        //         base_currency: "EOS",
-        //         instrument_id: "EOS-OKB",
-        //         min_size: "0.01",
-        //         quote_currency: "OKB",
-        //         size_increment: "0.000001",
-        //         tick_size: "0.0001"
+        //         "alias": "",
+        //         "baseCcy": "BTC",
+        //         "category": "1",
+        //         "ctMult": "",
+        //         "ctType": "",
+        //         "ctVal": "",
+        //         "ctValCcy": "",
+        //         "expTime": "",
+        //         "instFamily": "",
+        //         "instId": "BTC-USD",
+        //         "instType": "SPOT",
+        //         "lever": "",
+        //         "listTime": "1671521075000",
+        //         "lotSz": "0.0001",
+        //         "maxIcebergSz": "99999999999999",
+        //         "maxLmtSz": "99999999999999",
+        //         "maxMktSz": "1000000",
+        //         "maxStopSz": "1000000",
+        //         "maxTriggerSz": "99999999999999",
+        //         "maxTwapSz": "99999999999999",
+        //         "minSz": "0.0001",
+        //         "optType": "",
+        //         "quoteCcy": "USD",
+        //         "settleCcy": "",
+        //         "state": "live",
+        //         "stk": "",
+        //         "tickSz": "0.01",
+        //         "uly": ""
         //     }
         //
         // futures markets
@@ -891,9 +919,9 @@ export default class okcoin extends Exchange {
         //         timestamp: '2020-03-13T08:05:09.456Z',
         //     }
         //
-        const id = this.safeString (market, 'instrument_id');
-        let optionType = this.safeValue (market, 'option_type');
-        const contractVal = this.safeNumber (market, 'contract_val');
+        const id = this.safeString2 (market, 'instrument_id', 'instId');
+        let optionType = this.safeValue2 (market, 'option_type', 'optType');
+        const contractVal = this.safeNumber2 (market, 'contract_val', 'ctVal');
         const contract = contractVal !== undefined;
         const futuresAlias = this.safeString (market, 'alias');
         let marketType = 'spot';
@@ -901,11 +929,11 @@ export default class okcoin extends Exchange {
         const option = (optionType !== undefined);
         const future = !option && (futuresAlias !== undefined);
         const swap = contract && !future && !option;
-        let baseId = this.safeString (market, 'base_currency');
-        let quoteId = this.safeString (market, 'quote_currency');
-        const settleId = this.safeString (market, 'settlement_currency');
+        let baseId = this.safeString2 (market, 'base_currency', 'baseCcy');
+        let quoteId = this.safeString2 (market, 'quote_currency', 'quoteCcy');
+        const settleId = this.safeString2 (market, 'settlement_currency', 'settleCcy');
         if (option) {
-            const underlying = this.safeString (market, 'underlying');
+            const underlying = this.safeString2 (market, 'underlying', 'uly');
             const parts = underlying.split ('-');
             baseId = this.safeString (parts, 0);
             quoteId = this.safeString (parts, 1);
@@ -920,16 +948,11 @@ export default class okcoin extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
-        let expiryDatetime = this.safeString (market, 'delivery');
-        let expiry = undefined;
+        const expiry = this.safeFloat (market, 'expTime');
         const strike = this.safeValue (market, 'strike');
         if (contract) {
             symbol = symbol + ':' + settle;
             if (future || option) {
-                if (future) {
-                    expiryDatetime += 'T00:00:00Z';
-                }
-                expiry = this.parse8601 (expiryDatetime);
                 symbol = symbol + '-' + this.yymmdd (expiry);
                 if (option) {
                     symbol = symbol + ':' + strike + ':' + optionType;
@@ -937,16 +960,16 @@ export default class okcoin extends Exchange {
                 }
             }
         }
-        const lotSize = this.safeNumber2 (market, 'lot_size', 'trade_increment');
-        const minPrice = this.safeString (market, 'tick_size');
-        const minAmountString = this.safeString2 (market, 'min_size', 'base_min_size');
+        const lotSize = this.safeNumberN (market, [ 'lot_size', 'trade_increment', 'lotSz' ]);
+        const minPrice = this.safeString2 (market, 'tick_size', 'tickSz');
+        const minAmountString = this.safeStringN (market, [ 'min_size', 'base_min_size', 'minSz' ]);
         const minAmount = this.parseNumber (minAmountString);
         let minCost = undefined;
         if ((minAmount !== undefined) && (minPrice !== undefined)) {
             minCost = this.parseNumber (Precise.stringMul (minPrice, minAmountString));
         }
         const fees = this.safeValue2 (this.fees, marketType, 'trading', {});
-        const maxLeverageString = this.safeString (market, 'max_leverage', '1');
+        const maxLeverageString = this.safeString2 (market, 'max_leverage', 'lever', '1');
         const maxLeverage = this.parseNumber (Precise.stringMax (maxLeverageString, '1'));
         const precisionPrice = this.parseNumber (minPrice);
         return this.extend (fees, {
@@ -1033,19 +1056,41 @@ export default class okcoin extends Exchange {
             }
             return this.parseMarkets (result);
         } else if ((type === 'spot') || (type === 'futures') || (type === 'swap')) {
-            const method = type + 'GetInstruments';
-            const response = await this[method] (params);
+            params['instType'] = type.toUpperCase ();
+            const response = await this.publicGetInstruments (params);
             //
             // spot markets
             //
             //     [
             //         {
-            //             base_currency: "EOS",
-            //             instrument_id: "EOS-OKB",
-            //             min_size: "0.01",
-            //             quote_currency: "OKB",
-            //             size_increment: "0.000001",
-            //             tick_size: "0.0001"
+            //             "alias": "",
+            //             "baseCcy": "BTC",
+            //             "category": "1",
+            //             "ctMult": "",
+            //             "ctType": "",
+            //             "ctVal": "",
+            //             "ctValCcy": "",
+            //             "expTime": "",
+            //             "instFamily": "",
+            //             "instId": "BTC-USD",
+            //             "instType": "SPOT",
+            //             "lever": "",
+            //             "listTime": "1671521075000",
+            //             "lotSz": "0.0001",
+            //             "maxIcebergSz": "99999999999999",
+            //             "maxLmtSz": "99999999999999",
+            //             "maxMktSz": "1000000",
+            //             "maxStopSz": "1000000",
+            //             "maxTriggerSz": "99999999999999",
+            //             "maxTwapSz": "99999999999999",
+            //             "minSz": "0.0001",
+            //            "optType": "",
+            //             "quoteCcy": "USD",
+            //             "settleCcy": "",
+            //             "state": "live",
+            //             "stk": "",
+            //             "tickSz": "0.01",
+            //             "uly": ""
             //         }
             //     ]
             //
@@ -1091,7 +1136,7 @@ export default class okcoin extends Exchange {
             //         }
             //     ]
             //
-            return this.parseMarkets (response);
+            return this.parseMarkets (response['data']);
         } else {
             throw new NotSupported (this.id + ' fetchMarketsByType() does not support market type ' + type);
         }
@@ -3775,7 +3820,7 @@ export default class okcoin extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const isArray = Array.isArray (params);
-        let request = '/api/' + api + '/' + this.version + '/';
+        let request = '/api/' + this.version + '/' + api + '/';
         request += isArray ? path : this.implodeParams (path, params);
         const query = isArray ? params : this.omit (params, this.extractParams (path));
         let url = this.implodeHostname (this.urls['api']['rest']) + request;
