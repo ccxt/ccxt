@@ -1725,8 +1725,9 @@ export default class xt extends Exchange {
         //
         const marketId = this.safeString (ticker, 's');
         let marketType = (market !== undefined) ? market['type'] : undefined;
+        const hasSpotKeys = ('cv' in ticker) || ('aq' in ticker);
         if (marketType === undefined) {
-            marketType = ('cv' in ticker) || ('aq' in ticker) ? 'spot' : 'contract';
+            marketType = hasSpotKeys ? 'spot' : 'contract';
         }
         market = this.safeMarket (marketId, market, '_', marketType);
         const symbol = market['symbol'];
@@ -2034,8 +2035,9 @@ export default class xt extends Exchange {
         //
         const marketId = this.safeString2 (trade, 's', 'symbol');
         let marketType = (market !== undefined) ? market['type'] : undefined;
+        const hasSpotKeys = ('b' in trade) || ('bizType' in trade) || ('oi' in trade);
         if (marketType === undefined) {
-            marketType = ('b' in trade) || ('bizType' in trade) || ('oi' in trade) ? 'spot' : 'contract';
+            marketType = hasSpotKeys ? 'spot' : 'contract';
         }
         market = this.safeMarket (marketId, market, '_', marketType);
         const bidOrAsk = this.safeString (trade, 'm');
