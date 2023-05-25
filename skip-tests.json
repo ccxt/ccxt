@@ -229,11 +229,11 @@
             },
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "baseVolume": "same"
             },
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "baseVolume": "same"
             },
             "fetchL2OrderBook": "bid==ask , https://app.travis-ci.com/github/ccxt/ccxt/builds/263304041#L2170",
             "fetchLOrderBook": "same"
@@ -426,6 +426,14 @@
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
+            },
+            "fetchTickers": {
+                "bid": "messed bid-ask : https://app.travis-ci.com/github/ccxt/ccxt/builds/263319874#L2090",
+                "ask": "same as above"
+            },
+            "fetchTicker": {
+                "bid": "same as above",
+                "ask": "same as above"
             }
         }
     },
@@ -1110,6 +1118,10 @@
             "loadMarkets": "linear & inverse must not be same",
             "fetchCurrencies": {
                 "info": "null"
+            },
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume <= baseVolume * high : https://app.travis-ci.com/github/ccxt/ccxt/builds/263319874#L2132",
+                "baseVolume": "same"
             }
         }
     },
