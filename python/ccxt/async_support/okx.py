@@ -51,7 +51,7 @@ class okx(Exchange, ImplicitAPI):
                 'margin': True,
                 'swap': True,
                 'future': True,
-                'option': True,
+                'option': None,
                 'addMargin': True,
                 'borrowMargin': True,
                 'cancelAllOrders': False,

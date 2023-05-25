@@ -185,9 +185,6 @@ class bitso(Exchange, ImplicitAPI):
             },
         })
 
-    def nonce(self):
-        return self.milliseconds()
-
     def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
