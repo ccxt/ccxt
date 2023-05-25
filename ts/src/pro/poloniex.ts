@@ -445,7 +445,7 @@ export default class poloniex extends poloniexRest {
         //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger (trade, 'timestamp');
+        const timestamp = this.safeInteger (trade, 'createTime');
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'id'),
