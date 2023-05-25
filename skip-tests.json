@@ -234,7 +234,9 @@
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            }
+            },
+            "fetchL2OrderBook": "bid==ask , https://app.travis-ci.com/github/ccxt/ccxt/builds/263304041#L2170",
+            "fetchLOrderBook": "same"
         }
     },
     "bitmex": {
@@ -454,6 +456,7 @@
         }
     },
     "btctradeua": {
+        "skip": "24/05 exchange not available",
         "skipMethods": {
             "loadMarkets": {
                 "precision":"is undefined",
@@ -863,7 +866,9 @@
             },
             "fetchTickers": {
                 "bid":"messed bid-ask",
-                "ask":"messed bid-ask"
+                "ask":"messed bid-ask",
+                "quoteVolume": "quoteVolume <= baseVolume * high https://app.travis-ci.com/github/ccxt/ccxt/builds/263304041#L2190",
+                "baseVolume": "same"
             }
         }
     },
