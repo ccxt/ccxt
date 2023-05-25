@@ -34,6 +34,7 @@ class Argv(object):
     exchange = None
     symbol = None
     info = False
+    isPrBuild = False
     pass
 
 
@@ -45,6 +46,7 @@ parser.add_argument('--privateOnly', action='store_true', help='run private test
 parser.add_argument('--private', action='store_true', help='run private tests')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('--info', action='store_true', help='enable info output')
+parser.add_argument('--pr_build', action='store_true', help='enable info output')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')

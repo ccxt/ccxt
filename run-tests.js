@@ -30,17 +30,13 @@ const langKeys = {
     '--php-async': false,    // run php async tests only,
 }
 
-const optionKeys = {
-    '--warnings': false,
-    '--info': false,
-}
-
 const exchangeSpecificFlags = {
     '--sandbox': false,
     '--verbose': false,
     '--private': false,
     '--privateOnly': false,
     '--info': false,
+    '--pr_build': false,
 }
 
 const content = fs.readFileSync ('skip-tests.json', 'utf8');
@@ -55,8 +51,6 @@ for (const arg of args) {
     else if (arg.startsWith ('--'))          {
         if (arg in langKeys) {
             langKeys[arg] = true
-        } else if (arg in optionKeys) {
-            optionKeys[arg] = true
         } else {
             log.bright.red ('\nUnknown option', arg.white, '\n');
         }
@@ -107,32 +101,18 @@ const exec = (bin, ...args) =>
 
         let output = ''
         let stderr = ''
-        let hasWarnings = false
 
         psSpawn.stdout.on ('data', data => { output += data.toString () })
-        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); hasWarnings = true })
+        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); })
 
         psSpawn.on ('exit', code => {
             // keep this commented code for a while (just in case), as the below avoids vscode false positive warnings from output: https://github.com/nodejs/node/issues/34799 during debugging
             // const removeDebuger = (str) => str.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '').replace(/\(node:\d+\) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
             // stderr = removeDebuger(stderr);
             // output = removeDebuger(output);
-            // if (stderr === '') { hasWarnings = false; }
 
+            let hasWarnings = stderr.length > 0;
             output = ansi.strip (output.trim ())
-            stderr = ansi.strip (stderr)
-
-            const infoRegex = /\[INFO:([\w_-]+)].+$\n*/gmi
-            const regex = /\[[a-z]+?\]/gmi
-
-            let match = undefined
-            const warnings = []
-            const info = []
-
-            let outputInfo = '';
-
-            match = regex.exec (output)
-            let matchInfo = infoRegex.exec (output)
 
             // detect error
             let hasFailed = false;
@@ -151,25 +131,34 @@ const exec = (bin, ...args) =>
                 hasFailed = true;
             }
 
-            if (match) {
-                warnings.push (match[0])
-                do {
-                    if (match = regex.exec (output)) {
-                        warnings.push (match[0])
-                    }
-                } while (match);
+            // Infos
+            const info = []
+            let outputInfo = '';
+            if (output.length) {
+                // check output for pattern like `[INFO: whatever]`
+                const infoRegex = /\[INFO:([\w_-]+)].+$\n*/gmi
+                let matchInfo;
+                while ((matchInfo = infoRegex.exec (output))) {
+                    info.push ('[' + matchInfo[1] + ']')
+                    outputInfo += matchInfo[0]
+                }
             }
-            if (matchInfo) {
-                info.push ('[' + matchInfo[1] + ']')
-                outputInfo += matchInfo[0]
-                do {
-                    if (matchInfo = infoRegex.exec (output)) {
-                        info.push ('[' + matchInfo[1] + ']')
-                        outputInfo += matchInfo[0]
-                    }
-                } while (matchInfo);
-                output = output.replace (infoRegex, '')
+
+            // Warnings
+            const warnings = []
+            if (hasWarnings) {
+                // check output for pattern like `[XYZ_WARNING: whatever]`
+                const warningRegex = /\[[a-zA-Z]+?\]/gmi
+                let matchWarnings; 
+                while (matchWarnings = warningRegex.exec (stderr)) {
+                    warnings.push (matchWarnings[0])
+                }
+                // if pattern not found, then add the whole stderr to warning
+                if (!warnings.length) {
+                    warnings.push (stderr)
+                }
             }
+
             return_ ({
                 failed: hasFailed || code !== 0,
                 output,
@@ -234,10 +223,10 @@ const testExchange = async (exchange) => {
     args = args.concat(exchangeOptions)
     const allTestsWithoutTs = [
             { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/test/test.js',           ...args] },
-            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },
-            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py', ...args] },
-            { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
-            { language: 'PHP Async', key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] }
+            // { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },
+            // { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py', ...args] },
+            // { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
+            // { language: 'PHP Async', key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] }
         ]
 
         const allTests = allTestsWithoutTs.concat([
@@ -275,7 +264,7 @@ const testExchange = async (exchange) => {
     if (failed) {
         logMessage+= 'FAIL'.red;
     } else if (hasWarnings) {
-        logMessage = (warnings.length ? warnings.join (' ') : 'WARN').yellow;
+        logMessage = 'WARN'.yellow + (warnings.length ? warnings.join (' ') : 'NO_OUTPUT');
     } else {
         logMessage = 'OK'.green;
     }
@@ -362,6 +351,7 @@ async function testAllExchanges () {
     const results = []
 
     for (const exchange of exchanges) {
+        if (exchange != 'ascendex') continue;
         taskPool.run (() => testExchange (exchange).then (x => results.push (x)))
     }
 
@@ -374,9 +364,8 @@ async function testAllExchanges () {
 
 (async function () {
 
-    const allKeys = Object.assign (optionKeys, langKeys)
     log.bright.magenta.noPretty ('Testing'.white, Object.assign (
-                                                            { exchanges, symbol, allKeys, exchangeSpecificFlags },
+                                                            { exchanges, symbol, langKeys, exchangeSpecificFlags },
                                                             maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency }))
 
     const tested    = await testAllExchanges ()

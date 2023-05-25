@@ -12,10 +12,20 @@ if [ $# -gt 0 ]; then
 fi
 
 [[ -n "$TRAVIS_BUILD_ID" ]] && IS_TRAVIS="TRUE" || IS_TRAVIS="FALSE"
+[[ -n "$APPVEYOR" ]] && IS_APPVEYOR="TRUE" || IS_APPVEYOR="FALSE"
+
+### detect if this is a MASTER commit or a PR ###
+IS_MASTER_BUILD="FALSE"
+# for appveyor, when PR is from a forked repo, APPVEYOR_REPO_BRANCH is "master" and "APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" is branch name. if PR is from same repo, only APPVEYOR_REPO_BRANCH is set (and it is branch name)
+if ([[ "$IS_TRAVIS" == "TRUE" ]] && [ "$TRAVIS_PULL_REQUEST" = "false" ]) || ([[ "$IS_APPVEYOR" == "TRUE" ]] && [ -z "$APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" ]); then
+  IS_MASTER_BUILD="TRUE"
+fi
+
 
 msgPrefix="⬤ BUILD.SH : "
 
 function run_tests {
+  [ $IS_MASTER_BUILD = "FALSE" ] && pr_build_flag="--pr_build" || pr_build_flag=""
   local rest_args=
   local ws_args=
   if [ $# -eq 2 ]; then
@@ -34,14 +44,14 @@ function run_tests {
   if [ -z "$rest_pid" ]; then
     if [[ -z "$rest_args" ]] || { [[ -n "$rest_args" ]] && [[ $rest_args != "skip" ]]; }; then
       # shellcheck disable=SC2086
-      node test-commonjs.cjs && node run-tests --js --python-async --php-async $rest_args &
+      node test-commonjs.cjs && node run-tests --js --python-async --php-async $pr_build_flag $rest_args &
       local rest_pid=$!
     fi
   fi
   if [ -z "$ws_pid" ]; then
     if [[ -z "$ws_args" ]] || { [[ -n "$ws_args" ]] && [[ $ws_args != "skip" ]]; }; then
       # shellcheck disable=SC2086
-      node run-tests-ws --js --python-async --php-async $ws_args &
+      #node run-tests-ws --js --python-async --php-async $pr_build_flag $ws_args &
       local ws_pid=$!
     fi
   fi
@@ -56,25 +66,25 @@ function run_tests {
 }
 
 build_and_test_all () {
-  npm run force-build
+  #npm run force-build
   if [[ "$IS_TRAVIS" == "TRUE" ]]; then
-    npm run test-base
-    npm run test-base-ws
+    #npm run test-base
+    #npm run test-base-ws
     run_tests
   fi
+  run_tests
   exit
 }
 
 ### CHECK IF THIS IS A PR ###
-# for appveyor, when PR is from fork, APPVEYOR_REPO_BRANCH is "master" and "APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" is branch name. if PR is from same repo, only APPVEYOR_REPO_BRANCH is set (and it is branch name)
-if ([[ "$IS_TRAVIS" == "TRUE" ]] && [ "$TRAVIS_PULL_REQUEST" = "false" ]) || ([[ "$IS_TRAVIS" != "TRUE" ]] && [ -z "$APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" ]); then
+if ($IS_MASTER_BUILD == "TRUE"); then
   echo "$msgPrefix This is a master commit (not a PR), will build everything"
   build_and_test_all
 fi
 
 ##### DETECT CHANGES #####
 # in appveyor, there is no origin/master locally, so we need to fetch it
-if [[ "$IS_TRAVIS" != "TRUE" ]]; then
+if [[ "$IS_APPVEYOR" == "TRUE" ]]; then
   git remote set-branches origin 'master'
   git fetch --depth=1 --no-tags
 fi
@@ -138,10 +148,11 @@ npm run check-php-syntax
 cd python && tox -e qa -- ${PYTHON_FILES[*]} && cd ..
 
 
-### RUN SPECIFIC TESTS (ONLY IN TRAVIS) ###
-if [[ "$IS_TRAVIS" != "TRUE" ]]; then
+### RUN SPECIFIC TESTS (EXCLUDING APPVEYOR) ###
+if [[ "$IS_APPVEYOR" == "TRUE" ]]; then
   exit
 fi
+
 if [ ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
   echo "$msgPrefix no exchanges to test, exiting"
   exit

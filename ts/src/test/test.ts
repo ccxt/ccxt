@@ -19,10 +19,18 @@ process.on ('unhandledRejection', (e: any) => {
 });
 const [ processPath, , exchangeId = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
 const AuthenticationError = ccxt.AuthenticationError;
+const PermissionDenied = ccxt.PermissionDenied;
+const RateLimitExceeded = ccxt.RateLimitExceeded;
+const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
+const NetworkError = ccxt.NetworkError;
+const DDoSProtection = ccxt.DDoSProtection;
+const OnMaintenance = ccxt.OnMaintenance;
+const RequestTimeout = ccxt.RequestTimeout;
 
 // non-transpiled part, but shared names among langs
 class baseMainTestClass {
     info = false;
+    isPrBuild = false;
     verbose = false;
     debug = false;
     privateTest = false;
@@ -125,6 +133,7 @@ async function close (exchange) {
 
 export default class testMainClass extends baseMainTestClass {
     parseCliArgs () {
+        this.isPrBuild = getCliArgValue ('--pr_build');
         this.info = getCliArgValue ('--info');
         this.verbose = getCliArgValue ('--verbose');
         this.debug = getCliArgValue ('--debug');
@@ -263,25 +272,52 @@ export default class testMainClass extends baseMainTestClass {
         if (this.info) {
             dump (this.addPadding ('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
         }
-        let result = null;
         try {
             const skippedProperties = exchange.safeValue (this.skippedMethods, methodName, {});
-            result = await callMethod (this.testFiles, methodNameInTest, exchange, skippedProperties, args);
+            await callMethod (this.testFiles, methodNameInTest, exchange, skippedProperties, args);
             if (isPublic) {
                 this.checkedPublicTests[methodNameInTest] = true;
             }
         } catch (e) {
             const isAuthError = (e instanceof AuthenticationError);
-            if (!(isPublic && isAuthError)) {
-                dump ('[TEST_FAILURE]', exceptionMessage (e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
-                throw e;
+            const isPermissionDenied = (e instanceof PermissionDenied);
+            const isRateLimitExceeded = (e instanceof RateLimitExceeded);
+            const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
+            const isNetworkError = (e instanceof NetworkError);
+            const isDDoSProtection = (e instanceof DDoSProtection);
+            const isOnMaintenance = (e instanceof OnMaintenance);
+            const isRequestTimeout = (e instanceof RequestTimeout);
+            const unavailableResult = (isRateLimitExceeded || isExchangeNotAvailable || isNetworkError || isDDoSProtection || isOnMaintenance || isRequestTimeout);
+            // If public test faces authentication error, we don't break (see comments under `testSafe` method)
+            // todo: changes are needed after .Features implementation
+            if (isPublic) {
+                if (isAuthError || isPermissionDenied) {
+                    dump ('[TEST_WARNING]', 'Authentication problem for public method', exceptionMessage (e), exchange.id, methodNameInTest, argsStringified);
+                    return;
+                }
+                // inside regular PR builds (instead of Master build), we don't throw exception if public tests could not be tested because of some exchange-side unavailability
+                if (this.isPrBuild && unavailableResult) {
+                    dump ('[TEST_WARNING]', 'Public method could not be tested', exceptionMessage (e), exchange.id, methodNameInTest, argsStringified);
+                    return;
+                }
             }
+            // in all other cases, we throw the exception
+            dump ('[TEST_FAILURE]', exceptionMessage (e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
+            throw e;
         }
-        return result;
     }
 
     async testSafe (methodName, exchange, args, isPublic) {
         try {
+            // The reason we mute the thrown exceptions here is because if this test is part
+            // of "runPublicTests", then we don't want to stop the whole test if any single
+            // test-method fails. For example, if "fetchOrderBook" public test fails, we still
+            // want to run "fetchTickers" and other methods. However, independently this fact,
+            // from those test-methods we still echo-out (console.log/print...) the exception
+            // messages with specific formatted message "[TEST_FAILURE] ..." and that output is
+            // then regex-parsed by run-tests.js, so the exceptions are still printed out to
+            // console from there. So, even if some public tests fail, the script will continue
+            // doing other things (testing other spot/swap or private tests ...)
             await this.testMethod (methodName, exchange, args, isPublic);
             return true;
         } catch (e) {
@@ -326,9 +362,17 @@ export default class testMainClass extends baseMainTestClass {
         }
         // todo - not yet ready in other langs too
         // promises.push (testThrottle ());
-        await Promise.all (promises);
+        const results = await Promise.all (promises);
+        const errors = [];
+        for (let i = 0; i < testNames.length; i++) {
+            if (!results[i]) {
+                errors.push (testNames[i]);
+            }
+        }
         if (this.info) {
-            dump (this.addPadding ('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id);
+            // we don't throw exception for public-tests, see comments under 'testSafe' method
+            const failedMsg = errors.length ? ' | Failed methods: ' + errors.join (', ') : '';
+            dump (this.addPadding ('[INFO:PUBLIC_TESTS_DONE]' +  market['type'] + failedMsg, 25), exchange.id);
         }
     }
 

@@ -36,6 +36,7 @@ class baseMainTestClass {
     public $checkedPublicTests = [];
     public $publicTests = [];
     public $info = false;
+    public $isPrBuild = false;
     public $verbose = false;
     public $debug = false;
     public $privateTest = false;
