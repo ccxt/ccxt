@@ -742,22 +742,20 @@ export default class poloniex extends poloniexRest {
         //        ]
         //    }
         //
-        const data = this.safeValue (message, 'data');
-        if (data !== undefined) {
-            for (let i = 0; i < data.length; i++) {
-                const item = data[i];
-                const marketId = this.safeString (item, 'symbol');
-                if (marketId !== undefined) {
-                    const ticker = this.parseTicker (item);
-                    const symbol = ticker['symbol'];
-                    this.tickers[symbol] = ticker;
-                    const messageHash = 'ticker:' + marketId;
-                    client.resolve (ticker, messageHash);
-                }
+        const data = this.safeValue (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            const marketId = this.safeString (item, 'symbol');
+            if (marketId !== undefined) {
+                const ticker = this.parseTicker (item);
+                const symbol = ticker['symbol'];
+                this.tickers[symbol] = ticker;
+                const messageHash = 'ticker:' + marketId;
+                client.resolve (ticker, messageHash);
             }
-            client.resolve (this.tickers, 'ticker');
-            return message;
         }
+        client.resolve (this.tickers, 'ticker');
+        return message;
     }
 
     handleOrderBook (client, message) {
