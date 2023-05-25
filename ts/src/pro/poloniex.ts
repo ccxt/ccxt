@@ -141,11 +141,11 @@ export default class poloniex extends poloniexRest {
          * @ignore
          * @method
          * @description Connects to a websocket channel
-         * @param {String} name name of the channel
-         * @param {Bool} isPrivate true for the authenticated url, false for the public url
-         * @param {[String]|undefined} symbols CCXT market symbols
-         * @param {Object} params extra parameters specific to the poloniex api
-         * @returns {Object} data from the websocket stream
+         * @param {string} name name of the channel
+         * @param {boolean} isPrivate true for the authenticated url, false for the public url
+         * @param {[string]|undefined} symbols CCXT market symbols
+         * @param {object} params extra parameters specific to the poloniex api
+         * @returns {object} data from the websocket stream
          */
         await this.loadMarkets ();
         const publicOrPrivate = isPrivate ? 'private' : 'public';
