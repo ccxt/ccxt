@@ -307,6 +307,8 @@ export default class cryptocom extends Exchange {
                     'ETH': 'ERC20',
                     'TRON': 'TRC20',
                 },
+                'broker': 'CCXT_',
+                'appendToClientOrderId': true,
             },
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
@@ -1184,11 +1186,18 @@ export default class cryptocom extends Exchange {
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const broker = this.safeValue (this.options, 'broker');
+        const shouldAppend = this.safeValue (this.options, 'appendToClientOrderId', false);
+        let clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId) {
-            request['client_oid'] = clientOrderId;
+            if (shouldAppend) {
+                clientOrderId = broker + clientOrderId;
+            }
             params = this.omit (params, [ 'clientOrderId' ]);
+        } else {
+            clientOrderId = broker + this.milliseconds ().toString ();
         }
+        request['client_oid'] = clientOrderId;
         const postOnly = this.safeValue (params, 'postOnly', false);
         if (postOnly) {
             request['exec_inst'] = 'POST_ONLY';
