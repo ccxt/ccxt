@@ -16,16 +16,17 @@ fi
 
 ### detect if this is a MASTER commit or a PR ###
 IS_MASTER_BUILD="FALSE"
+pr_build_flag="--pr_build"
 # for appveyor, when PR is from a forked repo, APPVEYOR_REPO_BRANCH is "master" and "APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" is branch name. if PR is from same repo, only APPVEYOR_REPO_BRANCH is set (and it is branch name)
 if ([[ "$IS_TRAVIS" == "TRUE" ]] && [ "$TRAVIS_PULL_REQUEST" = "false" ]) || ([[ "$IS_APPVEYOR" == "TRUE" ]] && [ -z "$APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" ]); then
   IS_MASTER_BUILD="TRUE"
+  pr_build_flag=""
 fi
 
 
 msgPrefix="⬤ BUILD.SH : "
 
 function run_tests {
-  [ $IS_MASTER_BUILD = "FALSE" ] && pr_build_flag="--pr_build" || pr_build_flag=""
   local rest_args=
   local ws_args=
   if [ $# -eq 2 ]; then
@@ -51,7 +52,7 @@ function run_tests {
   if [ -z "$ws_pid" ]; then
     if [[ -z "$ws_args" ]] || { [[ -n "$ws_args" ]] && [[ $ws_args != "skip" ]]; }; then
       # shellcheck disable=SC2086
-      #node run-tests-ws --js --python-async --php-async $pr_build_flag $ws_args &
+      node run-tests-ws --js --python-async --php-async $pr_build_flag $ws_args &
       local ws_pid=$!
     fi
   fi
@@ -66,10 +67,10 @@ function run_tests {
 }
 
 build_and_test_all () {
-  #npm run force-build
+  npm run force-build
   if [[ "$IS_TRAVIS" == "TRUE" ]]; then
-    #npm run test-base
-    #npm run test-base-ws
+    npm run test-base
+    npm run test-base-ws
     run_tests
   fi
   run_tests
