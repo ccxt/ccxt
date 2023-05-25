@@ -16,6 +16,7 @@ export default class cryptocom extends Exchange {
             'countries': [ 'MT' ],
             'version': 'v2',
             'rateLimit': 10, // 100 requests per second
+            'certified': true,
             'pro': true,
             'has': {
                 'CORS': false,
@@ -308,7 +309,6 @@ export default class cryptocom extends Exchange {
                     'TRON': 'TRC20',
                 },
                 'broker': 'CCXT_',
-                'appendToClientOrderId': true,
             },
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
@@ -1187,15 +1187,9 @@ export default class cryptocom extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const broker = this.safeValue (this.options, 'broker');
-        const shouldAppend = this.safeValue (this.options, 'appendToClientOrderId', false);
         let clientOrderId = this.safeString (params, 'clientOrderId');
-        if (clientOrderId) {
-            if (shouldAppend) {
-                clientOrderId = broker + clientOrderId;
-            }
-            params = this.omit (params, [ 'clientOrderId' ]);
-        } else {
-            clientOrderId = broker + this.milliseconds ().toString ();
+        if (clientOrderId === undefined) {
+            clientOrderId = broker + this.uuid22 ();
         }
         request['client_oid'] = clientOrderId;
         const postOnly = this.safeValue (params, 'postOnly', false);
