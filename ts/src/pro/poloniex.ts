@@ -3,8 +3,10 @@
 import poloniexRest from '../poloniex.js';
 import { BadRequest, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -120,7 +122,7 @@ export default class poloniex extends poloniexRest {
         return future;
     }
 
-    async subscribe (name, isPrivate, symbols = undefined, params = {}) {
+    async subscribe (name: string, isPrivate: boolean, symbols: string[] = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -162,7 +164,7 @@ export default class poloniex extends poloniexRest {
         return await this.watch (url, messageHash, request, name);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#watchOHLCV
@@ -187,7 +189,7 @@ export default class poloniex extends poloniexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name poloniex#watchTicker
@@ -217,7 +219,7 @@ export default class poloniex extends poloniexRest {
         return await this.subscribe (name, false, symbols, params);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#watchTrades
@@ -239,7 +241,7 @@ export default class poloniex extends poloniexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#watchOrderBook
@@ -258,7 +260,7 @@ export default class poloniex extends poloniexRest {
         return orderbook.limit ();
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#watchOrders
@@ -328,7 +330,7 @@ export default class poloniex extends poloniexRest {
         ];
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //    {
         //        channel: 'candles_minute_1',
@@ -372,7 +374,7 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: Client, message) {
         //
         //    {
         //        channel: 'trades',
@@ -516,7 +518,7 @@ export default class poloniex extends poloniexRest {
         }, market);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         //
         // Order is created
         //
@@ -703,7 +705,7 @@ export default class poloniex extends poloniexRest {
         });
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //    {
         //        channel: 'ticker',
@@ -742,7 +744,7 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         // snapshot
         //
@@ -834,7 +836,7 @@ export default class poloniex extends poloniexRest {
         }
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //    {
         //       "channel": "balances",
@@ -896,7 +898,7 @@ export default class poloniex extends poloniexRest {
         return this.safeBalance (result);
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         const type = this.safeString (message, 'channel');
         const event = this.safeString (message, 'event');
         if (event === 'pong') {
@@ -936,7 +938,7 @@ export default class poloniex extends poloniexRest {
         }
     }
 
-    handleAuthenticate (client, message) {
+    handleAuthenticate (client: Client, message) {
         //
         //    {
         //        success: true,
