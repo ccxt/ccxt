@@ -520,7 +520,7 @@ export default class poloniex extends poloniexRest {
             'order': this.safeString (trade, 'orderId'),
             'type': this.safeStringLower (trade, 'type'),
             'side': this.safeString (trade, 'side'),
-            'takerOrMaker': this.safeString (trade, 'matchRole'),
+            'takerOrMaker': this.safeStringLower (trade, 'matchRole'),
             'price': this.safeString (trade, 'price'),
             'amount': this.safeString (trade, 'tradeAmount'),
             'cost': undefined,
