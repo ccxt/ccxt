@@ -162,7 +162,7 @@ export default class poloniex extends poloniexRest {
                 const symbol = symbols[0];
                 const marketId = this.marketId (symbol);
                 marketIds.push (marketId);
-                messageHash = messageHash + ':' + marketId;
+                messageHash = messageHash + ':' + symbol;
             }
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
@@ -372,7 +372,7 @@ export default class poloniex extends poloniexRest {
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (symbol);
         const timeframe = this.safeString (this.options['channelToTimeframe'], channel);
-        const messageHash = channel + ':' + marketId;
+        const messageHash = channel + ':' + symbol;
         const parsed = this.parseWsOHLCV (data, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
@@ -414,7 +414,7 @@ export default class poloniex extends poloniexRest {
                 const trade = this.parseWsTrade (item);
                 const symbol = trade['symbol'];
                 const type = 'trades';
-                const messageHash = type + ':' + marketId;
+                const messageHash = type + ':' + symbol;
                 let tradesArray = this.safeValue (this.trades, symbol);
                 if (tradesArray === undefined) {
                     const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -641,7 +641,7 @@ export default class poloniex extends poloniexRest {
             const marketId = marketIds[i];
             const market = this.market (marketId);
             const symbol = market['symbol'];
-            const messageHash = 'orders:' + marketId;
+            const messageHash = 'orders:' + symbol;
             client.resolve (orders[symbol], messageHash);
         }
         client.resolve (orders, 'orders');
@@ -750,7 +750,7 @@ export default class poloniex extends poloniexRest {
                 const ticker = this.parseTicker (item);
                 const symbol = ticker['symbol'];
                 this.tickers[symbol] = ticker;
-                const messageHash = 'ticker:' + marketId;
+                const messageHash = 'ticker:' + symbol;
                 client.resolve (ticker, messageHash);
             }
         }
@@ -816,7 +816,7 @@ export default class poloniex extends poloniexRest {
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             const name = 'book_lv2';
-            const messageHash = name + ':' + marketId;
+            const messageHash = name + ':' + symbol;
             const subscription = this.safeValue (client.subscriptions, messageHash, {});
             const limit = this.safeInteger (subscription, 'limit');
             const timestamp = this.safeInteger (item, 'ts');
