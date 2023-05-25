@@ -116,8 +116,9 @@ export default class xt extends xtRest {
          */
         await this.loadMarkets ();
         const privateAccess = access === 'private';
-        let isContract = undefined;
-        [ isContract, params ] = this.handleIsContractAndParams (methodName, market, params);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
+        const isContract = (type !== 'spot');
         const subscribe = {
             'method': isContract ? 'SUBSCRIBE' : 'subscribe',
             'id': this.numberToString (this.milliseconds ()) + name,  // call back ID

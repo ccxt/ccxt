@@ -4659,32 +4659,6 @@ export default class Exchange {
         return [ type, params ];
     }
 
-    handleIsContractAndParams (methodName, market = undefined, params = {}): any {
-        const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
-        const defaultIsContract = this.safeValue2 (this.options, 'isContract', 'defaultIsContract', false);
-        const methodOptions = this.safeValue (this.options, methodName);
-        let methodType = defaultType;
-        let methodIsContract = defaultIsContract;
-        if (methodOptions !== undefined) {
-            if (typeof methodOptions === 'string') {
-                methodType = methodOptions;
-                methodIsContract = methodOptions;
-            } else {
-                methodType = this.safeString2 (methodOptions, 'defaultType', 'type', methodType);
-                methodIsContract = this.safeString2 (methodOptions, 'isContract', 'defaultIsContract', methodIsContract);
-            }
-        }
-        const marketType = (market === undefined) ? methodType : market['type'];
-        let isContract = (market === undefined) ? methodIsContract : market['contract'];
-        const type = this.safeString2 (params, 'defaultType', 'type', marketType);
-        isContract = this.safeString2 (params, 'defaultIsContract', 'isContract', isContract);
-        params = this.omit (params, [ 'defaultType', 'type', 'isContract', 'defaultIsContract' ]);
-        return [
-            (type !== 'spot' && type !== 'margin') || isContract,
-            params,
-        ];
-    }
-
     handleSubTypeAndParams (methodName: string, market = undefined, params = {}, defaultValue = undefined) {
         let subType = undefined;
         // if set in params, it takes precedence
