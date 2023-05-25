@@ -2,7 +2,7 @@
 
 import { Exchange } from './base/Exchange.js';
 import { Precise } from './base/Precise.js';
-import { ExchangeError, ArgumentsRequired, InvalidNonce, BadSymbol } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, InvalidNonce } from './base/errors.js';
 import { DECIMAL_PLACES, TRUNCATE } from './base/functions/number.js';
 import { keccak_256 } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -162,9 +162,6 @@ export default class deepwaters extends Exchange {
             throw new ArgumentsRequired ('symbol must be provided to deepwaters#fetchTicket()');
         }
         const tickers = await this.fetchTickers ([ symbol ]);
-        if (tickers.length === 0) {
-            throw new BadSymbol ('Symbol not found. Is it available in  deepwaters#fetchMarkets()?');
-        }
         return tickers[symbol];
     }
 
@@ -261,8 +258,8 @@ export default class deepwaters extends Exchange {
             const symbol = base + '/' + quote;
             const baseId = this.safeValue (market, 'baseAssetID');
             const quoteId = this.safeValue (market, 'quoteAssetID');
-            const baseAssetIncrementPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetIncrementPrecision')));
-            const quoteAssetIncrementPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'quoteAssetIncrementPrecision')));
+            const baseAssetIncrementPrecision = this.parseNumber (this.safeString (market, 'baseAssetIncrementPrecision'));
+            const quoteAssetIncrementPrecision = this.parseNumber (this.safeString (market, 'quoteAssetIncrementPrecision'));
             result.push ({
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -290,7 +287,8 @@ export default class deepwaters extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': baseAssetIncrementPrecision,
-                    'price': quoteAssetIncrementPrecision,
+                    'base': baseAssetIncrementPrecision,
+                    'quote': quoteAssetIncrementPrecision,
                     'cost': undefined,
                 },
                 'limits': {
@@ -353,17 +351,21 @@ export default class deepwaters extends Exchange {
             const id = this.safeString (currency, 'assetID');
             const code = this.safeString (currency, 'rootSymbol');
             const name = this.safeString (currency, 'name');
-            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'uiDecimals')));
+            const precision = this.parseNumber (this.safeString (currency, 'uiDecimals'));
             const chainName = this.safeString (currency, 'chainName');
             const chainId = this.safeString (currency, 'chainID');
             const networkCode = this.networkIdToCode (chainName);
+            const assetAddress = this.safeString (currency, 'assetAddress');
             const network = {
                 'id': chainId,
                 'name': chainName,
                 'network': networkCode,
                 'active': true,
+                'address': assetAddress,
             };
-            const networks = [ network ];
+            const networks = {
+                'networkCode': network,
+            };
             result[code] = {
                 'id': id,
                 'code': code,
