@@ -340,7 +340,7 @@ export default class poloniex extends poloniexRest {
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
             this.safeNumber (ohlcv, 'close'),
-            this.safeNumber (ohlcv, 'amount'),
+            this.safeNumber (ohlcv, 'quantity'),
         ];
     }
 
