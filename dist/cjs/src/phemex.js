@@ -3959,6 +3959,9 @@ class phemex extends phemex$1 {
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the phemex api endpoint
+         * @param {bool} params.hedged set to true if hedged position mode is enabled (by default long and short leverage are set to the same value)
+         * @param {float} params.longLeverageRr *hedged mode only* set the leverage for long positions
+         * @param {float} params.shortLeverageRr *hedged mode only* set the leverage for short positions
          * @returns {object} response from the exchange
          */
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
@@ -3970,19 +3973,31 @@ class phemex extends phemex$1 {
             throw new errors.BadRequest(this.id + ' setLeverage() leverage should be between 1 and 100');
         }
         await this.loadMarkets();
+        const isHedged = this.safeValue(params, 'hedged', false);
+        const longLeverageRr = this.safeInteger(params, 'longLeverageRr');
+        const shortLeverageRr = this.safeInteger(params, 'shortLeverageRr');
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
-        let method = 'privatePutPositionsLeverage';
+        let response = undefined;
         if (market['settle'] === 'USDT') {
-            method = 'privatePutGPositionsLeverage';
-            request['leverageRr'] = leverage;
+            if (!isHedged && longLeverageRr === undefined && shortLeverageRr === undefined) {
+                request['leverageRr'] = leverage;
+            }
+            else {
+                const long = (longLeverageRr !== undefined) ? longLeverageRr : leverage;
+                const short = (shortLeverageRr !== undefined) ? shortLeverageRr : leverage;
+                request['longLeverageRr'] = long;
+                request['shortLeverageRr'] = short;
+            }
+            response = await this.privatePutGPositionsLeverage(this.extend(request, params));
         }
         else {
             request['leverage'] = leverage;
+            response = await this.privatePutPositionsLeverage(this.extend(request, params));
         }
-        return await this[method](this.extend(request, params));
+        return response;
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         /**

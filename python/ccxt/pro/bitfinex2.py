@@ -974,7 +974,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         trimmedStatus = self.safe_string(stateParts, 0)
         status = self.parse_ws_order_status(trimmedStatus)
         price = self.safe_string(order, 16)
-        timestamp = self.safe_integer(order, 4)
+        timestamp = self.safe_integer_2(order, 5, 4)
         average = self.safe_string(order, 17)
         stopPrice = self.omit_zero(self.safe_string(order, 18))
         return self.safe_order({

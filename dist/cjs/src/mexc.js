@@ -1015,6 +1015,8 @@ class mexc extends mexc$1 {
         /**
          * @method
          * @name mexc3#fetchOrderBook
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#order-book
+         * @see https://mxcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
@@ -1074,6 +1076,15 @@ class mexc extends mexc$1 {
             orderbook['nonce'] = this.safeInteger(data, 'version');
         }
         return orderbook;
+    }
+    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countKey = 2) {
+        const price = this.safeNumber(bidask, priceKey);
+        const amount = this.safeNumber(bidask, amountKey);
+        const count = this.safeNumber(bidask, countKey);
+        if (count !== undefined) {
+            return [price, amount, count];
+        }
+        return [price, amount];
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**

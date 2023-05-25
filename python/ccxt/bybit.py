@@ -7203,9 +7203,14 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
+        data = self.safe_value(result, 'list', [])
+        paginationCursor = self.safe_string(result, 'nextPageCursor')
+        if (paginationCursor is not None) and (len(data) > 0):
+            first = data[0]
+            first['nextPageCursor'] = paginationCursor
+            data[0] = first
         id = self.safe_string(result, 'symbol')
         market = self.safe_market(id, market, None, 'contract')
-        data = self.safe_value(result, 'list', [])
         return self.parse_open_interests(data, market, since, limit)
 
     def fetch_open_interest(self, symbol: str, params={}):
