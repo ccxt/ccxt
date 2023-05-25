@@ -369,6 +369,7 @@ class bybit extends Exchange {
                         'v5/order/spot-borrow-check' => 2.5,
                         'v5/order/realtime' => 2.5,
                         'v5/position/list' => 2.5,
+                        'v5/position/switch-mode' => 2.5,
                         'v5/execution/list' => 2.5,
                         'v5/position/closed-pnl' => 2.5,
                         'v5/account/wallet-balance' => 2.5,
@@ -571,6 +572,9 @@ class bybit extends Exchange {
                         'v5/position/set-tpsl-mode' => 2.5,
                         'v5/position/set-risk-limit' => 2.5,
                         'v5/position/trading-stop' => 2.5,
+                        'v5/position/switch-isolated' => 2.5,
+                        'v5/position/switch-mode' => 2.5,
+                        'v5/position/set-auto-add-margin' => 2.5,
                         'v5/account/upgrade-to-uta' => 2.5,
                         'v5/account/set-margin-mode' => 2.5,
                         'v5/asset/transfer/inter-transfer' => 2.5,
@@ -2495,7 +2499,7 @@ class bybit extends Exchange {
         //
         //     {
         //         "symbol" => "AAVEUSDT",
-        //         "id" => "1274785101965716992",
+        //         "id" => "1274785101965716991",
         //         "orderId" => "1274784252359089664",
         //         "tradeId" => "2270000000031365639",
         //         "orderPrice" => "82.5",
@@ -7666,7 +7670,20 @@ class bybit extends Exchange {
 
     public function set_position_mode($hedged, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($hedged, $symbol, $params) {
+            /**
+             * set $hedged to true or false for a $market
+             * @see https://bybit-exchange.github.io/docs/v5/position/position-$mode
+             * @see https://bybit-exchange.github.io/docs/derivatives/contract/position-$mode
+             * @param {bool} $hedged
+             * @param {string|null} $symbol used for unified account with inverse $market
+             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @return {array} $response from the exchange
+             */
             Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
             $mode = null;
             if ($hedged) {
                 $mode = 3;
@@ -7679,10 +7696,24 @@ class bybit extends Exchange {
             if ($symbol === null) {
                 $request['coin'] = 'USDT';
             } else {
-                $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
+            $enableUnified = Async\await($this->is_unified_enabled());
+            $response = null;
+            if ($enableUnified[1] || $enableUnified[0]) {
+                if ($symbol !== null) {
+                    $request['category'] = $market['linear'] ? 'linear' : 'inverse';
+                } else {
+                    $subType = null;
+                    list($subType, $params) = $this->handle_sub_type_and_params('setPositionMode', $market, $params);
+                    $request['category'] = $subType;
+                }
+                $response = Async\await($this->privatePostV5PositionSwitchMode (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostContractV3PrivatePositionSwitchMode (array_merge($request, $params)));
+            }
             //
+            // contract v3
             //     {
             //         "ret_code" => 0,
             //         "ret_msg" => "ok",
@@ -7695,7 +7726,15 @@ class bybit extends Exchange {
             //         "rate_limit" => 75
             //     }
             //
-            return Async\await($this->privatePostContractV3PrivatePositionSwitchMode (array_merge($request, $params)));
+            // v5
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "OK",
+            //         "result" => array(),
+            //         "retExtInfo" => array(),
+            //         "time" => 1675249072814
+            //     }
+            return $response;
         }) ();
     }
 
@@ -7751,9 +7790,15 @@ class bybit extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
+            $data = $this->safe_value($result, 'list', array());
+            $paginationCursor = $this->safe_string($result, 'nextPageCursor');
+            if (($paginationCursor !== null) && (strlen($data) > 0)) {
+                $first = $data[0];
+                $first['nextPageCursor'] = $paginationCursor;
+                $data[0] = $first;
+            }
             $id = $this->safe_string($result, 'symbol');
             $market = $this->safe_market($id, $market, null, 'contract');
-            $data = $this->safe_value($result, 'list', array());
             return $this->parse_open_interests($data, $market, $since, $limit);
         }) ();
     }

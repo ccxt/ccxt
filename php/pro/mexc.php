@@ -49,7 +49,7 @@ class mexc extends \ccxt\async\mexc {
                     '1M' => 'Month1',
                 ),
                 'watchOrderBook' => array(
-                    'snapshotDelay' => 5,
+                    'snapshotDelay' => 25,
                     'maxRetries' => 3,
                 ),
                 'listenKey' => null,
@@ -165,7 +165,7 @@ class mexc extends \ccxt\async\mexc {
 
     public function watch_spot_private($channel, $messageHash, $params = array ()) {
         return Async\async(function () use ($channel, $messageHash, $params) {
-            Async\await($this->check_required_credentials());
+            $this->check_required_credentials();
             $listenKey = Async\await($this->authenticate($channel));
             $url = $this->urls['api']['ws']['spot'] . '?$listenKey=' . $listenKey;
             $request = array(
@@ -474,7 +474,7 @@ class mexc extends \ccxt\async\mexc {
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
         if ($nonce === null) {
             $cacheLength = count($storedOrderBook->cache);
-            $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 5);
+            $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 25);
             if ($cacheLength === $snapshotDelay) {
                 $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol);
             }
