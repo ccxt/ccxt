@@ -343,7 +343,7 @@ export default class coinex extends Exchange {
                     'id': currencyId,
                     'numericId': undefined,
                     'code': code,
-                    'info': [],
+                    'info': undefined,
                     'name': undefined,
                     'active': canDeposit && canWithdraw,
                     'deposit': canDeposit,
@@ -417,7 +417,9 @@ export default class coinex extends Exchange {
             result[code]['active'] = depositAvailable && withdrawAvailable;
             result[code]['deposit'] = depositAvailable;
             result[code]['withdraw'] = withdrawAvailable;
-            result[code]['info'].push (currency);
+            let info = this.safeValue (result[code], 'info', []);
+            info.push (currency);
+            result[code]['info'] = info;
             result[code]['fee'] = this.parseNumber (minFeeString);
             result[code]['precision'] = this.parseNumber (minPrecisionString);
             result[code]['limits']['deposit']['min'] = this.parseNumber (minDepositString);
