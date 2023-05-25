@@ -1195,8 +1195,8 @@ export default class cryptocom extends Exchange {
         const postOnly = this.safeValue (params, 'postOnly', false);
         if (postOnly) {
             request['exec_inst'] = 'POST_ONLY';
-            params = this.omit (params, [ 'postOnly' ]);
         }
+        params = this.omit (params, [ 'postOnly', 'clientOrderId' ]);
         const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         let method = this.getSupportedMapping (marketType, {
             'spot': 'v2PrivatePostPrivateCreateOrder',
