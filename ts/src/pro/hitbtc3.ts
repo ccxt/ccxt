@@ -454,6 +454,34 @@ export default class hitbtc3 extends hitbtc3Rest {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
     }
 
+    parseWsTrade (trade, market = undefined) {
+        //
+        //    {
+        //        "t": 1626861123552,       // Timestamp in milliseconds
+        //        "i": 1555634969,          // Trade identifier
+        //        "p": "30877.68",          // Price
+        //        "q": "0.00006",           // Quantity
+        //        "s": "sell"               // Side
+        //    }
+        //
+        const timestamp = this.safeInteger (trade, 't');
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeString (trade, 'i'),
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': undefined,
+            'type': undefined,
+            'side': this.safeString (trade, 'side'),
+            'takerOrMaker': undefined,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'q'),
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
+    }
+
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
