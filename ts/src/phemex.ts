@@ -3996,10 +3996,10 @@ export default class phemex extends Exchange {
             if (!isHedged && longLeverageRr === undefined && shortLeverageRr === undefined) {
                 request['leverageRr'] = leverage;
             } else {
-                const long = (longLeverageRr !== undefined) ? longLeverageRr : leverage;
-                const short = (shortLeverageRr !== undefined) ? shortLeverageRr : leverage;
-                request['longLeverageRr'] = long;
-                request['shortLeverageRr'] = short;
+                const longVar = (longLeverageRr !== undefined) ? longLeverageRr : leverage;
+                const shortVar = (shortLeverageRr !== undefined) ? shortLeverageRr : leverage;
+                request['longLeverageRr'] = longVar;
+                request['shortLeverageRr'] = shortVar;
             }
             response = await this.privatePutGPositionsLeverage (this.extend (request, params));
         } else {
