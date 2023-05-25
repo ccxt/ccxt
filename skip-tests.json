@@ -1110,6 +1110,9 @@
             "loadMarkets": "linear & inverse must not be same",
             "fetchCurrencies": {
                 "info": "null"
+            },
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume <= baseVolume * high is failing"
             }
         }
     },
