@@ -801,44 +801,46 @@ export default class poloniex extends poloniexRest {
         //    }
         //
         const data = this.safeValue (message, 'data', []);
-        const item = this.safeValue (data, 0, {});
         const type = this.safeString (message, 'action');
-        const marketId = this.safeString (item, 'symbol');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        const name = 'book_lv2';
-        const messageHash = name + ':' + marketId;
-        const subscription = this.safeValue (client.subscriptions, messageHash, {});
-        const limit = this.safeInteger (subscription, 'limit');
-        const timestamp = this.safeInteger (item, 'ts');
-        const asks = this.safeValue (item, 'asks');
-        const bids = this.safeValue (item, 'bids');
         const snapshot = type === 'snapshot';
         const update = type === 'update';
-        if (snapshot || update) {
-            if (snapshot) {
-                this.orderbooks[symbol] = this.orderBook ({}, limit);
-            }
-            const orderbook = this.orderbooks[symbol];
-            if (bids !== undefined) {
-                for (let i = 0; i < bids.length; i++) {
-                    const bid = this.safeValue (bids, i);
-                    const price = this.safeNumber (bid, 0);
-                    const amount = this.safeNumber (bid, 1);
-                    orderbook['bids'].store (price, amount);
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            const marketId = this.safeString (item, 'symbol');
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            const name = 'book_lv2';
+            const messageHash = name + ':' + marketId;
+            const subscription = this.safeValue (client.subscriptions, messageHash, {});
+            const limit = this.safeInteger (subscription, 'limit');
+            const timestamp = this.safeInteger (item, 'ts');
+            const asks = this.safeValue (item, 'asks');
+            const bids = this.safeValue (item, 'bids');
+            if (snapshot || update) {
+                if (snapshot) {
+                    this.orderbooks[symbol] = this.orderBook ({}, limit);
                 }
-            }
-            if (asks !== undefined) {
-                for (let i = 0; i < asks.length; i++) {
-                    const ask = this.safeValue (asks, i);
-                    const price = this.safeNumber (ask, 0);
-                    const amount = this.safeNumber (ask, 1);
-                    orderbook['asks'].store (price, amount);
+                const orderbook = this.orderbooks[symbol];
+                if (bids !== undefined) {
+                    for (let i = 0; i < bids.length; i++) {
+                        const bid = this.safeValue (bids, i);
+                        const price = this.safeNumber (bid, 0);
+                        const amount = this.safeNumber (bid, 1);
+                        orderbook['bids'].store (price, amount);
+                    }
                 }
+                if (asks !== undefined) {
+                    for (let i = 0; i < asks.length; i++) {
+                        const ask = this.safeValue (asks, i);
+                        const price = this.safeNumber (ask, 0);
+                        const amount = this.safeNumber (ask, 1);
+                        orderbook['asks'].store (price, amount);
+                    }
+                }
+                orderbook['timestamp'] = timestamp;
+                orderbook['datetime'] = this.iso8601 (timestamp);
+                client.resolve (orderbook, messageHash);
             }
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601 (timestamp);
-            client.resolve (orderbook, messageHash);
         }
     }
 
