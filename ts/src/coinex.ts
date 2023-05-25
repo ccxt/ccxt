@@ -417,7 +417,7 @@ export default class coinex extends Exchange {
             result[code]['active'] = depositAvailable && withdrawAvailable;
             result[code]['deposit'] = depositAvailable;
             result[code]['withdraw'] = withdrawAvailable;
-            let info = this.safeValue (result[code], 'info', []);
+            const info = this.safeValue (result[code], 'info', []);
             info.push (currency);
             result[code]['info'] = info;
             result[code]['fee'] = this.parseNumber (minFeeString);
