@@ -56,7 +56,7 @@ export default class poloniex extends poloniexRest {
                     'candles_week_1': '1w',
                     'candles_month_1': '1m',
                 },
-                'ohlcvChannels': {
+                'timeframes': {
                     '1m': 'candles_minute_1',
                     '5m': 'candles_minute_5',
                     '10m': 'candles_minute_10',
@@ -192,8 +192,7 @@ export default class poloniex extends poloniexRest {
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns [[int]] A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        const channels = this.options['ohlcvChannels'];
-        const channel = this.safeString (channels, timeframe);
+        const channel = this.safeString (this.timeframes, timeframe, timeframe);
         if (channel === undefined) {
             throw new BadRequest (this.id + ' watchOHLCV cannot take a timeframe of ' + timeframe);
         }
@@ -364,7 +363,7 @@ export default class poloniex extends poloniexRest {
         const marketId = this.safeString (data, 'symbol');
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (symbol);
-        const timeframe = this.options['channelToTimeframe'][channel];
+        const timeframe = this.safeString (this.options['channelToTimeframe'], channel);
         const messageHash = channel + ':' + marketId;
         const parsed = this.parseWsOHLCV (data, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
