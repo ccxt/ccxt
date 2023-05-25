@@ -289,6 +289,9 @@ export default class poloniex extends poloniexRest {
         await this.loadMarkets ();
         const name = 'orders';
         await this.authenticate ();
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+        }
         const symbols = (symbol === undefined) ? undefined : [ symbol ];
         const orders = await this.subscribe (name, true, symbols, params);
         if (this.newUpdates) {
