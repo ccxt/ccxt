@@ -1643,9 +1643,13 @@ export default class bybit extends Exchange {
             } else if (option) {
                 type = 'option';
             }
-            let expiry = this.omitZero (this.safeString (market, 'deliveryTime'));
-            if (expiry !== undefined) {
-                expiry = parseInt (expiry);
+            let expiry = undefined;
+            // some swaps have deliveryTime meaning delisting time
+            if (!swap) {
+                expiry = this.omitZero (this.safeString (market, 'deliveryTime'));
+                if (expiry !== undefined) {
+                    expiry = parseInt (expiry);
+                }
             }
             const expiryDatetime = this.iso8601 (expiry);
             let strike = undefined;
