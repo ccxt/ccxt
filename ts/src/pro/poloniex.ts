@@ -147,7 +147,6 @@ export default class poloniex extends poloniexRest {
          * @param {object} params extra parameters specific to the poloniex api
          * @returns {object} data from the websocket stream
          */
-        await this.loadMarkets ();
         const publicOrPrivate = isPrivate ? 'private' : 'public';
         const url = this.urls['api']['ws'][publicOrPrivate];
         const subscribe = {
@@ -192,6 +191,7 @@ export default class poloniex extends poloniexRest {
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns [[int]] A list of candles ordered as timestamp, open, high, low, close, volume
          */
+        await this.loadMarkets ();
         const channel = this.safeString (this.timeframes, timeframe, timeframe);
         if (channel === undefined) {
             throw new BadRequest (this.id + ' watchOHLCV cannot take a timeframe of ' + timeframe);
@@ -213,6 +213,7 @@ export default class poloniex extends poloniexRest {
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
+        await this.loadMarkets ();
         const name = 'ticker';
         return await this.subscribe (name, false, [ symbol ], params);
     }
@@ -227,6 +228,7 @@ export default class poloniex extends poloniexRest {
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
+        await this.loadMarkets ();
         const name = 'ticker';
         return await this.subscribe (name, false, symbols, params);
     }
@@ -263,6 +265,7 @@ export default class poloniex extends poloniexRest {
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
+        await this.loadMarkets ();
         let name = this.safeString (this.options.watchOrderBook, 'name', 'book_lv2');
         [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
         const orderbook = await this.subscribe (name, false, [ symbol ], params);
