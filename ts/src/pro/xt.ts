@@ -1060,4 +1060,20 @@ export default class xt extends xtRest {
         client.lastPong = this.milliseconds ();
         return 'ping';
     }
+
+    handleErrorMessage (client: Client, message) {
+        //
+        //    {
+        //        "id": "123",
+        //        "code": 401,
+        //        "msg": "token expire"
+        //    }
+        //
+        const msg = this.safeString (message, 'msg');
+        if ((msg === 'invalid_listen_key') || (msg === 'token expire')) {
+            client.subscriptions['accessToken'] = undefined;
+            this.getListenKey (true);
+        }
+        client.reject (message);
+    }
 }
