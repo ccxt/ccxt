@@ -378,7 +378,7 @@ export default class poloniex extends poloniexRest {
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (symbol !== undefined) {
             if (stored === undefined) {
-                const limit = this.safeInteger (this.options, 'OHLCVLimit');
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
