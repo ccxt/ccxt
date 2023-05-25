@@ -2613,7 +2613,7 @@ export default class huobi extends Exchange {
         params = this.omit (params, 'price');
         let method = 'spotPublicGetMarketHistoryCandles';
         if (market['spot']) {
-            if (timeframe === '1M' || timeframe === '1Y') {
+            if (timeframe === '1M' || timeframe === '1y') {
                 // for some reason 1M and 1Y does not work with the regular endpoint
                 // https://github.com/ccxt/ccxt/issues/18006
                 method = 'spotPublicGetMarketHistoryKline';
