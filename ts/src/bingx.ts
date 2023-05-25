@@ -2188,7 +2188,7 @@ export default class bingx extends Exchange {
         }
         const request = {
             'symbol': market['id'],
-            'marginMode': marginMode,
+            'marginType': marginMode,
         };
         return await this.swapV2PrivatePostTradeMarginType (this.extend (request, params));
     }
