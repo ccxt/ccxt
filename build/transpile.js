@@ -254,6 +254,7 @@ class Transpiler {
             [ /\.isTickPrecision\s/g, '.is_tick_precision'],
             [ /\.isDecimalPrecision\s/g, '.is_decimal_precision'],
             [ /\.isSignificantPrecision\s/g, '.is_significant_precision'],
+            [ /\.filterByLimit\s/g, '.filter_by_limit'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
