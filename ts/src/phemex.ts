@@ -1111,32 +1111,34 @@ export default class phemex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const userLimit = limit;
         const request = {
             'symbol': market['id'],
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
-            // 'from': 1588830682, // seconds
-            // 'to': this.seconds (),
         };
-        const duration = this.parseTimeframe (timeframe);
-        const now = this.seconds ();
         const possibleLimitValues = [ 5, 10, 50, 100, 500, 1000 ];
-        const maxLimit = 1000; // maximum limit, we shouldn't sent request of more than it
-        if (limit === undefined) {
-            limit = 100; // set default, as exchange doesn't have any defaults and needs something to be set
+        const maxLimit = 1000;
+        if (limit === undefined && since === undefined) {
+            limit = possibleLimitValues[0];
         }
-        limit = Math.min (limit, maxLimit);
-        if (since !== undefined) { // phemex also provides kline query with from/to, however, this interface is NOT recommended.
-            since = this.parseToInt (since / 1000);
-            request['from'] = since;
-            // time ranges ending in the future are not accepted
-            // https://github.com/ccxt/ccxt/issues/8050
-            request['to'] = Math.min (now, this.sum (since, duration * limit));
+        if (since !== undefined) {
+            // phemex also provides kline query with from/to, however, this interface is NOT recommended and does not work properly.
+            // we do not send since param to the exchange, instead we calculate appropriate limit param
+            const duration = this.parseTimeframe (timeframe) * 1000;
+            const timeDelta = this.milliseconds () - since;
+            limit = this.parseToInt (timeDelta / duration); // setting limit to the number of candles after since
+        }
+        if (limit > maxLimit) {
+            limit = maxLimit;
         } else {
-            if (!this.inArray (limit, possibleLimitValues)) {
-                limit = 100;
+            for (let i = 0; i < possibleLimitValues.length; i++) {
+                if (limit <= possibleLimitValues[i]) {
+                    limit = possibleLimitValues[i];
+                    break;
+                }
             }
-            request['limit'] = limit;
         }
+        request['limit'] = limit;
         let method = 'publicGetMdV2Kline';
         if (market['linear'] || market['settle'] === 'USDT') {
             method = 'publicGetMdV2KlineLast';
@@ -1158,7 +1160,7 @@ export default class phemex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const rows = this.safeValue (data, 'rows', []);
-        return this.parseOHLCVs (rows, market, timeframe, since, limit);
+        return this.parseOHLCVs (rows, market, timeframe, since, userLimit);
     }
 
     parseTicker (ticker, market = undefined) {
