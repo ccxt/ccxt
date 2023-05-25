@@ -486,9 +486,8 @@ class woo(ccxt.async_support.woo):
         market = self.market(marketId)
         symbol = market['symbol']
         timestamp = self.safe_integer(order, 'timestamp')
-        cost = self.safe_string(order, 'totalFee')
         fee = {
-            'cost': cost,
+            'cost': self.safe_string(order, 'totalFee'),
             'currency': self.safe_string(order, 'feeAsset'),
         }
         price = self.safe_number(order, 'price')
@@ -523,7 +522,7 @@ class woo(ccxt.async_support.woo):
             'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': None,
             'filled': filled,
             'remaining': remaining,

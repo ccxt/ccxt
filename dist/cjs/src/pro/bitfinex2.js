@@ -1040,7 +1040,7 @@ class bitfinex2 extends bitfinex2$1 {
         const trimmedStatus = this.safeString(stateParts, 0);
         const status = this.parseWsOrderStatus(trimmedStatus);
         const price = this.safeString(order, 16);
-        const timestamp = this.safeInteger(order, 4);
+        const timestamp = this.safeInteger2(order, 5, 4);
         const average = this.safeString(order, 17);
         const stopPrice = this.omitZero(this.safeString(order, 18));
         return this.safeOrder({
