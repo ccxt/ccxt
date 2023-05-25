@@ -40,22 +40,6 @@ export default class poloniex extends poloniexRest {
                 },
                 'connectionsLimit': 2000, // 2000 public, 2000 private, 4000 total, only for subscribe events, unsubscribe not restricted
                 'requestsLimit': 500, // per second, only for subscribe events, unsubscribe not restricted
-                'channelToTimeframe': {
-                    'candles_minute_1': '1m',
-                    'candles_minute_5': '5m',
-                    'candles_minute_10': '10m',
-                    'candles_minute_15': '15m',
-                    'candles_minute_30': '30m',
-                    'candles_hour_1': '1h',
-                    'candles_hour_2': '2h',
-                    'candles_hour_4': '4h',
-                    'candles_hour_6': '6h',
-                    'candles_hour_12': '12h',
-                    'candles_day_1': '1d',
-                    'candles_day_3': '3d',
-                    'candles_week_1': '1w',
-                    'candles_month_1': '1m',
-                },
                 'timeframes': {
                     '1m': 'candles_minute_1',
                     '5m': 'candles_minute_5',
@@ -371,7 +355,7 @@ export default class poloniex extends poloniexRest {
         const marketId = this.safeString (data, 'symbol');
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (symbol);
-        const timeframe = this.safeString (this.options['channelToTimeframe'], channel);
+        const timeframe = this.findTimeframe (channel);
         const messageHash = channel + ':' + symbol;
         const parsed = this.parseWsOHLCV (data, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
