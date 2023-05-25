@@ -1358,6 +1358,18 @@ export default class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    findMessageHashes (client, element: string): string[] {
+        const result = [];
+        const messageHashes = Object.keys (client.futures);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            if (messageHash.indexOf (element) >= 0) {
+                result.push (messageHash);
+            }
+        }
+        return result;
+    }
+
     filterByLimit (array: object[], limit: Int = undefined, key: IndexType = 'timestamp'): any {
         if (this.valueIsDefined (limit)) {
             const arrayLength = array.length;
