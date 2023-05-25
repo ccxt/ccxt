@@ -1186,7 +1186,7 @@ export default class cryptocom extends Exchange {
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const broker = this.safeValue (this.options, 'broker');
+        const broker = this.safeString (this.options, 'broker', 'CCXT_');
         let clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId === undefined) {
             clientOrderId = broker + this.uuid22 ();
