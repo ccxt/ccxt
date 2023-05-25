@@ -6234,6 +6234,9 @@ export default class okx extends Exchange {
         const market = (symbol === undefined) ? undefined : this.market (symbol);
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
+        if (type !== 'future' && type !== 'option') {
+            throw new NotSupported (this.id + ' fetchSettlementHistory() supports futures and options markets only');
+        }
         const request = {
             'instType': this.convertToInstrumentType (type),
             'uly': market['baseId'] + '-' + market['quoteId'],
