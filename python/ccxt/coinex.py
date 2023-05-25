@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.coinex import ImplicitAPI
 from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
@@ -24,7 +25,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class coinex(Exchange):
+class coinex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(coinex, self).describe(), {
@@ -185,6 +186,7 @@ class coinex(Exchange):
                         'order/market/trade/info': 1,
                         'sub_account/balance': 1,
                         'sub_account/transfer/history': 40,
+                        'sub_account/auth/api': 40,
                         'sub_account/auth/api/{user_auth_id}': 40,
                     },
                     'post': {
@@ -323,7 +325,8 @@ class coinex(Exchange):
         #                  "can_withdraw": True,
         #                  "deposit_least_amount": "4.9",
         #                  "withdraw_least_amount": "4.9",
-        #                  "withdraw_tx_fee": "4.9"
+        #                  "withdraw_tx_fee": "4.9",
+        #                  "explorer_asset_url": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7"
         #             },
         #             ...
         #         },
@@ -339,18 +342,27 @@ class coinex(Exchange):
             currencyId = self.safe_string(currency, 'asset')
             networkId = self.safe_string(currency, 'chain')
             code = self.safe_currency_code(currencyId)
-            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'withdrawal_precision')))
+            precisionString = self.parse_precision(self.safe_string(currency, 'withdrawal_precision'))
+            precision = self.parse_number(precisionString)
+            canDeposit = self.safe_value(currency, 'can_deposit')
+            canWithdraw = self.safe_value(currency, 'can_withdraw')
+            feeString = self.safe_string(currency, 'withdraw_tx_fee')
+            fee = self.parse_number(feeString)
+            minNetworkDepositString = self.safe_string(currency, 'deposit_least_amount')
+            minNetworkDeposit = self.parse_number(minNetworkDepositString)
+            minNetworkWithdrawString = self.safe_string(currency, 'withdraw_least_amount')
+            minNetworkWithdraw = self.parse_number(minNetworkWithdrawString)
             if self.safe_value(result, code) is None:
                 result[code] = {
                     'id': currencyId,
                     'numericId': None,
                     'code': code,
-                    'info': currency,
+                    'info': None,
                     'name': None,
-                    'active': True,
-                    'deposit': self.safe_value(currency, 'can_deposit'),
-                    'withdraw': self.safe_value(currency, 'can_withdraw'),
-                    'fee': self.safe_number(currency, 'withdraw_tx_fee'),
+                    'active': canDeposit and canWithdraw,
+                    'deposit': canDeposit,
+                    'withdraw': canWithdraw,
+                    'fee': fee,
                     'precision': precision,
                     'limits': {
                         'amount': {
@@ -358,15 +370,31 @@ class coinex(Exchange):
                             'max': None,
                         },
                         'deposit': {
-                            'min': self.safe_number(currency, 'deposit_least_amount'),
+                            'min': minNetworkDeposit,
                             'max': None,
                         },
                         'withdraw': {
-                            'min': self.safe_number(currency, 'withdraw_least_amount'),
+                            'min': minNetworkWithdraw,
                             'max': None,
                         },
                     },
                 }
+            minFeeString = self.safe_string(result[code], 'fee')
+            if feeString is not None:
+                minFeeString = feeString if (minFeeString is None) else Precise.string_min(feeString, minFeeString)
+            depositAvailable = self.safe_value(result[code], 'deposit')
+            depositAvailable = canDeposit if (canDeposit) else depositAvailable
+            withdrawAvailable = self.safe_value(result[code], 'withdraw')
+            withdrawAvailable = canWithdraw if (canWithdraw) else withdrawAvailable
+            minDepositString = self.safe_string(result[code]['limits']['deposit'], 'min')
+            if minNetworkDepositString is not None:
+                minDepositString = minNetworkDepositString if (minDepositString is None) else Precise.string_min(minNetworkDepositString, minDepositString)
+            minWithdrawString = self.safe_string(result[code]['limits']['withdraw'], 'min')
+            if minNetworkWithdrawString is not None:
+                minWithdrawString = minNetworkWithdrawString if (minWithdrawString is None) else Precise.string_min(minNetworkWithdrawString, minWithdrawString)
+            minPrecisionString = self.safe_string(result[code], 'precision')
+            if precisionString is not None:
+                minPrecisionString = precisionString if (minPrecisionString is None) else Precise.string_min(precisionString, minPrecisionString)
             networks = self.safe_value(result[code], 'networks', {})
             network = {
                 'info': currency,
@@ -387,14 +415,24 @@ class coinex(Exchange):
                         'max': None,
                     },
                 },
-                'active': True,
-                'deposit': self.safe_value(currency, 'can_deposit'),
-                'withdraw': self.safe_value(currency, 'can_withdraw'),
-                'fee': self.safe_number(currency, 'withdraw_tx_fee'),
+                'active': canDeposit and canWithdraw,
+                'deposit': canDeposit,
+                'withdraw': canWithdraw,
+                'fee': fee,
                 'precision': precision,
             }
             networks[networkId] = network
             result[code]['networks'] = networks
+            result[code]['active'] = depositAvailable and withdrawAvailable
+            result[code]['deposit'] = depositAvailable
+            result[code]['withdraw'] = withdrawAvailable
+            info = self.safe_value(result[code], 'info', [])
+            info.append(currency)
+            result[code]['info'] = info
+            result[code]['fee'] = self.parse_number(minFeeString)
+            result[code]['precision'] = self.parse_number(minPrecisionString)
+            result[code]['limits']['deposit']['min'] = self.parse_number(minDepositString)
+            result[code]['limits']['withdraw']['min'] = self.parse_number(minWithdrawString)
         return result
 
     def fetch_markets(self, params={}):
@@ -814,12 +852,12 @@ class coinex(Exchange):
         result = {}
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            market = self.safe_market(marketId, None, None, marketType)
-            symbol = market['symbol']
+            marketInner = self.safe_market(marketId, None, None, marketType)
+            symbol = marketInner['symbol']
             ticker = self.parse_ticker({
                 'date': timestamp,
                 'ticker': tickers[marketId],
-            }, market)
+            }, marketInner)
             ticker['symbol'] = symbol
             result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
@@ -1095,7 +1133,7 @@ class coinex(Exchange):
         #      }
         #
         data = self.safe_value(response, 'data', {})
-        return self.parse_trading_fee(data)
+        return self.parse_trading_fee(data, market)
 
     def fetch_trading_fees(self, params={}):
         """
@@ -1677,6 +1715,12 @@ class coinex(Exchange):
     def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http017_put_limit
+        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http018_put_market
+        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http019_put_limit_stop
+        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http020_put_market_stop
+        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http031_market_close
+        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http030_limit_close
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1690,6 +1734,7 @@ class coinex(Exchange):
         :param str params['timeInForce']: "GTC", "IOC", "FOK", "PO"
         :param bool params.postOnly:
         :param bool params.reduceOnly:
+        :param bool|None params['position_id']: *required for reduce only orders* the position id to reduce
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1704,9 +1749,11 @@ class coinex(Exchange):
         positionId = self.safe_integer_2(params, 'position_id', 'positionId')  # Required for closing swap positions
         timeInForceRaw = self.safe_string(params, 'timeInForce')  # Spot: IOC, FOK, PO, GTC, ... NORMAL(default), MAKER_ONLY
         reduceOnly = self.safe_value(params, 'reduceOnly')
-        if reduceOnly is not None:
+        if reduceOnly:
             if market['type'] != 'swap':
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap markets only')
+            if positionId is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a position_id/positionId parameter for reduceOnly orders')
         method = None
         request = {
             'market': market['id'],
@@ -2578,7 +2625,7 @@ class coinex(Exchange):
         address = None
         tag = None
         partsLength = len(parts)
-        if partsLength > 1:
+        if partsLength > 1 and parts[0] != 'cfx':
             address = parts[0]
             tag = parts[1]
         else:
@@ -3463,10 +3510,10 @@ class coinex(Exchange):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             if marketId.find('_') == -1:  # skip _signprice and _indexprice
-                market = self.safe_market(marketId, None, None, 'swap')
+                marketInner = self.safe_market(marketId, None, None, 'swap')
                 ticker = tickers[marketId]
                 ticker['timestamp'] = timestamp
-                result.append(self.parse_funding_rate(ticker, market))
+                result.append(self.parse_funding_rate(ticker, marketInner))
         return self.filter_by_array(result, 'symbol', symbols)
 
     def withdraw(self, code: str, amount, address, tag=None, params={}):
@@ -3573,12 +3620,12 @@ class coinex(Exchange):
         for i in range(0, len(result)):
             entry = result[i]
             marketId = self.safe_string(entry, 'market')
-            symbol = self.safe_symbol(marketId)
+            symbolInner = self.safe_symbol(marketId, market, None, 'swap')
             timestamp = self.safe_timestamp(entry, 'time')
             rates.append({
                 'info': entry,
-                'symbol': symbol,
-                'fundingRate': self.safe_string(entry, 'funding_rate'),
+                'symbol': symbolInner,
+                'fundingRate': self.safe_number(entry, 'funding_rate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             })
@@ -4432,7 +4479,7 @@ class coinex(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         code = self.safe_string(response, 'code')
         data = self.safe_value(response, 'data')
         message = self.safe_string(response, 'message')
@@ -4454,3 +4501,4 @@ class coinex(Exchange):
             }
             ErrorClass = self.safe_value(responseCodes, code, ExchangeError)
             raise ErrorClass(response['message'])
+        return None

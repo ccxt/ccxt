@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.coinmate import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -18,7 +19,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class coinmate(Exchange):
+class coinmate(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(coinmate, self).describe(), {
@@ -457,38 +458,32 @@ class coinmate(Exchange):
         #     }
         #
         timestamp = self.safe_integer(transaction, 'timestamp')
-        amount = self.safe_number(transaction, 'amount')
-        fee = self.safe_number(transaction, 'fee')
-        txid = self.safe_string(transaction, 'txid')
-        address = self.safe_string(transaction, 'destination')
-        tag = self.safe_string(transaction, 'destinationTag')
         currencyId = self.safe_string(transaction, 'amountCurrency')
         code = self.safe_currency_code(currencyId, currency)
-        type = self.safe_string_lower(transaction, 'transferType')
-        status = self.parse_transaction_status(self.safe_string(transaction, 'transferStatus'))
-        id = self.safe_string_2(transaction, 'transactionId', 'id')
-        network = self.safe_string(transaction, 'walletType')
         return {
-            'id': id,
+            'info': transaction,
+            'id': self.safe_string_2(transaction, 'transactionId', 'id'),
+            'txid': self.safe_string(transaction, 'txid'),
+            'type': self.safe_string_lower(transaction, 'transferType'),
+            'currency': code,
+            'network': self.safe_string(transaction, 'walletType'),
+            'amount': self.safe_number(transaction, 'amount'),
+            'status': self.parse_transaction_status(self.safe_string(transaction, 'transferStatus')),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'currency': code,
-            'amount': amount,
-            'type': type,
-            'txid': txid,
-            'network': network,
-            'address': address,
-            'addressTo': None,
+            'address': self.safe_string(transaction, 'destination'),
             'addressFrom': None,
-            'tag': tag,
-            'tagTo': None,
+            'addressTo': None,
+            'tag': self.safe_string(transaction, 'destinationTag'),
             'tagFrom': None,
-            'status': status,
+            'tagTo': None,
+            'updated': None,
+            'comment': None,
             'fee': {
-                'cost': fee,
+                'cost': self.safe_number(transaction, 'fee'),
                 'currency': code,
+                'rate': None,
             },
-            'info': transaction,
         }
 
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
@@ -934,3 +929,4 @@ class coinmate(Exchange):
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
                 raise ExchangeError(feedback)  # unknown message
             raise ExchangeError(self.id + ' ' + body)
+        return None

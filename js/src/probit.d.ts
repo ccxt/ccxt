@@ -91,5 +91,5 @@ export default class probit extends Exchange {
         headers: any;
     };
     signIn(params?: {}): Promise<any>;
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

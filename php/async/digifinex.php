@@ -535,7 +535,10 @@ class digifinex extends Exchange {
              */
             $options = $this->safe_value($this->options, 'fetchMarkets', array());
             $method = $this->safe_string($options, 'method', 'fetch_markets_v2');
-            return Async\await($this->$method ($params));
+            if ($method === 'fetch_markets_v2') {
+                return Async\await($this->fetch_markets_v2($params));
+            }
+            return Async\await($this->fetch_markets_v1($params));
         }) ();
     }
 
@@ -3030,7 +3033,7 @@ class digifinex extends Exchange {
             'estimatedSettlePrice' => null,
             'timestamp' => null,
             'datetime' => null,
-            'fundingRate' => $this->safe_string($contract, 'funding_rate'),
+            'fundingRate' => $this->safe_number($contract, 'funding_rate'),
             'fundingTimestamp' => $timestamp,
             'fundingDatetime' => $this->iso8601($timestamp),
             'nextFundingRate' => $this->safe_string($contract, 'next_funding_rate'),
@@ -3089,12 +3092,12 @@ class digifinex extends Exchange {
             for ($i = 0; $i < count($result); $i++) {
                 $entry = $result[$i];
                 $marketId = $this->safe_string($data, 'instrument_id');
-                $symbol = $this->safe_symbol($marketId);
+                $symbolInner = $this->safe_symbol($marketId);
                 $timestamp = $this->safe_integer($entry, 'time');
                 $rates[] = array(
                     'info' => $entry,
-                    'symbol' => $symbol,
-                    'fundingRate' => $this->safe_string($entry, 'rate'),
+                    'symbol' => $symbolInner,
+                    'fundingRate' => $this->safe_number($entry, 'rate'),
                     'timestamp' => $timestamp,
                     'datetime' => $this->iso8601($timestamp),
                 );
@@ -3920,11 +3923,11 @@ class digifinex extends Exchange {
 
     public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
         if (!$response) {
-            return; // fall back to default error handler
+            return null; // fall back to default error handler
         }
         $code = $this->safe_string($response, 'code');
         if (($code === '0') || ($code === '200')) {
-            return; // no error
+            return null; // no error
         }
         $feedback = $this->id . ' ' . $responseBody;
         if ($code === null) {

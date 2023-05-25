@@ -150,6 +150,7 @@ export default class zaif extends Exchange {
         /**
          * @method
          * @name zaif#fetchMarkets
+         * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id12
          * @description retrieves data on all markets for zaif
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
@@ -269,6 +270,7 @@ export default class zaif extends Exchange {
         /**
          * @method
          * @name zaif#fetchBalance
+         * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id10
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} params extra parameters specific to the zaif api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
@@ -281,6 +283,7 @@ export default class zaif extends Exchange {
         /**
          * @method
          * @name zaif#fetchOrderBook
+         * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id34
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
@@ -340,6 +343,7 @@ export default class zaif extends Exchange {
         /**
          * @method
          * @name zaif#fetchTicker
+         * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id22
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the zaif api endpoint
@@ -405,6 +409,7 @@ export default class zaif extends Exchange {
         /**
          * @method
          * @name zaif#fetchTrades
+         * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id28
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
@@ -443,6 +448,7 @@ export default class zaif extends Exchange {
         /**
          * @method
          * @name zaif#createOrder
+         * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type must be 'limit'
@@ -473,6 +479,7 @@ export default class zaif extends Exchange {
         /**
          * @method
          * @name zaif#cancelOrder
+         * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id37
          * @description cancels an open order
          * @param {string} id order id
          * @param {string|undefined} symbol not used by zaif cancelOrder ()
@@ -532,6 +539,7 @@ export default class zaif extends Exchange {
         /**
          * @method
          * @name zaif#fetchOpenOrders
+         * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id28
          * @description fetch all unfilled currently open orders
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
@@ -556,6 +564,7 @@ export default class zaif extends Exchange {
         /**
          * @method
          * @name zaif#fetchClosedOrders
+         * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id24
          * @description fetches information on multiple closed orders made by the user
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
@@ -586,6 +595,7 @@ export default class zaif extends Exchange {
         /**
          * @method
          * @name zaif#withdraw
+         * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
          * @description make a withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
@@ -715,7 +725,7 @@ export default class zaif extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //     {"error": "unsupported currency_pair"}
@@ -731,5 +741,6 @@ export default class zaif extends Exchange {
         if (!success) {
             throw new ExchangeError(feedback);
         }
+        return undefined;
     }
 }

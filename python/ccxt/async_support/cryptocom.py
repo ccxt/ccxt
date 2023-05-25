@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.cryptocom import ImplicitAPI
 import asyncio
 import hashlib
 from ccxt.base.types import OrderSide
@@ -26,7 +27,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class cryptocom(Exchange):
+class cryptocom(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(cryptocom, self).describe(), {
@@ -823,6 +824,8 @@ class cryptocom(Exchange):
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://exchange-docs.crypto.com/derivatives/index.html#public-get-candlestick
+        see https://exchange-docs.crypto.com/spot/index.html#public-get-candlestick
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -837,18 +840,22 @@ class cryptocom(Exchange):
             'instrument_name': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        marketType, query = self.handle_market_type_and_params('fetchOHLCV', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'v2PublicGetPublicGetCandlestick',
-            'future': 'derivativesPublicGetPublicGetCandlestick',
-            'swap': 'derivativesPublicGetPublicGetCandlestick',
-        })
-        if marketType != 'spot':
+        if not market['spot']:
             reqLimit = 100
             if limit is not None:
                 reqLimit = limit
             request['count'] = reqLimit
-        response = await getattr(self, method)(self.extend(request, query))
+        if since is not None:
+            request['start_ts'] = since
+        until = self.safe_integer_2(params, 'until', 'till')
+        params = self.omit(params, ['until', 'till'])
+        if until is not None:
+            request['end_ts'] = until
+        response = None
+        if market['spot']:
+            response = await self.v2PublicGetPublicGetCandlestick(self.extend(request, params))
+        elif market['contract']:
+            response = await self.derivativesPublicGetPublicGetCandlestick(self.extend(request, params))
         # {
         #     "code":0,
         #     "method":"public/get-candlestick",
@@ -2400,7 +2407,8 @@ class cryptocom(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        type, access = api
+        type = self.safe_string(api, 0)
+        access = self.safe_string(api, 1)
         url = self.urls['api'][type] + '/' + path
         query = self.omit(params, self.extract_params(path))
         if access == 'public':
@@ -2446,3 +2454,4 @@ class cryptocom(Exchange):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             raise ExchangeError(self.id + ' ' + body)
+        return None

@@ -366,7 +366,8 @@ class timex extends timex$1 {
         //         }
         //     ]
         //
-        return this.parseTransactions(response, code, since, limit);
+        const currency = this.safeCurrency(code);
+        return this.parseTransactions(response, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -400,7 +401,8 @@ class timex extends timex$1 {
         //         }
         //     ]
         //
-        return this.parseTransactions(response, code, since, limit);
+        const currency = this.safeCurrency(code);
+        return this.parseTransactions(response, currency, since, limit);
     }
     getCurrencyByAddress(address) {
         const currencies = this.currencies;
@@ -1311,6 +1313,7 @@ class timex extends timex$1 {
                 'withdraw': { 'min': fee, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
             },
+            'networks': {},
         };
     }
     parseTicker(ticker, market = undefined) {
@@ -1529,7 +1532,7 @@ class timex extends timex$1 {
     }
     handleErrors(statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (statusCode >= 400) {
             //
@@ -1548,6 +1551,7 @@ class timex extends timex$1 {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
 }
 

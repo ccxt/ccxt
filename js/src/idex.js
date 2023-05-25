@@ -20,9 +20,7 @@ export default class idex extends Exchange {
             'id': 'idex',
             'name': 'IDEX',
             'countries': ['US'],
-            // public data endpoints 5 requests a second => 1000ms / 5 = 200ms between requests roughly (without Authentication)
-            // all endpoints 10 requests a second => (1000ms / rateLimit) / 10 => 1 / 2 (with Authentication)
-            'rateLimit': 200,
+            'rateLimit': 1000,
             'version': 'v3',
             'pro': true,
             'certified': false,
@@ -132,20 +130,20 @@ export default class idex extends Exchange {
                         'user': 1,
                         'wallets': 1,
                         'balances': 1,
-                        'orders': 1,
-                        'fills': 1,
+                        'orders': 0.1,
+                        'fills': 0.1,
                         'deposits': 1,
                         'withdrawals': 1,
                         'wsToken': 1,
                     },
                     'post': {
                         'wallets': 1,
-                        'orders': 1,
-                        'orders/test': 1,
+                        'orders': 0.1,
+                        'orders/test': 0.1,
                         'withdrawals': 1,
                     },
                     'delete': {
-                        'orders': 1,
+                        'orders': 0.1,
                     },
                 },
             },
@@ -1467,6 +1465,7 @@ export default class idex extends Exchange {
         if (errorCode !== undefined) {
             throw new ExchangeError(this.id + ' ' + message);
         }
+        return undefined;
     }
     async fetchDeposit(id, code = undefined, params = {}) {
         /**
@@ -1502,7 +1501,7 @@ export default class idex extends Exchange {
         params = this.extend({
             'method': 'privateGetDeposits',
         }, params);
-        return this.fetchTransactionsHelper(code, since, limit, params);
+        return await this.fetchTransactionsHelper(code, since, limit, params);
     }
     async fetchTime(params = {}) {
         /**
@@ -1552,7 +1551,7 @@ export default class idex extends Exchange {
         params = this.extend({
             'method': 'privateGetWithdrawals',
         }, params);
-        return this.fetchTransactionsHelper(code, since, limit, params);
+        return await this.fetchTransactionsHelper(code, since, limit, params);
     }
     async fetchTransactionsHelper(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1676,7 +1675,7 @@ export default class idex extends Exchange {
             'fee': fee,
         };
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
         const hasApiKey = (this.apiKey !== undefined);
         const hasSecret = (this.secret !== undefined);
         const hasWalletAddress = (this.walletAddress !== undefined);

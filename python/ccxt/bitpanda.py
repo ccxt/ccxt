@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitpanda import ImplicitAPI
 from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
@@ -22,7 +23,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bitpanda(Exchange):
+class bitpanda(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitpanda, self).describe(), {
@@ -31,6 +32,7 @@ class bitpanda(Exchange):
             'countries': ['AT'],  # Austria
             'rateLimit': 300,
             'version': 'v1',
+            'pro': True,
             # new metainfo interface
             'has': {
                 'CORS': None,
@@ -351,6 +353,7 @@ class bitpanda(Exchange):
                     'amount': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
                 },
+                'networks': {},
             }
         return result
 
@@ -1877,7 +1880,7 @@ class bitpanda(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         #     {"error":"MISSING_FROM_PARAM"}
         #     {"error":"MISSING_TO_PARAM"}
@@ -1889,3 +1892,4 @@ class bitpanda(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

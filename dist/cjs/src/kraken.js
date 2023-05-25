@@ -580,6 +580,7 @@ class kraken extends kraken$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -2477,7 +2478,7 @@ class kraken extends kraken$1 {
             throw new errors.RateLimitExceeded(this.id + ' ' + body);
         }
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (body[0] === '{') {
             if (typeof response !== 'string') {
@@ -2494,6 +2495,7 @@ class kraken extends kraken$1 {
                 }
             }
         }
+        return undefined;
     }
 }
 

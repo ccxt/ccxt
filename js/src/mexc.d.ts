@@ -1,5 +1,5 @@
 import Exchange from './abstract/mexc.js';
-import { Int, OrderSide } from './base/types.js';
+import { IndexType, Int, OrderSide } from './base/types.js';
 export default class mexc extends Exchange {
     describe(): any;
     fetchStatus(params?: {}): Promise<{
@@ -16,6 +16,7 @@ export default class mexc extends Exchange {
     fetchSpotMarkets(params?: {}): Promise<any[]>;
     fetchSwapMarkets(params?: {}): Promise<any[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    parseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countKey?: IndexType): number[];
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     syntheticTradeId(market?: any, timestamp?: any, side?: any, amount?: any, price?: any, orderType?: any, takerOrMaker?: any): string;
@@ -109,6 +110,13 @@ export default class mexc extends Exchange {
         info: any;
     };
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<any[]>;
+    createDepositAddress(code: string, params?: {}): Promise<{
+        info: any;
+        currency: string;
+        network: string;
+        address: string;
+        tag: string;
+    }>;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -218,5 +226,5 @@ export default class mexc extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

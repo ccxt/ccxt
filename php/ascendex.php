@@ -199,6 +199,11 @@ class ascendex extends Exchange {
                         ),
                     ),
                     'private' => array(
+                        'data' => array(
+                            'get' => array(
+                                'order/hist' => 1,
+                            ),
+                        ),
                         'get' => array(
                             'account/info' => 1,
                         ),
@@ -246,7 +251,7 @@ class ascendex extends Exchange {
                 'account-category' => 'cash', // 'cash', 'margin', 'futures' // obsolete
                 'account-group' => null,
                 'fetchClosedOrders' => array(
-                    'method' => 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
+                    'method' => 'v2PrivateDataGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 ),
                 'defaultType' => 'spot', // 'spot', 'margin', 'swap'
                 'accountsByType' => array(
@@ -421,13 +426,13 @@ class ascendex extends Exchange {
             $fee = $this->safe_number_2($currency, 'withdrawFee', 'withdrawalFee');
             $status = $this->safe_string_2($currency, 'status', 'statusCode');
             $active = ($status === 'Normal');
-            $margin = (is_array($currency) && array_key_exists('borrowAssetCode', $currency));
+            $marginInside = (is_array($currency) && array_key_exists('borrowAssetCode', $currency));
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
                 'type' => null,
-                'margin' => $margin,
+                'margin' => $marginInside,
                 'name' => $this->safe_string($currency, 'assetName'),
                 'active' => $active,
                 'deposit' => null,
@@ -444,6 +449,7 @@ class ascendex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'networks' => array(),
             );
         }
         return $result;
@@ -1260,6 +1266,25 @@ class ascendex extends Exchange {
         //         "execInst" =>     "NULL_VAL" // "Post" (for $postOnly orders), "reduceOnly" (for $reduceOnly orders)
         //     }
         //
+        //     {
+        //         "orderId" => "a173ad938fc3U22666567717788c3b66",   // orderId
+        //         "seqNum" => 18777366360,                           // sequence number
+        //         "accountId" => "cshwSjbpPjSwHmxPdz2CPQVU9mnbzPpt", // accountId
+        //         "symbol" => "BTC/USDT",                            // $symbol
+        //         "orderType" => "Limit",                            // $order $type (Limit/Market/StopMarket/StopLimit)
+        //         "side" => "Sell",                                  // $order $side (Buy/Sell)
+        //         "price" => "11346.77",                             // $order $price
+        //         "stopPrice" => "0",                                // stop $price (0 by default)
+        //         "orderQty" => "0.01",                              // $order quantity (in base asset)
+        //         "status" => "Canceled",                            // $order $status (Filled/Canceled/Rejected)
+        //         "createTime" => 1596344995793,                     // $order creation time
+        //         "lastExecTime" => 1596344996053,                   // last execution time
+        //         "avgFillPrice" => "11346.77",                      // $average $filled $price
+        //         "fillQty" => "0.01",                               // $filled quantity (in base asset)
+        //         "fee" => "-0.004992579",                           // cummulative $fee-> if negative, this value is the commission charged; if possitive, this value is the rebate received.
+        //         "feeAsset" => "USDT"                               // $fee asset
+        //     }
+        //
         //     array(
         //         "ac" => "FUTURES",
         //         "accountId" => "testabcdefg",
@@ -1293,7 +1318,7 @@ class ascendex extends Exchange {
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'orderQty');
         $average = $this->safe_string($order, 'avgPx');
-        $filled = $this->safe_string_2($order, 'cumFilledQty', 'cumQty');
+        $filled = $this->safe_string_n($order, array( 'cumFilledQty', 'cumQty', 'fillQty' ));
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'id');
         if ($clientOrderId !== null) {
@@ -1312,7 +1337,7 @@ class ascendex extends Exchange {
             }
         }
         $side = $this->safe_string_lower($order, 'side');
-        $feeCost = $this->safe_number($order, 'cumFee');
+        $feeCost = $this->safe_number_2($order, 'cumFee', 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($order, 'feeAsset');
@@ -1794,10 +1819,12 @@ class ascendex extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
+         * @see https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
          * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the ascendex api endpoint
+         * @param {int|null} $params->until the latest time in ms to fetch orders for
          * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -1823,26 +1850,31 @@ class ascendex extends Exchange {
         }
         list($type, $query) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
         $options = $this->safe_value($this->options, 'fetchClosedOrders', array());
-        $defaultMethod = $this->safe_string($options, 'method', 'v1PrivateAccountGroupGetOrderHist');
+        $defaultMethod = $this->safe_string($options, 'method', 'v2PrivateDataGetOrderHist');
         $method = $this->get_supported_mapping($type, array(
             'spot' => $defaultMethod,
             'margin' => $defaultMethod,
             'swap' => 'v2PrivateAccountGroupGetFuturesOrderHistCurrent',
         ));
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-        $accountCategory = $this->safe_string($accountsByType, $type, 'cash');
-        if ($method === 'v1PrivateAccountGroupGetOrderHist') {
-            if ($accountCategory !== null) {
-                $request['category'] = $accountCategory;
+        $accountCategory = $this->safe_string($accountsByType, $type, 'cash'); // margin, futures
+        if ($method === 'v2PrivateDataGetOrderHist') {
+            $request['account'] = $accountCategory;
+            if ($limit !== null) {
+                $request['limit'] = $limit;
             }
         } else {
             $request['account-category'] = $accountCategory;
+            if ($limit !== null) {
+                $request['pageSize'] = $limit;
+            }
         }
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        if ($limit !== null) {
-            $request['pageSize'] = $limit;
+        $until = $this->safe_string($params, 'until');
+        if ($until !== null) {
+            $request['endTime'] = $until;
         }
         $response = $this->$method (array_merge($request, $query));
         //
@@ -1874,40 +1906,29 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
-        // accountGroupGetOrderHist
-        //
-        //     {
-        //         "code" => 0,
-        //         "data" => {
-        //             "data" => array(
-        //                 array(
-        //                     "ac" => "FUTURES",
-        //                     "accountId" => "testabcdefg",
-        //                     "avgPx" => "0",
-        //                     "cumFee" => "0",
-        //                     "cumQty" => "0",
-        //                     "errorCode" => "NULL_VAL",
-        //                     "execInst" => "NULL_VAL",
-        //                     "feeAsset" => "USDT",
-        //                     "lastExecTime" => 1584072844085,
-        //                     "orderId" => "r170d21956dd5450276356bbtcpKa74",
-        //                     "orderQty" => "1.1499",
-        //                     "orderType" => "Limit",
-        //                     "price" => "4000",
-        //                     "sendingTime" => 1584072841033,
-        //                     "seqNum" => 24105338,
-        //                     "side" => "Buy",
-        //                     "status" => "Canceled",
-        //                     "stopPrice" => "",
-        //                     "symbol" => "BTC-PERP"
-        //                 ),
-        //             ),
-        //             "hasNext" => False,
-        //             "limit" => 500,
-        //             "page" => 1,
-        //             "pageSize" => 20
-        //         }
-        //     }
+        //    {
+        //        "code" => 0,
+        //        "data" => array(
+        //            {
+        //                "orderId"     :  "a173ad938fc3U22666567717788c3b66", // orderId
+        //                "seqNum"      :  18777366360,                        // sequence number
+        //                "accountId"   :  "cshwSjbpPjSwHmxPdz2CPQVU9mnbzPpt", // accountId
+        //                "symbol"      :  "BTC/USDT",                         // $symbol
+        //                "orderType"   :  "Limit",                            // order $type (Limit/Market/StopMarket/StopLimit)
+        //                "side"        :  "Sell",                             // order side (Buy/Sell)
+        //                "price"       :  "11346.77",                         // order price
+        //                "stopPrice"   :  "0",                                // stop price (0 by default)
+        //                "orderQty"    :  "0.01",                             // order quantity (in base asset)
+        //                "status"      :  "Canceled",                         // order status (Filled/Canceled/Rejected)
+        //                "createTime"  :  1596344995793,                      // order creation time
+        //                "lastExecTime" =>  1596344996053,                      // last execution time
+        //                "avgFillPrice" =>  "11346.77",                         // average filled price
+        //                "fillQty"     :  "0.01",                             // filled quantity (in base asset)
+        //                "fee"         :  "-0.004992579",                     // cummulative fee. if negative, this value is the commission charged; if possitive, this value is the rebate received.
+        //                "feeAsset"    :  "USDT"                              // fee asset
+        //            }
+        //        )
+        //    }
         //
         // accountGroupGetFuturesOrderHistCurrent
         //
@@ -2927,7 +2948,11 @@ class ascendex extends Exchange {
         $request = $this->implode_params($path, $params);
         $url .= '/api/pro/';
         if ($version === 'v2') {
-            $request = $version . '/' . $request;
+            if ($type === 'data') {
+                $request = 'data/' . $version . '/' . $request;
+            } else {
+                $request = $version . '/' . $request;
+            }
         } else {
             $url .= $version . '/';
         }
@@ -2976,7 +3001,7 @@ class ascendex extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         //
         //     array('code' => 6010, 'message' => 'Not enough balance.')
@@ -2994,5 +3019,6 @@ class ascendex extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

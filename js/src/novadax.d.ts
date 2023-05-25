@@ -66,7 +66,12 @@ export default class novadax extends Exchange {
         txid: string;
         timestamp: number;
         datetime: string;
-        fee: any;
+        comment: any;
+        fee: {
+            currency: any;
+            cost: any;
+            rate: any;
+        };
     }>;
     fetchAccounts(params?: {}): Promise<any[]>;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -91,7 +96,12 @@ export default class novadax extends Exchange {
         txid: string;
         timestamp: number;
         datetime: string;
-        fee: any;
+        comment: any;
+        fee: {
+            currency: any;
+            cost: any;
+            rate: any;
+        };
     };
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
@@ -100,5 +110,5 @@ export default class novadax extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

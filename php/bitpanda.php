@@ -17,6 +17,7 @@ class bitpanda extends Exchange {
             'countries' => array( 'AT' ), // Austria
             'rateLimit' => 300,
             'version' => 'v1',
+            'pro' => true,
             // new metainfo interface
             'has' => array(
                 'CORS' => null,
@@ -339,6 +340,7 @@ class bitpanda extends Exchange {
                     'amount' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array( 'min' => null, 'max' => null ),
                 ),
+                'networks' => array(),
             );
         }
         return $result;
@@ -1949,7 +1951,7 @@ class bitpanda extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         //
         //     array("error":"MISSING_FROM_PARAM")
@@ -1963,5 +1965,6 @@ class bitpanda extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

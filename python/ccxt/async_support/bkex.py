@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.bkex import ImplicitAPI
 import asyncio
 import hashlib
 from ccxt.base.types import OrderSide
@@ -17,7 +18,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class bkex(Exchange):
+class bkex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bkex, self).describe(), {
@@ -1713,11 +1714,11 @@ class bkex(Exchange):
         for i in range(0, len(data)):
             entry = data[i]
             marketId = self.safe_string(entry, 'symbol')
-            symbol = self.safe_symbol(marketId)
+            symbolInner = self.safe_symbol(marketId)
             timestamp = self.safe_integer(entry, 'time')
             rates.append({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': self.safe_number(entry, 'rate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
@@ -1813,7 +1814,7 @@ class bkex(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         # success
         #
@@ -1846,10 +1847,11 @@ class bkex(Exchange):
         #
         message = self.safe_value(response, 'msg')
         if message == 'success':
-            return
+            return None
         responseCode = self.safe_string(response, 'code')
         if responseCode != '0':
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], responseCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)
+        return None

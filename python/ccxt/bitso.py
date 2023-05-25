@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitso import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -18,7 +19,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bitso(Exchange):
+class bitso(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitso, self).describe(), {
@@ -221,7 +222,8 @@ class bitso(Exchange):
         #     }
         #
         payload = self.safe_value(response, 'payload', [])
-        return self.parse_ledger(payload, code, since, limit)
+        currency = self.safe_currency(code)
+        return self.parse_ledger(payload, currency, since, limit)
 
     def parse_ledger_entry_type(self, type):
         types = {
@@ -662,7 +664,7 @@ class bitso(Exchange):
         payload = self.safe_value(response, 'payload', [])
         return self.parse_ohlcvs(payload, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m'):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "bucket_start_time":1648219140000,
@@ -1584,6 +1586,9 @@ class bitso(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
+    def nonce(self):
+        return self.milliseconds()
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -1609,7 +1614,7 @@ class bitso(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if 'success' in response:
             #
             #     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
@@ -1628,3 +1633,4 @@ class bitso(Exchange):
                 code = self.safe_string(error, 'code')
                 self.throw_exactly_matched_exception(self.exceptions, code, feedback)
                 raise ExchangeError(feedback)
+        return None

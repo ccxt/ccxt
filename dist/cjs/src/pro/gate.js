@@ -386,7 +386,7 @@ class gate extends gate$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     handleTrades(client, message) {
         //
@@ -450,7 +450,7 @@ class gate extends gate$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0);
     }
     handleOHLCV(client, message) {
         //
@@ -549,7 +549,7 @@ class gate extends gate$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
     }
     handleMyTrades(client, message) {
         //
@@ -759,7 +759,7 @@ class gate extends gate$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(orders, since, limit, 'timestamp');
     }
     handleOrder(client, message) {
         //
@@ -810,11 +810,12 @@ class gate extends gate$1 {
             // inject order status
             const info = this.safeValue(parsed, 'info');
             const event = this.safeString(info, 'event');
-            if (event === 'put') {
+            if (event === 'put' || event === ' update') {
                 parsed['status'] = 'open';
             }
             else if (event === 'finish') {
-                parsed['status'] = 'closed';
+                const left = this.safeNumber(info, 'left');
+                parsed['status'] = (left === 0) ? 'closed' : 'canceled';
             }
             stored.append(parsed);
             const symbol = parsed['symbol'];

@@ -1,7 +1,9 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 // @ts-nocheck
-function Future() {
+function createFuture() {
     let resolve = undefined, reject = undefined;
     const p = new Promise((resolve_, reject_) => {
         resolve = resolve_;
@@ -18,4 +20,4 @@ function Future() {
     return p;
 }
 
-module.exports = Future;
+exports.createFuture = createFuture;

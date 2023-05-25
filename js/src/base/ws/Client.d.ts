@@ -43,7 +43,7 @@ export default class Client {
     onError(error: any): void;
     onClose(event: any): void;
     onUpgrade(message: any): void;
-    send(message: any): void;
+    send(message: any): Promise<unknown>;
     close(): void;
     onMessage(messageEvent: any): void;
 }

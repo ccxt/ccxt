@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.btctradeua import ImplicitAPI
 from ccxt.base.types import OrderSide
 from typing import Optional
 from ccxt.base.errors import ExchangeError
@@ -12,7 +13,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class btctradeua(Exchange):
+class btctradeua(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(btctradeua, self).describe(), {
@@ -264,17 +265,28 @@ class btctradeua(Exchange):
     def convert_month_name_to_string(self, cyrillic):
         months = {
             'Jan': '01',
+            'January': '01',
             'Feb': '02',
+            'February': '02',
             'Mar': '03',
+            'March': '03',
             'Apr': '04',
+            'April': '04',
             'May': '05',
             'Jun': '06',
+            'June': '06',
             'Jul': '07',
+            'July': '07',
             'Aug': '08',
+            'August': '08',
             'Sept': '09',
+            'September': '09',
             'Oct': '10',
+            'October': '10',
             'Nov': '11',
+            'November': '11',
             'Dec': '12',
+            'December': '12',
         }
         return self.safe_string(months, cyrillic)
 

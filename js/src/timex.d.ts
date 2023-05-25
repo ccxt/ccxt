@@ -125,6 +125,7 @@ export default class timex extends Exchange {
                 max: any;
             };
         };
+        networks: {};
     };
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     parseTrade(trade: any, market?: any): {
@@ -150,5 +151,5 @@ export default class timex extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(statusCode: any, statusText: any, url: any, method: any, responseHeaders: any, responseBody: any, response: any, requestHeaders: any, requestBody: any): void;
+    handleErrors(statusCode: any, statusText: any, url: any, method: any, responseHeaders: any, responseBody: any, response: any, requestHeaders: any, requestBody: any): any;
 }

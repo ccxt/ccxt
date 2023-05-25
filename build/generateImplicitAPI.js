@@ -6,6 +6,7 @@ import log from 'ololog'
 const TS_PATH = './ts/src/abstract/';
 const PHP_PATH = './php/abstract/'
 const ASYNC_PHP_PATH = './php/async/abstract/'
+const PY_PATH = './python/ccxt/abstract/'
 const IDEN = '    ';
 
 const promisedWriteFile = promisify (fs.writeFile);
@@ -67,12 +68,26 @@ function generateImplicitMethodNames(id, api, paths = []){
                 const result = paths.concat (key).concat (endpoint.split (pattern)).filter(r => r.length > 0);
                 let camelCasePath = result.map(capitalize).join('');
                 camelCasePath = lowercaseFirstLetter(camelCasePath);
-                storedTypeScriptResult[id].push (camelCasePath)
+                storedCamelCaseMethods[id].push (camelCasePath)
                 let underscorePath = result.map (x => x.toLowerCase ()).join ('_')
-                storedPhpResult[id].push (underscorePath)
-                storedPhpContext[id].push ({
+                storedUnderscoreMethods[id].push (underscorePath)
+                let config = undefined
+                if (Array.isArray (value)) {
+                    config = {}
+                } else {
+                    config = value[endpoint]
+                    if (typeof config === 'number') {
+                        config = { 'cost': config }
+                    }
+                }
+                const pyConfig = JSON.stringify (config).replace (/:/g, ': ').replace (/"/g, "'").replace (/,/g, ', ')
+                const phpConfig = JSON.stringify (config).replace (/{/g, 'array(').replace (/:/g, ' => ').replace (/}/g, ')').replace (/,/g, ', ')
+                storedContext[id].push ({
                     endpoint,
-                    path: paths.length === 1 ? `'${paths[0]}'` : 'array(' + paths.map (x => `'${x}'`).join (', ') + ')',
+                    phpPath: paths.length === 1 ? `'${paths[0]}'` : 'array(' + paths.map (x => `'${x}'`).join (', ') + ')',
+                    pyPath: paths.length === 1 ? `'${paths[0]}'` : '[' + paths.map (x => `'${x}'`).join (', ') + ']',
+                    phpConfig: phpConfig,
+                    pyConfig: pyConfig,
                     method: key.toUpperCase (),
                 })
             }
@@ -85,40 +100,47 @@ function generateImplicitMethodNames(id, api, paths = []){
 //-------------------------------------------------------------------------
 
 function createImplicitMethods(){
-    const exchanges = Object.keys(storedTypeScriptResult);
+    const exchanges = Object.keys(storedCamelCaseMethods);
     for (const index in exchanges) {
         const exchange = exchanges[index];
-        const camelCaseMethods = storedTypeScriptResult[exchange];
-        const underscoreMethods = storedPhpResult[exchange]
+        const camelCaseMethods = storedCamelCaseMethods[exchange];
+        const underscoreMethods = storedUnderscoreMethods[exchange]
 
         const typeScriptMethods = camelCaseMethods.map (method => {
             return `${IDEN}${method} (params?: {}): Promise<implicitReturnType>;`
         });
         const phpMethods = underscoreMethods.concat (camelCaseMethods).map ((method, idx) => {
             const i = idx % underscoreMethods.length
-            const context = storedPhpContext[exchange][i]
+            const context = storedContext[exchange][i]
             return `${IDEN}public function ${method}($params = array()) {
-${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.path}, '${context.method}', $params);
+${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params, null, null, ${context.phpConfig});
 ${IDEN}}`
+        })
+        const pythonMethods = underscoreMethods.map ((method, idx) => {
+            const i = idx % underscoreMethods.length
+            const camelCaseMethod = camelCaseMethods[i]
+            const context = storedContext[exchange][i]
+            return `${IDEN}${method} = ${camelCaseMethod} = Entry('${context.endpoint}', ${context.pyPath}, '${context.method}', ${context.pyConfig})`
         })
         typeScriptMethods.push ('}')
         phpMethods.push ('}')
         const footer = storedTypeScriptMethods[exchange].pop ()
         storedTypeScriptMethods[exchange] = storedTypeScriptMethods[exchange].concat (typeScriptMethods).concat ([ footer ])
         storedPhpMethods[exchange] = storedPhpMethods[exchange].concat (phpMethods)
+        storedPyMethods[exchange] = storedPyMethods[exchange].concat (pythonMethods)
     }
 }
 
 //-------------------------------------------------------------------------
 
 async function editFiles (path, methods, extension) {
-    const exchanges = Object.keys (storedTypeScriptResult);
+    const exchanges = Object.keys (storedCamelCaseMethods);
     const files = exchanges.map (ex => path + ex + extension)
-    await Promise.all (files.map ((path, idx) => promisedWriteFile (path, methods[exchanges[idx]].join ('\n'))))
+    await Promise.all (files.map ((path, idx) => promisedWriteFile (path, methods[exchanges[idx]].join ('\n') + '\n')))
     // unlink all delisted
-    const abstract = fs.readdirSync (PHP_PATH)
+    const abstract = fs.readdirSync (path)
     const ext = new RegExp (extension + '$')
-    await Promise.all (abstract.filter (file => file.match (ext) && !exchanges.includes (file.replace (ext, ''))).map ((path, idx) => promisedUnlinkFile (files[idx])))
+    await Promise.all (abstract.filter (file => file !== '__init__.py' && file.match (ext) && !exchanges.includes (file.replace (ext, ''))).map (basename => promisedUnlinkFile (path + basename)))
 }
 
 //-------------------------------------------------------------------------
@@ -144,9 +166,10 @@ async function main() {
         const typescriptFooter = `abstract class ${parent} extends _${parent} {}\n\nexport default ${parent}` // hotswap later
         const phpParent = (parent === 'Exchange') ? '\\ccxt\\Exchange' : '\\ccxt\\' + parent
         const phpHeader = `abstract class ${instance.id} extends ${phpParent} {`
-        storedTypeScriptResult[exchange] = []
+        storedCamelCaseMethods[exchange] = []
+        storedUnderscoreMethods[exchange] = []
+        storedContext[exchange] = []
         storedTypeScriptMethods[exchange] = [ getPreamble (), importType, importParent, '', typescriptHeader, typescriptFooter ];
-        storedPhpContext[exchange] = []
         const phpPreamble = `<?php
 
 namespace ccxt\\abstract;
@@ -154,8 +177,10 @@ namespace ccxt\\abstract;
 // PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 `
-        storedPhpResult[exchange] = []
         storedPhpMethods[exchange] = [ phpPreamble, '', phpHeader ]
+        const pyImports = 'from ccxt.base.types import Entry'
+        const pyHeader = 'class ImplicitAPI:'
+        storedPyMethods[exchange] = [ pyImports, '', '', pyHeader ]
         generateImplicitMethodNames (exchange, api)
     }
     createImplicitMethods ()
@@ -170,11 +195,14 @@ namespace ccxt\\abstract;
     })
     await editFiles (ASYNC_PHP_PATH, storedPhpMethods, '.php');
     log.bright.cyan ('PHP async implicit api methods completed!')
+    await editFiles (PY_PATH, storedPyMethods, '.py');
+    log.bright.cyan ('Python implicit api methods completed!')
 }
 
-let storedTypeScriptResult = {};
+let storedCamelCaseMethods = {};
+let storedUnderscoreMethods = {};
+let storedContext = {};
 let storedTypeScriptMethods = {};
-let storedPhpResult = {};
-let storedPhpContext = {};
 let storedPhpMethods = {};
+let storedPyMethods = {};
 main()

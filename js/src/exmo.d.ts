@@ -68,7 +68,7 @@ export default class exmo extends Exchange {
         status: string;
         symbol: any;
         type: any;
-        side: OrderSide;
+        side: string;
         price: any;
         cost: any;
         amount: any;
@@ -204,5 +204,5 @@ export default class exmo extends Exchange {
         headers: any;
     };
     nonce(): number;
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
+    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

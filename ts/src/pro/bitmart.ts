@@ -101,7 +101,7 @@ export default class bitmart extends bitmartRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
     async watchTicker (symbol: string, params = {}) {
@@ -141,7 +141,7 @@ export default class bitmart extends bitmartRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     handleOrders (client: Client, message) {
@@ -339,7 +339,7 @@ export default class bitmart extends bitmartRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0);
     }
 
     handleOHLCV (client: Client, message) {
@@ -377,7 +377,7 @@ export default class bitmart extends bitmartRest {
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             const parsed = this.parseOHLCV (candle, market);
-            parsed[0] = parseInt ((parsed[0] / durationInMs).toString ()) * durationInMs;
+            parsed[0] = this.parseToInt (parsed[0] / durationInMs) * durationInMs;
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {

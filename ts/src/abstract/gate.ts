@@ -129,6 +129,7 @@ interface Exchange {
     privateFuturesGetSettleOrders (params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettleOrdersOrderId (params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettleMyTrades (params?: {}): Promise<implicitReturnType>;
+    privateFuturesGetSettleMyTradesTimerange (params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettlePositionClose (params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettleLiquidates (params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettlePriceOrders (params?: {}): Promise<implicitReturnType>;

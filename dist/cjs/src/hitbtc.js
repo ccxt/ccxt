@@ -205,8 +205,8 @@ class hitbtc extends hitbtc$1 {
                 'networks': {
                     'ETH': 'T20',
                     'ERC20': 'T20',
-                    'TRX': 'TTRX',
-                    'TRC20': 'TTRX',
+                    'TRX': 'TRX',
+                    'TRC20': 'TRX',
                     'OMNI': '',
                 },
                 'defaultTimeInForce': 'FOK',
@@ -496,6 +496,7 @@ class hitbtc extends hitbtc$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -1349,7 +1350,7 @@ class hitbtc extends hitbtc$1 {
         this.checkAddress(address);
         const tag = this.safeString(response, 'paymentId');
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': tag,
             'info': response,
@@ -1486,7 +1487,7 @@ class hitbtc extends hitbtc$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (code >= 400) {
             const feedback = this.id + ' ' + body;
@@ -1497,7 +1498,7 @@ class hitbtc extends hitbtc$1 {
             // fallback to default error handler on rate limit errors
             // {"code":429,"message":"Too many requests","description":"Too many requests"}
             if (code === 429) {
-                return;
+                return undefined;
             }
             // {"error":{"code":20002,"message":"Order not found","description":""}}
             if (body[0] === '{') {
@@ -1512,6 +1513,7 @@ class hitbtc extends hitbtc$1 {
             }
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
 }
 

@@ -517,14 +517,16 @@ class bitfinex2 extends Exchange {
                 $baseId = $this->get_currency_id($baseId);
                 $quoteId = $this->get_currency_id($quoteId);
                 $settle = null;
+                $settleId = null;
                 if ($swap) {
                     $settle = $quote;
+                    $settleId = $quote;
                     $symbol = $symbol . ':' . $settle;
                 }
                 $minOrderSizeString = $this->safe_string($market, 3);
                 $maxOrderSizeString = $this->safe_string($market, 4);
                 $margin = false;
-                if ($this->in_array($id, $marginIds)) {
+                if ($spot && $this->in_array($id, $marginIds)) {
                     $margin = true;
                 }
                 $result[] = array(
@@ -535,7 +537,7 @@ class bitfinex2 extends Exchange {
                     'settle' => $settle,
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
-                    'settleId' => $quoteId,
+                    'settleId' => $settleId,
                     'type' => $spot ? 'spot' : 'swap',
                     'spot' => $spot,
                     'margin' => $margin,
@@ -731,6 +733,7 @@ class bitfinex2 extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'networks' => array(),
                 );
                 $networks = array();
                 $currencyNetworks = $this->safe_value($response, 8, array());

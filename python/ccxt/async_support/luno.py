@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.luno import ImplicitAPI
 from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
@@ -13,7 +14,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class luno(Exchange):
+class luno(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(luno, self).describe(), {
@@ -792,8 +793,12 @@ class luno(Exchange):
         }
         return await self.privatePostStoporder(self.extend(request, params))
 
-    async def fetch_ledger_by_entries(self, code: Optional[str] = None, entry=-1, limit=1, params={}):
+    async def fetch_ledger_by_entries(self, code: Optional[str] = None, entry=None, limit=None, params={}):
         # by default without entry number or limit number, return most recent entry
+        if entry is None:
+            entry = -1
+        if limit is None:
+            limit = 1
         since = None
         request = {
             'min_row': entry,
@@ -940,7 +945,8 @@ class luno(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         error = self.safe_value(response, 'error')
         if error is not None:
             raise ExchangeError(self.id + ' ' + self.json(response))
+        return None

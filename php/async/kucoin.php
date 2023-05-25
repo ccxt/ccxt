@@ -192,6 +192,13 @@ class kucoin extends Exchange {
                         'stop-order' => 1,
                         'stop-order/queryOrderByClientOid' => 1,
                         'trade-fees' => 1.3333, // 45/3s = 15/s => cost = 20 / 15 = 1.333
+                        'hf/accounts/ledgers' => 3.33, // 18 times/3s = 6/s => cost = 20 / 6 = 3.33
+                        'hf/orders/active' => 2, // 30 times/3s = 10/s => cost = 20 / 10 = 2
+                        'hf/orders/active/symbols' => 20, // 3 times/3s = 1/s => cost = 20 / 1 = 20
+                        'hf/orders/done' => 2, // 30 times/3s = 10/s => cost = 20 / 10 = 2
+                        'hf/orders/{orderId}' => 1, // didn't find rate limit
+                        'hf/orders/client-order/{clientOid}' => 2, // 30 times/3s = 10/s => cost = 20 / 10 = 2
+                        'hf/fills' => 6.67, // 9 times/3s = 3/s => cost = 20 / 3 = 6.67
                     ),
                     'post' => array(
                         'accounts' => 1,
@@ -215,6 +222,11 @@ class kucoin extends Exchange {
                         'sub/user' => 1,
                         'sub/api-key' => 1,
                         'sub/api-key/update' => 1,
+                        'hf/orders' => 0.4, // 150 times/3s = 50/s => cost = 20/50 = 0.4
+                        'hf/orders/sync' => 1.33, // 45 times/3s = 15/s => cost = 20/15 = 1.33
+                        'hf/orders/multi' => 20, // 3 times/3s = 1/s => cost = 20 / 1 = 20
+                        'hf/orders/multi/sync' => 20, // 3 times/3s = 1/s => cost = 20 / 1 = 20
+                        'hf/orders/alter' => 1, // 60 times/3s = 20/s => cost = 20/20 = 1
                     ),
                     'delete' => array(
                         'withdrawals/{withdrawalId}' => 1,
@@ -226,6 +238,12 @@ class kucoin extends Exchange {
                         'stop-order/{orderId}' => 1,
                         'stop-order/cancel' => 1,
                         'sub/api-key' => 1,
+                        'hf/orders/{orderId}' => 0.4, // 150 times/3s = 50/s => cost = 20/50 = 0.4
+                        'hf/orders/sync/{orderId}' => 0.4, // 150 times/3s = 50/s => cost = 20/50 = 0.4
+                        'hf/orders/client-order/{clientOid}' => 0.4, // 150 times/3s = 50/s => cost = 20/50 = 0.4
+                        'hf/orders/sync/client-order/{clientOid}' => 0.4, // 150 times/3s = 50/s => cost = 20/50 = 0.4
+                        'hf/orders/cancel/{orderId}' => 1, // 60 times/3s = 20/s => cost = 20/20 = 1
+                        'hf/orders' => 20, // 3 times/3s = 1/s => cost = 20 / 1 = 20
                     ),
                 ),
                 'futuresPublic' => array(
@@ -443,11 +461,31 @@ class kucoin extends Exchange {
                             'market/orderbook/level3' => 'v3',
                             'market/orderbook/level{level}' => 'v3',
                             'deposit-addresses' => 'v1', // 'v1' for fetchDepositAddress, 'v2' for fetchDepositAddressesByNetwork
+                            'hf/accounts/ledgers' => 'v1',
+                            'hf/orders/active' => 'v1',
+                            'hf/orders/active/symbols' => 'v1',
+                            'hf/orders/done' => 'v1',
+                            'hf/orders/{orderId}' => 'v1',
+                            'hf/orders/client-order/{clientOid}' => 'v1',
+                            'hf/fills' => 'v1',
                         ),
                         'POST' => array(
                             'accounts/inner-transfer' => 'v2',
                             'accounts/sub-transfer' => 'v2',
                             'accounts' => 'v1',
+                            'hf/orders' => 'v1',
+                            'hf/orders/sync' => 'v1',
+                            'hf/orders/multi' => 'v1',
+                            'hf/orders/multi/sync' => 'v1',
+                            'hf/orders/alter' => 'v1',
+                        ),
+                        'DELETE' => array(
+                            'hf/orders/{orderId}' => 'v1',
+                            'hf/orders/sync/{orderId}' => 'v1',
+                            'hf/orders/client-order/{clientOid}' => 'v1',
+                            'hf/orders/sync/client-order/{clientOid}' => 'v1',
+                            'hf/orders/cancel/{orderId}' => 'v1',
+                            'hf/orders' => 'v1',
                         ),
                     ),
                     'futuresPrivate' => array(
@@ -489,6 +527,7 @@ class kucoin extends Exchange {
                     'future' => 'contract',
                     'swap' => 'contract',
                     'mining' => 'pool',
+                    'hf' => 'trade_hf',
                 ),
                 'networks' => array(
                     'Native' => 'bech32',
@@ -749,6 +788,7 @@ class kucoin extends Exchange {
                     'withdraw' => $isWithdrawEnabled,
                     'fee' => $fee,
                     'limits' => $this->limits,
+                    'networks' => array(),
                 );
             }
             return $result;
@@ -1894,8 +1934,12 @@ class kucoin extends Exchange {
         $stopTriggered = $this->safe_value($order, 'stopTriggered', false);
         $isActive = $this->safe_value($order, 'isActive');
         $status = null;
-        if ($isActive === true) {
-            $status = 'open';
+        if ($isActive !== null) {
+            if ($isActive === true) {
+                $status = 'open';
+            } else {
+                $status = 'closed';
+            }
         }
         if ($stop) {
             $responseStatus = $this->safe_string($order, 'status');
@@ -2726,8 +2770,8 @@ class kucoin extends Exchange {
                 for ($i = 0; $i < count($accounts); $i++) {
                     $balance = $accounts[$i];
                     $currencyId = $this->safe_string($balance, 'currency');
-                    $code = $this->safe_currency_code($currencyId);
-                    $result[$code] = $this->parse_balance_helper($balance);
+                    $codeInner = $this->safe_currency_code($currencyId);
+                    $result[$codeInner] = $this->parse_balance_helper($balance);
                 }
             } else {
                 for ($i = 0; $i < count($data); $i++) {
@@ -2735,12 +2779,12 @@ class kucoin extends Exchange {
                     $balanceType = $this->safe_string($balance, 'type');
                     if ($balanceType === $type) {
                         $currencyId = $this->safe_string($balance, 'currency');
-                        $code = $this->safe_currency_code($currencyId);
+                        $codeInner2 = $this->safe_currency_code($currencyId);
                         $account = $this->account();
                         $account['total'] = $this->safe_string($balance, 'balance');
                         $account['free'] = $this->safe_string($balance, 'available');
                         $account['used'] = $this->safe_string($balance, 'holds');
-                        $result[$code] = $account;
+                        $result[$codeInner2] = $account;
                     }
                 }
             }
@@ -3105,7 +3149,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         $versions = $this->safe_value($this->options, 'versions', array());
         $apiVersions = $this->safe_value($versions, $api, array());
         $methodVersions = $this->safe_value($apiVersions, $method, array());
@@ -3594,7 +3638,7 @@ class kucoin extends Exchange {
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $body);
-            return;
+            return null;
         }
         //
         // bad
@@ -3608,5 +3652,6 @@ class kucoin extends Exchange {
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
+        return null;
     }
 }
