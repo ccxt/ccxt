@@ -267,7 +267,8 @@ export default class poloniex extends poloniexRest {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        let name = this.safeString (this.options.watchOrderBook, 'name', 'book_lv2');
+        const watchOrderBookOptions = this.safeValue (this.options, 'watchOrderBook');
+        let name = this.safeString (watchOrderBookOptions, 'name', 'book_lv2');
         [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
         const orderbook = await this.subscribe (name, false, [ symbol ], params);
         return orderbook.limit ();
