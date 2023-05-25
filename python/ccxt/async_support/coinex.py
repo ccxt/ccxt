@@ -326,7 +326,8 @@ class coinex(Exchange, ImplicitAPI):
         #                  "can_withdraw": True,
         #                  "deposit_least_amount": "4.9",
         #                  "withdraw_least_amount": "4.9",
-        #                  "withdraw_tx_fee": "4.9"
+        #                  "withdraw_tx_fee": "4.9",
+        #                  "explorer_asset_url": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7"
         #             },
         #             ...
         #         },
@@ -342,18 +343,27 @@ class coinex(Exchange, ImplicitAPI):
             currencyId = self.safe_string(currency, 'asset')
             networkId = self.safe_string(currency, 'chain')
             code = self.safe_currency_code(currencyId)
-            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'withdrawal_precision')))
+            precisionString = self.parse_precision(self.safe_string(currency, 'withdrawal_precision'))
+            precision = self.parse_number(precisionString)
+            canDeposit = self.safe_value(currency, 'can_deposit')
+            canWithdraw = self.safe_value(currency, 'can_withdraw')
+            feeString = self.safe_string(currency, 'withdraw_tx_fee')
+            fee = self.parse_number(feeString)
+            minNetworkDepositString = self.safe_string(currency, 'deposit_least_amount')
+            minNetworkDeposit = self.parse_number(minNetworkDepositString)
+            minNetworkWithdrawString = self.safe_string(currency, 'withdraw_least_amount')
+            minNetworkWithdraw = self.parse_number(minNetworkWithdrawString)
             if self.safe_value(result, code) is None:
                 result[code] = {
                     'id': currencyId,
                     'numericId': None,
                     'code': code,
-                    'info': currency,
+                    'info': None,
                     'name': None,
-                    'active': True,
-                    'deposit': self.safe_value(currency, 'can_deposit'),
-                    'withdraw': self.safe_value(currency, 'can_withdraw'),
-                    'fee': self.safe_number(currency, 'withdraw_tx_fee'),
+                    'active': canDeposit and canWithdraw,
+                    'deposit': canDeposit,
+                    'withdraw': canWithdraw,
+                    'fee': fee,
                     'precision': precision,
                     'limits': {
                         'amount': {
@@ -361,15 +371,31 @@ class coinex(Exchange, ImplicitAPI):
                             'max': None,
                         },
                         'deposit': {
-                            'min': self.safe_number(currency, 'deposit_least_amount'),
+                            'min': minNetworkDeposit,
                             'max': None,
                         },
                         'withdraw': {
-                            'min': self.safe_number(currency, 'withdraw_least_amount'),
+                            'min': minNetworkWithdraw,
                             'max': None,
                         },
                     },
                 }
+            minFeeString = self.safe_string(result[code], 'fee')
+            if feeString is not None:
+                minFeeString = feeString if (minFeeString is None) else Precise.string_min(feeString, minFeeString)
+            depositAvailable = self.safe_value(result[code], 'deposit')
+            depositAvailable = canDeposit if (canDeposit) else depositAvailable
+            withdrawAvailable = self.safe_value(result[code], 'withdraw')
+            withdrawAvailable = canWithdraw if (canWithdraw) else withdrawAvailable
+            minDepositString = self.safe_string(result[code]['limits']['deposit'], 'min')
+            if minNetworkDepositString is not None:
+                minDepositString = minNetworkDepositString if (minDepositString is None) else Precise.string_min(minNetworkDepositString, minDepositString)
+            minWithdrawString = self.safe_string(result[code]['limits']['withdraw'], 'min')
+            if minNetworkWithdrawString is not None:
+                minWithdrawString = minNetworkWithdrawString if (minWithdrawString is None) else Precise.string_min(minNetworkWithdrawString, minWithdrawString)
+            minPrecisionString = self.safe_string(result[code], 'precision')
+            if precisionString is not None:
+                minPrecisionString = precisionString if (minPrecisionString is None) else Precise.string_min(precisionString, minPrecisionString)
             networks = self.safe_value(result[code], 'networks', {})
             network = {
                 'info': currency,
@@ -390,14 +416,24 @@ class coinex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-                'active': True,
-                'deposit': self.safe_value(currency, 'can_deposit'),
-                'withdraw': self.safe_value(currency, 'can_withdraw'),
-                'fee': self.safe_number(currency, 'withdraw_tx_fee'),
+                'active': canDeposit and canWithdraw,
+                'deposit': canDeposit,
+                'withdraw': canWithdraw,
+                'fee': fee,
                 'precision': precision,
             }
             networks[networkId] = network
             result[code]['networks'] = networks
+            result[code]['active'] = depositAvailable and withdrawAvailable
+            result[code]['deposit'] = depositAvailable
+            result[code]['withdraw'] = withdrawAvailable
+            info = self.safe_value(result[code], 'info', [])
+            info.append(currency)
+            result[code]['info'] = info
+            result[code]['fee'] = self.parse_number(minFeeString)
+            result[code]['precision'] = self.parse_number(minPrecisionString)
+            result[code]['limits']['deposit']['min'] = self.parse_number(minDepositString)
+            result[code]['limits']['withdraw']['min'] = self.parse_number(minWithdrawString)
         return result
 
     async def fetch_markets(self, params={}):

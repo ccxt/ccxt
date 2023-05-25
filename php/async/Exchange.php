@@ -299,9 +299,9 @@ class Exchange extends \ccxt\Exchange {
                     $result[] = $entry;
                 }
             }
-            return $this->filterByLimit ($result, $limit, $key);
+            return $this->filter_by_limit($result, $limit, $key);
         }
-        return $this->filterByLimit ($parsedArray, $limit, $key);
+        return $this->filter_by_limit($parsedArray, $limit, $key);
     }
 
     public function filter_by_value_since_limit(mixed $array, int|string $field, $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp') {
@@ -321,9 +321,9 @@ class Exchange extends \ccxt\Exchange {
                     $result[] = $entry;
                 }
             }
-            return $this->filterByLimit ($result, $limit, $key);
+            return $this->filter_by_limit($result, $limit, $key);
         }
-        return $this->filterByLimit ($parsedArray, $limit, $key);
+        return $this->filter_by_limit($parsedArray, $limit, $key);
     }
 
     public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null) {

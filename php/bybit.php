@@ -1635,9 +1635,13 @@ class bybit extends Exchange {
             } elseif ($option) {
                 $type = 'option';
             }
-            $expiry = $this->omit_zero($this->safe_string($market, 'deliveryTime'));
-            if ($expiry !== null) {
-                $expiry = intval($expiry);
+            $expiry = null;
+            // some swaps have deliveryTime meaning delisting time
+            if (!$swap) {
+                $expiry = $this->omit_zero($this->safe_string($market, 'deliveryTime'));
+                if ($expiry !== null) {
+                    $expiry = intval($expiry);
+                }
             }
             $expiryDatetime = $this->iso8601($expiry);
             $strike = null;

@@ -504,8 +504,8 @@ class Exchange(BaseExchange):
                 entry = parsedArray[i]
                 if entry[key] >= since:
                     result.append(entry)
-            return self.filterByLimit(result, limit, key)
-        return self.filterByLimit(parsedArray, limit, key)
+            return self.filter_by_limit(result, limit, key)
+        return self.filter_by_limit(parsedArray, limit, key)
 
     def filter_by_value_since_limit(self, array: List[object], field: IndexType, value=None, since: Optional[int] = None, limit: Optional[int] = None, key='timestamp'):
         valueIsDefined = self.valueIsDefined(value)
@@ -522,8 +522,8 @@ class Exchange(BaseExchange):
                 secondCondition = entryKeyGESince if sinceIsDefined else True
                 if firstCondition and secondCondition:
                     result.append(entry)
-            return self.filterByLimit(result, limit, key)
-        return self.filterByLimit(parsedArray, limit, key)
+            return self.filter_by_limit(result, limit, key)
+        return self.filter_by_limit(parsedArray, limit, key)
 
     def sign(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None):
         return {}
