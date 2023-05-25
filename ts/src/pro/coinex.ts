@@ -157,7 +157,7 @@ export default class coinex extends coinexRest {
                 client.resolve (tickers, messageHash);
             }
         }
-        client.resolve (this.tickers, 'tickers');
+        client.resolve (newTickers, 'tickers');
     }
 
     parseWSTicker (ticker, market = undefined) {
@@ -424,10 +424,9 @@ export default class coinex extends coinexRest {
             'params': [],
         };
         const request = this.deepExtend (subscribe, params);
-        const tickers = await this.watch (url, messageHash, request, messageHash);
-        const result = this.filterByArray (tickers, 'symbol', symbols);
+        const newTickers = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
-            return result;
+            return newTickers;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
