@@ -246,6 +246,7 @@ export default class poloniex extends poloniexRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const name = 'trades';
         const trades = await this.subscribe (name, false, [ symbol ], params);
         if (this.newUpdates) {
