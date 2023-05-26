@@ -1514,7 +1514,7 @@ export default class bitget extends Exchange {
         const chain = this.safeString2 (params, 'chain', 'network');
         params = this.omit (params, [ 'network' ]);
         if (chain === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw() requires a chain parameter');
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a chain parameter or a network parameter');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
