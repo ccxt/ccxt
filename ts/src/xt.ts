@@ -4605,7 +4605,6 @@ export default class xt extends Exchange {
             const timestamp = this.numberToString (this.nonce ());
             body = query;
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
-                body = this.extend (body);
                 body['clientMedia'] = 'CCXT';
             }
             const isUndefinedBody = ((method === 'GET') || (path === 'order/{orderId}'));
