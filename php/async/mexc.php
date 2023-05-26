@@ -2450,8 +2450,8 @@ class mexc extends Exchange {
             if ($marketType === 'spot') {
                 throw new BadRequest($this->id . ' fetchOrdersByState() is not supported for ' . $marketType);
             } else {
-                $params['states'] = $state;
-                return Async\await($this->fetch_orders($symbol, $since, $limit, $params));
+                $request['states'] = $state;
+                return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
             }
         }) ();
     }

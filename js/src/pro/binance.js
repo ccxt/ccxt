@@ -1040,7 +1040,7 @@ export default class binance extends binanceRest {
                     throw new ArgumentsRequired(this.id + ' authenticate() requires a symbol argument for isolated margin mode');
                 }
                 const marketId = this.marketId(symbol);
-                params['symbol'] = marketId;
+                params = this.extend(params, { 'symbol': marketId });
             }
             const response = await this[method](params);
             this.options[type] = this.extend(options, {
@@ -1297,7 +1297,7 @@ export default class binance extends binanceRest {
             market = this.market(symbol);
             symbol = market['symbol'];
             messageHash += ':' + symbol;
-            params['symbol'] = symbol; // needed inside authenticate for isolated margin
+            params = this.extend(params, { 'symbol': symbol }); // needed inside authenticate for isolated margin
         }
         await this.authenticate(params);
         let type = undefined;
@@ -1584,7 +1584,7 @@ export default class binance extends binanceRest {
         if (symbol !== undefined) {
             symbol = this.symbol(symbol);
             messageHash += ':' + symbol;
-            params['symbol'] = symbol;
+            params = this.extend(params, { 'symbol': symbol });
         }
         await this.authenticate(params);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];

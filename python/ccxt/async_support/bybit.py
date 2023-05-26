@@ -1488,6 +1488,7 @@ class bybit(Exchange, ImplicitAPI):
         return result
 
     async def fetch_derivatives_markets(self, params):
+        params = self.extend(params)
         params['limit'] = 1000  # minimize number of requests
         response = await self.publicGetV5MarketInstrumentsInfo(params)
         data = self.safe_value(response, 'result', {})
