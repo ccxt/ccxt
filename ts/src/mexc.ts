@@ -2432,6 +2432,7 @@ export default class mexc extends Exchange {
         if (marketType === 'spot') {
             throw new BadRequest (this.id + ' fetchOrdersByState() is not supported for ' + marketType);
         } else {
+            params = this.extend (params);
             params['states'] = state;
             return await this.fetchOrders (symbol, since, limit, params);
         }
@@ -5001,6 +5002,7 @@ export default class mexc extends Exchange {
             url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
             let paramsEncoded = '';
             if (access === 'private') {
+                params = this.extend (params);
                 params['timestamp'] = this.milliseconds ();
                 params['recvWindow'] = this.safeInteger (this.options, 'recvWindow', 5000);
             }
