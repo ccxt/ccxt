@@ -5001,7 +5001,6 @@ export default class mexc extends Exchange {
             url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
             let paramsEncoded = '';
             if (access === 'private') {
-                params = this.extend (params);
                 params['timestamp'] = this.milliseconds ();
                 params['recvWindow'] = this.safeInteger (this.options, 'recvWindow', 5000);
             }
