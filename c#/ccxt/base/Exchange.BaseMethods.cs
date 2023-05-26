@@ -22,7 +22,7 @@ public partial class Exchange
                     object last = getValue(getValue(array, subtract(arrayLength, 1)), key);
                     if (isTrue(isTrue(!isEqual(first, null)) && isTrue(!isEqual(last, null))))
                     {
-                        ascending = isLessThan(first, last); // true if array is sorted in ascending order based on 'timestamp'
+                        ascending = isLessThanOrEqual(first, last); // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
                 array = ((bool) isTrue(ascending)) ? this.arraySlice(array, prefixUnaryNeg(ref limit)) : this.arraySlice(array, 0, limit);
@@ -1429,29 +1429,6 @@ public partial class Exchange
         return networkCode;
     }
 
-    public virtual object networkCodesToIds(object networkCodes = null)
-    {
-        /**
-         * @ignore
-         * @method
-         * @name exchange#networkCodesToIds
-         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
-         * @param {[string]|undefined} networkCodes unified network codes
-         * @returns {[string|undefined]} exchange-specific network ids
-         */
-        if (isTrue(isEqual(networkCodes, null)))
-        {
-            return null;
-        }
-        object ids = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(networkCodes)); postFixIncrement(ref i))
-        {
-            object networkCode = getValue(networkCodes, i);
-            ((List<object>)ids).Add(this.networkCodeToId(networkCode));
-        }
-        return ids;
-    }
-
     public virtual object handleNetworkCodeAndParams(object parameters)
     {
         object networkCodeInParams = this.safeString2(parameters, "networkCode", "network");
@@ -2729,6 +2706,21 @@ public partial class Exchange
         {
             return this.decimalToPrecision(fee, ROUND, precision, this.precisionMode, this.paddingMode);
         }
+    }
+
+    public virtual object isTickPrecision()
+    {
+        return isEqual(this.precisionMode, TICK_SIZE);
+    }
+
+    public virtual object isDecimalPrecision()
+    {
+        return isEqual(this.precisionMode, DECIMAL_PLACES);
+    }
+
+    public virtual object isSignificantPrecision()
+    {
+        return isEqual(this.precisionMode, SIGNIFICANT_DIGITS);
     }
 
     public virtual object safeNumber(object obj, object key, object defaultNumber = null)

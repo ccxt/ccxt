@@ -444,7 +444,7 @@ public partial class Exchange
         {
             throw new Exception(this.id + ".rateLimit property is not configured'");
         }
-        this.tokenBucket = this.extend(new dict() {
+        this.tokenBucket = (dict)this.extend(new dict() {
             {"delay" , 0.001},
             {"capacity" , 1},
             {"cost" , 1},

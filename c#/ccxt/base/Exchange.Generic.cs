@@ -79,20 +79,22 @@ public partial class Exchange
         return outList;
     }
 
-    public dict extend(object aa, object bb)
+    public object extend(object aa, object bb = null)
     {
 
         var a = (dict)aa;
-        var b = (dict)bb;
         var outDict = new dict();
         var keysA = new List<string>(a.Keys);
         foreach (string key in keysA)
             outDict[(string)key] = a[key];
 
-        var keysB = new List<string>(b.Keys);
-        foreach (string key in keysB)
-            outDict[(string)key] = b[key];
-
+        if (bb != null)
+        {
+            var b = (dict)bb;
+            var keysB = new List<string>(b.Keys);
+            foreach (string key in keysB)
+                outDict[(string)key] = b[key];
+        }
         return outDict;
     }
 
