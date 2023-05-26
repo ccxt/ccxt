@@ -4528,9 +4528,9 @@ class xt extends Exchange {
         if ($signed) {
             $this->check_required_credentials();
             $defaultRecvWindow = $this->safe_string($this->options, 'recvWindow');
-            $recvWindow = $this->safe_string($params, 'recvWindow', $defaultRecvWindow);
+            $recvWindow = $this->safe_string($query, 'recvWindow', $defaultRecvWindow);
             $timestamp = $this->number_to_string($this->nonce());
-            $body = $params;
+            $body = $query;
             if (($payload === '/v4/order') || ($payload === '/future/trade/v1/order/create') || ($payload === '/future/trade/v1/entrust/create-plan') || ($payload === '/future/trade/v1/entrust/create-profit') || ($payload === '/future/trade/v1/order/create-batch')) {
                 $body['clientMedia'] = 'CCXT';
             }

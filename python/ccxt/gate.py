@@ -518,6 +518,8 @@ class gate(Exchange, ImplicitAPI):
                     'future': 'delivery',
                     'futures': 'futures',
                     'delivery': 'delivery',
+                    'option': 'options',
+                    'options': 'options',
                 },
                 'defaultType': 'spot',
                 'swap': {
@@ -4004,6 +4006,7 @@ class gate(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
+        see https://www.gate.io/docs/developers/apiv4/en/#transfer-between-trading-accounts
         :param str code: unified currency code for currency being transferred
         :param float amount: the amount of currency to transfer
         :param str fromAccount: the account to transfer currency from
@@ -4057,7 +4060,7 @@ class gate(Exchange, ImplicitAPI):
     def parse_transfer(self, transfer, currency=None):
         timestamp = self.milliseconds()
         return {
-            'id': None,
+            'id': self.safe_string(transfer, 'tx_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'currency': self.safe_currency_code(None, currency),

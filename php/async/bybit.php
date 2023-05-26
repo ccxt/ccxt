@@ -1513,6 +1513,7 @@ class bybit extends Exchange {
 
     public function fetch_derivatives_markets($params) {
         return Async\async(function () use ($params) {
+            $params = array_merge($params);
             $params['limit'] = 1000; // minimize number of requests
             $response = Async\await($this->publicGetV5MarketInstrumentsInfo ($params));
             $data = $this->safe_value($response, 'result', array());

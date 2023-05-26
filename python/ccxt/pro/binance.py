@@ -958,7 +958,7 @@ class binance(ccxt.async_support.binance):
                 if symbol is None:
                     raise ArgumentsRequired(self.id + ' authenticate() requires a symbol argument for isolated margin mode')
                 marketId = self.market_id(symbol)
-                params['symbol'] = marketId
+                params = self.extend(params, {'symbol': marketId})
             response = await getattr(self, method)(params)
             self.options[type] = self.extend(options, {
                 'listenKey': self.safe_string(response, 'listenKey'),
@@ -1184,7 +1184,7 @@ class binance(ccxt.async_support.binance):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash += ':' + symbol
-            params['symbol'] = symbol  # needed inside authenticate for isolated margin
+            params = self.extend(params, {'symbol': symbol})  # needed inside authenticate for isolated margin
         await self.authenticate(params)
         type = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
@@ -1456,7 +1456,7 @@ class binance(ccxt.async_support.binance):
         if symbol is not None:
             symbol = self.symbol(symbol)
             messageHash += ':' + symbol
-            params['symbol'] = symbol
+            params = self.extend(params, {'symbol': symbol})
         await self.authenticate(params)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         client = self.client(url)

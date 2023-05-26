@@ -1049,7 +1049,7 @@ class binance extends \ccxt\async\binance {
                         throw new ArgumentsRequired($this->id . ' authenticate() requires a $symbol argument for isolated margin mode');
                     }
                     $marketId = $this->market_id($symbol);
-                    $params['symbol'] = $marketId;
+                    $params = array_merge($params, array( 'symbol' => $marketId ));
                 }
                 $response = Async\await($this->$method ($params));
                 $this->options[$type] = array_merge($options, array(
@@ -1308,7 +1308,7 @@ class binance extends \ccxt\async\binance {
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
                 $messageHash .= ':' . $symbol;
-                $params['symbol'] = $symbol; // needed inside authenticate for isolated margin
+                $params = array_merge($params, array( 'symbol' => $symbol )); // needed inside authenticate for isolated margin
             }
             Async\await($this->authenticate($params));
             $type = null;
@@ -1595,7 +1595,7 @@ class binance extends \ccxt\async\binance {
             if ($symbol !== null) {
                 $symbol = $this->symbol($symbol);
                 $messageHash .= ':' . $symbol;
-                $params['symbol'] = $symbol;
+                $params = array_merge($params, array( 'symbol' => $symbol ));
             }
             Async\await($this->authenticate($params));
             $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];

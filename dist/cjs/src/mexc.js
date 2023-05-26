@@ -2419,18 +2419,19 @@ class mexc extends mexc$1 {
     }
     async fetchOrdersByState(state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            market['id'];
+            request['symbol'] = market['id'];
         }
         const [marketType] = this.handleMarketTypeAndParams('fetchOrdersByState', market, params);
         if (marketType === 'spot') {
             throw new errors.BadRequest(this.id + ' fetchOrdersByState() is not supported for ' + marketType);
         }
         else {
-            params['states'] = state;
-            return await this.fetchOrders(symbol, since, limit, params);
+            request['states'] = state;
+            return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
         }
     }
     async cancelOrder(id, symbol = undefined, params = {}) {

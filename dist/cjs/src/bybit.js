@@ -1486,6 +1486,7 @@ class bybit extends bybit$1 {
         return result;
     }
     async fetchDerivativesMarkets(params) {
+        params = this.extend(params);
         params['limit'] = 1000; // minimize number of requests
         const response = await this.publicGetV5MarketInstrumentsInfo(params);
         const data = this.safeValue(response, 'result', {});

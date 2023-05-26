@@ -235,7 +235,7 @@ export default class gate extends Exchange {
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
-        id: any;
+        id: string;
         timestamp: number;
         datetime: string;
         currency: any;
@@ -246,7 +246,7 @@ export default class gate extends Exchange {
         info: any;
     }>;
     parseTransfer(transfer: any, currency?: any): {
-        id: any;
+        id: string;
         timestamp: number;
         datetime: string;
         currency: any;

@@ -497,6 +497,8 @@ class gate extends Exchange {
                     'future' => 'delivery',
                     'futures' => 'futures',
                     'delivery' => 'delivery',
+                    'option' => 'options',
+                    'options' => 'options',
                 ),
                 'defaultType' => 'spot',
                 'swap' => array(
@@ -4184,6 +4186,7 @@ class gate extends Exchange {
     public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
+         * @see https://www.gate.io/docs/developers/apiv4/en/#transfer-between-trading-accounts
          * @param {string} $code unified $currency $code for $currency being transferred
          * @param {float} $amount the $amount of $currency to transfer
          * @param {string} $fromAccount the account to transfer $currency from
@@ -4243,7 +4246,7 @@ class gate extends Exchange {
     public function parse_transfer($transfer, $currency = null) {
         $timestamp = $this->milliseconds();
         return array(
-            'id' => null,
+            'id' => $this->safe_string($transfer, 'tx_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'currency' => $this->safe_currency_code(null, $currency),

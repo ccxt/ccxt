@@ -495,6 +495,8 @@ class gate extends gate$1 {
                     'future': 'delivery',
                     'futures': 'futures',
                     'delivery': 'delivery',
+                    'option': 'options',
+                    'options': 'options',
                 },
                 'defaultType': 'spot',
                 'swap': {
@@ -4218,6 +4220,7 @@ class gate extends gate$1 {
          * @method
          * @name gate#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://www.gate.io/docs/developers/apiv4/en/#transfer-between-trading-accounts
          * @param {string} code unified currency code for currency being transferred
          * @param {float} amount the amount of currency to transfer
          * @param {string} fromAccount the account to transfer currency from
@@ -4278,7 +4281,7 @@ class gate extends gate$1 {
     parseTransfer(transfer, currency = undefined) {
         const timestamp = this.milliseconds();
         return {
-            'id': undefined,
+            'id': this.safeString(transfer, 'tx_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'currency': this.safeCurrencyCode(undefined, currency),
