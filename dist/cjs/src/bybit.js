@@ -4990,6 +4990,12 @@ class bybit extends bybit$1 {
         //
         const result = this.safeValue(response, 'result', {});
         const data = this.safeValue(result, 'list', []);
+        const paginationCursor = this.safeString(result, 'nextPageCursor');
+        if ((paginationCursor !== undefined) && (data.length > 0)) {
+            const first = data[0];
+            first['nextPageCursor'] = paginationCursor;
+            data[0] = first;
+        }
         return this.parseOrders(data, market, since, limit);
     }
     async fetchUnifiedMarginOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5079,6 +5085,12 @@ class bybit extends bybit$1 {
         //
         const result = this.safeValue(response, 'result', {});
         const data = this.safeValue(result, 'list', []);
+        const paginationCursor = this.safeString(result, 'nextPageCursor');
+        if ((paginationCursor !== undefined) && (data.length > 0)) {
+            const first = data[0];
+            first['nextPageCursor'] = paginationCursor;
+            data[0] = first;
+        }
         return this.parseOrders(data, market, since, limit);
     }
     async fetchDerivativesOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5176,6 +5188,12 @@ class bybit extends bybit$1 {
         //
         const result = this.safeValue(response, 'result', {});
         const data = this.safeValue(result, 'list', []);
+        const paginationCursor = this.safeString(result, 'nextPageCursor');
+        if ((paginationCursor !== undefined) && (data.length > 0)) {
+            const first = data[0];
+            first['nextPageCursor'] = paginationCursor;
+            data[0] = first;
+        }
         return this.parseOrders(data, market, since, limit);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {

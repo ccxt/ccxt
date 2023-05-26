@@ -755,6 +755,7 @@ class phemex extends \ccxt\async\phemex {
                 $symbol = $market['symbol'];
                 $messageHash = $messageHash . $market['symbol'];
                 if ($market['settle'] === 'USDT') {
+                    $params = array_merge($params);
                     $params['settle'] = 'USDT';
                 }
             }
@@ -919,6 +920,7 @@ class phemex extends \ccxt\async\phemex {
                 $symbol = $market['symbol'];
                 $messageHash = $messageHash . $market['symbol'];
                 if ($market['settle'] === 'USDT') {
+                    $params = array_merge($params);
                     $params['settle'] = 'USDT';
                 }
             }
