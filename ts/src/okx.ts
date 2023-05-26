@@ -842,6 +842,7 @@ export default class okx extends Exchange {
         params = this.omit (params, 'instType');
         const type = this.safeString (params, 'type');
         if ((type === undefined) && (instType !== undefined)) {
+            params = this.extend (params);
             params['type'] = instType;
         }
         return super.handleMarketTypeAndParams (methodName, market, params);
