@@ -18,7 +18,7 @@ from ccxt.base.precise import Precise
 
 
 class ace(Exchange, ImplicitAPI):
-
+a
     def describe(self):
         return self.deep_extend(super(ace, self).describe(), {
             'id': 'ace',
