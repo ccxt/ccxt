@@ -438,6 +438,7 @@
         }
     },
     "btcalpha": {
+	"skip": "USDT_USD high price is a negative number below zero breaking the assertion in the test",
         "skipMethods": {
             "fetchOrderBook": "bids[0][0] is not < asks[0][0]",
             "fetchL2OrderBook": "same",
