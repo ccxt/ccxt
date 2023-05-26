@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.1.6';
+$version = '3.1.8';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.1.6';
+    const VERSION = '3.1.8';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2164,9 +2164,9 @@ class Exchange {
                     $result[] = $entry;
                 }
             }
-            return $this->filterByLimit ($result, $limit, $key);
+            return $this->filter_by_limit($result, $limit, $key);
         }
-        return $this->filterByLimit ($parsedArray, $limit, $key);
+        return $this->filter_by_limit($parsedArray, $limit, $key);
     }
 
     public function filter_by_value_since_limit(mixed $array, int|string $field, $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp') {
@@ -2186,9 +2186,9 @@ class Exchange {
                     $result[] = $entry;
                 }
             }
-            return $this->filterByLimit ($result, $limit, $key);
+            return $this->filter_by_limit($result, $limit, $key);
         }
-        return $this->filterByLimit ($parsedArray, $limit, $key);
+        return $this->filter_by_limit($parsedArray, $limit, $key);
     }
 
     public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null) {

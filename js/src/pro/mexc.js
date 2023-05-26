@@ -48,7 +48,7 @@ export default class mexc extends mexcRest {
                     '1M': 'Month1',
                 },
                 'watchOrderBook': {
-                    'snapshotDelay': 5,
+                    'snapshotDelay': 25,
                     'maxRetries': 3,
                 },
                 'listenKey': undefined,
@@ -454,7 +454,7 @@ export default class mexc extends mexcRest {
         const nonce = this.safeInteger(storedOrderBook, 'nonce');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
-            const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 5);
+            const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 25);
             if (cacheLength === snapshotDelay) {
                 this.spawn(this.loadOrderBook, client, messageHash, symbol);
             }
@@ -929,8 +929,8 @@ export default class mexc extends mexcRest {
             'triggerPrice': this.safeNumber(order, 'P'),
             'average': this.safeString(order, 'ap'),
             'amount': this.safeString(order, 'v'),
-            'cost': this.safeString(order, 'cv'),
-            'filled': this.safeString(order, 'ca'),
+            'cost': this.safeString(order, 'a'),
+            'filled': this.safeString(order, 'cv'),
             'remaining': this.safeString(order, 'V'),
             'fee': fee,
             'trades': undefined,

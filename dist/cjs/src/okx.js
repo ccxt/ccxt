@@ -24,7 +24,7 @@ class okx extends okx$1 {
                 'margin': true,
                 'swap': true,
                 'future': true,
-                'option': undefined,
+                'option': true,
                 'addMargin': true,
                 'borrowMargin': true,
                 'cancelAllOrders': false,
@@ -87,6 +87,7 @@ class okx extends okx$1 {
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -845,6 +846,103 @@ class okx extends okx$1 {
     convertToInstrumentType(type) {
         const exchangeTypes = this.safeValue(this.options, 'exchangeType', {});
         return this.safeString(exchangeTypes, type, type);
+    }
+    convertExpireDate(date) {
+        // parse YYMMDD to timestamp
+        const year = date.slice(0, 2);
+        const month = date.slice(2, 4);
+        const day = date.slice(4, 6);
+        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
+        return reconstructedDate;
+    }
+    createExpiredOptionMarket(symbol) {
+        // support expired option contracts
+        const quote = 'USD';
+        const optionParts = symbol.split('-');
+        const symbolBase = symbol.split('/');
+        let base = undefined;
+        if (symbol.indexOf('/') > -1) {
+            base = this.safeString(symbolBase, 0);
+        }
+        else {
+            base = this.safeString(optionParts, 0);
+        }
+        const settle = base;
+        const expiry = this.safeString(optionParts, 2);
+        const strike = this.safeString(optionParts, 3);
+        const optionType = this.safeString(optionParts, 4);
+        const datetime = this.convertExpireDate(expiry);
+        const timestamp = this.parse8601(datetime);
+        return {
+            'id': base + '-' + quote + '-' + expiry + '-' + strike + '-' + optionType,
+            'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': base,
+            'quoteId': quote,
+            'settleId': settle,
+            'active': false,
+            'type': 'option',
+            'linear': undefined,
+            'inverse': undefined,
+            'spot': false,
+            'swap': false,
+            'future': false,
+            'option': true,
+            'margin': false,
+            'contract': true,
+            'contractSize': this.parseNumber('1'),
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
+            'optionType': (optionType === 'C') ? 'call' : 'put',
+            'strike': this.parseNumber(strike),
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': undefined,
+        };
+    }
+    market(symbol) {
+        if (this.markets === undefined) {
+            throw new errors.ExchangeError(this.id + ' markets not loaded');
+        }
+        if (typeof symbol === 'string') {
+            if (symbol in this.markets) {
+                return this.markets[symbol];
+            }
+            else if (symbol in this.markets_by_id) {
+                const markets = this.markets_by_id[symbol];
+                return markets[0];
+            }
+            else if ((symbol.indexOf('-C') > -1) || (symbol.indexOf('-P') > -1)) {
+                return this.createExpiredOptionMarket(symbol);
+            }
+        }
+        throw new errors.BadSymbol(this.id + ' does not have market symbol ' + symbol);
+    }
+    safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+        const isOption = (marketId !== undefined) && ((marketId.indexOf('-C') > -1) || (marketId.indexOf('-P') > -1));
+        if (isOption && !(marketId in this.markets_by_id)) {
+            // handle expired option contracts
+            return this.createExpiredOptionMarket(marketId);
+        }
+        return super.safeMarket(marketId, market, delimiter, marketType);
     }
     async fetchStatus(params = {}) {
         /**
@@ -6078,6 +6176,105 @@ class okx extends okx$1 {
             depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees(depositWithdrawFees[code], currency);
         }
         return depositWithdrawFees;
+    }
+    async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchSettlementHistory
+         * @description fetches historical settlement records
+         * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-delivery-exercise-history
+         * @param {string} symbol unified market symbol to fetch the settlement history for
+         * @param {int} since timestamp in ms
+         * @param {int} limit number of records
+         * @param {object} params exchange specific params
+         * @returns {[object]} a list of [settlement history objects]
+         */
+        this.checkRequiredSymbol('fetchSettlementHistory', symbol);
+        await this.loadMarkets();
+        const market = (symbol === undefined) ? undefined : this.market(symbol);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchSettlementHistory', market, params);
+        if (type !== 'future' && type !== 'option') {
+            throw new errors.NotSupported(this.id + ' fetchSettlementHistory() supports futures and options markets only');
+        }
+        const request = {
+            'instType': this.convertToInstrumentType(type),
+            'uly': market['baseId'] + '-' + market['quoteId'],
+        };
+        if (since !== undefined) {
+            request['before'] = since - 1;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetPublicDeliveryExerciseHistory(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "details": [
+        //                     {
+        //                         "insId": "BTC-USD-230523-25750-C",
+        //                         "px": "27290.1486867000556483",
+        //                         "type": "exercised"
+        //                     },
+        //                 ],
+        //                 "ts":"1684656000000"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeValue(response, 'data', []);
+        const settlements = this.parseSettlements(data, market);
+        const sorted = this.sortBy(settlements, 'timestamp');
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+    parseSettlement(settlement, market) {
+        //
+        //     {
+        //         "insId": "BTC-USD-230521-28500-P",
+        //         "px": "27081.2007345984751516",
+        //         "type": "exercised"
+        //     }
+        //
+        const marketId = this.safeString(settlement, 'insId');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol(marketId, market),
+            'price': this.safeNumber(settlement, 'px'),
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+    }
+    parseSettlements(settlements, market) {
+        //
+        //     {
+        //         "details": [
+        //             {
+        //                 "insId": "BTC-USD-230523-25750-C",
+        //                 "px": "27290.1486867000556483",
+        //                 "type": "exercised"
+        //             },
+        //         ],
+        //         "ts":"1684656000000"
+        //     }
+        //
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            const entry = settlements[i];
+            const timestamp = this.safeInteger(entry, 'ts');
+            const details = this.safeValue(entry, 'details', []);
+            for (let i = 0; i < details.length; i++) {
+                const settlement = this.parseSettlement(details[i], market);
+                result.push(this.extend(settlement, {
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601(timestamp),
+                }));
+            }
+        }
+        return result;
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {

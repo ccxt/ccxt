@@ -229,12 +229,14 @@
             },
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "baseVolume": "same"
             },
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            }
+                "baseVolume": "same"
+            },
+            "fetchL2OrderBook": "bid==ask , https://app.travis-ci.com/github/ccxt/ccxt/builds/263304041#L2170",
+            "fetchLOrderBook": "same"
         }
     },
     "bitmex": {
@@ -424,6 +426,14 @@
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
+            },
+            "fetchTickers": {
+                "bid": "messed bid-ask : https://app.travis-ci.com/github/ccxt/ccxt/builds/263319874#L2090",
+                "ask": "same as above"
+            },
+            "fetchTicker": {
+                "bid": "same as above",
+                "ask": "same as above"
             }
         }
     },
@@ -454,6 +464,7 @@
         }
     },
     "btctradeua": {
+        "skip": "24/05 exchange not available",
         "skipMethods": {
             "loadMarkets": {
                 "precision":"is undefined",
@@ -863,7 +874,9 @@
             },
             "fetchTickers": {
                 "bid":"messed bid-ask",
-                "ask":"messed bid-ask"
+                "ask":"messed bid-ask",
+                "quoteVolume": "quoteVolume <= baseVolume * high https://app.travis-ci.com/github/ccxt/ccxt/builds/263304041#L2190",
+                "baseVolume": "same"
             }
         }
     },
@@ -1105,6 +1118,10 @@
             "loadMarkets": "linear & inverse must not be same",
             "fetchCurrencies": {
                 "info": "null"
+            },
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume <= baseVolume * high : https://app.travis-ci.com/github/ccxt/ccxt/builds/263319874#L2132",
+                "baseVolume": "same"
             }
         }
     },

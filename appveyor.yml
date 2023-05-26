@@ -8,23 +8,15 @@ install:
   - set CI=true
   # - npm install --global npm@latest
   - set PATH=%APPDATA%\npm;C:\Python38;C:\Python38\Scripts;%PATH%
-  # Remove python2.7 from path
-  - set PATH=%PATH:C:\Python27;=%
-  - set PATH=%PATH:C:\Python27\Scripts;=%
-  - echo %PATH%
   - npm install
-  - python --version
-  - pip --version
   - python -m pip install --upgrade pip setuptools
-  - pip install tox
-  - pip install requests
-  - pip install cryptography
+  - pip install tox cryptography requests # common packages
   - set PATH=C:\Program Files\curl;%PATH%
   - setx PATH "%PATH%"
   - ps: Set-Service wuauserv -StartupType Manual
   - cinst -y php --version 8.1.10 --allow-empty-checksums
   - cinst composer -i -y
-  # - php -i
+  # - php -i | findstr "php.ini"
   - cd c:\tools\php81
   - copy php.ini-production php.ini
   - echo date.timezone="UTC" >> php.ini
@@ -45,8 +37,9 @@ test_script:
   - node --version
   - npm --version
   - python --version
-  - npm run force-build
-  # - npm run test-base
+  - pip --version
+  - php --version
+  - bash build.sh
 cache:
   - '%APPDATA%\npm-cache'
   - '%LOCALAPPDATA%\pip\Cache'

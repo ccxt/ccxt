@@ -1643,9 +1643,13 @@ export default class bybit extends Exchange {
             } else if (option) {
                 type = 'option';
             }
-            let expiry = this.omitZero (this.safeString (market, 'deliveryTime'));
-            if (expiry !== undefined) {
-                expiry = parseInt (expiry);
+            let expiry = undefined;
+            // some swaps have deliveryTime meaning delisting time
+            if (!swap) {
+                expiry = this.omitZero (this.safeString (market, 'deliveryTime'));
+                if (expiry !== undefined) {
+                    expiry = parseInt (expiry);
+                }
             }
             const expiryDatetime = this.iso8601 (expiry);
             let strike = undefined;
@@ -7694,9 +7698,15 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'list', []);
+        const paginationCursor = this.safeString (result, 'nextPageCursor');
+        if ((paginationCursor !== undefined) && (data.length > 0)) {
+            const first = data[0];
+            first['nextPageCursor'] = paginationCursor;
+            data[0] = first;
+        }
         const id = this.safeString (result, 'symbol');
         market = this.safeMarket (id, market, undefined, 'contract');
-        const data = this.safeValue (result, 'list', []);
         return this.parseOpenInterests (data, market, since, limit);
     }
 

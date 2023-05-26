@@ -1659,9 +1659,13 @@ class bybit extends Exchange {
                 } elseif ($option) {
                     $type = 'option';
                 }
-                $expiry = $this->omit_zero($this->safe_string($market, 'deliveryTime'));
-                if ($expiry !== null) {
-                    $expiry = intval($expiry);
+                $expiry = null;
+                // some swaps have deliveryTime meaning delisting time
+                if (!$swap) {
+                    $expiry = $this->omit_zero($this->safe_string($market, 'deliveryTime'));
+                    if ($expiry !== null) {
+                        $expiry = intval($expiry);
+                    }
                 }
                 $expiryDatetime = $this->iso8601($expiry);
                 $strike = null;
@@ -7790,9 +7794,15 @@ class bybit extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
+            $data = $this->safe_value($result, 'list', array());
+            $paginationCursor = $this->safe_string($result, 'nextPageCursor');
+            if (($paginationCursor !== null) && (strlen($data) > 0)) {
+                $first = $data[0];
+                $first['nextPageCursor'] = $paginationCursor;
+                $data[0] = $first;
+            }
             $id = $this->safe_string($result, 'symbol');
             $market = $this->safe_market($id, $market, null, 'contract');
-            $data = $this->safe_value($result, 'list', array());
             return $this->parse_open_interests($data, $market, $since, $limit);
         }) ();
     }
