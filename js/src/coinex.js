@@ -311,7 +311,8 @@ export default class coinex extends Exchange {
         //                  "can_withdraw": true,
         //                  "deposit_least_amount": "4.9",
         //                  "withdraw_least_amount": "4.9",
-        //                  "withdraw_tx_fee": "4.9"
+        //                  "withdraw_tx_fee": "4.9",
+        //                  "explorer_asset_url": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7"
         //             },
         //             ...
         //         },
@@ -327,18 +328,27 @@ export default class coinex extends Exchange {
             const currencyId = this.safeString(currency, 'asset');
             const networkId = this.safeString(currency, 'chain');
             const code = this.safeCurrencyCode(currencyId);
-            const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'withdrawal_precision')));
+            const precisionString = this.parsePrecision(this.safeString(currency, 'withdrawal_precision'));
+            const precision = this.parseNumber(precisionString);
+            const canDeposit = this.safeValue(currency, 'can_deposit');
+            const canWithdraw = this.safeValue(currency, 'can_withdraw');
+            const feeString = this.safeString(currency, 'withdraw_tx_fee');
+            const fee = this.parseNumber(feeString);
+            const minNetworkDepositString = this.safeString(currency, 'deposit_least_amount');
+            const minNetworkDeposit = this.parseNumber(minNetworkDepositString);
+            const minNetworkWithdrawString = this.safeString(currency, 'withdraw_least_amount');
+            const minNetworkWithdraw = this.parseNumber(minNetworkWithdrawString);
             if (this.safeValue(result, code) === undefined) {
                 result[code] = {
                     'id': currencyId,
                     'numericId': undefined,
                     'code': code,
-                    'info': currency,
+                    'info': undefined,
                     'name': undefined,
-                    'active': true,
-                    'deposit': this.safeValue(currency, 'can_deposit'),
-                    'withdraw': this.safeValue(currency, 'can_withdraw'),
-                    'fee': this.safeNumber(currency, 'withdraw_tx_fee'),
+                    'active': canDeposit && canWithdraw,
+                    'deposit': canDeposit,
+                    'withdraw': canWithdraw,
+                    'fee': fee,
                     'precision': precision,
                     'limits': {
                         'amount': {
@@ -346,15 +356,35 @@ export default class coinex extends Exchange {
                             'max': undefined,
                         },
                         'deposit': {
-                            'min': this.safeNumber(currency, 'deposit_least_amount'),
+                            'min': minNetworkDeposit,
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': this.safeNumber(currency, 'withdraw_least_amount'),
+                            'min': minNetworkWithdraw,
                             'max': undefined,
                         },
                     },
                 };
+            }
+            let minFeeString = this.safeString(result[code], 'fee');
+            if (feeString !== undefined) {
+                minFeeString = (minFeeString === undefined) ? feeString : Precise.stringMin(feeString, minFeeString);
+            }
+            let depositAvailable = this.safeValue(result[code], 'deposit');
+            depositAvailable = (canDeposit) ? canDeposit : depositAvailable;
+            let withdrawAvailable = this.safeValue(result[code], 'withdraw');
+            withdrawAvailable = (canWithdraw) ? canWithdraw : withdrawAvailable;
+            let minDepositString = this.safeString(result[code]['limits']['deposit'], 'min');
+            if (minNetworkDepositString !== undefined) {
+                minDepositString = (minDepositString === undefined) ? minNetworkDepositString : Precise.stringMin(minNetworkDepositString, minDepositString);
+            }
+            let minWithdrawString = this.safeString(result[code]['limits']['withdraw'], 'min');
+            if (minNetworkWithdrawString !== undefined) {
+                minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise.stringMin(minNetworkWithdrawString, minWithdrawString);
+            }
+            let minPrecisionString = this.safeString(result[code], 'precision');
+            if (precisionString !== undefined) {
+                minPrecisionString = (minPrecisionString === undefined) ? precisionString : Precise.stringMin(precisionString, minPrecisionString);
             }
             const networks = this.safeValue(result[code], 'networks', {});
             const network = {
@@ -376,14 +406,24 @@ export default class coinex extends Exchange {
                         'max': undefined,
                     },
                 },
-                'active': true,
-                'deposit': this.safeValue(currency, 'can_deposit'),
-                'withdraw': this.safeValue(currency, 'can_withdraw'),
-                'fee': this.safeNumber(currency, 'withdraw_tx_fee'),
+                'active': canDeposit && canWithdraw,
+                'deposit': canDeposit,
+                'withdraw': canWithdraw,
+                'fee': fee,
                 'precision': precision,
             };
             networks[networkId] = network;
             result[code]['networks'] = networks;
+            result[code]['active'] = depositAvailable && withdrawAvailable;
+            result[code]['deposit'] = depositAvailable;
+            result[code]['withdraw'] = withdrawAvailable;
+            const info = this.safeValue(result[code], 'info', []);
+            info.push(currency);
+            result[code]['info'] = info;
+            result[code]['fee'] = this.parseNumber(minFeeString);
+            result[code]['precision'] = this.parseNumber(minPrecisionString);
+            result[code]['limits']['deposit']['min'] = this.parseNumber(minDepositString);
+            result[code]['limits']['withdraw']['min'] = this.parseNumber(minWithdrawString);
         }
         return result;
     }

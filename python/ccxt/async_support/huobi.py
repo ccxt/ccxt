@@ -2497,6 +2497,10 @@ class huobi(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://huobiapi.github.io/docs/spot/v1/en/#get-klines-candles
+        see https://huobiapi.github.io/docs/dm/v1/en/#get-kline-data
+        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-kline-data
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
@@ -2519,6 +2523,10 @@ class huobi(Exchange, ImplicitAPI):
         params = self.omit(params, 'price')
         method = 'spotPublicGetMarketHistoryCandles'
         if market['spot']:
+            if timeframe == '1M' or timeframe == '1y':
+                # for some reason 1M and 1Y does not work with the regular endpoint
+                # https://github.com/ccxt/ccxt/issues/18006
+                method = 'spotPublicGetMarketHistoryKline'
             if since is not None:
                 request['from'] = self.parse_to_int(since / 1000)
             if limit is not None:
