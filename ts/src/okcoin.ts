@@ -1266,179 +1266,32 @@ export default class okcoin extends Exchange {
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
 
-    parseAccountBalance (response) {
-        //
-        // account
-        //
-        //     [
-        //         {
-        //             balance:  0,
-        //             available:  0,
-        //             currency: "BTC",
-        //             hold:  0
-        //         },
-        //         {
-        //             balance:  0,
-        //             available:  0,
-        //             currency: "ETH",
-        //             hold:  0
-        //         }
-        //     ]
-        //
-        // spot
-        //
-        //     [
-        //         {
-        //             frozen: "0",
-        //             hold: "0",
-        //             id: "2149632",
-        //             currency: "BTC",
-        //             balance: "0.0000000497717339",
-        //             available: "0.0000000497717339",
-        //             holds: "0"
-        //         },
-        //         {
-        //             frozen: "0",
-        //             hold: "0",
-        //             id: "2149632",
-        //             currency: "ICN",
-        //             balance: "0.00000000925",
-        //             available: "0.00000000925",
-        //             holds: "0"
-        //         }
-        //     ]
-        //
+    parseBalance (balance) {
         const result = {
-            'info': response,
+            'info': balance,
             'timestamp': undefined,
             'datetime': undefined,
         };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
+        //
+        // [
+        //     {
+        //         "availBal": "37.11827078",
+        //         "bal": "37.11827078",
+        //         "ccy": "ETH",
+        //         "frozenBal": "0"
+        //     }
+        // ]
+        //
+        for (let i = 0; i < balance.length; i++) {
+            const entry = balance[i];
+            const marketId = this.safeString (entry, 'ccy');
+            const code = this.safeSymbol (marketId);
             const account = this.account ();
-            account['total'] = this.safeString (balance, 'balance');
-            account['used'] = this.safeString (balance, 'hold');
-            account['free'] = this.safeString (balance, 'available');
+            account['total'] = this.safeString (entry, 'bal');
+            account['free'] = this.safeString (entry, 'availBal');
+            account['used'] = this.safeString (entry, 'frozenBal');
             result[code] = account;
         }
-        return this.safeBalance (result);
-    }
-
-    parseFuturesBalance (response) {
-        //
-        //     {
-        //         "info":{
-        //             "eos":{
-        //                 "auto_margin":"0",
-        //                 "contracts": [
-        //                     {
-        //                         "available_qty":"40.37069445",
-        //                         "fixed_balance":"0",
-        //                         "instrument_id":"EOS-USD-190329",
-        //                         "margin_for_unfilled":"0",
-        //                         "margin_frozen":"0",
-        //                         "realized_pnl":"0",
-        //                         "unrealized_pnl":"0"
-        //                     },
-        //                     {
-        //                         "available_qty":"40.37069445",
-        //                         "fixed_balance":"14.54895721",
-        //                         "instrument_id":"EOS-USD-190628",
-        //                         "margin_for_unfilled":"0",
-        //                         "margin_frozen":"10.64042157",
-        //                         "realized_pnl":"-3.90853564",
-        //                         "unrealized_pnl":"-0.259"
-        //                     },
-        //                 ],
-        //                 "equity":"50.75220665",
-        //                 "margin_mode":"fixed",
-        //                 "total_avail_balance":"40.37069445"
-        //             },
-        //         }
-        //     }
-        //
-        // their root field name is "info", so our info will contain their info
-        const result = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        const info = this.safeValue (response, 'info', {});
-        const ids = Object.keys (info);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const code = this.safeCurrencyCode (id);
-            const balance = this.safeValue (info, id, {});
-            const account = this.account ();
-            const totalAvailBalance = this.safeString (balance, 'total_avail_balance');
-            if (this.safeString (balance, 'margin_mode') === 'fixed') {
-                const contracts = this.safeValue (balance, 'contracts', []);
-                let free = totalAvailBalance;
-                for (let j = 0; j < contracts.length; j++) {
-                    const contract = contracts[j];
-                    const fixedBalance = this.safeString (contract, 'fixed_balance');
-                    const realizedPnl = this.safeString (contract, 'realized_pnl');
-                    const marginFrozen = this.safeString (contract, 'margin_frozen');
-                    const marginForUnfilled = this.safeString (contract, 'margin_for_unfilled');
-                    const margin = Precise.stringSub (Precise.stringSub (Precise.stringAdd (fixedBalance, realizedPnl), marginFrozen), marginForUnfilled);
-                    free = Precise.stringAdd (free, margin);
-                }
-                account['free'] = free;
-            } else {
-                const realizedPnl = this.safeString (balance, 'realized_pnl');
-                const unrealizedPnl = this.safeString (balance, 'unrealized_pnl');
-                const marginFrozen = this.safeString (balance, 'margin_frozen');
-                const marginForUnfilled = this.safeString (balance, 'margin_for_unfilled');
-                const positive = Precise.stringAdd (Precise.stringAdd (totalAvailBalance, realizedPnl), unrealizedPnl);
-                account['free'] = Precise.stringSub (Precise.stringSub (positive, marginFrozen), marginForUnfilled);
-            }
-            // it may be incorrect to use total, free and used for swap accounts
-            account['total'] = this.safeString (balance, 'equity');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
-    }
-
-    parseSwapBalance (response) {
-        //
-        //     {
-        //         "info": [
-        //             {
-        //                 "equity":"3.0139",
-        //                 "fixed_balance":"0.0000",
-        //                 "instrument_id":"EOS-USD-SWAP",
-        //                 "margin":"0.5523",
-        //                 "margin_frozen":"0.0000",
-        //                 "margin_mode":"crossed",
-        //                 "margin_ratio":"1.0913",
-        //                 "realized_pnl":"-0.0006",
-        //                 "timestamp":"2019-03-25T03:46:10.336Z",
-        //                 "total_avail_balance":"3.0000",
-        //                 "unrealized_pnl":"0.0145"
-        //             }
-        //         ]
-        //     }
-        //
-        // their root field name is "info", so our info will contain their info
-        const result = { 'info': response };
-        let timestamp = undefined;
-        const info = this.safeValue (response, 'info', []);
-        for (let i = 0; i < info.length; i++) {
-            const balance = info[i];
-            const marketId = this.safeString (balance, 'instrument_id');
-            const symbol = this.safeSymbol (marketId);
-            const balanceTimestamp = this.parse8601 (this.safeString (balance, 'timestamp'));
-            timestamp = (timestamp === undefined) ? balanceTimestamp : Math.max (timestamp, balanceTimestamp);
-            const account = this.account ();
-            // it may be incorrect to use total, free and used for swap accounts
-            account['total'] = this.safeString (balance, 'equity');
-            account['free'] = this.safeString (balance, 'total_avail_balance');
-            result[symbol] = account;
-        }
-        result['timestamp'] = timestamp;
-        result['datetime'] = this.iso8601 (timestamp);
         return this.safeBalance (result);
     }
 
@@ -1450,123 +1303,24 @@ export default class okcoin extends Exchange {
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchBalance() requires a type parameter (one of 'account', 'spot', 'futures', 'swap')");
-        }
         await this.loadMarkets ();
-        const suffix = (type === 'account') ? 'Wallet' : 'Accounts';
-        const method = type + 'Get' + suffix;
-        const query = this.omit (params, 'type');
-        const response = await this[method] (query);
+        const request = {};
+        const response = await this.privateGetAssetBalances (this.extend (request, params));
         //
-        // account
-        //
-        //     [
-        //         {
-        //             balance:  0,
-        //             available:  0,
-        //             currency: "BTC",
-        //             hold:  0
-        //         },
-        //         {
-        //             balance:  0,
-        //             available:  0,
-        //             currency: "ETH",
-        //             hold:  0
+        // {
+        //     "code": "0",
+        //     "msg": "",
+        //     "data": [{
+        //             "availBal": "37.11827078",
+        //             "bal": "37.11827078",
+        //             "ccy": "ETH",
+        //             "frozenBal": "0"
         //         }
         //     ]
+        // }
         //
-        // spot
-        //
-        //     [
-        //         {
-        //             frozen: "0",
-        //             hold: "0",
-        //             id: "2149632",
-        //             currency: "BTC",
-        //             balance: "0.0000000497717339",
-        //             available: "0.0000000497717339",
-        //             holds: "0"
-        //         },
-        //         {
-        //             frozen: "0",
-        //             hold: "0",
-        //             id: "2149632",
-        //             currency: "ICN",
-        //             balance: "0.00000000925",
-        //             available: "0.00000000925",
-        //             holds: "0"
-        //         }
-        //     ]
-        //
-        //
-        // futures
-        //
-        //     {
-        //         "info":{
-        //             "eos":{
-        //                 "auto_margin":"0",
-        //                 "contracts": [
-        //                     {
-        //                         "available_qty":"40.37069445",
-        //                         "fixed_balance":"0",
-        //                         "instrument_id":"EOS-USD-190329",
-        //                         "margin_for_unfilled":"0",
-        //                         "margin_frozen":"0",
-        //                         "realized_pnl":"0",
-        //                         "unrealized_pnl":"0"
-        //                     },
-        //                     {
-        //                         "available_qty":"40.37069445",
-        //                         "fixed_balance":"14.54895721",
-        //                         "instrument_id":"EOS-USD-190628",
-        //                         "margin_for_unfilled":"0",
-        //                         "margin_frozen":"10.64042157",
-        //                         "realized_pnl":"-3.90853564",
-        //                         "unrealized_pnl":"-0.259"
-        //                     },
-        //                 ],
-        //                 "equity":"50.75220665",
-        //                 "margin_mode":"fixed",
-        //                 "total_avail_balance":"40.37069445"
-        //             },
-        //         }
-        //     }
-        //
-        // swap
-        //
-        //     {
-        //         "info": [
-        //             {
-        //                 "equity":"3.0139",
-        //                 "fixed_balance":"0.0000",
-        //                 "instrument_id":"EOS-USD-SWAP",
-        //                 "margin":"0.5523",
-        //                 "margin_frozen":"0.0000",
-        //                 "margin_mode":"crossed",
-        //                 "margin_ratio":"1.0913",
-        //                 "realized_pnl":"-0.0006",
-        //                 "timestamp":"2019-03-25T03:46:10.336Z",
-        //                 "total_avail_balance":"3.0000",
-        //                 "unrealized_pnl":"0.0145"
-        //             }
-        //         ]
-        //     }
-        //
-        return this.parseBalanceByType (type, response);
-    }
-
-    parseBalanceByType (type, response) {
-        if ((type === 'account') || (type === 'spot')) {
-            return this.parseAccountBalance (response);
-        } else if (type === 'futures') {
-            return this.parseFuturesBalance (response);
-        } else if (type === 'swap') {
-            return this.parseSwapBalance (response);
-        }
-        throw new NotSupported (this.id + " fetchBalance does not support the '" + type + "' type (the type must be one of 'account', 'spot', 'futures', 'swap')");
+        const data = this.safeValue (response, 'data');
+        return this.parseBalance (data);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
