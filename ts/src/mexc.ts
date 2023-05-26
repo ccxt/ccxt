@@ -2432,9 +2432,8 @@ export default class mexc extends Exchange {
         if (marketType === 'spot') {
             throw new BadRequest (this.id + ' fetchOrdersByState() is not supported for ' + marketType);
         } else {
-            params = this.extend (params);
-            params['states'] = state;
-            return await this.fetchOrders (symbol, since, limit, params);
+            request['states'] = state;
+            return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
         }
     }
 
