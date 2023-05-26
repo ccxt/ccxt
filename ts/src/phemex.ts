@@ -1141,8 +1141,9 @@ export default class phemex extends Exchange {
         let response = undefined;
         if (market['linear'] || market['settle'] === 'USDT') {
             response = await this.publicGetMdV2KlineLast (this.extend (request, params));
+        } else {
+            response = await this.publicGetMdV2Kline (this.extend (request, params));
         }
-        response = await this.publicGetMdV2Kline (this.extend (request, params));
         //
         //     {
         //         "code":0,
