@@ -11,13 +11,13 @@
   <PropertyGroup>
     <PackageId>ccxt</PackageId>
     <Authors>Carlos, Kroitor, Carlo</Authors>
-    <PackageVersion>0.0.6-beta</PackageVersion>
-    <AssemblyVersion>0.0.6</AssemblyVersion>
-    <FileVersion>0.0.6</FileVersion>
+    <PackageVersion>0.0.7-beta</PackageVersion>
+    <AssemblyVersion>0.0.7</AssemblyVersion>
+    <FileVersion>0.0.7</FileVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>Cryptocurrency trading API with support for more than 100 bitcoin/altcoin exchanges</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageTags>Binance C# .Net CryptoCurrency Exchange API wrapper Rest API</PackageTags>
+    <PackageTags>Binance Bybit Kucoin OKX Bitget C# .Net CryptoCurrency Exchange API wrapper Rest API trading bot arbitrage bitcoin eth ltc altcoin</PackageTags>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/ccxt/ccxt</RepositoryUrl>
     <PackageProjectUrl>https://github.com/ccxt/ccxt</PackageProjectUrl>
