@@ -1104,7 +1104,7 @@ export default class phemex extends Exchange {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-kline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} since *emulated not supported by the exchange* timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the phemex api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -1119,7 +1119,7 @@ export default class phemex extends Exchange {
         const possibleLimitValues = [ 5, 10, 50, 100, 500, 1000 ];
         const maxLimit = 1000;
         if (limit === undefined && since === undefined) {
-            limit = possibleLimitValues[0];
+            limit = possibleLimitValues[5];
         }
         if (since !== undefined) {
             // phemex also provides kline query with from/to, however, this interface is NOT recommended and does not work properly.
@@ -1134,16 +1134,15 @@ export default class phemex extends Exchange {
             for (let i = 0; i < possibleLimitValues.length; i++) {
                 if (limit <= possibleLimitValues[i]) {
                     limit = possibleLimitValues[i];
-                    break;
                 }
             }
         }
         request['limit'] = limit;
-        let method = 'publicGetMdV2Kline';
+        let response = undefined;
         if (market['linear'] || market['settle'] === 'USDT') {
-            method = 'publicGetMdV2KlineLast';
+            response = await this.publicGetMdV2KlineLast (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
+        response = await this.publicGetMdV2Kline (this.extend (request, params));
         //
         //     {
         //         "code":0,
