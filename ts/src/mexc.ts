@@ -1085,7 +1085,8 @@ export default class mexc extends Exchange {
         return orderbook;
     }
 
-    parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2) {
+    parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1) {
+        const countKey = 2;
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         const count = this.safeNumber (bidask, countKey);
