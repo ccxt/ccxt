@@ -5,7 +5,7 @@ import hitbtc3Rest from '../hitbtc3.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { Trade } from '../base/types';
+import { Trade, OHLCV } from '../base/types';
 
 //  ---------------------------------------------------------------------------
 
@@ -33,6 +33,9 @@ export default class hitbtc3 extends hitbtc3Rest {
                 },
                 'watchTickers': {
                     'method': 'ticker/1s',  // 'ticker/price/1s', 'ticker/price/3s', 'ticker/1s', 'ticker/3s', ticker/1s/batch, ticker/3s/batch, ticker/1s/price/batch, or ticker/3s/price/batch
+                },
+                'watchOrderBook': {
+                    'method': 'orderbook/full',  // 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch', 'orderbook/top/{speed}', or 'orderbook/top/{speed}/batch'
                 },
             },
             'timeframes': {
@@ -84,100 +87,99 @@ export default class hitbtc3 extends hitbtc3Rest {
          * @method
          * @name hitbtc3#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://api.hitbtc.com/#subscribe-to-full-order-book
+         * @see https://api.hitbtc.com/#subscribe-to-partial-order-book
+         * @see https://api.hitbtc.com/#subscribe-to-partial-order-book-in-batches
+         * @see https://api.hitbtc.com/#subscribe-to-top-of-book
+         * @see https://api.hitbtc.com/#subscribe-to-top-of-book-in-batches
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {string|undefined} params.method 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch', 'orderbook/top/{speed}', or 'orderbook/top/{speed}/batch'
+         * @param {int|undefined} params.depth 5 (default), 10, or 20
+         * @param {int|undefined} params.speed 100 (default), 500, or 1000
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        const orderbook = await this.watchPublic (symbol, 'orderbook', undefined, params);
+        const options = this.safeValue (this.options, 'watchOrderBook');
+        const defaultMethod = this.safeString (options, 'method', 'orderbook/full');
+        let name = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
+        const depth = this.safeString (params, 'depth', '5');
+        const speed = this.safeString (params, 'depth', '100');
+        if (name === 'orderbook/{depth}/{speed}') {
+            name = 'orderbook/D' + depth + '/' + speed + 'ms';
+        } else if (name === 'orderbook/{depth}/{speed}/batch') {
+            name = 'orderbook/D' + depth + '/' + speed + 'ms/batch';
+        } else if (name === 'orderbook/top/{speed}') {
+            name = 'orderbook/top/' + speed + 'ms';
+        } else if (name === 'orderbook/top/{speed}/batch') {
+            name = 'orderbook/top/' + speed + 'ms/batch';
+        }
+        const market = this.market (symbol);
+        const request = {
+            'params': {
+                'symbols': [ market['id'] ],
+            },
+        };
+        const orderbook = await this.watchPublic (name, symbol, this.deepExtend (request, params));
         return orderbook.limit ();
     }
 
-    handleOrderBookSnapshot (client: Client, message) {
+    handleOrderBook (client: Client, message) {
         //
-        //     {
-        //         jsonrpc: "2.0",
-        //         method: "snapshotOrderbook",
-        //         params: {
-        //             ask: [
-        //                 { price: "6927.75", size: "0.11991" },
-        //                 { price: "6927.76", size: "0.06200" },
-        //                 { price: "6927.85", size: "0.01000" },
-        //             ],
-        //             bid: [
-        //                 { price: "6926.18", size: "0.16898" },
-        //                 { price: "6926.17", size: "0.06200" },
-        //                 { price: "6925.97", size: "0.00125" },
-        //             ],
-        //             symbol: "BTCUSD",
-        //             sequence: 494854,
-        //             timestamp: "2020-04-03T08:58:53.460Z"
-        //         }
-        //     }
+        //    {
+        //        "ch": "orderbook/full",                 // Channel
+        //        "snapshot": {
+        //            "ETHBTC": {
+        //                "t": 1626866578796,             // Timestamp in milliseconds
+        //                "s": 27617207,                  // Sequence number
+        //                "a": [                          // Asks
+        //                    ["0.060506", "0"],
+        //                    ["0.060549", "12.6431"],
+        //                    ["0.060570", "0"],
+        //                    ["0.060612", "0"]
+        //                ],
+        //                "b": [                          // Bids
+        //                    ["0.060439", "4.4095"],
+        //                    ["0.060414", "0"],
+        //                    ["0.060407", "7.3349"],
+        //                    ["0.060390", "0"]
+        //                ]
+        //            }
+        //        }
+        //    }
         //
-        const params = this.safeValue (message, 'params', {});
-        const marketId = this.safeString (params, 'symbol');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        const timestamp = this.parse8601 (this.safeString (params, 'timestamp'));
-        const nonce = this.safeInteger (params, 'sequence');
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
-        }
-        const snapshot = this.parseOrderBook (params, symbol, timestamp, 'bid', 'ask', 'price', 'size');
-        const orderbook = this.orderBook (snapshot);
-        orderbook['nonce'] = nonce;
-        this.orderbooks[symbol] = orderbook;
-        const messageHash = 'orderbook:' + marketId;
-        client.resolve (orderbook, messageHash);
-    }
-
-    handleOrderBookUpdate (client: Client, message) {
-        //
-        //     {
-        //         jsonrpc: "2.0",
-        //         method: "updateOrderbook",
-        //         params: {
-        //             ask: [
-        //                 { price: "6940.65", size: "0.00000" },
-        //                 { price: "6940.66", size: "6.00000" },
-        //                 { price: "6943.52", size: "0.04707" },
-        //             ],
-        //             bid: [
-        //                 { price: "6938.40", size: "0.11991" },
-        //                 { price: "6938.39", size: "0.00073" },
-        //                 { price: "6936.65", size: "0.00000" },
-        //             ],
-        //             symbol: "BTCUSD",
-        //             sequence: 497872,
-        //             timestamp: "2020-04-03T09:03:56.685Z"
-        //         }
-        //     }
-        //
-        const params = this.safeValue (message, 'params', {});
-        const marketId = this.safeString (params, 'symbol');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        if (symbol in this.orderbooks) {
-            const timestamp = this.parse8601 (this.safeString (params, 'timestamp'));
-            const nonce = this.safeInteger (params, 'sequence');
+        const data = this.safeValue2 (message, 'snapshot', 'update', {});
+        const marketIds = Object.keys (data);
+        const channel = this.safeString (message, 'ch');
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            const item = data[marketId];
+            const messageHash = channel + ':' + symbol;
+            if (!(symbol in this.orderbooks)) {
+                const subscription = this.safeValue (client.subscriptions, messageHash, {});
+                const limit = this.safeInteger (subscription, 'limit');
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
+            }
+            const timestamp = this.safeInteger (item, 't');
+            const nonce = this.safeInteger (item, 's');
             const orderbook = this.orderbooks[symbol];
-            const asks = this.safeValue (params, 'ask', []);
-            const bids = this.safeValue (params, 'bid', []);
+            const asks = this.safeValue (item, 'a', []);
+            const bids = this.safeValue (item, 'b', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
             orderbook['nonce'] = nonce;
             this.orderbooks[symbol] = orderbook;
-            const messageHash = 'orderbook:' + marketId;
             client.resolve (orderbook, messageHash);
         }
     }
 
     handleDelta (bookside, delta) {
-        const price = this.safeFloat (delta, 'price');
-        const amount = this.safeFloat (delta, 'size');
+        const amount = this.safeNumber (delta, 0);
+        const price = this.safeNumber (delta, 1);
         bookside.store (price, amount);
     }
 
@@ -192,6 +194,10 @@ export default class hitbtc3 extends hitbtc3Rest {
          * @method
          * @name hitbtc3#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://api.hitbtc.com/#subscribe-to-ticker
+         * @see https://api.hitbtc.com/#subscribe-to-ticker-in-batches
+         * @see https://api.hitbtc.com/#subscribe-to-mini-ticker
+         * @see https://api.hitbtc.com/#subscribe-to-mini-ticker-in-batches
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the hitbtc3 api endpoint
          * @param {string} params.method 'ticker/1s' (default), 'ticker/3s', 'ticker/price/1s', or 'ticker/price/3s'
@@ -356,6 +362,7 @@ export default class hitbtc3 extends hitbtc3Rest {
          * @method
          * @name hitbtc3#watchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://api.hitbtc.com/#subscribe-to-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since not used by hitbtc3 watchTrades
          * @param {int|undefined} limit 0-1000, Default value = 0 (no history returned)
@@ -487,6 +494,7 @@ export default class hitbtc3 extends hitbtc3Rest {
          * @method
          * @name hitbtc3#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://api.hitbtc.com/#subscribe-to-candles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since not used by hitbtc3 watchOHLCV
