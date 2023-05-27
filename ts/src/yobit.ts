@@ -553,6 +553,9 @@ export default class yobit extends Exchange {
          * @param {object} params extra parameters specific to the yobit api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTickers() requires "symbols" argument (an array of symbols)');
+        }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         let ids = undefined;
