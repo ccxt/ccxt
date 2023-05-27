@@ -564,7 +564,7 @@ export default class yobit extends Exchange {
         } else {
             ids = this.marketIds (symbols);
         }
-        const idsLength = ids.join ('-');
+        const idsLength = ids.length;
         const idsString = ids.join ('-');
         const maxLength = this.safeInteger (this.options, 'maxUrlLength', 2048);
         // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
