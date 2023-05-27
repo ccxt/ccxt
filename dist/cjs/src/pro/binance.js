@@ -1402,7 +1402,7 @@ class binance extends binance$1 {
         let timestamp = this.safeInteger(order, 'O');
         const T = this.safeInteger(order, 'T');
         let lastTradeTimestamp = undefined;
-        if (executionType === 'NEW') {
+        if (executionType === 'NEW' || executionType === 'AMENDMENT') {
             if (timestamp === undefined) {
                 timestamp = T;
             }
