@@ -571,7 +571,7 @@ export default class yobit extends Exchange {
         const lenghtOfBaseUrl = 30; // the url including api-base and endpoint dir is 30 chars
         const actualLength = idsString.length + lenghtOfBaseUrl;
         if (actualLength > maxLength) {
-            throw new ArgumentsRequired (this.id + ' fetchTickers() is being requested for ' + idsLength + ' markets (which has an URL length of ' + actualLength.toString () + ' characters), but it exceedes max URL length (' + maxLength.toString () + '), please pass limisted symbols array to fetchTickers to fit in one request');
+            throw new ArgumentsRequired (this.id + ' fetchTickers() is being requested for ' + idsLength.toString () + ' markets (which has an URL length of ' + actualLength.toString () + ' characters), but it exceedes max URL length (' + maxLength.toString () + '), please pass limisted symbols array to fetchTickers to fit in one request');
         }
         const request = {
             'pair': idsString,
