@@ -50,7 +50,7 @@ class okx(Exchange, ImplicitAPI):
                 'margin': True,
                 'swap': True,
                 'future': True,
-                'option': None,
+                'option': True,
                 'addMargin': True,
                 'borrowMargin': True,
                 'cancelAllOrders': False,
@@ -113,6 +113,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -767,9 +768,11 @@ class okx(Exchange, ImplicitAPI):
                     'timeframes': {
                         '5m': '5m',
                         '1h': '1H',
+                        '8h': '8H',
                         '1d': '1D',
                         '5M': '5m',
                         '1H': '1H',
+                        '8H': '8H',
                         '1D': '1D',
                     },
                 },
@@ -868,6 +871,95 @@ class okx(Exchange, ImplicitAPI):
     def convert_to_instrument_type(self, type):
         exchangeTypes = self.safe_value(self.options, 'exchangeType', {})
         return self.safe_string(exchangeTypes, type, type)
+
+    def convert_expire_date(self, date):
+        # parse YYMMDD to timestamp
+        year = date[0:2]
+        month = date[2:4]
+        day = date[4:6]
+        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
+        return reconstructedDate
+
+    def create_expired_option_market(self, symbol):
+        # support expired option contracts
+        quote = 'USD'
+        optionParts = symbol.split('-')
+        symbolBase = symbol.split('/')
+        base = None
+        if symbol.find('/') > -1:
+            base = self.safe_string(symbolBase, 0)
+        else:
+            base = self.safe_string(optionParts, 0)
+        settle = base
+        expiry = self.safe_string(optionParts, 2)
+        strike = self.safe_string(optionParts, 3)
+        optionType = self.safe_string(optionParts, 4)
+        datetime = self.convert_expire_date(expiry)
+        timestamp = self.parse8601(datetime)
+        return {
+            'id': base + '-' + quote + '-' + expiry + '-' + strike + '-' + optionType,
+            'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': base,
+            'quoteId': quote,
+            'settleId': settle,
+            'active': False,
+            'type': 'option',
+            'linear': None,
+            'inverse': None,
+            'spot': False,
+            'swap': False,
+            'future': False,
+            'option': True,
+            'margin': False,
+            'contract': True,
+            'contractSize': self.parse_number('1'),
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
+            'optionType': 'call' if (optionType == 'C') else 'put',
+            'strike': self.parse_number(strike),
+            'precision': {
+                'amount': None,
+                'price': None,
+            },
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'info': None,
+        }
+
+    def market(self, symbol):
+        if self.markets is None:
+            raise ExchangeError(self.id + ' markets not loaded')
+        if isinstance(symbol, str):
+            if symbol in self.markets:
+                return self.markets[symbol]
+            elif symbol in self.markets_by_id:
+                markets = self.markets_by_id[symbol]
+                return markets[0]
+            elif (symbol.find('-C') > -1) or (symbol.find('-P') > -1):
+                return self.create_expired_option_market(symbol)
+        raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
+
+    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+        isOption = (marketId is not None) and ((marketId.find('-C') > -1) or (marketId.find('-P') > -1))
+        if isOption and not (marketId in self.markets_by_id):
+            # handle expired option contracts
+            return self.create_expired_option_market(marketId)
+        return super(okx, self).safe_market(marketId, market, delimiter, marketType)
 
     def fetch_status(self, params={}):
         """
@@ -5489,11 +5581,13 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_open_interest(data[0], market)
 
-    def fetch_open_interest_history(self, symbol: str, timeframe='5m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_interest_history(self, symbol: str, timeframe='1d', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Retrieves the open interest history of a currency
-        :param str symbol: Unified CCXT currency code instead of a unified symbol
-        :param str timeframe: "5m", "1h", or "1d"
+        see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-contracts-open-interest-and-volume
+        see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-options-open-interest-and-volume
+        :param str symbol: Unified CCXT currency code or unified symbol
+        :param str timeframe: "5m", "1h", or "1d" for option only "1d" or "8h"
         :param int|None since: The time in ms of the earliest record to retrieve unix timestamp
         :param int|None limit: Not used by okx, but parsed internally by CCXT
         :param dict params: Exchange specific parameters
@@ -5506,18 +5600,32 @@ class okx(Exchange, ImplicitAPI):
         if timeframe != '5m' and timeframe != '1H' and timeframe != '1D':
             raise BadRequest(self.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe')
         self.load_markets()
-        currency = self.currency(symbol)
+        # handle unified currency code or symbol
+        currencyId = None
+        market = None
+        if (symbol in self.markets) or (symbol in self.markets_by_id):
+            market = self.market(symbol)
+            currencyId = market['baseId']
+        else:
+            currency = self.currency(symbol)
+            currencyId = currency['id']
         request = {
-            'ccy': currency['id'],
+            'ccy': currencyId,
             'period': timeframe,
         }
-        if since is not None:
-            request['begin'] = since
-        until = self.safe_integer_2(params, 'till', 'until')
-        if until is not None:
-            request['end'] = until
-            params = self.omit(params, ['until', 'till'])
-        response = self.publicGetRubikStatContractsOpenInterestVolume(self.extend(request, params))
+        type = None
+        response = None
+        type, params = self.handle_market_type_and_params('fetchOpenInterestHistory', market, params)
+        if type == 'option':
+            response = self.publicGetRubikStatOptionOpenInterestVolume(self.extend(request, params))
+        else:
+            if since is not None:
+                request['begin'] = since
+            until = self.safe_integer_2(params, 'till', 'until')
+            if until is not None:
+                request['end'] = until
+                params = self.omit(params, ['until', 'till'])
+            response = self.publicGetRubikStatContractsOpenInterestVolume(self.extend(request, params))
         #
         #    {
         #        code: '0',
@@ -5532,7 +5640,7 @@ class okx(Exchange, ImplicitAPI):
         #        msg: ''
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         return self.parse_open_interests(data, None, since, limit)
 
     def parse_open_interest(self, interest, market=None):
@@ -5541,33 +5649,46 @@ class okx(Exchange, ImplicitAPI):
         #
         #    [
         #        '1648221300000',  # timestamp
-        #        '2183354317.945',  # open interest(USD)
-        #        '74285877.617',  # volume(USD)
+        #        '2183354317.945',  # open interest(USD) - (coin) for options
+        #        '74285877.617',  # volume(USD) - (coin) for options
         #    ]
         #
         # fetchOpenInterest
         #
         #     {
-        #         "instId": "BTC-USDT-SWAP",
-        #         "instType": "SWAP",
-        #         "oi": "2125419",
-        #         "oiCcy": "21254.19",
-        #         "ts": "1664005108969"
+        #         "instId": "BTC-USD-230520-25500-P",
+        #         "instType": "OPTION",
+        #         "oi": "300",
+        #         "oiCcy": "3",
+        #         "ts": "1684551166251"
         #     }
         #
         id = self.safe_string(interest, 'instId')
         market = self.safe_market(id, market)
         time = self.safe_integer(interest, 'ts')
         timestamp = self.safe_number(interest, 0, time)
-        numContracts = self.safe_number(interest, 'oi')
-        inCurrency = self.safe_number(interest, 'oiCcy')
-        openInterest = self.safe_number(interest, 1, inCurrency)
+        baseVolume = None
+        quoteVolume = None
+        openInterestAmount = None
+        openInterestValue = None
+        type = self.safe_string(self.options, 'defaultType')
+        if isinstance(interest, list):
+            if type == 'option':
+                openInterestAmount = self.safe_number(interest, 1)
+                baseVolume = self.safe_number(interest, 2)
+            else:
+                openInterestValue = self.safe_number(interest, 1)
+                quoteVolume = self.safe_number(interest, 2)
+        else:
+            baseVolume = self.safe_number(interest, 'oiCcy')
+            openInterestAmount = self.safe_number(interest, 'oi')
+            openInterestValue = self.safe_number(interest, 'oiCcy')
         return {
             'symbol': self.safe_symbol(id),
-            'baseVolume': None,  # deprecated
-            'quoteVolume': openInterest,  # deprecated
-            'openInterestAmount': numContracts,
-            'openInterestValue': openInterest,
+            'baseVolume': baseVolume,  # deprecated
+            'quoteVolume': quoteVolume,  # deprecated
+            'openInterestAmount': openInterestAmount,
+            'openInterestValue': openInterestValue,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
@@ -5693,6 +5814,98 @@ class okx(Exchange, ImplicitAPI):
             currency = self.currency(code)
             depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
         return depositWithdrawFees
+
+    def fetch_settlement_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetches historical settlement records
+        see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-delivery-exercise-history
+        :param str symbol: unified market symbol to fetch the settlement history for
+        :param int since: timestamp in ms
+        :param int limit: number of records
+        :param dict params: exchange specific params
+        :returns [dict]: a list of [settlement history objects]
+        """
+        self.check_required_symbol('fetchSettlementHistory', symbol)
+        self.load_markets()
+        market = None if (symbol is None) else self.market(symbol)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchSettlementHistory', market, params)
+        if type != 'future' and type != 'option':
+            raise NotSupported(self.id + ' fetchSettlementHistory() supports futures and options markets only')
+        request = {
+            'instType': self.convert_to_instrument_type(type),
+            'uly': market['baseId'] + '-' + market['quoteId'],
+        }
+        if since is not None:
+            request['before'] = since - 1
+        if limit is not None:
+            request['limit'] = limit
+        response = self.publicGetPublicDeliveryExerciseHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "details": [
+        #                     {
+        #                         "insId": "BTC-USD-230523-25750-C",
+        #                         "px": "27290.1486867000556483",
+        #                         "type": "exercised"
+        #                     },
+        #                 ],
+        #                 "ts":"1684656000000"
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        settlements = self.parse_settlements(data, market)
+        sorted = self.sort_by(settlements, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def parse_settlement(self, settlement, market):
+        #
+        #     {
+        #         "insId": "BTC-USD-230521-28500-P",
+        #         "px": "27081.2007345984751516",
+        #         "type": "exercised"
+        #     }
+        #
+        marketId = self.safe_string(settlement, 'insId')
+        return {
+            'info': settlement,
+            'symbol': self.safe_symbol(marketId, market),
+            'price': self.safe_number(settlement, 'px'),
+            'timestamp': None,
+            'datetime': None,
+        }
+
+    def parse_settlements(self, settlements, market):
+        #
+        #     {
+        #         "details": [
+        #             {
+        #                 "insId": "BTC-USD-230523-25750-C",
+        #                 "px": "27290.1486867000556483",
+        #                 "type": "exercised"
+        #             },
+        #         ],
+        #         "ts":"1684656000000"
+        #     }
+        #
+        result = []
+        for i in range(0, len(settlements)):
+            entry = settlements[i]
+            timestamp = self.safe_integer(entry, 'ts')
+            details = self.safe_value(entry, 'details', [])
+            for i in range(0, len(details)):
+                settlement = self.parse_settlement(details[i], market)
+                result.append(self.extend(settlement, {
+                    'timestamp': timestamp,
+                    'datetime': self.iso8601(timestamp),
+                }))
+        return result
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

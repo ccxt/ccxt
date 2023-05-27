@@ -1161,6 +1161,7 @@ class bitget extends bitget$1 {
         if (quote === 'USDT') {
             minCost = this.safeNumber(market, 'minTradeUSDT');
         }
+        const contractSize = contract ? 1 : undefined;
         return {
             'id': marketId,
             'symbol': symbol,
@@ -1182,7 +1183,7 @@ class bitget extends bitget$1 {
             'inverse': inverse,
             'taker': this.safeNumber(market, 'takerFeeRate'),
             'maker': this.safeNumber(market, 'makerFeeRate'),
-            'contractSize': 1,
+            'contractSize': contractSize,
             'expiry': expiry,
             'expiryDatetime': expiryDatetime,
             'strike': undefined,
@@ -1504,7 +1505,7 @@ class bitget extends bitget$1 {
         const chain = this.safeString2(params, 'chain', 'network');
         params = this.omit(params, ['network']);
         if (chain === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a chain parameter');
+            throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a chain parameter or a network parameter');
         }
         await this.loadMarkets();
         const currency = this.currency(code);

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.1.2';
+$version = '3.1.10';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.1.2';
+    const VERSION = '3.1.10';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2121,9 +2121,9 @@ class Exchange {
                     $result[] = $entry;
                 }
             }
-            return $this->filterByLimit ($result, $limit, $key);
+            return $this->filter_by_limit($result, $limit, $key);
         }
-        return $this->filterByLimit ($parsedArray, $limit, $key);
+        return $this->filter_by_limit($parsedArray, $limit, $key);
     }
 
     public function filter_by_value_since_limit(mixed $array, int|string $field, $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp') {
@@ -2143,9 +2143,9 @@ class Exchange {
                     $result[] = $entry;
                 }
             }
-            return $this->filterByLimit ($result, $limit, $key);
+            return $this->filter_by_limit($result, $limit, $key);
         }
-        return $this->filterByLimit ($parsedArray, $limit, $key);
+        return $this->filter_by_limit($parsedArray, $limit, $key);
     }
 
     public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null) {
@@ -3245,24 +3245,6 @@ class Exchange {
             }
         }
         return $networkCode;
-    }
-
-    public function network_codes_to_ids($networkCodes = null) {
-        /**
-         * @ignore
-         * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
-         * @param {[string]|null} $networkCodes unified network codes
-         * @return {[string|null]} exchange-specific network $ids
-         */
-        if ($networkCodes === null) {
-            return null;
-        }
-        $ids = array();
-        for ($i = 0; $i < count($networkCodes); $i++) {
-            $networkCode = $networkCodes[$i];
-            $ids[] = $this->networkCodeToId ($networkCode);
-        }
-        return $ids;
     }
 
     public function handle_network_code_and_params($params) {

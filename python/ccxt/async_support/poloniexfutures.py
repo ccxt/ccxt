@@ -33,7 +33,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             # 30 requests per second
             'rateLimit': 33.3,
             'certified': False,
-            'pro': False,
+            'pro': True,
             'version': 'v1',
             'has': {
                 'CORS': None,
@@ -350,10 +350,34 @@ class poloniexfutures(Exchange, ImplicitAPI):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        #
+        #    {
+        #        "symbol": "BTCUSDTPERP",                   # Market of the symbol
+        #        "sequence": 45,                            # Sequence number which is used to judge the continuity of the pushed messages
+        #        "side": "sell",                            # Transaction side of the last traded taker order
+        #        "price": 3600.00,                          # Filled price
+        #        "size": 16,                                # Filled quantity
+        #        "tradeId": "5c9dcf4170744d6f5a3d32fb",     # Order ID
+        #        "bestBidSize": 795,                        # Best bid size
+        #        "bestBidPrice": 3200.00,                   # Best bid
+        #        "bestAskPrice": 3600.00,                   # Best ask size
+        #        "bestAskSize": 284,                        # Best ask
+        #        "ts": 1553846081210004941                  # Filled time - nanosecond
+        #    }
+        #
+        #    {
+        #        "volume": 30449670,            #24h Volume
+        #        "turnover": 845169919063,      #24h Turnover
+        #        "lastPrice": 3551,           #Last price
+        #        "priceChgPct": 0.0043,         #24h Change
+        #        "ts": 1547697294838004923      #Snapshot time(nanosecond)
+        #    }
+        #
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer_product(ticker, 'ts', 0.000001)
-        last = self.safe_string(ticker, 'price')
+        last = self.safe_string_2(ticker, 'price', 'lastPrice')
+        percentage = Precise.string_mul(self.safe_string(ticker, 'priceChgPct'), '100')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -370,10 +394,10 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': None,
+            'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'size'),
-            'quoteVolume': None,
+            'baseVolume': self.safe_string_2(ticker, 'size', 'volume'),
+            'quoteVolume': self.safe_string(ticker, 'turnover'),
             'info': ticker,
         }, market)
 

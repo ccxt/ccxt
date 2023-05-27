@@ -1083,6 +1083,7 @@ export default class bitget extends bitgetRest {
             const account = (code in this.balance) ? this.balance[code] : this.account ();
             account['free'] = this.safeString (rawBalance, 'available');
             account['total'] = this.safeString (rawBalance, 'equity');
+            account['used'] = this.safeString (rawBalance, 'frozen');
             this.balance[code] = account;
         }
         this.balance = this.safeBalance (this.balance);

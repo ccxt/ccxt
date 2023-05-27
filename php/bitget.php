@@ -1159,6 +1159,7 @@ class bitget extends Exchange {
         if ($quote === 'USDT') {
             $minCost = $this->safe_number($market, 'minTradeUSDT');
         }
+        $contractSize = $contract ? 1 : null;
         return array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -1180,7 +1181,7 @@ class bitget extends Exchange {
             'inverse' => $inverse,
             'taker' => $this->safe_number($market, 'takerFeeRate'),
             'maker' => $this->safe_number($market, 'makerFeeRate'),
-            'contractSize' => 1,
+            'contractSize' => $contractSize,
             'expiry' => $expiry,
             'expiryDatetime' => $expiryDatetime,
             'strike' => null,
@@ -1500,7 +1501,7 @@ class bitget extends Exchange {
         $chain = $this->safe_string_2($params, 'chain', 'network');
         $params = $this->omit($params, array( 'network' ));
         if ($chain === null) {
-            throw new ArgumentsRequired($this->id . ' withdraw() requires a $chain parameter');
+            throw new ArgumentsRequired($this->id . ' withdraw() requires a $chain parameter or a network parameter');
         }
         $this->load_markets();
         $currency = $this->currency($code);

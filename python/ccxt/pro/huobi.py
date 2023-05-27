@@ -330,6 +330,7 @@ class huobi(ccxt.async_support.huobi):
         url = self.get_url_by_market_type(market['type'], market['linear'])
         method = self.handle_order_book_subscription
         if not market['spot']:
+            params = self.extend(params)
             params['data_type'] = 'incremental'
             method = None
         orderbook = await self.subscribe_public(url, symbol, messageHash, method, params)
