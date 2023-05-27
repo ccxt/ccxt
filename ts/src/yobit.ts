@@ -230,9 +230,8 @@ export default class yobit extends Exchange {
                 'XRA': 'Ratecoin',
             },
             'options': {
-                // 'fetchTickersMaxLength': 2048,
+                'maxUrlLength': 2048,
                 'fetchOrdersRequiresSymbol': true,
-                'fetchTickersMaxLength': 512,
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
@@ -562,12 +561,14 @@ export default class yobit extends Exchange {
         } else {
             ids = this.marketIds (symbols);
         }
+        const idsLength = ids.join ('-');
         const idsString = ids.join ('-');
-        const maxLength = this.safeInteger (this.options, 'fetchTickersMaxLength', 2048);
+        const maxLength = this.safeInteger (this.options, 'maxUrlLength', 2048);
         // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
         const lenghtOfBaseUrl = 30; // the url including api-base and endpoint dir is 30 chars
-        if (idsString.length + lenghtOfBaseUrl > maxLength) {
-            throw new ArgumentsRequired (this.id + ' fetchTickers() is being requested for ' + (idsString.length).toString () + ' markets, but it exceedes max URL length (' + maxLength.toString () + ' characters), please pass limisted symbols array to fetchTickers to fit in one request');
+        const actualLength = idsString.length + lenghtOfBaseUrl;
+        if (actualLength > maxLength) {
+            throw new ArgumentsRequired (this.id + ' fetchTickers() is being requested for ' + idsLength + ' markets (which has an URL length of ' + actualLength.toString () + ' characters), but it exceedes max URL length (' + maxLength.toString () + '), please pass limisted symbols array to fetchTickers to fit in one request');
         }
         const request = {
             'pair': idsString,
