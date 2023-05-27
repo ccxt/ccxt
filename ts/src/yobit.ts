@@ -558,19 +558,19 @@ export default class yobit extends Exchange {
         symbols = this.marketSymbols (symbols);
         let ids = undefined;
         if (symbols === undefined) {
-            const numIds = this.ids.length;
-            ids = ids.join ('-');
-            const maxLength = this.safeInteger (this.options, 'fetchTickersMaxLength', 2048);
-            // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > this.options['fetchTickersMaxLength']) {
-                throw new ArgumentsRequired (this.id + ' fetchTickers() has ' + numIds.toString () + ' markets exceeding max URL length for this endpoint (' + maxLength.toString () + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers');
-            }
+            ids = this.ids;
         } else {
-            const newIds = this.marketIds (symbols);
-            ids = newIds.join ('-');
+            ids = this.marketIds (symbols);
+        }
+        const idsString = ids.join ('-');
+        const maxLength = this.safeInteger (this.options, 'fetchTickersMaxLength', 2048);
+        // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
+        const lenghtOfBaseUrl = 30; // the url including api-base and endpoint dir is 30 chars
+        if (idsString.length + lenghtOfBaseUrl > maxLength) {
+            throw new ArgumentsRequired (this.id + ' fetchTickers() is being requested for ' + (idsString.length).toString () + ' markets, but it exceedes max URL length (' + maxLength.toString () + ' characters), please pass limisted symbols array to fetchTickers to fit in one request');
         }
         const request = {
-            'pair': ids,
+            'pair': idsString,
         };
         const tickers = await this.publicGetTickerPair (this.extend (request, params));
         const result = {};
