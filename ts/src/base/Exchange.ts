@@ -2798,11 +2798,11 @@ export default class Exchange {
         return this.accounts;
     }
 
-    buildOHLCVC (trades: Trade[], timeframe: string = '1m', since: number = -Infinity, limit: number = Infinity): OHLCVC[] {
-        if (since === undefined) {
+    buildOHLCVC (trades: Trade[], timeframe: string = '1m', since: number = -1, limit: number = -1): OHLCVC[] {
+        if (since === -1) {
             since = 0;
         }
-        if (limit === undefined) {
+        if (limit === -1) {
             limit = 2147483647; // max int32
         }
         // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
