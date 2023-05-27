@@ -2,10 +2,12 @@
 //  ---------------------------------------------------------------------------
 
 import hitbtc3Rest from '../hitbtc3.js';
-import { ArrayCache } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Trade, OHLCV } from '../base/types';
+import { ArgumentsRequired } from '../base/errors.js';
+import { Precise } from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -18,8 +20,10 @@ export default class hitbtc3 extends hitbtc3Rest {
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchOrderBook': true,
-                'watchBalance': false,
+                'watchBalance': true,
+                'watchOrders': true,
                 'watchOHLCV': true,
+                'watchMyTrades': false,
             },
             'urls': {
                 'api': {
@@ -57,7 +61,7 @@ export default class hitbtc3 extends hitbtc3Rest {
         });
     }
 
-    async watchPublic (name: string, symbol: string = undefined, params = {}) {
+    async subscribe (name: string, symbol: string = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -120,7 +124,7 @@ export default class hitbtc3 extends hitbtc3Rest {
                 'symbols': [ market['id'] ],
             },
         };
-        const orderbook = await this.watchPublic (name, symbol, this.deepExtend (request, params));
+        const orderbook = await this.subscribe (name, symbol, this.deepExtend (request, params));
         return orderbook.limit ();
     }
 
@@ -212,7 +216,7 @@ export default class hitbtc3 extends hitbtc3Rest {
                 'symbols': [ market['id'] ],
             },
         };
-        return await this.watchPublic (name, symbol, this.deepExtend (request, params));
+        return await this.subscribe (name, symbol, this.deepExtend (request, params));
     }
 
     async watchTickers (symbols = undefined, params = {}) {
@@ -243,7 +247,7 @@ export default class hitbtc3 extends hitbtc3Rest {
                 'symbols': marketIds,
             },
         };
-        return await this.watchPublic (name, undefined, this.deepExtend (request, params));
+        return await this.subscribe (name, undefined, this.deepExtend (request, params));
     }
 
     handleTicker (client: Client, message) {
@@ -380,7 +384,7 @@ export default class hitbtc3 extends hitbtc3Rest {
         params = this.deepExtend ({
             'params': request,
         });
-        const trades = await this.watchPublic (symbol, 'trades', undefined, params);
+        const trades = await this.subscribe (symbol, 'trades', undefined, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -514,7 +518,7 @@ export default class hitbtc3 extends hitbtc3Rest {
             request['params']['limit'] = limit;
         }
         params = this.deepExtend (request, params);
-        const ohlcv = await this.watchPublic (name, symbol, params);
+        const ohlcv = await this.subscribe (name, symbol, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -612,6 +616,522 @@ export default class hitbtc3 extends hitbtc3Rest {
         ];
     }
 
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @see https://api.hitbtc.com/#subscribe-to-reports
+         * @see https://api.hitbtc.com/#subscribe-to-reports-2
+         * @see https://api.hitbtc.com/#subscribe-to-reports-3
+         * @param {string|undefined} symbol unified CCXT market symbol
+         * @param {int|undefined} since not used by hitbtc3 watchOrders
+         * @param {int|undefined} limit not used by hitbtc3 watchOrders
+         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        let marketType = undefined;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        const name = this.getSupportedMapping (marketType, {
+            'spot': 'spot_subscribe',
+            'margin': 'margin_subscribe',
+            'swap': 'futures_orders',
+            'future': 'futures_orders',
+        });
+        const orders = await this.subscribe (name, undefined, params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp');
+    }
+
+    handleOrder (client: Client, message) {
+        //
+        //    {
+        //        "jsonrpc": "2.0",
+        //        "method": "spot_order",                            // "margin_order", "future_order"
+        //        "params": {
+        //            "id": 584244931496,
+        //            "client_order_id": "b5acd79c0a854b01b558665bcf379456",
+        //            "symbol": "BTCUSDT",
+        //            "side": "buy",
+        //            "status": "new",
+        //            "type": "limit",
+        //            "time_in_force": "GTC",
+        //            "quantity": "0.01000",
+        //            "quantity_cumulative": "0",
+        //            "price": "0.01",                              // only updates and snapshots
+        //            "post_only": false,
+        //            "reduce_only": false,                         // only margin and contract
+        //            "display_quantity": "0",                      // only updates and snapshot
+        //            "created_at": "2021-07-02T22:52:32.864Z",
+        //            "updated_at": "2021-07-02T22:52:32.864Z",
+        //            "trade_id": 1361977606,                       // only trades
+        //            "trade_quantity": "0.00001",                  // only trades
+        //            "trade_price": "49595.04",                    // only trades
+        //            "trade_fee": "0.001239876000",                // only trades
+        //            "trade_taker": true,                          // only trades, only spot
+        //            "trade_position_id": 485308,                  // only trades, only margin
+        //            "report_type": "new"                          // "trade", "status" (snapshot)
+        //        }
+        //    }
+        //
+        //    {
+        //       "jsonrpc": "2.0",
+        //       "method": "spot_orders",                            // "margin_orders", "future_orders"
+        //       "params": [
+        //            {
+        //                "id": 584244931496,
+        //                "client_order_id": "b5acd79c0a854b01b558665bcf379456",
+        //                "symbol": "BTCUSDT",
+        //                "side": "buy",
+        //                "status": "new",
+        //                "type": "limit",
+        //                "time_in_force": "GTC",
+        //                "quantity": "0.01000",
+        //                "quantity_cumulative": "0",
+        //                "price": "0.01",                              // only updates and snapshots
+        //                "post_only": false,
+        //                "reduce_only": false,                         // only margin and contract
+        //                "display_quantity": "0",                      // only updates and snapshot
+        //                "created_at": "2021-07-02T22:52:32.864Z",
+        //                "updated_at": "2021-07-02T22:52:32.864Z",
+        //                "trade_id": 1361977606,                       // only trades
+        //                "trade_quantity": "0.00001",                  // only trades
+        //                "trade_price": "49595.04",                    // only trades
+        //                "trade_fee": "0.001239876000",                // only trades
+        //                "trade_taker": true,                          // only trades, only spot
+        //                "trade_position_id": 485308,                  // only trades, only margin
+        //                "report_type": "new"                          // "trade", "status" (snapshot)
+        //            }
+        //        ]
+        //    }
+        //
+        let orders = this.orders;
+        if (orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit');
+            orders = new ArrayCacheBySymbolById (limit);
+            this.orders = orders;
+        }
+        const order = this.safeValue (message, 'order');
+        if (order !== undefined) {
+            const marketId = this.safeStringLower (order, 'instrument');
+            const messageHash = 'orders';
+            const symbol = this.safeSymbol (marketId);
+            const orderId = this.safeString (order, 'order_id');
+            const previousOrders = this.safeValue (orders.hashmap, symbol, {});
+            const previousOrder = this.safeValue (previousOrders, orderId);
+            if (previousOrder === undefined) {
+                const parsed = this.parseOrder (order);
+                orders.append (parsed);
+                client.resolve (orders, messageHash);
+                client.resolve (orders, messageHash + ':' + symbol);
+            } else {
+                const trade = this.parseWsOrderTrade (order);
+                if (previousOrder['trades'] === undefined) {
+                    previousOrder['trades'] = [];
+                }
+                previousOrder['trades'].push (trade);
+                previousOrder['lastTradeTimestamp'] = trade['timestamp'];
+                let totalCost = '0';
+                let totalAmount = '0';
+                const trades = previousOrder['trades'];
+                for (let i = 0; i < trades.length; i++) {
+                    const trade = trades[i];
+                    totalCost = Precise.stringAdd (totalCost, this.numberToString (trade['cost']));
+                    totalAmount = Precise.stringAdd (totalAmount, this.numberToString (trade['amount']));
+                }
+                if (Precise.stringGt (totalAmount, '0')) {
+                    previousOrder['average'] = Precise.stringDiv (totalCost, totalAmount);
+                }
+                previousOrder['cost'] = totalCost;
+                if (previousOrder['filled'] !== undefined) {
+                    previousOrder['filled'] = Precise.stringAdd (previousOrder['filled'], this.numberToString (trade['amount']));
+                    if (previousOrder['amount'] !== undefined) {
+                        previousOrder['remaining'] = Precise.stringSub (previousOrder['amount'], previousOrder['filled']);
+                    }
+                }
+                if (previousOrder['fee'] === undefined) {
+                    previousOrder['fee'] = {
+                        'rate': undefined,
+                        'cost': '0',
+                        'currency': this.numberToString (trade['fee']['currency']),
+                    };
+                }
+                if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
+                    const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
+                    const stringTradeCost = this.numberToString (trade['fee']['cost']);
+                    previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
+                }
+                // update the newUpdates count
+                orders.append (this.safeOrder (previousOrder));
+                client.resolve (orders, messageHash + ':' + symbol);
+                client.resolve (orders, messageHash);
+            }
+        }
+        return message;
+    }
+
+    parseWsOrderTrade (trade, market = undefined) {
+        //
+        //    {
+        //        "id": 584244931496,
+        //        "client_order_id": "b5acd79c0a854b01b558665bcf379456",
+        //        "symbol": "BTCUSDT",
+        //        "side": "buy",
+        //        "status": "new",
+        //        "type": "limit",
+        //        "time_in_force": "GTC",
+        //        "quantity": "0.01000",
+        //        "quantity_cumulative": "0",
+        //        "price": "0.01",                              // only updates and snapshots
+        //        "post_only": false,
+        //        "reduce_only": false,                         // only margin and contract
+        //        "display_quantity": "0",                      // only updates and snapshot
+        //        "created_at": "2021-07-02T22:52:32.864Z",
+        //        "updated_at": "2021-07-02T22:52:32.864Z",
+        //        "trade_id": 1361977606,                       // only trades
+        //        "trade_quantity": "0.00001",                  // only trades
+        //        "trade_price": "49595.04",                    // only trades
+        //        "trade_fee": "0.001239876000",                // only trades
+        //        "trade_taker": true,                          // only trades, only spot
+        //        "trade_position_id": 485308,                  // only trades, only margin
+        //        "report_type": "new"                          // "trade", "status" (snapshot)
+        //    }
+        //
+        const timestamp = this.safeInteger (trade, 'created_at');
+        const marketId = this.safeString (trade, 'symbol');
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeString (trade, 'trade_id'),
+            'order': this.safeString (trade, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': this.safeMarket (marketId, market),
+            'type': undefined,
+            'side': this.safeString (trade, 'side'),
+            'takerOrMaker': this.safeString (trade, 'trade_taker'),
+            'price': this.safeString (trade, 'trade_price'),
+            'amount': this.safeString (trade, 'trade_quantity'),
+            'cost': undefined,
+            'fee': {
+                'cost': this.safeString (trade, 'trade_fee'),
+                'currency': undefined,
+                'rate': undefined,
+            },
+        }, market);
+    }
+
+    parseWsOrder (order, market = undefined) {
+        //
+        //    {
+        //        "id": 584244931496,
+        //        "client_order_id": "b5acd79c0a854b01b558665bcf379456",
+        //        "symbol": "BTCUSDT",
+        //        "side": "buy",
+        //        "status": "new",
+        //        "type": "limit",
+        //        "time_in_force": "GTC",
+        //        "quantity": "0.01000",
+        //        "quantity_cumulative": "0",
+        //        "price": "0.01",                              // only updates and snapshots
+        //        "post_only": false,
+        //        "reduce_only": false,                         // only margin and contract
+        //        "display_quantity": "0",                      // only updates and snapshot
+        //        "created_at": "2021-07-02T22:52:32.864Z",
+        //        "updated_at": "2021-07-02T22:52:32.864Z",
+        //        "trade_id": 1361977606,                       // only trades
+        //        "trade_quantity": "0.00001",                  // only trades
+        //        "trade_price": "49595.04",                    // only trades
+        //        "trade_fee": "0.001239876000",                // only trades
+        //        "trade_taker": true,                          // only trades, only spot
+        //        "trade_position_id": 485308,                  // only trades, only margin
+        //        "report_type": "new"                          // "trade", "status" (snapshot)
+        //    }
+        //
+        const timestamp = this.safeString (order, 'created_at');
+        const marketId = this.safeSymbol (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const tradeId = this.safeString (order, 'trade_id');
+        let trades = undefined;
+        if (tradeId !== undefined) {
+            const trade = this.parseWsOrderTrade (order, market);
+            trades = [ trade ];
+        }
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString (order, 'id'),
+            'clientOrderId': this.safeString (order, 'client_order_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': market['symbol'],
+            'price': this.safeString (order, 'price'),
+            'amount': this.safeString (order, 'quantity'),
+            'type': this.safeString (order, 'type'),
+            'side': this.safeStringUpper (order, 'side'),
+            'timeInForce': this.safeString (order, 'time_in_force'),
+            'postOnly': this.safeString (order, 'post_only'),
+            'reduceOnly': this.safeValue (order, 'reduce_only'),
+            'filled': undefined,
+            'remaining': undefined,
+            'cost': undefined,
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
+            'average': undefined,
+            'trades': trades,
+            'fee': undefined,
+        }, market);
+    }
+
+    async watchBalance (params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string|undefined} symbol not used by krakenfutures watchBalance
+         * @param {int|undefined} since not used by krakenfutures watchBalance
+         * @param {int|undefined} limit not used by krakenfutures watchBalance
+         * @param {object} params extra parameters specific to the krakenfutures api endpoint
+         * @param {string} params.account can be either 'futures' or 'flex_futures'
+         * @returns {[object]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets ();
+        const name = 'balances';
+        let messageHash = name;
+        let account = undefined;
+        [ account, params ] = this.handleOptionAndParams (params, 'watchBalance', 'account');
+        if (account !== undefined) {
+            if (account !== 'futures' && account !== 'flex_futures') {
+                throw new ArgumentsRequired (this.id + ' watchBalance account must be either \'futures\' or \'flex_futures\'');
+            }
+            messageHash += ':' + account;
+        }
+        return await this.subscribe (name, messageHash, params);
+    }
+
+    handleBalance (client: Client, message) {
+        //
+        // snapshot
+        //
+        //    {
+        //        "feed": "balances_snapshot",
+        //        "account": "4a012c31-df95-484a-9473-d51e4a0c4ae7",
+        //        "holding": {
+        //            "USDT": 4997.5012493753,
+        //            "XBT": 0.1285407184,
+        //            ...
+        //        },
+        //        "futures": {
+        //            "F-ETH:EUR": {
+        //                "name": "F-ETH:EUR",
+        //                "pair": "ETH/EUR",
+        //                "unit": "EUR",
+        //                "portfolio_value": 0.0,
+        //                "balance": 0.0,
+        //                "maintenance_margin": 0.0,
+        //                "initial_margin": 0.0,
+        //                "available": 0.0,
+        //                "unrealized_funding": 0.0,
+        //                "pnl": 0.0
+        //            },
+        //            ...
+        //        },
+        //        "flex_futures": {
+        //            "currencies": {
+        //                "USDT": {
+        //                    "quantity": 0.0,
+        //                    "value": 0.0,
+        //                    "collateral_value": 0.0,
+        //                    "available": 0.0,
+        //                    "haircut": 0.0,
+        //                    "conversion_spread": 0.0
+        //                },
+        //                ...
+        //            },
+        //            "balance_value":0.0,
+        //            "portfolio_value":0.0,
+        //            "collateral_value":0.0,
+        //            "initial_margin":0.0,
+        //            "initial_margin_without_orders":0.0,
+        //            "maintenance_margin":0.0,
+        //            "pnl":0.0,
+        //            "unrealized_funding":0.0,
+        //            "total_unrealized":0.0,
+        //            "total_unrealized_as_margin":0.0,
+        //            "margin_equity":0.0,
+        //            "available_margin":0.0
+        //            "isolated":{
+        //            },
+        //            "cross":{
+        //                "balance_value":9963.66,
+        //                "portfolio_value":9963.66,
+        //                "collateral_value":9963.66,
+        //                "initial_margin":0.0,
+        //                "initial_margin_without_orders":0.0,
+        //                "maintenance_margin":0.0,
+        //                "pnl":0.0,
+        //                "unrealized_funding":0.0,
+        //                "total_unrealized":0.0,
+        //                "total_unrealized_as_margin":0.0,
+        //                "margin_equity":9963.66,
+        //                "available_margin":9963.66,
+        //                "effective_leverage":0.0
+        //            },
+        //        },
+        //        "timestamp":1640995200000,
+        //        "seq":0
+        //    }
+        //
+        // update
+        //
+        //    Holding Wallet
+        //
+        //    {
+        //        "feed": "balances",
+        //        "account": "7a641082-55c7-4411-a85f-930ec2e09617",
+        //        "holding": {
+        //            "USD": 5000.0
+        //        },
+        //        "futures": {},
+        //        "timestamp": 1640995200000,
+        //        "seq": 83
+        //    }
+        //
+        //    Multi-Collateral
+        //
+        //    {
+        //        "feed": "balances"
+        //        "account": "7a641082-55c7-4411-a85f-930ec2e09617"
+        //        "flex_futures": {
+        //            "currencies": {
+        //                "USDT": {
+        //                    "quantity": 0.0,
+        //                    "value": 0.0,
+        //                    "collateral_value": 0.0,
+        //                    "available": 0.0,
+        //                    "haircut": 0.0,
+        //                    "conversion_spread": 0.0
+        //                },
+        //                ...
+        //            },
+        //            "balance_value": 5000.0,
+        //            "portfolio_value": 5000.0,
+        //            "collateral_value": 5000.0,
+        //            "initial_margin": 0.0,
+        //            "initial_margin_without_orders": 0.0,
+        //            "maintenance_margin": 0.0,
+        //            "pnl": 0.0,
+        //            "unrealized_funding": 0.0,
+        //            "total_unrealized": 0.0,
+        //            "total_unrealized_as_margin": 0.0,
+        //            "margin_equity": 5000.0,
+        //            "available_margin": 5000.0
+        //        },
+        //        "timestamp": 1640995200000,
+        //        "seq": 1
+        //    }
+        //
+        //    Sample Single-Collateral Balance Delta
+        //
+        //    {
+        //        "feed": "balances",
+        //        "account": "7a641082-55c7-4411-a85f-930ec2e09617",
+        //        "holding": {},
+        //        "futures": {
+        //            "F-XBT:USD": {
+        //                "name": "F-XBT:USD",
+        //                "pair": "XBT/USD",
+        //                "unit": "XBT",
+        //                "portfolio_value": 0.1219368845,
+        //                "balance": 0.1219368845,
+        //                "maintenance_margin": 0.0,
+        //                "initial_margin": 0.0,
+        //                "available": 0.1219368845,
+        //                "unrealized_funding": 0.0,
+        //                "pnl": 0.0
+        //            }
+        //        },
+        //        "timestamp": 1640995200000,
+        //        "seq": 2
+        //    }
+        //
+        const holding = this.safeValue (message, 'holding');
+        const futures = this.safeValue (message, 'futures');
+        const flexFutures = this.safeValue (message, 'flex_futures');
+        const messageHash = 'balances';
+        const timestamp = this.safeInteger (message, 'timestamp');
+        if (holding !== undefined) {
+            const holdingKeys = Object.keys (holding);                  // cashAccount
+            const holdingResult = {
+                'info': message,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            };
+            for (let i = 0; i < holdingKeys.length; i++) {
+                const key = holdingKeys[i];
+                const code = this.safeCurrencyCode (key);
+                const newAccount = this.account ();
+                const amount = this.safeNumber (holding, key);
+                newAccount['free'] = amount;
+                newAccount['total'] = amount;
+                newAccount['used'] = 0;
+                holdingResult[code] = newAccount;
+            }
+            this.balance['cash'] = holdingResult;
+            client.resolve (holdingResult, messageHash);
+        }
+        if (futures !== undefined) {
+            const futuresKeys = Object.keys (futures);                  // marginAccount
+            const futuresResult = {
+                'info': message,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            };
+            for (let i = 0; i < futuresKeys.length; i++) {
+                const key = futuresKeys[i];
+                const symbol = this.safeSymbol (key);
+                const newAccount = this.account ();
+                const future = this.safeValue (futures, key);
+                const currencyId = this.safeString (future, 'unit');
+                const code = this.safeCurrencyCode (currencyId);
+                newAccount['free'] = this.safeNumber (future, 'available');
+                newAccount['used'] = this.safeNumber (future, 'initial_margin');
+                newAccount['total'] = this.safeNumber (future, 'balance');
+                futuresResult[symbol] = {};
+                futuresResult[symbol][code] = newAccount;
+            }
+            this.balance['margin'] = futuresResult;
+            client.resolve (this.balance['margin'], messageHash + 'futures');
+        }
+        if (flexFutures !== undefined) {
+            const flexFutureCurrencies = this.safeValue (flexFutures, 'currencies', {});
+            const flexFuturesKeys = Object.keys (flexFutureCurrencies); // multi-collateral margin account
+            const flexFuturesResult = {
+                'info': message,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            };
+            for (let i = 0; i < flexFuturesKeys.length; i++) {
+                const key = flexFuturesKeys[i];
+                const flexFuture = this.safeValue (flexFutureCurrencies, key);
+                const code = this.safeCurrencyCode (key);
+                const newAccount = this.account ();
+                newAccount['free'] = this.safeNumber (flexFuture, 'available');
+                newAccount['used'] = this.safeNumber (flexFuture, 'collateral_value');
+                newAccount['total'] = this.safeNumber (flexFuture, 'quantity');
+                flexFuturesResult[code] = newAccount;
+            }
+            this.balance['flex'] = flexFuturesResult;
+            client.resolve (this.balance['flex'], messageHash + 'flex_futures');
+        }
+        client.resolve (this.balance, messageHash);
+    }
+
     handleNotification (client: Client, message) {
         //
         //     { jsonrpc: '2.0', result: true, id: null }
@@ -641,7 +1161,13 @@ export default class hitbtc3 extends hitbtc3Rest {
             'ticker/3s/batch': this.handleTicker,
             'trades': this.handleTrades,
             'ticker': this.handleTicker,
-            'updateOrderbook': this.handleOrderBookUpdate,
+            'updateOrderbook': this.handleOrderBook,
+            'spot_order': this.handleOrder,
+            'spot_orders': this.handleOrder,
+            'margin_order': this.handleOrder,
+            'margin_orders': this.handleOrder,
+            'futures_order': this.handleOrder,
+            'futures_orders': this.handleOrder,
         };
         const channel = this.safeString (message, 'ch');
         const method = this.safeValue (methods, channel);
