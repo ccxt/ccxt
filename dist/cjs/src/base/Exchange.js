@@ -2077,13 +2077,18 @@ class Exchange {
         }
         return result;
     }
-    marketSymbols(symbols) {
+    marketSymbols(symbols, type = undefined) {
         if (symbols === undefined) {
             return symbols;
         }
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
-            result.push(this.symbol(symbols[i]));
+            const market = this.market(symbols[i]);
+            if (type !== undefined && market['type'] !== type) {
+                throw new errors.BadRequest(this.id + ' symbols must be of same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
+            }
+            const symbol = this.safeString(market, 'symbol', symbols[i]);
+            result.push(symbol);
         }
         return result;
     }

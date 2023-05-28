@@ -2500,12 +2500,16 @@ class Exchange(object):
             result.append(self.market_id(symbols[i]))
         return result
 
-    def market_symbols(self, symbols):
+    def market_symbols(self, symbols, type: Optional[str] = None):
         if symbols is None:
             return symbols
         result = []
         for i in range(0, len(symbols)):
-            result.append(self.symbol(symbols[i]))
+            market = self.market(symbols[i])
+            if type is not None and market['type'] != type:
+                raise BadRequest(self.id + ' symbols must be of same type ' + type + '. If the type is incorrect you can change it in options or the params of the request')
+            symbol = self.safe_string(market, 'symbol', symbols[i])
+            result.append(symbol)
         return result
 
     def market_codes(self, codes):
