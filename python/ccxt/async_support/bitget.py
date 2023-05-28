@@ -1498,7 +1498,7 @@ class bitget(Exchange, ImplicitAPI):
         chain = self.safe_string_2(params, 'chain', 'network')
         params = self.omit(params, ['network'])
         if chain is None:
-            raise ArgumentsRequired(self.id + ' withdraw() requires a chain parameter')
+            raise ArgumentsRequired(self.id + ' withdraw() requires a chain parameter or a network parameter')
         await self.load_markets()
         currency = self.currency(code)
         networkId = self.network_code_to_id(chain)

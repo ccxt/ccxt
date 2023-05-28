@@ -702,6 +702,7 @@ class phemex(ccxt.async_support.phemex):
             symbol = market['symbol']
             messageHash = messageHash + market['symbol']
             if market['settle'] == 'USDT':
+                params = self.extend(params)
                 params['settle'] = 'USDT'
         type, params = self.handle_market_type_and_params('watchMyTrades', market, params)
         if symbol is None:
@@ -853,6 +854,7 @@ class phemex(ccxt.async_support.phemex):
             symbol = market['symbol']
             messageHash = messageHash + market['symbol']
             if market['settle'] == 'USDT':
+                params = self.extend(params)
                 params['settle'] = 'USDT'
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
         isUSDTSettled = self.safe_string(params, 'settle') == 'USDT'

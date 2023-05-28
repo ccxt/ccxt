@@ -1523,7 +1523,7 @@ class bitget extends Exchange {
             $chain = $this->safe_string_2($params, 'chain', 'network');
             $params = $this->omit($params, array( 'network' ));
             if ($chain === null) {
-                throw new ArgumentsRequired($this->id . ' withdraw() requires a $chain parameter');
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a $chain parameter or a network parameter');
             }
             Async\await($this->load_markets());
             $currency = $this->currency($code);

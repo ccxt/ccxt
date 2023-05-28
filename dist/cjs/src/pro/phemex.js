@@ -736,6 +736,7 @@ class phemex extends phemex$1 {
             symbol = market['symbol'];
             messageHash = messageHash + market['symbol'];
             if (market['settle'] === 'USDT') {
+                params = this.extend(params);
                 params['settle'] = 'USDT';
             }
         }
@@ -898,6 +899,7 @@ class phemex extends phemex$1 {
             symbol = market['symbol'];
             messageHash = messageHash + market['symbol'];
             if (market['settle'] === 'USDT') {
+                params = this.extend(params);
                 params['settle'] = 'USDT';
             }
         }

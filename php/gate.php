@@ -1666,6 +1666,7 @@ class gate extends Exchange {
     public function fetch_trading_fee(string $symbol, $params = array ()) {
         /**
          * fetch the trading fees for a $market
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the gate api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
@@ -1696,6 +1697,7 @@ class gate extends Exchange {
     public function fetch_trading_fees($params = array ()) {
         /**
          * fetch the trading fees for multiple markets
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
          * @param {array} $params extra parameters specific to the gate api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
          */
@@ -1743,9 +1745,12 @@ class gate extends Exchange {
         //        "futures_maker_fee" => "0"
         //    }
         //
+        $gtDiscount = $this->safe_value($info, 'gt_discount');
+        $taker = $gtDiscount ? 'gt_taker_fee' : 'taker_fee';
+        $maker = $gtDiscount ? 'gt_maker_fee' : 'maker_fee';
         $contract = $this->safe_value($market, 'contract');
-        $takerKey = $contract ? 'futures_taker_fee' : 'taker_fee';
-        $makerKey = $contract ? 'futures_maker_fee' : 'maker_fee';
+        $takerKey = $contract ? 'futures_taker_fee' : $taker;
+        $makerKey = $contract ? 'futures_maker_fee' : $maker;
         return array(
             'info' => $info,
             'symbol' => $this->safe_string($market, 'symbol'),

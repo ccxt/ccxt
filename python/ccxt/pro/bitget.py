@@ -1014,6 +1014,7 @@ class bitget(ccxt.async_support.bitget):
             account = self.balance[code] if (code in self.balance) else self.account()
             account['free'] = self.safe_string(rawBalance, 'available')
             account['total'] = self.safe_string(rawBalance, 'equity')
+            account['used'] = self.safe_string(rawBalance, 'frozen')
             self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
         arg = self.safe_value(message, 'arg')

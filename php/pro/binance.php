@@ -1417,7 +1417,7 @@ class binance extends \ccxt\async\binance {
         $timestamp = $this->safe_integer($order, 'O');
         $T = $this->safe_integer($order, 'T');
         $lastTradeTimestamp = null;
-        if ($executionType === 'NEW') {
+        if ($executionType === 'NEW' || $executionType === 'AMENDMENT') {
             if ($timestamp === null) {
                 $timestamp = $T;
             }
