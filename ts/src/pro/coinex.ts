@@ -144,10 +144,10 @@ export default class coinex extends coinexRest {
             this.tickers[symbol] = parsedTicker;
             newTickers.push (parsedTicker);
         }
-        const messageHashes = this.findMessageHashes (client, 'tickers:');
+        const messageHashes = this.findMessageHashes (client, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
-            const parts = messageHash.split (':');
+            const parts = messageHash.split ('::');
             const symbolsString = parts[1];
             const symbols = symbolsString.split (',');
             const tickers = this.filterByArray (newTickers, 'symbol', symbols);
@@ -416,7 +416,7 @@ export default class coinex extends coinexRest {
         const url = this.urls['api']['ws'][type];
         let messageHash = 'tickers';
         if (symbols !== undefined) {
-            messageHash = 'tickers:' + symbols.join (',');
+            messageHash = 'tickers::' + symbols.join (',');
         }
         const subscribe = {
             'method': 'state.subscribe',
