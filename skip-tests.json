@@ -975,6 +975,7 @@
         }
     },
     "ndax": {
+        "skip": "https://api.ndax.io:8443/AP/GetProducts?omsId=1 503 Service Unavailable No server is available to handle this request.",
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
