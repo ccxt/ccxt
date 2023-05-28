@@ -1288,7 +1288,7 @@ class binance(ccxt.async_support.binance):
         timestamp = self.safe_integer(order, 'O')
         T = self.safe_integer(order, 'T')
         lastTradeTimestamp = None
-        if executionType == 'NEW':
+        if executionType == 'NEW' or executionType == 'AMENDMENT':
             if timestamp is None:
                 timestamp = T
         elif executionType == 'TRADE':

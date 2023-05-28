@@ -337,7 +337,7 @@
             },
             "fetchTrades": {
                 "side": "side is undefined"
-            } 
+            }
         }
     },
     "bitvavo": {
@@ -438,6 +438,7 @@
         }
     },
     "btcalpha": {
+	"skip": "USDT_USD high price is a negative number below zero breaking the assertion in the test",
         "skipMethods": {
             "fetchOrderBook": "bids[0][0] is not < asks[0][0]",
             "fetchL2OrderBook": "same",
@@ -488,10 +489,10 @@
             "fetchTrades": "endpoint return Internal System Error"
         }
     },
-    "buda": { 
+    "buda": {
         "skip": "forbidden location"
     },
-    "bigone": { 
+    "bigone": {
         "skipMethods": {
             "fetchTickers": {
                 "bid": "broken bid-ask",
@@ -1013,7 +1014,7 @@
         "skipMethods": {
             "loadMarkets":{
                 "active":"is undefined"
-            }, 
+            },
             "fetchOrderBooks": "fetchOrderBooks returned 0 length"
         }
     },
@@ -1234,6 +1235,7 @@
         }
 	},
     "xt": {
+        "skip": "fetchFundingRate returns 502 Bad Gateway",
         "skipMethods": {
             "loadMarkets": "expiry and expiryDatetime are defined for non future/options markets",
             "fetchCurrencies": {
