@@ -244,9 +244,8 @@ class yobit(Exchange, ImplicitAPI):
                 'XRA': 'Ratecoin',
             },
             'options': {
-                # 'fetchTickersMaxLength': 2048,
+                'maxUrlLength': 2048,
                 'fetchOrdersRequiresSymbol': True,
-                'fetchTickersMaxLength': 512,
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
@@ -543,21 +542,25 @@ class yobit(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the yobit api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires "symbols" argument')
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         ids = None
         if symbols is None:
-            numIds = len(self.ids)
-            ids = '-'.join(ids)
-            maxLength = self.safe_integer(self.options, 'fetchTickersMaxLength', 2048)
-            # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
-            if len(ids) > self.options['fetchTickersMaxLength']:
-                raise ArgumentsRequired(self.id + ' fetchTickers() has ' + str(numIds) + ' markets exceeding max URL length for self endpoint(' + str(maxLength) + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers')
+            ids = self.ids
         else:
-            newIds = self.market_ids(symbols)
-            ids = '-'.join(newIds)
+            ids = self.market_ids(symbols)
+        idsLength = len(ids)
+        idsString = '-'.join(ids)
+        maxLength = self.safe_integer(self.options, 'maxUrlLength', 2048)
+        # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
+        lenghtOfBaseUrl = 30  # the url including api-base and endpoint dir is 30 chars
+        actualLength = len(idsString) + lenghtOfBaseUrl
+        if actualLength > maxLength:
+            raise ArgumentsRequired(self.id + ' fetchTickers() is being requested for ' + str(idsLength) + ' markets(which has an URL length of ' + str(actualLength) + ' characters), but it exceedes max URL length(' + str(maxLength) + '), please pass limisted symbols array to fetchTickers to fit in one request')
         request = {
-            'pair': ids,
+            'pair': idsString,
         }
         tickers = await self.publicGetTickerPair(self.extend(request, params))
         result = {}
