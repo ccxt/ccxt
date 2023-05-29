@@ -99,18 +99,20 @@ class bitget extends Exchange {
                 'withdraw' => false,
             ),
             'timeframes' => array(
-                '1m' => '1min',
-                '5m' => '5min',
-                '15m' => '15min',
-                '30m' => '30min',
+                '1m' => '1m',
+                '3m' => '3m',
+                '5m' => '5m',
+                '15m' => '15m',
+                '30m' => '30m',
                 '1h' => '1h',
+                '2h' => '2h',
                 '4h' => '4h',
-                '6h' => '6Hutc',
-                '12h' => '12Hutc',
-                '1d' => '1Dutc',
-                '3d' => '3Dutc',
-                '1w' => '1Wutc',
-                '1M' => '1Mutc',
+                '6h' => '6h',
+                '12h' => '12h',
+                '1d' => '1d',
+                '3d' => '3d',
+                '1w' => '1w',
+                '1M' => '1m',
             ),
             'hostname' => 'bitget.com',
             'urls' => array(
@@ -1523,7 +1525,7 @@ class bitget extends Exchange {
             $chain = $this->safe_string_2($params, 'chain', 'network');
             $params = $this->omit($params, array( 'network' ));
             if ($chain === null) {
-                throw new ArgumentsRequired($this->id . ' withdraw() requires a $chain parameter');
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a $chain parameter or a network parameter');
             }
             Async\await($this->load_markets());
             $currency = $this->currency($code);

@@ -85,7 +85,7 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
                 continue;
             }
-            assert(is_array($entry) && array_key_exists($key, $entry), 'key \"' . string_value($key) . '\" is missing from structure' . $log_text);
+            assert(is_array($entry) && array_key_exists($key, $entry), '\"' . string_value($key) . '\" key is missing from structure' . $log_text);
             $empty_allowed_for_this_key = $exchange->in_array($key, $empty_allowed_for);
             $value = $entry[$key];
             // check when:
@@ -95,10 +95,10 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
                 continue;
             }
             // if it was in needed keys, then it should have value.
-            assert($value !== null, 'key \"' . string_value($key) . '\" is expected to have a value' . $log_text);
+            assert($value !== null, '\"' . string_value($key) . '\" key is expected to have a value' . $log_text);
             // add exclusion for info key, as it can be any type
             if ($key !== 'info') {
-                assert(assert_type($exchange, $skipped_properties, $entry, $key, $format), 'key \"' . string_value($key) . '\" is neither undefined, neither of expected type' . $log_text);
+                assert(assert_type($exchange, $skipped_properties, $entry, $key, $format), '\"' . string_value($key) . '\" key is neither undefined, neither of expected type' . $log_text);
             }
         }
     }
@@ -113,7 +113,7 @@ function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_
     }
     $is_date_time_object = is_string($key_name_or_index);
     if ($is_date_time_object) {
-        assert((is_array($entry) && array_key_exists($key_name_or_index, $entry)), 'timestamp key ' . $key_name_or_index . ' is missing from structure' . $log_text);
+        assert((is_array($entry) && array_key_exists($key_name_or_index, $entry)), 'timestamp key \"' . $key_name_or_index . '\" is missing from structure' . $log_text);
     } else {
         // if index was provided (mostly from fetchOHLCV) then we check if it exists, as mandatory
         assert(!($entry[$key_name_or_index] === null), 'timestamp index ' . string_value($key_name_or_index) . ' is undefined' . $log_text);
@@ -134,10 +134,10 @@ function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_
     // only in case if the entry is a dictionary, thus it must have 'timestamp' & 'datetime' string keys
     if ($is_date_time_object) {
         // we also test 'datetime' here because it's certain sibling of 'timestamp'
-        assert((is_array($entry) && array_key_exists('datetime', $entry)), 'datetime is missing from structure' . $log_text);
+        assert((is_array($entry) && array_key_exists('datetime', $entry)), '\"datetime\" key is missing from structure' . $log_text);
         $dt = $entry['datetime'];
         if ($dt !== null) {
-            assert(is_string($dt), 'datetime is not a string' . $log_text);
+            assert(is_string($dt), '\"datetime\" key does not have a string value' . $log_text);
             assert($dt === $exchange->iso8601($entry['timestamp']), 'datetime is not iso8601 of timestamp' . $log_text);
         }
     }
@@ -150,7 +150,7 @@ function assert_currency_code($exchange, $skipped_properties, $method, $entry, $
         assert(is_string($actual_code), 'currency code should be either undefined or a string' . $log_text);
         assert((is_array($exchange->currencies) && array_key_exists($actual_code, $exchange->currencies)), 'currency code should be present in exchange.currencies' . $log_text);
         if ($expected_code !== null) {
-            assert($actual_code === $expected_code, 'currency code in response (' . string_value($actual_code) . ') should be equal to expected code (' . string_value($expected_code) . ')' . $log_text);
+            assert($actual_code === $expected_code, 'currency code in response (\"' . string_value($actual_code) . '\") should be equal to expected code (\"' . string_value($expected_code) . '\")' . $log_text);
         }
     }
 }
@@ -168,7 +168,7 @@ function assert_valid_currency_id_and_code($exchange, $skipped_properties, $meth
     if ($defined_values) {
         // check by code
         $currency_by_code = $exchange->currency($currency_code);
-        assert($currency_by_code['id'] === $currency_id, 'currencyId ' . string_value($currency_id) . ' does not match currency of code: ' . string_value($currency_code) . $log_text);
+        assert($currency_by_code['id'] === $currency_id, 'currencyId \"' . string_value($currency_id) . '\" does not match currency of code: \"' . string_value($currency_code) . '\"' . $log_text);
         // check by id
         $currency_by_id = $exchange->safe_currency($currency_id);
         assert($currency_by_id['code'] === $currency_code, 'currencyCode ' . string_value($currency_code) . ' does not match currency of id: ' . string_value($currency_id) . $log_text);
@@ -187,7 +187,7 @@ function assert_symbol($exchange, $skipped_properties, $method, $entry, $key, $e
         assert((is_array($exchange->markets) && array_key_exists($actual_symbol, $exchange->markets)), 'symbol should be present in exchange.symbols' . $log_text);
     }
     if ($expected_symbol !== null) {
-        assert($actual_symbol === $expected_symbol, 'symbol in response (' . string_value($actual_symbol) . ') should be equal to expected symbol (' . string_value($expected_symbol) . ')' . $log_text);
+        assert($actual_symbol === $expected_symbol, 'symbol in response (\"' . string_value($actual_symbol) . '\") should be equal to expected symbol (\"' . string_value($expected_symbol) . '\")' . $log_text);
     }
 }
 
@@ -273,7 +273,7 @@ function assert_in_array($exchange, $skipped_properties, $method, $entry, $key, 
     // todo: remove undefined check
     if ($value !== null) {
         $stingified_array_value = $exchange->json($expected_array); // don't use expectedArray.join (','), as it bugs in other languages, if values are bool, undefined or etc..
-        assert($exchange->in_array($value, $expected_array), string_value($key) . ' key (with a value of ' . string_value($value) . ') is not from the expected list : [' . $stingified_array_value . ']' . $log_text);
+        assert($exchange->in_array($value, $expected_array), '\"' . string_value($key) . '\" key (value \"' . string_value($value) . '\") is not from the expected list : [' . $stingified_array_value . ']' . $log_text);
     }
 }
 
@@ -286,14 +286,14 @@ function assert_fee_structure($exchange, $skipped_properties, $method, $entry, $
         assert($key < count($entry), 'fee key ' . $key_string . ' was expected to be present in entry' . $log_text);
     } else {
         assert(is_array($entry), 'fee container is expected to be an object' . $log_text);
-        assert(is_array($entry) && array_key_exists($key, $entry), 'fee key ' . $key . ' was expected to be present in entry' . $log_text);
+        assert(is_array($entry) && array_key_exists($key, $entry), 'fee key \"' . $key . '\" was expected to be present in entry' . $log_text);
     }
     $fee_object = $exchange->safe_value($entry, $key);
     // todo: remove undefined check to make stricter
     if ($fee_object !== null) {
         assert(is_array($fee_object) && array_key_exists('cost', $fee_object), $key_string . ' fee object should contain \"cost\" key' . $log_text);
         assert_greater_or_equal($exchange, $skipped_properties, $method, $fee_object, 'cost', '0');
-        assert(is_array($fee_object) && array_key_exists('currency', $fee_object), $key_string . ' fee object should contain \"currency\" key' . $log_text);
+        assert(is_array($fee_object) && array_key_exists('currency', $fee_object), '\"' . $key_string . '\" fee object should contain \"currency\" key' . $log_text);
         assert_currency_code($exchange, $skipped_properties, $method, $entry, $fee_object['currency']);
     }
 }
@@ -319,7 +319,7 @@ function assert_integer($exchange, $skipped_properties, $method, $entry, $key) {
     if ($entry !== null) {
         $value = $exchange->safe_number($entry, $key);
         if ($value !== null) {
-            assert(is_integer($value), string_value($key) . ' key (with value ' . string_value($value) . ') is not an integer' . $log_text);
+            assert(is_integer($value), '\"' . string_value($key) . '\" key (value \"' . string_value($value) . '\") is not an integer' . $log_text);
         }
     }
 }

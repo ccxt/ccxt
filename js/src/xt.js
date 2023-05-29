@@ -4622,9 +4622,9 @@ export default class xt extends Exchange {
         if (signed) {
             this.checkRequiredCredentials();
             const defaultRecvWindow = this.safeString(this.options, 'recvWindow');
-            const recvWindow = this.safeString(params, 'recvWindow', defaultRecvWindow);
+            const recvWindow = this.safeString(query, 'recvWindow', defaultRecvWindow);
             const timestamp = this.numberToString(this.nonce());
-            body = params;
+            body = query;
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
                 body['clientMedia'] = 'CCXT';
             }

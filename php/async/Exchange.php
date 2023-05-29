@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.1.8';
+$version = '3.1.14';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.1.8';
+    const VERSION = '3.1.14';
 
     public $browser;
     public $marketsLoading = null;
@@ -270,6 +270,18 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function find_message_hashes($client, string $element) {
+        $result = array();
+        $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            if (mb_strpos($messageHash, $element) !== false) {
+                $result[] = $messageHash;
+            }
+        }
+        return $result;
+    }
+
     public function filter_by_limit(mixed $array, ?int $limit = null, int|string $key = 'timestamp') {
         if ($this->valueIsDefined ($limit)) {
             $arrayLength = count($array);
@@ -288,9 +300,10 @@ class Exchange extends \ccxt\Exchange {
         return $array;
     }
 
-    public function filter_by_since_limit(mixed $array, ?int $since = null, ?int $limit = null, int|string $key = 'timestamp') {
+    public function filter_by_since_limit(mixed $array, ?int $since = null, ?int $limit = null, int|string $key = 'timestamp', $tail = false) {
         $sinceIsDefined = $this->valueIsDefined ($since);
         $parsedArray = $this->to_array($array);
+        $result = $parsedArray;
         if ($sinceIsDefined) {
             $result = [ ];
             for ($i = 0; $i < count($parsedArray); $i++) {
@@ -299,15 +312,18 @@ class Exchange extends \ccxt\Exchange {
                     $result[] = $entry;
                 }
             }
-            return $this->filter_by_limit($result, $limit, $key);
         }
-        return $this->filter_by_limit($parsedArray, $limit, $key);
+        if ($tail) {
+            return mb_substr($result, -$limit);
+        }
+        return $this->filter_by_limit($result, $limit, $key);
     }
 
-    public function filter_by_value_since_limit(mixed $array, int|string $field, $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp') {
+    public function filter_by_value_since_limit(mixed $array, int|string $field, $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp', $tail = false) {
         $valueIsDefined = $this->valueIsDefined ($value);
         $sinceIsDefined = $this->valueIsDefined ($since);
         $parsedArray = $this->to_array($array);
+        $result = $parsedArray;
         // single-pass filter for both symbol and $since
         if ($valueIsDefined || $sinceIsDefined) {
             $result = [ ];
@@ -321,9 +337,11 @@ class Exchange extends \ccxt\Exchange {
                     $result[] = $entry;
                 }
             }
-            return $this->filter_by_limit($result, $limit, $key);
         }
-        return $this->filter_by_limit($parsedArray, $limit, $key);
+        if ($tail) {
+            return mb_substr($result, -$limit);
+        }
+        return $this->filter_by_limit($result, $limit, $key);
     }
 
     public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null) {
@@ -1259,13 +1277,18 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function market_symbols($symbols) {
+    public function market_symbols($symbols, ?string $type = null) {
         if ($symbols === null) {
             return $symbols;
         }
         $result = array();
         for ($i = 0; $i < count($symbols); $i++) {
-            $result[] = $this->symbol ($symbols[$i]);
+            $market = $this->market ($symbols[$i]);
+            if ($type !== null && $market['type'] !== $type) {
+                throw new BadRequest($this->id . ' $symbols must be of same $type ' . $type . '. If the $type is incorrect you can change it in options or the params of the request');
+            }
+            $symbol = $this->safe_string($market, 'symbol', $symbols[$i]);
+            $result[] = $symbol;
         }
         return $result;
     }
@@ -2547,12 +2570,12 @@ class Exchange extends \ccxt\Exchange {
         return $currency['code'];
     }
 
-    public function filter_by_symbol_since_limit($array, ?string $symbol = null, ?int $since = null, ?int $limit = null) {
-        return $this->filter_by_value_since_limit($array, 'symbol', $symbol, $since, $limit, 'timestamp');
+    public function filter_by_symbol_since_limit($array, ?string $symbol = null, ?int $since = null, ?int $limit = null, $tail = false) {
+        return $this->filter_by_value_since_limit($array, 'symbol', $symbol, $since, $limit, 'timestamp', $tail);
     }
 
-    public function filter_by_currency_since_limit($array, $code = null, ?int $since = null, ?int $limit = null) {
-        return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp');
+    public function filter_by_currency_since_limit($array, $code = null, ?int $since = null, ?int $limit = null, $tail = false) {
+        return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp', $tail);
     }
 
     public function parse_last_prices($pricesData, ?array $symbols = null, $params = array ()) {

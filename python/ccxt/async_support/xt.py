@@ -4338,9 +4338,9 @@ class xt(Exchange, ImplicitAPI):
         if signed:
             self.check_required_credentials()
             defaultRecvWindow = self.safe_string(self.options, 'recvWindow')
-            recvWindow = self.safe_string(params, 'recvWindow', defaultRecvWindow)
+            recvWindow = self.safe_string(query, 'recvWindow', defaultRecvWindow)
             timestamp = self.number_to_string(self.nonce())
-            body = params
+            body = query
             if (payload == '/v4/order') or (payload == '/future/trade/v1/order/create') or (payload == '/future/trade/v1/entrust/create-plan') or (payload == '/future/trade/v1/entrust/create-profit') or (payload == '/future/trade/v1/order/create-batch'):
                 body['clientMedia'] = 'CCXT'
             isUndefinedBody = ((method == 'GET') or (path == 'order/{orderId}'))

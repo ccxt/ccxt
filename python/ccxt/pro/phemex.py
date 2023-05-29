@@ -531,7 +531,7 @@ class phemex(ccxt.async_support.phemex):
         trades = await self.watch(url, messageHash, request, messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -600,7 +600,7 @@ class phemex(ccxt.async_support.phemex):
         ohlcv = await self.watch(url, messageHash, request, messageHash)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_delta(self, bookside, delta, market=None):
         bidAsk = self.customParseBidAsk(delta, 0, 1, market)
@@ -702,6 +702,7 @@ class phemex(ccxt.async_support.phemex):
             symbol = market['symbol']
             messageHash = messageHash + market['symbol']
             if market['settle'] == 'USDT':
+                params = self.extend(params)
                 params['settle'] = 'USDT'
         type, params = self.handle_market_type_and_params('watchMyTrades', market, params)
         if symbol is None:
@@ -710,7 +711,7 @@ class phemex(ccxt.async_support.phemex):
         trades = await self.subscribe_private(type, messageHash, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trades(self, client: Client, message):
         #
@@ -853,6 +854,7 @@ class phemex(ccxt.async_support.phemex):
             symbol = market['symbol']
             messageHash = messageHash + market['symbol']
             if market['settle'] == 'USDT':
+                params = self.extend(params)
                 params['settle'] = 'USDT'
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
         isUSDTSettled = self.safe_string(params, 'settle') == 'USDT'

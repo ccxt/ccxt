@@ -809,6 +809,12 @@ class okx(Exchange, ImplicitAPI):
                 'fetchClosedOrders': {
                     'method': 'privateGetTradeOrdersHistory',  # privateGetTradeOrdersAlgoHistory
                 },
+                'withdraw': {
+                    # a funding password credential is required by the exchange for the
+                    # withdraw call(not to be confused with the api password credential)
+                    'password': None,
+                    'pwd': None,  # password or pwd both work
+                },
                 'algoOrderTypes': {
                     'conditional': True,
                     'trigger': True,
@@ -3822,6 +3828,11 @@ class okx(Exchange, ImplicitAPI):
             request['pwd'] = params['password']
         elif 'pwd' in params:
             request['pwd'] = params['pwd']
+        else:
+            options = self.safe_value(self.options, 'withdraw', {})
+            password = self.safe_string_2(options, 'password', 'pwd')
+            if password is not None:
+                request['pwd'] = password
         query = self.omit(params, ['fee', 'password', 'pwd'])
         if not ('pwd' in request):
             raise ExchangeError(self.id + ' withdraw() requires a password parameter or a pwd parameter, it must be the funding password, not the API passphrase')
