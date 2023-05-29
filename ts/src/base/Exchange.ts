@@ -1394,7 +1394,7 @@ export default class Exchange {
         const parsedArray = this.toArray (array) as any;
         let result = parsedArray;
         if (sinceIsDefined) {
-            result = [];
+            result = [ ];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
                 if (entry[key] >= since) {
