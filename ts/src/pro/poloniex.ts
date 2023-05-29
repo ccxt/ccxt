@@ -488,7 +488,7 @@ export default class poloniex extends poloniexRest {
         const statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
-            'FILLED': 'filled',
+            'FILLED': 'closed',
             'PENDING_CANCEL': 'open',
             'PARTIALLY_CANCELED': 'open',
             'CANCELED': 'canceled',
@@ -634,7 +634,7 @@ export default class poloniex extends poloniexRest {
                         previousOrder['filled'] = previousOrderFilled;
                         if (previousOrder['amount'] !== undefined) {
                             const previousOrderAmount = this.numberToString (previousOrder['amount']);
-                            previousOrder['remaining'] = this.parseNumber (Precise.stringDiv (previousOrderAmount, previousOrderFilled));
+                            previousOrder['remaining'] = this.parseNumber (Precise.stringSub (previousOrderAmount, previousOrderFilled));
                         }
                     }
                     if (previousOrder['fee'] === undefined) {
