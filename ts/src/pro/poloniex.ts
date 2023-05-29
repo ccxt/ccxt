@@ -149,10 +149,11 @@ export default class poloniex extends poloniexRest {
                 const marketId = this.marketId (symbol);
                 marketIds.push (marketId);
                 messageHash = messageHash + ':' + symbol;
-            }
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                marketIds.push (this.marketId (symbol));
+            } else {
+                for (let i = 0; i < symbols.length; i++) {
+                    const symbol = symbols[i];
+                    marketIds.push (this.marketId (symbol));
+                }
             }
         } else {
             marketIds.push ('all');
@@ -178,7 +179,8 @@ export default class poloniex extends poloniexRest {
          * @returns [[int]] A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
-        const channel = this.safeString (this.timeframes, timeframe, timeframe);
+        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const channel = this.safeString (timeframes, timeframe, timeframe);
         if (channel === undefined) {
             throw new BadRequest (this.id + ' watchOHLCV cannot take a timeframe of ' + timeframe);
         }
@@ -829,6 +831,7 @@ export default class poloniex extends poloniexRest {
                         orderbook['asks'].store (price, amount);
                     }
                 }
+                orderbook['symbol'] = symbol;
                 orderbook['timestamp'] = timestamp;
                 orderbook['datetime'] = this.iso8601 (timestamp);
                 client.resolve (orderbook, messageHash);
@@ -902,7 +905,7 @@ export default class poloniex extends poloniexRest {
         const type = this.safeString (message, 'channel');
         const event = this.safeString (message, 'event');
         if (event === 'pong') {
-            return client.onPong ();
+            client.lastPong = this.milliseconds ();
         }
         const methods = {
             'candles_minute_1': this.handleOHLCV,
