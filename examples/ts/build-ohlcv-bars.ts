@@ -12,17 +12,7 @@ async function example () {
     const limit = 100;
     const trades = await myex.fetchTrades (symbol, since, limit);
     const ohlcvArray = myex.buildOHLCVC (trades, timeframe, since, limit);
-    const result = [];
-    for (let i = 0; i < ohlcvArray.length; i++) {
-        result.push ([
-            myex.safeInteger (ohlcvArray[i], 0),
-            myex.safeNumber (ohlcvArray[i], 1),
-            myex.safeNumber (ohlcvArray[i], 2),
-            myex.safeNumber (ohlcvArray[i], 3),
-            myex.safeNumber (ohlcvArray[i], 4),
-            myex.safeNumber (ohlcvArray[i], 5),
-        ]);
-    }
-    console.log ('Constructed ' + (result.length).toString () + 'bars from trades: ', result);
+    // you can ignore 6th index ("count" field) from ohlcv entries, which is not part of OHLCV standard structure and is just added internally by `buildOHLCVC` method
+    console.log ('Constructed ' + (ohlcvArray.length).toString () + 'bars from trades: ', ohlcvArray);
 }
 await example ();
