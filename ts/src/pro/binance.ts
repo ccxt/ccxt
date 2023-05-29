@@ -442,7 +442,7 @@ export default class binance extends binanceRest {
         if (this.newUpdates) {
             limit = trades.getLimit (market['symbol'], limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     parseTrade (trade, market = undefined) {
@@ -675,7 +675,7 @@ export default class binance extends binanceRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client: Client, message) {
@@ -1049,7 +1049,7 @@ export default class binance extends binanceRest {
                     throw new ArgumentsRequired (this.id + ' authenticate() requires a symbol argument for isolated margin mode');
                 }
                 const marketId = this.marketId (symbol);
-                params['symbol'] = marketId;
+                params = this.extend (params, { 'symbol': marketId });
             }
             const response = await this[method] (params);
             this.options[type] = this.extend (options, {
@@ -1304,7 +1304,7 @@ export default class binance extends binanceRest {
             market = this.market (symbol);
             symbol = market['symbol'];
             messageHash += ':' + symbol;
-            params['symbol'] = symbol; // needed inside authenticate for isolated margin
+            params = this.extend (params, { 'symbol': symbol }); // needed inside authenticate for isolated margin
         }
         await this.authenticate (params);
         let type = undefined;
@@ -1412,7 +1412,7 @@ export default class binance extends binanceRest {
         let timestamp = this.safeInteger (order, 'O');
         const T = this.safeInteger (order, 'T');
         let lastTradeTimestamp = undefined;
-        if (executionType === 'NEW') {
+        if (executionType === 'NEW' || executionType === 'AMENDMENT') {
             if (timestamp === undefined) {
                 timestamp = T;
             }
@@ -1752,7 +1752,7 @@ export default class binance extends binanceRest {
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
-            params['symbol'] = symbol;
+            params = this.extend (params, { 'symbol': symbol });
         }
         await this.authenticate (params);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
@@ -1763,7 +1763,7 @@ export default class binance extends binanceRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
     handleMyTrade (client: Client, message) {
@@ -1854,8 +1854,11 @@ export default class binance extends binanceRest {
                     parsed['fees'] = fees;
                 }
                 parsed['trades'] = this.safeValue (order, 'trades');
-                parsed['timestamp'] = this.safeInteger (order, 'timestamp');
-                parsed['datetime'] = this.safeString (order, 'datetime');
+                const timestamp = this.safeInteger (parsed, 'timestamp');
+                if (timestamp === undefined) {
+                    parsed['timestamp'] = this.safeInteger (order, 'timestamp');
+                    parsed['datetime'] = this.safeString (order, 'datetime');
+                }
             }
             cachedOrders.append (parsed);
             client.resolve (this.orders, messageHash);

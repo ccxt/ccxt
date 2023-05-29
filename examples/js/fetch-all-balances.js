@@ -1,32 +1,32 @@
-import { PAD_WITH_ZERO } from '../../js/base/functions/number.js';
+import { PAD_WITH_ZERO } from '../../js/src/base/functions/number.js';
 
 //-----------------------------------------------------------------------------
 
-import ccxt from '../../ccxt.js';
+import ccxt from '../../js/ccxt.js';
 
 import fs from 'fs';
 import path from 'path';
 import ansicolor from 'ansicolor';
 import asTable from 'as-table';
+import ololog from 'ololog';
 
 ansicolor.nice
 //-----------------------------------------------------------------------------
 
-const table   = asTable.configure ({
-
-              delimiter: '|'.lightGray.dim,
-              right: true,
-              title: x => String (x).lightGray,
-              print: x => {
-                  if (typeof x === 'object') {
-                      const j = JSON.stringify (x).trim ()
-                      if (j.length < 100) return j
-                  }
-                  return String (x)
-              }
-          }),
-      { ROUND, DECIMAL_PLACES, decimalToPrecision, omit, unique, flatten, extend } = ccxt,
-      log = require ('ololog').handleNodeErrors ().noLocate.unlimited;
+const table = asTable.configure ({
+        delimiter: '|'.lightGray.dim,
+        right: true,
+        title: x => String (x).lightGray,
+        print: x => {
+            if (typeof x === 'object') {
+                const j = JSON.stringify (x).trim ()
+                if (j.length < 100) return j
+            }
+            return String (x)
+        }
+    }),
+    { ROUND, DECIMAL_PLACES, decimalToPrecision, omit, unique, flatten, extend } = ccxt,
+    log = ololog.handleNodeErrors ().noLocate.unlimited;
 
 //-----------------------------------------------------------------------------
 
@@ -58,7 +58,8 @@ if (!(keysGlobalExists || keysLocalExists)) {
 
 let globalKeysFile = keysGlobalExists ? keysGlobal : false
 let localKeysFile = keysLocalExists ? keysLocal : globalKeysFile
-let settings = localKeysFile ? (require (localKeysFile) || {}) : {}
+const dynamicLocalKeysFile = JSON.parse (fs.readFileSync (localKeysFile));
+let settings = localKeysFile ? (dynamicLocalKeysFile || {}) : {}
 
 //-----------------------------------------------------------------------------
 
@@ -208,6 +209,8 @@ function initializeAllExchanges () {
     })
 
     const table = table (results)
+
+    console.log (table)
 
     log (table)
 

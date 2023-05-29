@@ -2606,6 +2606,10 @@ export default class huobi extends Exchange {
          * @method
          * @name huobi#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-klines-candles
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-kline-data
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-kline-data
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
@@ -2628,6 +2632,11 @@ export default class huobi extends Exchange {
         params = this.omit(params, 'price');
         let method = 'spotPublicGetMarketHistoryCandles';
         if (market['spot']) {
+            if (timeframe === '1M' || timeframe === '1y') {
+                // for some reason 1M and 1Y does not work with the regular endpoint
+                // https://github.com/ccxt/ccxt/issues/18006
+                method = 'spotPublicGetMarketHistoryKline';
+            }
             if (since !== undefined) {
                 request['from'] = this.parseToInt(since / 1000);
             }

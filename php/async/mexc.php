@@ -1033,6 +1033,8 @@ class mexc extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#order-book
+             * @see https://mxcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
@@ -1092,6 +1094,16 @@ class mexc extends Exchange {
             }
             return $orderbook;
         }) ();
+    }
+
+    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countKey = 2) {
+        $price = $this->safe_number($bidask, $priceKey);
+        $amount = $this->safe_number($bidask, $amountKey);
+        $count = $this->safe_number($bidask, $countKey);
+        if ($count !== null) {
+            return array( $price, $amount, $count );
+        }
+        return array( $price, $amount );
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -2438,8 +2450,8 @@ class mexc extends Exchange {
             if ($marketType === 'spot') {
                 throw new BadRequest($this->id . ' fetchOrdersByState() is not supported for ' . $marketType);
             } else {
-                $params['states'] = $state;
-                return Async\await($this->fetch_orders($symbol, $since, $limit, $params));
+                $request['states'] = $state;
+                return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
             }
         }) ();
     }

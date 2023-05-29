@@ -91,18 +91,20 @@ export default class bitget extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                '1m': '1min',
-                '5m': '5min',
-                '15m': '15min',
-                '30m': '30min',
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
                 '1h': '1h',
+                '2h': '2h',
                 '4h': '4h',
-                '6h': '6Hutc',
-                '12h': '12Hutc',
-                '1d': '1Dutc',
-                '3d': '3Dutc',
-                '1w': '1Wutc',
-                '1M': '1Mutc',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '3d': '3d',
+                '1w': '1w',
+                '1M': '1m',
             },
             'hostname': 'bitget.com',
             'urls': {
@@ -1514,7 +1516,7 @@ export default class bitget extends Exchange {
         const chain = this.safeString2 (params, 'chain', 'network');
         params = this.omit (params, [ 'network' ]);
         if (chain === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw() requires a chain parameter');
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a chain parameter or a network parameter');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.6'
+__version__ = '3.1.14'
 
 # -----------------------------------------------------------------------------
 
@@ -1670,6 +1670,15 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    def find_message_hashes(self, client, element: str):
+        result = []
+        messageHashes = list(client.futures.keys())
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            if messageHash.find(element) >= 0:
+                result.append(messageHash)
+        return result
+
     def filter_by_limit(self, array: List[object], limit: Optional[int] = None, key: IndexType = 'timestamp'):
         if self.valueIsDefined(limit):
             arrayLength = len(array)
@@ -1692,8 +1701,8 @@ class Exchange(object):
                 entry = parsedArray[i]
                 if entry[key] >= since:
                     result.append(entry)
-            return self.filterByLimit(result, limit, key)
-        return self.filterByLimit(parsedArray, limit, key)
+            return self.filter_by_limit(result, limit, key)
+        return self.filter_by_limit(parsedArray, limit, key)
 
     def filter_by_value_since_limit(self, array: List[object], field: IndexType, value=None, since: Optional[int] = None, limit: Optional[int] = None, key='timestamp'):
         valueIsDefined = self.valueIsDefined(value)
@@ -1710,8 +1719,8 @@ class Exchange(object):
                 secondCondition = entryKeyGESince if sinceIsDefined else True
                 if firstCondition and secondCondition:
                     result.append(entry)
-            return self.filterByLimit(result, limit, key)
-        return self.filterByLimit(parsedArray, limit, key)
+            return self.filter_by_limit(result, limit, key)
+        return self.filter_by_limit(parsedArray, limit, key)
 
     def sign(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None):
         return {}
@@ -2491,12 +2500,16 @@ class Exchange(object):
             result.append(self.market_id(symbols[i]))
         return result
 
-    def market_symbols(self, symbols):
+    def market_symbols(self, symbols, type: Optional[str] = None):
         if symbols is None:
             return symbols
         result = []
         for i in range(0, len(symbols)):
-            result.append(self.symbol(symbols[i]))
+            market = self.market(symbols[i])
+            if type is not None and market['type'] != type:
+                raise BadRequest(self.id + ' symbols must be of same type ' + type + '. If the type is incorrect you can change it in options or the params of the request')
+            symbol = self.safe_string(market, 'symbol', symbols[i])
+            result.append(symbol)
         return result
 
     def market_codes(self, codes):

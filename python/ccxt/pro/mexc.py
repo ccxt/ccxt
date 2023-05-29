@@ -51,7 +51,7 @@ class mexc(ccxt.async_support.mexc):
                     '1M': 'Month1',
                 },
                 'watchOrderBook': {
-                    'snapshotDelay': 5,
+                    'snapshotDelay': 25,
                     'maxRetries': 3,
                 },
                 'listenKey': None,
@@ -438,7 +438,7 @@ class mexc(ccxt.async_support.mexc):
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         if nonce is None:
             cacheLength = len(storedOrderBook.cache)
-            snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 5)
+            snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 25)
             if cacheLength == snapshotDelay:
                 self.spawn(self.load_order_book, client, messageHash, symbol)
             storedOrderBook.cache.append(data)
@@ -876,8 +876,8 @@ class mexc(ccxt.async_support.mexc):
             'triggerPrice': self.safe_number(order, 'P'),
             'average': self.safe_string(order, 'ap'),
             'amount': self.safe_string(order, 'v'),
-            'cost': self.safe_string(order, 'cv'),
-            'filled': self.safe_string(order, 'ca'),
+            'cost': self.safe_string(order, 'a'),
+            'filled': self.safe_string(order, 'cv'),
             'remaining': self.safe_string(order, 'V'),
             'fee': fee,
             'trades': None,

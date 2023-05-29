@@ -1586,6 +1586,9 @@ class bitso(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
+    def nonce(self):
+        return self.milliseconds()
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))

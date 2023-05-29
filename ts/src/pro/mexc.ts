@@ -234,7 +234,7 @@ export default class mexc extends mexcRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client: Client, message) {
@@ -548,7 +548,7 @@ export default class mexc extends mexcRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     handleTrades (client: Client, message) {
@@ -639,7 +639,7 @@ export default class mexc extends mexcRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
     handleMyTrade (client: Client, message, subscription = undefined) {
@@ -942,8 +942,8 @@ export default class mexc extends mexcRest {
             'triggerPrice': this.safeNumber (order, 'P'),
             'average': this.safeString (order, 'ap'),
             'amount': this.safeString (order, 'v'),
-            'cost': this.safeString (order, 'cv'),
-            'filled': this.safeString (order, 'ca'),
+            'cost': this.safeString (order, 'a'),
+            'filled': this.safeString (order, 'cv'),
             'remaining': this.safeString (order, 'V'),
             'fee': fee,
             'trades': undefined,

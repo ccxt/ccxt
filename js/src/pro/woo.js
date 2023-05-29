@@ -495,9 +495,8 @@ export default class woo extends wooRest {
         market = this.market(marketId);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger(order, 'timestamp');
-        const cost = this.safeString(order, 'totalFee');
         const fee = {
-            'cost': cost,
+            'cost': this.safeString(order, 'totalFee'),
             'currency': this.safeString(order, 'feeAsset'),
         };
         let price = this.safeNumber(order, 'price');
@@ -534,7 +533,7 @@ export default class woo extends wooRest {
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': undefined,
             'filled': filled,
             'remaining': remaining,
