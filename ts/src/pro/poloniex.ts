@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import poloniexRest from '../poloniex.js';
-import { BadRequest, AuthenticationError } from '../base/errors.js';
+import { BadRequest, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
@@ -977,6 +977,9 @@ export default class poloniex extends poloniexRest {
     }
 
     handleMessage (client: Client, message) {
+        if (this.handleErrorMessage (client, message)) {
+            return;
+        }
         const type = this.safeString (message, 'channel');
         const event = this.safeString (message, 'event');
         if (event === 'pong') {
@@ -1014,6 +1017,17 @@ export default class poloniex extends poloniexRest {
                 return method.call (this, client, message);
             }
         }
+    }
+
+    handleErrorMessage (client: Client, message) {
+        //
+        // { message: 'Invalid channel value ["ordersss"]', event: 'error' }
+        const event = this.safeString (message, 'event');
+        if (event === 'error') {
+            const error = this.safeString (message, 'message');
+            throw new ExchangeError (this.id + ' error: ' + this.json (error));
+        }
+        return false;
     }
 
     handleAuthenticate (client: Client, message) {
