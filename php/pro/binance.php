@@ -440,7 +440,7 @@ class binance extends \ccxt\async\binance {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($market['symbol'], $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -673,7 +673,7 @@ class binance extends \ccxt\async\binance {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 
@@ -1049,7 +1049,7 @@ class binance extends \ccxt\async\binance {
                         throw new ArgumentsRequired($this->id . ' authenticate() requires a $symbol argument for isolated margin mode');
                     }
                     $marketId = $this->market_id($symbol);
-                    $params['symbol'] = $marketId;
+                    $params = array_merge($params, array( 'symbol' => $marketId ));
                 }
                 $response = Async\await($this->$method ($params));
                 $this->options[$type] = array_merge($options, array(
@@ -1308,7 +1308,7 @@ class binance extends \ccxt\async\binance {
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
                 $messageHash .= ':' . $symbol;
-                $params['symbol'] = $symbol; // needed inside authenticate for isolated margin
+                $params = array_merge($params, array( 'symbol' => $symbol )); // needed inside authenticate for isolated margin
             }
             Async\await($this->authenticate($params));
             $type = null;
@@ -1417,7 +1417,7 @@ class binance extends \ccxt\async\binance {
         $timestamp = $this->safe_integer($order, 'O');
         $T = $this->safe_integer($order, 'T');
         $lastTradeTimestamp = null;
-        if ($executionType === 'NEW') {
+        if ($executionType === 'NEW' || $executionType === 'AMENDMENT') {
             if ($timestamp === null) {
                 $timestamp = $T;
             }
@@ -1595,7 +1595,7 @@ class binance extends \ccxt\async\binance {
             if ($symbol !== null) {
                 $symbol = $this->symbol($symbol);
                 $messageHash .= ':' . $symbol;
-                $params['symbol'] = $symbol;
+                $params = array_merge($params, array( 'symbol' => $symbol ));
             }
             Async\await($this->authenticate($params));
             $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
@@ -1606,7 +1606,7 @@ class binance extends \ccxt\async\binance {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -1698,8 +1698,11 @@ class binance extends \ccxt\async\binance {
                     $parsed['fees'] = $fees;
                 }
                 $parsed['trades'] = $this->safe_value($order, 'trades');
-                $parsed['timestamp'] = $this->safe_integer($order, 'timestamp');
-                $parsed['datetime'] = $this->safe_string($order, 'datetime');
+                $timestamp = $this->safe_integer($parsed, 'timestamp');
+                if ($timestamp === null) {
+                    $parsed['timestamp'] = $this->safe_integer($order, 'timestamp');
+                    $parsed['datetime'] = $this->safe_string($order, 'datetime');
+                }
             }
             $cachedOrders->append ($parsed);
             $client->resolve ($this->orders, $messageHash);

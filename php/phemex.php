@@ -1095,44 +1095,46 @@ class phemex extends Exchange {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-kline
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $since *emulated not supported by the exchange* timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the phemex api endpoint
          * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
+        $userLimit = $limit;
         $request = array(
             'symbol' => $market['id'],
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            // 'from' => 1588830682, // seconds
-            // 'to' => $this->seconds(),
         );
-        $duration = $this->parse_timeframe($timeframe);
-        $now = $this->seconds();
         $possibleLimitValues = array( 5, 10, 50, 100, 500, 1000 );
-        $maxLimit = 1000; // maximum $limit, we shouldn't sent $request of more than it
-        if ($limit === null) {
-            $limit = 100; // set default, doesn't have any defaults and needs something to be set
+        $maxLimit = 1000;
+        if ($limit === null && $since === null) {
+            $limit = $possibleLimitValues[5];
         }
-        $limit = min ($limit, $maxLimit);
-        if ($since !== null) { // phemex also provides kline query with from/to, however, this interface is NOT recommended.
-            $since = $this->parse_to_int($since / 1000);
-            $request['from'] = $since;
-            // time ranges ending in the future are not accepted
-            // https://github.com/ccxt/ccxt/issues/8050
-            $request['to'] = min ($now, $this->sum($since, $duration * $limit));
+        if ($since !== null) {
+            // phemex also provides kline query with from/to, however, this interface is NOT recommended and does not work properly.
+            // we do not send $since param to the exchange, instead we calculate appropriate $limit param
+            $duration = $this->parse_timeframe($timeframe) * 1000;
+            $timeDelta = $this->milliseconds() - $since;
+            $limit = $this->parse_to_int($timeDelta / $duration); // setting $limit to the number of candles after $since
+        }
+        if ($limit > $maxLimit) {
+            $limit = $maxLimit;
         } else {
-            if (!$this->in_array($limit, $possibleLimitValues)) {
-                $limit = 100;
+            for ($i = 0; $i < count($possibleLimitValues); $i++) {
+                if ($limit <= $possibleLimitValues[$i]) {
+                    $limit = $possibleLimitValues[$i];
+                }
             }
-            $request['limit'] = $limit;
         }
-        $method = 'publicGetMdV2Kline';
+        $request['limit'] = $limit;
+        $response = null;
         if ($market['linear'] || $market['settle'] === 'USDT') {
-            $method = 'publicGetMdV2KlineLast';
+            $response = $this->publicGetMdV2KlineLast (array_merge($request, $params));
+        } else {
+            $response = $this->publicGetMdV2Kline (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         "code":0,
@@ -1149,7 +1151,7 @@ class phemex extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $rows = $this->safe_value($data, 'rows', array());
-        return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $userLimit);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -3913,7 +3915,10 @@ class phemex extends Exchange {
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the phemex api endpoint
-         * @return {array} response from the exchange
+         * @param {bool} $params->hedged set to true if hedged position mode is enabled (by default $long and $short $leverage are set to the same value)
+         * @param {float} $params->longLeverageRr *hedged mode only* set the $leverage for $long positions
+         * @param {float} $params->shortLeverageRr *hedged mode only* set the $leverage for $short positions
+         * @return {array} $response from the exchange
          */
         // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
@@ -3924,18 +3929,29 @@ class phemex extends Exchange {
             throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 100');
         }
         $this->load_markets();
+        $isHedged = $this->safe_value($params, 'hedged', false);
+        $longLeverageRr = $this->safe_integer($params, 'longLeverageRr');
+        $shortLeverageRr = $this->safe_integer($params, 'shortLeverageRr');
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
-        $method = 'privatePutPositionsLeverage';
+        $response = null;
         if ($market['settle'] === 'USDT') {
-            $method = 'privatePutGPositionsLeverage';
-            $request['leverageRr'] = $leverage;
+            if (!$isHedged && $longLeverageRr === null && $shortLeverageRr === null) {
+                $request['leverageRr'] = $leverage;
+            } else {
+                $long = ($longLeverageRr !== null) ? $longLeverageRr : $leverage;
+                $short = ($shortLeverageRr !== null) ? $shortLeverageRr : $leverage;
+                $request['longLeverageRr'] = $long;
+                $request['shortLeverageRr'] = $short;
+            }
+            $response = $this->privatePutGPositionsLeverage (array_merge($request, $params));
         } else {
             $request['leverage'] = $leverage;
+            $response = $this->privatePutPositionsLeverage (array_merge($request, $params));
         }
-        return $this->$method (array_merge($request, $params));
+        return $response;
     }
 
     public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {

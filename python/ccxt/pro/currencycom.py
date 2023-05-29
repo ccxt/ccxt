@@ -371,7 +371,7 @@ class currencycom(ccxt.async_support.currencycom):
         trades = await self.watch_public('trades.subscribe', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -412,7 +412,7 @@ class currencycom(ccxt.async_support.currencycom):
         ohlcv = await self.watch_public(messageHash, symbol, self.extend(request, params))
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_deltas(self, bookside, deltas):
         prices = list(deltas.keys())

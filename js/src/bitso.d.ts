@@ -118,6 +118,7 @@ export default class bitso extends Exchange {
         info: any;
     };
     parseTransactionStatus(status: any): string;
+    nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

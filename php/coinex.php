@@ -309,7 +309,8 @@ class coinex extends Exchange {
         //                  "can_withdraw" => true,
         //                  "deposit_least_amount" => "4.9",
         //                  "withdraw_least_amount" => "4.9",
-        //                  "withdraw_tx_fee" => "4.9"
+        //                  "withdraw_tx_fee" => "4.9",
+        //                  "explorer_asset_url" => "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7"
         //             ),
         //             ...
         //         ),
@@ -325,18 +326,27 @@ class coinex extends Exchange {
             $currencyId = $this->safe_string($currency, 'asset');
             $networkId = $this->safe_string($currency, 'chain');
             $code = $this->safe_currency_code($currencyId);
-            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdrawal_precision')));
+            $precisionString = $this->parse_precision($this->safe_string($currency, 'withdrawal_precision'));
+            $precision = $this->parse_number($precisionString);
+            $canDeposit = $this->safe_value($currency, 'can_deposit');
+            $canWithdraw = $this->safe_value($currency, 'can_withdraw');
+            $feeString = $this->safe_string($currency, 'withdraw_tx_fee');
+            $fee = $this->parse_number($feeString);
+            $minNetworkDepositString = $this->safe_string($currency, 'deposit_least_amount');
+            $minNetworkDeposit = $this->parse_number($minNetworkDepositString);
+            $minNetworkWithdrawString = $this->safe_string($currency, 'withdraw_least_amount');
+            $minNetworkWithdraw = $this->parse_number($minNetworkWithdrawString);
             if ($this->safe_value($result, $code) === null) {
                 $result[$code] = array(
                     'id' => $currencyId,
                     'numericId' => null,
                     'code' => $code,
-                    'info' => $currency,
+                    'info' => null,
                     'name' => null,
-                    'active' => true,
-                    'deposit' => $this->safe_value($currency, 'can_deposit'),
-                    'withdraw' => $this->safe_value($currency, 'can_withdraw'),
-                    'fee' => $this->safe_number($currency, 'withdraw_tx_fee'),
+                    'active' => $canDeposit && $canWithdraw,
+                    'deposit' => $canDeposit,
+                    'withdraw' => $canWithdraw,
+                    'fee' => $fee,
                     'precision' => $precision,
                     'limits' => array(
                         'amount' => array(
@@ -344,15 +354,35 @@ class coinex extends Exchange {
                             'max' => null,
                         ),
                         'deposit' => array(
-                            'min' => $this->safe_number($currency, 'deposit_least_amount'),
+                            'min' => $minNetworkDeposit,
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => $this->safe_number($currency, 'withdraw_least_amount'),
+                            'min' => $minNetworkWithdraw,
                             'max' => null,
                         ),
                     ),
                 );
+            }
+            $minFeeString = $this->safe_string($result[$code], 'fee');
+            if ($feeString !== null) {
+                $minFeeString = ($minFeeString === null) ? $feeString : Precise::string_min($feeString, $minFeeString);
+            }
+            $depositAvailable = $this->safe_value($result[$code], 'deposit');
+            $depositAvailable = ($canDeposit) ? $canDeposit : $depositAvailable;
+            $withdrawAvailable = $this->safe_value($result[$code], 'withdraw');
+            $withdrawAvailable = ($canWithdraw) ? $canWithdraw : $withdrawAvailable;
+            $minDepositString = $this->safe_string($result[$code]['limits']['deposit'], 'min');
+            if ($minNetworkDepositString !== null) {
+                $minDepositString = ($minDepositString === null) ? $minNetworkDepositString : Precise::string_min($minNetworkDepositString, $minDepositString);
+            }
+            $minWithdrawString = $this->safe_string($result[$code]['limits']['withdraw'], 'min');
+            if ($minNetworkWithdrawString !== null) {
+                $minWithdrawString = ($minWithdrawString === null) ? $minNetworkWithdrawString : Precise::string_min($minNetworkWithdrawString, $minWithdrawString);
+            }
+            $minPrecisionString = $this->safe_string($result[$code], 'precision');
+            if ($precisionString !== null) {
+                $minPrecisionString = ($minPrecisionString === null) ? $precisionString : Precise::string_min($precisionString, $minPrecisionString);
             }
             $networks = $this->safe_value($result[$code], 'networks', array());
             $network = array(
@@ -374,14 +404,24 @@ class coinex extends Exchange {
                         'max' => null,
                     ),
                 ),
-                'active' => true,
-                'deposit' => $this->safe_value($currency, 'can_deposit'),
-                'withdraw' => $this->safe_value($currency, 'can_withdraw'),
-                'fee' => $this->safe_number($currency, 'withdraw_tx_fee'),
+                'active' => $canDeposit && $canWithdraw,
+                'deposit' => $canDeposit,
+                'withdraw' => $canWithdraw,
+                'fee' => $fee,
                 'precision' => $precision,
             );
             $networks[$networkId] = $network;
             $result[$code]['networks'] = $networks;
+            $result[$code]['active'] = $depositAvailable && $withdrawAvailable;
+            $result[$code]['deposit'] = $depositAvailable;
+            $result[$code]['withdraw'] = $withdrawAvailable;
+            $info = $this->safe_value($result[$code], 'info', array());
+            $info[] = $currency;
+            $result[$code]['info'] = $info;
+            $result[$code]['fee'] = $this->parse_number($minFeeString);
+            $result[$code]['precision'] = $this->parse_number($minPrecisionString);
+            $result[$code]['limits']['deposit']['min'] = $this->parse_number($minDepositString);
+            $result[$code]['limits']['withdraw']['min'] = $this->parse_number($minWithdrawString);
         }
         return $result;
     }

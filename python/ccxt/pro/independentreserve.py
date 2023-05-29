@@ -55,7 +55,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         url = self.urls['api']['ws'] + '?subscribe=ticker-' + market['base'] + '-' + market['quote']
         messageHash = 'trades:' + symbol
         trades = await self.watch(url, messageHash, None, messageHash)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
         #
