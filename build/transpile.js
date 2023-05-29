@@ -421,7 +421,7 @@ class Transpiler {
             [ /\/\*\*/, '\"\"\"' ], // Doc strings
             [ / \*\//, '\"\"\"' ], // Doc strings
             [ /\[([^\[\]]*)\]\{@link (.*)\}/g, '`$1 <$2>`' ], // docstring item with link
-            [ /\s+\* @method/g, '' ], // docstring @method
+            [ /\s+\* @(class|method)/g, '' ], // docstring @class and @method
             [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
             [ /(\s+) \* @see( .*)/g, '$1see$2' ], // docstring @see
@@ -479,7 +479,7 @@ class Transpiler {
             //
             [ /\{([\]\[\|a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
             [ /\[([^\]\[]*)\]\{(@link .*)\}/g, '~$2 $1~' ], // docstring item with link
-            [ /\s+\* @method/g, '' ], // docstring @method
+            [ /\s+\* @(class|method)/g, '' ], // docstring @class and @method
             [ /(\s+)\* @description (.*)/g, '$1\* $2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
             [ /(\s+)\* @returns/g, '$1\* @return' ], // docstring return
@@ -790,9 +790,15 @@ class Transpiler {
         return imports
     }
 
-    createPythonClass (className, baseClass, body, methods, async = false) {
+    createPythonClass (className, baseClass, body, methods, async = false, docstring = '') {
 
         let bodyAsString = body.join ("\n")
+        docstring = docstring.replace ('/**', '"""');
+        docstring = docstring.replace (' */', '"""');
+        docstring = docstring.replace (/\s+\* @class/, '');
+        docstring = docstring.replace (/\s+\* @name .*/, '');
+        docstring = docstring.replace (/ \* @description /, '');
+        docstring = docstring.replace (/(\s+) \* @see( .*)/, '$1see$2' );  // docstring @see
 
         const {
             imports,
@@ -815,6 +821,9 @@ class Transpiler {
         }
 
         header.push ("\n\n" + this.createPythonClassDeclaration (className, baseClass))
+        if (docstring) {
+            header.push (docstring);
+        }
 
         const footer = [
             '', // footer (last empty line)
@@ -972,9 +981,12 @@ class Transpiler {
         ]
     }
 
-    createPHPClass (className, baseClass, body, methods, async = false) {
+    createPHPClass (className, baseClass, body, methods, async = false, docstring = '') {
 
         let bodyAsString = body.join ("\n")
+        docstring = docstring.replace (/\s+\* @class/, '');
+        docstring = docstring.replace (/\s+\* @name .*/, '');
+        docstring = docstring.replace (/@description /, '');
 
         let header = this.createPHPClassHeader (className, baseClass, bodyAsString, async ? 'ccxt\\async' : 'ccxt')
 
@@ -1029,6 +1041,9 @@ class Transpiler {
         }
 
         header.push ("\n" + this.createPHPClassDeclaration (className, baseClass))
+        if (docstring) {
+            header.push (docstring)
+        }
 
         const footer = [
             "}\n",
@@ -1248,13 +1263,13 @@ class Transpiler {
     }
 
     getClassDeclarationMatches (contents) {
-        return contents.match (/^export \s*(?:default)?\s*class\s+([\S]+)(?:\s+extends\s+([\S]+))?\s+{([\s\S]+?)^};*/m)
+        return contents.match (/^export \s*(?:default)?\s*class\s+([\S]+)(?:\s+extends\s+([\S]+))?\s+{(?:\n([\n\r\s]+\/\*\*[\s\S]+?\*\/))?([\s\S]+?)^};*/m)
     }
 
     // ------------------------------------------------------------------------
 
     transpileClass (contents) {
-        const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents)
+        const [ _, className, baseClass, docstring, classBody ] = this.getClassDeclarationMatches (contents)
         const methods = classBody.trim ().split (/\n\s*\n/)
         const {
             python2,
@@ -1267,10 +1282,10 @@ class Transpiler {
         const sync = false
         const async = true
         return {
-            python2:      this.createPythonClass (className, baseClass, python2,  methodNames, sync),
-            python3:      this.createPythonClass (className, baseClass, python3,  methodNames, async),
-            php:          this.createPHPClass    (className, baseClass, php,      methodNames, sync),
-            phpAsync:     this.createPHPClass    (className, baseClass, phpAsync, methodNames, async),
+            python2:      this.createPythonClass (className, baseClass, python2,  methodNames, sync, docstring),
+            python3:      this.createPythonClass (className, baseClass, python3,  methodNames, async, docstring),
+            php:          this.createPHPClass    (className, baseClass, php,      methodNames, sync, docstring),
+            phpAsync:     this.createPHPClass    (className, baseClass, phpAsync, methodNames, async, docstring),
             className,
             baseClass,
         }
@@ -1592,7 +1607,7 @@ class Transpiler {
     transpileBaseMethods () {
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP'
         const contents = fs.readFileSync (baseExchangeJsFile, 'utf8')
-        const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents)
+        const [ _, className, baseClass, docstring, classBody ] = this.getClassDeclarationMatches (contents)
         const jsDelimiter = '// ' + delimiter
         const parts = classBody.split (jsDelimiter)
         if (parts.length > 1) {
