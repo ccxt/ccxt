@@ -44,6 +44,7 @@ class Balance(TypedDict):
 
 IndexType = Union[str, int]
 
+
 class Trade(TypedDict):
     amount: float
     datetime: str
