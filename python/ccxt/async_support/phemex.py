@@ -1080,40 +1080,40 @@ class phemex(Exchange, ImplicitAPI):
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-kline
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None since: *emulated not supported by the exchange* timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the phemex api endpoint
         :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
+        userLimit = limit
         request = {
             'symbol': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
-            # 'from': 1588830682,  # seconds
-            # 'to': self.seconds(),
         }
-        duration = self.parse_timeframe(timeframe)
-        now = self.seconds()
         possibleLimitValues = [5, 10, 50, 100, 500, 1000]
-        maxLimit = 1000  # maximum limit, we shouldn't sent request of more than it
-        if limit is None:
-            limit = 100  # set default, doesn't have any defaults and needs something to be set
-        limit = min(limit, maxLimit)
-        if since is not None:  # phemex also provides kline query with from/to, however, self interface is NOT recommended.
-            since = self.parse_to_int(since / 1000)
-            request['from'] = since
-            # time ranges ending in the future are not accepted
-            # https://github.com/ccxt/ccxt/issues/8050
-            request['to'] = min(now, self.sum(since, duration * limit))
+        maxLimit = 1000
+        if limit is None and since is None:
+            limit = possibleLimitValues[5]
+        if since is not None:
+            # phemex also provides kline query with from/to, however, self interface is NOT recommended and does not work properly.
+            # we do not send since param to the exchange, instead we calculate appropriate limit param
+            duration = self.parse_timeframe(timeframe) * 1000
+            timeDelta = self.milliseconds() - since
+            limit = self.parse_to_int(timeDelta / duration)  # setting limit to the number of candles after since
+        if limit > maxLimit:
+            limit = maxLimit
         else:
-            if not self.in_array(limit, possibleLimitValues):
-                limit = 100
-            request['limit'] = limit
-        method = 'publicGetMdV2Kline'
+            for i in range(0, len(possibleLimitValues)):
+                if limit <= possibleLimitValues[i]:
+                    limit = possibleLimitValues[i]
+        request['limit'] = limit
+        response = None
         if market['linear'] or market['settle'] == 'USDT':
-            method = 'publicGetMdV2KlineLast'
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.publicGetMdV2KlineLast(self.extend(request, params))
+        else:
+            response = await self.publicGetMdV2Kline(self.extend(request, params))
         #
         #     {
         #         "code":0,
@@ -1130,7 +1130,7 @@ class phemex(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         rows = self.safe_value(data, 'rows', [])
-        return self.parse_ohlcvs(rows, market, timeframe, since, limit)
+        return self.parse_ohlcvs(rows, market, timeframe, since, userLimit)
 
     def parse_ticker(self, ticker, market=None):
         #

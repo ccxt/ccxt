@@ -1407,7 +1407,7 @@ export default class binance extends binanceRest {
         let timestamp = this.safeInteger (order, 'O');
         const T = this.safeInteger (order, 'T');
         let lastTradeTimestamp = undefined;
-        if (executionType === 'NEW') {
+        if (executionType === 'NEW' || executionType === 'AMENDMENT') {
             if (timestamp === undefined) {
                 timestamp = T;
             }
@@ -1688,8 +1688,11 @@ export default class binance extends binanceRest {
                     parsed['fees'] = fees;
                 }
                 parsed['trades'] = this.safeValue (order, 'trades');
-                parsed['timestamp'] = this.safeInteger (order, 'timestamp');
-                parsed['datetime'] = this.safeString (order, 'datetime');
+                const timestamp = this.safeInteger (parsed, 'timestamp');
+                if (timestamp === undefined) {
+                    parsed['timestamp'] = this.safeInteger (order, 'timestamp');
+                    parsed['datetime'] = this.safeString (order, 'datetime');
+                }
             }
             cachedOrders.append (parsed);
             client.resolve (this.orders, messageHash);

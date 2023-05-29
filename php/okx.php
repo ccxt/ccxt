@@ -784,6 +784,12 @@ class okx extends Exchange {
                 'fetchClosedOrders' => array(
                     'method' => 'privateGetTradeOrdersHistory', // privateGetTradeOrdersAlgoHistory
                 ),
+                'withdraw' => array(
+                    // a funding password credential is required by the exchange for the
+                    // withdraw call (not to be confused with the api password credential)
+                    'password' => null,
+                    'pwd' => null, // password or pwd both work
+                ),
                 'algoOrderTypes' => array(
                     'conditional' => true,
                     'trigger' => true,
@@ -3981,10 +3987,16 @@ class okx extends Exchange {
             $request['pwd'] = $params['password'];
         } elseif (is_array($params) && array_key_exists('pwd', $params)) {
             $request['pwd'] = $params['pwd'];
+        } else {
+            $options = $this->safe_value($this->options, 'withdraw', array());
+            $password = $this->safe_string_2($options, 'password', 'pwd');
+            if ($password !== null) {
+                $request['pwd'] = $password;
+            }
         }
         $query = $this->omit($params, array( 'fee', 'password', 'pwd' ));
         if (!(is_array($request) && array_key_exists('pwd', $request))) {
-            throw new ExchangeError($this->id . ' withdraw() requires a password parameter or a pwd parameter, it must be the funding password, not the API passphrase');
+            throw new ExchangeError($this->id . ' withdraw() requires a $password parameter or a pwd parameter, it must be the funding $password, not the API passphrase');
         }
         $response = $this->privatePostAssetWithdrawal (array_merge($request, $query));
         //

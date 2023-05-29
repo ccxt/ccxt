@@ -1489,6 +1489,7 @@ class bybit extends Exchange {
     }
 
     public function fetch_derivatives_markets($params) {
+        $params = array_merge($params);
         $params['limit'] = 1000; // minimize number of requests
         $response = $this->publicGetV5MarketInstrumentsInfo ($params);
         $data = $this->safe_value($response, 'result', array());
@@ -4903,6 +4904,12 @@ class bybit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $data = $this->safe_value($result, 'list', array());
+        $paginationCursor = $this->safe_string($result, 'nextPageCursor');
+        if (($paginationCursor !== null) && (strlen($data) > 0)) {
+            $first = $data[0];
+            $first['nextPageCursor'] = $paginationCursor;
+            $data[0] = $first;
+        }
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -4990,6 +4997,12 @@ class bybit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $data = $this->safe_value($result, 'list', array());
+        $paginationCursor = $this->safe_string($result, 'nextPageCursor');
+        if (($paginationCursor !== null) && (strlen($data) > 0)) {
+            $first = $data[0];
+            $first['nextPageCursor'] = $paginationCursor;
+            $data[0] = $first;
+        }
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -5086,6 +5099,12 @@ class bybit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $data = $this->safe_value($result, 'list', array());
+        $paginationCursor = $this->safe_string($result, 'nextPageCursor');
+        if (($paginationCursor !== null) && (strlen($data) > 0)) {
+            $first = $data[0];
+            $first['nextPageCursor'] = $paginationCursor;
+            $data[0] = $first;
+        }
         return $this->parse_orders($data, $market, $since, $limit);
     }
 

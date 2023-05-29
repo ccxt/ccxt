@@ -1087,6 +1087,7 @@ class bitget extends \ccxt\async\bitget {
             $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
             $account['free'] = $this->safe_string($rawBalance, 'available');
             $account['total'] = $this->safe_string($rawBalance, 'equity');
+            $account['used'] = $this->safe_string($rawBalance, 'frozen');
             $this->balance[$code] = $account;
         }
         $this->balance = $this->safe_balance($this->balance);

@@ -2297,8 +2297,8 @@ class mexc(Exchange, ImplicitAPI):
         if marketType == 'spot':
             raise BadRequest(self.id + ' fetchOrdersByState() is not supported for ' + marketType)
         else:
-            params['states'] = state
-            return await self.fetch_orders(symbol, since, limit, params)
+            request['states'] = state
+            return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
