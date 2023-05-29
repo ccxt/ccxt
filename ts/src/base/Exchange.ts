@@ -2286,7 +2286,7 @@ export default class Exchange {
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         let message = '';
         if (this.has['fetchTrades']) {
-            message = '. If you want to build OHLCV candles from trade executions data, see an example at:  https://github.com/ccxt/ccxt/tree/master/examples/ts/build-ohlcv-bars.ts';
+            message = '. If you want to build OHLCV candles from trade executions data, see an example at:  https://github.com/ccxt/ccxt/tree/master/examples/' + this.currentLanguage + '/build-ohlcv-bars.' + this.currentLanguage;
         }
         throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet' + message);
     }
