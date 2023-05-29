@@ -902,7 +902,7 @@ export default class poloniex extends poloniexRest {
         const type = this.safeString (message, 'channel');
         const event = this.safeString (message, 'event');
         if (event === 'pong') {
-            return client.onPong (message);
+            return client.onPong ();
         }
         const methods = {
             'candles_minute_1': this.handleOHLCV,
