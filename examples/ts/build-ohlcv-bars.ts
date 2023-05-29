@@ -12,7 +12,17 @@ async function example () {
     const limit = 100;
     const trades = await myex.fetchTrades (symbol, since, limit);
     const ohlcvArray = myex.buildOHLCVC (trades, timeframe, since, limit);
-    const length = ohlcvArray.length;
-    console.log ('Constructed ' + length.toString () + 'bars from trades: ', ohlcvArray);
+    const result = [];
+    for (let i = 0; i < ohlcvArray.length; i++) {
+        result.push ([
+            myex.safeInteger (ohlcvArray[i], 0),
+            myex.safeNumber (ohlcvArray[i], 1),
+            myex.safeNumber (ohlcvArray[i], 2),
+            myex.safeNumber (ohlcvArray[i], 3),
+            myex.safeNumber (ohlcvArray[i], 4),
+            myex.safeNumber (ohlcvArray[i], 5),
+        ]);
+    }
+    console.log ('Constructed ' + (result.length).toString () + 'bars from trades: ', result);
 }
 await example ();
