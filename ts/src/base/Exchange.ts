@@ -125,7 +125,8 @@ const {
     , NetworkError
     , ExchangeNotAvailable
     , ArgumentsRequired
-    , RateLimitExceeded } from "./errors.js"
+    , RateLimitExceeded, 
+    BadRequest} from "./errors.js"
 
 import { Precise } from './Precise.js'
 
@@ -1359,6 +1360,18 @@ export default class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    findMessageHashes (client, element: string): string[] {
+        const result = [];
+        const messageHashes = Object.keys (client.futures);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            if (messageHash.indexOf (element) >= 0) {
+                result.push (messageHash);
+            }
+        }
+        return result;
+    }
+
     filterByLimit (array: object[], limit: Int = undefined, key: IndexType = 'timestamp'): any {
         if (this.valueIsDefined (limit)) {
             const arrayLength = array.length;
@@ -2334,13 +2347,18 @@ export default class Exchange {
         return result;
     }
 
-    marketSymbols (symbols) {
+    marketSymbols (symbols, type: string = undefined) {
         if (symbols === undefined) {
             return symbols;
         }
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
-            result.push (this.symbol (symbols[i]));
+            const market = this.market (symbols[i]);
+            if (type !== undefined && market['type'] !== type) {
+                throw new BadRequest (this.id + ' symbols must be of same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
+            }
+            const symbol = this.safeString (market, 'symbol', symbols[i]);
+            result.push (symbol);
         }
         return result;
     }
@@ -2504,26 +2522,6 @@ export default class Exchange {
             }
         }
         return networkCode;
-    }
-
-    networkCodesToIds (networkCodes = undefined) {
-        /**
-         * @ignore
-         * @method
-         * @name exchange#networkCodesToIds
-         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
-         * @param {[string]|undefined} networkCodes unified network codes
-         * @returns {[string|undefined]} exchange-specific network ids
-         */
-        if (networkCodes === undefined) {
-            return undefined;
-        }
-        const ids = [];
-        for (let i = 0; i < networkCodes.length; i++) {
-            const networkCode = networkCodes[i];
-            ids.push (this.networkCodeToId (networkCode));
-        }
-        return ids;
     }
 
     handleNetworkCodeAndParams (params) {

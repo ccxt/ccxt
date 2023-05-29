@@ -756,6 +756,7 @@ export default class phemex extends phemexRest {
             symbol = market['symbol'];
             messageHash = messageHash + market['symbol'];
             if (market['settle'] === 'USDT') {
+                params = this.extend (params);
                 params['settle'] = 'USDT';
             }
         }
@@ -920,6 +921,7 @@ export default class phemex extends phemexRest {
             symbol = market['symbol'];
             messageHash = messageHash + market['symbol'];
             if (market['settle'] === 'USDT') {
+                params = this.extend (params);
                 params['settle'] = 'USDT';
             }
         }

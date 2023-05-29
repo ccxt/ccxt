@@ -1015,6 +1015,8 @@ class mexc extends mexc$1 {
         /**
          * @method
          * @name mexc3#fetchOrderBook
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#order-book
+         * @see https://mxcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
@@ -1074,6 +1076,15 @@ class mexc extends mexc$1 {
             orderbook['nonce'] = this.safeInteger(data, 'version');
         }
         return orderbook;
+    }
+    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countKey = 2) {
+        const price = this.safeNumber(bidask, priceKey);
+        const amount = this.safeNumber(bidask, amountKey);
+        const count = this.safeNumber(bidask, countKey);
+        if (count !== undefined) {
+            return [price, amount, count];
+        }
+        return [price, amount];
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
@@ -2408,18 +2419,19 @@ class mexc extends mexc$1 {
     }
     async fetchOrdersByState(state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            market['id'];
+            request['symbol'] = market['id'];
         }
         const [marketType] = this.handleMarketTypeAndParams('fetchOrdersByState', market, params);
         if (marketType === 'spot') {
             throw new errors.BadRequest(this.id + ' fetchOrdersByState() is not supported for ' + marketType);
         }
         else {
-            params['states'] = state;
-            return await this.fetchOrders(symbol, since, limit, params);
+            request['states'] = state;
+            return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
         }
     }
     async cancelOrder(id, symbol = undefined, params = {}) {

@@ -199,6 +199,7 @@ interface binance {
     sapiPostAccountEnableFastWithdrawSwitch (params?: {}): Promise<implicitReturnType>;
     sapiPostCapitalWithdrawApply (params?: {}): Promise<implicitReturnType>;
     sapiPostCapitalContractConvertibleCoins (params?: {}): Promise<implicitReturnType>;
+    sapiPostCapitalDepositCreditApply (params?: {}): Promise<implicitReturnType>;
     sapiPostMarginTransfer (params?: {}): Promise<implicitReturnType>;
     sapiPostMarginLoan (params?: {}): Promise<implicitReturnType>;
     sapiPostMarginRepay (params?: {}): Promise<implicitReturnType>;

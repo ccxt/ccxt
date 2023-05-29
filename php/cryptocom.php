@@ -17,6 +17,7 @@ class cryptocom extends Exchange {
             'countries' => array( 'MT' ),
             'version' => 'v2',
             'rateLimit' => 10, // 100 requests per second
+            'certified' => true,
             'pro' => true,
             'has' => array(
                 'CORS' => false,
@@ -308,6 +309,7 @@ class cryptocom extends Exchange {
                     'ETH' => 'ERC20',
                     'TRON' => 'TRC20',
                 ),
+                'broker' => 'CCXT_',
             ),
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies' => array(
@@ -1165,16 +1167,17 @@ class cryptocom extends Exchange {
         if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
+        $broker = $this->safe_string($this->options, 'broker', 'CCXT_');
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
-        if ($clientOrderId) {
-            $request['client_oid'] = $clientOrderId;
-            $params = $this->omit($params, array( 'clientOrderId' ));
+        if ($clientOrderId === null) {
+            $clientOrderId = $broker . $this->uuid22();
         }
+        $request['client_oid'] = $clientOrderId;
         $postOnly = $this->safe_value($params, 'postOnly', false);
         if ($postOnly) {
             $request['exec_inst'] = 'POST_ONLY';
-            $params = $this->omit($params, array( 'postOnly' ));
         }
+        $params = $this->omit($params, array( 'postOnly', 'clientOrderId' ));
         list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('createOrder', $market, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'v2PrivatePostPrivateCreateOrder',

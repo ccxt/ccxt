@@ -518,6 +518,8 @@ class gate(Exchange, ImplicitAPI):
                     'future': 'delivery',
                     'futures': 'futures',
                     'delivery': 'delivery',
+                    'option': 'options',
+                    'options': 'options',
                 },
                 'defaultType': 'spot',
                 'swap': {
@@ -1635,6 +1637,7 @@ class gate(Exchange, ImplicitAPI):
     def fetch_trading_fee(self, symbol: str, params={}):
         """
         fetch the trading fees for a market
+        see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -1664,6 +1667,7 @@ class gate(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
+        see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
@@ -1708,9 +1712,12 @@ class gate(Exchange, ImplicitAPI):
         #        "futures_maker_fee": "0"
         #    }
         #
+        gtDiscount = self.safe_value(info, 'gt_discount')
+        taker = 'gt_taker_fee' if gtDiscount else 'taker_fee'
+        maker = 'gt_maker_fee' if gtDiscount else 'maker_fee'
         contract = self.safe_value(market, 'contract')
-        takerKey = 'futures_taker_fee' if contract else 'taker_fee'
-        makerKey = 'futures_maker_fee' if contract else 'maker_fee'
+        takerKey = 'futures_taker_fee' if contract else taker
+        makerKey = 'futures_maker_fee' if contract else maker
         return {
             'info': info,
             'symbol': self.safe_string(market, 'symbol'),
@@ -4004,6 +4011,7 @@ class gate(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
+        see https://www.gate.io/docs/developers/apiv4/en/#transfer-between-trading-accounts
         :param str code: unified currency code for currency being transferred
         :param float amount: the amount of currency to transfer
         :param str fromAccount: the account to transfer currency from
@@ -4057,7 +4065,7 @@ class gate(Exchange, ImplicitAPI):
     def parse_transfer(self, transfer, currency=None):
         timestamp = self.milliseconds()
         return {
-            'id': None,
+            'id': self.safe_string(transfer, 'tx_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'currency': self.safe_currency_code(None, currency),
