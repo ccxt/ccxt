@@ -5409,10 +5409,14 @@ class huobi extends Exchange {
             $feeCost = Precise::string_abs($feeCost);
         }
         $networkId = $this->safe_string($transaction, 'chain');
+        $txHash = $this->safe_string($transaction, 'tx-hash');
+        if ($networkId === 'ETH' && mb_strpos($txHash, '0x') === false) {
+            $txHash = '0x' . $txHash;
+        }
         return array(
             'info' => $transaction,
             'id' => $this->safe_string_2($transaction, 'id', 'data'),
-            'txid' => $this->safe_string($transaction, 'tx-hash'),
+            'txid' => $txHash,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'network' => $this->network_id_to_code($networkId, $code),

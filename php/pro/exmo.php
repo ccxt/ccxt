@@ -288,7 +288,7 @@ class exmo extends \ccxt\async\exmo {
             );
             $request = $this->deep_extend($message, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -361,7 +361,7 @@ class exmo extends \ccxt\async\exmo {
             );
             $request = $this->deep_extend($message, $query);
             $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
         }) ();
     }
 

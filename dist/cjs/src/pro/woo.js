@@ -269,7 +269,7 @@ class woo extends woo$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(market['symbol'], limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -328,7 +328,7 @@ class woo extends woo$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(market['symbol'], limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleTrade(client, message) {
         //

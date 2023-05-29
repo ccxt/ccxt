@@ -204,7 +204,7 @@ class huobi(ccxt.async_support.huobi):
         trades = await self.subscribe_public(url, symbol, messageHash, None, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
         #
@@ -264,7 +264,7 @@ class huobi(ccxt.async_support.huobi):
         ohlcv = await self.subscribe_public(url, symbol, messageHash, None, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -650,7 +650,7 @@ class huobi(ccxt.async_support.huobi):
         trades = await self.subscribe_private(channel, messageHash, type, subType, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def get_order_channel_and_message_hash(self, type, subType, market=None, params={}):
         messageHash = None
@@ -726,7 +726,7 @@ class huobi(ccxt.async_support.huobi):
         orders = await self.subscribe_private(channel, messageHash, type, subType, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_since_limit(orders, since, limit, 'timestamp')
+        return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
     def handle_order(self, client: Client, message):
         #

@@ -393,7 +393,7 @@ export default class bittrex extends bittrexRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     async subscribeToOHLCV(negotiation, symbol, timeframe = '1m', params = {}) {
         await this.loadMarkets();
@@ -462,7 +462,7 @@ export default class bittrex extends bittrexRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     async subscribeToTrades(negotiation, symbol, params = {}) {
         await this.loadMarkets();
@@ -528,7 +528,7 @@ export default class bittrex extends bittrexRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     async subscribeToMyTrades(authentication, params = {}) {
         const messageHash = 'execution';
