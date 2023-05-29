@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '3.1.2'
+__version__ = '3.1.14'
 
 # ----------------------------------------------------------------------------
 
@@ -43,11 +43,13 @@ from ccxt.pro.currencycom import currencycom                              # noqa
 from ccxt.pro.deribit import deribit                                      # noqa: F401
 from ccxt.pro.exmo import exmo                                            # noqa: F401
 from ccxt.pro.gate import gate                                            # noqa: F401
+from ccxt.pro.gateio import gateio                                        # noqa: F401
 from ccxt.pro.gemini import gemini                                        # noqa: F401
 from ccxt.pro.hitbtc import hitbtc                                        # noqa: F401
 from ccxt.pro.hollaex import hollaex                                      # noqa: F401
 from ccxt.pro.huobi import huobi                                          # noqa: F401
 from ccxt.pro.huobijp import huobijp                                      # noqa: F401
+from ccxt.pro.huobipro import huobipro                                    # noqa: F401
 from ccxt.pro.idex import idex                                            # noqa: F401
 from ccxt.pro.independentreserve import independentreserve                # noqa: F401
 from ccxt.pro.kraken import kraken                                        # noqa: F401
@@ -59,8 +61,10 @@ from ccxt.pro.mexc import mexc                                            # noqa
 from ccxt.pro.mexc3 import mexc3                                          # noqa: F401
 from ccxt.pro.ndax import ndax                                            # noqa: F401
 from ccxt.pro.okcoin import okcoin                                        # noqa: F401
+from ccxt.pro.okex import okex                                            # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
+from ccxt.pro.poloniexfutures import poloniexfutures                      # noqa: F401
 from ccxt.pro.probit import probit                                        # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
 from ccxt.pro.wazirx import wazirx                                        # noqa: F401
@@ -99,11 +103,13 @@ exchanges = [
     'deribit',
     'exmo',
     'gate',
+    'gateio',
     'gemini',
     'hitbtc',
     'hollaex',
     'huobi',
     'huobijp',
+    'huobipro',
     'idex',
     'independentreserve',
     'kraken',
@@ -115,8 +121,10 @@ exchanges = [
     'mexc3',
     'ndax',
     'okcoin',
+    'okex',
     'okx',
     'phemex',
+    'poloniexfutures',
     'probit',
     'upbit',
     'wazirx',
