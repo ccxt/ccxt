@@ -431,26 +431,55 @@ export default class poloniex extends poloniexRest {
         //        ts: 1676950548839
         //    }
         //
+        // private trade
+        //    {
+        //        "orderId":"186250258089635840",
+        //        "tradeId":"62036513",
+        //        "clientOrderId":"",
+        //        "accountType":"SPOT",
+        //        "eventType":"trade",
+        //        "symbol":"ADA_USDT",
+        //        "side":"SELL",
+        //        "type":"MARKET",
+        //        "price":"0",
+        //        "quantity":"3",
+        //        "state":"FILLED",
+        //        "createTime":1685371921891,
+        //        "tradeTime":1685371921908,
+        //        "tradePrice":"0.37694",
+        //        "tradeQty":"3",
+        //        "feeCurrency":"USDT",
+        //        "tradeFee":"0.00226164",
+        //        "tradeAmount":"1.13082",
+        //        "filledQuantity":"3",
+        //        "filledAmount":"1.13082",
+        //        "ts":1685371921945,
+        //        "source":"WEB",
+        //        "orderAmount":"0",
+        //        "matchRole":"TAKER"
+        //     }
+        //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 'createTime');
+        const takerMaker = this.safeStringLower2 (trade, 'matchRole', 'taker');
         return this.safeTrade ({
             'info': trade,
-            'id': this.safeString (trade, 'id'),
+            'id': this.safeString2 (trade, 'id', 'tradeId'),
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'order': undefined,
             'type': this.safeStringLower (trade, 'type'),
-            'side': this.safeString (trade, 'takerSide'),
-            'takerOrMaker': 'taker',
-            'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'quantity'),
-            'cost': this.safeString (trade, 'amount'),
+            'side': this.safeStringLower2 (trade, 'takerSide', 'side'),
+            'takerOrMaker': takerMaker,
+            'price': this.safeString2 (trade, 'price', 'tradePrice'),
+            'amount': this.safeString (trade, 'quantity', 'filledQuantity'),
+            'cost': this.safeString2 (trade, 'amount', 'filledAmount'),
             'fee': {
                 'rate': undefined,
-                'cost': undefined,
-                'currency': undefined,
+                'cost': this.safeString (trade, 'tradeFee'),
+                'currency': this.safeString (trade, 'feeCurrency'),
             },
         }, market);
     }
@@ -567,16 +596,17 @@ export default class poloniex extends poloniexRest {
         for (let i = 0; i < data.length; i++) {
             const order = this.safeValue (data, i);
             const marketId = this.safeString (order, 'symbol');
+            const eventType = this.safeString (order, 'eventType');
             if (marketId !== undefined) {
                 const symbol = this.safeSymbol (marketId);
                 const orderId = this.safeString (order, 'orderId');
                 const clientOrderId = this.safeString (order, 'clientOrderId');
-                const previousOrders = this.safeValue (orders.hashmap, symbol, {});
-                const previousOrder = this.safeValue2 (previousOrders, orderId, clientOrderId);
-                if (previousOrder === undefined) {
+                if (eventType === 'place' || eventType === 'canceled') {
                     const parsed = this.parseWsOrder (order);
                     orders.append (parsed);
                 } else {
+                    const previousOrders = this.safeValue (orders.hashmap, symbol, {});
+                    const previousOrder = this.safeValue2 (previousOrders, orderId, clientOrderId);
                     const trade = this.parseWsTrade (order);
                     if (previousOrder['trades'] === undefined) {
                         previousOrder['trades'] = [];
@@ -619,6 +649,9 @@ export default class poloniex extends poloniexRest {
                         const stringTradeCost = this.numberToString (trade['fee']['cost']);
                         previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
                     }
+                    const rawState = this.safeString (order, 'state');
+                    const state = this.parseStatus (rawState);
+                    previousOrder['status'] = state;
                     // update the newUpdates count
                     orders.append (previousOrder);
                     marketIds.push (marketId);
