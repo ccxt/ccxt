@@ -13,6 +13,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class coinex extends coinexRest {
+    /**
+     * @class
+     * @name coinex
+     * @description websocket exchange class for coinex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class krakenfutures extends Exchange {
+    /**
+     * @class
+     * @name krakenfutures
+     * @description exchange class for krakenfutures api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'krakenfutures',

@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class okcoin extends okcoinRest {
+    /**
+     * @class
+     * @name okcoin
+     * @description websocket exchange class for okcoin api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

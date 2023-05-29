@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class currencycom extends currencycomRest {
+    /**
+     * @class
+     * @name currencycom
+     * @description websocket exchange class for currencycom api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

@@ -6,6 +6,11 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Int, OrderSide } from './base/types.js';
 
 export default class coinsph extends Exchange {
+    /**
+     * @class
+     * @name coinsph
+     * @description exchange class for coinsph api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinsph',

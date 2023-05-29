@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class gate extends gateRest {
+    /**
+     * @class
+     * @name gate
+     * @description websocket exchange class for gate api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

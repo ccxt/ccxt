@@ -13,6 +13,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class lbank extends Exchange {
+    /**
+     * @class
+     * @name lbank
+     * @description exchange class for lbank api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'lbank',

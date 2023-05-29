@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class poloniexfutures extends poloniexfuturesRest {
+    /**
+     * @class
+     * @name poloniexfutures
+     * @description websocket exchange class for poloniexfutures api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

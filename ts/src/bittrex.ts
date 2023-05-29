@@ -10,6 +10,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class bittrex extends Exchange {
+    /**
+     * @class
+     * @name bittrex
+     * @description exchange class for bittrex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bittrex',

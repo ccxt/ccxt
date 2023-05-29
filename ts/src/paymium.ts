@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class paymium extends Exchange {
+    /**
+     * @class
+     * @name paymium
+     * @description exchange class for paymium api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'paymium',

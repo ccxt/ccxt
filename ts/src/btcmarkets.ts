@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class btcmarkets extends Exchange {
+    /**
+     * @class
+     * @name btcmarkets
+     * @description exchange class for btcmarkets api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btcmarkets',

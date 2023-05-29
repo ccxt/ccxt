@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class novadax extends Exchange {
+    /**
+     * @class
+     * @name novadax
+     * @description exchange class for novadax api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'novadax',

@@ -10,6 +10,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class probit extends Exchange {
+    /**
+     * @class
+     * @name probit
+     * @description exchange class for probit api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'probit',

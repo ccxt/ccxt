@@ -9,6 +9,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class alpaca extends alpacaRest {
+    /**
+     * @class
+     * @name alpaca
+     * @description websocket exchange class for alpaca api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

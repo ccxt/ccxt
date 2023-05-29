@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class bitmart extends bitmartRest {
+    /**
+     * @class
+     * @name bitmart
+     * @description websocket exchange class for bitmart api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

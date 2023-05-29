@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class bitget extends Exchange {
+    /**
+     * @class
+     * @name bitget
+     * @description exchange class for bitget api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitget',

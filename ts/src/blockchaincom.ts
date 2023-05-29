@@ -8,6 +8,11 @@ import { Int, OrderSide } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 export default class blockchaincom extends Exchange {
+    /**
+     * @class
+     * @name blockchaincom
+     * @description exchange class for blockchaincom api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'blockchaincom',

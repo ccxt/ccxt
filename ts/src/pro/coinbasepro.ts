@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class coinbasepro extends coinbaseproRest {
+    /**
+     * @class
+     * @name coinbasepro
+     * @description websocket exchange class for coinbasepro api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

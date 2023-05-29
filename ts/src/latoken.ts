@@ -10,6 +10,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class latoken extends Exchange {
+    /**
+     * @class
+     * @name latoken
+     * @description exchange class for latoken api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'latoken',

@@ -10,6 +10,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class indodax extends Exchange {
+    /**
+     * @class
+     * @name indodax
+     * @description exchange class for indodax api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'indodax',

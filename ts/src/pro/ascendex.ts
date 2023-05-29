@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class ascendex extends ascendexRest {
+    /**
+     * @class
+     * @name ascendex
+     * @description websocket exchange class for ascendex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

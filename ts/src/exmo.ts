@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class exmo extends Exchange {
+    /**
+     * @class
+     * @name exmo
+     * @description exchange class for exmo api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'exmo',

@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class hollaex extends Exchange {
+    /**
+     * @class
+     * @name hollaex
+     * @description exchange class for hollaex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'hollaex',

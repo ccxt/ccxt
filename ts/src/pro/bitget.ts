@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class bitget extends bitgetRest {
+    /**
+     * @class
+     * @name bitget
+     * @description websocket exchange class for bitget api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

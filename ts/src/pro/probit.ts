@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class probit extends probitRest {
+    /**
+     * @class
+     * @name probit
+     * @description websocket exchange class for probit api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

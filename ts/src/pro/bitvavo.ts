@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class bitvavo extends bitvavoRest {
+    /**
+     * @class
+     * @name bitvavo
+     * @description websocket exchange class for bitvavo api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

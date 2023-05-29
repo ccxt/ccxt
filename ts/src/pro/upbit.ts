@@ -9,6 +9,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class upbit extends upbitRest {
+    /**
+     * @class
+     * @name upbit
+     * @description websocket exchange class for upbit api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

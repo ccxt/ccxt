@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class bitmart extends Exchange {
+    /**
+     * @class
+     * @name bitmart
+     * @description exchange class for bitmart api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitmart',

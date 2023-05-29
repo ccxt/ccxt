@@ -10,6 +10,11 @@ import { Int, OrderSide } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 export default class bkex extends Exchange {
+    /**
+     * @class
+     * @name bkex
+     * @description exchange class for bkex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bkex',

@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 export default class yobit extends Exchange {
+    /**
+     * @class
+     * @name yobit
+     * @description exchange class for yobit api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'yobit',

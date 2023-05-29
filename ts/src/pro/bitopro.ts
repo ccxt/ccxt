@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 // ----------------------------------------------------------------------------
 
 export default class bitopro extends bitoproRest {
+    /**
+     * @class
+     * @name bitopro
+     * @description websocket exchange class for bitopro api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

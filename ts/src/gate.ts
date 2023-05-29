@@ -8,6 +8,11 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import { Int, OrderSide } from './base/types.js';
 
 export default class gate extends Exchange {
+    /**
+     * @class
+     * @name gate
+     * @description exchange class for gate api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'gate',

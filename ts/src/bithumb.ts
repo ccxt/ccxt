@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class bithumb extends Exchange {
+    /**
+     * @class
+     * @name bithumb
+     * @description exchange class for bithumb api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bithumb',

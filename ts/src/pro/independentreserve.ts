@@ -9,6 +9,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class independentreserve extends independentreserveRest {
+    /**
+     * @class
+     * @name independentreserve
+     * @description websocket exchange class for independentreserve api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

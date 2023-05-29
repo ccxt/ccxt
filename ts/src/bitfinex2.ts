@@ -9,6 +9,11 @@ import { Int, OrderSide } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 export default class bitfinex2 extends Exchange {
+    /**
+     * @class
+     * @name bitfinex2
+     * @description exchange class for bitfinex2 api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex2',

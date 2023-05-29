@@ -13,6 +13,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class upbit extends Exchange {
+    /**
+     * @class
+     * @name upbit
+     * @description exchange class for upbit api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'upbit',

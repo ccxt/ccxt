@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class cex extends cexRest {
+    /**
+     * @class
+     * @name cex
+     * @description websocket exchange class for cex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

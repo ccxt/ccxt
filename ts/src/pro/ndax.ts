@@ -9,6 +9,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class ndax extends ndaxRest {
+    /**
+     * @class
+     * @name ndax
+     * @description websocket exchange class for ndax api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

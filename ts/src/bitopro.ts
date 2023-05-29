@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class bitopro extends Exchange {
+    /**
+     * @class
+     * @name bitopro
+     * @description exchange class for bitopro api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitopro',

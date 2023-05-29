@@ -10,6 +10,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class coincheck extends Exchange {
+    /**
+     * @class
+     * @name coincheck
+     * @description exchange class for coincheck api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coincheck',

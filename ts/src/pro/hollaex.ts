@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class hollaex extends hollaexRest {
+    /**
+     * @class
+     * @name hollaex
+     * @description websocket exchange class for hollaex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

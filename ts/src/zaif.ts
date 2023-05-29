@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class zaif extends Exchange {
+    /**
+     * @class
+     * @name zaif
+     * @description exchange class for zaif api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'zaif',

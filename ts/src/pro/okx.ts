@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class okx extends okxRest {
+    /**
+     * @class
+     * @name okx
+     * @description websocket exchange class for okx api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

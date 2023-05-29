@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 // ----------------------------------------------------------------------------
 
 export default class woo extends wooRest {
+    /**
+     * @class
+     * @name woo
+     * @description websocket exchange class for woo api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

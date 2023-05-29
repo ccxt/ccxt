@@ -10,6 +10,11 @@ import { Int, OrderSide } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 export default class hitbtc extends Exchange {
+    /**
+     * @class
+     * @name hitbtc
+     * @description exchange class for hitbtc api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc',

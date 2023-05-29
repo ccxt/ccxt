@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class exmo extends exmoRest {
+    /**
+     * @class
+     * @name exmo
+     * @description websocket exchange class for exmo api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

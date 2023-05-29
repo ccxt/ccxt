@@ -11,6 +11,11 @@ import { IndexType, Int, OrderSide } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 export default class mexc extends Exchange {
+    /**
+     * @class
+     * @name mexc
+     * @description exchange class for mexc api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'mexc',

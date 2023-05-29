@@ -10,6 +10,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class coinspot extends Exchange {
+    /**
+     * @class
+     * @name coinspot
+     * @description exchange class for coinspot api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinspot',
