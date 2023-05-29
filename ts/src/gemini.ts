@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class gemini extends Exchange {
+    /**
+     * @class
+     * @name gemini
+     * @description exchange class for gemini api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'gemini',

@@ -10,6 +10,11 @@ import { Int, OrderSide } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 export default class kuna extends Exchange {
+    /**
+     * @class
+     * @name kuna
+     * @description exchange class for kuna api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kuna',

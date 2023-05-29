@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 // ----------------------------------------------------------------------------
 
 export default class coinbase extends Exchange {
+    /**
+     * @class
+     * @name coinbase
+     * @description exchange class for coinbase api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinbase',

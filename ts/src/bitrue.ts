@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class bitrue extends Exchange {
+    /**
+     * @class
+     * @name bitrue
+     * @description exchange class for bitrue api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitrue',

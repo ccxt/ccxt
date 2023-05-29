@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class bitmex extends bitmexRest {
+    /**
+     * @class
+     * @name bitmex
+     * @description websocket exchange class for bitmex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

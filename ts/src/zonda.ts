@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class zonda extends Exchange {
+    /**
+     * @class
+     * @name zonda
+     * @description exchange class for zonda api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'zonda',

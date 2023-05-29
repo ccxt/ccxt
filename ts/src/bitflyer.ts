@@ -10,6 +10,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class bitflyer extends Exchange {
+    /**
+     * @class
+     * @name bitflyer
+     * @description exchange class for bitflyer api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitflyer',

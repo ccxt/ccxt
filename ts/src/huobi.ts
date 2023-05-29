@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class huobi extends Exchange {
+    /**
+     * @class
+     * @name huobi
+     * @description exchange class for huobi api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'huobi',

@@ -10,6 +10,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class tokocrypto extends Exchange {
+    /**
+     * @class
+     * @name tokocrypto
+     * @description exchange class for tokocrypto api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'tokocrypto',

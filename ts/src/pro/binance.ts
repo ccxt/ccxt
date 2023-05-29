@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 // -----------------------------------------------------------------------------
 
 export default class binance extends binanceRest {
+    /**
+     * @class
+     * @name binance
+     * @description websocket exchange class for binance api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class coinfalcon extends Exchange {
+    /**
+     * @class
+     * @name coinfalcon
+     * @description exchange class for coinfalcon api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinfalcon',

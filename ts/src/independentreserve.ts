@@ -10,6 +10,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class independentreserve extends Exchange {
+    /**
+     * @class
+     * @name independentreserve
+     * @description exchange class for independentreserve api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'independentreserve',

@@ -6,6 +6,11 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import { Int, OrderSide } from './base/types.js';
 
 export default class tidex extends Exchange {
+    /**
+     * @class
+     * @name tidex
+     * @description exchange class for tidex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'tidex',

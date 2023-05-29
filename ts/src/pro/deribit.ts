@@ -10,6 +10,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class deribit extends deribitRest {
+    /**
+     * @class
+     * @name deribit
+     * @description websocket exchange class for deribit api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

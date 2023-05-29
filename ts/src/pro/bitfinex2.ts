@@ -12,6 +12,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class bitfinex2 extends bitfinex2Rest {
+    /**
+     * @class
+     * @name bitfinex2
+     * @description websocket exchange class for bitfinex2 api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

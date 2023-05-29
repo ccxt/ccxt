@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class wavesexchange extends Exchange {
+    /**
+     * @class
+     * @name wavesexchange
+     * @description exchange class for wavesexchange api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'wavesexchange',

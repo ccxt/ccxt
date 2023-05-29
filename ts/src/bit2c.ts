@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class bit2c extends Exchange {
+    /**
+     * @class
+     * @name bit2c
+     * @description exchange class for bit2c api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bit2c',

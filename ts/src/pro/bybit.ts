@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class bybit extends bybitRest {
+    /**
+     * @class
+     * @name bybit
+     * @description websocket exchange class for bybit api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

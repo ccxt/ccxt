@@ -11,6 +11,11 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 
 export default class xt extends Exchange {
+    /**
+     * @class
+     * @name xt
+     * @description exchange class for xt api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'xt',

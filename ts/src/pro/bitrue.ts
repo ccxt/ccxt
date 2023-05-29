@@ -9,6 +9,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class bitrue extends bitrueRest {
+    /**
+     * @class
+     * @name bitrue
+     * @description websocket exchange class for bitrue api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

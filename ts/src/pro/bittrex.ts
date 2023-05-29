@@ -12,6 +12,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class bittrex extends bittrexRest {
+    /**
+     * @class
+     * @name bittrex
+     * @description websocket exchange class for bittrex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

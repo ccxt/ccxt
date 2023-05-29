@@ -10,6 +10,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class ace extends Exchange {
+    /**
+     * @class
+     * @name ace
+     * @description exchange class for ace api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'ace',

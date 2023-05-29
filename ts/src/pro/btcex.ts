@@ -9,6 +9,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class btcex extends btcexRest {
+    /**
+     * @class
+     * @name btcex
+     * @description websocket exchange class for btcex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

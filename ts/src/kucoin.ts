@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class kucoin extends Exchange {
+    /**
+     * @class
+     * @name kucoin
+     * @description exchange class for kucoin api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kucoin',

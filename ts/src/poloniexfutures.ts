@@ -10,6 +10,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class poloniexfutures extends Exchange {
+    /**
+     * @class
+     * @name poloniexfutures
+     * @description exchange class for poloniexfutures api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'poloniexfutures',

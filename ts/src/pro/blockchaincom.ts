@@ -9,6 +9,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class blockchaincom extends blockchaincomRest {
+    /**
+     * @class
+     * @name blockchaincom
+     * @description websocket exchange class for blockchaincom api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

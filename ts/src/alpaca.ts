@@ -8,6 +8,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------xs
 
 export default class alpaca extends Exchange {
+    /**
+     * @class
+     * @name alpaca
+     * @description exchange class for alpaca api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'alpaca',

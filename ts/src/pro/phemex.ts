@@ -12,6 +12,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class phemex extends phemexRest {
+    /**
+     * @class
+     * @name phemex
+     * @description websocket exchange class for phemex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

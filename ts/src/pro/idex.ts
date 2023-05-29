@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class idex extends idexRest {
+    /**
+     * @class
+     * @name idex
+     * @description websocket exchange class for idex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

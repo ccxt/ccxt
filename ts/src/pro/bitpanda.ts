@@ -10,6 +10,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class bitpanda extends bitpandaRest {
+    /**
+     * @class
+     * @name bitpanda
+     * @description websocket exchange class for bitpanda api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

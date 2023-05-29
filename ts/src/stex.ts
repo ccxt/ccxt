@@ -10,6 +10,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class stex extends Exchange {
+    /**
+     * @class
+     * @name stex
+     * @description exchange class for stex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'stex',

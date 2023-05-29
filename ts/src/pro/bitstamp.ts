@@ -10,6 +10,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class bitstamp extends bitstampRest {
+    /**
+     * @class
+     * @name bitstamp
+     * @description websocket exchange class for bitstamp api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

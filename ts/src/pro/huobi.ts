@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class huobi extends huobiRest {
+    /**
+     * @class
+     * @name huobi
+     * @description websocket exchange class for huobi api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

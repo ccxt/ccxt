@@ -9,6 +9,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class hitbtc extends hitbtcRest {
+    /**
+     * @class
+     * @name hitbtc
+     * @description websocket exchange class for hitbtc api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

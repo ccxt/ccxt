@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class mexc extends mexcRest {
+    /**
+     * @class
+     * @name mexc
+     * @description websocket exchange class for mexc api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

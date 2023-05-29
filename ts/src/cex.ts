@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class cex extends Exchange {
+    /**
+     * @class
+     * @name cex
+     * @description exchange class for cex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'cex',

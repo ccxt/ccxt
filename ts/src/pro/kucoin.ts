@@ -10,6 +10,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class kucoin extends kucoinRest {
+    /**
+     * @class
+     * @name kucoin
+     * @description websocket exchange class for kucoin api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

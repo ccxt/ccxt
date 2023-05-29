@@ -10,6 +10,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class luno extends Exchange {
+    /**
+     * @class
+     * @name luno
+     * @description exchange class for luno api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'luno',

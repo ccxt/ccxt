@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class kraken extends krakenRest {
+    /**
+     * @class
+     * @name kraken
+     * @description websocket exchange class for kraken api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

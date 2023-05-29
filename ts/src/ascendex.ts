@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class ascendex extends Exchange {
+    /**
+     * @class
+     * @name ascendex
+     * @description exchange class for ascendex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'ascendex',

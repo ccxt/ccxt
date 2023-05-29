@@ -11,6 +11,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class whitebit extends whitebitRest {
+    /**
+     * @class
+     * @name whitebit
+     * @description websocket exchange class for whitebit api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

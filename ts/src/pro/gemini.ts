@@ -9,6 +9,11 @@ import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 export default class gemini extends geminiRest {
+    /**
+     * @class
+     * @name gemini
+     * @description websocket exchange class for gemini api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

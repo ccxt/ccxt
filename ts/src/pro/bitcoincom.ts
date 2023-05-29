@@ -6,6 +6,11 @@ import hitbtc from './hitbtc.js';
 // ---------------------------------------------------------------------------
 
 export default class bitcoincom extends hitbtc {
+    /**
+     * @class
+     * @name bitcoincom
+     * @description websocket exchange class for bitcoincom api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitcoincom',

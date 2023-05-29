@@ -9,6 +9,11 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class wazirx extends wazirxRest {
+    /**
+     * @class
+     * @name wazirx
+     * @description websocket exchange class for wazirx api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

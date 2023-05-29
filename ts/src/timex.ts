@@ -5,6 +5,11 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Int, OrderSide } from './base/types.js';
 
 export default class timex extends Exchange {
+    /**
+     * @class
+     * @name timex
+     * @description exchange class for timex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'timex',

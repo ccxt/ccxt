@@ -14,6 +14,11 @@ import { Int, OrderSide } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 export default class idex extends Exchange {
+    /**
+     * @class
+     * @name idex
+     * @description exchange class for idex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'idex',

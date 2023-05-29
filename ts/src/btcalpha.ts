@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class btcalpha extends Exchange {
+    /**
+     * @class
+     * @name btcalpha
+     * @description exchange class for btcalpha api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btcalpha',

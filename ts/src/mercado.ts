@@ -10,6 +10,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class mercado extends Exchange {
+    /**
+     * @class
+     * @name mercado
+     * @description exchange class for mercado api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'mercado',

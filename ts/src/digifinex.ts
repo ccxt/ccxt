@@ -11,6 +11,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class digifinex extends Exchange {
+    /**
+     * @class
+     * @name digifinex
+     * @description exchange class for digifinex api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'digifinex',

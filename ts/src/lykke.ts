@@ -10,6 +10,11 @@ import { Int, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class lykke extends Exchange {
+    /**
+     * @class
+     * @name lykke
+     * @description exchange class for lykke api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'lykke',
