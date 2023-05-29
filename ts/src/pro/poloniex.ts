@@ -23,7 +23,7 @@ export default class poloniex extends poloniexRest {
                 'watchBalance': true,
                 'watchStatus': false,
                 'watchOrders': true,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
             },
             'urls': {
                 'api': {
@@ -122,7 +122,7 @@ export default class poloniex extends poloniexRest {
         return future;
     }
 
-    async subscribe (name: string, isPrivate: boolean, symbols: string[] = undefined, params = {}) {
+    async subscribe (name: string, messageHash: string, isPrivate: boolean, symbols: string[] = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -142,7 +142,6 @@ export default class poloniex extends poloniexRest {
             ],
         };
         const marketIds = [ ];
-        let messageHash = name;
         if (symbols !== undefined) {
             if (symbols.length === 1) {
                 const symbol = symbols[0];
@@ -184,7 +183,7 @@ export default class poloniex extends poloniexRest {
         if (channel === undefined) {
             throw new BadRequest (this.id + ' watchOHLCV cannot take a timeframe of ' + timeframe);
         }
-        const ohlcv = await this.subscribe (channel, false, [ symbol ], params);
+        const ohlcv = await this.subscribe (channel, channel, false, [ symbol ], params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -203,7 +202,7 @@ export default class poloniex extends poloniexRest {
          */
         await this.loadMarkets ();
         const name = 'ticker';
-        return await this.subscribe (name, false, [ symbol ], params);
+        return await this.subscribe (name, name, false, [ symbol ], params);
     }
 
     async watchTickers (symbols = undefined, params = {}) {
@@ -218,7 +217,7 @@ export default class poloniex extends poloniexRest {
          */
         await this.loadMarkets ();
         const name = 'ticker';
-        return await this.subscribe (name, false, symbols, params);
+        return await this.subscribe (name, name, false, symbols, params);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -236,7 +235,7 @@ export default class poloniex extends poloniexRest {
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const name = 'trades';
-        const trades = await this.subscribe (name, false, [ symbol ], params);
+        const trades = await this.subscribe (name, name, false, [ symbol ], params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -258,7 +257,7 @@ export default class poloniex extends poloniexRest {
         const watchOrderBookOptions = this.safeValue (this.options, 'watchOrderBook');
         let name = this.safeString (watchOrderBookOptions, 'name', 'book_lv2');
         [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
-        const orderbook = await this.subscribe (name, false, [ symbol ], params);
+        const orderbook = await this.subscribe (name, name, false, [ symbol ], params);
         return orderbook.limit ();
     }
 
@@ -281,11 +280,38 @@ export default class poloniex extends poloniexRest {
             symbol = this.symbol (symbol);
         }
         const symbols = (symbol === undefined) ? undefined : [ symbol ];
-        const orders = await this.subscribe (name, true, symbols, params);
+        const orders = await this.subscribe (name, name, true, symbols, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+    }
+
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniex#watchMyTrades
+         * @description watches information on multiple trades made by the user using orders stream
+         * @see https://docs.poloniex.com/#authenticated-channels-market-data-orders
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since not used by poloniex watchMyTrades
+         * @param {int|undefined} limit not used by poloniex watchMyTrades
+         * @param {object} params extra parameters specific to the poloniex strean
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        await this.loadMarkets ();
+        const name = 'orders';
+        const messageHash = 'myTrades';
+        await this.authenticate ();
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+        }
+        const symbols = (symbol === undefined) ? undefined : [ symbol ];
+        const trades = await this.subscribe (name, messageHash, true, symbols, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     async watchBalance (params = {}) {
@@ -303,7 +329,7 @@ export default class poloniex extends poloniexRest {
         await this.loadMarkets ();
         const name = 'balances';
         await this.authenticate ();
-        return await this.subscribe (name, true, undefined, params);
+        return await this.subscribe (name, name, true, undefined, params);
     }
 
     parseWsOHLCV (ohlcv, market = undefined) {
@@ -469,12 +495,12 @@ export default class poloniex extends poloniexRest {
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'order': undefined,
+            'order': this.safeString (trade, 'orderId'),
             'type': this.safeStringLower (trade, 'type'),
             'side': this.safeStringLower2 (trade, 'takerSide', 'side'),
             'takerOrMaker': takerMaker,
-            'price': this.safeString2 (trade, 'price', 'tradePrice'),
-            'amount': this.safeString (trade, 'quantity', 'filledQuantity'),
+            'price': this.omitZero (this.safeString2 (trade, 'tradePrice', 'price')),
+            'amount': this.omitZero (this.safeString (trade, 'filledQuantity', 'quantity')),
             'cost': this.safeString2 (trade, 'amount', 'filledAmount'),
             'fee': {
                 'rate': undefined,
@@ -608,6 +634,7 @@ export default class poloniex extends poloniexRest {
                     const previousOrders = this.safeValue (orders.hashmap, symbol, {});
                     const previousOrder = this.safeValue2 (previousOrders, orderId, clientOrderId);
                     const trade = this.parseWsTrade (order);
+                    this.handleMyTrades (client, trade);
                     if (previousOrder['trades'] === undefined) {
                         previousOrder['trades'] = [];
                     }
@@ -932,6 +959,21 @@ export default class poloniex extends poloniexRest {
             result[code] = newAccount;
         }
         return this.safeBalance (result);
+    }
+
+    handleMyTrades (client: Client, parsedTrade) {
+        // emulated using the orders' stream
+        const messageHash = 'myTrades';
+        const symbol = parsedTrade['symbol'];
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const trades = this.myTrades;
+        trades.append (parsedTrade);
+        client.resolve (trades, messageHash);
+        const symbolMessageHash = messageHash + ':' + symbol;
+        client.resolve (trades, symbolMessageHash);
     }
 
     handleMessage (client: Client, message) {
