@@ -182,6 +182,7 @@ export default class Exchange {
     validateClientSsl = false
 
     timeout       = 10000 // milliseconds
+    currentLanguage = 'js'
     verbose       = false
     debug         = false
     userAgent: { 'User-Agent': string } | false = undefined;
@@ -469,7 +470,7 @@ export default class Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
-                'fetchOHLCV': 'emulated',
+                'fetchOHLCV': undefined,
                 'fetchOpenInterest': undefined,
                 'fetchOpenInterestHistory': undefined,
                 'fetchOpenOrder': undefined,
@@ -2270,23 +2271,11 @@ export default class Exchange {
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        if (!this.has['fetchTrades']) {
-            throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet');
+        let message = '';
+        if (this.has['fetchTrades']) {
+            message = '. If you want to build OHLCV candles from trade executions data, see an example at:  https://github.com/ccxt/ccxt/tree/master/examples/ts/build-ohlcv-bars.ts';
         }
-        const trades = await this.fetchTrades (symbol, since, limit, params);
-        const ohlcvc = this.buildOHLCVC (trades, timeframe, since, limit);
-        const result = [];
-        for (let i = 0; i < ohlcvc.length; i++) {
-            result.push ([
-                this.safeInteger (ohlcvc[i], 0),
-                this.safeNumber (ohlcvc[i], 1),
-                this.safeNumber (ohlcvc[i], 2),
-                this.safeNumber (ohlcvc[i], 3),
-                this.safeNumber (ohlcvc[i], 4),
-                this.safeNumber (ohlcvc[i], 5),
-            ]);
-        }
-        return result;
+        throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet' + message);
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -2818,14 +2807,6 @@ export default class Exchange {
         }
         this.accountsById = this.indexBy (this.accounts, 'id') as any;
         return this.accounts;
-    }
-
-    async fetchOHLCVC (symbol, timeframe = '1m', since: any = undefined, limit: Int = undefined, params = {}): Promise<OHLCVC[]> {
-        let message = '';
-        if (this.has['fetchTrades']) {
-            message = '. If you want to build OHLCV candles from trade executions data, see an example at: ';
-        }
-        throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet' + message);
     }
 
     parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined) {
