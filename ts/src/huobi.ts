@@ -5461,7 +5461,7 @@ export default class huobi extends Exchange {
         }
         const networkId = this.safeString (transaction, 'chain');
         let txHash = this.safeString (transaction, 'tx-hash');
-        if (networkId === 'ETH' && !txHash.indexOf ('0x')) {
+        if (networkId === 'ETH' && txHash.indexOf ('0x') < 0) {
             txHash = '0x' + txHash;
         }
         return {
