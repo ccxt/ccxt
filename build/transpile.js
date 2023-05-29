@@ -426,7 +426,7 @@ class Transpiler {
             [ /\s+\* @name .*/g, '' ], // docstring @name
             [ /(\s+) \* @see( .*)/g, '$1see$2' ], // docstring @see
             [ /(\s+ \* @(param|returns) {[^}]*)string\[\]?([^}]*}.*)/g, '$1str$2$3' ], // docstring type conversion
-            [ /(\s+ \* @(param|returns) {[^}]*)object\[\]?([^}]*}.*)/g, '$1dict$2$3' ], // doctstrubg type conversion
+            [ /(\s+ \* @(param|returns) {[^}]*)object\[\]?([^}]*}.*)/g, '$1dict$2$3' ], // docstring type conversion
             [ /(\s+) \* @returns ([^\{])/g, '$1:returns: $2' ], // docstring return
             [ /(\s+) \* @returns \{(.+)\}/g, '$1:returns $2:' ], // docstring return
             [ /(\s+ \* @param \{[\]\[\|a-zA-Z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
@@ -632,7 +632,7 @@ class Transpiler {
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
             [ /\~([\]\[\|@\.\s+\:\/#()\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
             [ /(\s+ \* @(param|return) {[^}]*)array\(\)([^}]*}.*)/g, '$1[]$3' ], // docstring type conversion
-            [ /(\s+ \* @(param|return) {[^}]*)object\[\]?([^}]*}.*)/g, '$1array$2$3' ], // docstring type conversion
+            [ /(\s+ \* @(param|return) {[^}]*)object([^}]*}.*)/g, '$1array$3' ], // docstring type conversion
         ])
     }
 

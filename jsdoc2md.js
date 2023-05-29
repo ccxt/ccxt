@@ -2,48 +2,58 @@
 import jsdoc2md from 'jsdoc-to-markdown'
 import fs from 'fs'
 import path from 'path'
-import dmd from 'dmd'
 
 
 /* input and output paths */
-const inputFile = 'js/src/binance.js'
-const templateFilePath = 'template.hbs'
-const inputDir = './js/src/'
+
+// Function to get all files that match the glob pattern
+const findByExtensionSync = (dir, ext) => {
+  const matchedFiles = [];
+
+  const files = fs.readdirSync(dir);
+
+  for (const file of files) {
+    const fileExt = path.extname(file);
+
+    if (fileExt === `.${ext}`) {
+      matchedFiles.push(path.join(dir,file));
+    }
+  }
+
+  return matchedFiles;
+};
+
+// main function
+(async ()=> {
+
+// Get all files to read js docs
+const inputFiles = findByExtensionSync('js/src', 'js')
+const proInputFiles = findByExtensionSync('js/src/pro', 'js');
+const files = [...inputFiles, ...proInputFiles, 'js/src/base/Exchange.js']
+
 const outputDir = './wiki/exchanges/'
 
-const directoryPath = '/path/to/directory';
-const filePaths = [];
+console.log ('📰 loading js docs...')
+let templateData = await Promise.all(files.map(file => jsdoc2md.getTemplateData({ files: file })));
+templateData = templateData.flat()
 
-// fs.readdir(directoryPath, (err, files) => {
-//   if (err) {
-//     console.error('Error reading directory:', err);
-//     return;
-//   }
+// create sidebar
+const sidebarTemplate = fs.readFileSync('./wiki/_sidebar.hbs', 'utf8');
+const sidebar = jsdoc2md.renderSync({ data: templateData, template: sidebarTemplate})
+fs.writeFileSync(path.resolve('./wiki/', `_sidebar.md`), sidebar)
 
-//   files.forEach((file) => {
-//     const filePath = path.join(directoryPath, file);
-//     filePaths.push(filePath);
-//   });
-// });
+/* reduce templateData to an array of class names */
+const classNames = templateData.reduce((classNames, identifier) => {
+  if (identifier.kind === 'class') classNames.push(identifier.name)
+  return classNames
+}, [])
 
-/* get template data */
-const templateData = jsdoc2md.getTemplateDataSync({ 
-  files: inputFile})
-
-const className = templateData[0].memberof
-const template = fs.readFileSync(templateFilePath, 'utf8');
-let dmdOutput = dmd(templateData)
-const output = jsdoc2md.renderSync({ data: templateData, template: template })
-fs.writeFileSync(path.resolve(outputDir, `${className}.md`), output)
-
-
-// /* reduce templateData to an array of class names */
-// const classNames = templateData.reduce((classNames, identifier) => {
-//   if (identifier.kind === 'class') classNames.push(identifier.name)
-//   return classNames
-// }, [])
-
-// /* create a documentation file for each class */
-// for (const className of classNames) {
-//   console.log(`rendering ${className}, template: ${template}`)
-// }
+console.log ('📰 rendering docs for each exchange...')
+await Promise.all(classNames.map(async (className) => {
+  const template = `{{#class name="${className}"}}{{>docs}}{{/class}}`;
+  const output = await jsdoc2md.render({ data: templateData, template: template });
+  await fs.promises.writeFile(path.resolve(outputDir, `${className}.md`), output);
+}));
+console.log ('📰 finished rendering docs! 🙌')
+  
+})()
