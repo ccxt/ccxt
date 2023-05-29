@@ -6,6 +6,10 @@ import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
+/**
+ * @class btcex
+ * @extends Exchange
+ */
 export default class btcex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -2103,7 +2107,7 @@ export default class btcex extends Exchange {
          * @name btcex#fetchLeverageTiers
          * @see https://docs.btcex.com/#get-all-perpetual-instrument-leverage-config
          * @description retrieve information on the maximum leverage, for different trade sizes
-         * @param {[string]|undefined} symbols a list of unified market symbols
+         * @param {string[]|undefined} symbols a list of unified market symbols
          * @param {object} params extra parameters specific to the btcex api endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
@@ -2262,9 +2266,9 @@ export default class btcex extends Exchange {
          * @name btcex#fetchFundingRates
          * @description fetch the current funding rates
          * @see https://docs.btcex.com/#contracts
-         * @param {[string]} symbols unified market symbols
+         * @param {string[]} symbols unified market symbols
          * @param {object} params extra parameters specific to the btcex api endpoint
-         * @returns {[object]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);

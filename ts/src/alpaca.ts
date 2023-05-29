@@ -6,7 +6,10 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
-
+/**
+ * @class alpaca
+ * @extends Exchange
+ */
 export default class alpaca extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -211,7 +214,7 @@ export default class alpaca extends Exchange {
          * @name alpaca#fetchMarkets
          * @description retrieves data on all markets for alpaca
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @returns {object[]} an array of objects representing market data
          */
         const request = {
             'asset_class': 'crypto',
@@ -314,7 +317,7 @@ export default class alpaca extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the alpaca api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -421,7 +424,7 @@ export default class alpaca extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the alpha api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -635,7 +638,7 @@ export default class alpaca extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the alpaca api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;

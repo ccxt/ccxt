@@ -10,6 +10,10 @@ import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
+/**
+ * @class krakenfutures
+ * @extends Exchange
+ */
 export default class krakenfutures extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -1636,7 +1640,7 @@ export default class krakenfutures extends Exchange {
          * @method
          * @name krakenfutures#fetchPositions
          * @description Fetches current contract trading positions
-         * @param {[string]} symbols List of unified symbols
+         * @param {string[]} symbols List of unified symbols
          * @param {object} params Not used by krakenfutures
          * @returns Parsed exchange response for positions
          */
