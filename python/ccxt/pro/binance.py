@@ -1541,8 +1541,10 @@ class binance(ccxt.async_support.binance):
                 if fees is not None:
                     parsed['fees'] = fees
                 parsed['trades'] = self.safe_value(order, 'trades')
-                parsed['timestamp'] = self.safe_integer(order, 'timestamp')
-                parsed['datetime'] = self.safe_string(order, 'datetime')
+                timestamp = self.safe_integer(parsed, 'timestamp')
+                if timestamp is None:
+                    parsed['timestamp'] = self.safe_integer(order, 'timestamp')
+                    parsed['datetime'] = self.safe_string(order, 'datetime')
             cachedOrders.append(parsed)
             client.resolve(self.orders, messageHash)
             messageHashSymbol = messageHash + ':' + symbol

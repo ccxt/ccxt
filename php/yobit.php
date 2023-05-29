@@ -229,9 +229,8 @@ class yobit extends Exchange {
                 'XRA' => 'Ratecoin',
             ),
             'options' => array(
-                // 'fetchTickersMaxLength' => 2048,
+                'maxUrlLength' => 2048,
                 'fetchOrdersRequiresSymbol' => true,
-                'fetchTickersMaxLength' => 512,
                 'networks' => array(
                     'ETH' => 'ERC20',
                     'TRX' => 'TRC20',
@@ -543,23 +542,28 @@ class yobit extends Exchange {
          * @param {array} $params extra parameters specific to the yobit api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=$ticker-structure $ticker structures~
          */
+        if ($symbols === null) {
+            throw new ArgumentsRequired($this->id . ' fetchTickers() requires "symbols" argument');
+        }
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $ids = null;
         if ($symbols === null) {
-            $numIds = count($this->ids);
-            $ids = implode('-', $ids);
-            $maxLength = $this->safe_integer($this->options, 'fetchTickersMaxLength', 2048);
-            // max URL length is 2048 $symbols, including http schema, hostname, tld, etc...
-            if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
-                throw new ArgumentsRequired($this->id . ' fetchTickers() has ' . (string) $numIds . ' markets exceeding max URL length for this endpoint (' . (string) $maxLength . ' characters), please, specify a list of $symbols of interest in the first argument to fetchTickers');
-            }
+            $ids = $this->ids;
         } else {
-            $newIds = $this->market_ids($symbols);
-            $ids = implode('-', $newIds);
+            $ids = $this->market_ids($symbols);
+        }
+        $idsLength = count($ids);
+        $idsString = implode('-', $ids);
+        $maxLength = $this->safe_integer($this->options, 'maxUrlLength', 2048);
+        // max URL length is 2048 $symbols, including http schema, hostname, tld, etc...
+        $lenghtOfBaseUrl = 30; // the url including api-base and endpoint dir is 30 chars
+        $actualLength = strlen($idsString) . $lenghtOfBaseUrl;
+        if ($actualLength > $maxLength) {
+            throw new ArgumentsRequired($this->id . ' fetchTickers() is being requested for ' . (string) $idsLength . ' markets (which has an URL length of ' . (string) $actualLength . ' characters), but it exceedes max URL length (' . (string) $maxLength . '), please pass limisted $symbols array to fetchTickers to fit in one request');
         }
         $request = array(
-            'pair' => $ids,
+            'pair' => $idsString,
         );
         $tickers = $this->publicGetTickerPair (array_merge($request, $params));
         $result = array();

@@ -337,7 +337,7 @@
             },
             "fetchTrades": {
                 "side": "side is undefined"
-            } 
+            }
         }
     },
     "bitvavo": {
@@ -489,10 +489,10 @@
             "fetchTrades": "endpoint return Internal System Error"
         }
     },
-    "buda": { 
+    "buda": {
         "skip": "forbidden location"
     },
-    "bigone": { 
+    "bigone": {
         "skipMethods": {
             "fetchTickers": {
                 "bid": "broken bid-ask",
@@ -975,6 +975,7 @@
         }
     },
     "ndax": {
+        "skip": "https://api.ndax.io:8443/AP/GetProducts?omsId=1 503 Service Unavailable No server is available to handle this request.",
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
@@ -1014,7 +1015,7 @@
         "skipMethods": {
             "loadMarkets":{
                 "active":"is undefined"
-            }, 
+            },
             "fetchOrderBooks": "fetchOrderBooks returned 0 length"
         }
     },
@@ -1235,6 +1236,7 @@
         }
 	},
     "xt": {
+        "skip": "fetchFundingRate returns 502 Bad Gateway",
         "skipMethods": {
             "loadMarkets": "expiry and expiryDatetime are defined for non future/options markets",
             "fetchCurrencies": {

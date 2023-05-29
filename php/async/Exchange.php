@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.1.10';
+$version = '3.1.14';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.1.10';
+    const VERSION = '3.1.14';
 
     public $browser;
     public $marketsLoading = null;
@@ -269,6 +269,18 @@ class Exchange extends \ccxt\Exchange {
     // ########################################################################
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function find_message_hashes($client, string $element) {
+        $result = array();
+        $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            if (mb_strpos($messageHash, $element) !== false) {
+                $result[] = $messageHash;
+            }
+        }
+        return $result;
+    }
 
     public function filter_by_limit(mixed $array, ?int $limit = null, int|string $key = 'timestamp') {
         if ($this->valueIsDefined ($limit)) {
@@ -1259,13 +1271,18 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function market_symbols($symbols) {
+    public function market_symbols($symbols, ?string $type = null) {
         if ($symbols === null) {
             return $symbols;
         }
         $result = array();
         for ($i = 0; $i < count($symbols); $i++) {
-            $result[] = $this->symbol ($symbols[$i]);
+            $market = $this->market ($symbols[$i]);
+            if ($type !== null && $market['type'] !== $type) {
+                throw new BadRequest($this->id . ' $symbols must be of same $type ' . $type . '. If the $type is incorrect you can change it in options or the params of the request');
+            }
+            $symbol = $this->safe_string($market, 'symbol', $symbols[$i]);
+            $result[] = $symbol;
         }
         return $result;
     }
