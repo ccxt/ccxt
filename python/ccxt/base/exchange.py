@@ -1630,6 +1630,9 @@ class Exchange(object):
 
     def arraySlice(self, array, first, second=None):
         return array[first:second] if second else array[first:]
+    
+    def un_camel_case(self, str):
+        return re.sub('(?!^)([A-Z]+)', r'_\1',str).lower()
 
     # ########################################################################
     # ########################################################################

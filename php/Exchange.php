@@ -74,10 +74,15 @@ class Exchange {
     public $validateClientSsl = false;
     public $curlopt_interface = null;
     public $timeout = 10000; // in milliseconds
-    public $proxy = '';
-    // below two are for real proxies: SOCKS5 & HTTP(S) supported, i.e.  socks5://127.0.0.1:8000 or http://127.0.0.1:443
-    public $http_proxy = null;
-    public $https_proxy = null;
+    public $proxy = ''; // for backwards compatibility
+    public $proxyUrl = '';
+    public $proxy_url = '';
+    public $proxyHttp = '';
+    public $proxy_http = '';
+    public $proxySocks = '';
+    public $proxy_socks = '';
+    public $proxyCallback = '';
+    public $proxy_callback = '';
     public $is_reseted_browser = null;
     public $origin = '*'; // CORS origin
     public $headers = array();
@@ -2112,6 +2117,10 @@ class Exchange {
         } else {
             return array_slice($array, $first, $second);
         }
+    }
+
+    function un_camel_case($str){
+        return self::underscore($str);
     }
 
     // ########################################################################

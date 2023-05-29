@@ -162,15 +162,15 @@ export default class Exchange {
     api = undefined
 
     // prepended to URL, like https://proxy.com/https://exchange.com/api...
-    proxy: string;
+    proxy: string; // maintained just for backwards compatibility
     proxyUrl: string;
     proxy_url: string;
     proxyHttp: string;
     proxy_http: string;
     proxySocks: string;
     proxy_socks: string;
-    proxyCallback: any;
-    proxy_callback: any;
+    proxyCallback: any; // todo
+    proxy_callback: any; // todo
     origin = '*' // CORS origin
 
     minFundingAddressLength = 1 // used in checkAddress
@@ -894,30 +894,25 @@ export default class Exchange {
         }
         // new code
         else {
-            const proxyUrl = this.getExchangePropAllCase ('proxyUrl');
+            const [ proxyUrl, proxyHttp, proxySocks, proxyCallback ] = this.checkProxySettings ();
             if (proxyUrl !== undefined) {
                 // in node we need to set header to *
                 if (isNode) {
                     headers = this.extend ({ 'Origin': this.origin }, headers)
                 }
                 url = proxyUrl + url
-            } else {
-                const proxyHttp = this.getExchangePropAllCase ('proxyHttp');
-                if (proxyHttp !== undefined) {
-                    const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js')
-                    const proxyAgent = new module.HttpsProxyAgent(proxyHttp);
-                    proxyAgent.keepAlive = true;
-                    this.agent = proxyAgent;
-                } else {
-                    const proxySocks = this.getExchangePropAllCase ('proxySocks');
-                    if (proxySocks !== undefined) {
-                        const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/socks-proxy-agent/index.js')
-                        const proxyAgent = new module.SocksProxyAgent(proxySocks);
-                        this.agent = proxyAgent;
-                    }
-                }
+            } else if (proxyHttp !== undefined) {
+                const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js')
+                const proxyAgent = new module.HttpsProxyAgent(proxyHttp);
+                proxyAgent.keepAlive = true;
+                this.agent = proxyAgent;
+            } else if (proxySocks !== undefined) {
+                const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/socks-proxy-agent/index.js')
+                const proxyAgent = new module.SocksProxyAgent(proxySocks);
+                this.agent = proxyAgent;
+            } else if (proxyCallback !== undefined) {
+                this.agent = proxyCallback ();
             }
-            // todo: callback
         }
 
 
@@ -1424,6 +1419,17 @@ export default class Exchange {
         this[key] = value;
         const unCamelCasedKey = this.unCamelCase (key);
         this[unCamelCasedKey] = value;
+    }
+
+    checkProxySettings () {
+        const proxyUrl = this.getExchangePropAllCase ('proxyUrl');
+        const proxyHttp = this.getExchangePropAllCase ('proxyHttp');
+        const proxySocks = this.getExchangePropAllCase ('proxySocks');
+        const proxyCallback = this.getExchangePropAllCase ('proxyCallback');
+        if (((proxyUrl !== undefined) ? 1 : 0) + ((proxyHttp !== undefined) ? 1 : 0) + ((proxySocks !== undefined) ? 1 : 0) + ((proxyCallback !== undefined) ? 1 : 0) > 1) {
+            throw new ExchangeError (this.id + ' you have multiple proxy settings, please use only one from : proxyUrl, proxyHttp, proxySocks, proxyCallback');
+        }
+        return [ proxyUrl, proxyHttp, proxySocks, proxyCallback ];
     }
 
     findMessageHashes (client, element: string): string[] {
