@@ -1099,7 +1099,6 @@
         }
     },
     "poloniex": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "some currencies does not exist in currencies"
