@@ -43,3 +43,18 @@ class Balance(TypedDict):
 
 
 IndexType = Union[str, int]
+
+class Trade(TypedDict):
+    amount: float
+    datetime: str
+    id: str
+    info: None
+    order: str
+    price: float
+    timestamp: int
+    type: str
+    side: str
+    symbol: str
+    takerOrMaker: str
+    cost: float
+    fee: TypedDict

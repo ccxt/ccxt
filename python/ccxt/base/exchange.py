@@ -28,7 +28,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import Balance, IndexType, OrderSide, OrderType
+from ccxt.base.types import Balance, IndexType, OrderSide, OrderType, Trade
 
 # -----------------------------------------------------------------------------
 
