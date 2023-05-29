@@ -1248,6 +1248,9 @@ export default class binance extends binanceRest {
         const subscriptions = Object.keys (client.subscriptions);
         const accountType = subscriptions[0];
         const messageHash = accountType + ':balance';
+        if (this.balance[accountType] === undefined) {
+            this.balance[accountType] = {};
+        }
         this.balance[accountType]['info'] = message;
         const event = this.safeString (message, 'e');
         if (event === 'balanceUpdate') {
@@ -1583,7 +1586,7 @@ export default class binance extends binanceRest {
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
-        if (type === 'swap') {
+        if (type === 'swap' || type === 'spot') {
             type = 'future';
         }
         const messageHash = type + ':positions';
