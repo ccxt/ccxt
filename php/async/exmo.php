@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\exmo as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -230,7 +231,7 @@ class exmo extends Exchange {
         ));
     }
 
-    public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $type, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -274,27 +275,27 @@ class exmo extends Exchange {
         );
     }
 
-    public function reduce_margin($symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure margin structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'reduce', $params));
         }) ();
     }
 
-    public function add_margin($symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure margin structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'add', $params));
         }) ();
@@ -305,7 +306,7 @@ class exmo extends Exchange {
             /**
              * fetch the trading fees for multiple markets
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
              */
             $method = $this->safe_string($params, 'method');
             $params = $this->omit($params, 'method');
@@ -438,7 +439,7 @@ class exmo extends Exchange {
              * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
              * @param {[string]|null} $codes list of unified $currency $codes
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fees-structure transaction fees structures}
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fees-structure transaction fees structures~
              */
             Async\await($this->load_markets());
             $cryptoList = Async\await($this->publicGetPaymentsProvidersCryptoList ($params));
@@ -446,15 +447,15 @@ class exmo extends Exchange {
             //     {
             //         "BTC":array(
             //             array( "type":"deposit", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 0.001 BTC. We do not support BSC and BEP20 network, please consider this when sending funds", "commission_desc":"0%", "currency_confirmations":1 ),
-            //             array( "type":"withdraw", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"350", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"0.0005 BTC", "currency_confirmations":6 )
+            //             array( "type":"withdraw", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"350", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address account will not be credited with tokens from such sales.", "commission_desc":"0.0005 BTC", "currency_confirmations":6 )
             //         ),
             //         "ETH":array(
-            //             array( "type":"withdraw", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"500", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"0.004 ETH", "currency_confirmations":4 ),
+            //             array( "type":"withdraw", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"500", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address account will not be credited with tokens from such sales.", "commission_desc":"0.004 ETH", "currency_confirmations":4 ),
             //             array( "type":"deposit", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 0.01 ETH. We do not support BSC and BEP20 network, please consider this when sending funds", "commission_desc":"0%", "currency_confirmations":1 )
             //         ),
             //         "USDT":array(
             //             array( "type":"deposit", "name":"USDT (OMNI)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":false,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2 ),
-            //             array( "type":"withdraw", "name":"USDT (OMNI)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":false,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"5 USDT", "currency_confirmations":6 ),
+            //             array( "type":"withdraw", "name":"USDT (OMNI)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":false,"comment":"Do not withdraw directly to the Crowdfunding or ICO address account will not be credited with tokens from such sales.", "commission_desc":"5 USDT", "currency_confirmations":6 ),
             //             array( "type":"deposit", "name":"USDT (ERC20)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2 ),
             //             array(
             //                 "type":"withdraw",
@@ -463,16 +464,16 @@ class exmo extends Exchange {
             //                 "min":"55",
             //                 "max":"200000",
             //                 "enabled":true,
-            //                 "comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Recommendation => Due to the high load of ERC20 network, using TRC20 address for withdrawal is recommended.",
+            //                 "comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, account will not be credited with tokens from such sales. Recommendation => Due to the high load of ERC20 network, using TRC20 address for withdrawal is recommended.",
             //                 "commission_desc":"10 USDT",
             //                 "currency_confirmations":6
             //             ),
             //             array( "type":"deposit", "name":"USDT (TRC20)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":true,"comment":"Minimum deposit amount is 10 USDT. Only TRON main network supported", "commission_desc":"0%", "currency_confirmations":2 ),
-            //             array( "type":"withdraw", "name":"USDT (TRC20)", "currency_name":"USDT", "min":"10", "max":"150000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Only TRON main network supported.", "commission_desc":"1 USDT", "currency_confirmations":6 )
+            //             array( "type":"withdraw", "name":"USDT (TRC20)", "currency_name":"USDT", "min":"10", "max":"150000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, account will not be credited with tokens from such sales. Only TRON main network supported.", "commission_desc":"1 USDT", "currency_confirmations":6 )
             //         ),
             //         "XLM":array(
             //             array( "type":"deposit", "name":"XLM", "currency_name":"XLM", "min":"1", "max":"1000000", "enabled":true,"comment":"Attention! A deposit without memo(invoice) will not be credited. Minimum deposit amount is 1 XLM. We do not support BSC and BEP20 network, please consider this when sending funds", "commission_desc":"0%", "currency_confirmations":1 ),
-            //             array( "type":"withdraw", "name":"XLM", "currency_name":"XLM", "min":"21", "max":"1000000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales.", "commission_desc":"0.01 XLM", "currency_confirmations":1 )
+            //             array( "type":"withdraw", "name":"XLM", "currency_name":"XLM", "min":"21", "max":"1000000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, account will not be credited with tokens from such sales.", "commission_desc":"0.01 XLM", "currency_confirmations":1 )
             //         ),
             //     }
             //
@@ -492,10 +493,10 @@ class exmo extends Exchange {
                 $providers = $this->safe_value($cryptoList, $currencyId, array());
                 for ($j = 0; $j < count($providers); $j++) {
                     $provider = $providers[$j];
-                    $type = $this->safe_string($provider, 'type');
+                    $typeInner = $this->safe_string($provider, 'type');
                     $commissionDesc = $this->safe_string($provider, 'commission_desc');
                     $fee = $this->parse_fixed_float_value($commissionDesc);
-                    $result[$code][$type] = $fee;
+                    $result[$code][$typeInner] = $fee;
                 }
                 $result[$code]['info'] = $providers;
             }
@@ -512,7 +513,7 @@ class exmo extends Exchange {
              * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
              * @param {[string]|null} $codes list of unified currency $codes
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fees-structure transaction fees structures}
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fees-structure transaction fees structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetPaymentsProvidersCryptoList ($params));
@@ -616,23 +617,23 @@ class exmo extends Exchange {
             //     {
             //         "BTC":array(
             //             array( "type":"deposit", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 0.001 BTC. We do not support BSC and BEP20 network, please consider this when sending funds", "commission_desc":"0%", "currency_confirmations":1 ),
-            //             array( "type":"withdraw", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"350", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"0.0005 BTC", "currency_confirmations":6 )
+            //             array( "type":"withdraw", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"350", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address account will not be credited with tokens from such sales.", "commission_desc":"0.0005 BTC", "currency_confirmations":6 )
             //         ),
             //         "ETH":array(
-            //             array( "type":"withdraw", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"500", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"0.004 ETH", "currency_confirmations":4 ),
+            //             array( "type":"withdraw", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"500", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address account will not be credited with tokens from such sales.", "commission_desc":"0.004 ETH", "currency_confirmations":4 ),
             //             array( "type":"deposit", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 0.01 ETH. We do not support BSC and BEP20 network, please consider this when sending funds", "commission_desc":"0%", "currency_confirmations":1 )
             //         ),
             //         "USDT":array(
             //             array( "type":"deposit", "name":"USDT (OMNI)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":false,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2 ),
-            //             array( "type":"withdraw", "name":"USDT (OMNI)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":false,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"5 USDT", "currency_confirmations":6 ),
+            //             array( "type":"withdraw", "name":"USDT (OMNI)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":false,"comment":"Do not withdraw directly to the Crowdfunding or ICO address account will not be credited with tokens from such sales.", "commission_desc":"5 USDT", "currency_confirmations":6 ),
             //             array( "type":"deposit", "name":"USDT (ERC20)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2 ),
-            //             array( "type":"withdraw", "name":"USDT (ERC20)", "currency_name":"USDT", "min":"55", "max":"200000", "enabled":true, "comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Recommendation => Due to the high load of ERC20 network, using TRC20 address for withdrawal is recommended.",  "commission_desc":"10 USDT", "currency_confirmations":6 ),
+            //             array( "type":"withdraw", "name":"USDT (ERC20)", "currency_name":"USDT", "min":"55", "max":"200000", "enabled":true, "comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, account will not be credited with tokens from such sales. Recommendation => Due to the high load of ERC20 network, using TRC20 address for withdrawal is recommended.",  "commission_desc":"10 USDT", "currency_confirmations":6 ),
             //             array( "type":"deposit", "name":"USDT (TRC20)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":true,"comment":"Minimum deposit amount is 10 USDT. Only TRON main network supported", "commission_desc":"0%", "currency_confirmations":2 ),
-            //             array( "type":"withdraw", "name":"USDT (TRC20)", "currency_name":"USDT", "min":"10", "max":"150000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Only TRON main network supported.", "commission_desc":"1 USDT", "currency_confirmations":6 )
+            //             array( "type":"withdraw", "name":"USDT (TRC20)", "currency_name":"USDT", "min":"10", "max":"150000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, account will not be credited with tokens from such sales. Only TRON main network supported.", "commission_desc":"1 USDT", "currency_confirmations":6 )
             //         ),
             //         "XLM":array(
             //             array( "type":"deposit", "name":"XLM", "currency_name":"XLM", "min":"1", "max":"1000000", "enabled":true,"comment":"Attention! A deposit without memo(invoice) will not be credited. Minimum deposit amount is 1 XLM. We do not support BSC and BEP20 network, please consider this when sending funds", "commission_desc":"0%", "currency_confirmations":1 ),
-            //             array( "type":"withdraw", "name":"XLM", "currency_name":"XLM", "min":"21", "max":"1000000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales.", "commission_desc":"0.01 XLM", "currency_confirmations":1 )
+            //             array( "type":"withdraw", "name":"XLM", "currency_name":"XLM", "min":"21", "max":"1000000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, account will not be credited with tokens from such sales.", "commission_desc":"0.01 XLM", "currency_confirmations":1 )
             //         ),
             //     }
             //
@@ -663,20 +664,20 @@ class exmo extends Exchange {
                 } else {
                     for ($j = 0; $j < count($providers); $j++) {
                         $provider = $providers[$j];
-                        $type = $this->safe_string($provider, 'type');
+                        $typeInner = $this->safe_string($provider, 'type');
                         $minValue = $this->safe_number($provider, 'min');
                         $maxValue = $this->safe_number($provider, 'max');
                         if ($maxValue === 0.0) {
                             $maxValue = null;
                         }
                         $activeProvider = $this->safe_value($provider, 'enabled');
-                        if ($type === 'deposit') {
+                        if ($typeInner === 'deposit') {
                             if ($activeProvider && !$depositEnabled) {
                                 $depositEnabled = true;
                             } elseif (!$activeProvider) {
                                 $depositEnabled = false;
                             }
-                        } elseif ($type === 'withdraw') {
+                        } elseif ($typeInner === 'withdraw') {
                             if ($activeProvider && !$withdrawEnabled) {
                                 $withdrawEnabled = true;
                             } elseif (!$activeProvider) {
@@ -685,10 +686,10 @@ class exmo extends Exchange {
                         }
                         if ($activeProvider) {
                             $active = true;
-                            if (($limits[$type]['min'] === null) || ($minValue < $limits[$type]['min'])) {
-                                $limits[$type]['min'] = $minValue;
-                                $limits[$type]['max'] = $maxValue;
-                                if ($type === 'withdraw') {
+                            if (($limits[$typeInner]['min'] === null) || ($minValue < $limits[$typeInner]['min'])) {
+                                $limits[$typeInner]['min'] = $minValue;
+                                $limits[$typeInner]['max'] = $maxValue;
+                                if ($typeInner === 'withdraw') {
                                     $commissionDesc = $this->safe_string($provider, 'commission_desc');
                                     $fee = $this->parse_fixed_float_value($commissionDesc);
                                 }
@@ -709,6 +710,7 @@ class exmo extends Exchange {
                     'precision' => $this->parse_number('1e-8'),
                     'limits' => $limits,
                     'info' => $providers,
+                    'networks' => array(),
                 );
             }
             return $result;
@@ -804,7 +806,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -813,7 +815,7 @@ class exmo extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle $to fetch
              * @param {int|null} $limit the maximum amount of $candles $to fetch
              * @param {array} $params extra parameters specific $to the exmo api endpoint
-             * @return {[[int]]} A list of $candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of $candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -832,18 +834,18 @@ class exmo extends Exchange {
                 if ($limit > $maxLimit) {
                     $limit = $maxLimit; // avoid exception
                 }
-                $request['from'] = intval($now / 1000) - $limit * $duration - 1;
-                $request['to'] = intval($now / 1000);
+                $request['from'] = $this->parse_to_int($now / 1000) - $limit * $duration - 1;
+                $request['to'] = $this->parse_to_int($now / 1000);
             } else {
-                $request['from'] = intval($since / 1000) - 1;
+                $request['from'] = $this->parse_to_int($since / 1000) - 1;
                 if ($limit === null) {
-                    $request['to'] = intval($now / 1000);
+                    $request['to'] = $this->parse_to_int($now / 1000);
                 } else {
                     if ($limit > $maxLimit) {
                         throw new BadRequest($this->id . ' fetchOHLCV() will serve ' . (string) $maxLimit . ' $candles at most');
                     }
                     $to = $this->sum($since, $limit * $duration * 1000);
-                    $request['to'] = intval($to / 1000);
+                    $request['to'] = $this->parse_to_int($to / 1000);
                 }
             }
             $response = Async\await($this->publicGetCandlesHistory (array_merge($request, $params)));
@@ -927,14 +929,14 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -950,14 +952,14 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
              * @param {[string]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
              * @param {int|null} $limit max number of entries per orderbook to return, default is null
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market $symbol
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbol
              */
             Async\await($this->load_markets());
             $ids = null;
@@ -1031,13 +1033,13 @@ class exmo extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1070,13 +1072,13 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetTicker ($params));
@@ -1159,7 +1161,7 @@ class exmo extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1202,7 +1204,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
@@ -1210,7 +1212,7 @@ class exmo extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $trades for
              * @param {int|null} $limit the maximum number of $trades structures to retrieve
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             // a $symbol is required but it can be a single string, or a non-empty array
             if ($symbol === null) {
@@ -1238,9 +1240,9 @@ class exmo extends Exchange {
             }
             $response = Async\await($this->privatePostUserTrades (array_merge($request, $params)));
             $result = array();
-            $marketIds = is_array($response) ? array_keys($response) : array();
-            for ($i = 0; $i < count($marketIds); $i++) {
-                $marketId = $marketIds[$i];
+            $marketIdsInner = is_array($response) ? array_keys($response) : array();
+            for ($i = 0; $i < count($marketIdsInner); $i++) {
+                $marketId = $marketIdsInner[$i];
                 $resultMarket = $this->safe_market($marketId, null, '_');
                 $items = $response[$marketId];
                 $trades = $this->parse_trades($items, $resultMarket, $since, $limit);
@@ -1250,7 +1252,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1260,7 +1262,7 @@ class exmo extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1332,14 +1334,14 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
              * @param {string} $id order $id
              * @param {string|null} $symbol not used by exmo cancelOrder ()
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array( 'order_id' => $id );
@@ -1347,13 +1349,13 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
              * @param {string|null} $symbol not used by exmo fetchOrder
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1388,7 +1390,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the $trades made from a single order
@@ -1397,7 +1399,7 @@ class exmo extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $trades for
              * @param {int|null} $limit the maximum number of $trades to retrieve
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
              */
             $market = null;
             if ($symbol !== null) {
@@ -1437,7 +1439,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open $orders
@@ -1445,7 +1447,7 @@ class exmo extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open $orders for
              * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             if ($symbol !== null) {
@@ -1458,7 +1460,10 @@ class exmo extends Exchange {
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
                 $market = $this->safe_market($marketId);
-                $parsedOrders = $this->parse_orders($response[$marketId], $market);
+                $params = array_merge($params, array(
+                    'status' => 'open',
+                ));
+                $parsedOrders = $this->parse_orders($response[$marketId], $market, $since, $limit, $params);
                 $orders = $this->array_concat($orders, $parsedOrders);
             }
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
@@ -1551,7 +1556,7 @@ class exmo extends Exchange {
         ), $market);
     }
 
-    public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled orders made by the user
@@ -1559,7 +1564,7 @@ class exmo extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest order, default is null
              * @param {int|null} $limit max number of orders to return, default is null
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1586,17 +1591,20 @@ class exmo extends Exchange {
             //         "amount" => "1"
             //     )]
             //
+            $params = array_merge($params, array(
+                'status' => 'canceled',
+            ));
             return $this->parse_orders($response, $market, $since, $limit, $params);
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a currency associated with this account
              * @param {string} $code unified currency $code
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostDepositAddress ($params));
@@ -1638,7 +1646,7 @@ class exmo extends Exchange {
         return null;
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1647,7 +1655,7 @@ class exmo extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string|null} $tag
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             Async\await($this->load_markets());
@@ -1818,7 +1826,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -1826,12 +1834,12 @@ class exmo extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
              * @param {int|null} $limit max number of transactions to return, default is null
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
             $request = array();
             if ($since !== null) {
-                $request['date'] = intval($since / 1000);
+                $request['date'] = $this->parse_to_int($since / 1000);
             }
             $currency = null;
             if ($code !== null) {
@@ -1872,7 +1880,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1880,7 +1888,7 @@ class exmo extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch withdrawals for
              * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -1926,14 +1934,14 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch data on a $currency withdrawal via the withdrawal $id
              * @param {string} $id withdrawal $id
              * @param {string|null} $code unified $currency $code of the $currency withdrawn, default is null
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -1978,14 +1986,14 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit($id = null, $code = null, $params = array ()) {
+    public function fetch_deposit($id = null, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch information on a deposit
              * @param {string} $id deposit $id
              * @param {string|null} $code unified $currency $code, default is null
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -2030,7 +2038,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -2038,7 +2046,7 @@ class exmo extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch deposits for
              * @param {int|null} $limit the maximum number of deposits structures to retrieve
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -2113,7 +2121,7 @@ class exmo extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         if ((is_array($response) && array_key_exists('result', $response)) || (is_array($response) && array_key_exists('errmsg', $response))) {
             //
@@ -2144,5 +2152,6 @@ class exmo extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+        return null;
     }
 }
