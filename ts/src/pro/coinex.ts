@@ -144,7 +144,7 @@ export default class coinex extends coinexRest {
             this.tickers[symbol] = parsedTicker;
             newTickers.push (parsedTicker);
         }
-        const messageHashes = this.findMessageHashes (client, 'tickers::');
+        const messageHashes = this.findMessageHashes (client.futures, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const parts = messageHash.split ('::');

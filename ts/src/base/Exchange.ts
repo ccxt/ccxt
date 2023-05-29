@@ -1366,9 +1366,9 @@ export default class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    findMessageHashes (client, element: string): string[] {
+    findMessageHashes (futures, element: string): string[] {
         const result = [];
-        const messageHashes = Object.keys (client.futures);
+        const messageHashes = Object.keys (futures);
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             if (messageHash.indexOf (element) >= 0) {
