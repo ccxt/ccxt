@@ -2783,6 +2783,7 @@ export default class okx extends Exchange {
             type = 'limit';
         }
         const marketId = this.safeString (order, 'instId');
+        market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market, '-');
         const filled = this.safeString (order, 'accFillSz');
         const price = this.safeString2 (order, 'px', 'ordPx');
