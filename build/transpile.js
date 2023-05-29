@@ -224,6 +224,7 @@ class Transpiler {
             [ /\.signBodyWithSecret\s/g, '.sign_body_with_secret'],
             [ /\.isJsonEncodedObject\s/g, '.is_json_encoded_object'],
             [ /\.setSandboxMode\s/g, '.set_sandbox_mode'],
+            [ /\.checkProxySettings\s/g, '.check_proxy_settings'],
             [ /\.safeCurrencyCode\s/g, '.safe_currency_code'],
             [ /\.safeCurrency\s/g, '.safe_currency'],
             [ /\.safeSymbol\s/g, '.safe_symbol'],

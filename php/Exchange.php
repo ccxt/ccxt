@@ -77,12 +77,14 @@ class Exchange {
     public $proxy = ''; // for backwards compatibility
     public $proxyUrl = '';
     public $proxy_url = '';
-    public $proxyHttp = '';
-    public $proxy_http = '';
+    public $proxyUrlCallback = '';
+    public $proxy_url_callback = '';
+    public $proxyHttps = '';
+    public $proxy_https = '';
     public $proxySocks = '';
     public $proxy_socks = '';
-    public $proxyCallback = '';
-    public $proxy_callback = '';
+    public $proxyAgentCallback = '';
+    public $proxy_agent_callback = '';
     public $is_reseted_browser = null;
     public $origin = '*'; // CORS origin
     public $headers = array();
@@ -1361,15 +1363,17 @@ class Exchange {
 
         $headers = array_merge($this->headers, $headers ? $headers : array());
 
-        // this name for the proxy string is deprecated
-        // we should rename it to $this->cors everywhere
-        if (is_callable($this->proxy)) {
-            $url = call_user_func($this->proxy, $url);
-            $headers['Origin'] = $this->origin;
-        } else if (gettype($this->proxy) === 'string') {
-            if (strlen($this->proxy) > 0) {
-                $url = $this->proxy . $url;
+
+        // old approach, kept for backward-compatibility
+        if ($this->proxy !== null) {
+            if (is_callable($this->proxy)) {
+                $url = call_user_func($this->proxy, $url);
                 $headers['Origin'] = $this->origin;
+            } else if (gettype($this->proxy) === 'string') {
+                if (strlen($this->proxy) > 0) {
+                    $url = $this->proxy . $url;
+                    $headers['Origin'] = $this->origin;
+                }
             }
         }
 
@@ -1400,8 +1404,6 @@ class Exchange {
             $this->curl = curl_init();
         }
 
-        curl_setopt($this->curl, CURLOPT_URL, $url);
-
         if ($this->timeout) {
             curl_setopt($this->curl, CURLOPT_CONNECTTIMEOUT_MS, (int) ($this->timeout));
             curl_setopt($this->curl, CURLOPT_TIMEOUT_MS, (int) ($this->timeout));
@@ -1413,16 +1415,6 @@ class Exchange {
         }
         if (!$this->validateServerSsl) {
             curl_setopt($this->curl, CURLOPT_SSL_VERIFYHOST, false);
-        }
-
-        if ($this->userAgent) {
-            if (gettype($this->userAgent) == 'string') {
-                curl_setopt($this->curl, CURLOPT_USERAGENT, $this->userAgent);
-                $verbose_headers = array_merge($verbose_headers, array('User-Agent' => $this->userAgent));
-            } elseif ((gettype($this->userAgent) == 'array') && array_key_exists('User-Agent', $this->userAgent)) {
-                curl_setopt($this->curl, CURLOPT_USERAGENT, $this->userAgent['User-Agent']);
-                $verbose_headers = array_merge($verbose_headers, $this->userAgent);
-            }
         }
 
         curl_setopt($this->curl, CURLOPT_ENCODING, '');
@@ -1459,23 +1451,42 @@ class Exchange {
             curl_setopt($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
         }
 
-        $proxy_url = null;
-        if ($this->http_proxy) {
-            $proxy_url = $this->http_proxy;
-        } elseif ($this->https_proxy) {
-            $proxy_url = $this->https_proxy;
-        }
-        if ($proxy_url) {
-            curl_setopt($this->curl, CURLOPT_PROXY, $proxy_url);
-            // atm we don't make as tunnel
-            // curl_setopt($this->curl, CURLOPT_http_proxyTUNNEL, 1);
-            // curl_setopt($this->curl, CURLOPT_SUPPRESS_CONNECT_HEADERS, 1);
-
-            // default proxy type is 'HTTP'
-            if (stripos($proxy_url, 'socks5://') !== false) {
+        if (!$this->proxy) {
+            [ $proxyUrl, $proxyUrlCallback, $httpProxy, $proxyHttps, $proxySocks, $proxyAgentCallback ] = $this->checkProxySettings();
+            if ($proxyUrl !== null) {
+                $url = $proxyUrl . $url;
+            } else if ($proxyUrlCallback !== null) {
+                $url = $proxyUrlCallback($url);
+            } else if ($proxyHttp !== null) {
+                curl_setopt($this->curl, CURLOPT_PROXY, $proxyHttp);
+                curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
+            }  else if ($proxyHttps !== null) {
+                curl_setopt($this->curl, CURLOPT_PROXY, $proxyHttps);
+                curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTPS);
+                // atm we don't make as tunnel
+                // curl_setopt($this->curl, CURLOPT_TUNNEL, 1);
+                // curl_setopt($this->curl, CURLOPT_SUPPRESS_CONNECT_HEADERS, 1);
+            } else if ($proxySocks !== null) {
+                // CURLPROXY_HTTP is the default
+                curl_setopt($this->curl, CURLOPT_PROXY, $proxySocks);
                 curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
+            } else if ($proxyAgentCallback !== null) {
+                $this->userAgent = $proxyAgentCallback ();
             }
         }
+
+        if ($this->userAgent) {
+            if (gettype($this->userAgent) == 'string') {
+                curl_setopt($this->curl, CURLOPT_USERAGENT, $this->userAgent);
+                $verbose_headers = array_merge($verbose_headers, array('User-Agent' => $this->userAgent));
+            } elseif ((gettype($this->userAgent) == 'array') && array_key_exists('User-Agent', $this->userAgent)) {
+                curl_setopt($this->curl, CURLOPT_USERAGENT, $this->userAgent['User-Agent']);
+                $verbose_headers = array_merge($verbose_headers, $this->userAgent);
+            }
+        }
+
+        curl_setopt($this->curl, CURLOPT_URL, $url);
+        // end of proxy settings
 
         curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($this->curl, CURLOPT_FAILONERROR, false);
