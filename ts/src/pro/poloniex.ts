@@ -725,7 +725,7 @@ export default class poloniex extends poloniexRest {
             'price': this.safeString (order, 'price'),
             'stopPrice': undefined,
             'triggerPrice': undefined,
-            'amount': this.safeString (order, 'orderAmount'),
+            'amount': this.safeString (order, 'quantity'),
             'cost': undefined,
             'average': undefined,
             'filled': filledAmount,
