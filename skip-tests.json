@@ -1123,6 +1123,9 @@
             "fetchTickers": {
                 "quoteVolume": "quoteVolume <= baseVolume * high : https://app.travis-ci.com/github/ccxt/ccxt/builds/263319874#L2132",
                 "baseVolume": "same"
+            },
+            "fetchTicker": {
+                "quoteVolume": "quoteVolume <= baseVolume * high <<< okx fetchTicker"
             }
         }
     },
