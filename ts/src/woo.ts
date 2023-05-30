@@ -871,7 +871,10 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#editOrder
+         * @see https://docs.woo.org/#edit-order
+         * @see https://docs.woo.org/#edit-order-by-client_order_id
          * @see https://docs.woo.org/?python#edit-algo-order
+         * @see https://docs.woo.org/#edit-algo-order-by-client_order_id
          * @description edit a trade order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
