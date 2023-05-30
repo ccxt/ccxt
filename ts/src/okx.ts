@@ -2518,7 +2518,7 @@ export default class okx extends Exchange {
                 request['newPx'] = this.priceToPrecision (symbol, price);
             }
         }
-        params = this.omit (params, [ 'clOrdId', 'clientOrderId', 'algoClOrdId' ]);
+        params = this.omit (params, [ 'clOrdId', 'clientOrderId', 'algoClOrdId', 'takeProfitPrice', 'stopLossPrice' ]);
         if (amount !== undefined) {
             request['newSz'] = this.amountToPrecision (symbol, amount);
         }
