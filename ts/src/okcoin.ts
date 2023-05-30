@@ -1371,8 +1371,9 @@ export default class okcoin extends Exchange {
         //     ]
         // }
         //
-        const data = this.safeValue (response, 'data');
-        const order = this.parseOrder (data[0], market);
+        const result = this.safeValue (response, 'data');
+        const data = this.safeValue (result, 0);
+        const order = this.parseOrder (data, market);
         return this.extend (order, {
             'type': type,
             'side': side,
@@ -1389,87 +1390,45 @@ export default class okcoin extends Exchange {
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let type = undefined;
-        if (market['futures'] || market['swap']) {
-            type = market['type'];
-        } else {
-            const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType', market['type']);
-            type = this.safeString (params, 'type', defaultType);
-        }
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " cancelOrder() requires a type parameter (one of 'spot', 'futures', 'swap').");
-        }
-        let method = type + 'PostCancelOrder';
         const request = {
-            'instrument_id': market['id'],
+            'ordId': id,
+            'instId': market['id'],
         };
-        if (market['futures'] || market['swap']) {
-            method += 'InstrumentId';
-        } else {
-            method += 's';
-        }
-        const clientOrderId = this.safeString2 (params, 'client_oid', 'clientOrderId');
+        const clientOrderId = this.safeStringN (params, [ 'client_oid', 'clientOrderId', 'clOrdId' ]);
         if (clientOrderId !== undefined) {
-            method += 'ClientOid';
-            request['client_oid'] = clientOrderId;
-        } else {
-            method += 'OrderId';
-            request['order_id'] = id;
+            request['clOrdId'] = clientOrderId;
+            params = this.omit (params, [ 'client_oid', 'clientOrderId', 'clOrdId' ]);
         }
-        const query = this.omit (params, [ 'type', 'client_oid', 'clientOrderId' ]);
-        const response = await this[method] (this.extend (request, query));
-        const result = ('result' in response) ? response : this.safeValue (response, market['id'], {});
+        const response = await this.privatePostTradeCancelOrder (this.extend (request, params));
         //
-        // spot
+        // {
+        //     "code":"0",
+        //     "msg":"",
+        //     "data":[
+        //         {
+        //             "clOrdId":"oktswap6",
+        //             "ordId":"12345689",
+        //             "sCode":"0",
+        //             "sMsg":""
+        //         }
+        //     ]
+        // }
         //
-        //     {
-        //         "btc-usdt": [
-        //             {
-        //                 "result":true,
-        //                 "client_oid":"a123",
-        //                 "order_id": "2510832677225473"
-        //             }
-        //         ]
-        //     }
-        //
-        // futures, swap
-        //
-        //     {
-        //         "result": true,
-        //         "client_oid": "oktfuture10", // missing if requested by order_id
-        //         "order_id": "2517535534836736",
-        //         "instrument_id": "EOS-USD-190628"
-        //     }
-        //
-        return this.parseOrder (result, market);
+        const result = this.safeValue (response, 'data');
+        const data = this.safeValue (result, 0);
+        return this.parseOrder (data, market);
     }
 
     parseOrderStatus (status) {
         const statuses = {
-            '-2': 'failed',
-            '-1': 'canceled',
-            '0': 'open',
-            '1': 'open',
-            '2': 'closed',
-            '3': 'open',
-            '4': 'canceled',
+            'canceled': 'canceled',
+            'live': 'open',
+            'partially_filled': 'open',
+            'filled': 'closed',
         };
         return this.safeString (statuses, status, status);
-    }
-
-    parseOrderSide (side) {
-        const sides = {
-            '1': 'buy', // open long
-            '2': 'sell', // open short
-            '3': 'sell', // close long
-            '4': 'buy', // close short
-        };
-        return this.safeString (sides, side, side);
     }
 
     parseOrder (order, market = undefined) {
@@ -1486,71 +1445,63 @@ export default class okcoin extends Exchange {
         //
         // cancelOrder
         //
-        //     {
-        //         "result": true,
-        //         "client_oid": "oktfuture10", // missing if requested by order_id
-        //         "order_id": "2517535534836736",
-        //         // instrument_id is missing for spot/margin orders
-        //         // available in futures and swap orders only
-        //         "instrument_id": "EOS-USD-190628",
-        //     }
+        // {
+        //     "clOrdId":"oktswap6",
+        //     "ordId":"12345689",
+        //     "sCode":"0",
+        //     "sMsg":""
+        // }
         //
-        // fetchOrder, fetchOrdersByState, fetchOpenOrders, fetchClosedOrders
+        // fetchOrder
         //
-        //     // spot orders
+        // {
+        //     "accFillSz": "1.6342",
+        //     "avgPx": "0.9995",
+        //     "cTime": "1672814726198",
+        //     "category": "normal",
+        //     "ccy": "",
+        //     "clOrdId": "",
+        //     "fee": "-0.00245007435",
+        //     "feeCcy": "USD",
+        //     "fillPx": "0.9995",
+        //     "fillSz": "1.6342",
+        //     "fillTime": "1672814726201",
+        //     "instId": "USDT-USD",
+        //     "instType": "SPOT",
+        //     "lever": "",
+        //     "ordId": "530758662663180288",
+        //     "ordType": "market",
+        //     "pnl": "0",
+        //     "posSide": "net",
+        //     "px": "",
+        //     "rebate": "0",
+        //     "rebateCcy": "USDT",
+        //     "reduceOnly": "false",
+        //     "side": "sell",
+        //     "slOrdPx": "",
+        //     "slTriggerPx": "",
+        //     "slTriggerPxType": "",
+        //     "source": "",
+        //     "state": "filled",
+        //     "sz": "1.6342",
+        //     "tag": "",
+        //     "tdMode": "cash",
+        //     "tgtCcy": "base_ccy",
+        //     "tpOrdPx": "",
+        //     "tpTriggerPx": "",
+        //     "tpTriggerPxType": "",
+        //     "tradeId": "3225651",
+        //     "uTime": "1672814726203"
+        // }
         //
-        //     {
-        //         "client_oid":"oktspot76",
-        //         "created_at":"2019-03-18T07:26:49.000Z",
-        //         "filled_notional":"3.9734",
-        //         "filled_size":"0.001", // filled_qty in futures and swap orders
-        //         "funds":"", // this is most likely the same as notional
-        //         "instrument_id":"BTC-USDT",
-        //         "notional":"",
-        //         "order_id":"2500723297813504",
-        //         "order_type":"0",
-        //         "price":"4013",
-        //         "product_id":"BTC-USDT", // missing in futures and swap orders
-        //         "side":"buy",
-        //         "size":"0.001",
-        //         "status":"filled",
-        //         "state": "2",
-        //         "timestamp":"2019-03-18T07:26:49.000Z",
-        //         "type":"limit"
-        //     }
-        //
-        //     // futures and swap orders
-        //
-        //     {
-        //         "instrument_id":"EOS-USD-190628",
-        //         "size":"10",
-        //         "timestamp":"2019-03-20T10:04:55.000Z",
-        //         "filled_qty":"10", // filled_size in spot orders
-        //         "fee":"-0.00841043",
-        //         "order_id":"2512669605501952",
-        //         "price":"3.668",
-        //         "price_avg":"3.567", // missing in spot orders
-        //         "status":"2",
-        //         "state": "2",
-        //         "type":"4",
-        //         "contract_val":"10",
-        //         "leverage":"10", // missing in swap, spot orders
-        //         "client_oid":"",
-        //         "pnl":"1.09510794", // missing in swap, spot orders
-        //         "order_type":"0"
-        //     }
-        //
-        const id = this.safeString2 (order, 'order_id', 'ordId');
-        const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
-        let side = this.safeString (order, 'side');
-        const type = this.safeString (order, 'type');
-        if ((side !== 'buy') && (side !== 'sell')) {
-            side = this.parseOrderSide (type);
-        }
-        const marketId = this.safeString (order, 'instrument_id');
+        const id = this.safeString (order, 'ordId');
+        const timestamp = this.safeFloat (order, 'cTime');
+        const side = this.safeString (order, 'side');
+        const type = this.safeString (order, 'ordType');
+        const marketId = this.safeString (order, 'instId');
         market = this.safeMarket (marketId, market);
-        let amount = this.safeString (order, 'size');
-        const filled = this.safeString2 (order, 'filled_size', 'filled_qty');
+        let amount = this.safeString (order, 'sz');
+        const filled = this.safeString (order, 'accFillSz');
         let remaining = undefined;
         if (amount !== undefined) {
             if (filled !== undefined) {
@@ -1561,9 +1512,9 @@ export default class okcoin extends Exchange {
         if (type === 'market') {
             remaining = '0';
         }
-        let cost = this.safeString2 (order, 'filled_notional', 'funds');
-        const price = this.safeString (order, 'price');
-        let average = this.safeString (order, 'price_avg');
+        let cost = this.safeString (order, 'fillPx');
+        const price = this.safeString (order, 'px');
+        let average = this.safeString (order, 'avgPx');
         if (cost === undefined) {
             if (filled !== undefined && average !== undefined) {
                 cost = Precise.stringMul (average, filled);
@@ -1577,24 +1528,24 @@ export default class okcoin extends Exchange {
         const feeCost = this.safeNumber (order, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
-            const feeCurrency = undefined;
+            const feeCurrency = this.safeString (order, 'feeCcy');
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
             };
         }
-        let clientOrderId = this.safeString2 (order, 'client_oid', 'clOrdId');
+        let clientOrderId = this.safeString (order, 'clOrdId');
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
-        const stopPrice = this.safeNumber (order, 'trigger_price');
+        const stopPrice = this.safeNumber (order, 'tpTriggerPx');
         return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': this.safeFloat (order, 'fillTime'),
             'symbol': market['symbol'],
             'type': type,
             'timeInForce': undefined,
@@ -1623,78 +1574,68 @@ export default class okcoin extends Exchange {
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', market['type']);
-        const type = this.safeString (params, 'type', defaultType);
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchOrder() requires a type parameter (one of 'spot', 'futures', 'swap').");
-        }
-        const instrumentId = (market['futures'] || market['swap']) ? 'InstrumentId' : '';
-        let method = type + 'GetOrders' + instrumentId;
         const request = {
-            'instrument_id': market['id'],
-            // 'client_oid': 'abcdef12345', // optional, [a-z0-9]{1,32}
-            // 'order_id': id,
+            'ordId': id,
+            'instId': market['id'],
         };
-        const clientOid = this.safeString (params, 'client_oid');
-        if (clientOid !== undefined) {
-            method += 'ClientOid';
-            request['client_oid'] = clientOid;
-        } else {
-            method += 'OrderId';
-            request['order_id'] = id;
+        const clientOrderId = this.safeStringN (params, [ 'client_oid', 'clientOrderId', 'clOrdId' ]);
+        if (clientOrderId !== undefined) {
+            request['clOrdId'] = clientOrderId;
+            params = this.omit (params, [ 'client_oid', 'clientOrderId', 'clOrdId' ]);
         }
-        const query = this.omit (params, 'type');
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.privateGetTradeOrder (this.extend (request, params));
         //
-        // spot
+        // {
+        //     "code": "0",
+        //     "data": [
+        //         {
+        //             "accFillSz": "1.6342",
+        //             "avgPx": "0.9995",
+        //             "cTime": "1672814726198",
+        //             "category": "normal",
+        //             "ccy": "",
+        //             "clOrdId": "",
+        //             "fee": "-0.00245007435",
+        //             "feeCcy": "USD",
+        //             "fillPx": "0.9995",
+        //             "fillSz": "1.6342",
+        //             "fillTime": "1672814726201",
+        //             "instId": "USDT-USD",
+        //             "instType": "SPOT",
+        //             "lever": "",
+        //             "ordId": "530758662663180288",
+        //             "ordType": "market",
+        //             "pnl": "0",
+        //             "posSide": "net",
+        //             "px": "",
+        //             "rebate": "0",
+        //             "rebateCcy": "USDT",
+        //             "reduceOnly": "false",
+        //             "side": "sell",
+        //             "slOrdPx": "",
+        //             "slTriggerPx": "",
+        //             "slTriggerPxType": "",
+        //             "source": "",
+        //             "state": "filled",
+        //             "sz": "1.6342",
+        //             "tag": "",
+        //             "tdMode": "cash",
+        //             "tgtCcy": "base_ccy",
+        //             "tpOrdPx": "",
+        //             "tpTriggerPx": "",
+        //             "tpTriggerPxType": "",
+        //             "tradeId": "3225651",
+        //             "uTime": "1672814726203"
+        //         }
+        //     ],
+        //     "msg": ""
+        // }
         //
-        //     {
-        //         "client_oid":"oktspot70",
-        //         "created_at":"2019-03-15T02:52:56.000Z",
-        //         "filled_notional":"3.8886",
-        //         "filled_size":"0.001",
-        //         "funds":"",
-        //         "instrument_id":"BTC-USDT",
-        //         "notional":"",
-        //         "order_id":"2482659399697408",
-        //         "order_type":"0",
-        //         "price":"3927.3",
-        //         "product_id":"BTC-USDT",
-        //         "side":"buy",
-        //         "size":"0.001",
-        //         "status":"filled",
-        //         "state": "2",
-        //         "timestamp":"2019-03-15T02:52:56.000Z",
-        //         "type":"limit"
-        //     }
-        //
-        // futures, swap
-        //
-        //     {
-        //         "instrument_id":"EOS-USD-190628",
-        //         "size":"10",
-        //         "timestamp":"2019-03-20T02:46:38.000Z",
-        //         "filled_qty":"10",
-        //         "fee":"-0.0080819",
-        //         "order_id":"2510946213248000",
-        //         "price":"3.712",
-        //         "price_avg":"3.712",
-        //         "status":"2",
-        //         "state": "2",
-        //         "type":"2",
-        //         "contract_val":"10",
-        //         "leverage":"10",
-        //         "client_oid":"", // missing in swap orders
-        //         "pnl":"0", // missing in swap orders
-        //         "order_type":"0"
-        //     }
-        //
-        return this.parseOrder (response);
+        const result = this.safeValue (response, 'data');
+        const data = this.safeValue (result, 0);
+        return this.parseOrder (data);
     }
 
     async fetchOrdersByState (state, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
