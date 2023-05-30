@@ -1664,6 +1664,9 @@ class bitso extends bitso$1 {
         };
         return this.safeString(statuses, status, status);
     }
+    nonce() {
+        return this.milliseconds();
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));

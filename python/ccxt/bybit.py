@@ -1487,6 +1487,7 @@ class bybit(Exchange, ImplicitAPI):
         return result
 
     def fetch_derivatives_markets(self, params):
+        params = self.extend(params)
         params['limit'] = 1000  # minimize number of requests
         response = self.publicGetV5MarketInstrumentsInfo(params)
         data = self.safe_value(response, 'result', {})
@@ -1627,9 +1628,12 @@ class bybit(Exchange, ImplicitAPI):
                 type = 'future'
             elif option:
                 type = 'option'
-            expiry = self.omit_zero(self.safe_string(market, 'deliveryTime'))
-            if expiry is not None:
-                expiry = int(expiry)
+            expiry = None
+            # some swaps have deliveryTime meaning delisting time
+            if not swap:
+                expiry = self.omit_zero(self.safe_string(market, 'deliveryTime'))
+                if expiry is not None:
+                    expiry = int(expiry)
             expiryDatetime = self.iso8601(expiry)
             strike = None
             optionType = None
@@ -4651,6 +4655,11 @@ class bybit(Exchange, ImplicitAPI):
         #
         result = self.safe_value(response, 'result', {})
         data = self.safe_value(result, 'list', [])
+        paginationCursor = self.safe_string(result, 'nextPageCursor')
+        if (paginationCursor is not None) and (len(data) > 0):
+            first = data[0]
+            first['nextPageCursor'] = paginationCursor
+            data[0] = first
         return self.parse_orders(data, market, since, limit)
 
     def fetch_unified_margin_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -4733,6 +4742,11 @@ class bybit(Exchange, ImplicitAPI):
         #
         result = self.safe_value(response, 'result', {})
         data = self.safe_value(result, 'list', [])
+        paginationCursor = self.safe_string(result, 'nextPageCursor')
+        if (paginationCursor is not None) and (len(data) > 0):
+            first = data[0]
+            first['nextPageCursor'] = paginationCursor
+            data[0] = first
         return self.parse_orders(data, market, since, limit)
 
     def fetch_derivatives_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -4823,6 +4837,11 @@ class bybit(Exchange, ImplicitAPI):
         #
         result = self.safe_value(response, 'result', {})
         data = self.safe_value(result, 'list', [])
+        paginationCursor = self.safe_string(result, 'nextPageCursor')
+        if (paginationCursor is not None) and (len(data) > 0):
+            first = data[0]
+            first['nextPageCursor'] = paginationCursor
+            data[0] = first
         return self.parse_orders(data, market, since, limit)
 
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -7203,9 +7222,14 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
+        data = self.safe_value(result, 'list', [])
+        paginationCursor = self.safe_string(result, 'nextPageCursor')
+        if (paginationCursor is not None) and (len(data) > 0):
+            first = data[0]
+            first['nextPageCursor'] = paginationCursor
+            data[0] = first
         id = self.safe_string(result, 'symbol')
         market = self.safe_market(id, market, None, 'contract')
-        data = self.safe_value(result, 'list', [])
         return self.parse_open_interests(data, market, since, limit)
 
     def fetch_open_interest(self, symbol: str, params={}):

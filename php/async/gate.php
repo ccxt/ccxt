@@ -507,6 +507,8 @@ class gate extends Exchange {
                     'future' => 'delivery',
                     'futures' => 'futures',
                     'delivery' => 'delivery',
+                    'option' => 'options',
+                    'options' => 'options',
                 ),
                 'defaultType' => 'spot',
                 'swap' => array(
@@ -1697,6 +1699,7 @@ class gate extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
+             * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
              * @param {string} $symbol unified $market $symbol
              * @param {array} $params extra parameters specific to the gate api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
@@ -1729,6 +1732,7 @@ class gate extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
+             * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
              * @param {array} $params extra parameters specific to the gate api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
              */
@@ -1777,9 +1781,12 @@ class gate extends Exchange {
         //        "futures_maker_fee" => "0"
         //    }
         //
+        $gtDiscount = $this->safe_value($info, 'gt_discount');
+        $taker = $gtDiscount ? 'gt_taker_fee' : 'taker_fee';
+        $maker = $gtDiscount ? 'gt_maker_fee' : 'maker_fee';
         $contract = $this->safe_value($market, 'contract');
-        $takerKey = $contract ? 'futures_taker_fee' : 'taker_fee';
-        $makerKey = $contract ? 'futures_maker_fee' : 'maker_fee';
+        $takerKey = $contract ? 'futures_taker_fee' : $taker;
+        $makerKey = $contract ? 'futures_maker_fee' : $maker;
         return array(
             'info' => $info,
             'symbol' => $this->safe_string($market, 'symbol'),
@@ -4267,6 +4274,7 @@ class gate extends Exchange {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
+             * @see https://www.gate.io/docs/developers/apiv4/en/#transfer-between-trading-accounts
              * @param {string} $code unified $currency $code for $currency being transferred
              * @param {float} $amount the $amount of $currency to transfer
              * @param {string} $fromAccount the account to transfer $currency from
@@ -4327,7 +4335,7 @@ class gate extends Exchange {
     public function parse_transfer($transfer, $currency = null) {
         $timestamp = $this->milliseconds();
         return array(
-            'id' => null,
+            'id' => $this->safe_string($transfer, 'tx_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'currency' => $this->safe_currency_code(null, $currency),
