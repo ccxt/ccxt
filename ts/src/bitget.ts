@@ -2569,6 +2569,7 @@ export default class bitget extends Exchange {
          * @param {float|undefined} params.takeProfitPrice *swap only* The price at which a take profit order is triggered at
          * @param {float|undefined} params.stopLoss *swap only* *uses the Place Position TPSL* The price at which a stop loss order is triggered at
          * @param {float|undefined} params.takeProfit *swap only* *uses the Place Position TPSL* The price at which a take profit order is triggered at
+         * @param {string|undefined} params.timeInForce "GTC", "IOC", "FOK", or "PO"
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2654,8 +2655,14 @@ export default class bitget extends Exchange {
             }
             if (!isStopLossOrTakeProfit) {
                 request['size'] = this.amountToPrecision (symbol, amount);
+                const timeInForce = this.safeStringLower (params, 'timeInForce');
                 if (postOnly) {
                     request['timeInForceValue'] = 'post_only';
+                } else if (timeInForce === 'gtc') {
+                    request['timeInForceValue'] = 'normal';
+                } else {
+                    // fok, ioc
+                    request['timeInForceValue'] = timeInForce;
                 }
             }
             if (isTriggerOrder || isStopLossOrTakeProfit) {
