@@ -1766,16 +1766,65 @@ export default class okcoin extends Exchange {
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        // '-2': failed,
-        // '-1': cancelled,
-        //  '0': open ,
-        //  '1': partially filled,
-        //  '2': fully filled,
-        //  '3': submitting,
-        //  '4': cancelling,
-        //  '6': incomplete（open+partially filled),
-        //  '7': complete（cancelled+fully filled),
-        return await this.fetchOrdersByState ('6', symbol, since, limit, params);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (limit > 100) {
+            limit = 100; // maximum = 100, default = 100
+        }
+        const request = {
+            'instId': market['id'],
+            'limit': limit,
+            'before': since,
+        };
+        const response = await this.privateGetTradeOrdersPending (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "msg": "",
+        //     "data": [
+        //         {
+        //             "accFillSz": "0",
+        //             "avgPx": "",
+        //             "cTime": "1618235248028",
+        //             "category": "normal",
+        //             "ccy": "",
+        //             "clOrdId": "",
+        //             "fee": "0",
+        //             "feeCcy": "BTC",
+        //             "fillPx": "",
+        //             "fillSz": "0",
+        //             "fillTime": "",
+        //             "instId": "BTC-USDT",
+        //             "instType": "SPOT",
+        //             "lever": "5.6",
+        //             "ordId": "301835739059335168",
+        //             "ordType": "limit",
+        //             "pnl": "0",
+        //             "posSide": "net",
+        //             "px": "59200",
+        //             "rebate": "0",
+        //             "rebateCcy": "USDT",
+        //             "side": "buy",
+        //             "slOrdPx": "",
+        //             "slTriggerPx": "",
+        //             "slTriggerPxType": "last",
+        //             "state": "live",
+        //             "sz": "1",
+        //             "tag": "",
+        //             "tgtCcy": "",
+        //             "tdMode": "cross",
+        //             "source":"",
+        //             "tpOrdPx": "",
+        //             "tpTriggerPx": "",
+        //             "tpTriggerPxType": "last",
+        //             "tradeId": "",
+        //             "uTime": "1618235248028"
+        //         }
+        //     ]
+        // }
+        //
+        const orders = this.safeValue (response, 'data');
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
