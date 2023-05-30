@@ -30,8 +30,9 @@ before_install:
 - sudo apt update
 - sudo apt install apt-transport-https -y
 - sudo apt update -y
-- sudo apt install dotnet-sdk-6.0 -y
-- sudo apt install dotnet-runtime-6.0  -y
+- sudo apt-get install -y dotnet-sdk-7.0
+- sudo apt-get install -y dotnet-runtime-7.0
+- dotnet --version
 - dotnet --info
 
 script:
