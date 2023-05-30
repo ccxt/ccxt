@@ -912,7 +912,7 @@ export default class Exchange {
                 if (isNode) {
                     headers = this.extend ({ 'Origin': this.origin }, headers)
                 }
-                url = proxyUrlCallback (url);
+                url = proxyUrlCallback (url, method, headers, body);
             } else if (proxyHttp !== undefined) {
                 const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js')
                 const proxyAgent = new module.HttpProxyAgent(proxyHttp);
@@ -927,7 +927,7 @@ export default class Exchange {
                 const proxyAgent = new module.SocksProxyAgent(proxySocks);
                 this.agent = proxyAgent;
             } else if (proxyAgentCallback !== undefined) {
-                this.agent = proxyAgentCallback (url);
+                this.agent = proxyAgentCallback (url, method, headers, body);
             }
         }
 

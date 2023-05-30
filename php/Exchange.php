@@ -1363,7 +1363,6 @@ class Exchange {
 
         $headers = array_merge($this->headers, $headers ? $headers : array());
 
-
         // old approach, kept for backward-compatibility
         if ($this->proxy !== null) {
             if (is_callable($this->proxy)) {
@@ -1456,7 +1455,7 @@ class Exchange {
             if ($proxyUrl !== null) {
                 $url = $proxyUrl . $url;
             } else if ($proxyUrlCallback !== null) {
-                $url = $proxyUrlCallback($url);
+                $url = $proxyUrlCallback($url, $method, $headers, $body);
             } else if ($proxyHttp !== null) {
                 curl_setopt($this->curl, CURLOPT_PROXY, $proxyHttp);
                 curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
@@ -1467,11 +1466,10 @@ class Exchange {
                 // curl_setopt($this->curl, CURLOPT_TUNNEL, 1);
                 // curl_setopt($this->curl, CURLOPT_SUPPRESS_CONNECT_HEADERS, 1);
             } else if ($proxySocks !== null) {
-                // CURLPROXY_HTTP is the default
                 curl_setopt($this->curl, CURLOPT_PROXY, $proxySocks);
                 curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
             } else if ($proxyAgentCallback !== null) {
-                $this->userAgent = $proxyAgentCallback ();
+                $this->userAgent = $proxyAgentCallback ($url, $method, $headers, $body);
             }
         }
 
@@ -1484,7 +1482,6 @@ class Exchange {
                 $verbose_headers = array_merge($verbose_headers, $this->userAgent);
             }
         }
-
         curl_setopt($this->curl, CURLOPT_URL, $url);
         // end of proxy settings
 

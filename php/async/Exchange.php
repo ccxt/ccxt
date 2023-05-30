@@ -85,18 +85,32 @@ class Exchange extends \ccxt\Exchange {
                 $headers = array();
             }
 
-            // this name for the proxy string is deprecated
-            // we should rename it to $this->cors everywhere
-            if (is_callable($this->proxy)) {
-                $url = call_user_func($this->proxy, $url);
-                $headers['Origin'] = $this->origin;
-            } else if (gettype($this->proxy) === 'string') {
-                if (strlen($this->proxy) > 0) {
-                    $url = $this->proxy . $url;
-                    $headers['Origin'] = $this->origin;
-                }
+            // we don't have to support old `this.proxy` because it was not ever implemented in async php version, so we don't need to "maintain it for existing users"
+            $proxy = null;
+            $proxy_files_dir = __DIR__ . '/../static_dependencies/proxies/';
+            [ $proxyUrl, $proxyUrlCallback, $httpProxy, $proxyHttps, $proxySocks, $proxyAgentCallback ] = $this->checkProxySettings();
+            if ($proxyUrl !== null) {
+                $url = $proxyUrl . $url;
+            } else if ($proxyUrlCallback !== null) {
+                $url = $proxyUrlCallback($url, $method, $headers, $body);
+            } else if ($proxyHttp !== null) {
+                include_once ($proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
+                $proxy = new Clue\React\HttpProxy\ProxyConnector($proxyHttp);
+                $this->set_request_browser(array( 'tcp' => $proxy, 'dns' => false ));
+            }  else if ($proxyHttps !== null) {
+                include_once ($proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
+                $proxy = new Clue\React\HttpProxy\ProxyConnector($proxyHttps);
+                $this->set_request_browser(array( 'tcp' => $proxy, 'dns' => false ));
+            } else if ($proxySocks !== null) {
+                include_once ($proxy_files_dir. 'reactphp-socks/src/StreamReader.php');
+                include_once ($proxy_files_dir. 'reactphp-socks/src/Client.php');
+                $proxy = new Clue\React\Socks\Client($proxy_url);
+                $this->set_request_browser(array( 'tcp' => $proxy, 'dns' => false ));
+            } else if ($proxyAgentCallback !== null) {
+                $this->userAgent = $proxyAgentCallback ($url, $method, $headers, $body);
             }
 
+ 
             if ($this->userAgent) {
                 if (gettype($this->userAgent) === 'string') {
                     $headers['User-Agent'] = $this->userAgent;
@@ -105,36 +119,6 @@ class Exchange extends \ccxt\Exchange {
                 }
             }
 
-            $proxy_url = null;
-            if ($this->http_proxy) {
-                $proxy_url = $this->http_proxy;
-            } elseif ($this->https_proxy) {
-                $proxy_url = $this->https_proxy;
-            }
-            if ($proxy_url) {
-                $proxy_files_dir = __DIR__ . '/../static_dependencies/proxies/';
-                if (stripos($proxy_url, 'socks5://') !== false) {
-                    include_once ($proxy_files_dir. 'reactphp-socks/src/StreamReader.php');
-                    include_once ($proxy_files_dir. 'reactphp-socks/src/Client.php');
-                    $proxy = new Clue\React\Socks\Client($proxy_url);
-                } else {
-                    include_once ($proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
-                    $proxy = new Clue\React\HttpProxy\ProxyConnector($proxy_url);
-                }
-                // because of complexity, ssh is not supported atm: 
-                // $proxy = new Clue\React\SshProxy\SshSocksConnector('user@example.com', $loop);
-                $this->set_request_browser(array(
-                    'tcp' => $proxy,
-                    'dns' => false
-                ));
-                $this->is_reseted_browser = false;
-            } else {
-                if (!$this->is_reseted_browser) {
-                    $this->is_reseted_browser = true;
-                    $this->set_request_browser();
-                }
-            }
-    
             if ($this->verbose) {
                 print_r(array('fetch Request:', $this->id, $method, $url, 'RequestHeaders:', $headers, 'RequestBody:', $body));
             }
