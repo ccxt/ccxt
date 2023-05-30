@@ -178,7 +178,7 @@ The easiest way to install the CCXT library is to use a package manager:
 - [ccxt in **NPM**](https://www.npmjs.com/package/ccxt) (JavaScript / Node v7.6+)
 - [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 3.5.3+)
 - [ccxt in **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 7.0+)
-- [ccxt in **Nugget**](https://packagist.org/packages/ccxt/ccxt) (netstandard 2.0)
+- [ccxt in **Nugget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
@@ -276,7 +276,7 @@ The library supports concurrent asynchronous mode using tools from [RecoilPHP](h
 
 ### Dotnet/C# [Beta]
 
-[ccxt in C# with **Nugget**](https://packagist.org/packages/ccxt/ccxt) (netstandard 2.0)
+[ccxt in C# with **Nugget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0)
 ```c#
 using ccxt;
 Console.WriteLine(ccxt.Exchanges) // check this later
