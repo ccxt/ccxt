@@ -28,8 +28,10 @@ before_install:
 - sudo dpkg -i packages-microsoft-prod.deb
 - rm packages-microsoft-prod.deb
 - sudo apt update
-- sudo apt install dotnet-sdk-7.0
-- sudo apt install dotnet-runtime-7.0
+- sudo snap install dotnet-runtime-60 --classic
+- sudo snap alias dotnet-runtime-60.dotnet dotnet
+- export DOTNET_ROOT=/snap/dotnet-sdk/current
+- sudo dotnet --info
 
 script:
 - ./build.sh 2>&1
