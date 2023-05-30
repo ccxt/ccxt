@@ -2649,6 +2649,7 @@ class okx(Exchange, ImplicitAPI):
             timeInForce = 'IOC'
             type = 'limit'
         marketId = self.safe_string(order, 'instId')
+        market = self.safe_market(marketId, market)
         symbol = self.safe_symbol(marketId, market, '-')
         filled = self.safe_string(order, 'accFillSz')
         price = self.safe_string_2(order, 'px', 'ordPx')

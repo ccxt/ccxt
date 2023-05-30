@@ -1277,7 +1277,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         if ($event === 'challenge') {
             $this->handle_authenticate($client, $message);
         } elseif ($event === 'pong') {
-            return $client->onPong ($message);
+            $client->lastPong = $this->milliseconds();
         } elseif ($event === null) {
             $feed = $this->safe_string($message, 'feed');
             $methods = array(
