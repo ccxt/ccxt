@@ -1396,29 +1396,33 @@ export default class Exchange {
         return array;
     }
 
-    filterBySinceLimit (array: object[], since: Int = undefined, limit: Int = undefined, key: IndexType = 'timestamp'): any {
+    filterBySinceLimit (array: object[], since: Int = undefined, limit: Int = undefined, key: IndexType = 'timestamp', tail = false): any {
         const sinceIsDefined = this.valueIsDefined (since);
         const parsedArray = this.toArray (array) as any;
+        let result = parsedArray;
         if (sinceIsDefined) {
-            const result = [ ];
+            result = [ ];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
                 if (entry[key] >= since) {
                     result.push (entry);
                 }
             }
-            return this.filterByLimit (result, limit, key);
         }
-        return this.filterByLimit (parsedArray, limit, key);
+        if (tail) {
+            return result.slice (-limit);
+        }
+        return this.filterByLimit (result, limit, key);
     }
 
-    filterByValueSinceLimit (array: object[], field: IndexType, value = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp'): any {
+    filterByValueSinceLimit (array: object[], field: IndexType, value = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any {
         const valueIsDefined = this.valueIsDefined (value);
         const sinceIsDefined = this.valueIsDefined (since);
         const parsedArray = this.toArray (array) as any;
+        let result = parsedArray;
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined) {
-            const result = [ ];
+            result = [ ];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
                 const entryFiledEqualValue = entry[field] === value;
@@ -1429,9 +1433,11 @@ export default class Exchange {
                     result.push (entry);
                 }
             }
-            return this.filterByLimit (result, limit, key);
         }
-        return this.filterByLimit (parsedArray, limit, key);
+        if (tail) {
+            return result.slice (-limit);
+        }
+        return this.filterByLimit (result, limit, key);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
@@ -3631,12 +3637,12 @@ export default class Exchange {
         return currency['code'];
     }
 
-    filterBySymbolSinceLimit (array, symbol: string = undefined, since: Int = undefined, limit: Int = undefined) {
-        return this.filterByValueSinceLimit (array, 'symbol', symbol, since, limit, 'timestamp');
+    filterBySymbolSinceLimit (array, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+        return this.filterByValueSinceLimit (array, 'symbol', symbol, since, limit, 'timestamp', tail);
     }
 
-    filterByCurrencySinceLimit (array, code = undefined, since: Int = undefined, limit: Int = undefined) {
-        return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp');
+    filterByCurrencySinceLimit (array, code = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+        return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp', tail);
     }
 
     parseLastPrices (pricesData, symbols: string[] = undefined, params = {}) {

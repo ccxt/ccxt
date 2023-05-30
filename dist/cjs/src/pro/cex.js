@@ -141,7 +141,7 @@ class cex extends cex$1 {
         for (let i = 0; i < trades.length; i++) {
             trades[i]['symbol'] = symbol;
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTradesSnapshot(client, message) {
         //
@@ -998,7 +998,7 @@ class cex extends cex$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleInitOHLCV(client, message) {
         //

@@ -1692,22 +1692,25 @@ class Exchange(object):
                 array = self.arraySlice(array, -limit) if ascending else self.arraySlice(array, 0, limit)
         return array
 
-    def filter_by_since_limit(self, array: List[object], since: Optional[int] = None, limit: Optional[int] = None, key: IndexType = 'timestamp'):
+    def filter_by_since_limit(self, array: List[object], since: Optional[int] = None, limit: Optional[int] = None, key: IndexType = 'timestamp', tail=False):
         sinceIsDefined = self.valueIsDefined(since)
         parsedArray = self.to_array(array)
+        result = parsedArray
         if sinceIsDefined:
             result = []
             for i in range(0, len(parsedArray)):
                 entry = parsedArray[i]
                 if entry[key] >= since:
                     result.append(entry)
-            return self.filter_by_limit(result, limit, key)
-        return self.filter_by_limit(parsedArray, limit, key)
+        if tail:
+            return result[-limit:]
+        return self.filter_by_limit(result, limit, key)
 
-    def filter_by_value_since_limit(self, array: List[object], field: IndexType, value=None, since: Optional[int] = None, limit: Optional[int] = None, key='timestamp'):
+    def filter_by_value_since_limit(self, array: List[object], field: IndexType, value=None, since: Optional[int] = None, limit: Optional[int] = None, key='timestamp', tail=False):
         valueIsDefined = self.valueIsDefined(value)
         sinceIsDefined = self.valueIsDefined(since)
         parsedArray = self.to_array(array)
+        result = parsedArray
         # single-pass filter for both symbol and since
         if valueIsDefined or sinceIsDefined:
             result = []
@@ -1719,8 +1722,9 @@ class Exchange(object):
                 secondCondition = entryKeyGESince if sinceIsDefined else True
                 if firstCondition and secondCondition:
                     result.append(entry)
-            return self.filter_by_limit(result, limit, key)
-        return self.filter_by_limit(parsedArray, limit, key)
+        if tail:
+            return result[-limit:]
+        return self.filter_by_limit(result, limit, key)
 
     def sign(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None):
         return {}
@@ -3471,11 +3475,11 @@ class Exchange(object):
         currency = self.safe_currency(currencyId, currency)
         return currency['code']
 
-    def filter_by_symbol_since_limit(self, array, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None):
-        return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp')
+    def filter_by_symbol_since_limit(self, array, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
+        return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp', tail)
 
-    def filter_by_currency_since_limit(self, array, code=None, since: Optional[int] = None, limit: Optional[int] = None):
-        return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp')
+    def filter_by_currency_since_limit(self, array, code=None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
+        return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
 
     def parse_last_prices(self, pricesData, symbols: Optional[List[str]] = None, params={}):
         #
