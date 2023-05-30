@@ -26,7 +26,7 @@ from ccxt.base.errors import BaseError, BadSymbol, AuthenticationError, Exchange
     RequestTimeout, \
     NotSupported, NullResponse, InvalidOrder, InvalidAddress
 from ccxt.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE, DECIMAL_PLACES
-from ccxt.base.types import OrderType, OrderSide, IndexType, Balance
+from ccxt.base.types import OrderType, OrderSide, IndexType, Balance, Trade
 
 # -----------------------------------------------------------------------------
 
