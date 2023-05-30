@@ -6,7 +6,7 @@ import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import { Int } from '../base/types.js';
+import { Int, Order } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -505,56 +505,10 @@ export default class krakenfutures extends krakenfuturesRest {
             const marketId = this.safeStringLower (order, 'instrument');
             const messageHash = 'orders';
             const symbol = this.safeSymbol (marketId);
-            const orderId = this.safeString (order, 'order_id');
-            const previousOrders = this.safeValue (orders.hashmap, symbol, {});
-            const previousOrder = this.safeValue (previousOrders, orderId);
-            if (previousOrder === undefined) {
-                const parsed = this.parseWsOrder (order);
-                orders.append (parsed);
-                client.resolve (orders, messageHash);
-                client.resolve (orders, messageHash + ':' + symbol);
-            } else {
-                const trade = this.parseWsTrade (order);
-                if (previousOrder['trades'] === undefined) {
-                    previousOrder['trades'] = [];
-                }
-                previousOrder['trades'].push (trade);
-                previousOrder['lastTradeTimestamp'] = trade['timestamp'];
-                let totalCost = '0';
-                let totalAmount = '0';
-                const trades = previousOrder['trades'];
-                for (let i = 0; i < trades.length; i++) {
-                    const trade = trades[i];
-                    totalCost = Precise.stringAdd (totalCost, this.numberToString (trade['cost']));
-                    totalAmount = Precise.stringAdd (totalAmount, this.numberToString (trade['amount']));
-                }
-                if (Precise.stringGt (totalAmount, '0')) {
-                    previousOrder['average'] = Precise.stringDiv (totalCost, totalAmount);
-                }
-                previousOrder['cost'] = totalCost;
-                if (previousOrder['filled'] !== undefined) {
-                    previousOrder['filled'] = Precise.stringAdd (previousOrder['filled'], this.numberToString (trade['amount']));
-                    if (previousOrder['amount'] !== undefined) {
-                        previousOrder['remaining'] = Precise.stringSub (previousOrder['amount'], previousOrder['filled']);
-                    }
-                }
-                if (previousOrder['fee'] === undefined) {
-                    previousOrder['fee'] = {
-                        'rate': undefined,
-                        'cost': '0',
-                        'currency': this.numberToString (trade['fee']['currency']),
-                    };
-                }
-                if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
-                    const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
-                    const stringTradeCost = this.numberToString (trade['fee']['cost']);
-                    previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
-                }
-                // update the newUpdates count
-                orders.append (this.safeOrder (previousOrder));
-                client.resolve (orders, messageHash + ':' + symbol);
-                client.resolve (orders, messageHash);
-            }
+            const parsed = this.handleOrderPreviousOrder (order, orders, symbol);
+            orders.append (parsed);
+            client.resolve (orders, messageHash + ':' + symbol);
+            client.resolve (orders, messageHash);
         } else {
             const isCancel = this.safeValue (message, 'is_cancel');
             if (isCancel) {
