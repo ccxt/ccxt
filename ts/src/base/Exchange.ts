@@ -1523,6 +1523,22 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseBorrowInterest() is not supported yet');
     }
 
+    parseWsTrade (trade, market: Market = undefined): Trade {
+        return this.parseTrade (trade, market);
+    }
+
+    parseWsOrder (order, market: Market = undefined): Order {
+        return this.parseOrder (order, market);
+    }
+
+    parseWsTicker (ticker, market: Market = undefined): Ticker {
+        return this.parseTicker (ticker, market);
+    }
+
+    parseWsOHLCV (ohlcv, market: Market = undefined): number[] {
+        return this.parseOHLCV (ohlcv, market);
+    }
+
     async fetchFundingRates (symbols: string[] = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchFundingRates() is not supported yet');
     }
