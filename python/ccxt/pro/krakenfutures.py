@@ -1191,7 +1191,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         if event == 'challenge':
             self.handle_authenticate(client, message)
         elif event == 'pong':
-            return client.onPong(message)
+            client.lastPong = self.milliseconds()
         elif event is None:
             feed = self.safe_string(message, 'feed')
             methods = {

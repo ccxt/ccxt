@@ -165,6 +165,7 @@ import okcoinPro from './src/pro/okcoin.js';
 import okexPro from './src/pro/okex.js';
 import okxPro from './src/pro/okx.js';
 import phemexPro from './src/pro/phemex.js';
+import poloniexPro from './src/pro/poloniex.js';
 import poloniexfuturesPro from './src/pro/poloniexfutures.js';
 import probitPro from './src/pro/probit.js';
 import upbitPro from './src/pro/upbit.js';
@@ -334,6 +335,7 @@ declare const pro: {
     okex: typeof okexPro;
     okx: typeof okxPro;
     phemex: typeof phemexPro;
+    poloniex: typeof poloniexPro;
     poloniexfutures: typeof poloniexfuturesPro;
     probit: typeof probitPro;
     upbit: typeof upbitPro;
@@ -399,6 +401,7 @@ declare const ccxt: {
         okex: typeof okexPro;
         okx: typeof okxPro;
         phemex: typeof phemexPro;
+        poloniex: typeof poloniexPro;
         poloniexfutures: typeof poloniexfuturesPro;
         probit: typeof probitPro;
         upbit: typeof upbitPro;

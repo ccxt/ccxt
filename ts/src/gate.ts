@@ -2297,9 +2297,10 @@ export default class gate extends Exchange {
             'funding': 'privateMarginGetFundingAccounts',
             'swap': 'privateFuturesGetSettleAccounts',
             'future': 'privateDeliveryGetSettleAccounts',
+            'option': 'privateOptionsGetAccounts',
         });
         let response = await this[method] (this.extend (request, requestQuery));
-        const contract = ((type === 'swap') || (type === 'future'));
+        const contract = ((type === 'swap') || (type === 'future') || (type === 'option'));
         if (contract) {
             response = [ response ];
         }
@@ -2411,6 +2412,38 @@ export default class gate extends Exchange {
         //        position_margin: "0",
         //        user: "6333333",
         //    }
+        //
+        // option
+        //
+        //     {
+        //         "order_margin": "0",
+        //         "bid_order_margin": "0",
+        //         "init_margin": "0",
+        //         "history": {
+        //             "dnw": "32",
+        //             "set": "0",
+        //             "point_fee": "0",
+        //             "point_dnw": "0",
+        //             "prem": "0",
+        //             "point_refr": "0",
+        //             "insur": "0",
+        //             "fee": "0",
+        //             "refr": "0"
+        //         },
+        //         "total": "32",
+        //         "available": "32",
+        //         "liq_triggered": false,
+        //         "maint_margin": "0",
+        //         "ask_order_margin": "0",
+        //         "point": "0",
+        //         "position_notional_limit": "2000000",
+        //         "unrealised_pnl": "0",
+        //         "equity": "32",
+        //         "user": 5691076,
+        //         "currency": "USDT",
+        //         "short_enabled": false,
+        //         "orders_limit": 10
+        //     }
         //
         const result = {
             'info': response,

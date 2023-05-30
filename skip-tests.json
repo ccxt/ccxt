@@ -1,5 +1,6 @@
 {
     "ace": {
+        "skip": "30/05: 504 Gateway Time-out",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
@@ -1099,7 +1100,6 @@
         }
     },
     "poloniex": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "some currencies does not exist in currencies"
@@ -1124,6 +1124,9 @@
             "fetchTickers": {
                 "quoteVolume": "quoteVolume <= baseVolume * high : https://app.travis-ci.com/github/ccxt/ccxt/builds/263319874#L2132",
                 "baseVolume": "same"
+            },
+            "fetchTicker": {
+                "quoteVolume": "quoteVolume <= baseVolume * high <<< okx fetchTicker"
             }
         }
     },
