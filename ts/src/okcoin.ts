@@ -1638,123 +1638,6 @@ export default class okcoin extends Exchange {
         return this.parseOrder (data);
     }
 
-    async fetchOrdersByState (state, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrdersByState() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        let type = undefined;
-        if (market['futures'] || market['swap']) {
-            type = market['type'];
-        } else {
-            const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', market['type']);
-            type = this.safeString (params, 'type', defaultType);
-        }
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchOrdersByState() requires a type parameter (one of 'spot', 'futures', 'swap').");
-        }
-        const request = {
-            'instrument_id': market['id'],
-            // '-2': failed,
-            // '-1': cancelled,
-            //  '0': open ,
-            //  '1': partially filled,
-            //  '2': fully filled,
-            //  '3': submitting,
-            //  '4': cancelling,
-            //  '6': incomplete（open+partially filled),
-            //  '7': complete（cancelled+fully filled),
-            'state': state,
-        };
-        let method = type + 'GetOrders';
-        if (market['futures'] || market['swap']) {
-            method += 'InstrumentId';
-        }
-        const query = this.omit (params, 'type');
-        const response = await this[method] (this.extend (request, query));
-        //
-        // spot
-        //
-        //     [
-        //         // in fact, this documented API response does not correspond
-        //         // to their actual API response for spot markets
-        //         // OKEX v3 API returns a plain array of orders (see below)
-        //         [
-        //             {
-        //                 "client_oid":"oktspot76",
-        //                 "created_at":"2019-03-18T07:26:49.000Z",
-        //                 "filled_notional":"3.9734",
-        //                 "filled_size":"0.001",
-        //                 "funds":"",
-        //                 "instrument_id":"BTC-USDT",
-        //                 "notional":"",
-        //                 "order_id":"2500723297813504",
-        //                 "order_type":"0",
-        //                 "price":"4013",
-        //                 "product_id":"BTC-USDT",
-        //                 "side":"buy",
-        //                 "size":"0.001",
-        //                 "status":"filled",
-        //                 "state": "2",
-        //                 "timestamp":"2019-03-18T07:26:49.000Z",
-        //                 "type":"limit"
-        //             },
-        //         ],
-        //         {
-        //             "before":"2500723297813504",
-        //             "after":"2500650881647616"
-        //         }
-        //     ]
-        //
-        // futures, swap
-        //
-        //     {
-        //         "result":true,  // missing in swap orders
-        //         "order_info": [
-        //             {
-        //                 "instrument_id":"EOS-USD-190628",
-        //                 "size":"10",
-        //                 "timestamp":"2019-03-20T10:04:55.000Z",
-        //                 "filled_qty":"10",
-        //                 "fee":"-0.00841043",
-        //                 "order_id":"2512669605501952",
-        //                 "price":"3.668",
-        //                 "price_avg":"3.567",
-        //                 "status":"2",
-        //                 "state": "2",
-        //                 "type":"4",
-        //                 "contract_val":"10",
-        //                 "leverage":"10", // missing in swap orders
-        //                 "client_oid":"",
-        //                 "pnl":"1.09510794", // missing in swap orders
-        //                 "order_type":"0"
-        //             },
-        //         ]
-        //     }
-        //
-        let orders = undefined;
-        if (market['swap'] || market['futures']) {
-            orders = this.safeValue (response, 'order_info', []);
-        } else {
-            orders = response;
-            const responseLength = response.length;
-            if (responseLength < 1) {
-                return [];
-            }
-            // in fact, this documented API response does not correspond
-            // to their actual API response for spot markets
-            // OKEX v3 API returns a plain array of orders
-            if (responseLength > 1) {
-                const before = this.safeValue (response[1], 'before');
-                if (before !== undefined) {
-                    orders = response[0];
-                }
-            }
-        }
-        return this.parseOrders (orders, market, since, limit);
-    }
-
     async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -1838,16 +1721,70 @@ export default class okcoin extends Exchange {
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        // '-2': failed,
-        // '-1': cancelled,
-        //  '0': open ,
-        //  '1': partially filled,
-        //  '2': fully filled,
-        //  '3': submitting,
-        //  '4': cancelling,
-        //  '6': incomplete（open+partially filled),
-        //  '7': complete（cancelled+fully filled),
-        return await this.fetchOrdersByState ('7', symbol, since, limit, params);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (limit > 100) {
+            limit = 100; // maximum = 100, default = 100
+        }
+        const request = {
+            'instId': market['id'],
+            'limit': limit,
+            'before': since,
+        };
+        const defaultType = this.safeString2 (this.options, 'fetchClosedOrders', 'defaultType');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        request['instType'] = type.toUpperCase ();
+        const response = await this.privateGetTradeOrdersHistoryArchive (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "data": [
+        //         {
+        //             "accFillSz": "1.6342",
+        //             "avgPx": "0.9995",
+        //             "cTime": "1672814726198",
+        //             "category": "normal",
+        //             "ccy": "",
+        //             "clOrdId": "",
+        //             "fee": "-0.00245007435",
+        //             "feeCcy": "USD",
+        //             "fillPx": "0.9995",
+        //             "fillSz": "1.6342",
+        //             "fillTime": "1672814726201",
+        //             "instId": "USDT-USD",
+        //             "instType": "SPOT",
+        //             "lever": "",
+        //             "ordId": "530758662663180288",
+        //             "ordType": "market",
+        //             "pnl": "0",
+        //             "posSide": "",
+        //             "px": "",
+        //             "rebate": "0",
+        //             "rebateCcy": "USDT",
+        //             "reduceOnly": "false",
+        //             "side": "sell",
+        //             "slOrdPx": "",
+        //             "slTriggerPx": "",
+        //             "slTriggerPxType": "",
+        //             "source": "",
+        //             "state": "filled",
+        //             "sz": "1.6342",
+        //             "tag": "",
+        //             "tdMode": "cash",
+        //             "tgtCcy": "base_ccy",
+        //             "tpOrdPx": "",
+        //             "tpTriggerPx": "",
+        //             "tpTriggerPxType": "",
+        //             "tradeId": "3225651",
+        //             "uTime": "1672814726859"
+        //         }
+        //     ],
+        //     "msg": ""
+        // }
+        //
+        const orders = this.safeValue (response, 'data');
+        return this.parseOrders (orders, market, since, limit);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
