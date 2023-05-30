@@ -885,7 +885,6 @@ export default class woo extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        // const market = this.market (symbol);
         const request = {
             // 'quantity': this.amountToPrecision (symbol, amount),
             // 'price': this.priceToPrecision (symbol, price),
@@ -899,7 +898,6 @@ export default class woo extends Exchange {
         const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let method = undefined;
         const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
@@ -907,33 +905,33 @@ export default class woo extends Exchange {
         const isTakeProfit = takeProfitPrice !== undefined;
         const isStop = this.safeValue (params, 'stop');
         if (isStopLoss && isTakeProfit) {
-            throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
+            throw new ExchangeError (this.id + ' editOrder() stopLossPrice and takeProfitPrice cannot both be defined');
         }
         params = this.omit (params, [ 'stop', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ]);
+        let response = undefined;
         if (isStopLoss || isTakeProfit || isStop) {
             const triggerPrice = isStopLoss ? stopLossPrice : takeProfitPrice;
             if (triggerPrice !== undefined) {
                 request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
             }
             if (isByClientOrder) {
-                method = 'v3PrivatePutAlgoOrderClientClientOrderId';
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
                 params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+                response = await this.v3PrivatePutAlgoOrderClientClientOrderId (this.extend (request, params));
             } else {
-                method = 'v3PrivatePutAlgoOrderOid';
                 request['oid'] = id;
+                response = await this.v3PrivatePutAlgoOrderOid (this.extend (request, params));
             }
         } else {
             if (isByClientOrder) {
-                method = 'v3PrivatePutOrderClientClientOrderId';
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
                 params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+                response = await this.v3PrivatePutOrderClientClientOrderId (this.extend (request, params));
             } else {
-                method = 'v3PrivatePutOrderOid';
                 request['oid'] = id;
+                response = await this.v3PrivatePutOrderOid (this.extend (request, params));
             }
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": 0,
