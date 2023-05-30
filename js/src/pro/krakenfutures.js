@@ -1255,7 +1255,7 @@ export default class krakenfutures extends krakenfuturesRest {
             this.handleAuthenticate(client, message);
         }
         else if (event === 'pong') {
-            return client.onPong(message);
+            client.lastPong = this.milliseconds();
         }
         else if (event === undefined) {
             const feed = this.safeString(message, 'feed');
