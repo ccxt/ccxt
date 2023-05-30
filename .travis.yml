@@ -31,6 +31,7 @@ before_install:
 - sudo snap install dotnet-runtime-60 --classic
 - sudo snap alias dotnet-runtime-60.dotnet dotnet
 - export DOTNET_ROOT=/snap/dotnet-sdk/current
+- sudo apt-get install dotnet-sdk-6.0
 - sudo dotnet --info
 
 script:
