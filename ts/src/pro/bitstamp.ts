@@ -4,7 +4,7 @@
 import bitstampRest from '../bitstamp.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import { Int, Market, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -191,7 +191,7 @@ export default class bitstamp extends bitstampRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined): Trade {
         //
         //     {
         //         buy_order_id: 1211625836466176,

@@ -3,7 +3,7 @@
 import blockchaincomRest from '../blockchaincom.js';
 import { NotSupported, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { IndexType, Int } from '../base/types';
+import { IndexType, Int, Market, Trade } from '../base/types';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -380,7 +380,7 @@ export default class blockchaincom extends blockchaincomRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined): Trade {
         //
         //     {
         //         seqnum: 1,

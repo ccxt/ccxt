@@ -4,7 +4,7 @@
 import kucoinRest from '../kucoin.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import { Int, Market, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -679,7 +679,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (trades, symbolSpecificMessageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined): Trade {
         //
         // {
         //     fee: 0.00262148,

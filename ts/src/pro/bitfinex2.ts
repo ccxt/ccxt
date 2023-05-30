@@ -6,7 +6,7 @@ import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import { Int } from '../base/types.js';
+import { Int, Market, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -352,7 +352,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         return message;
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined): Trade {
         //
         //    [
         //        1128060969, // id

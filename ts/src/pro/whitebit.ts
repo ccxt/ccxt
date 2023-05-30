@@ -5,7 +5,7 @@ import whitebitRest from '../whitebit.js';
 import { Precise } from '../base/Precise.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import { Int, Market, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -431,7 +431,7 @@ export default class whitebit extends whitebitRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined): Trade {
         //
         //   [
         //         1894994106, // id
