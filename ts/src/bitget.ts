@@ -2660,9 +2660,10 @@ export default class bitget extends Exchange {
                     request['timeInForceValue'] = 'post_only';
                 } else if (timeInForce === 'gtc') {
                     request['timeInForceValue'] = 'normal';
-                } else {
-                    // fok, ioc
-                    request['timeInForceValue'] = timeInForce;
+                } else if (timeInForce === 'fok') {
+                    request['timeInForceValue'] = 'fok';
+                } else if (timeInForce === 'ioc') {
+                    request['timeInForceValue'] = 'ioc';
                 }
             }
             if (isTriggerOrder || isStopLossOrTakeProfit) {
