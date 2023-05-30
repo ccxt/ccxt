@@ -24,9 +24,6 @@ before_install:
 - pip install pyopenssl aiohttp # used to run real-time tests
 - php -i | grep php.ini
 - composer install
-- wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-- sudo dpkg -i packages-microsoft-prod.deb
-- rm packages-microsoft-prod.deb
 - sudo apt update
 - sudo apt install apt-transport-https -y
 - sudo apt update -y
