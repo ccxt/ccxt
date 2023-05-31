@@ -1210,7 +1210,9 @@ export default class gate extends Exchange {
         if (market !== undefined) {
             if (market['contract']) {
                 request['contract'] = market['id'];
-                request['settle'] = market['settleId'];
+                if (!market['option']) {
+                    request['settle'] = market['settleId'];
+                }
             } else {
                 request['currency_pair'] = market['id'];
             }
@@ -3307,8 +3309,10 @@ export default class gate extends Exchange {
                     // 'tif': 'gtc', // gtc, ioc, poc PendingOrCancelled == postOnly order
                     // 'text': clientOrderId, // 't-abcdef1234567890',
                     // 'auto_size': '', // close_long, close_short, note size also needs to be set to 0
-                    'settle': market['settleId'], // filled in prepareRequest above
                 };
+                if (!market['option']) {
+                    request['settle'] = market['settleId']; // filled in prepareRequest above
+                }
                 if (isMarketOrder) {
                     request['price'] = price; // set to 0 for market orders
                 } else {
@@ -3377,6 +3381,9 @@ export default class gate extends Exchange {
                 request['text'] = clientOrderId;
             }
         } else {
+            if (market['option']) {
+                throw new NotSupported (this.id + ' createOrder() conditional option orders are not supported');
+            }
             if (contract) {
                 // contract conditional order
                 request = {
@@ -3469,6 +3476,7 @@ export default class gate extends Exchange {
             'margin': 'privateSpotPost' + methodTail,
             'swap': 'privateFuturesPostSettle' + methodTail,
             'future': 'privateDeliveryPostSettle' + methodTail,
+            'option': 'privateOptionsPostOrders',
         });
         const response = await this[method] (this.deepExtend (request, params));
         //
@@ -3506,7 +3514,7 @@ export default class gate extends Exchange {
         //
         //     {"id": 5891843}
         //
-        // future and perpetual swaps
+        // futures, perpetual swaps and options
         //
         //     {
         //         "id": 95938572327,
@@ -3691,7 +3699,7 @@ export default class gate extends Exchange {
         //        "status": "open"
         //    }
         //
-        // FUTURE AND SWAP
+        // FUTURE, SWAP AND OPTION
         // createOrder/cancelOrder/fetchOrder
         //
         //    {
@@ -3884,6 +3892,10 @@ export default class gate extends Exchange {
          * @method
          * @name gate#fetchOrder
          * @description Retrieves information on an order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-3
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-4
          * @param {string} id Order id
          * @param {string} symbol Unified market symbol, *required for spot and margin*
          * @param {object} params Parameters specified by the exchange api
@@ -3907,7 +3919,7 @@ export default class gate extends Exchange {
         }
         const market = (symbol === undefined) ? undefined : this.market (symbol);
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        const contract = (type === 'swap') || (type === 'future');
+        const contract = (type === 'swap') || (type === 'future') || (type === 'option');
         const [ request, requestParams ] = contract ? this.prepareRequest (market, type, query) : this.spotOrderPrepareRequest (market, stop, query);
         request['order_id'] = orderId;
         const methodMiddle = stop ? 'PriceOrders' : 'Orders';
@@ -3916,6 +3928,7 @@ export default class gate extends Exchange {
             'margin': 'privateSpotGet' + methodMiddle + 'OrderId',
             'swap': 'privateFuturesGetSettle' + methodMiddle + 'OrderId',
             'future': 'privateDeliveryGetSettle' + methodMiddle + 'OrderId',
+            'option': 'privateOptionsGetOrdersOrderId',
         });
         const response = await this[method] (this.extend (request, requestParams));
         return this.parseOrder (response, market);
@@ -3987,10 +4000,11 @@ export default class gate extends Exchange {
             'margin': 'privateSpotGet' + methodTail,
             'swap': 'privateFuturesGetSettle' + methodTail,
             'future': 'privateDeliveryGetSettle' + methodTail,
+            'option': 'privateOptionsGetOrders',
         });
         const response = await this[method] (this.extend (request, requestParams));
         //
-        // SPOT Open Orders
+        // spot open orders
         //
         //    [
         //        {
@@ -4030,7 +4044,7 @@ export default class gate extends Exchange {
         //        ...
         //    ]
         //
-        // SPOT
+        // spot
         //
         //    [
         //        {
@@ -4061,7 +4075,7 @@ export default class gate extends Exchange {
         //        }
         //    ]
         //
-        // Spot Stop
+        // spot stop
         //
         //    [
         //        {
@@ -4086,7 +4100,7 @@ export default class gate extends Exchange {
         //        }
         //    ]
         //
-        // Perpetual Swap
+        // swap
         //
         //    [
         //        {
@@ -4108,6 +4122,32 @@ export default class gate extends Exchange {
         //           "price": "0"
         //        }
         //    ]
+        //
+        // option
+        //
+        //     [
+        //         {
+        //             "id": 2593450699,
+        //             "contract": "BTC_USDT-20230601-27500-C",
+        //             "mkfr": "0.0003",
+        //             "tkfr": "0.0003",
+        //             "tif": "gtc",
+        //             "is_reduce_only": false,
+        //             "create_time": 1685503873,
+        //             "price": "200",
+        //             "size": 1,
+        //             "refr": "0",
+        //             "left": 1,
+        //             "text": "api",
+        //             "fill_price": "0",
+        //             "user": 5691076,
+        //             "status": "open",
+        //             "is_liq": false,
+        //             "refu": 0,
+        //             "is_close": false,
+        //             "iceberg": 0
+        //         }
+        //     ]
         //
         let result = response;
         if (openSpotOrders) {
@@ -4145,6 +4185,7 @@ export default class gate extends Exchange {
             'margin': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
             'swap': 'privateFuturesDeleteSettle' + pathMiddle + 'OrdersOrderId',
             'future': 'privateDeliveryDeleteSettle' + pathMiddle + 'OrdersOrderId',
+            'option': 'privateOptionsDeleteOrdersOrderId',
         });
         const response = await this[method] (this.extend (request, requestParams));
         //
@@ -4202,7 +4243,7 @@ export default class gate extends Exchange {
         //         "status": "canceled"
         //     }
         //
-        // perpetual swaps
+        // swap, future and option
         //
         //     {
         //         id: "82241928192",
@@ -4252,6 +4293,7 @@ export default class gate extends Exchange {
             'margin': 'privateSpotDelete' + methodTail,
             'swap': 'privateFuturesDeleteSettle' + methodTail,
             'future': 'privateDeliveryDeleteSettle' + methodTail,
+            'option': 'privateOptionsDeleteOrders',
         });
         const response = await this[method] (this.extend (request, requestParams));
         //
