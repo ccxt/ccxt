@@ -344,9 +344,9 @@ class Transpiler {
         ].concat (this.getCommonRegexes ()).concat ([
 
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
-            [ /([^\s\(]+) in this/g, 'hasattr(self, $1)' ],
-            [ /this\[\([^\s\(]+)\] = (.*?);/g, 'setattr(self, $1, $2)' ],
-            [ /this\[\([^\s\(]+)\]/g, 'getattr(self, $1)' ],
+            [ /([a-zA-Z0-9_]+) in this/g, 'hasattr(self, $1)' ],
+            [ /this\[\[a-zA-Z0-9_]+\] = (.*?);/g, 'setattr(self, $1, $2)' ],
+            [ /this\[\[a-zA-Z0-9_]+\]/g, 'getattr(self, $1)' ],
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
@@ -563,8 +563,7 @@ class Transpiler {
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
 
-            [ /([^\s\(]+) in this/g, 'property_exists($this, $1)' ],
-            [ /this\[\([^\s\(]+)\]/g, '$this->$1' ],
+            [ /([a-zA-Z0-9_]+) in this/g, 'property_exists($this, $1)' ],
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
             [ /([^'])this_\./g, '$1$this_->' ],
