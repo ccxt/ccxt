@@ -1084,9 +1084,8 @@ export default class okcoin extends Exchange {
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
         const timestamp = this.safeFloat (trade, 'ts');
-        const priceString = this.safeString (trade, 'px');
-        let amountString = this.safeString (trade, 'sz');
-        amountString = this.safeString (trade, 'fillSz', amountString);
+        const priceString = this.safeString2 (trade, 'px', 'fillPx');
+        const amountString = this.safeString (trade, 'sz', 'fillSz');
         let takerOrMaker = this.safeString (trade, 'execType');
         if (takerOrMaker === 'M') {
             takerOrMaker = 'maker';
@@ -1115,7 +1114,7 @@ export default class okcoin extends Exchange {
             'symbol': symbol,
             'id': this.safeString (trade, 'tradeId'),
             'order': orderId,
-            'type': undefined,
+            'type': this.safeString (trade, 'instType'),
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': priceString,
@@ -2249,8 +2248,8 @@ export default class okcoin extends Exchange {
         // check that trading symbols match in both entries
         const userTrade = this.safeValue (pair, 1);
         const otherTrade = this.safeValue (pair, 0);
-        const firstMarketId = this.safeString (otherTrade, 'instrument_id');
-        const secondMarketId = this.safeString (userTrade, 'instrument_id');
+        const firstMarketId = this.safeString (otherTrade, 'instId');
+        const secondMarketId = this.safeString (userTrade, 'instId');
         if (firstMarketId !== secondMarketId) {
             throw new NotSupported (this.id + ' parseMyTrade() received unrecognized response format, differing instrument_ids in one fill, the exchange API might have changed, paste your verbose output: https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help');
         }
@@ -2261,25 +2260,26 @@ export default class okcoin extends Exchange {
         let side = undefined;
         let amountString = undefined;
         let costString = undefined;
-        const receivedCurrencyId = this.safeString (userTrade, 'currency');
+        const marketIdSplit = marketId.split ('-');
+        const receivedCurrencyId = this.safeString (marketIdSplit, 0);
         let feeCurrencyId = undefined;
         if (receivedCurrencyId === quoteId) {
             side = this.safeString (otherTrade, 'side');
-            amountString = this.safeString (otherTrade, 'size');
-            costString = this.safeString (userTrade, 'size');
-            feeCurrencyId = this.safeString (otherTrade, 'currency');
+            amountString = this.safeString (otherTrade, 'fillSz');
+            costString = this.safeString (userTrade, 'fillSz');
+            feeCurrencyId = this.safeString (otherTrade, 'feeCcy');
         } else {
             side = this.safeString (userTrade, 'side');
-            amountString = this.safeString (userTrade, 'size');
-            costString = this.safeString (otherTrade, 'size');
-            feeCurrencyId = this.safeString (userTrade, 'currency');
+            amountString = this.safeString (userTrade, 'fillSz');
+            costString = this.safeString (otherTrade, 'fillSz');
+            feeCurrencyId = this.safeString (userTrade, 'feeCcy');
         }
-        const id = this.safeString (userTrade, 'trade_id');
-        const priceString = this.safeString (userTrade, 'price');
+        const id = this.safeString (userTrade, 'tradeId');
+        const priceString = this.safeString (userTrade, 'fillPx');
         const feeCostFirstString = this.safeString (otherTrade, 'fee');
         const feeCostSecondString = this.safeString (userTrade, 'fee');
-        const feeCurrencyCodeFirst = this.safeCurrencyCode (this.safeString (otherTrade, 'currency'));
-        const feeCurrencyCodeSecond = this.safeCurrencyCode (this.safeString (userTrade, 'currency'));
+        const feeCurrencyCodeFirst = this.safeCurrencyCode (this.safeString (otherTrade, 'feeCcy'));
+        const feeCurrencyCodeSecond = this.safeCurrencyCode (this.safeString (userTrade, 'feeCcy'));
         let fee = undefined;
         let fees = undefined;
         // fee is either a positive number (invitation rebate)
@@ -2348,14 +2348,14 @@ export default class okcoin extends Exchange {
         //         "size":"31.03998952", // ←-- cost
         //     }
         //
-        const timestamp = this.parse8601 (this.safeString2 (userTrade, 'timestamp', 'created_at'));
-        let takerOrMaker = this.safeString2 (userTrade, 'exec_type', 'liquidity');
+        const timestamp = this.safeString (userTrade, 'ts');
+        let takerOrMaker = this.safeString (userTrade, 'execType');
         if (takerOrMaker === 'M') {
             takerOrMaker = 'maker';
         } else if (takerOrMaker === 'T') {
             takerOrMaker = 'taker';
         }
-        const orderId = this.safeString (userTrade, 'order_id');
+        const orderId = this.safeString (userTrade, 'ordId');
         return this.safeTrade ({
             'info': pair,
             'timestamp': timestamp,
@@ -2375,7 +2375,7 @@ export default class okcoin extends Exchange {
     }
 
     parseMyTrades (trades, market = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        const grouped = this.groupBy (trades, 'trade_id');
+        const grouped = this.groupBy (trades, 'tradeId');
         const tradeIds = Object.keys (grouped);
         const result = [];
         for (let i = 0; i < tradeIds.length; i++) {
@@ -2397,107 +2397,71 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-days
          * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        // okex actually returns ledger entries instead of fills here, so each fill in the order
-        // is represented by two trades with opposite buy/sell sides, not one :\
-        // this aspect renders the 'fills' endpoint unusable for fetchOrderTrades
-        // until either OKEX fixes the API or we workaround this on our side somehow
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        if ((limit !== undefined) && (limit > 100)) {
-            limit = 100;
+        const request = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
         }
-        const request = {
-            'instrument_id': market['id'],
-            // 'order_id': id, // string
-            // 'after': '1', // pagination of data to return records earlier than the requested ledger_id
-            // 'before': '1', // P=pagination of data to return records newer than the requested ledger_id
-            // 'limit': limit, // optional, number of results per request, default = maximum = 100
-        };
-        const defaultType = this.safeString2 (this.options, 'fetchMyTrades', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        const method = type + 'GetFills';
-        const response = await this[method] (this.extend (request, query));
+        if (since !== undefined) {
+            request['before'] = since;
+        }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instId'] = market['id'];
+        }
+        const response = await this.privateGetTradeFills (this.extend (request, params));
         //
-        //     [
-        //         // sell
-        //         {
-        //             "created_at":"2020-03-29T11:55:25.000Z",
-        //             "currency":"USDT",
-        //             "exec_type":"T",
-        //             "fee":"-0.04647925",
-        //             "instrument_id":"ETH-USDT",
-        //             "ledger_id":"10562924353",
-        //             "liquidity":"T",
-        //             "order_id":"4636470489136128",
-        //             "price":"129.13",
-        //             "product_id":"ETH-USDT",
-        //             "side":"buy",
-        //             "size":"30.98616393",
-        //             "timestamp":"2020-03-29T11:55:25.000Z",
-        //             "trade_id":"18551601"
-        //         },
-        //         {
-        //             "created_at":"2020-03-29T11:55:25.000Z",
-        //             "currency":"ETH",
-        //             "exec_type":"T",
-        //             "fee":"0",
-        //             "instrument_id":"ETH-USDT",
-        //             "ledger_id":"10562924352",
-        //             "liquidity":"T",
-        //             "order_id":"4636470489136128",
-        //             "price":"129.13",
-        //             "product_id":"ETH-USDT",
-        //             "side":"sell",
-        //             "size":"0.23996099",
-        //             "timestamp":"2020-03-29T11:55:25.000Z",
-        //             "trade_id":"18551601"
-        //         },
-        //         // buy
-        //         {
-        //             "created_at":"2020-03-29T11:55:16.000Z",
-        //             "currency":"ETH",
-        //             "exec_type":"T",
-        //             "fee":"-0.00036049",
-        //             "instrument_id":"ETH-USDT",
-        //             "ledger_id":"10562922669",
-        //             "liquidity":"T",
-        //             "order_id": "4636469894136832",
-        //             "price":"129.16",
-        //             "product_id":"ETH-USDT",
-        //             "side":"buy",
-        //             "size":"0.240322",
-        //             "timestamp":"2020-03-29T11:55:16.000Z",
-        //             "trade_id":"18551600"
-        //         },
-        //         {
-        //             "created_at":"2020-03-29T11:55:16.000Z",
-        //             "currency":"USDT",
-        //             "exec_type":"T",
-        //             "fee":"0",
-        //             "instrument_id":"ETH-USDT",
-        //             "ledger_id":"10562922668",
-        //             "liquidity":"T",
-        //             "order_id":"4636469894136832",
-        //             "price":"129.16",
-        //             "product_id":"ETH-USDT",
-        //             "side":"sell",
-        //             "size":"31.03998952",
-        //             "timestamp":"2020-03-29T11:55:16.000Z",
-        //             "trade_id":"18551600"
-        //         }
+        // {
+        //     "code": "0",
+        //     "msg": "",
+        //     "data": [
+        //       {
+        //         "instType": "SPOT",
+        //         "instId": "BTC-USD",
+        //         "tradeId": "123",
+        //         "ordId": "312269865356374016",
+        //         "clOrdId": "b16",
+        //         "billId": "1111",
+        //         "tag": "",
+        //         "fillPx": "999",
+        //         "fillSz": "3",
+        //         "side": "buy",
+        //         "posSide": "net",
+        //         "execType": "M",
+        //         "feeCcy": "",
+        //         "fee": "",
+        //         "ts": "1597026383085"
+        //       },
+        //       {
+        //         "instType": "SPOT",
+        //         "instId": "BTC-USD",
+        //         "tradeId": "123",
+        //         "ordId": "312269865356374016",
+        //         "clOrdId": "b16",
+        //         "billId": "1111",
+        //         "tag": "",
+        //         "fillPx": "999",
+        //         "fillSz": "3",
+        //         "side": "buy",
+        //         "posSide": "net",
+        //         "execType": "M",
+        //         "feeCcy": "",
+        //         "fee": "",
+        //         "ts": "1597026383085"
+        //       }
         //     ]
+        // }
         //
-        return this.parseMyTrades (response, market, since, limit, params) as any;
+        const data = this.safeValue (response, 'data');
+        return this.parseTrades (data, market, since, limit, params);
     }
 
     async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
