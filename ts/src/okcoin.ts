@@ -2025,10 +2025,13 @@ export default class okcoin extends Exchange {
         if (limit > 100) {
             limit = 100; // maximum = 100, default = 100
         }
-        const request = {
-            'limit': limit,
-            'before': since,
-        };
+        const request = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['before'] = since;
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2075,10 +2078,13 @@ export default class okcoin extends Exchange {
         if (limit > 100) {
             limit = 100; // maximum = 100, default = 100
         }
-        const request = {
-            'limit': limit,
-            'before': since,
-        };
+        const request = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['before'] = since;
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
