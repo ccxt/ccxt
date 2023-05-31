@@ -3886,6 +3886,10 @@ export default class gate extends Exchange {
          * @method
          * @name gate#fetchOrder
          * @description Retrieves information on an order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-3
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-4
          * @param {string} id Order id
          * @param {string} symbol Unified market symbol, *required for spot and margin*
          * @param {object} params Parameters specified by the exchange api
@@ -3909,7 +3913,7 @@ export default class gate extends Exchange {
         }
         const market = (symbol === undefined) ? undefined : this.market (symbol);
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        const contract = (type === 'swap') || (type === 'future');
+        const contract = (type === 'swap') || (type === 'future') || (type === 'option');
         const [ request, requestParams ] = contract ? this.prepareRequest (market, type, query) : this.spotOrderPrepareRequest (market, stop, query);
         request['order_id'] = orderId;
         const methodMiddle = stop ? 'PriceOrders' : 'Orders';
