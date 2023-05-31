@@ -332,7 +332,7 @@ export default class poloniex extends poloniexRest {
         return await this.subscribe (name, name, true, undefined, params);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined) {
+    parseWsOHLCV (ohlcv, market: Market = undefined): number[] {
         //
         //    {
         //        symbol: 'BTC_USDT',

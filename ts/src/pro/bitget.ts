@@ -321,7 +321,7 @@ export default class bitget extends bitgetRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined) {
+    parseWsOHLCV (ohlcv, market: Market = undefined): number[] {
         //
         //   [
         //      "1595779200000", // timestamp

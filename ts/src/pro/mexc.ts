@@ -305,7 +305,7 @@ export default class mexc extends mexcRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined) {
+    parseWsOHLCV (ohlcv, market: Market = undefined): number[] {
         //
         // spot
         //

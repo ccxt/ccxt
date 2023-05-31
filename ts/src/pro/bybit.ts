@@ -394,7 +394,7 @@ export default class bybit extends bybitRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (ohlcv) {
+    parseWsOHLCV (ohlcv, market: Market = undefined): number[] {
         //
         //     {
         //         "start": 1670363160000,
