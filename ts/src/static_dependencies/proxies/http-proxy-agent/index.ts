@@ -4,7 +4,7 @@ import * as http from 'http';
 import createDebug from 'debug';
 import { once } from 'events';
 import type { OutgoingHttpHeaders } from 'http';
-import { Agent, AgentConnectOpts } from './../agent-base';
+import { Agent, AgentConnectOpts } from './../agent-base/index.js';
 
 const debug = createDebug('http-proxy-agent');
 

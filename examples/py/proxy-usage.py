@@ -14,36 +14,31 @@ import asyncio
 import ccxt.async_support as ccxt  # noqa: E402
 
 
-#import { okx } from '../../ts/ccxt.js';
+# import { kucoin } from '../../js/ccxt.js';
 # AUTO-TRANSPILE #
 async def example():
-    # const myEx = new ccxt.okx ({});
-    my_ex = ccxt.okx({})
+    my_ex = None
+    site_my_ip = 'https://api.ipify.org/'
     #
     #
     #
     #
     #
-    my_ex.proxy_url = 'https://cors-anywhere.herokuapp.com/'  # It prepends redirect url to requests, so requests leads to call url i.e.: https://cors-anywhere.herokuapp.com/?https://target_url.com . It might be useful for simple redirection or CORS bypassing purposes (Note, this will not work for websocket connections, but only for REST calls).
-    print(await my_ex.fetch('https://api.ipify.org/'))
-    my_ex.proxy_url = None
     #
     #
     #
     #
     #
-    my_ex.proxy_http = 'http://51.83.140.52:11230'  # It sets a real proxy for communication, so calls are made directly to url https://target_url.com , but tunneled through a proxy server (Note, this might work for websocket connections too).
-    print(await my_ex.fetch('https://api.ipify.org/'))
-    my_ex.proxy_http = None
     #
     #
     #
     #
     #
+    #
+    my_ex = ccxt.kucoin({})
     my_ex.proxy_socks = 'socks://127.0.0.1:1080'  # It is for socks5 proxy (Note, this might work for websocket connections too).
-    print(await my_ex.fetch('https://api.ipify.org/'))
-    my_ex.proxy_socks = None
-
+    print(await my_ex.fetch(site_my_ip))
+ 
     await my_ex.close()
 
 

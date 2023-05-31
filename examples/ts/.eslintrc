@@ -90,7 +90,13 @@
     "no-underscore-dangle": "off",
     "consistent-return": "off",
     "no-await-in-loop": "off",
-    "prefer-exponentiation-operator": "off"
+    "prefer-exponentiation-operator": "off",
+    "no-use-before-define": ["error", {
+        "functions": false,
+        "classes": true,
+        "variables": true,
+        "allowNamedExports": false
+    }]
   },
   "settings": {
     "import/resolver": {

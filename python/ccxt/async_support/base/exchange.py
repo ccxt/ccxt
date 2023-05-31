@@ -38,14 +38,16 @@ from ccxt.async_support.base.ws.fast_client import FastClient
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 
+from ccxt.static_dependencies.aiohttp_socks import ProxyConnector
+
 # -----------------------------------------------------------------------------
 
-try:
-    from aiohttp_socks import ProxyType, ProxyConnector, ChainProxyConnector
-except ImportError:
-    ProxyType = None
-    ProxyConnector = None
-    ChainProxyConnector = None
+# try:
+#     from aiohttp_socks import ProxyConnector
+# except ImportError:
+#     ProxyType = None
+#     ProxyConnector = None
+#     ChainProxyConnector = None
 
 # -----------------------------------------------------------------------------
 
@@ -126,7 +128,7 @@ class Exchange(BaseExchange):
         request_headers = self.prepare_request_headers(headers)
         # proxy
         final_proxy = None  # set default
-        final_session = self.session
+        final_session = None
         proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback = self.check_proxy_settings()
         if proxyUrl:
             url = proxyUrl + url
@@ -137,17 +139,12 @@ class Exchange(BaseExchange):
         elif proxyHttps:
             final_proxy = proxyHttps
         elif proxySocks:
-            if ProxyConnector is None:
-                raise NotSupported(self.id + ' Socks proxy functionality requires aiohttp_socks, install with `pip install aiohttp_socks`: https://github.com/romis2012/aiohttp-socks')
+            # if ProxyConnector is None:
+            #     raise NotSupported(self.id + ' Socks proxy functionality requires aiohttp_socks, install with `pip install aiohttp_socks`: https://github.com/romis2012/aiohttp-socks')
             # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
-            proxy_type, host, port, username, password = ProxyConnector.parse_proxy_url(url)
-            connector = ProxyConnector(
-                proxy_type=proxy_type,
-                host=host,
-                port=port,
-                username=username,
-                password=password,
+            connector = ProxyConnector.from_url(
+                proxySocks,                                               
                 # extra args copied from self.open()
                 ssl=context,
                 loop=self.asyncio_loop,
@@ -169,7 +166,7 @@ class Exchange(BaseExchange):
         request_body = body
         encoded_body = body.encode() if body else None
         self.open()
-        session_method = getattr(final_session, method.lower())
+        session_method = getattr(final_session if final_session is not None else self.session, method.lower())
 
         http_response = None
         http_status_code = None
@@ -524,6 +521,44 @@ class Exchange(BaseExchange):
     # ########################################################################
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def get_exchange_prop_all_case(self, key: str, defaultValue: Optional[Any] = None):
+        if hasattr(self, key) and getattr(self, key) is not None:
+            return getattr(self, key)
+        else:
+            unCamelCasedKey = self.un_camel_case(key)
+            if unCamelCasedKey != key and hasattr(self, unCamelCasedKey):
+                return getattr(self, unCamelCasedKey)
+            return defaultValue
+
+    def set_exchange_prop_all_case(self, key: str, value: Optional[Any] = None):
+        setattr(self, key, value)
+        unCamelCasedKey = self.un_camel_case(key)
+        setattr(self, unCamelCasedKey, value)
+
+    def check_proxy_settings(self):
+        proxyUrl = self.get_exchange_prop_all_case('proxyUrl')
+        proxyUrlCallback = self.get_exchange_prop_all_case('proxyUrlCallback')
+        proxyHttp = self.get_exchange_prop_all_case('proxyHttp')
+        proxyHttps = self.get_exchange_prop_all_case('proxyHttps')
+        proxySocks = self.get_exchange_prop_all_case('proxySocks')
+        proxyAgentCallback = self.get_exchange_prop_all_case('proxyAgentCallback')
+        val = 0
+        if proxyUrl is not None:
+            val = val + 1
+        if proxyUrlCallback is not None:
+            val = val + 1
+        if proxyHttp is not None:
+            val = val + 1
+        if proxyHttps is not None:
+            val = val + 1
+        if proxySocks is not None:
+            val = val + 1
+        if proxyAgentCallback is not None:
+            val = val + 1
+        if val > 1:
+            raise ExchangeError(self.id + ' you have multiple proxy settings, please use only one from : proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback')
+        return [proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback]
 
     def find_message_hashes(self, client, element: str):
         result = []
@@ -1967,7 +2002,7 @@ class Exchange(BaseExchange):
             # check if exchange has properties for self method
             exchangeWideMethodOptions = self.safe_value(self.options, methodName)
             if exchangeWideMethodOptions is not None:
-                # check if the option is defined in self method's props
+                # check if the option is hasattr(self, defined) method's props
                 value = self.safe_value_2(exchangeWideMethodOptions, optionName, defaultOptionName)
             if value is None:
                 # if it's still None, check if global exchange-wide option exists

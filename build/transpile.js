@@ -346,7 +346,7 @@ class Transpiler {
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /([a-zA-Z0-9_]+) in this(:?[^.])/g, 'hasattr(self, $1)$2' ],
             // [ /this\[[a-zA-Z0-9_]+\]/g, 'getattr(self, $1)' ],
-            [ /this(\[[a-zA-Z0-9_]+\]) = (.*?);/g, 'setattr(self, $1, $2)' ],
+            [ /this\[([a-zA-Z0-9_]+)\] = (.*?);/g, 'setattr(self, $1, $2)' ],
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],

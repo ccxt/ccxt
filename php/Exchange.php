@@ -1177,6 +1177,13 @@ class Exchange {
         //     }
         // }
 
+        $this->set_exchange_prop_all_case('proxyUrl', null);
+        $this->set_exchange_prop_all_case('proxyUrlCallback', null);
+        $this->set_exchange_prop_all_case('proxyHttp', null);
+        $this->set_exchange_prop_all_case('proxyHttps', null);
+        $this->set_exchange_prop_all_case('proxySocks', null);
+        $this->set_exchange_prop_all_case('proxyAgentCallback', null);
+
         $this->options = $this->get_default_options();
 
         $this->urlencode_glue = ini_get('arg_separator.output'); // can be overrided by exchange constructor params
@@ -2174,6 +2181,56 @@ class Exchange {
     // ########################################################################
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function get_exchange_prop_all_case(string $key, mixed $defaultValue = null) {
+        if (property_exists($this, $key) && $this->$key !== null) {
+            return $this->$key;
+        } else {
+            $unCamelCasedKey = $this->un_camel_case($key);
+            if ($unCamelCasedKey !== $key && property_exists($this, $unCamelCasedKey)) {
+                return $this->$unCamelCasedKey;
+            }
+            return $defaultValue;
+        }
+    }
+
+    public function set_exchange_prop_all_case(string $key, mixed $value = null) {
+        $this->$key = $value;
+        $unCamelCasedKey = $this->un_camel_case($key);
+        $this->$unCamelCasedKey = $value;
+    }
+
+    public function check_proxy_settings() {
+        $proxyUrl = $this->get_exchange_prop_all_case('proxyUrl');
+        $proxyUrlCallback = $this->get_exchange_prop_all_case('proxyUrlCallback');
+        $proxyHttp = $this->get_exchange_prop_all_case('proxyHttp');
+        $proxyHttps = $this->get_exchange_prop_all_case('proxyHttps');
+        $proxySocks = $this->get_exchange_prop_all_case('proxySocks');
+        $proxyAgentCallback = $this->get_exchange_prop_all_case('proxyAgentCallback');
+        $val = 0;
+        if ($proxyUrl !== null) {
+            $val = $val + 1;
+        }
+        if ($proxyUrlCallback !== null) {
+            $val = $val + 1;
+        }
+        if ($proxyHttp !== null) {
+            $val = $val + 1;
+        }
+        if ($proxyHttps !== null) {
+            $val = $val + 1;
+        }
+        if ($proxySocks !== null) {
+            $val = $val + 1;
+        }
+        if ($proxyAgentCallback !== null) {
+            $val = $val + 1;
+        }
+        if ($val > 1) {
+            throw new ExchangeError($this->id . ' you have multiple proxy settings, please use only one from : $proxyUrl, $proxyUrlCallback, $proxyHttp, $proxyHttps, $proxySocks, proxyAgentCallback');
+        }
+        return array( $proxyUrl, $proxyUrlCallback, $proxyHttp, $proxyHttps, $proxySocks, $proxyAgentCallback );
+    }
 
     public function find_message_hashes($client, string $element) {
         $result = array();
@@ -3927,7 +3984,7 @@ class Exchange {
             // check if exchange has properties for this method
             $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
             if ($exchangeWideMethodOptions !== null) {
-                // check if the option is defined in this method's props
+                // check if the option is property_exists($this, defined) method's props
                 $value = $this->safe_value_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
             }
             if ($value === null) {

@@ -1420,7 +1420,7 @@ export default class Exchange {
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     getExchangePropAllCase (key: string, defaultValue: any = undefined): any {
-        if (key in this) {
+        if (key in this && this[key] !== undefined) {
             return this[key];
         } else {
             const unCamelCasedKey = this.unCamelCase (key);
@@ -3225,7 +3225,7 @@ export default class Exchange {
             // check if exchange has properties for this method
             const exchangeWideMethodOptions = this.safeValue (this.options, methodName);
             if (exchangeWideMethodOptions !== undefined) {
-                // check if the option is defined in this method's props
+                // check if the option is defined inside this method's props
                 value = this.safeValue2 (exchangeWideMethodOptions, optionName, defaultOptionName);
             }
             if (value === undefined) {
