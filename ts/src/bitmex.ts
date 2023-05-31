@@ -306,13 +306,11 @@ export default class bitmex extends Exchange {
         //     }
         //
         const result = {};
-        this.options['currencyIdsByAssetNames'] = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const asset = this.safeString (currency, 'asset');
             const code = this.safeCurrencyCode (asset);
             const id = this.safeString (currency, 'currency');
-            this.options['currencyIdsByAssetNames'][asset] = id; // i.e. asset = XBT and id = XBt
             const name = this.safeString (currency, 'name');
             const chains = this.safeValue (currency, 'networks', []);
             let depositEnabled = false;
@@ -320,7 +318,7 @@ export default class bitmex extends Exchange {
             const networks = {};
             const scale = this.safeString (currency, 'scale');
             const precisionString = this.parsePrecision (scale);
-            const precision = this.parseNumber (scale);
+            const precision = this.parseNumber (precisionString);
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'asset');
@@ -397,19 +395,17 @@ export default class bitmex extends Exchange {
 
     amountToCurrencyPrecision (code, amount) {
         const currency = this.currency (code);
-        const precision = this.safeInteger (currency, 'precision', 8);
+        const precision = this.safeString (currency, 'precision');
         const amountString = this.numberToString (amount);
-        const precisionString = this.numberToString (Math.pow (10, precision));
-        const finalAmount = Precise.stringMul (amountString, precisionString);
+        const finalAmount = Precise.stringDiv (amountString, precision);
         return this.parseNumber (finalAmount);
     }
 
     convertToRealAmount (code, amount) {
         const currency = this.currency (code);
-        const precision = this.safeInteger (currency, 'precision', 8);
+        const precision = this.safeString (currency, 'precision');
         const amountString = this.numberToString (amount);
-        const precisionString = this.numberToString (Math.pow (10, precision));
-        const finalAmount = Precise.stringDiv (amountString, precisionString);
+        const finalAmount = Precise.stringMul (amountString, precision);
         return this.parseNumber (finalAmount);
     }
 
