@@ -255,6 +255,7 @@ class woo extends Exchange {
                 'transfer' => array(
                     'fillResponseFromRequest' => true,
                 ),
+                'brokerId' => 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
             ),
             'commonCurrencies' => array(),
             'exceptions' => array(
@@ -797,6 +798,11 @@ class woo extends Exchange {
             $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
             if ($clientOrderId !== null) {
                 $request['client_order_id'] = $clientOrderId;
+            }
+            $applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+            $brokerId = $this->safe_string($this->options, 'brokerId', $applicationId);
+            if ($brokerId !== null) {
+                $request['broker_id'] = $brokerId;
             }
             $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ));
             $response = Async\await($this->v1PrivatePostOrder (array_merge($request, $params)));

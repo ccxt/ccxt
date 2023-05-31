@@ -1507,7 +1507,7 @@ class bitopro(Exchange, ImplicitAPI):
             if method == 'POST' or method == 'PUT':
                 body = self.json(params)
                 payload = self.string_to_base64(body)
-                signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)
+                signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384)
                 headers['X-BITOPRO-APIKEY'] = self.apiKey
                 headers['X-BITOPRO-PAYLOAD'] = payload
                 headers['X-BITOPRO-SIGNATURE'] = signature

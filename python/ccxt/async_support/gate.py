@@ -1211,7 +1211,8 @@ class gate(Exchange, ImplicitAPI):
         if market is not None:
             if market['contract']:
                 request['contract'] = market['id']
-                request['settle'] = market['settleId']
+                if not market['option']:
+                    request['settle'] = market['settleId']
             else:
                 request['currency_pair'] = market['id']
         else:
@@ -2202,9 +2203,10 @@ class gate(Exchange, ImplicitAPI):
             'funding': 'privateMarginGetFundingAccounts',
             'swap': 'privateFuturesGetSettleAccounts',
             'future': 'privateDeliveryGetSettleAccounts',
+            'option': 'privateOptionsGetAccounts',
         })
         response = await getattr(self, method)(self.extend(request, requestQuery))
-        contract = ((type == 'swap') or (type == 'future'))
+        contract = ((type == 'swap') or (type == 'future') or (type == 'option'))
         if contract:
             response = [response]
         #
@@ -2315,6 +2317,38 @@ class gate(Exchange, ImplicitAPI):
         #        position_margin: "0",
         #        user: "6333333",
         #    }
+        #
+        # option
+        #
+        #     {
+        #         "order_margin": "0",
+        #         "bid_order_margin": "0",
+        #         "init_margin": "0",
+        #         "history": {
+        #             "dnw": "32",
+        #             "set": "0",
+        #             "point_fee": "0",
+        #             "point_dnw": "0",
+        #             "prem": "0",
+        #             "point_refr": "0",
+        #             "insur": "0",
+        #             "fee": "0",
+        #             "refr": "0"
+        #         },
+        #         "total": "32",
+        #         "available": "32",
+        #         "liq_triggered": False,
+        #         "maint_margin": "0",
+        #         "ask_order_margin": "0",
+        #         "point": "0",
+        #         "position_notional_limit": "2000000",
+        #         "unrealised_pnl": "0",
+        #         "equity": "32",
+        #         "user": 5691076,
+        #         "currency": "USDT",
+        #         "short_enabled": False,
+        #         "orders_limit": 10
+        #     }
         #
         result = {
             'info': response,
@@ -3099,8 +3133,9 @@ class gate(Exchange, ImplicitAPI):
                     # 'tif': 'gtc',  # gtc, ioc, poc PendingOrCancelled == postOnly order
                     # 'text': clientOrderId,  # 't-abcdef1234567890',
                     # 'auto_size': '',  # close_long, close_short, note size also needs to be set to 0
-                    'settle': market['settleId'],  # filled in prepareRequest above
                 }
+                if not market['option']:
+                    request['settle'] = market['settleId']  # filled in prepareRequest above
                 if isMarketOrder:
                     request['price'] = price  # set to 0 for market orders
                 else:
@@ -3157,6 +3192,8 @@ class gate(Exchange, ImplicitAPI):
                     clientOrderId = 't-' + clientOrderId
                 request['text'] = clientOrderId
         else:
+            if market['option']:
+                raise NotSupported(self.id + ' createOrder() conditional option orders are not supported')
             if contract:
                 # contract conditional order
                 request = {
@@ -3239,6 +3276,7 @@ class gate(Exchange, ImplicitAPI):
             'margin': 'privateSpotPost' + methodTail,
             'swap': 'privateFuturesPostSettle' + methodTail,
             'future': 'privateDeliveryPostSettle' + methodTail,
+            'option': 'privateOptionsPostOrders',
         })
         response = await getattr(self, method)(self.deep_extend(request, params))
         #
@@ -3276,7 +3314,7 @@ class gate(Exchange, ImplicitAPI):
         #
         #     {"id": 5891843}
         #
-        # future and perpetual swaps
+        # futures, perpetual swaps and options
         #
         #     {
         #         "id": 95938572327,
@@ -3451,7 +3489,7 @@ class gate(Exchange, ImplicitAPI):
         #        "status": "open"
         #    }
         #
-        # FUTURE AND SWAP
+        # FUTURE, SWAP AND OPTION
         # createOrder/cancelOrder/fetchOrder
         #
         #    {
@@ -3631,6 +3669,10 @@ class gate(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         Retrieves information on an order
+        see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order
+        see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
+        see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-3
+        see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-4
         :param str id: Order id
         :param str symbol: Unified market symbol, *required for spot and margin*
         :param dict params: Parameters specified by the exchange api
@@ -3652,7 +3694,7 @@ class gate(Exchange, ImplicitAPI):
             orderId = clientOrderId
         market = None if (symbol is None) else self.market(symbol)
         type, query = self.handle_market_type_and_params('fetchOrder', market, params)
-        contract = (type == 'swap') or (type == 'future')
+        contract = (type == 'swap') or (type == 'future') or (type == 'option')
         request, requestParams = self.prepare_request(market, type, query) if contract else self.spot_order_prepare_request(market, stop, query)
         request['order_id'] = orderId
         methodMiddle = 'PriceOrders' if stop else 'Orders'
@@ -3661,6 +3703,7 @@ class gate(Exchange, ImplicitAPI):
             'margin': 'privateSpotGet' + methodMiddle + 'OrderId',
             'swap': 'privateFuturesGetSettle' + methodMiddle + 'OrderId',
             'future': 'privateDeliveryGetSettle' + methodMiddle + 'OrderId',
+            'option': 'privateOptionsGetOrdersOrderId',
         })
         response = await getattr(self, method)(self.extend(request, requestParams))
         return self.parse_order(response, market)
@@ -3720,10 +3763,11 @@ class gate(Exchange, ImplicitAPI):
             'margin': 'privateSpotGet' + methodTail,
             'swap': 'privateFuturesGetSettle' + methodTail,
             'future': 'privateDeliveryGetSettle' + methodTail,
+            'option': 'privateOptionsGetOrders',
         })
         response = await getattr(self, method)(self.extend(request, requestParams))
         #
-        # SPOT Open Orders
+        # spot open orders
         #
         #    [
         #        {
@@ -3763,7 +3807,7 @@ class gate(Exchange, ImplicitAPI):
         #        ...
         #    ]
         #
-        # SPOT
+        # spot
         #
         #    [
         #        {
@@ -3794,7 +3838,7 @@ class gate(Exchange, ImplicitAPI):
         #        }
         #    ]
         #
-        # Spot Stop
+        # spot stop
         #
         #    [
         #        {
@@ -3819,7 +3863,7 @@ class gate(Exchange, ImplicitAPI):
         #        }
         #    ]
         #
-        # Perpetual Swap
+        # swap
         #
         #    [
         #        {
@@ -3841,6 +3885,32 @@ class gate(Exchange, ImplicitAPI):
         #           "price": "0"
         #        }
         #    ]
+        #
+        # option
+        #
+        #     [
+        #         {
+        #             "id": 2593450699,
+        #             "contract": "BTC_USDT-20230601-27500-C",
+        #             "mkfr": "0.0003",
+        #             "tkfr": "0.0003",
+        #             "tif": "gtc",
+        #             "is_reduce_only": False,
+        #             "create_time": 1685503873,
+        #             "price": "200",
+        #             "size": 1,
+        #             "refr": "0",
+        #             "left": 1,
+        #             "text": "api",
+        #             "fill_price": "0",
+        #             "user": 5691076,
+        #             "status": "open",
+        #             "is_liq": False,
+        #             "refu": 0,
+        #             "is_close": False,
+        #             "iceberg": 0
+        #         }
+        #     ]
         #
         result = response
         if openSpotOrders:
@@ -3873,6 +3943,7 @@ class gate(Exchange, ImplicitAPI):
             'margin': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
             'swap': 'privateFuturesDeleteSettle' + pathMiddle + 'OrdersOrderId',
             'future': 'privateDeliveryDeleteSettle' + pathMiddle + 'OrdersOrderId',
+            'option': 'privateOptionsDeleteOrdersOrderId',
         })
         response = await getattr(self, method)(self.extend(request, requestParams))
         #
@@ -3930,7 +4001,7 @@ class gate(Exchange, ImplicitAPI):
         #         "status": "canceled"
         #     }
         #
-        # perpetual swaps
+        # swap, future and option
         #
         #     {
         #         id: "82241928192",
@@ -3977,6 +4048,7 @@ class gate(Exchange, ImplicitAPI):
             'margin': 'privateSpotDelete' + methodTail,
             'swap': 'privateFuturesDeleteSettle' + methodTail,
             'future': 'privateDeliveryDeleteSettle' + methodTail,
+            'option': 'privateOptionsDeleteOrders',
         })
         response = await getattr(self, method)(self.extend(request, requestParams))
         #
