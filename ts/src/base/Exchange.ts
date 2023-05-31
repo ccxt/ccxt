@@ -1446,22 +1446,22 @@ export default class Exchange {
         const proxyAgentCallback = this.getExchangePropAllCase ('proxyAgentCallback');
         let val = 0;
         if (proxyUrl !== undefined) {
-            val++;
+            val = val + 1;
         }
         if (proxyUrlCallback !== undefined) {
-            val++;
+            val = val + 1;
         }
         if (proxyHttp !== undefined) {
-            val++;
+            val = val + 1;
         }
         if (proxyHttps !== undefined) {
-            val++;
+            val = val + 1;
         }
         if (proxySocks !== undefined) {
-            val++;
+            val = val + 1;
         }
         if (proxyAgentCallback !== undefined) {
-            val++;
+            val = val + 1;
         }
         if (val > 1) {
             throw new ExchangeError (this.id + ' you have multiple proxy settings, please use only one from : proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback');
