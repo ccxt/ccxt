@@ -5023,7 +5023,7 @@ export default class mexc extends Exchange {
         const access = this.safeString (api, 1);
         [ path, params ] = this.resolvePath (path, params);
         let url = undefined;
-        if (section === 'spot') {
+        if (section === 'spot' || section === 'broker') {
             url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
             let paramsEncoded = '';
             if (access === 'private') {
@@ -5046,7 +5046,7 @@ export default class mexc extends Exchange {
             if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
             }
-        } else if (section === 'contract' || section === 'spot2' || section === 'broker') {
+        } else if (section === 'contract' || section === 'spot2') {
             url = this.urls['api'][section][access] + '/' + this.implodeParams (path, params);
             params = this.omit (params, this.extractParams (path));
             if (access === 'public') {
