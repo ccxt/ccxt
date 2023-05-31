@@ -1300,6 +1300,7 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-balance
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
@@ -1328,6 +1329,7 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#createOrder
          * @description create a trade order
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1385,6 +1387,7 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#cancelOrder
          * @description cancels an open order
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the okcoin api endpoint
@@ -1570,6 +1573,7 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-details
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1643,6 +1647,7 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-list
          * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
@@ -1715,6 +1720,7 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-3-months
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
@@ -1789,22 +1795,23 @@ export default class okcoin extends Exchange {
 
     parseDepositAddress (depositAddress, currency = undefined) {
         //
-        //     {
-        //         address: '0x696abb81974a8793352cbd33aadcf78eda3cfdfa',
-        //         currency: 'eth'
-        //         tag: 'abcde12345', // will be missing if the token does not require a deposit tag
-        //         payment_id: 'abcde12345', // will not be returned if the token does not require a payment_id
-        //         // can_deposit: 1, // 0 or 1, documented but missing
-        //         // can_withdraw: 1, // 0 or 1, documented but missing
-        //     }
+        // {
+        //     "chain": "BTC-Bitcoin",
+        //     "ctAddr": "",
+        //     "ccy": "BTC",
+        //     "to": "6",
+        //     "addr": "39XNxK1Ryqgg3Bsyn6HzoqV4Xji25pNkv6",
+        //     "selected": true
+        // }
         //
-        const address = this.safeString (depositAddress, 'address');
-        let tag = this.safeString2 (depositAddress, 'tag', 'payment_id');
-        tag = this.safeString2 (depositAddress, 'memo', 'Memo', tag);
-        const currencyId = this.safeString (depositAddress, 'currency');
+        const address = this.safeString (depositAddress, 'addr');
+        let tag = this.safeString (depositAddress, 'tag');
+        tag = this.safeString (depositAddress, 'memo', tag);
+        const currencyId = this.safeString (depositAddress, 'ccy');
         const code = this.safeCurrencyCode (currencyId);
         this.checkAddress (address);
         return {
+            'chain': this.safeString (depositAddress, 'chain'),
             'currency': code,
             'address': address,
             'tag': tag,
@@ -1817,6 +1824,7 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-deposit-address
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1825,23 +1833,43 @@ export default class okcoin extends Exchange {
         const parts = code.split ('-');
         const currency = this.currency (parts[0]);
         const request = {
-            'currency': currency['id'],
+            'ccy': currency['id'],
         };
-        const response = await this.accountGetDepositAddress (this.extend (request, params));
+        const response = await this.privateGetAssetDepositAddress (this.extend (request, params));
         //
-        //     [
+        // {
+        //     "code": "0",
+        //     "data": [
         //         {
-        //             address: '0x696abb81974a8793352cbd33aadcf78eda3cfdfa',
-        //             currency: 'eth'
+        //             "chain": "BTC-Bitcoin",
+        //             "ctAddr": "",
+        //             "ccy": "BTC",
+        //             "to": "6",
+        //             "addr": "39XNxK1Ryqgg3Bsyn6HzoqV4Xji25pNkv6",
+        //             "selected": true
+        //         },
+        //         {
+        //             "chain": "BTC-OKC",
+        //             "ctAddr": "",
+        //             "ccy": "BTC",
+        //             "to": "6",
+        //             "addr": "0x66d0edc2e63b6b992381ee668fbcb01f20ae0428",
+        //             "selected": true
+        //         },
+        //         {
+        //             "chain": "BTC-ERC20",
+        //             "ctAddr": "5807cf",
+        //             "ccy": "BTC",
+        //             "to": "6",
+        //             "addr": "0x66d0edc2e63b6b992381ee668fbcb01f20ae0428",
+        //             "selected": true
         //         }
-        //     ]
+        //     ],
+        //     "msg": ""
+        // }
         //
-        const addressesByCode = this.parseDepositAddresses (response, [ currency['code'] ]);
-        const address = this.safeValue (addressesByCode, code);
-        if (address === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
-        }
-        return address;
+        const data = this.safeValue (response, 'data');
+        return this.parseDepositAddresses (data, [ currency['code'] ], false);
     }
 
     async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
