@@ -1720,44 +1720,6 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    def get_exchange_prop_all_case(self, key: str, defaultValue: Optional[Any] = None):
-        if hasattr(self, key) and getattr(self, key) is not None:
-            return getattr(self, key)
-        else:
-            unCamelCasedKey = self.un_camel_case(key)
-            if unCamelCasedKey != key and hasattr(self, unCamelCasedKey):
-                return getattr(self, unCamelCasedKey)
-            return defaultValue
-
-    def set_exchange_prop_all_case(self, key: str, value: Optional[Any] = None):
-        setattr(self, key, value)
-        unCamelCasedKey = self.un_camel_case(key)
-        setattr(self, unCamelCasedKey, value)
-
-    def check_proxy_settings(self):
-        proxyUrl = self.get_exchange_prop_all_case('proxyUrl')
-        proxyUrlCallback = self.get_exchange_prop_all_case('proxyUrlCallback')
-        proxyHttp = self.get_exchange_prop_all_case('proxyHttp')
-        proxyHttps = self.get_exchange_prop_all_case('proxyHttps')
-        proxySocks = self.get_exchange_prop_all_case('proxySocks')
-        proxyAgentCallback = self.get_exchange_prop_all_case('proxyAgentCallback')
-        val = 0
-        if proxyUrl is not None:
-            val = val + 1
-        if proxyUrlCallback is not None:
-            val = val + 1
-        if proxyHttp is not None:
-            val = val + 1
-        if proxyHttps is not None:
-            val = val + 1
-        if proxySocks is not None:
-            val = val + 1
-        if proxyAgentCallback is not None:
-            val = val + 1
-        if val > 1:
-            raise ExchangeError(self.id + ' you have multiple proxy settings, please use only one from : proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback')
-        return [proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback]
-
     def find_message_hashes(self, client, element: str):
         result = []
         messageHashes = list(client.futures.keys())
