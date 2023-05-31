@@ -110,7 +110,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 
@@ -211,7 +211,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -235,7 +235,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -1064,7 +1064,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $trimmedStatus = $this->safe_string($stateParts, 0);
         $status = $this->parse_ws_order_status($trimmedStatus);
         $price = $this->safe_string($order, 16);
-        $timestamp = $this->safe_integer($order, 4);
+        $timestamp = $this->safe_integer_2($order, 5, 4);
         $average = $this->safe_string($order, 17);
         $stopPrice = $this->omit_zero($this->safe_string($order, 18));
         return $this->safe_order(array(

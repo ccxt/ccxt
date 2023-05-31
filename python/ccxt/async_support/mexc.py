@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import IndexType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1006,6 +1007,8 @@ class mexc(Exchange, ImplicitAPI):
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
+        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#order-book
+        see https://mxcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
@@ -1062,6 +1065,14 @@ class mexc(Exchange, ImplicitAPI):
             orderbook = self.parse_order_book(data, symbol, timestamp)
             orderbook['nonce'] = self.safe_integer(data, 'version')
         return orderbook
+
+    def parse_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2):
+        price = self.safe_number(bidask, priceKey)
+        amount = self.safe_number(bidask, amountKey)
+        count = self.safe_number(bidask, countKey)
+        if count is not None:
+            return [price, amount, count]
+        return [price, amount]
 
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -2286,8 +2297,8 @@ class mexc(Exchange, ImplicitAPI):
         if marketType == 'spot':
             raise BadRequest(self.id + ' fetchOrdersByState() is not supported for ' + marketType)
         else:
-            params['states'] = state
-            return await self.fetch_orders(symbol, since, limit, params)
+            request['states'] = state
+            return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """

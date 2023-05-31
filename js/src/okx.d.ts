@@ -4,6 +4,53 @@ export default class okx extends Exchange {
     describe(): any;
     handleMarketTypeAndParams(methodName: any, market?: any, params?: {}): any;
     convertToInstrumentType(type: any): string;
+    convertExpireDate(date: any): string;
+    createExpiredOptionMarket(symbol: any): {
+        id: string;
+        symbol: string;
+        base: any;
+        quote: string;
+        settle: any;
+        baseId: any;
+        quoteId: string;
+        settleId: any;
+        active: boolean;
+        type: string;
+        linear: any;
+        inverse: any;
+        spot: boolean;
+        swap: boolean;
+        future: boolean;
+        option: boolean;
+        margin: boolean;
+        contract: boolean;
+        contractSize: number;
+        expiry: number;
+        expiryDatetime: string;
+        optionType: string;
+        strike: number;
+        precision: {
+            amount: any;
+            price: any;
+        };
+        limits: {
+            amount: {
+                min: any;
+                max: any;
+            };
+            price: {
+                min: any;
+                max: any;
+            };
+            cost: {
+                min: any;
+                max: any;
+            };
+        };
+        info: any;
+    };
+    market(symbol: any): any;
+    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): any;
     fetchStatus(params?: {}): Promise<{
         updated: any;
         status: string;
@@ -347,9 +394,9 @@ export default class okx extends Exchange {
     fetchOpenInterest(symbol: string, params?: {}): Promise<{
         symbol: any;
         baseVolume: any;
-        quoteVolume: number;
-        openInterestAmount: number;
-        openInterestValue: number;
+        quoteVolume: any;
+        openInterestAmount: any;
+        openInterestValue: any;
         timestamp: number;
         datetime: string;
         info: any;
@@ -358,9 +405,9 @@ export default class okx extends Exchange {
     parseOpenInterest(interest: any, market?: any): {
         symbol: any;
         baseVolume: any;
-        quoteVolume: number;
-        openInterestAmount: number;
-        openInterestValue: number;
+        quoteVolume: any;
+        openInterestAmount: any;
+        openInterestValue: any;
         timestamp: number;
         datetime: string;
         info: any;
@@ -368,5 +415,14 @@ export default class okx extends Exchange {
     setSandboxMode(enable: any): void;
     fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
+    fetchSettlementHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseSettlement(settlement: any, market: any): {
+        info: any;
+        symbol: any;
+        price: number;
+        timestamp: any;
+        datetime: any;
+    };
+    parseSettlements(settlements: any, market: any): any[];
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

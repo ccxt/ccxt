@@ -377,6 +377,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/order/spot-borrow-check': 2.5,
                         'v5/order/realtime': 2.5,
                         'v5/position/list': 2.5,
+                        'v5/position/switch-mode': 2.5,
                         'v5/execution/list': 2.5,
                         'v5/position/closed-pnl': 2.5,
                         'v5/account/wallet-balance': 2.5,
@@ -579,6 +580,9 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/position/set-tpsl-mode': 2.5,
                         'v5/position/set-risk-limit': 2.5,
                         'v5/position/trading-stop': 2.5,
+                        'v5/position/switch-isolated': 2.5,
+                        'v5/position/switch-mode': 2.5,
+                        'v5/position/set-auto-add-margin': 2.5,
                         'v5/account/upgrade-to-uta': 2.5,
                         'v5/account/set-margin-mode': 2.5,
                         'v5/asset/transfer/inter-transfer': 2.5,
@@ -1483,6 +1487,7 @@ class bybit(Exchange, ImplicitAPI):
         return result
 
     def fetch_derivatives_markets(self, params):
+        params = self.extend(params)
         params['limit'] = 1000  # minimize number of requests
         response = self.publicGetV5MarketInstrumentsInfo(params)
         data = self.safe_value(response, 'result', {})
@@ -1623,9 +1628,12 @@ class bybit(Exchange, ImplicitAPI):
                 type = 'future'
             elif option:
                 type = 'option'
-            expiry = self.omit_zero(self.safe_string(market, 'deliveryTime'))
-            if expiry is not None:
-                expiry = int(expiry)
+            expiry = None
+            # some swaps have deliveryTime meaning delisting time
+            if not swap:
+                expiry = self.omit_zero(self.safe_string(market, 'deliveryTime'))
+                if expiry is not None:
+                    expiry = int(expiry)
             expiryDatetime = self.iso8601(expiry)
             strike = None
             optionType = None
@@ -2411,7 +2419,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         #     {
         #         "symbol": "AAVEUSDT",
-        #         "id": "1274785101965716992",
+        #         "id": "1274785101965716991",
         #         "orderId": "1274784252359089664",
         #         "tradeId": "2270000000031365639",
         #         "orderPrice": "82.5",
@@ -4647,6 +4655,11 @@ class bybit(Exchange, ImplicitAPI):
         #
         result = self.safe_value(response, 'result', {})
         data = self.safe_value(result, 'list', [])
+        paginationCursor = self.safe_string(result, 'nextPageCursor')
+        if (paginationCursor is not None) and (len(data) > 0):
+            first = data[0]
+            first['nextPageCursor'] = paginationCursor
+            data[0] = first
         return self.parse_orders(data, market, since, limit)
 
     def fetch_unified_margin_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -4729,6 +4742,11 @@ class bybit(Exchange, ImplicitAPI):
         #
         result = self.safe_value(response, 'result', {})
         data = self.safe_value(result, 'list', [])
+        paginationCursor = self.safe_string(result, 'nextPageCursor')
+        if (paginationCursor is not None) and (len(data) > 0):
+            first = data[0]
+            first['nextPageCursor'] = paginationCursor
+            data[0] = first
         return self.parse_orders(data, market, since, limit)
 
     def fetch_derivatives_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -4819,6 +4837,11 @@ class bybit(Exchange, ImplicitAPI):
         #
         result = self.safe_value(response, 'result', {})
         data = self.safe_value(result, 'list', [])
+        paginationCursor = self.safe_string(result, 'nextPageCursor')
+        if (paginationCursor is not None) and (len(data) > 0):
+            first = data[0]
+            first['nextPageCursor'] = paginationCursor
+            data[0] = first
         return self.parse_orders(data, market, since, limit)
 
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -7091,7 +7114,19 @@ class bybit(Exchange, ImplicitAPI):
         return getattr(self, method)(self.extend(request, params))
 
     def set_position_mode(self, hedged, symbol: Optional[str] = None, params={}):
+        """
+        set hedged to True or False for a market
+        see https://bybit-exchange.github.io/docs/v5/position/position-mode
+        see https://bybit-exchange.github.io/docs/derivatives/contract/position-mode
+        :param bool hedged:
+        :param str|None symbol: used for unified account with inverse market
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: response from the exchange
+        """
         self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         mode = None
         if hedged:
             mode = 3
@@ -7103,9 +7138,21 @@ class bybit(Exchange, ImplicitAPI):
         if symbol is None:
             request['coin'] = 'USDT'
         else:
-            market = self.market(symbol)
             request['symbol'] = market['id']
+        enableUnified = self.is_unified_enabled()
+        response = None
+        if enableUnified[1] or enableUnified[0]:
+            if symbol is not None:
+                request['category'] = 'linear' if market['linear'] else 'inverse'
+            else:
+                subType = None
+                subType, params = self.handle_sub_type_and_params('setPositionMode', market, params)
+                request['category'] = subType
+            response = self.privatePostV5PositionSwitchMode(self.extend(request, params))
+        else:
+            response = self.privatePostContractV3PrivatePositionSwitchMode(self.extend(request, params))
         #
+        # contract v3
         #     {
         #         "ret_code": 0,
         #         "ret_msg": "ok",
@@ -7118,7 +7165,15 @@ class bybit(Exchange, ImplicitAPI):
         #         "rate_limit": 75
         #     }
         #
-        return self.privatePostContractV3PrivatePositionSwitchMode(self.extend(request, params))
+        # v5
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {},
+        #         "retExtInfo": {},
+        #         "time": 1675249072814
+        #     }
+        return response
 
     def fetch_derivatives_open_interest_history(self, symbol: str, timeframe='1h', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
@@ -7167,9 +7222,14 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
+        data = self.safe_value(result, 'list', [])
+        paginationCursor = self.safe_string(result, 'nextPageCursor')
+        if (paginationCursor is not None) and (len(data) > 0):
+            first = data[0]
+            first['nextPageCursor'] = paginationCursor
+            data[0] = first
         id = self.safe_string(result, 'symbol')
         market = self.safe_market(id, market, None, 'contract')
-        data = self.safe_value(result, 'list', [])
         return self.parse_open_interests(data, market, since, limit)
 
     def fetch_open_interest(self, symbol: str, params={}):

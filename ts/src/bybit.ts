@@ -362,6 +362,7 @@ export default class bybit extends Exchange {
                         'v5/order/spot-borrow-check': 2.5,
                         'v5/order/realtime': 2.5,
                         'v5/position/list': 2.5,
+                        'v5/position/switch-mode': 2.5,
                         'v5/execution/list': 2.5,
                         'v5/position/closed-pnl': 2.5,
                         'v5/account/wallet-balance': 2.5,
@@ -564,6 +565,9 @@ export default class bybit extends Exchange {
                         'v5/position/set-tpsl-mode': 2.5,
                         'v5/position/set-risk-limit': 2.5,
                         'v5/position/trading-stop': 2.5,
+                        'v5/position/switch-isolated': 2.5,
+                        'v5/position/switch-mode': 2.5,
+                        'v5/position/set-auto-add-margin': 2.5,
                         'v5/account/upgrade-to-uta': 2.5,
                         'v5/account/set-margin-mode': 2.5,
                         'v5/asset/transfer/inter-transfer': 2.5,
@@ -1493,6 +1497,7 @@ export default class bybit extends Exchange {
     }
 
     async fetchDerivativesMarkets (params) {
+        params = this.extend (params);
         params['limit'] = 1000; // minimize number of requests
         const response = await this.publicGetV5MarketInstrumentsInfo (params);
         const data = this.safeValue (response, 'result', {});
@@ -1639,9 +1644,13 @@ export default class bybit extends Exchange {
             } else if (option) {
                 type = 'option';
             }
-            let expiry = this.omitZero (this.safeString (market, 'deliveryTime'));
-            if (expiry !== undefined) {
-                expiry = parseInt (expiry);
+            let expiry = undefined;
+            // some swaps have deliveryTime meaning delisting time
+            if (!swap) {
+                expiry = this.omitZero (this.safeString (market, 'deliveryTime'));
+                if (expiry !== undefined) {
+                    expiry = parseInt (expiry);
+                }
             }
             const expiryDatetime = this.iso8601 (expiry);
             let strike = undefined;
@@ -2478,7 +2487,7 @@ export default class bybit extends Exchange {
         //
         //     {
         //         "symbol": "AAVEUSDT",
-        //         "id": "1274785101965716992",
+        //         "id": "1274785101965716991",
         //         "orderId": "1274784252359089664",
         //         "tradeId": "2270000000031365639",
         //         "orderPrice": "82.5",
@@ -4927,6 +4936,12 @@ export default class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'list', []);
+        const paginationCursor = this.safeString (result, 'nextPageCursor');
+        if ((paginationCursor !== undefined) && (data.length > 0)) {
+            const first = data[0];
+            first['nextPageCursor'] = paginationCursor;
+            data[0] = first;
+        }
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -5014,6 +5029,12 @@ export default class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'list', []);
+        const paginationCursor = this.safeString (result, 'nextPageCursor');
+        if ((paginationCursor !== undefined) && (data.length > 0)) {
+            const first = data[0];
+            first['nextPageCursor'] = paginationCursor;
+            data[0] = first;
+        }
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -5110,6 +5131,12 @@ export default class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'list', []);
+        const paginationCursor = this.safeString (result, 'nextPageCursor');
+        if ((paginationCursor !== undefined) && (data.length > 0)) {
+            const first = data[0];
+            first['nextPageCursor'] = paginationCursor;
+            data[0] = first;
+        }
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -7570,7 +7597,22 @@ export default class bybit extends Exchange {
     }
 
     async setPositionMode (hedged, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#setPositionMode
+         * @description set hedged to true or false for a market
+         * @see https://bybit-exchange.github.io/docs/v5/position/position-mode
+         * @see https://bybit-exchange.github.io/docs/derivatives/contract/position-mode
+         * @param {bool} hedged
+         * @param {string|undefined} symbol used for unified account with inverse market
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} response from the exchange
+         */
         await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         let mode = undefined;
         if (hedged) {
             mode = 3;
@@ -7583,10 +7625,24 @@ export default class bybit extends Exchange {
         if (symbol === undefined) {
             request['coin'] = 'USDT';
         } else {
-            const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
+        const enableUnified = await this.isUnifiedEnabled ();
+        let response = undefined;
+        if (enableUnified[1] || enableUnified[0]) {
+            if (symbol !== undefined) {
+                request['category'] = market['linear'] ? 'linear' : 'inverse';
+            } else {
+                let subType = undefined;
+                [ subType, params ] = this.handleSubTypeAndParams ('setPositionMode', market, params);
+                request['category'] = subType;
+            }
+            response = await this.privatePostV5PositionSwitchMode (this.extend (request, params));
+        } else {
+            response = await this.privatePostContractV3PrivatePositionSwitchMode (this.extend (request, params));
+        }
         //
+        // contract v3
         //     {
         //         "ret_code": 0,
         //         "ret_msg": "ok",
@@ -7599,7 +7655,15 @@ export default class bybit extends Exchange {
         //         "rate_limit": 75
         //     }
         //
-        return await this.privatePostContractV3PrivatePositionSwitchMode (this.extend (request, params));
+        // v5
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {},
+        //         "retExtInfo": {},
+        //         "time": 1675249072814
+        //     }
+        return response;
     }
 
     async fetchDerivativesOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -7653,9 +7717,15 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'list', []);
+        const paginationCursor = this.safeString (result, 'nextPageCursor');
+        if ((paginationCursor !== undefined) && (data.length > 0)) {
+            const first = data[0];
+            first['nextPageCursor'] = paginationCursor;
+            data[0] = first;
+        }
         const id = this.safeString (result, 'symbol');
         market = this.safeMarket (id, market, undefined, 'contract');
-        const data = this.safeValue (result, 'list', []);
         return this.parseOpenInterests (data, market, since, limit);
     }
 

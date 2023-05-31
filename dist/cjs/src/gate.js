@@ -328,6 +328,7 @@ class gate extends gate$1 {
                             '{settle}/orders': 1.5,
                             '{settle}/orders/{order_id}': 1.5,
                             '{settle}/my_trades': 1.5,
+                            '{settle}/my_trades_timerange': 1.5,
                             '{settle}/position_close': 1.5,
                             '{settle}/liquidates': 1.5,
                             '{settle}/price_orders': 1.5,
@@ -494,6 +495,8 @@ class gate extends gate$1 {
                     'future': 'delivery',
                     'futures': 'futures',
                     'delivery': 'delivery',
+                    'option': 'options',
+                    'options': 'options',
                 },
                 'defaultType': 'spot',
                 'swap': {
@@ -1670,6 +1673,7 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchTradingFee
          * @description fetch the trading fees for a market
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the gate api endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1701,6 +1705,7 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
          * @param {object} params extra parameters specific to the gate api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -1746,9 +1751,12 @@ class gate extends gate$1 {
         //        "futures_maker_fee": "0"
         //    }
         //
+        const gtDiscount = this.safeValue(info, 'gt_discount');
+        const taker = gtDiscount ? 'gt_taker_fee' : 'taker_fee';
+        const maker = gtDiscount ? 'gt_maker_fee' : 'maker_fee';
         const contract = this.safeValue(market, 'contract');
-        const takerKey = contract ? 'futures_taker_fee' : 'taker_fee';
-        const makerKey = contract ? 'futures_maker_fee' : 'maker_fee';
+        const takerKey = contract ? 'futures_taker_fee' : taker;
+        const makerKey = contract ? 'futures_maker_fee' : maker;
         return {
             'info': info,
             'symbol': this.safeString(market, 'symbol'),
@@ -2761,7 +2769,7 @@ class gate extends gate$1 {
         const method = this.getSupportedMapping(type, {
             'spot': 'privateSpotGetMyTrades',
             'margin': 'privateSpotGetMyTrades',
-            'swap': 'privateFuturesGetSettleMyTrades',
+            'swap': 'privateFuturesGetSettleMyTradesTimerange',
             'future': 'privateDeliveryGetSettleMyTrades',
         });
         const response = await this[method](this.extend(request, params));
@@ -4217,6 +4225,7 @@ class gate extends gate$1 {
          * @method
          * @name gate#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://www.gate.io/docs/developers/apiv4/en/#transfer-between-trading-accounts
          * @param {string} code unified currency code for currency being transferred
          * @param {float} amount the amount of currency to transfer
          * @param {string} fromAccount the account to transfer currency from
@@ -4277,7 +4286,7 @@ class gate extends gate$1 {
     parseTransfer(transfer, currency = undefined) {
         const timestamp = this.milliseconds();
         return {
-            'id': undefined,
+            'id': this.safeString(transfer, 'tx_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'currency': this.safeCurrencyCode(undefined, currency),

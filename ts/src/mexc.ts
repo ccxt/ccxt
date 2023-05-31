@@ -6,7 +6,7 @@ import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, Exch
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { IndexType, Int, OrderSide } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -120,6 +120,9 @@ export default class mexc extends Exchange {
                     'contract': {
                         'public': 'https://contract.mexc.com/api/v1/contract',
                         'private': 'https://contract.mexc.com/api/v1/private',
+                    },
+                    'broker': {
+                        'private': 'https://api.mexc.com/api/v3/broker',
                     },
                 },
                 'www': 'https://www.mexc.com/',
@@ -329,6 +332,29 @@ export default class mexc extends Exchange {
                             'order/cancel': 1,
                             'order/cancel_by_symbol': 1,
                             'asset/withdraw': 2,
+                        },
+                    },
+                },
+                'broker': {
+                    'private': {
+                        'get': {
+                            'sub-account/universalTransfer': 1,
+                            'sub-account/list': 1,
+                            'sub-account/apiKey': 1,
+                            'capital/deposit/subAddress': 1,
+                            'capital/deposit/subHisrec': 1,
+                            'capital/deposit/subHisrec/getall': 1,
+                        },
+                        'post': {
+                            'sub-account/virtualSubAccount': 1,
+                            'sub-account/apiKey': 1,
+                            'capital/deposit/subAddress': 1,
+                            'capital/withdraw/apply': 1,
+                            'sub-account/universalTransfer': 1,
+                            'sub-account/futures': 1,
+                        },
+                        'delete': {
+                            'sub-account/apiKey': 1,
                         },
                     },
                 },
@@ -1023,6 +1049,8 @@ export default class mexc extends Exchange {
         /**
          * @method
          * @name mexc3#fetchOrderBook
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#order-book
+         * @see https://mxcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
@@ -1081,6 +1109,16 @@ export default class mexc extends Exchange {
             orderbook['nonce'] = this.safeInteger (data, 'version');
         }
         return orderbook;
+    }
+
+    parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2) {
+        const price = this.safeNumber (bidask, priceKey);
+        const amount = this.safeNumber (bidask, amountKey);
+        const count = this.safeNumber (bidask, countKey);
+        if (count !== undefined) {
+            return [ price, amount, count ];
+        }
+        return [ price, amount ];
     }
 
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2420,8 +2458,8 @@ export default class mexc extends Exchange {
         if (marketType === 'spot') {
             throw new BadRequest (this.id + ' fetchOrdersByState() is not supported for ' + marketType);
         } else {
-            params['states'] = state;
-            return await this.fetchOrders (symbol, since, limit, params);
+            request['states'] = state;
+            return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
         }
     }
 
@@ -4985,7 +5023,7 @@ export default class mexc extends Exchange {
         const access = this.safeString (api, 1);
         [ path, params ] = this.resolvePath (path, params);
         let url = undefined;
-        if (section === 'spot') {
+        if (section === 'spot' || section === 'broker') {
             url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
             let paramsEncoded = '';
             if (access === 'private') {

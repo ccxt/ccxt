@@ -29,7 +29,7 @@ function _interopNamespace(e) {
 }
 
 // ----------------------------------------------------------------------------
-const { isNode, keys, values, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, buildOHLCVC, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, vwap, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, isArray, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE } = functions;
+const { isNode, keys, values, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, buildOHLCVC, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, vwap, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, isArray, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS } = functions;
 // ----------------------------------------------------------------------------
 class Exchange {
     constructor(userConfig = {}) {
@@ -1110,6 +1110,17 @@ class Exchange {
     // ########################################################################
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    findMessageHashes(client, element) {
+        const result = [];
+        const messageHashes = Object.keys(client.futures);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            if (messageHash.indexOf(element) >= 0) {
+                result.push(messageHash);
+            }
+        }
+        return result;
+    }
     filterByLimit(array, limit = undefined, key = 'timestamp') {
         if (this.valueIsDefined(limit)) {
             const arrayLength = array.length;
@@ -1127,28 +1138,32 @@ class Exchange {
         }
         return array;
     }
-    filterBySinceLimit(array, since = undefined, limit = undefined, key = 'timestamp') {
+    filterBySinceLimit(array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
         const sinceIsDefined = this.valueIsDefined(since);
         const parsedArray = this.toArray(array);
+        let result = parsedArray;
         if (sinceIsDefined) {
-            const result = [];
+            result = [];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
                 if (entry[key] >= since) {
                     result.push(entry);
                 }
             }
-            return this.filterByLimit(result, limit, key);
         }
-        return this.filterByLimit(parsedArray, limit, key);
+        if (tail) {
+            return result.slice(-limit);
+        }
+        return this.filterByLimit(result, limit, key);
     }
-    filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp') {
+    filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
         const valueIsDefined = this.valueIsDefined(value);
         const sinceIsDefined = this.valueIsDefined(since);
         const parsedArray = this.toArray(array);
+        let result = parsedArray;
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined) {
-            const result = [];
+            result = [];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
                 const entryFiledEqualValue = entry[field] === value;
@@ -1159,9 +1174,11 @@ class Exchange {
                     result.push(entry);
                 }
             }
-            return this.filterByLimit(result, limit, key);
         }
-        return this.filterByLimit(parsedArray, limit, key);
+        if (tail) {
+            return result.slice(-limit);
+        }
+        return this.filterByLimit(result, limit, key);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         return {};
@@ -2066,13 +2083,18 @@ class Exchange {
         }
         return result;
     }
-    marketSymbols(symbols) {
+    marketSymbols(symbols, type = undefined) {
         if (symbols === undefined) {
             return symbols;
         }
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
-            result.push(this.symbol(symbols[i]));
+            const market = this.market(symbols[i]);
+            if (type !== undefined && market['type'] !== type) {
+                throw new errors.BadRequest(this.id + ' symbols must be of same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
+            }
+            const symbol = this.safeString(market, 'symbol', symbols[i]);
+            result.push(symbol);
         }
         return result;
     }
@@ -2231,25 +2253,6 @@ class Exchange {
             }
         }
         return networkCode;
-    }
-    networkCodesToIds(networkCodes = undefined) {
-        /**
-         * @ignore
-         * @method
-         * @name exchange#networkCodesToIds
-         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
-         * @param {[string]|undefined} networkCodes unified network codes
-         * @returns {[string|undefined]} exchange-specific network ids
-         */
-        if (networkCodes === undefined) {
-            return undefined;
-        }
-        const ids = [];
-        for (let i = 0; i < networkCodes.length; i++) {
-            const networkCode = networkCodes[i];
-            ids.push(this.networkCodeToId(networkCode));
-        }
-        return ids;
     }
     handleNetworkCodeAndParams(params) {
         const networkCodeInParams = this.safeString2(params, 'networkCode', 'network');
@@ -3103,6 +3106,15 @@ class Exchange {
             return this.decimalToPrecision(fee, ROUND, precision, this.precisionMode, this.paddingMode);
         }
     }
+    isTickPrecision() {
+        return this.precisionMode === TICK_SIZE;
+    }
+    isDecimalPrecision() {
+        return this.precisionMode === DECIMAL_PLACES;
+    }
+    isSignificantPrecision() {
+        return this.precisionMode === SIGNIFICANT_DIGITS;
+    }
     safeNumber(obj, key, defaultNumber = undefined) {
         const value = this.safeString(obj, key);
         return this.parseNumber(value, defaultNumber);
@@ -3195,11 +3207,11 @@ class Exchange {
         currency = this.safeCurrency(currencyId, currency);
         return currency['code'];
     }
-    filterBySymbolSinceLimit(array, symbol = undefined, since = undefined, limit = undefined) {
-        return this.filterByValueSinceLimit(array, 'symbol', symbol, since, limit, 'timestamp');
+    filterBySymbolSinceLimit(array, symbol = undefined, since = undefined, limit = undefined, tail = false) {
+        return this.filterByValueSinceLimit(array, 'symbol', symbol, since, limit, 'timestamp', tail);
     }
-    filterByCurrencySinceLimit(array, code = undefined, since = undefined, limit = undefined) {
-        return this.filterByValueSinceLimit(array, 'currency', code, since, limit, 'timestamp');
+    filterByCurrencySinceLimit(array, code = undefined, since = undefined, limit = undefined, tail = false) {
+        return this.filterByValueSinceLimit(array, 'currency', code, since, limit, 'timestamp', tail);
     }
     parseLastPrices(pricesData, symbols = undefined, params = {}) {
         //

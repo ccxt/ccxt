@@ -71,6 +71,8 @@ Exchange::$exchanges = array(
     'okex',
     'okx',
     'phemex',
+    'poloniex',
+    'poloniexfutures',
     'probit',
     'upbit',
     'wazirx',

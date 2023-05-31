@@ -172,6 +172,8 @@ var okcoin$1 = require('./src/pro/okcoin.js');
 var okex$1 = require('./src/pro/okex.js');
 var okx$1 = require('./src/pro/okx.js');
 var phemex$1 = require('./src/pro/phemex.js');
+var poloniex$1 = require('./src/pro/poloniex.js');
+var poloniexfutures$1 = require('./src/pro/poloniexfutures.js');
 var probit$1 = require('./src/pro/probit.js');
 var upbit$1 = require('./src/pro/upbit.js');
 var wazirx$1 = require('./src/pro/wazirx.js');
@@ -180,7 +182,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '3.0.105';
+const version = '3.1.15';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -345,6 +347,8 @@ const pro = {
     'okex': okex$1,
     'okx': okx$1,
     'phemex': phemex$1,
+    'poloniex': poloniex$1,
+    'poloniexfutures': poloniexfutures$1,
     'probit': probit$1,
     'upbit': upbit$1,
     'wazirx': wazirx$1,
