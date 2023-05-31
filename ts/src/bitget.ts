@@ -978,6 +978,7 @@ export default class bitget extends Exchange {
                     'TRC20': 'TRX',
                     'BSC': 'BEP20',
                 },
+                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             },
         });
     }
@@ -2553,6 +2554,7 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#createOrder
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#place-order
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#place-plan-order
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-order
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-stop-order
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-position-tpsl
@@ -2607,6 +2609,8 @@ export default class bitget extends Exchange {
         const exchangeSpecificTifParam = this.safeStringN (params, [ 'force', 'timeInForceValue', 'timeInForce' ]);
         let postOnly = undefined;
         [ postOnly, params ] = this.handlePostOnly (isMarketOrder, exchangeSpecificTifParam === 'post_only', params);
+        const defaultTimeInForce = this.safeStringLower (this.options, 'defaultTimeInForce');
+        const timeInForce = this.safeStringLower (params, 'timeInForce', defaultTimeInForce);
         if (marketType === 'spot') {
             if (isStopLossOrTakeProfitTrigger || isStopLossOrTakeProfit) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets');
@@ -2646,8 +2650,12 @@ export default class bitget extends Exchange {
             }
             if (postOnly) {
                 request[timeInForceKey] = 'post_only';
-            } else {
+            } else if (timeInForce === 'gtc') {
                 request[timeInForceKey] = 'normal';
+            } else if (timeInForce === 'fok') {
+                request[timeInForceKey] = 'fok';
+            } else if (timeInForce === 'ioc') {
+                request[timeInForceKey] = 'ioc';
             }
         } else {
             if (clientOrderId !== undefined) {
@@ -2655,7 +2663,6 @@ export default class bitget extends Exchange {
             }
             if (!isStopLossOrTakeProfit) {
                 request['size'] = this.amountToPrecision (symbol, amount);
-                const timeInForce = this.safeStringLower (params, 'timeInForce');
                 if (postOnly) {
                     request['timeInForceValue'] = 'post_only';
                 } else if (timeInForce === 'gtc') {
