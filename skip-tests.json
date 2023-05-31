@@ -787,6 +787,7 @@
         }
     },
     "stex": {
+        "skip": "31/05 maintenance",
         "skipMethods": {
             "fetchCurrencies":{
                 "withdraw":"not provided",
