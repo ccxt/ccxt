@@ -150,7 +150,7 @@ class Exchange(object):
     urls = None
     api = None
     parseJsonResponse = True
-    proxy = '' #  for backwards compatibility
+    proxy = ''  # for backwards compatibility
     proxyUrl = ''
     proxy_url = ''
     proxyUrlCallback = ''
@@ -531,7 +531,7 @@ class Exchange(object):
         """Perform a HTTP request and return decoded JSON data"""
         request_headers = self.prepare_request_headers(headers)
         # proxy
-        proxies = None #  set default
+        proxies = None  # set default
         proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback = self.check_proxy_settings()
         if proxyUrl:
             url = proxyUrl + url
@@ -1673,6 +1673,19 @@ class Exchange(object):
     
     def un_camel_case(self, str):
         return re.sub('(?!^)([A-Z]+)', r'_\1',str).lower()
+
+    def get_property(self, prop, defaultValue=None):
+        if hasattr(self, prop):
+            res = getattr(self, prop)
+            if res is not None:
+                return res
+        return defaultValue
+
+    def set_property(self, prop, value):
+        setattr(self, prop, value)
+
+    def property_exists(self, prop):
+        if hasattr(self, prop):
 
     # ########################################################################
     # ########################################################################

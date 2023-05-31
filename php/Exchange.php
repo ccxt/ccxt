@@ -2132,6 +2132,18 @@ class Exchange {
         }
     }
 
+    function get_property($prop){
+        return $this->$prop;
+    }
+
+    function set_property($prop, $value){
+        $this->$prop = $value;
+    }
+
+    function property_exists($prop){
+        return property_exists($this, $prop);
+    }
+
     function un_camel_case($str){
         return self::underscore($str);
     }

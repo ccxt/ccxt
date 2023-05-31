@@ -125,7 +125,7 @@ class Exchange(BaseExchange):
         """Perform a HTTP request and return decoded JSON data"""
         request_headers = self.prepare_request_headers(headers)
         # proxy
-        final_proxy = None #  set default
+        final_proxy = None  # set default
         final_session = self.session
         proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback = self.check_proxy_settings()
         if proxyUrl:
@@ -149,7 +149,7 @@ class Exchange(BaseExchange):
                 username=username,
                 password=password,
                 # extra args copied from self.open()
-                ssl=context, 
+                ssl=context,
                 loop=self.asyncio_loop,
                 enable_cleanup_closed=True
             )
