@@ -40,6 +40,15 @@ from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, C
 
 # -----------------------------------------------------------------------------
 
+try:
+    from aiohttp_socks import ProxyType, ProxyConnector, ChainProxyConnector
+except ImportError:
+    ProxyType = None
+    ProxyConnector = None
+    ChainProxyConnector = None
+
+# -----------------------------------------------------------------------------
+
 __all__ = [
     'BaseExchange',
     'Exchange',
@@ -115,7 +124,42 @@ class Exchange(BaseExchange):
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         request_headers = self.prepare_request_headers(headers)
-        url = self.proxy + url
+        # proxy
+        final_proxy = None #  set default
+        final_session = self.session
+        proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback = self.check_proxy_settings()
+        if proxyUrl:
+            url = proxyUrl + url
+        elif proxyUrlCallback:
+            url = proxyUrlCallback(url, method, headers, body)
+        elif proxyHttp:
+            final_proxy = proxyHttp
+        elif proxyHttps:
+            final_proxy = proxyHttps
+        elif proxySocks:
+            if ProxyConnector is None:
+                raise NotSupported(self.id + ' Socks proxy functionality requires aiohttp_socks, install with `pip install aiohttp_socks`: https://github.com/romis2012/aiohttp-socks')
+            # Create our SSL context object with our CA cert file
+            context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
+            proxy_type, host, port, username, password = ProxyConnector.parse_proxy_url(url)
+            connector = ProxyConnector(
+                proxy_type=proxy_type,
+                host=host,
+                port=port,
+                username=username,
+                password=password,
+                # extra args copied from self.open()
+                ssl=context, 
+                loop=self.asyncio_loop,
+                enable_cleanup_closed=True
+            )
+            final_session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
+        elif proxyAgentCallback:
+            final_proxy = proxyAgentCallback(url, method, headers, body)
+
+        # avoid old proxies mixing
+        if (self.aiohttp_proxy is not None) and (final_proxy is not None):
+            raise NotSupported(self.id + ' you have set multiple proxies, please use one or another')
 
         if self.verbose:
             self.log("\nfetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body)
@@ -124,7 +168,7 @@ class Exchange(BaseExchange):
         request_body = body
         encoded_body = body.encode() if body else None
         self.open()
-        session_method = getattr(self.session, method.lower())
+        session_method = getattr(final_session, method.lower())
 
         http_response = None
         http_status_code = None
@@ -135,7 +179,7 @@ class Exchange(BaseExchange):
                                       data=encoded_body,
                                       headers=request_headers,
                                       timeout=(self.timeout / 1000),
-                                      proxy=self.aiohttp_proxy) as response:
+                                      proxy=final_proxy) as response:
                 http_response = await response.text(errors='replace')
                 # CIMultiDictProxy
                 raw_headers = response.headers

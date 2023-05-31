@@ -85,7 +85,6 @@ class Exchange {
     public $proxy_socks = '';
     public $proxyAgentCallback = '';
     public $proxy_agent_callback = '';
-    public $is_reseted_browser = null;
     public $origin = '*'; // CORS origin
     public $headers = array();
     public $hostname = null; // in case of inaccessibility of the "main" domain
@@ -1363,6 +1362,7 @@ class Exchange {
 
         $headers = array_merge($this->headers, $headers ? $headers : array());
 
+        // 
         // old approach, kept for backward-compatibility
         if ($this->proxy !== null) {
             if (is_callable($this->proxy)) {
@@ -1373,6 +1373,12 @@ class Exchange {
                     $url = $this->proxy . $url;
                     $headers['Origin'] = $this->origin;
                 }
+            }
+        } else {
+            [ $proxyUrl, $proxyUrlCallback, $proxyHttp, $proxyHttps, $proxySocks, $proxyAgentCallback ] = $this->check_proxy_settings();
+            // new approach
+            if ($proxyUrl !== null || $proxyUrlCallback !== null) {
+                $headers['Origin'] = $this->origin;
             }
         }
 
@@ -1451,7 +1457,6 @@ class Exchange {
         }
 
         if (!$this->proxy) {
-            [ $proxyUrl, $proxyUrlCallback, $httpProxy, $proxyHttps, $proxySocks, $proxyAgentCallback ] = $this->checkProxySettings();
             if ($proxyUrl !== null) {
                 $url = $proxyUrl . $url;
             } else if ($proxyUrlCallback !== null) {

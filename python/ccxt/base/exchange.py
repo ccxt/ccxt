@@ -150,7 +150,17 @@ class Exchange(object):
     urls = None
     api = None
     parseJsonResponse = True
-    proxy = ''
+    proxy = '' #  for backwards compatibility
+    proxyUrl = ''
+    proxy_url = ''
+    proxyUrlCallback = ''
+    proxy_url_callback = ''
+    proxyHttps = ''
+    proxy_https = ''
+    proxySocks = ''
+    proxy_socks = ''
+    proxyAgentCallback = ''
+    proxy_agent_callback = ''
     origin = '*'  # CORS origin
     proxies = None
     hostname = None  # in case of inaccessibility of the "main" domain
@@ -494,8 +504,14 @@ class Exchange(object):
                 headers.update({'User-Agent': self.userAgent})
             elif (type(self.userAgent) is dict) and ('User-Agent' in self.userAgent):
                 headers.update(self.userAgent)
+        # for back-compatibility
         if self.proxy:
             headers.update({'Origin': self.origin})
+        else:
+            # new approach
+            proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback = self.check_proxy_settings()
+            if self.proxyUrl is not None or self.proxyUrlCallback is not None:
+                headers.update({'Origin': self.origin})
         headers.update({'Accept-Encoding': 'gzip, deflate'})
         return self.set_headers(headers)
 
@@ -514,7 +530,30 @@ class Exchange(object):
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         request_headers = self.prepare_request_headers(headers)
-        url = self.proxy + url
+        # proxy
+        proxies = None #  set default
+        proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback = self.check_proxy_settings()
+        if proxyUrl:
+            url = proxyUrl + url
+        elif proxyUrlCallback:
+            url = proxyUrlCallback(url, method, headers, body)
+        elif proxyHttp:
+            proxies = {}
+            proxies['http'] = proxyHttp
+        elif proxyHttps:
+            proxies = {}
+            proxies['https'] = proxyHttps
+        elif proxySocks:
+            proxies = {}
+            # https://stackoverflow.com/a/15661226/2377343
+            proxies['http'] = proxySocks
+            proxies['https'] = proxySocks
+        elif proxyAgentCallback:
+            proxies = proxyAgentCallback(url, method, headers, body)
+
+        # avoid old proxies mixing
+        if (proxies is not None) and (self.proxies is not None):
+            raise NotSupported(self.id + ' you have set multiple proxies, please use one or another')
 
         if self.verbose:
             self.log("\nfetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body)
@@ -537,7 +576,7 @@ class Exchange(object):
                 data=body,
                 headers=request_headers,
                 timeout=int(self.timeout / 1000),
-                proxies=self.proxies,
+                proxies=proxies,
                 verify=self.verify and self.validateServerSsl
             )
             # does not try to detect encoding
