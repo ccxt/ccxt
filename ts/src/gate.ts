@@ -1210,7 +1210,9 @@ export default class gate extends Exchange {
         if (market !== undefined) {
             if (market['contract']) {
                 request['contract'] = market['id'];
-                request['settle'] = market['settleId'];
+                if (!market['option']) {
+                    request['settle'] = market['settleId'];
+                }
             } else {
                 request['currency_pair'] = market['id'];
             }
@@ -3916,6 +3918,7 @@ export default class gate extends Exchange {
             'margin': 'privateSpotGet' + methodMiddle + 'OrderId',
             'swap': 'privateFuturesGetSettle' + methodMiddle + 'OrderId',
             'future': 'privateDeliveryGetSettle' + methodMiddle + 'OrderId',
+            'option': 'privateOptionsGetOrdersOrderId',
         });
         const response = await this[method] (this.extend (request, requestParams));
         return this.parseOrder (response, market);
