@@ -66,9 +66,7 @@ class Exchange extends \ccxt\Exchange {
         $connector = new React\Socket\Connector(array_merge(array(
             'timeout' => $this->timeout,
         ), $connector_options), Loop::get());
-        //if ($this->browser === null) {
-            $this->browser = (new React\Http\Browser($connector, Loop::get()))->withRejectErrorResponse(false);
-        //}
+        $this->browser = (new React\Http\Browser($connector, Loop::get()))->withRejectErrorResponse(false);
     }
 
     public static function execute_and_run($closure) {
@@ -87,6 +85,7 @@ class Exchange extends \ccxt\Exchange {
 
             // we don't have to support old `this.proxy` because it was not ever implemented in async php version, so we don't need to "maintain it for existing users"
             $proxy = null;
+            $request_browser_options = null;
             $proxy_files_dir = __DIR__ . '/../static_dependencies/proxies/';
             [ $proxyUrl, $proxyUrlCallback, $proxyHttp, $proxyHttps, $proxySocks, $proxyAgentCallback ] = $this->check_proxy_settings();
             if ($proxyUrl !== null) {
@@ -98,21 +97,22 @@ class Exchange extends \ccxt\Exchange {
             } else if ($proxyHttp !== null) {
                 include_once ($proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
                 $proxy = new Clue\React\HttpProxy\ProxyConnector($proxyHttp);
-                $this->set_request_browser(array( 'tcp' => $proxy, 'dns' => false ));
+                $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
             }  else if ($proxyHttps !== null) {
                 include_once ($proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
                 $proxy = new Clue\React\HttpProxy\ProxyConnector($proxyHttps);
-                $this->set_request_browser(array( 'tcp' => $proxy, 'dns' => false ));
+                $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
             } else if ($proxySocks !== null) {
                 include_once ($proxy_files_dir. 'reactphp-socks/src/StreamReader.php');
                 include_once ($proxy_files_dir. 'reactphp-socks/src/Client.php');
                 $proxy = new Clue\React\Socks\Client($proxySocks);
-                $this->set_request_browser(array( 'tcp' => $proxy, 'dns' => false ));
+                $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
             } else if ($proxyAgentCallback !== null) {
                 $this->userAgent = $proxyAgentCallback ($url, $method, $headers, $body);
             }
 
- 
+            $this->set_request_browser($request_browser_options);
+
             if ($this->userAgent) {
                 if (gettype($this->userAgent) === 'string') {
                     $headers['User-Agent'] = $this->userAgent;
