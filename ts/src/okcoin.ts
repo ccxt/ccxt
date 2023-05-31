@@ -1976,34 +1976,36 @@ export default class okcoin extends Exchange {
         if (fee === undefined) {
             throw new ArgumentsRequired (this.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
         }
+        params = this.omit (params, [ 'fee' ]);
         const request = {
-            'currency': currency['id'],
-            'to_address': address,
-            'destination': '4', // 2 = OKCoin International, 3 = OKEx 4 = others
-            'amount': this.numberToString (amount),
-            'fee': fee, // String. Network transaction fee ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set as 0. Withdrawal to external digital asset address requires network transaction fee.
+            'ccy': currency['id'],
+            'toAddr': address,
+            'dest': this.safeString2 (params, 'dest', 'destination', '4'), // 3 = internal, 4 = on chain
+            'amt': this.numberToString (amount),
+            'fee': fee,
         };
-        if ('password' in params) {
-            request['trade_pwd'] = params['password'];
-        } else if ('trade_pwd' in params) {
-            request['trade_pwd'] = params['trade_pwd'];
-        } else if (this.password) {
-            request['trade_pwd'] = this.password;
+        const clientId = this.safeString2 (params, 'client_id', 'clientId');
+        if (clientId !== undefined) {
+            request['clientId'] = clientId;
+            params = this.omit (params, 'client_id', 'clientId');
         }
-        const query = this.omit (params, [ 'fee', 'password', 'trade_pwd' ]);
-        if (!('trade_pwd' in request)) {
-            throw new ExchangeError (this.id + ' withdraw() requires this.password set on the exchange instance or a password / trade_pwd parameter');
-        }
-        const response = await this.accountPostWithdrawal (this.extend (request, query));
+        const response = await this.privatePostAssetWithdrawal (this.extend (request, params));
         //
-        //     {
-        //         "amount":"0.1",
-        //         "withdrawal_id":"67485",
-        //         "currency":"btc",
-        //         "result":true
-        //     }
+        // {
+        //     "code": "0",
+        //     "msg": "",
+        //     "data": [{
+        //         "amt": "0.1",
+        //         "wdId": "67485",
+        //         "ccy": "BTC",
+        //         "clientId": "",
+        //         "chain": "BTC-Bitcoin"
+        //     }]
+        // }
         //
-        return this.parseTransaction (response, currency);
+        const result = this.safeValue (response, 'data');
+        const data = this.safeValue (result, 0);
+        return this.parseTransaction (data, currency);
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2096,12 +2098,13 @@ export default class okcoin extends Exchange {
         //
         // withdraw
         //
-        //     {
-        //         "amount":"0.1",
-        //         "withdrawal_id":"67485",
-        //         "currency":"btc",
-        //         "result":true
-        //     }
+        // {
+        //     "amt": "0.1",
+        //     "wdId": "67485",
+        //     "ccy": "BTC",
+        //     "clientId": "",
+        //     "chain": "BTC-Bitcoin"
+        // }
         //
         // fetchWithdrawals
         //
@@ -2134,7 +2137,7 @@ export default class okcoin extends Exchange {
         let type = undefined;
         let id = undefined;
         let address = undefined;
-        const withdrawalId = this.safeString (transaction, 'withdrawal_id');
+        const withdrawalId = this.safeString2 (transaction, 'withdrawal_id', 'wdId');
         const addressFrom = this.safeString (transaction, 'from');
         const addressTo = this.safeString (transaction, 'to');
         const tagTo = this.safeString (transaction, 'tag');
@@ -2148,9 +2151,9 @@ export default class okcoin extends Exchange {
             type = 'deposit';
             address = addressTo;
         }
-        const currencyId = this.safeString (transaction, 'currency');
+        const currencyId = this.safeString2 (transaction, 'currency', 'ccy');
         const code = this.safeCurrencyCode (currencyId);
-        const amount = this.safeNumber (transaction, 'amount');
+        const amount = this.safeString2 (transaction, 'amount', 'amt');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const txid = this.safeString (transaction, 'txid');
         const timestamp = this.parse8601 (this.safeString (transaction, 'timestamp'));
