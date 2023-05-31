@@ -538,14 +538,14 @@ export default class whitebit extends whitebitRest {
         }
         const stored = this.orders;
         const status = this.safeInteger (params, 0);
-        const parsed = this.parseWsOrder (data, status);
+        const parsed = this.parseWsOrder (this.extend (data, { 'status': status }));
         stored.append (parsed);
         const symbol = parsed['symbol'];
         const messageHash = 'orders:' + symbol;
         client.resolve (this.orders, messageHash);
     }
 
-    parseWsOrder (order, status, market = undefined) {
+    parseWsOrder (order, market = undefined) {
         //
         //   {
         //         id: 96433622651,
@@ -565,8 +565,10 @@ export default class whitebit extends whitebitRest {
         //         activation_price: '40',
         //         activation_condition: 'lte',
         //         client_order_id: ''
+        //         status: 1, // 1 = new, 2 = update 3 = cancel or execute
         //    }
         //
+        const status = this.safeInteger (order, 'status');
         const marketId = this.safeString (order, 'market');
         market = this.safeMarket (marketId, market);
         const id = this.safeString (order, 'id');
