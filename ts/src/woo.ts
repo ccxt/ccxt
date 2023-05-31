@@ -795,6 +795,10 @@ export default class woo extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
+        const brokerId = this.safeString (this.options, 'brokerId');
+        if (brokerId !== undefined) {
+            request['broker_id'] = brokerId;
+        }
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ]);
         const response = await this.v1PrivatePostOrder (this.extend (request, params));
         // {
