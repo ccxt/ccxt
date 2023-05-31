@@ -537,11 +537,12 @@ export default class okcoin extends Exchange {
                 'accountsByType': {
                     'spot': '1',
                     'funding': '6',
-                    'main': '6',
+                    'main': '18',
                 },
                 'accountsById': {
                     '1': 'spot',
                     '6': 'funding',
+                    '18': 'main',
                 },
                 'auth': {
                     'time': 'public',
@@ -849,7 +850,7 @@ export default class okcoin extends Exchange {
                 'active': active,
                 'deposit': canDeposit,
                 'withdraw': canWithdraw,
-                'precision': this.safeValue (currency, 'wdTickSz'),
+                'precision': undefined,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
                     'withdraw': {
@@ -1877,11 +1878,14 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-funds-transfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the okcoin api endpoint
+         * @param {string} params.type 0: transfer within account, 1: master account to sub-account (Only applicable to APIKey from master account), 2: sub-account to master account (Only applicable to APIKey from master account), 3: sub-account to master account (Only applicable to APIKey from sub-account)
+         * @param {string} params.subAcct Name of the sub-account. When type is 1 or 2, sub-account is required.
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
@@ -1890,66 +1894,63 @@ export default class okcoin extends Exchange {
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         const request = {
-            'amount': this.currencyToPrecision (code, amount),
-            'currency': currency['id'],
+            'amt': this.currencyToPrecision (code, amount),
+            'ccy': currency['id'],
             'from': fromId, // 1 spot, 6 funding
             'to': toId, // 1 spot, 6 funding
-            'type': '0', // 0 Transfer between accounts in the main account/sub_account, 1 main account to sub_account, 2 sub_account to main account
+            'type': this.safeString (params, 'type', '0'),
+            'subAcct': this.safeString (params, 'subAcct'),
         };
-        if (fromId === 'main') {
-            request['type'] = '1';
-            request['sub_account'] = toId;
-            request['to'] = '0';
-        } else if (toId === 'main') {
-            request['type'] = '2';
-            request['sub_account'] = fromId;
-            request['from'] = '0';
-            request['to'] = '6';
+        const clientId = this.safeString2 (params, 'client_id', 'clientId');
+        if (clientId !== undefined) {
+            request['clientId'] = clientId;
+            params = this.omit (params, 'client_id', 'clientId');
         }
-        const response = await this.accountPostTransfer (this.extend (request, params));
+        const response = await this.privatePostAssetTransfer (this.extend (request, params));
         //
-        //      {
-        //          "transfer_id": "754147",
-        //          "currency": "ETC",
-        //          "from": "6",
-        //          "amount": "0.1",
-        //          "to": "1",
-        //          "result": true
-        //      }
+        // {
+        //     "code": "0",
+        //     "msg": "",
+        //     "data": [
+        //       {
+        //         "transId": "754147",
+        //         "ccy": "USD",
+        //         "clientId": "",
+        //         "from": "6",
+        //         "amt": "0.1",
+        //         "to": "18"
+        //       }
+        //     ]
+        // }
         //
-        return this.parseTransfer (response, currency);
+        const result = this.safeValue (response, 'data');
+        const data = this.safeValue (result, 0);
+        return this.parseTransfer (data, currency);
     }
 
     parseTransfer (transfer, currency = undefined) {
         //
-        //      {
-        //          "transfer_id": "754147",
-        //          "currency": "ETC",
-        //          "from": "6",
-        //          "amount": "0.1",
-        //          "to": "1",
-        //          "result": true
-        //      }
+        // {
+        //     "transId": "754147",
+        //     "ccy": "USD",
+        //     "clientId": "",
+        //     "from": "6",
+        //     "amt": "0.1",
+        //     "to": "18"
+        // }
         //
         const accountsById = this.safeValue (this.options, 'accountsById', {});
         return {
             'info': transfer,
-            'id': this.safeString (transfer, 'transfer_id'),
+            'id': this.safeString (transfer, 'transId'),
             'timestamp': undefined,
             'datetime': undefined,
-            'currency': this.safeCurrencyCode (this.safeString (transfer, 'currency'), currency),
-            'amount': this.safeNumber (transfer, 'amount'),
+            'currency': this.safeCurrencyCode (this.safeString (transfer, 'ccy'), currency),
+            'amount': this.safeNumber (transfer, 'amt'),
             'fromAccount': this.safeString (accountsById, this.safeString (transfer, 'from')),
             'toAccount': this.safeString (accountsById, this.safeString (transfer, 'to')),
-            'status': this.parseTransferStatus (this.safeString (transfer, 'result')),
+            'status': undefined,
         };
-    }
-
-    parseTransferStatus (status) {
-        const statuses = {
-            'true': 'ok',
-        };
-        return this.safeString (statuses, status, 'failed');
     }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
