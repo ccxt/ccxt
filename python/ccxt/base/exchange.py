@@ -1674,15 +1674,6 @@ class Exchange(object):
     def un_camel_case(self, str):
         return re.sub('(?!^)([A-Z]+)', r'_\1',str).lower()
 
-    def get_property(self, prop, defaultValue=None):
-        return getattr(self, prop)
-
-    def set_property(self, prop, value):
-        setattr(self, prop, value)
-
-    def property_exists(self, prop):
-        if hasattr(self, prop)
-
     # ########################################################################
     # ########################################################################
     # ########################################################################
