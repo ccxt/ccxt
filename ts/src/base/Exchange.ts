@@ -1444,7 +1444,26 @@ export default class Exchange {
         const proxyHttps = this.getExchangePropAllCase ('proxyHttps');
         const proxySocks = this.getExchangePropAllCase ('proxySocks');
         const proxyAgentCallback = this.getExchangePropAllCase ('proxyAgentCallback');
-        if (((proxyUrl !== undefined) ? 1 : 0) + ((proxyUrlCallback !== undefined) ? 1 : 0) + ((proxyHttp !== undefined) ? 1 : 0) + ((proxyHttps !== undefined) ? 1 : 0) + ((proxySocks !== undefined) ? 1 : 0) + ((proxyAgentCallback !== undefined) ? 1 : 0) > 1) {
+        let val = 0;
+        if (proxyUrl !== undefined) {
+            val++;
+        }
+        if (proxyUrlCallback !== undefined) {
+            val++;
+        }
+        if (proxyHttp !== undefined) {
+            val++;
+        }
+        if (proxyHttps !== undefined) {
+            val++;
+        }
+        if (proxySocks !== undefined) {
+            val++;
+        }
+        if (proxyAgentCallback !== undefined) {
+            val++;
+        }
+        if (val > 1) {
             throw new ExchangeError (this.id + ' you have multiple proxy settings, please use only one from : proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback');
         }
         return [ proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback ];
