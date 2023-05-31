@@ -85,7 +85,7 @@ class Exchange extends \ccxt\Exchange {
 
             // we don't have to support old `this.proxy` because it was not ever implemented in async php version, so we don't need to "maintain it for existing users"
             $proxy = null;
-            $request_browser_options = null;
+            $request_browser_options = array();
             $proxy_files_dir = __DIR__ . '/../static_dependencies/proxies/';
             [ $proxyUrl, $proxyUrlCallback, $proxyHttp, $proxyHttps, $proxySocks, $proxyAgentCallback ] = $this->check_proxy_settings();
             if ($proxyUrl !== null) {
