@@ -1376,18 +1376,6 @@ export default class Exchange {
         return array.slice(first, second);
     }
 
-    getProperty (prop, defaultValue = undefined) {
-        return (prop in this) ? this[prop] : defaultValue;
-    }
-    
-    setProperty (prop, value) {
-        this[prop] = value;
-    }
-    
-    propertyExists (prop) {
-        return prop in this;
-    }
-
     /* eslint-enable */
     // ------------------------------------------------------------------------
 
@@ -1432,21 +1420,21 @@ export default class Exchange {
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     getExchangePropAllCase (key: string, defaultValue: any = undefined): any {
-        if (this.propertyExists (key)) {
-            return this.getProperty (key);
+        if (key in this) {
+            return this[key];
         } else {
             const unCamelCasedKey = this.unCamelCase (key);
-            if (unCamelCasedKey !== key && this.propertyExists (unCamelCasedKey)) {
-                return this.getProperty (unCamelCasedKey);
+            if (unCamelCasedKey !== key && unCamelCasedKey in this) {
+                return this[unCamelCasedKey];
             }
             return defaultValue;
         }
     }
 
     setExchangePropAllCase (key: string, value: any = undefined): any {
-        this.setProperty (key, value);
+        this[key] = value;
         const unCamelCasedKey = this.unCamelCase (key);
-        this.setProperty (unCamelCasedKey, value);
+        this[unCamelCasedKey] = value;
     }
 
     checkProxySettings () {
