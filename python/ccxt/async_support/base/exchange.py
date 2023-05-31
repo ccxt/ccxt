@@ -153,12 +153,13 @@ class Exchange(BaseExchange):
                 loop=self.asyncio_loop,
                 enable_cleanup_closed=True
             )
+            # override session
             final_session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
         elif proxyAgentCallback:
             final_proxy = proxyAgentCallback(url, method, headers, body)
 
         # avoid old proxies mixing
-        if (self.aiohttp_proxy is not None) and (final_proxy is not None):
+        if (self.aiohttp_proxy is not None) and ((final_proxy is not None) or (proxySocks is not None)):
             raise NotSupported(self.id + ' you have set multiple proxies, please use one or another')
 
         if self.verbose:
