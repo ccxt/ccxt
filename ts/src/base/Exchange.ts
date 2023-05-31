@@ -1531,10 +1531,6 @@ export default class Exchange {
         return this.parseOrder (order, market);
     }
 
-    parseWsTicker (ticker, market: Market = undefined): Ticker {
-        return this.parseTicker (ticker, market);
-    }
-
     parseWsOHLCV (ohlcv, market: Market = undefined): number[] {
         return this.parseOHLCV (ohlcv, market);
     }
