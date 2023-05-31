@@ -1679,7 +1679,7 @@ class Exchange(object):
         return array[first:second] if second else array[first:]
 
     def un_camel_case(self, str):
-        return re.sub('(?!^)([A-Z]+)', r'_\1',str).lower()
+        return re.sub('(?!^)([A-Z]+)', r'_\1', str).lower()
 
     # ########################################################################
     # ########################################################################
