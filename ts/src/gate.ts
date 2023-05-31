@@ -3309,8 +3309,10 @@ export default class gate extends Exchange {
                     // 'tif': 'gtc', // gtc, ioc, poc PendingOrCancelled == postOnly order
                     // 'text': clientOrderId, // 't-abcdef1234567890',
                     // 'auto_size': '', // close_long, close_short, note size also needs to be set to 0
-                    'settle': market['settleId'], // filled in prepareRequest above
                 };
+                if (!market['option']) {
+                    request['settle'] = market['settleId']; // filled in prepareRequest above
+                }
                 if (isMarketOrder) {
                     request['price'] = price; // set to 0 for market orders
                 } else {
@@ -3379,6 +3381,9 @@ export default class gate extends Exchange {
                 request['text'] = clientOrderId;
             }
         } else {
+            if (market['option']) {
+                throw new NotSupported (this.id + ' createOrder() conditional option orders are not supported');
+            }
             if (contract) {
                 // contract conditional order
                 request = {
@@ -3471,6 +3476,7 @@ export default class gate extends Exchange {
             'margin': 'privateSpotPost' + methodTail,
             'swap': 'privateFuturesPostSettle' + methodTail,
             'future': 'privateDeliveryPostSettle' + methodTail,
+            'option': 'privateOptionsPostOrders',
         });
         const response = await this[method] (this.deepExtend (request, params));
         //
@@ -3508,7 +3514,7 @@ export default class gate extends Exchange {
         //
         //     {"id": 5891843}
         //
-        // future and perpetual swaps
+        // futures, perpetual swaps and options
         //
         //     {
         //         "id": 95938572327,
