@@ -4255,6 +4255,7 @@ export default class gate extends Exchange {
             'margin': 'privateSpotDelete' + methodTail,
             'swap': 'privateFuturesDeleteSettle' + methodTail,
             'future': 'privateDeliveryDeleteSettle' + methodTail,
+            'option': 'privateOptionsDeleteOrders',
         });
         const response = await this[method] (this.extend (request, requestParams));
         //
