@@ -3693,7 +3693,7 @@ export default class gate extends Exchange {
         //        "status": "open"
         //    }
         //
-        // FUTURE AND SWAP
+        // FUTURE, SWAP AND OPTION
         // createOrder/cancelOrder/fetchOrder
         //
         //    {
@@ -3990,10 +3990,11 @@ export default class gate extends Exchange {
             'margin': 'privateSpotGet' + methodTail,
             'swap': 'privateFuturesGetSettle' + methodTail,
             'future': 'privateDeliveryGetSettle' + methodTail,
+            'option': 'privateOptionsGetOrders',
         });
         const response = await this[method] (this.extend (request, requestParams));
         //
-        // SPOT Open Orders
+        // spot open orders
         //
         //    [
         //        {
@@ -4033,7 +4034,7 @@ export default class gate extends Exchange {
         //        ...
         //    ]
         //
-        // SPOT
+        // spot
         //
         //    [
         //        {
@@ -4064,7 +4065,7 @@ export default class gate extends Exchange {
         //        }
         //    ]
         //
-        // Spot Stop
+        // spot stop
         //
         //    [
         //        {
@@ -4089,7 +4090,7 @@ export default class gate extends Exchange {
         //        }
         //    ]
         //
-        // Perpetual Swap
+        // swap
         //
         //    [
         //        {
@@ -4111,6 +4112,32 @@ export default class gate extends Exchange {
         //           "price": "0"
         //        }
         //    ]
+        //
+        // option
+        //
+        //     [
+        //         {
+        //             "id": 2593450699,
+        //             "contract": "BTC_USDT-20230601-27500-C",
+        //             "mkfr": "0.0003",
+        //             "tkfr": "0.0003",
+        //             "tif": "gtc",
+        //             "is_reduce_only": false,
+        //             "create_time": 1685503873,
+        //             "price": "200",
+        //             "size": 1,
+        //             "refr": "0",
+        //             "left": 1,
+        //             "text": "api",
+        //             "fill_price": "0",
+        //             "user": 5691076,
+        //             "status": "open",
+        //             "is_liq": false,
+        //             "refu": 0,
+        //             "is_close": false,
+        //             "iceberg": 0
+        //         }
+        //     ]
         //
         let result = response;
         if (openSpotOrders) {
