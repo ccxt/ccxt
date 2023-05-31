@@ -1958,6 +1958,7 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#withdraw
          * @description make a withdrawal
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -2013,6 +2014,7 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-deposit-history
          * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
@@ -2020,16 +2022,41 @@ export default class okcoin extends Exchange {
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
-        let method = 'accountGetDepositHistory';
+        if (limit > 100) {
+            limit = 100; // maximum = 100, default = 100
+        }
+        const request = {
+            'limit': limit,
+            'before': since,
+        };
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'];
-            method += 'Currency';
+            request['ccy'] = currency['id'];
         }
-        const response = await this[method] (this.extend (request, params));
-        return this.parseTransactions (response, currency, since, limit, params);
+        const response = await this.privateGetAssetDepositHistory (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "msg": "",
+        //     "data": [
+        //       {
+        //         "actualDepBlkConfirm": "17",
+        //         "amt": "135.705808",
+        //         "ccy": "USDT",
+        //         "chain": "USDT-TRC20",
+        //         "depId": "34579090",
+        //         "from": "",
+        //         "state": "2",
+        //         "to": "TN4hxxxxxxxxxxxizqs",
+        //         "ts": "1655251200000",
+        //         "txId": "16f36383292f451xxxxxxxxxxxxxxx584f3391642d988f97"
+        //       }
+        //     ]
+        // }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseTransactions (data, currency, since, limit, params);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2037,6 +2064,7 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
          * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
@@ -2044,16 +2072,42 @@ export default class okcoin extends Exchange {
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
-        let method = 'accountGetWithdrawalHistory';
+        if (limit > 100) {
+            limit = 100; // maximum = 100, default = 100
+        }
+        const request = {
+            'limit': limit,
+            'before': since,
+        };
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'];
-            method += 'Currency';
+            request['ccy'] = currency['id'];
         }
-        const response = await this[method] (this.extend (request, params));
-        return this.parseTransactions (response, currency, since, limit, params);
+        const response = await this.privateGetAssetWithdrawalHistory (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "msg": "",
+        //     "data": [
+        //       {
+        //         "chain": "ETH-Ethereum",
+        //         "fee": "0.007",
+        //         "ccy": "ETH",
+        //         "clientId": "",
+        //         "amt": "0.029809",
+        //         "txId": "0x35c******b360a174d",
+        //         "from": "156****359",
+        //         "to": "0xa30d1fab********7CF18C7B6C579",
+        //         "state": "2",
+        //         "ts": "1655251200000",
+        //         "wdId": "15447421"
+        //       }
+        //     ]
+        // }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseTransactions (data, currency, since, limit, params);
     }
 
     parseTransactionStatus (status) {
@@ -2061,9 +2115,12 @@ export default class okcoin extends Exchange {
         // deposit statuses
         //
         //     {
-        //         '0': 'waiting for confirmation',
-        //         '1': 'confirmation account',
-        //         '2': 'recharge success'
+        //          '0': waiting for confirmation
+        //          '1': deposit credited
+        //          '2': deposit successful
+        //          '8': pending due to temporary deposit suspension on this crypto currency
+        //         '12': account or deposit is frozen
+        //         '13': sub-account deposit interception
         //     }
         //
         // withdrawal statues
@@ -2090,6 +2147,9 @@ export default class okcoin extends Exchange {
             '3': 'pending',
             '4': 'pending',
             '5': 'pending',
+            '8': 'pending',
+            '12': 'failed',
+            '13': 'failed',
         };
         return this.safeString (statuses, status, status);
     }
@@ -2108,82 +2168,64 @@ export default class okcoin extends Exchange {
         //
         // fetchWithdrawals
         //
-        //     {
-        //         amount: "4.72100000",
-        //         withdrawal_id: "1729116",
-        //         fee: "0.01000000eth",
-        //         txid: "0xf653125bbf090bcfe4b5e8e7b8f586a9d87aa7de94598702758c0802b…",
-        //         currency: "ETH",
-        //         from: "7147338839",
-        //         to: "0x26a3CB49578F07000575405a57888681249c35Fd",
-        //         timestamp: "2018-08-17T07:03:42.000Z",
-        //         status: "2"
-        //     }
+        // {
+        //     "chain": "ETH-Ethereum",
+        //     "fee": "0.007",
+        //     "ccy": "ETH",
+        //     "clientId": "",
+        //     "amt": "0.029809",
+        //     "txId": "0x35c******b360a174d",
+        //     "from": "156****359",
+        //     "to": "0xa30d1fab********7CF18C7B6C579",
+        //     "state": "2",
+        //     "ts": "1655251200000",
+        //     "wdId": "15447421"
+        // }
         //
         // fetchDeposits
         //
-        //     {
-        //         "amount": "4.19511659",
-        //         "txid": "14c9a8c925647cdb7e5b2937ea9aefe2b29b2c273150ad3f44b3b8a4635ed437",
-        //         "currency": "XMR",
-        //         "from": "",
-        //         "to": "48PjH3ksv1fiXniKvKvyH5UtFs5WhfS2Vf7U3TwzdRJtCc7HJWvCQe56dRahyhQyTAViXZ8Nzk4gQg6o4BJBMUoxNy8y8g7",
-        //         "tag": "1234567",
-        //         "deposit_id": 11571659, <-- we can use this
-        //         "timestamp": "2019-10-01T14:54:19.000Z",
-        //         "status": "2"
-        //     }
+        // {
+        //     "actualDepBlkConfirm": "17",
+        //     "amt": "135.705808",
+        //     "ccy": "USDT",
+        //     "chain": "USDT-TRC20",
+        //     "depId": "34579090",
+        //     "from": "",
+        //     "state": "2",
+        //     "to": "TN4hxxxxxxxxxxxizqs",
+        //     "ts": "1655251200000",
+        //     "txId": "16f36383292f451xxxxxxxxxxxxxxx584f3391642d988f97"
+        //   }
         //
         let type = undefined;
-        let id = undefined;
-        let address = undefined;
-        const withdrawalId = this.safeString2 (transaction, 'withdrawal_id', 'wdId');
+        const withdrawalId = this.safeString (transaction, 'wdId');
         const addressFrom = this.safeString (transaction, 'from');
         const addressTo = this.safeString (transaction, 'to');
-        const tagTo = this.safeString (transaction, 'tag');
         if (withdrawalId !== undefined) {
             type = 'withdrawal';
-            id = withdrawalId;
-            address = addressTo;
         } else {
-            // the payment_id will appear on new deposits but appears to be removed from the response after 2 months
-            id = this.safeString2 (transaction, 'payment_id', 'deposit_id');
             type = 'deposit';
-            address = addressTo;
         }
-        const currencyId = this.safeString2 (transaction, 'currency', 'ccy');
+        const currencyId = this.safeString (transaction, 'ccy');
         const code = this.safeCurrencyCode (currencyId);
-        const amount = this.safeString2 (transaction, 'amount', 'amt');
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const txid = this.safeString (transaction, 'txid');
-        const timestamp = this.parse8601 (this.safeString (transaction, 'timestamp'));
-        let feeCost = undefined;
-        if (type === 'deposit') {
-            feeCost = 0;
-        } else {
-            if (currencyId !== undefined) {
-                const feeWithCurrencyId = this.safeString (transaction, 'fee');
-                if (feeWithCurrencyId !== undefined) {
-                    // https://github.com/ccxt/ccxt/pull/5748
-                    const lowercaseCurrencyId = currencyId.toLowerCase ();
-                    const feeWithoutCurrencyId = feeWithCurrencyId.replace (lowercaseCurrencyId, '');
-                    feeCost = parseFloat (feeWithoutCurrencyId);
-                }
-            }
-        }
+        const amount = this.safeString (transaction, 'amt');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const txid = this.safeString (transaction, 'txId');
+        const timestamp = this.safeString (transaction, 'ts');
+        const feeCost = this.safeString (transaction, 'fee');
         // todo parse tags
         return {
             'info': transaction,
-            'id': id,
+            'id': this.safeString2 (transaction, 'depId', 'wdId'),
             'currency': code,
             'amount': amount,
-            'network': undefined,
+            'network': this.safeString (transaction, 'chain'),
             'addressFrom': addressFrom,
             'addressTo': addressTo,
-            'address': address,
+            'address': addressTo,
             'tagFrom': undefined,
-            'tagTo': tagTo,
-            'tag': tagTo,
+            'tagTo': undefined,
+            'tag': undefined,
             'status': status,
             'type': type,
             'updated': undefined,
