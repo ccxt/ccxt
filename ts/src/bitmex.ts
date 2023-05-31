@@ -41,6 +41,7 @@ export default class bitmex extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
@@ -221,6 +222,7 @@ export default class bitmex extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4789
                 'api-expires': 5, // in seconds
                 'fetchOHLCVOpenTimestamp': true,
+                'oldPrecision': false,
                 'networks': {
                     'BTC': 'btc',
                     'ETH': 'eth',
@@ -259,6 +261,176 @@ export default class bitmex extends Exchange {
                 'LAMp': 'SOL',
             },
         });
+    }
+
+    async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const response = await this.publicGetWalletAssets (params);
+        //
+        //    {
+        //        "XBt": {
+        //            "asset": "XBT",
+        //            "currency": "XBt",
+        //            "majorCurrency": "XBT",
+        //            "name": "Bitcoin",
+        //            "currencyType": "Crypto",
+        //            "scale": "8",
+        //            // "mediumPrecision": "8",
+        //            // "shorterPrecision": "4",
+        //            // "symbol": "₿",
+        //            // "weight": "1",
+        //            // "tickLog": "0",
+        //            "enabled": true,
+        //            "isMarginCurrency": true,
+        //            "minDepositAmount": "10000",
+        //            "minWithdrawalAmount": "1000",
+        //            "maxWithdrawalAmount": "100000000000000",
+        //            "networks": [
+        //                {
+        //                    "asset": "btc",
+        //                    "tokenAddress": "",
+        //                    "depositEnabled": true,
+        //                    "withdrawalEnabled": true,
+        //                    "withdrawalFee": "20000",
+        //                    "minFee": "20000",
+        //                    "maxFee": "10000000"
+        //                }
+        //            ]
+        //        },
+        //     }
+        //
+        const result = {};
+        this.options['currencyIdsByAssetNames'] = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const asset = this.safeString (currency, 'asset');
+            const code = this.safeCurrencyCode (asset);
+            const id = this.safeString (currency, 'currency');
+            this.options['currencyIdsByAssetNames'][asset] = id; // i.e. asset = XBT and id = XBt
+            const name = this.safeString (currency, 'name');
+            const chains = this.safeValue (currency, 'networks', []);
+            let depositEnabled = false;
+            let withdrawEnabled = false;
+            const networks = {};
+            const scale = this.safeString (currency, 'scale');
+            const precisionString = this.parsePrecision (scale);
+            const precision = this.parseNumber (scale);
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString (chain, 'asset');
+                const network = this.networkIdToCode (networkId);
+                const withdrawalFeeRaw = this.safeString (chain, 'withdrawalFee');
+                const withdrawalFee = this.parseNumber (Precise.stringMul (withdrawalFeeRaw, precisionString));
+                const isDepositEnabled = this.safeValue (chain, 'depositEnabled', false);
+                const isWithdrawEnabled = this.safeValue (chain, 'withdrawalEnabled', false);
+                const active = (isDepositEnabled && isWithdrawEnabled);
+                if (isDepositEnabled) {
+                    depositEnabled = true;
+                }
+                if (isWithdrawEnabled) {
+                    withdrawEnabled = true;
+                }
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': active,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
+                    'fee': withdrawalFee,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            const currencyEnabled = this.safeValue (currency, 'enabled');
+            const currencyActive = currencyEnabled || (depositEnabled || withdrawEnabled);
+            const minWithdrawalString = this.safeString (currency, 'minWithdrawalAmount');
+            const minWithdrawal = this.parseNumber (Precise.stringMul (minWithdrawalString, precisionString));
+            const maxWithdrawalString = this.safeString (currency, 'maxWithdrawalAmount');
+            const maxWithdrawal = this.parseNumber (Precise.stringMul (maxWithdrawalString, precisionString));
+            const minDepositString = this.safeString (currency, 'minDepositAmount');
+            const minDeposit = this.parseNumber (Precise.stringMul (minDepositString, precisionString));
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': name,
+                'active': currencyActive,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
+                'fee': undefined,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': minWithdrawal,
+                        'max': maxWithdrawal,
+                    },
+                    'deposit': {
+                        'min': minDeposit,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+            };
+        }
+        return result;
+    }
+
+    amountToCurrencyPrecision (code, amount) {
+        const currency = this.currency (code);
+        const precision = this.safeInteger (currency, 'precision', 8);
+        const amountString = this.numberToString (amount);
+        const precisionString = this.numberToString (Math.pow (10, precision));
+        const finalAmount = Precise.stringMul (amountString, precisionString);
+        return this.parseNumber (finalAmount);
+    }
+
+    convertToRealAmount (code, amount) {
+        const currency = this.currency (code);
+        const precision = this.safeInteger (currency, 'precision', 8);
+        const amountString = this.numberToString (amount);
+        const precisionString = this.numberToString (Math.pow (10, precision));
+        const finalAmount = Precise.stringDiv (amountString, precisionString);
+        return this.parseNumber (finalAmount);
+    }
+
+    amountToPrecision (symbol, amount) {
+        symbol = this.safeSymbol (symbol);
+        const market = this.market (symbol);
+        const oldPrecision = this.safeValue (this.options, 'oldPrecision');
+        if (market['spot'] && !oldPrecision) {
+            amount = this.amountToCurrencyPrecision (market['base'], amount);
+        }
+        return super.amountToPrecision (symbol, amount);
+    }
+
+    convertFromRawQuantity (symbol, rawQuantity) {
+        symbol = this.safeSymbol (symbol);
+        const market = this.market (symbol);
+        const oldPrecision = this.safeValue (this.options, 'oldPrecision');
+        if (market['spot'] && !oldPrecision) {
+            return this.convertToRealAmount (market['base'], rawQuantity);
+        }
+        return rawQuantity;
     }
 
     async fetchMarkets (params = {}) {
@@ -548,28 +720,10 @@ export default class bitmex extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            let free = this.safeString (balance, 'availableMargin');
-            let total = this.safeString (balance, 'marginBalance');
-            if (code !== 'USDT') {
-                // tmp fix until this PR gets merged
-                // https://github.com/ccxt/ccxt/pull/15311
-                const symbol = code + '_USDT';
-                const market = this.safeMarket (symbol);
-                const info = this.safeValue (market, 'info', {});
-                const multiplier = this.safeString (info, 'underlyingToPositionMultiplier');
-                if (multiplier !== undefined) {
-                    free = Precise.stringDiv (free, multiplier);
-                    total = Precise.stringDiv (total, multiplier);
-                } else {
-                    free = Precise.stringDiv (free, '1e8');
-                    total = Precise.stringDiv (total, '1e8');
-                }
-            } else {
-                free = Precise.stringDiv (free, '1e6');
-                total = Precise.stringDiv (total, '1e6');
-            }
-            account['free'] = free;
-            account['total'] = total;
+            const free = this.safeString (balance, 'availableMargin');
+            const total = this.safeString (balance, 'marginBalance');
+            account['free'] = this.convertToRealAmount (code, free);
+            account['total'] = this.convertToRealAmount (code, total);
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -923,10 +1077,7 @@ export default class bitmex extends Exchange {
         const type = this.parseLedgerEntryType (this.safeString (item, 'transactType'));
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let amount = this.safeNumber (item, 'amount');
-        if (amount !== undefined) {
-            amount = amount / 100000000;
-        }
+        let amount = this.convertToRealAmount (code, this.safeString (item, 'amount'));
         let timestamp = this.parse8601 (this.safeString (item, 'transactTime'));
         if (timestamp === undefined) {
             // https://github.com/ccxt/ccxt/issues/6047
@@ -1591,9 +1742,11 @@ export default class bitmex extends Exchange {
         //         "timestamp": "2019-03-05T12:47:02.762Z"
         //     }
         //
+        const marketId = this.safeString (trade, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const priceString = this.safeString2 (trade, 'avgPx', 'price');
-        const amountString = this.safeString2 (trade, 'size', 'lastQty');
+        const amountString = this.convertFromRawQuantity (symbol, this.safeString2 (trade, 'size', 'lastQty'));
         const execCost = this.safeString (trade, 'execCost');
         const costString = Precise.stringDiv (Precise.stringAbs (execCost), '1e8');
         const id = this.safeString (trade, 'trdMatchID');
@@ -1618,8 +1771,6 @@ export default class bitmex extends Exchange {
         if (feeCostString !== undefined && execType === 'Trade') {
             takerOrMaker = Precise.stringLt (feeCostString, '0') ? 'maker' : 'taker';
         }
-        const marketId = this.safeString (trade, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
         const type = this.safeStringLower (trade, 'ordType');
         return this.safeTrade ({
             'info': trade,
@@ -1710,8 +1861,9 @@ export default class bitmex extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'transactTime'));
         const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'orderQty');
-        const filled = this.safeString (order, 'cumQty');
+        const qty = this.safeString (order, 'orderQty');
+        const amount = this.convertFromRawQuantity (symbol, qty);
+        const filled = this.convertFromRawQuantity (symbol, this.safeString (order, 'cumQty'));
         const average = this.safeString (order, 'avgPx');
         const id = this.safeString (order, 'orderID');
         const type = this.safeStringLower (order, 'ordType');
@@ -1830,10 +1982,11 @@ export default class bitmex extends Exchange {
             }
         }
         const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
+        const qty = parseFloat (this.amountToPrecision (symbol, amount));
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'orderQty': parseFloat (this.amountToPrecision (symbol, amount)), // lot size multiplied by the number of contracts
+            'orderQty': qty, // lot size multiplied by the number of contracts
             'ordType': orderType,
             'text': brokerId,
         };
@@ -1873,7 +2026,7 @@ export default class bitmex extends Exchange {
             request['orderID'] = id;
         }
         if (amount !== undefined) {
-            request['orderQty'] = amount;
+            request['orderQty'] = this.amountToPrecision (symbol, amount);
         }
         if (price !== undefined) {
             request['price'] = price;
@@ -2298,14 +2451,11 @@ export default class bitmex extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
-        // let currency = this.currency (code);
-        if (code !== 'BTC') {
-            throw new ExchangeError (this.id + ' supoprts BTC withdrawals only, other currencies coming soon...');
-        }
         const currency = this.currency (code);
+        const qty = this.amountToCurrencyPrecision (code, amount);
         const request = {
-            'currency': 'XBt', // temporarily
-            'amount': amount,
+            'currency': currency['id'],
+            'amount': qty,
             'address': address,
             // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
             // 'fee': 0.001, // bitcoin network fee
