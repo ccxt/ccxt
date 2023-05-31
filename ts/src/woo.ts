@@ -251,6 +251,7 @@ export default class woo extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'brokerId': 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -795,7 +796,8 @@ export default class woo extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-        const brokerId = this.safeString (this.options, 'brokerId');
+        const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+        const brokerId = this.safeString (this.options, 'brokerId', applicationId);
         if (brokerId !== undefined) {
             request['broker_id'] = brokerId;
         }
