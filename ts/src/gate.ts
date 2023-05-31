@@ -1210,7 +1210,9 @@ export default class gate extends Exchange {
         if (market !== undefined) {
             if (market['contract']) {
                 request['contract'] = market['id'];
-                request['settle'] = market['settleId'];
+                if (!market['option']) {
+                    request['settle'] = market['settleId'];
+                }
             } else {
                 request['currency_pair'] = market['id'];
             }
@@ -3691,7 +3693,7 @@ export default class gate extends Exchange {
         //        "status": "open"
         //    }
         //
-        // FUTURE AND SWAP
+        // FUTURE, SWAP AND OPTION
         // createOrder/cancelOrder/fetchOrder
         //
         //    {
@@ -4145,6 +4147,7 @@ export default class gate extends Exchange {
             'margin': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
             'swap': 'privateFuturesDeleteSettle' + pathMiddle + 'OrdersOrderId',
             'future': 'privateDeliveryDeleteSettle' + pathMiddle + 'OrdersOrderId',
+            'option': 'privateOptionsDeleteOrdersOrderId',
         });
         const response = await this[method] (this.extend (request, requestParams));
         //
@@ -4202,7 +4205,7 @@ export default class gate extends Exchange {
         //         "status": "canceled"
         //     }
         //
-        // perpetual swaps
+        // swap, future and option
         //
         //     {
         //         id: "82241928192",
