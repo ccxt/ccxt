@@ -3,7 +3,7 @@
 import kucoinfuturesRest from '../kucoinfutures.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import { Int, Market, Order } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -450,7 +450,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return this.safeString (statuses, status, status);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined): Order {
         //
         //     {
         //         'symbol': 'XCAD-USDT',

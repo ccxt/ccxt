@@ -4,7 +4,7 @@
 import bitstampRest from '../bitstamp.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, Market, Trade } from '../base/types.js';
+import { Int, Market, Order, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -334,7 +334,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (this.orders, channel);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined): Order {
         //
         //   {
         //        "id":"1463471322288128",
