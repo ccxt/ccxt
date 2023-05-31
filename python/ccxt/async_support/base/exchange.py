@@ -144,7 +144,7 @@ class Exchange(BaseExchange):
             # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
             connector = ProxyConnector.from_url(
-                proxySocks,                                               
+                proxySocks,
                 # extra args copied from self.open()
                 ssl=context,
                 loop=self.asyncio_loop,
@@ -2002,7 +2002,7 @@ class Exchange(BaseExchange):
             # check if exchange has properties for self method
             exchangeWideMethodOptions = self.safe_value(self.options, methodName)
             if exchangeWideMethodOptions is not None:
-                # check if the option is hasattr(self, defined) method's props
+                # check if the option is defined inside self method's props
                 value = self.safe_value_2(exchangeWideMethodOptions, optionName, defaultOptionName)
             if value is None:
                 # if it's still None, check if global exchange-wide option exists
