@@ -546,7 +546,7 @@ export default class coinone extends Exchange {
             'order_id': id,
             'currency': market['id'],
         };
-        const response = await (this as any).privatePostOrderQueryOrder (this.extend (request, params));
+        const response = await this.privatePostOrderQueryOrder (this.extend (request, params));
         //
         //     {
         //         "result": "success",
