@@ -44,7 +44,7 @@
         }
     },
     "binance": {
-        "proxyHttp": "http://51.83.140.52:11230",
+        "proxyHttps": "http://51.83.140.52:11230",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -75,7 +75,7 @@
         }
     },
     "binancecoinm": {
-        "proxyHttp": "http://51.83.140.52:11230",
+        "proxyHttps": "http://51.83.140.52:11230",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -93,7 +93,7 @@
         }
     },
     "binanceusdm": {
-        "proxyHttp": "http://51.83.140.52:11230",
+        "proxyHttps": "http://51.83.140.52:11230",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": {
@@ -116,7 +116,7 @@
         }
     },
     "tokocrypto": {
-        "proxyHttp": "http://51.83.140.52:11230",
+        "proxyHttps": "http://51.83.140.52:11230",
         "skipWs": true
     },
     "bitbank": {
@@ -473,7 +473,7 @@
         }
     },
     "bybit": {
-        "proxyHttp": "http://51.83.140.52:11230",
+        "proxyHttps": "http://51.83.140.52:11230",
         "skipPhpAsync": "missing php async proxy",
         "skipMethods": {
             "fetchTickers": {

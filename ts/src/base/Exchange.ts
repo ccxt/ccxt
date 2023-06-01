@@ -1434,18 +1434,9 @@ export default class Exchange {
     checkProxySettings () {
         const proxyUrl = this.safeString2 (this, 'proxyUrl', 'proxy_url');
         const proxyUrlCallback = this.safeValue2 (this, 'proxyUrlCallback', 'proxy_url_callback');
-        let proxyHttp = this.safeString2 (this, 'proxyHttp', 'proxy_http');
-        let proxyHttps = this.safeString2 (this, 'proxyHttps', 'proxy_https');
-        // for backwards compatibility
-        const proxyHttpOld = this.safeString (this, 'httpProxy');
-        const proxyHttpsOld = this.safeString (this, 'httpsProxy');
-        if (proxyHttpOld && proxyHttp === undefined) {
-            proxyHttp = proxyHttpOld;
-        }
-        if (proxyHttpsOld && proxyHttp === undefined) {
-            proxyHttps = proxyHttpsOld;
-        }
-        //
+        // for backwards compatibility,added old keys too
+        const proxyHttp = this.safeStringN (this, [ 'proxyHttp', 'proxy_http', 'httpProxy' ]);
+        const proxyHttps = this.safeStringN (this, [ 'proxyHttps', 'proxy_https', 'httpsProxy' ]);
         const proxySocks = this.safeString2 (this, 'proxySocks', 'proxy_socks');
         const proxyAgentCallback = this.safeValue2 (this, 'proxyAgentCallback', 'proxy_agent_callback');
         let val = 0;
