@@ -26,8 +26,8 @@ async def example_1():
 
 async def example_2():
     my_ex = ccxt.kucoin()
-    # same as proxyHttps
-    my_ex.proxy_http = 'http://51.83.140.52:11230'  # It sets a real proxy for communication, so calls are made directly to url https://target_url.com , but tunneled through a proxy server (Note, this might work for websocket connections too).
+    # same as proxyHttp
+    my_ex.proxy_https = 'http://51.83.140.52:11230'  # It sets a real proxy for communication, so calls are made directly to url https://target_url.com , but tunneled through a proxy server (Note, this might work for websocket connections too).
     print(await my_ex.fetch('https://api.ipify.org/'))
 
     await my_ex.close()
@@ -41,8 +41,15 @@ async def example_3():
 
 async def example_4():
     my_ex = ccxt.kucoin()
-
+    # for advanced use, set  `meEx.proxyAgentCallback` callback
+    my_ex.proxy_agent_callback = my_callback
 
     await my_ex.close()
+
+def my_callback(url, method, headers, body):
+    # in JS it sets .agent property for fetch, in PHP it sets .userAgent, in Python (sync) it returns dict of proxies for `Requests` module, in Python (async) it returns signle proxy entry
+    return {}   #
+
+
 
 asyncio.run(example_1())

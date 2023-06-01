@@ -2182,18 +2182,6 @@ class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    public function get_exchange_prop_all_case(string $key, mixed $defaultValue = null) {
-        if (property_exists($this, $key) && $this->$key !== null) {
-            return $this->$key;
-        } else {
-            $unCamelCasedKey = $this->un_camel_case($key);
-            if ($unCamelCasedKey !== $key && property_exists($this, $unCamelCasedKey)) {
-                return $this->$unCamelCasedKey;
-            }
-            return $defaultValue;
-        }
-    }
-
     public function set_exchange_prop_all_case(string $key, mixed $value = null) {
         $this->$key = $value;
         $unCamelCasedKey = $this->un_camel_case($key);
@@ -2201,12 +2189,13 @@ class Exchange {
     }
 
     public function check_proxy_settings() {
-        $proxyUrl = $this->get_exchange_prop_all_case('proxyUrl');
-        $proxyUrlCallback = $this->get_exchange_prop_all_case('proxyUrlCallback');
-        $proxyHttp = $this->get_exchange_prop_all_case('proxyHttp');
-        $proxyHttps = $this->get_exchange_prop_all_case('proxyHttps');
-        $proxySocks = $this->get_exchange_prop_all_case('proxySocks');
-        $proxyAgentCallback = $this->get_exchange_prop_all_case('proxyAgentCallback');
+        $proxyUrl = $this->safe_string_2(this, 'proxyUrl', 'proxy_url');
+        $proxyUrlCallback = $this->safe_value_2(this, 'proxyUrlCallback', 'proxy_url_callback');
+        // for backwards compatibility,added old keys too
+        $proxyHttp = $this->safe_string_n(this, array( 'proxyHttp', 'proxy_http', 'httpProxy' ));
+        $proxyHttps = $this->safe_string_n(this, array( 'proxyHttps', 'proxy_https', 'httpsProxy' ));
+        $proxySocks = $this->safe_string_2(this, 'proxySocks', 'proxy_socks');
+        $proxyAgentCallback = $this->safe_value_2(this, 'proxyAgentCallback', 'proxy_agent_callback');
         $val = 0;
         if ($proxyUrl !== null) {
             $val = $val + 1;

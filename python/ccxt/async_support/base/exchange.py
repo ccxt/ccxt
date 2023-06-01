@@ -519,27 +519,19 @@ class Exchange(BaseExchange):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    def get_exchange_prop_all_case(self, key: str, defaultValue: Optional[Any] = None):
-        if hasattr(self, key) and getattr(self, key) is not None:
-            return getattr(self, key)
-        else:
-            unCamelCasedKey = self.un_camel_case(key)
-            if unCamelCasedKey != key and hasattr(self, unCamelCasedKey):
-                return getattr(self, unCamelCasedKey)
-            return defaultValue
-
     def set_exchange_prop_all_case(self, key: str, value: Optional[Any] = None):
         setattr(self, key, value)
         unCamelCasedKey = self.un_camel_case(key)
         setattr(self, unCamelCasedKey, value)
 
     def check_proxy_settings(self):
-        proxyUrl = self.get_exchange_prop_all_case('proxyUrl')
-        proxyUrlCallback = self.get_exchange_prop_all_case('proxyUrlCallback')
-        proxyHttp = self.get_exchange_prop_all_case('proxyHttp')
-        proxyHttps = self.get_exchange_prop_all_case('proxyHttps')
-        proxySocks = self.get_exchange_prop_all_case('proxySocks')
-        proxyAgentCallback = self.get_exchange_prop_all_case('proxyAgentCallback')
+        proxyUrl = self.safe_string_2(self, 'proxyUrl', 'proxy_url')
+        proxyUrlCallback = self.safe_value_2(self, 'proxyUrlCallback', 'proxy_url_callback')
+        # for backwards compatibility,added old keys too
+        proxyHttp = self.safe_string_n(self, ['proxyHttp', 'proxy_http', 'httpProxy'])
+        proxyHttps = self.safe_string_n(self, ['proxyHttps', 'proxy_https', 'httpsProxy'])
+        proxySocks = self.safe_string_2(self, 'proxySocks', 'proxy_socks')
+        proxyAgentCallback = self.safe_value_2(self, 'proxyAgentCallback', 'proxy_agent_callback')
         val = 0
         if proxyUrl is not None:
             val = val + 1

@@ -243,10 +243,7 @@ class testMainClass extends baseMainTestClass {
             dump ('[SKIPPED] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
             exit_script ();
         }
-        $proxy = $exchange->safe_string($skippedSettingsForExchange, 'httpProxy');
-        if ($proxy !== null) {
-            add_proxy ($exchange, $proxy);
-        }
+        $exchange->proxyHttps = $exchange->safe_string($skippedSettingsForExchange, 'proxyHttps');
         $this->skippedMethods = $exchange->safe_value($skippedSettingsForExchange, 'skipMethods', array());
         $this->checkedPublicTests = array();
     }
