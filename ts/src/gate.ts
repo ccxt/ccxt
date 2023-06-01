@@ -113,6 +113,7 @@ export default class gate extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPosition': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
@@ -4576,6 +4577,86 @@ export default class gate extends Exchange {
             'side': side,
             'percentage': undefined,
         });
+    }
+
+    async fetchPosition (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchPosition
+         * @description fetch data on an open contract position
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-single-position
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-single-position-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-specified-contract-position
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchPosition() supports contract markets only');
+        }
+        let type = undefined;
+        let request = {};
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
+        [ request, params ] = this.prepareRequest (market, type, params);
+        const method = this.getSupportedMapping (type, {
+            'swap': 'privateFuturesGetSettlePositionsContract',
+            'future': 'privateDeliveryGetSettlePositionsContract',
+            'option': 'privateOptionsGetPositionsContract',
+        });
+        const response = await this[method] (this.extend (request, params));
+        //
+        // swap and future
+        //
+        //     {
+        //         "value": "12.475572",
+        //         "leverage": "0",
+        //         "mode": "single",
+        //         "realised_point": "0",
+        //         "contract": "BTC_USDT",
+        //         "entry_price": "62422.6",
+        //         "mark_price": "62377.86",
+        //         "history_point": "0",
+        //         "realised_pnl": "-0.00624226",
+        //         "close_order":  null,
+        //         "size": "2",
+        //         "cross_leverage_limit": "25",
+        //         "pending_orders": "0",
+        //         "adl_ranking": "5",
+        //         "maintenance_rate": "0.005",
+        //         "unrealised_pnl": "-0.008948",
+        //         "user": "6693577",
+        //         "leverage_max": "100",
+        //         "history_pnl": "14.98868396636",
+        //         "risk_limit": "1000000",
+        //         "margin": "0.740721495056",
+        //         "last_close_pnl": "-0.041996015",
+        //         "liq_price": "59058.58"
+        //     }
+        //
+        // option
+        //
+        //     {
+        //         "close_order": null,
+        //         "size": 1,
+        //         "vega": "5.29756",
+        //         "theta": "-98.98917",
+        //         "gamma": "0.00056",
+        //         "delta": "0.68691",
+        //         "contract": "BTC_USDT-20230602-26500-C",
+        //         "entry_price": "529",
+        //         "unrealised_pnl": "-1.0131",
+        //         "user": 5691076,
+        //         "mark_price": "427.69",
+        //         "underlying_price": "26810.2",
+        //         "underlying": "BTC_USDT",
+        //         "realised_pnl": "-0.08042877",
+        //         "mark_iv": "0.4224",
+        //         "pending_orders": 0
+        //     }
+        //
+        return this.parsePosition (response, market);
     }
 
     async fetchPositions (symbols: string[] = undefined, params = {}) {
