@@ -41,6 +41,7 @@ export default class kucoin extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
@@ -1588,6 +1589,52 @@ export default class kucoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
+    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#editOrder
+         * @description edit an order, kucoin currently only supports the modification of HF orders
+         * @see https://docs.kucoin.com/spot-hf/#modify-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type not used
+         * @param {string} side not used
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @param {string} params.clientOrderId client order id, defaults to id if not passed
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOid'] = clientOrderId;
+        } else {
+            request['orderId'] = id;
+        }
+        if (amount !== undefined) {
+            request['newSize'] = this.amountToPrecision (symbol, amount);
+        }
+        if (price !== undefined) {
+            request['newPrice'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.privatePostHfOrdersAlter (this.extend (request, params));
+        //
+        // {
+        //     "code":"200000",
+        //     "data":{
+        //        "newOrderId":"6478d7a6c883280001e92d8b"
+        //     }
+        // }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
@@ -2067,7 +2114,7 @@ export default class kucoin extends Exchange {
         const stopPrice = this.safeNumber (order, 'stopPrice');
         return this.safeOrder ({
             'info': order,
-            'id': this.safeString2 (order, 'id', 'orderId'),
+            'id': this.safeStringN (order, [ 'id', 'orderId', 'newOrderId' ]),
             'clientOrderId': this.safeString (order, 'clientOid'),
             'symbol': this.safeSymbol (marketId, market, '-'),
             'type': this.safeString (order, 'type'),
