@@ -290,8 +290,8 @@ class buda extends buda$1 {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'taker': this.parseNumber(Precise["default"].stringDiv(taker_fee, '1000')),
-                'maker': this.parseNumber(Precise["default"].stringDiv(maker_fee, '1000')),
+                'taker': this.parseNumber(Precise["default"].stringDiv(taker_fee, '100')),
+                'maker': this.parseNumber(Precise["default"].stringDiv(maker_fee, '100')),
                 'precision': {
                     'amount': this.parseNumber(this.parsePrecision(this.safeString(baseInfo, 'input_decimals'))),
                     'price': this.parseNumber(this.parsePrecision(this.safeString(quoteInfo, 'input_decimals'))),
