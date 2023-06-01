@@ -1593,27 +1593,37 @@ export default class kucoin extends Exchange {
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @param {bool} params.stop True if cancelling a stop order
+         * @param {bool} params.hf false, // true for hf order
          * @returns Response from the exchange
          */
         await this.loadMarkets ();
         const request = {};
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-        const stop = this.safeValue (params, 'stop');
+        const stop = this.safeValue (params, 'stop', false);
+        const hf = this.safeValue (params, 'hf', false);
         let method = 'privateDeleteOrdersOrderId';
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
             if (stop) {
                 method = 'privateDeleteStopOrderCancelOrderByClientOid';
+            } else if (hf) {
+                method = 'privateDeleteHfOrdersClientOrderClientOid';
+                const market = this.market (symbol);
+                request['symbol'] = market['id'];
             } else {
                 method = 'privateDeleteOrderClientOrderClientOid';
             }
         } else {
             if (stop) {
                 method = 'privateDeleteStopOrderOrderId';
+            } else if (hf) {
+                method = 'privateDeleteHfOrdersOrderId';
+                const market = this.market (symbol);
+                request['symbol'] = market['id'];
             }
             request['orderId'] = id;
         }
-        params = this.omit (params, [ 'clientOid', 'clientOrderId', 'stop' ]);
+        params = this.omit (params, [ 'clientOid', 'clientOrderId', 'stop', 'hf' ]);
         return await this[method] (this.extend (request, params));
     }
 
