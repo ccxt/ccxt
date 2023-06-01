@@ -4154,17 +4154,22 @@ export default class Exchange {
         return market;
     }
 
-    handleOrderPreviousOrder (order: Order, orders, symbol: string) {
+    handleOrderPreviousOrder (order, orders, symbol: string) {
         const previousOrders = this.safeValue (orders.hashmap, symbol, {});
         const orderId = this.safeString (order, 'order_id');
         const previousOrder = this.safeValue (previousOrders, orderId);
+        let previousTrade = undefined;
         if (previousOrder === undefined) {
             return this.parseWsOrder (order);
         } else {
-            const trade = this.parseWsTrade (order);
             if (previousOrder['trades'] === undefined) {
                 previousOrder['trades'] = [];
+            } else {
+                const previousTrades = previousOrder['trades'];
+                const numTrades = previousTrades.length;
+                previousTrade = previousOrder['trades'][numTrades - 1];
             }
+            const trade = this.parseWsOrderTrade (order);
             previousOrder['trades'].push (trade);
             previousOrder['lastTradeTimestamp'] = trade['timestamp'];
             let totalCost = '0';

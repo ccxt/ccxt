@@ -53,5 +53,72 @@ export default async (exchange, symbol) => {
         }
     }
 
+    const response1 = {
+        "instrument": "PI_XBTUSD",
+        "time": 1567702877410,
+        "last_update_time": 1567702877410,
+        "qty": 304.0,
+        "filled": 0.0,
+        "limit_price": 10640.0,
+        "stop_price": 0.0,
+        "type": "limit",
+        "order_id": "59302619-41d2-4f0b-941f-7e7914760ad3",
+        "direction": 1,
+        "reduce_only": true
+    };
+
+    const response2 = {
+        "instrument": "PI_XBTUSD",
+        "time": 1567702877410,
+        "last_update_time": 1567702877410,
+        "qty": 304.0,
+        "filled": 20.0,
+        "limit_price": 10640.0,
+        "stop_price": 0.0,
+        "type": "limit",
+        "order_id": "59302619-41d2-4f0b-941f-7e7914760ad3",
+        "direction": 1,
+        "reduce_only": true
+    };
+
+    const order1 = {
+        'id':                 '59302619-41d2-4f0b-941f-7e7914760ad3',
+        'clientOrderId':      undefined,
+        'datetime':           '2019-09-5 11:01:17.000',
+        'timestamp':          1567702877410,
+        'lastTradeTimestamp': 1502962956216,
+        'status':             'open',
+        'symbol':             'BTC/USD:BTC',
+        'type':               'limit',
+        'timeInForce':        undefined,
+        'side':               'buy',
+        'price':              10640.0,
+        'average':            undefined,
+        'amount':             304.0,
+        'filled':             0.0,
+        'remaining':          304.0,
+        'cost':               undefined,
+        'trades':             [
+            // {...}
+        ],
+        'fee': undefined,
+        'info': {},
+    };
+
+    // exchange.orders.hashmap['BTC/USDT'] = {
+    //     '59302619-41d2-4f0b-941f-7e7914760ad3': order1,
+    // };
+
+    const parsedOrder = exchange.handleOrderPreviousOrder (response1, exchange.orders, 'BTC/USD:BTC');
+    assert (parsedOrder === order1);
+
+    exchange.orders.append (order1);
+    const parsedOrder2 = exchange.handleOrderPreviousOrder (response2, exchange.orders, 'BTC/USD:BTC');
+    const trade = {
+
+    };
+    const parsedOrderTrades = parsedOrder2['trades'];
+    assert (parsedOrderTrades[0] === trade);
+
     return response;
 };
