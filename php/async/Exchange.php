@@ -103,9 +103,11 @@ class Exchange extends \ccxt\Exchange {
                 $proxy = new Clue\React\HttpProxy\ProxyConnector($proxyHttps);
                 $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
             } else if ($proxySocks !== null) {
-                include_once ($proxy_files_dir. 'reactphp-socks/src/StreamReader.php');
-                include_once ($proxy_files_dir. 'reactphp-socks/src/Client.php');
-                $proxy = new Clue\React\Socks\Client($proxySocks);
+                try {
+                    $proxy = new Clue\React\Socks\Client($proxySocks);
+                } catch (\Exception $e) {
+                    throw new NotSupported($this->id . ' - to use SOCKS proxy with ccxt, at first you need install module "composer require clue/socks-react"');
+                }
                 $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
             } else if ($proxyAgentCallback !== null) {
                 $this->userAgent = $proxyAgentCallback ($url, $method, $headers, $body);

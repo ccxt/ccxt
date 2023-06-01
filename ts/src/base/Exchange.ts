@@ -923,7 +923,13 @@ export default class Exchange {
                 proxyAgent.keepAlive = true;
                 this.agent = proxyAgent;
             } else if (proxySocks !== undefined) {
-                const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/socks-proxy-agent/index.js')
+                let module = undefined;
+                try {
+                    // @ts-ignore
+                    module = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
+                } catch (e) {
+                    throw new ExchangeError (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" '); 
+                }
                 const proxyAgent = new module.SocksProxyAgent(proxySocks);
                 this.agent = proxyAgent;
             } else if (proxyAgentCallback !== undefined) {

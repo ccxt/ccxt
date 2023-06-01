@@ -38,16 +38,13 @@ from ccxt.async_support.base.ws.fast_client import FastClient
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 
-from ccxt.static_dependencies.aiohttp_socks import ProxyConnector
 
 # -----------------------------------------------------------------------------
 
-# try:
-#     from aiohttp_socks import ProxyConnector
-# except ImportError:
-#     ProxyType = None
-#     ProxyConnector = None
-#     ChainProxyConnector = None
+try:
+    from aiohttp_socks import ProxyConnector
+except ImportError:
+    ProxyConnector = None
 
 # -----------------------------------------------------------------------------
 
@@ -139,8 +136,8 @@ class Exchange(BaseExchange):
         elif proxyHttps:
             final_proxy = proxyHttps
         elif proxySocks:
-            # if ProxyConnector is None:
-            #     raise NotSupported(self.id + ' Socks proxy functionality requires aiohttp_socks, install with `pip install aiohttp_socks`: https://github.com/romis2012/aiohttp-socks')
+            if ProxyConnector is None:
+                raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, at first you need install module "pip install aiohttp_socks"')
             # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
             connector = ProxyConnector.from_url(
