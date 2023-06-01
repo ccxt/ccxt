@@ -4596,11 +4596,9 @@ export default class gate extends Exchange {
         if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchPosition() supports contract markets only');
         }
-        let type = undefined;
         let request = {};
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
-        [ request, params ] = this.prepareRequest (market, type, params);
-        const method = this.getSupportedMapping (type, {
+        [ request, params ] = this.prepareRequest (market, market['type'], params);
+        const method = this.getSupportedMapping (market['type'], {
             'swap': 'privateFuturesGetSettlePositionsContract',
             'future': 'privateDeliveryGetSettlePositionsContract',
             'option': 'privateOptionsGetPositionsContract',
