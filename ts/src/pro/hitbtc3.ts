@@ -891,244 +891,53 @@ export default class hitbtc3 extends hitbtc3Rest {
     async watchBalance (params = {}) {
         /**
          * @method
-         * @name krakenfutures#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @param {string|undefined} symbol not used by krakenfutures watchBalance
-         * @param {int|undefined} since not used by krakenfutures watchBalance
-         * @param {int|undefined} limit not used by krakenfutures watchBalance
-         * @param {object} params extra parameters specific to the krakenfutures api endpoint
-         * @param {string} params.account can be either 'futures' or 'flex_futures'
+         * @name hitbtc3#watchBalance
+         * @description watches balance updates, cannot subscribe to margin account balances
+         * @see https://api.hitbtc.com/#subscribe-to-spot-balances
+         * @see https://api.hitbtc.com/#subscribe-to-futures-balances
+         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {string} params.type 'spot', 'swap', or 'future'
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} params.mode 'updates' (default) or 'batches', 'updates' = messages arrive after balance updates, 'batches' = messages arrive at equal intervals if there were any updates
          * @returns {[object]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const name = 'balances';
-        let messageHash = name;
-        let account = undefined;
-        [ account, params ] = this.handleOptionAndParams (params, 'watchBalance', 'account');
-        if (account !== undefined) {
-            if (account !== 'futures' && account !== 'flex_futures') {
-                throw new ArgumentsRequired (this.id + ' watchBalance account must be either \'futures\' or \'flex_futures\'');
-            }
-            messageHash += ':' + account;
-        }
-        return await this.subscribe (name, messageHash, params);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const name = this.getSupportedMapping (type, {
+            'spot': 'spot_balance',
+            'swap': 'futures_balance',
+            'future': 'futures_balance',
+        });
+        const mode = this.safeString (params, 'mode', 'updates');
+        const messageHash = name;
+        const request = {
+            'mode': mode,
+        };
+        return await this.subscribe (name, messageHash, this.extend (request, params));
     }
 
     handleBalance (client: Client, message) {
         //
-        // snapshot
-        //
         //    {
-        //        "feed": "balances_snapshot",
-        //        "account": "4a012c31-df95-484a-9473-d51e4a0c4ae7",
-        //        "holding": {
-        //            "USDT": 4997.5012493753,
-        //            "XBT": 0.1285407184,
-        //            ...
-        //        },
-        //        "futures": {
-        //            "F-ETH:EUR": {
-        //                "name": "F-ETH:EUR",
-        //                "pair": "ETH/EUR",
-        //                "unit": "EUR",
-        //                "portfolio_value": 0.0,
-        //                "balance": 0.0,
-        //                "maintenance_margin": 0.0,
-        //                "initial_margin": 0.0,
-        //                "available": 0.0,
-        //                "unrealized_funding": 0.0,
-        //                "pnl": 0.0
+        //        "jsonrpc": "2.0",
+        //        "method": "futures_balance",
+        //        "params": [
+        //            {
+        //                "currency": "BCN",
+        //                "available": "100.000000000000",
+        //                "reserved": "0",
+        //                "reserved_margin": "0"
         //            },
         //            ...
-        //        },
-        //        "flex_futures": {
-        //            "currencies": {
-        //                "USDT": {
-        //                    "quantity": 0.0,
-        //                    "value": 0.0,
-        //                    "collateral_value": 0.0,
-        //                    "available": 0.0,
-        //                    "haircut": 0.0,
-        //                    "conversion_spread": 0.0
-        //                },
-        //                ...
-        //            },
-        //            "balance_value":0.0,
-        //            "portfolio_value":0.0,
-        //            "collateral_value":0.0,
-        //            "initial_margin":0.0,
-        //            "initial_margin_without_orders":0.0,
-        //            "maintenance_margin":0.0,
-        //            "pnl":0.0,
-        //            "unrealized_funding":0.0,
-        //            "total_unrealized":0.0,
-        //            "total_unrealized_as_margin":0.0,
-        //            "margin_equity":0.0,
-        //            "available_margin":0.0
-        //            "isolated":{
-        //            },
-        //            "cross":{
-        //                "balance_value":9963.66,
-        //                "portfolio_value":9963.66,
-        //                "collateral_value":9963.66,
-        //                "initial_margin":0.0,
-        //                "initial_margin_without_orders":0.0,
-        //                "maintenance_margin":0.0,
-        //                "pnl":0.0,
-        //                "unrealized_funding":0.0,
-        //                "total_unrealized":0.0,
-        //                "total_unrealized_as_margin":0.0,
-        //                "margin_equity":9963.66,
-        //                "available_margin":9963.66,
-        //                "effective_leverage":0.0
-        //            },
-        //        },
-        //        "timestamp":1640995200000,
-        //        "seq":0
+        //        ]
         //    }
         //
-        // update
-        //
-        //    Holding Wallet
-        //
-        //    {
-        //        "feed": "balances",
-        //        "account": "7a641082-55c7-4411-a85f-930ec2e09617",
-        //        "holding": {
-        //            "USD": 5000.0
-        //        },
-        //        "futures": {},
-        //        "timestamp": 1640995200000,
-        //        "seq": 83
-        //    }
-        //
-        //    Multi-Collateral
-        //
-        //    {
-        //        "feed": "balances"
-        //        "account": "7a641082-55c7-4411-a85f-930ec2e09617"
-        //        "flex_futures": {
-        //            "currencies": {
-        //                "USDT": {
-        //                    "quantity": 0.0,
-        //                    "value": 0.0,
-        //                    "collateral_value": 0.0,
-        //                    "available": 0.0,
-        //                    "haircut": 0.0,
-        //                    "conversion_spread": 0.0
-        //                },
-        //                ...
-        //            },
-        //            "balance_value": 5000.0,
-        //            "portfolio_value": 5000.0,
-        //            "collateral_value": 5000.0,
-        //            "initial_margin": 0.0,
-        //            "initial_margin_without_orders": 0.0,
-        //            "maintenance_margin": 0.0,
-        //            "pnl": 0.0,
-        //            "unrealized_funding": 0.0,
-        //            "total_unrealized": 0.0,
-        //            "total_unrealized_as_margin": 0.0,
-        //            "margin_equity": 5000.0,
-        //            "available_margin": 5000.0
-        //        },
-        //        "timestamp": 1640995200000,
-        //        "seq": 1
-        //    }
-        //
-        //    Sample Single-Collateral Balance Delta
-        //
-        //    {
-        //        "feed": "balances",
-        //        "account": "7a641082-55c7-4411-a85f-930ec2e09617",
-        //        "holding": {},
-        //        "futures": {
-        //            "F-XBT:USD": {
-        //                "name": "F-XBT:USD",
-        //                "pair": "XBT/USD",
-        //                "unit": "XBT",
-        //                "portfolio_value": 0.1219368845,
-        //                "balance": 0.1219368845,
-        //                "maintenance_margin": 0.0,
-        //                "initial_margin": 0.0,
-        //                "available": 0.1219368845,
-        //                "unrealized_funding": 0.0,
-        //                "pnl": 0.0
-        //            }
-        //        },
-        //        "timestamp": 1640995200000,
-        //        "seq": 2
-        //    }
-        //
-        const holding = this.safeValue (message, 'holding');
-        const futures = this.safeValue (message, 'futures');
-        const flexFutures = this.safeValue (message, 'flex_futures');
-        const messageHash = 'balances';
-        const timestamp = this.safeInteger (message, 'timestamp');
-        if (holding !== undefined) {
-            const holdingKeys = Object.keys (holding);                  // cashAccount
-            const holdingResult = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-            };
-            for (let i = 0; i < holdingKeys.length; i++) {
-                const key = holdingKeys[i];
-                const code = this.safeCurrencyCode (key);
-                const newAccount = this.account ();
-                const amount = this.safeNumber (holding, key);
-                newAccount['free'] = amount;
-                newAccount['total'] = amount;
-                newAccount['used'] = 0;
-                holdingResult[code] = newAccount;
-            }
-            this.balance['cash'] = holdingResult;
-            client.resolve (holdingResult, messageHash);
-        }
-        if (futures !== undefined) {
-            const futuresKeys = Object.keys (futures);                  // marginAccount
-            const futuresResult = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-            };
-            for (let i = 0; i < futuresKeys.length; i++) {
-                const key = futuresKeys[i];
-                const symbol = this.safeSymbol (key);
-                const newAccount = this.account ();
-                const future = this.safeValue (futures, key);
-                const currencyId = this.safeString (future, 'unit');
-                const code = this.safeCurrencyCode (currencyId);
-                newAccount['free'] = this.safeNumber (future, 'available');
-                newAccount['used'] = this.safeNumber (future, 'initial_margin');
-                newAccount['total'] = this.safeNumber (future, 'balance');
-                futuresResult[symbol] = {};
-                futuresResult[symbol][code] = newAccount;
-            }
-            this.balance['margin'] = futuresResult;
-            client.resolve (this.balance['margin'], messageHash + 'futures');
-        }
-        if (flexFutures !== undefined) {
-            const flexFutureCurrencies = this.safeValue (flexFutures, 'currencies', {});
-            const flexFuturesKeys = Object.keys (flexFutureCurrencies); // multi-collateral margin account
-            const flexFuturesResult = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-            };
-            for (let i = 0; i < flexFuturesKeys.length; i++) {
-                const key = flexFuturesKeys[i];
-                const flexFuture = this.safeValue (flexFutureCurrencies, key);
-                const code = this.safeCurrencyCode (key);
-                const newAccount = this.account ();
-                newAccount['free'] = this.safeNumber (flexFuture, 'available');
-                newAccount['used'] = this.safeNumber (flexFuture, 'collateral_value');
-                newAccount['total'] = this.safeNumber (flexFuture, 'quantity');
-                flexFuturesResult[code] = newAccount;
-            }
-            this.balance['flex'] = flexFuturesResult;
-            client.resolve (this.balance['flex'], messageHash + 'flex_futures');
-        }
+        const messageHash = this.safeString (message, 'method');
+        const params = this.safeValue (message, 'params');
+        const balance = this.parseBalance (params);
+        this.balance = this.deepExtend (this.balance, balance);
         client.resolve (this.balance, messageHash);
     }
 
@@ -1168,6 +977,8 @@ export default class hitbtc3 extends hitbtc3Rest {
             'margin_orders': this.handleOrder,
             'futures_order': this.handleOrder,
             'futures_orders': this.handleOrder,
+            'spot_balance': this.handleBalance,
+            'futures_balance': this.handleBalance,
         };
         const channel = this.safeString (message, 'ch');
         const method = this.safeValue (methods, channel);
