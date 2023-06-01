@@ -1744,7 +1744,7 @@ export default class kucoin extends Exchange {
         } else if (hf) {
             if (lowercaseStatus === 'active') {
                 method = 'privateGetHfOrdersActive';
-            } else if (lowercaseStatus === 'closed') {
+            } else if (lowercaseStatus === 'done') {
                 method = 'privateGetHfOrdersDone';
             }
         }
@@ -2116,15 +2116,22 @@ export default class kucoin extends Exchange {
         /**
          * @method
          * @name kucoin#fetchMyTrades
+         * @see https://docs.kucoin.com/#list-fills
+         * @see https://docs.kucoin.com/spot-hf/#transaction-details
          * @description fetch all trades made by the user
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @param {bool} params.hf false, // true for hf order
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const request = {};
+        const hf = this.safeValue (params, 'hf', false);
+        if (hf && symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol parameter for hf orders');
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2133,9 +2140,11 @@ export default class kucoin extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const method = this.options['fetchMyTradesMethod'];
+        let method = this.options['fetchMyTradesMethod'];
         let parseResponseData = false;
-        if (method === 'private_get_fills') {
+        if (hf) {
+            method = 'privateGetHfFills';
+        } else if (method === 'private_get_fills') {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             if (since !== undefined) {
                 // only returns trades up to one week after the since param
