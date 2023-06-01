@@ -1440,8 +1440,18 @@ export default class Exchange {
     checkProxySettings () {
         const proxyUrl = this.getExchangePropAllCase ('proxyUrl');
         const proxyUrlCallback = this.getExchangePropAllCase ('proxyUrlCallback');
-        const proxyHttp = this.getExchangePropAllCase ('proxyHttp');
-        const proxyHttps = this.getExchangePropAllCase ('proxyHttps');
+        let proxyHttp = this.getExchangePropAllCase ('proxyHttp');
+        let proxyHttps = this.getExchangePropAllCase ('proxyHttps');
+        // for backwards compatibility
+        const proxyHttpOld = this.getExchangePropAllCase ('httpProxy');
+        const proxyHttpsOld = this.getExchangePropAllCase ('httpsProxy');
+        if (proxyHttpOld && proxyHttp === undefined) {
+            proxyHttp = proxyHttpOld;
+        }
+        if (proxyHttpsOld && proxyHttp === undefined) {
+            proxyHttps = proxyHttpsOld;
+        }
+        //
         const proxySocks = this.getExchangePropAllCase ('proxySocks');
         const proxyAgentCallback = this.getExchangePropAllCase ('proxyAgentCallback');
         let val = 0;
