@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/kucoin.js';
-import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -1608,6 +1608,9 @@ export default class kucoin extends Exchange {
                 method = 'privateDeleteStopOrderCancelOrderByClientOid';
             } else if (hf) {
                 method = 'privateDeleteHfOrdersClientOrderClientOid';
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' cancelOrder() in hf mode requires a symbol parameter');
+                }
                 const market = this.market (symbol);
                 request['symbol'] = market['id'];
             } else {
@@ -1618,6 +1621,9 @@ export default class kucoin extends Exchange {
                 method = 'privateDeleteStopOrderOrderId';
             } else if (hf) {
                 method = 'privateDeleteHfOrdersOrderId';
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' cancelOrder() in hf mode requires a symbol parameter');
+                }
                 const market = this.market (symbol);
                 request['symbol'] = market['id'];
             }
@@ -1645,6 +1651,7 @@ export default class kucoin extends Exchange {
         const request = {};
         const stop = this.safeValue (params, 'stop', false);
         const hf = this.safeValue (params, 'hf', false);
+        params = this.omit (params, [ 'stop', 'hf' ]);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
@@ -1659,6 +1666,9 @@ export default class kucoin extends Exchange {
         if (stop) {
             method = 'privateDeleteStopOrderCancel';
         } else if (hf) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders() in hf mode requires a symbol parameter');
+            }
             method = 'privateDeleteHfOrders';
         }
         return await this[method] (this.extend (request, query));
@@ -1681,13 +1691,16 @@ export default class kucoin extends Exchange {
          * @param {string|undefined} params.tradeType TRADE for spot trading, MARGIN_TRADE for Margin Trading
          * @param {int|undefined} params.currentPage *stop orders only* current page
          * @param {string|undefined} params.orderIds *stop orders only* comma seperated order ID list
+         * @param {bool} params.stop True if fetching a stop order
+         * @param {bool} params.hf false, // true for hf order
          * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let lowercaseStatus = status.toLowerCase ();
         const until = this.safeInteger2 (params, 'until', 'till');
-        const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, [ 'stop', 'till', 'until' ]);
+        const stop = this.safeValue (params, 'stop', false);
+        const hf = this.safeValue (params, 'hf', false);
+        params = this.omit (params, [ 'stop', 'hf', 'till', 'until' ]);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
         if (lowercaseStatus === 'open') {
             lowercaseStatus = 'active';
@@ -1714,6 +1727,12 @@ export default class kucoin extends Exchange {
         let method = 'privateGetOrders';
         if (stop) {
             method = 'privateGetStopOrder';
+        } else if (hf) {
+            if (lowercaseStatus === 'active') {
+                method = 'privateGetHfOrdersActive';
+            } else if (lowercaseStatus === 'closed') {
+                method = 'privateGetHfOrdersDone';
+            }
         }
         request['tradeType'] = this.safeString (this.options['marginModes'], marginMode, 'TRADE');
         const response = await this[method] (this.extend (request, query));
@@ -1778,6 +1797,8 @@ export default class kucoin extends Exchange {
          * @param {string|undefined} params.side buy or sell
          * @param {string|undefined} params.type limit, market, limit_stop or market_stop
          * @param {string|undefined} params.tradeType TRADE for spot trading, MARGIN_TRADE for Margin Trading
+         * @param {bool} params.stop True if fetching a stop order
+         * @param {bool} params.hf false, // true for hf order
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
@@ -1799,6 +1820,8 @@ export default class kucoin extends Exchange {
          * @param {string} params.tradeType TRADE for spot trading, MARGIN_TRADE for Margin Trading
          * @param {int} params.currentPage *stop orders only* current page
          * @param {string} params.orderIds *stop orders only* comma seperated order ID list
+         * @param {bool} params.stop True if fetching a stop order
+         * @param {bool} params.hf false, // true for hf order
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus ('active', symbol, since, limit, params);
@@ -1813,18 +1836,20 @@ export default class kucoin extends Exchange {
          * @param {string} symbol not sent to exchange except for stop orders with clientOid, but used internally by CCXT to filter
          * @param {object} params exchange specific parameters
          * @param {bool} params.stop true if fetching a stop order
+         * @param {bool} params.hf false, // true for hf order
          * @param {bool} params.clientOid unique order id created by users to identify their orders
          * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-        const stop = this.safeValue (params, 'stop');
+        const stop = this.safeValue (params, 'stop', false);
+        const hf = this.safeValue (params, 'hf', false);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        params = this.omit (params, 'stop');
+        params = this.omit (params, [ 'stop', 'hf' ]);
         let method = 'privateGetOrdersOrderId';
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
@@ -1833,6 +1858,12 @@ export default class kucoin extends Exchange {
                 if (symbol !== undefined) {
                     request['symbol'] = market['id'];
                 }
+            } else if (hf) {
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchOrder() in hf mode requires a symbol parameter');
+                }
+                request['symbol'] = market['id'];
+                method = 'privateGetHfOrdersClientOrderClientOid';
             } else {
                 method = 'privateGetOrderClientOrderClientOid';
             }
@@ -1845,6 +1876,12 @@ export default class kucoin extends Exchange {
             }
             if (stop) {
                 method = 'privateGetStopOrderOrderId';
+            } else if (hf) {
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchOrder() in hf mode requires a symbol parameter');
+                }
+                request['symbol'] = market['id'];
+                method = 'privateGetHfOrdersOrderId';
             }
             request['orderId'] = id;
         }
