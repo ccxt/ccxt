@@ -1419,18 +1419,6 @@ export default class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    getExchangePropAllCase (key: string, defaultValue: any = undefined): any {
-        if (key in this && this[key] !== undefined) {
-            return this[key];
-        } else {
-            const unCamelCasedKey = this.unCamelCase (key);
-            if (unCamelCasedKey !== key && unCamelCasedKey in this) {
-                return this[unCamelCasedKey];
-            }
-            return defaultValue;
-        }
-    }
-
     setExchangePropAllCase (key: string, value: any = undefined): any {
         this[key] = value;
         const unCamelCasedKey = this.unCamelCase (key);
@@ -1438,13 +1426,13 @@ export default class Exchange {
     }
 
     checkProxySettings () {
-        const proxyUrl = this.getExchangePropAllCase ('proxyUrl');
-        const proxyUrlCallback = this.getExchangePropAllCase ('proxyUrlCallback');
-        let proxyHttp = this.getExchangePropAllCase ('proxyHttp');
-        let proxyHttps = this.getExchangePropAllCase ('proxyHttps');
+        const proxyUrl = this.safeString2 (this, 'proxyUrl', 'proxy_url');
+        const proxyUrlCallback = this.safeValue2 (this, 'proxyUrlCallback', 'proxy_url_callback');
+        let proxyHttp = this.safeString2 (this, 'proxyHttp', 'proxy_http');
+        let proxyHttps = this.safeString2 (this, 'proxyHttps', 'proxy_https');
         // for backwards compatibility
-        const proxyHttpOld = this.getExchangePropAllCase ('httpProxy');
-        const proxyHttpsOld = this.getExchangePropAllCase ('httpsProxy');
+        const proxyHttpOld = this.safeString (this, 'httpProxy');
+        const proxyHttpsOld = this.safeString (this, 'httpsProxy');
         if (proxyHttpOld && proxyHttp === undefined) {
             proxyHttp = proxyHttpOld;
         }
@@ -1452,8 +1440,8 @@ export default class Exchange {
             proxyHttps = proxyHttpsOld;
         }
         //
-        const proxySocks = this.getExchangePropAllCase ('proxySocks');
-        const proxyAgentCallback = this.getExchangePropAllCase ('proxyAgentCallback');
+        const proxySocks = this.safeString2 (this, 'proxySocks', 'proxy_socks');
+        const proxyAgentCallback = this.safeValue2 (this, 'proxyAgentCallback', 'proxy_agent_callback');
         let val = 0;
         if (proxyUrl !== undefined) {
             val = val + 1;
