@@ -1613,7 +1613,7 @@ export default class kucoin extends Exchange {
         const hf = this.safeValue (params, 'hf', false);
         if (hf) {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelOrder() in hf mode requires a symbol parameter');
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol parameter for hf orders');
             }
             const market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1677,7 +1677,7 @@ export default class kucoin extends Exchange {
             method = 'privateDeleteStopOrderCancel';
         } else if (hf) {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelAllOrders() in hf mode requires a symbol parameter');
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol parameter for hf orders');
             }
             method = 'privateDeleteHfOrders';
         }
@@ -1871,7 +1871,7 @@ export default class kucoin extends Exchange {
         }
         if (hf) {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() in hf mode requires a symbol parameter');
+                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol parameter for hf orders');
             }
             request['symbol'] = market['id'];
         }
