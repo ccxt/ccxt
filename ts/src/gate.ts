@@ -4475,6 +4475,8 @@ export default class gate extends Exchange {
 
     parsePosition (position, market = undefined) {
         //
+        // swap and future
+        //
         //     {
         //         value: "12.475572",
         //         leverage: "0",
@@ -4499,6 +4501,27 @@ export default class gate extends Exchange {
         //         margin: "0.740721495056",
         //         last_close_pnl: "-0.041996015",
         //         liq_price: "59058.58"
+        //     }
+        //
+        // option
+        //
+        //     {
+        //         "close_order": null,
+        //         "size": 1,
+        //         "vega": "5.29756",
+        //         "theta": "-98.98917",
+        //         "gamma": "0.00056",
+        //         "delta": "0.68691",
+        //         "contract": "BTC_USDT-20230602-26500-C",
+        //         "entry_price": "529",
+        //         "unrealised_pnl": "-1.0131",
+        //         "user": 5691076,
+        //         "mark_price": "427.69",
+        //         "underlying_price": "26810.2",
+        //         "underlying": "BTC_USDT",
+        //         "realised_pnl": "-0.08042877",
+        //         "mark_iv": "0.4224",
+        //         "pending_orders": 0
         //     }
         //
         const contract = this.safeString (position, 'contract');
@@ -4560,10 +4583,13 @@ export default class gate extends Exchange {
          * @method
          * @name gate#fetchPositions
          * @description fetch all open positions
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-positions-of-specified-underlying
          * @param {[string]|undefined} symbols Not used by gate, but parsed internally by CCXT
          * @param {object} params extra parameters specific to the gate api endpoint
          * @param {string} params.settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
-         * @param {string} params.type swap or future, if not provided this.options['defaultType'] is used
+         * @param {string} params.type swap, future or option, if not provided this.options['defaultType'] is used
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
@@ -4581,16 +4607,27 @@ export default class gate extends Exchange {
                 }
             }
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
-        if (type !== 'swap' && type !== 'future') {
-            throw new ArgumentsRequired (this.id + ' fetchPositions requires a type parameter, "swap" or "future"');
+        let type = undefined;
+        let request = {};
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
+        this.checkRequiredArgument ('fetchPositions', type, 'type', [ 'swap', 'future', 'option' ]);
+        if (type === 'option') {
+            if (symbols !== undefined) {
+                const marketId = market['id'];
+                const optionParts = marketId.split ('-');
+                request['underlying'] = this.safeString (optionParts, 0);
+            }
+        } else {
+            [ request, params ] = this.prepareRequest (undefined, type, params);
         }
-        const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
         const method = this.getSupportedMapping (type, {
             'swap': 'privateFuturesGetSettlePositions',
             'future': 'privateDeliveryGetSettlePositions',
+            'option': 'privateOptionsGetPositions',
         });
-        const response = await this[method] (this.extend (request, requestParams));
+        const response = await this[method] (this.extend (request, params));
+        //
+        // swap and future
         //
         //     [
         //         {
@@ -4617,6 +4654,29 @@ export default class gate extends Exchange {
         //             margin: "0.740721495056",
         //             last_close_pnl: "-0.041996015",
         //             liq_price: "59058.58"
+        //         }
+        //     ]
+        //
+        // option
+        //
+        //     [
+        //         {
+        //             "close_order": null,
+        //             "size": 0,
+        //             "vega": "0.01907",
+        //             "theta": "-3.04888",
+        //             "gamma": "0.00001",
+        //             "delta": "0.0011",
+        //             "contract": "BTC_USDT-20230601-27500-C",
+        //             "entry_price": "0",
+        //             "unrealised_pnl": "0",
+        //             "user": 5691076,
+        //             "mark_price": "0.07",
+        //             "underlying_price": "26817.27",
+        //             "underlying": "BTC_USDT",
+        //             "realised_pnl": "0",
+        //             "mark_iv": "0.4339",
+        //             "pending_orders": 0
         //         }
         //     ]
         //
