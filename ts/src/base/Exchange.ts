@@ -928,7 +928,7 @@ export default class Exchange {
                     // @ts-ignore
                     module = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
                 } catch (e) {
-                    throw new ExchangeError (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" '); 
+                    throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" '); 
                 }
                 const proxyAgent = new module.SocksProxyAgent(proxySocks);
                 this.agent = proxyAgent;
