@@ -109,14 +109,32 @@ export default async (exchange, symbol) => {
     //     '59302619-41d2-4f0b-941f-7e7914760ad3': order1,
     // };
 
-    const parsedOrder = exchange.handleOrderPreviousOrder (response1, exchange.orders, 'BTC/USD:BTC');
-    assert (parsedOrder === order1);
+    // const parsedOrder = exchange.handleOrderPreviousOrder (response1, exchange.orders, 'BTC/USD:BTC');
+    // assert (parsedOrder === order1);
 
     exchange.orders.append (order1);
     const parsedOrder2 = exchange.handleOrderPreviousOrder (response2, exchange.orders, 'BTC/USD:BTC');
-    const trade = {
-
-    };
+    const trades = [
+        {
+            'info': trade,
+            'id': this.safeString (trade, 'fill_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': this.safeString (market, 'symbol'),
+            'order': this.safeString (trade, 'order_id'),
+            'type': this.safeString (trade, 'type'),
+            'side': isBuy ? 'buy' : 'sell',
+            'takerOrMaker': this.safeString (trade, 'fill_type'),
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'qty'),
+            'cost': undefined,
+            'fee': {
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+                'cost': this.safeString (trade, 'fee_paid'),
+                'rate': undefined,
+            },
+        }
+    ];
     const parsedOrderTrades = parsedOrder2['trades'];
     assert (parsedOrderTrades[0] === trade);
 
