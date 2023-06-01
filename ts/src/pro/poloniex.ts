@@ -622,67 +622,10 @@ export default class poloniex extends poloniexRest {
         for (let i = 0; i < data.length; i++) {
             const order = this.safeValue (data, i);
             const marketId = this.safeString (order, 'symbol');
-            const eventType = this.safeString (order, 'eventType');
             if (marketId !== undefined) {
-                const symbol = this.safeSymbol (marketId);
-                const orderId = this.safeString (order, 'orderId');
-                const clientOrderId = this.safeString (order, 'clientOrderId');
-                if (eventType === 'place' || eventType === 'canceled') {
-                    const parsed = this.parseWsOrder (order);
-                    orders.append (parsed);
-                } else {
-                    const previousOrders = this.safeValue (orders.hashmap, symbol, {});
-                    const previousOrder = this.safeValue2 (previousOrders, orderId, clientOrderId);
-                    const trade = this.parseWsTrade (order);
-                    this.handleMyTrades (client, trade);
-                    if (previousOrder['trades'] === undefined) {
-                        previousOrder['trades'] = [];
-                    }
-                    previousOrder['trades'].push (trade);
-                    previousOrder['lastTradeTimestamp'] = trade['timestamp'];
-                    let totalCost = '0';
-                    let totalAmount = '0';
-                    const previousOrderTrades = previousOrder['trades'];
-                    for (let i = 0; i < previousOrderTrades.length; i++) {
-                        const previousOrderTrade = previousOrderTrades[i];
-                        const cost = this.numberToString (previousOrderTrade['cost']);
-                        const amount = this.numberToString (previousOrderTrade['amount']);
-                        totalCost = Precise.stringAdd (totalCost, cost);
-                        totalAmount = Precise.stringAdd (totalAmount, amount);
-                    }
-                    if (Precise.stringGt (totalAmount, '0')) {
-                        previousOrder['average'] = this.parseNumber (Precise.stringDiv (totalCost, totalAmount));
-                    }
-                    previousOrder['cost'] = this.parseNumber (totalCost);
-                    if (previousOrder['filled'] !== undefined) {
-                        const tradeAmount = this.numberToString (trade['amount']);
-                        let previousOrderFilled = this.numberToString (previousOrder['filled']);
-                        previousOrderFilled = Precise.stringAdd (previousOrderFilled, tradeAmount);
-                        previousOrder['filled'] = previousOrderFilled;
-                        if (previousOrder['amount'] !== undefined) {
-                            const previousOrderAmount = this.numberToString (previousOrder['amount']);
-                            previousOrder['remaining'] = this.parseNumber (Precise.stringSub (previousOrderAmount, previousOrderFilled));
-                        }
-                    }
-                    if (previousOrder['fee'] === undefined) {
-                        previousOrder['fee'] = {
-                            'rate': undefined,
-                            'cost': 0,
-                            'currency': trade['fee']['currency'],
-                        };
-                    }
-                    if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
-                        const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
-                        const stringTradeCost = this.numberToString (trade['fee']['cost']);
-                        previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
-                    }
-                    const rawState = this.safeString (order, 'state');
-                    const state = this.parseStatus (rawState);
-                    previousOrder['status'] = state;
-                    // update the newUpdates count
-                    orders.append (previousOrder);
-                    marketIds.push (marketId);
-                }
+                const parsed = this.parseWsOrder (order);
+                orders.append (parsed);
+                marketIds.push (marketId);
             }
         }
         for (let i = 0; i < marketIds.length; i++) {
