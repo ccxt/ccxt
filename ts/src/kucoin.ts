@@ -2872,6 +2872,7 @@ export default class kucoin extends Exchange {
          * @description transfer currency internally between wallets on the same account
          * @see https://docs.kucoin.com/#inner-transfer
          * @see https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
+         * @see https://docs.kucoin.com/spot-hf/#internal-funds-transfers-in-high-frequency-trading-accounts
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
