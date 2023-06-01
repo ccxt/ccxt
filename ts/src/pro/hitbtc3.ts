@@ -6,7 +6,6 @@ import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Trade, OHLCV } from '../base/types';
-import { ArgumentsRequired } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -949,27 +948,13 @@ export default class hitbtc3 extends hitbtc3Rest {
     }
 
     handleMessage (client: Client, message) {
+        let channel = this.safeString (message, 'ch');
+        const splitChannel = channel.split ('/');
+        channel = this.safeString (splitChannel, 0);
         const methods = {
-            'candles/M1': this.handleOHLCV,
-            'candles/M3': this.handleOHLCV,
-            'candles/M5': this.handleOHLCV,
-            'candles/M15': this.handleOHLCV,
-            'candles/M30': this.handleOHLCV,
-            'candles/H1': this.handleOHLCV,
-            'candles/H4': this.handleOHLCV,
-            'candles/D1': this.handleOHLCV,
-            'candles/D7': this.handleOHLCV,
-            'candles/1M': this.handleOHLCV,
-            'ticker/price/1s': this.handleTicker,
-            'ticker/price/3s': this.handleTicker,
-            'ticker/1s': this.handleTicker,
-            'ticker/3s': this.handleTicker,
-            'ticker/price/1s/batch': this.handleTicker,
-            'ticker/price/3s/batch': this.handleTicker,
-            'ticker/1s/batch': this.handleTicker,
-            'ticker/3s/batch': this.handleTicker,
-            'trades': this.handleTrades,
+            'candles': this.handleOHLCV,
             'ticker': this.handleTicker,
+            'trades': this.handleTrades,
             'updateOrderbook': this.handleOrderBook,
             'spot_order': this.handleOrder,
             'spot_orders': this.handleOrder,
@@ -980,7 +965,6 @@ export default class hitbtc3 extends hitbtc3Rest {
             'spot_balance': this.handleBalance,
             'futures_balance': this.handleBalance,
         };
-        const channel = this.safeString (message, 'ch');
         const method = this.safeValue (methods, channel);
         // if (method === undefined) {
         // this.handleNotification (client, message);
