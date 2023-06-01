@@ -133,11 +133,6 @@ def exception_message(exc):
     return '[' + type(exc).__name__ + '] ' + str(exc)[0:500]
 
 
-def add_proxy(exchange, http_proxy):
-    # just add a simple redirect through proxy
-    exchange.aiohttp_proxy = http_proxy  # todo: needs to be same a js/php with redirect proxy prop
-
-
 def exit_script():
     exit(0)
 

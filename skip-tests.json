@@ -46,7 +46,6 @@
     "binance": {
         "proxyHttp": "http://51.83.140.52:11230",
         "skipWs": true,
-		"skipPhpAsync":true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. binance does not have currency code BCC",
@@ -60,7 +59,6 @@
         }
     },
     "binanceus": {
-		"skipPhpAsync":true,
         "skipMethods": {
             "loadMarkets": {
                 "expiry": "expiry not set for future markets",
@@ -78,7 +76,6 @@
     },
     "binancecoinm": {
         "proxyHttp": "http://51.83.140.52:11230",
-		"skipPhpAsync":true,
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -97,7 +94,6 @@
     },
     "binanceusdm": {
         "proxyHttp": "http://51.83.140.52:11230",
-		"skipPhpAsync":true,
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": {
@@ -121,7 +117,6 @@
     },
     "tokocrypto": {
         "proxyHttp": "http://51.83.140.52:11230",
-		"skipPhpAsync":true,
         "skipWs": true
     },
     "bitbank": {

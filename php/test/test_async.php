@@ -89,11 +89,6 @@ function exception_message ($exc) {
     return '[' . get_class($exc) . '] ' . substr($inner_message, 0, 500);
 }
 
-function add_proxy ($exchange, $http_proxy) {
-    // just add a simple redirect through proxy
-    $exchange->proxy = $http_proxy;
-}
-
 function exit_script() {
     exit(0);
 }
