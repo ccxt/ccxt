@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.16'
+__version__ = '3.1.17'
 
 # -----------------------------------------------------------------------------
 
@@ -2620,7 +2620,7 @@ class Exchange(BaseExchange):
         :param str symbol: unified symbol of the market
         :param str methodName: name of the method that requires a symbol
         """
-        self.checkRequiredArgument(methodName, symbol, 'symbol')
+        self.check_required_argument(methodName, symbol, 'symbol')
 
     def parse_deposit_withdraw_fees(self, response, codes: Optional[List[str]] = None, currencyIdKey=None):
         """

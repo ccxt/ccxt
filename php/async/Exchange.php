@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.1.16';
+$version = '3.1.17';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.1.16';
+    const VERSION = '3.1.17';
 
     public $browser;
     public $marketsLoading = null;
@@ -2973,7 +2973,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {string} $symbol unified $symbol of the market
          * @param {string} $methodName name of the method that requires a $symbol
          */
-        $this->checkRequiredArgument ($methodName, $symbol, 'symbol');
+        $this->check_required_argument($methodName, $symbol, 'symbol');
     }
 
     public function parse_deposit_withdraw_fees($response, ?array $codes = null, $currencyIdKey = null) {

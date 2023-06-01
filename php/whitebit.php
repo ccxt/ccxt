@@ -17,6 +17,7 @@ class whitebit extends Exchange {
             'version' => 'v4',
             'countries' => array( 'EE' ),
             'rateLimit' => 500,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
