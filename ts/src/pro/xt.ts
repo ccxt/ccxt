@@ -2,7 +2,6 @@
 
 import xtRest from '../xt.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Precise } from '../base/Precise.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -872,57 +871,9 @@ export default class xt extends xtRest {
         if (marketId !== undefined) {
             const tradeType = ('symbol' in order) ? 'contract' : 'spot';
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
-            const symbol = market['symbol'];
-            const orderId = this.safeString (order, 'i', 'orderId');
-            const previousOrders = this.safeValue (orders.hashmap, symbol, {});
-            const previousOrder = this.safeValue (previousOrders, orderId);
-            if (previousOrder === undefined) {
-                const parsed = this.parseWsOrder (order, market);
-                orders.append (parsed);
-                client.resolve (orders, 'order:' + tradeType);
-            } else {
-                const trade = this.parseWsOrderTrade (order);
-                if (previousOrder['trades'] === undefined) {
-                    previousOrder['trades'] = [];
-                }
-                previousOrder['trades'].push (trade);
-                previousOrder['lastTradeTimestamp'] = trade['timestamp'];
-                let totalCost = '0';
-                let totalAmount = '0';
-                const trades = previousOrder['trades'];
-                for (let i = 0; i < trades.length; i++) {
-                    const trade = trades[i];
-                    totalCost = Precise.stringAdd (totalCost, this.numberToString (trade['cost']));
-                    totalAmount = Precise.stringAdd (totalAmount, this.numberToString (trade['amount']));
-                }
-                if (Precise.stringGt (totalAmount, '0')) {
-                    previousOrder['average'] = Precise.stringDiv (totalCost, totalAmount);
-                }
-                previousOrder['cost'] = totalCost;
-                if (previousOrder['filled'] !== undefined) {
-                    previousOrder['filled'] = Precise.stringAdd (previousOrder['filled'], this.numberToString (trade['amount']));
-                    if (previousOrder['amount'] !== undefined) {
-                        const stringAmount = this.numberToString (previousOrder['amount']);
-                        const stringFilled = this.numberToString (previousOrder['filled']);
-                        previousOrder['remaining'] = Precise.stringSub (stringAmount, stringFilled);
-                    }
-                }
-                if (previousOrder['fee'] === undefined) {
-                    previousOrder['fee'] = {
-                        'rate': undefined,
-                        'cost': '0',
-                        'currency': this.numberToString (trade['fee']['currency']),
-                    };
-                }
-                if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
-                    const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
-                    const stringTradeCost = this.numberToString (trade['fee']['cost']);
-                    previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
-                }
-                // update the newUpdates count
-                orders.append (this.safeOrder (previousOrder));
-                client.resolve (orders, 'order:' + tradeType);
-            }
+            const parsed = this.parseWsOrder (order, market);
+            orders.append (parsed);
+            client.resolve (orders, 'order:' + tradeType);
         }
         return message;
     }
