@@ -1997,6 +1997,42 @@ export default class kucoin extends Exchange {
         //        "stopTriggerTime": null,
         //        "stopPrice": "0.97000000000000000000"
         //    }
+        // hf order
+        //    {
+        //        "id":"6478cf1439bdfc0001528a1d",
+        //        "symbol":"LTC-USDT",
+        //        "opType":"DEAL",
+        //        "type":"limit",
+        //        "side":"buy",
+        //        "price":"50",
+        //        "size":"0.1",
+        //        "funds":"5",
+        //        "dealSize":"0",
+        //        "dealFunds":"0",
+        //        "fee":"0",
+        //        "feeCurrency":"USDT",
+        //        "stp":null,
+        //        "timeInForce":"GTC",
+        //        "postOnly":false,
+        //        "hidden":false,
+        //        "iceberg":false,
+        //        "visibleSize":"0",
+        //        "cancelAfter":0,
+        //        "channel":"API",
+        //        "clientOid":"d4d2016b-8e3a-445c-aa5d-dc6df5d1678d",
+        //        "remark":null,
+        //        "tags":"partner:ccxt",
+        //        "cancelExist":false,
+        //        "createdAt":1685638932074,
+        //        "lastUpdatedAt":1685639013735,
+        //        "tradeType":"TRADE",
+        //        "inOrderBook":true,
+        //        "cancelledSize":"0",
+        //        "cancelledFunds":"0",
+        //        "remainSize":"0.1",
+        //        "remainFunds":"5",
+        //        "active":true
+        //    }
         //
         const marketId = this.safeString (order, 'symbol');
         const timestamp = this.safeInteger (order, 'createdAt');
@@ -2005,7 +2041,7 @@ export default class kucoin extends Exchange {
         const responseStop = this.safeString (order, 'stop');
         const stop = responseStop !== undefined;
         const stopTriggered = this.safeValue (order, 'stopTriggered', false);
-        const isActive = this.safeValue (order, 'isActive');
+        const isActive = this.safeValue2 (order, 'isActive', 'active');
         let status = undefined;
         if (isActive !== undefined) {
             if (isActive === true) {
