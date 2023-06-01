@@ -1611,6 +1611,13 @@ export default class kucoin extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
         const stop = this.safeValue (params, 'stop', false);
         const hf = this.safeValue (params, 'hf', false);
+        if (hf) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() in hf mode requires a symbol parameter');
+            }
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
         let method = 'privateDeleteOrdersOrderId';
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
@@ -1618,11 +1625,6 @@ export default class kucoin extends Exchange {
                 method = 'privateDeleteStopOrderCancelOrderByClientOid';
             } else if (hf) {
                 method = 'privateDeleteHfOrdersClientOrderClientOid';
-                if (symbol === undefined) {
-                    throw new ArgumentsRequired (this.id + ' cancelOrder() in hf mode requires a symbol parameter');
-                }
-                const market = this.market (symbol);
-                request['symbol'] = market['id'];
             } else {
                 method = 'privateDeleteOrderClientOrderClientOid';
             }
@@ -1631,11 +1633,6 @@ export default class kucoin extends Exchange {
                 method = 'privateDeleteStopOrderOrderId';
             } else if (hf) {
                 method = 'privateDeleteHfOrdersOrderId';
-                if (symbol === undefined) {
-                    throw new ArgumentsRequired (this.id + ' cancelOrder() in hf mode requires a symbol parameter');
-                }
-                const market = this.market (symbol);
-                request['symbol'] = market['id'];
             }
             request['orderId'] = id;
         }
