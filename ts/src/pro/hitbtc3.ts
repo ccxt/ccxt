@@ -7,6 +7,7 @@ import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Trade, OHLCV } from '../base/types';
 import { Precise } from '../base/Precise.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -60,11 +61,63 @@ export default class hitbtc3 extends hitbtc3Rest {
         });
     }
 
-    async subscribe (name: string, symbol: string = undefined, params = {}) {
+    async authenticate (params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @description authenticates the user to access private web socket channels
+         * @see https://api.hitbtc.com/#socket-authentication
+         * @returns {object} response from exchange
+         */
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws'];
+        const messageHash = 'authenticated';
+        const client = this.client (url);
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            const accessPath = '/ws';
+            const timestamp = this.milliseconds ();
+            const requestString = 'GET\n' + accessPath + '\nsignTimestamp=' + timestamp;
+            const signature = this.hmac (this.encode (requestString), this.encode (this.secret), sha256, 'base64');
+            const request = {
+                'type': 'HS256',
+                'api_key': this.apiKey,
+                'timestamp': timestamp,
+                'signature': signature,
+            };
+            const message = this.extend (request, params);
+            future = await this.watch (url, messageHash, message);
+            //
+            //    {
+            //        "data": {
+            //            "success": true,
+            //            "ts": 1645597033915
+            //        },
+            //        "channel": "auth"
+            //    }
+            //
+            //    # Failure to return results
+            //
+            //    {
+            //        "data": {
+            //            "success": false,
+            //            "message": "Authentication failed!",
+            //            "ts": 1646276295075
+            //        },
+            //        "channel": "auth"
+            //    }
+            //
+            client.subscriptions[messageHash] = future;
+        }
+        return future;
+    }
+
+    async subscribe (name: string, isPrivate: boolean, symbol: string = undefined, params = {}) {
         /**
          * @ignore
          * @method
          * @param {string} name websocket endpoint name
+         * @param {boolean} isPrivate true for authenticated methods
          * @param {string|undefined} symbol unified CCXT symbol
          * @param {object} params extra parameters specific to the hitbtc3 api
          * @returns
@@ -72,6 +125,9 @@ export default class hitbtc3 extends hitbtc3Rest {
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
         let messageHash = name;
+        if (isPrivate) {
+            this.authenticate ();
+        }
         if (symbol !== undefined) {
             messageHash = messageHash + ':' + symbol;
         }
@@ -123,7 +179,7 @@ export default class hitbtc3 extends hitbtc3Rest {
                 'symbols': [ market['id'] ],
             },
         };
-        const orderbook = await this.subscribe (name, symbol, this.deepExtend (request, params));
+        const orderbook = await this.subscribe (name, false, symbol, this.deepExtend (request, params));
         return orderbook.limit ();
     }
 
@@ -215,7 +271,7 @@ export default class hitbtc3 extends hitbtc3Rest {
                 'symbols': [ market['id'] ],
             },
         };
-        return await this.subscribe (name, symbol, this.deepExtend (request, params));
+        return await this.subscribe (name, false, symbol, this.deepExtend (request, params));
     }
 
     async watchTickers (symbols = undefined, params = {}) {
@@ -383,7 +439,7 @@ export default class hitbtc3 extends hitbtc3Rest {
         params = this.deepExtend ({
             'params': request,
         });
-        const trades = await this.subscribe (symbol, 'trades', undefined, params);
+        const trades = await this.subscribe ('trades', false, symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -517,7 +573,7 @@ export default class hitbtc3 extends hitbtc3Rest {
             request['params']['limit'] = limit;
         }
         params = this.deepExtend (request, params);
-        const ohlcv = await this.subscribe (name, symbol, params);
+        const ohlcv = await this.subscribe (name, false, symbol, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -642,7 +698,7 @@ export default class hitbtc3 extends hitbtc3Rest {
             'swap': 'futures_orders',
             'future': 'futures_orders',
         });
-        const orders = await this.subscribe (name, undefined, params);
+        const orders = await this.subscribe (name, true, undefined, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -910,11 +966,10 @@ export default class hitbtc3 extends hitbtc3Rest {
             'future': 'futures_balance',
         });
         const mode = this.safeString (params, 'mode', 'updates');
-        const messageHash = name;
         const request = {
             'mode': mode,
         };
-        return await this.subscribe (name, messageHash, this.extend (request, params));
+        return await this.subscribe (name, true, undefined, this.extend (request, params));
     }
 
     handleBalance (client: Client, message) {
