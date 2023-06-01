@@ -695,8 +695,6 @@ export default class poloniex extends Exchange {
             const feeString = this.safeString (currency, 'withdrawalFee');
             const parentChain = this.safeValue (currency, 'parentChain');
             const noParentChain = parentChain === undefined;
-            const childChains = this.safeValue (currency, 'childChains', []);
-            const noChildChains = Object.keys (childChains).length === 0;
             if (this.safeValue (result, code) === undefined) {
                 result[code] = {
                     'id': id,
