@@ -12,8 +12,8 @@ async function example_1 () {
 
 async function example_2 () {
     const myEx = new ccxt.kucoin ();
-    // same as proxyHttps
-    myEx.proxyHttp = 'http://51.83.140.52:11230'; // It sets a real proxy for communication, so calls are made directly to url https://target_url.com , but tunneled through a proxy server (Note, this might work for websocket connections too).
+    // same as proxyHttp
+    myEx.proxyHttps = 'http://51.83.140.52:11230'; // It sets a real proxy for communication, so calls are made directly to url https://target_url.com , but tunneled through a proxy server (Note, this might work for websocket connections too).
     console.log (await myEx.fetch ('https://api.ipify.org/'));
 }
 
