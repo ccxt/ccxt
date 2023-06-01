@@ -1637,11 +1637,14 @@ export default class kucoin extends Exchange {
          * @param {bool} params.stop *invalid for isolated margin* true if cancelling all stop orders
          * @param {string} params.marginMode 'cross' or 'isolated'
          * @param {string} params.orderIds *stop orders only* Comma seperated order IDs
+         * @param {bool} params.stop True if cancelling a stop order
+         * @param {bool} params.hf false, // true for hf order
          * @returns Response from the exchange
          */
         await this.loadMarkets ();
         const request = {};
-        const stop = this.safeValue (params, 'stop');
+        const stop = this.safeValue (params, 'stop', false);
+        const hf = this.safeValue (params, 'hf', false);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
@@ -1652,7 +1655,12 @@ export default class kucoin extends Exchange {
                 throw new BadRequest (this.id + ' cancelAllOrders does not support isolated margin for stop orders');
             }
         }
-        const method = stop ? 'privateDeleteStopOrderCancel' : 'privateDeleteOrders';
+        let method = 'privateDeleteOrders';
+        if (stop) {
+            method = 'privateDeleteStopOrderCancel';
+        } else if (hf) {
+            method = 'privateDeleteHfOrders';
+        }
         return await this[method] (this.extend (request, query));
     }
 
