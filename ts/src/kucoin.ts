@@ -1476,6 +1476,10 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#createOrder
          * @description Create an order on the exchange
+         * @see https://docs.kucoin.com/spot#place-a-new-order
+         * @see https://docs.kucoin.com/spot#place-a-new-order-2
+         * @see https://docs.kucoin.com/spot#place-a-margin-order
+         * @see https://docs.kucoin.com/spot-hf/#place-hf-order
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} type 'limit' or 'market'
          * @param {string} side 'buy' or 'sell'
@@ -1589,6 +1593,12 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#cancelOrder
          * @description cancels an open order
+         * @see https://docs.kucoin.com/spot#cancel-an-order
+         * @see https://docs.kucoin.com/spot#cancel-an-order-2
+         * @see https://docs.kucoin.com/spot#cancel-single-order-by-clientoid
+         * @see https://docs.kucoin.com/spot#cancel-single-order-by-clientoid-2
+         * @see https://docs.kucoin.com/spot-hf/#cancel-orders-by-orderid
+         * @see https://docs.kucoin.com/spot-hf/#cancel-order-by-clientoid
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the kucoin api endpoint
@@ -1638,6 +1648,9 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#cancelAllOrders
          * @description cancel all open orders
+         * @see https://docs.kucoin.com/spot#cancel-all-orders
+         * @see https://docs.kucoin.com/spot#cancel-orders
+         * @see https://docs.kucoin.com/spot-hf/#cancel-all-hf-orders-by-symbol
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @param {bool} params.stop *invalid for isolated margin* true if cancelling all stop orders
@@ -1679,6 +1692,10 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchOrdersByStatus
          * @description fetch a list of orders
+         * @see https://docs.kucoin.com/spot#list-orders
+         * @see https://docs.kucoin.com/spot#list-stop-orders
+         * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-active-hf-orders
+         * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
          * @param {string} status *not used for stop orders* 'open' or 'closed'
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since timestamp in ms of the earliest order
@@ -1832,6 +1849,12 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchOrder
          * @description fetch an order
+         * @see https://docs.kucoin.com/spot#get-an-order
+         * @see https://docs.kucoin.com/spot#get-single-active-order-by-clientoid
+         * @see https://docs.kucoin.com/spot#get-single-order-info
+         * @see https://docs.kucoin.com/spot#get-single-order-by-clientoid
+         * @see https://docs.kucoin.com/spot-hf/#details-of-a-single-hf-order
+         * @see https://docs.kucoin.com/spot-hf/#obtain-details-of-a-single-hf-order-using-clientoid
          * @param {string} id Order id
          * @param {string} symbol not sent to exchange except for stop orders with clientOid, but used internally by CCXT to filter
          * @param {object} params exchange specific parameters
