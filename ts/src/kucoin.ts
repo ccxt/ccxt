@@ -1872,6 +1872,12 @@ export default class kucoin extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        if (hf) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrder() in hf mode requires a symbol parameter');
+            }
+            request['symbol'] = market['id'];
+        }
         params = this.omit (params, [ 'stop', 'hf' ]);
         let method = 'privateGetOrdersOrderId';
         if (clientOrderId !== undefined) {
@@ -1882,10 +1888,6 @@ export default class kucoin extends Exchange {
                     request['symbol'] = market['id'];
                 }
             } else if (hf) {
-                if (symbol === undefined) {
-                    throw new ArgumentsRequired (this.id + ' fetchOrder() in hf mode requires a symbol parameter');
-                }
-                request['symbol'] = market['id'];
                 method = 'privateGetHfOrdersClientOrderClientOid';
             } else {
                 method = 'privateGetOrderClientOrderClientOid';
@@ -1900,10 +1902,6 @@ export default class kucoin extends Exchange {
             if (stop) {
                 method = 'privateGetStopOrderOrderId';
             } else if (hf) {
-                if (symbol === undefined) {
-                    throw new ArgumentsRequired (this.id + ' fetchOrder() in hf mode requires a symbol parameter');
-                }
-                request['symbol'] = market['id'];
                 method = 'privateGetHfOrdersOrderId';
             }
             request['orderId'] = id;
