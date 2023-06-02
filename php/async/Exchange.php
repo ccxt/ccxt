@@ -297,6 +297,18 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function safe_prop($obj, $key1, $defaultValue = null) {
+        return $this->get_property($obj, $key1, $defaultValue);
+    }
+
+    public function safe_prop_2($obj, $key1, $key2, $defaultValue = null) {
+        $val1 = $this->safe_prop($obj, $key1);
+        if ($val1 !== null) {
+            return $val1;
+        }
+        return $this->safe_prop($obj, $key2, $defaultValue);
+    }
+
     public function set_exchange_prop_all_case(string $key, mixed $value = null) {
         $this->$key = $value;
         $unCamelCasedKey = $this->un_camel_case($key);
@@ -304,17 +316,17 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function check_proxy_settings() {
-        $proxyUrl = $this->safe_string_2($this, 'proxyUrl', 'proxy_url');
-        $proxyUrlCallback = $this->safe_value_2($this, 'proxyUrlCallback', 'proxy_url_callback');
+        $proxyUrl = $this->safe_prop_2($this, 'proxyUrl', 'proxy_url');
+        $proxyUrlCallback = $this->safe_prop_2($this, 'proxyUrlCallback', 'proxy_url_callback');
         // for backwards compatibility,added old keys too
-        $proxyHttp = $this->safe_string_2($this, 'proxyHttp', 'proxy_http');
+        $proxyHttp = $this->safe_prop_2($this, 'proxyHttp', 'proxy_http');
         // support for backward compatibility (note, atm safeStringN does not work in python for class https://app.travis-ci.com/github/ccxt/ccxt/builds/263490790#L4765 , so we have to use separate safeString)
         if ($proxyHttp === null) {
-            $proxyHttp = $this->safe_string($this, 'httpProxy');
+            $proxyHttp = $this->safe_prop($this, 'httpProxy');
         }
-        $proxyHttps = $this->safe_string_2($this, 'proxyHttps', 'proxy_https');
-        $proxySocks = $this->safe_string_2($this, 'proxySocks', 'proxy_socks');
-        $proxyAgentCallback = $this->safe_value_2($this, 'proxyAgentCallback', 'proxy_agent_callback');
+        $proxyHttps = $this->safe_prop_2($this, 'proxyHttps', 'proxy_https');
+        $proxySocks = $this->safe_prop_2($this, 'proxySocks', 'proxy_socks');
+        $proxyAgentCallback = $this->safe_prop_2($this, 'proxyAgentCallback', 'proxy_agent_callback');
         $val = 0;
         if ($proxyUrl !== null) {
             $val = $val + 1;
