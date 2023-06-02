@@ -2784,6 +2784,10 @@ export default class gate extends Exchange {
          * @method
          * @name gate#fetchMyTrades
          * @description Fetch personal trading history
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-3
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-4
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
