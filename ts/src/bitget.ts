@@ -2613,7 +2613,7 @@ export default class bitget extends Exchange {
         [ postOnly, params ] = this.handlePostOnly (isMarketOrder, exchangeSpecificTifParam === 'post_only', params);
         const defaultTimeInForce = this.safeStringLower (this.options, 'defaultTimeInForce');
         const timeInForce = this.safeStringLower (params, 'timeInForce', defaultTimeInForce);
-        let timeInForceKey = undefined;
+        let timeInForceKey = 'timeInForceValue';
         if (marketType === 'spot') {
             if (isStopLossOrTakeProfitTrigger || isStopLossOrTakeProfit) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets');
