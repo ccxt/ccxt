@@ -395,7 +395,7 @@ export default class bitmex extends Exchange {
         return result;
     }
 
-    currencyIdFromAssetName (assetName) {
+    currencyIdFromMarketAssetName (assetName) {
         return this.safeString (this.options['currencyIdsByAssetNames'], assetName, assetName);
     }
 
@@ -519,129 +519,17 @@ export default class bitmex extends Exchange {
         //      },
         //     ]
         //
-        if (this.safeValue (this.options, 'oldPrecision', false)) {
-            const result = [];
-            for (let i = 0; i < response.length; i++) {
-                const market = response[i];
-                const id = this.safeString (market, 'symbol');
-                const baseId = this.safeString (market, 'underlying');
-                const quoteId = this.safeString (market, 'quoteCurrency');
-                const settleId = this.safeString (market, 'settlCurrency');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                const settle = this.safeCurrencyCode (settleId);
-                const basequote = baseId + quoteId;
-                const swap = (id === basequote);
-                // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
-                // so let's take the settlCurrency first and then adjust if needed
-                let type = undefined;
-                let future = false;
-                let prediction = false;
-                let index = false;
-                let symbol = base + '/' + quote + ':' + settle;
-                const expiryDatetime = this.safeString (market, 'expiry');
-                const expiry = this.parse8601 (expiryDatetime);
-                const inverse = this.safeValue (market, 'isInverse');
-                const status = this.safeString (market, 'state');
-                let active = status !== 'Unlisted';
-                if (swap) {
-                    type = 'swap';
-                } else if (id.indexOf ('B_') >= 0) {
-                    prediction = true;
-                    type = 'prediction';
-                    symbol = id;
-                } else if (expiry !== undefined) {
-                    future = true;
-                    type = 'future';
-                    symbol = symbol + '-' + this.yymmdd (expiry);
-                } else {
-                    index = true;
-                    type = 'index';
-                    symbol = id;
-                    active = false;
-                }
-                const positionId = this.safeString2 (market, 'positionCurrency', 'underlying');
-                const position = this.safeCurrencyCode (positionId);
-                const positionIsQuote = (position === quote);
-                const maxOrderQty = this.safeNumber (market, 'maxOrderQty');
-                const contract = !index;
-                const initMargin = this.safeString (market, 'initMargin', '1');
-                const maxLeverage = this.parseNumber (Precise.stringDiv ('1', initMargin));
-                const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier'));
-                // temporarily filter out unlisted markets to avoid symbol conflicts
-                if (active) {
-                    result.push ({
-                        'id': id,
-                        'symbol': symbol,
-                        'base': base,
-                        'quote': quote,
-                        'settle': settle,
-                        'baseId': baseId,
-                        'quoteId': quoteId,
-                        'settleId': settleId,
-                        'type': type,
-                        'spot': false,
-                        'margin': false,
-                        'swap': swap,
-                        'future': future,
-                        'option': false,
-                        'prediction': prediction,
-                        'index': index,
-                        'active': active,
-                        'contract': contract,
-                        'linear': contract ? !inverse : undefined,
-                        'inverse': contract ? inverse : undefined,
-                        'taker': this.safeNumber (market, 'takerFee'),
-                        'maker': this.safeNumber (market, 'makerFee'),
-                        'contractSize': this.parseNumber (multiplierString),
-                        'expiry': expiry,
-                        'expiryDatetime': expiryDatetime,
-                        'strike': this.safeNumber (market, 'optionStrikePrice'),
-                        'optionType': undefined,
-                        'precision': {
-                            'amount': this.safeNumber (market, 'lotSize'),
-                            'price': this.safeNumber (market, 'tickSize'),
-                            'quote': this.safeNumber (market, 'tickSize'),
-                            'base': this.safeNumber (market, 'tickSize'),
-                        },
-                        'limits': {
-                            'leverage': {
-                                'min': contract ? this.parseNumber ('1') : undefined,
-                                'max': contract ? maxLeverage : undefined,
-                            },
-                            'amount': {
-                                'min': undefined,
-                                'max': positionIsQuote ? undefined : maxOrderQty,
-                            },
-                            'price': {
-                                'min': undefined,
-                                'max': this.safeNumber (market, 'maxPrice'),
-                            },
-                            'cost': {
-                                'min': undefined,
-                                'max': positionIsQuote ? maxOrderQty : undefined,
-                            },
-                        },
-                        'info': market,
-                    });
-                }
-            }
-            return result;
-        }
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'symbol');
             const typ = this.safeString (market, 'typ'); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
-            const underlying = this.safeString (market, 'underlying');
-            const quoteCurrency = this.safeString (market, 'quoteCurrency');
-            const settlCurrency = this.safeString (market, 'settlCurrency', '');
-            const base = this.safeCurrencyCode (underlying);
-            const quote = this.safeCurrencyCode (quoteCurrency);
-            const settle = this.safeCurrencyCode (settlCurrency);
-            const baseId = this.currencyIdFromAssetName (underlying);
-            const quoteId = this.currencyIdFromAssetName (quoteCurrency);
-            const settleId = this.currencyIdFromAssetName (settlCurrency);
+            const baseId = this.safeString (market, 'underlying');
+            const quoteId = this.safeString (market, 'quoteCurrency');
+            const settleId = this.safeString (market, 'settlCurrency', '');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
             // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
             // so let's take the settlCurrency first and then adjust if needed
             let type = undefined;
