@@ -1203,7 +1203,9 @@ class gate extends gate$1 {
         if (market !== undefined) {
             if (market['contract']) {
                 request['contract'] = market['id'];
-                request['settle'] = market['settleId'];
+                if (!market['option']) {
+                    request['settle'] = market['settleId'];
+                }
             }
             else {
                 request['currency_pair'] = market['id'];
@@ -2270,9 +2272,10 @@ class gate extends gate$1 {
             'funding': 'privateMarginGetFundingAccounts',
             'swap': 'privateFuturesGetSettleAccounts',
             'future': 'privateDeliveryGetSettleAccounts',
+            'option': 'privateOptionsGetAccounts',
         });
         let response = await this[method](this.extend(request, requestQuery));
-        const contract = ((type === 'swap') || (type === 'future'));
+        const contract = ((type === 'swap') || (type === 'future') || (type === 'option'));
         if (contract) {
             response = [response];
         }
@@ -2384,6 +2387,38 @@ class gate extends gate$1 {
         //        position_margin: "0",
         //        user: "6333333",
         //    }
+        //
+        // option
+        //
+        //     {
+        //         "order_margin": "0",
+        //         "bid_order_margin": "0",
+        //         "init_margin": "0",
+        //         "history": {
+        //             "dnw": "32",
+        //             "set": "0",
+        //             "point_fee": "0",
+        //             "point_dnw": "0",
+        //             "prem": "0",
+        //             "point_refr": "0",
+        //             "insur": "0",
+        //             "fee": "0",
+        //             "refr": "0"
+        //         },
+        //         "total": "32",
+        //         "available": "32",
+        //         "liq_triggered": false,
+        //         "maint_margin": "0",
+        //         "ask_order_margin": "0",
+        //         "point": "0",
+        //         "position_notional_limit": "2000000",
+        //         "unrealised_pnl": "0",
+        //         "equity": "32",
+        //         "user": 5691076,
+        //         "currency": "USDT",
+        //         "short_enabled": false,
+        //         "orders_limit": 10
+        //     }
         //
         const result = {
             'info': response,
@@ -3235,15 +3270,17 @@ class gate extends gate$1 {
                 // contract order
                 request = {
                     'contract': market['id'],
-                    'size': amount,
+                    'size': amount, // int64, positive = bid, negative = ask
                     // 'iceberg': 0, // int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
                     // 'close': false, // true to close the position, with size set to 0
                     // 'reduce_only': false, // St as true to be reduce-only order
                     // 'tif': 'gtc', // gtc, ioc, poc PendingOrCancelled == postOnly order
                     // 'text': clientOrderId, // 't-abcdef1234567890',
                     // 'auto_size': '', // close_long, close_short, note size also needs to be set to 0
-                    'settle': market['settleId'], // filled in prepareRequest above
                 };
+                if (!market['option']) {
+                    request['settle'] = market['settleId']; // filled in prepareRequest above
+                }
                 if (isMarketOrder) {
                     request['price'] = price; // set to 0 for market orders
                 }
@@ -3318,6 +3355,9 @@ class gate extends gate$1 {
             }
         }
         else {
+            if (market['option']) {
+                throw new errors.NotSupported(this.id + ' createOrder() conditional option orders are not supported');
+            }
             if (contract) {
                 // contract conditional order
                 request = {
@@ -3413,6 +3453,7 @@ class gate extends gate$1 {
             'margin': 'privateSpotPost' + methodTail,
             'swap': 'privateFuturesPostSettle' + methodTail,
             'future': 'privateDeliveryPostSettle' + methodTail,
+            'option': 'privateOptionsPostOrders',
         });
         const response = await this[method](this.deepExtend(request, params));
         //
@@ -3450,7 +3491,7 @@ class gate extends gate$1 {
         //
         //     {"id": 5891843}
         //
-        // future and perpetual swaps
+        // futures, perpetual swaps and options
         //
         //     {
         //         "id": 95938572327,
@@ -3632,7 +3673,7 @@ class gate extends gate$1 {
         //        "status": "open"
         //    }
         //
-        // FUTURE AND SWAP
+        // FUTURE, SWAP AND OPTION
         // createOrder/cancelOrder/fetchOrder
         //
         //    {
@@ -3825,6 +3866,10 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchOrder
          * @description Retrieves information on an order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-3
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-4
          * @param {string} id Order id
          * @param {string} symbol Unified market symbol, *required for spot and margin*
          * @param {object} params Parameters specified by the exchange api
@@ -3848,7 +3893,7 @@ class gate extends gate$1 {
         }
         const market = (symbol === undefined) ? undefined : this.market(symbol);
         const [type, query] = this.handleMarketTypeAndParams('fetchOrder', market, params);
-        const contract = (type === 'swap') || (type === 'future');
+        const contract = (type === 'swap') || (type === 'future') || (type === 'option');
         const [request, requestParams] = contract ? this.prepareRequest(market, type, query) : this.spotOrderPrepareRequest(market, stop, query);
         request['order_id'] = orderId;
         const methodMiddle = stop ? 'PriceOrders' : 'Orders';
@@ -3857,6 +3902,7 @@ class gate extends gate$1 {
             'margin': 'privateSpotGet' + methodMiddle + 'OrderId',
             'swap': 'privateFuturesGetSettle' + methodMiddle + 'OrderId',
             'future': 'privateDeliveryGetSettle' + methodMiddle + 'OrderId',
+            'option': 'privateOptionsGetOrdersOrderId',
         });
         const response = await this[method](this.extend(request, requestParams));
         return this.parseOrder(response, market);
@@ -3925,10 +3971,11 @@ class gate extends gate$1 {
             'margin': 'privateSpotGet' + methodTail,
             'swap': 'privateFuturesGetSettle' + methodTail,
             'future': 'privateDeliveryGetSettle' + methodTail,
+            'option': 'privateOptionsGetOrders',
         });
         const response = await this[method](this.extend(request, requestParams));
         //
-        // SPOT Open Orders
+        // spot open orders
         //
         //    [
         //        {
@@ -3968,7 +4015,7 @@ class gate extends gate$1 {
         //        ...
         //    ]
         //
-        // SPOT
+        // spot
         //
         //    [
         //        {
@@ -3999,7 +4046,7 @@ class gate extends gate$1 {
         //        }
         //    ]
         //
-        // Spot Stop
+        // spot stop
         //
         //    [
         //        {
@@ -4024,7 +4071,7 @@ class gate extends gate$1 {
         //        }
         //    ]
         //
-        // Perpetual Swap
+        // swap
         //
         //    [
         //        {
@@ -4046,6 +4093,32 @@ class gate extends gate$1 {
         //           "price": "0"
         //        }
         //    ]
+        //
+        // option
+        //
+        //     [
+        //         {
+        //             "id": 2593450699,
+        //             "contract": "BTC_USDT-20230601-27500-C",
+        //             "mkfr": "0.0003",
+        //             "tkfr": "0.0003",
+        //             "tif": "gtc",
+        //             "is_reduce_only": false,
+        //             "create_time": 1685503873,
+        //             "price": "200",
+        //             "size": 1,
+        //             "refr": "0",
+        //             "left": 1,
+        //             "text": "api",
+        //             "fill_price": "0",
+        //             "user": 5691076,
+        //             "status": "open",
+        //             "is_liq": false,
+        //             "refu": 0,
+        //             "is_close": false,
+        //             "iceberg": 0
+        //         }
+        //     ]
         //
         let result = response;
         if (openSpotOrders) {
@@ -4082,6 +4155,7 @@ class gate extends gate$1 {
             'margin': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
             'swap': 'privateFuturesDeleteSettle' + pathMiddle + 'OrdersOrderId',
             'future': 'privateDeliveryDeleteSettle' + pathMiddle + 'OrdersOrderId',
+            'option': 'privateOptionsDeleteOrdersOrderId',
         });
         const response = await this[method](this.extend(request, requestParams));
         //
@@ -4139,7 +4213,7 @@ class gate extends gate$1 {
         //         "status": "canceled"
         //     }
         //
-        // perpetual swaps
+        // swap, future and option
         //
         //     {
         //         id: "82241928192",
@@ -4188,6 +4262,7 @@ class gate extends gate$1 {
             'margin': 'privateSpotDelete' + methodTail,
             'swap': 'privateFuturesDeleteSettle' + methodTail,
             'future': 'privateDeliveryDeleteSettle' + methodTail,
+            'option': 'privateOptionsDeleteOrders',
         });
         const response = await this[method](this.extend(request, requestParams));
         //
