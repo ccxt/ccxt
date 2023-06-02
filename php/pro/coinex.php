@@ -460,7 +460,7 @@ class coinex extends \ccxt\async\coinex {
             $this->options['watchTradesSubscriptions'] = $subscribedSymbols;
             $request = $this->deep_extend($message, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash));
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 

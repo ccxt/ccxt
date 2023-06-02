@@ -5460,10 +5460,14 @@ export default class huobi extends Exchange {
             feeCost = Precise.stringAbs (feeCost);
         }
         const networkId = this.safeString (transaction, 'chain');
+        let txHash = this.safeString (transaction, 'tx-hash');
+        if (networkId === 'ETH' && txHash.indexOf ('0x') < 0) {
+            txHash = '0x' + txHash;
+        }
         return {
             'info': transaction,
             'id': this.safeString2 (transaction, 'id', 'data'),
-            'txid': this.safeString (transaction, 'tx-hash'),
+            'txid': txHash,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'network': this.networkIdToCode (networkId, code),

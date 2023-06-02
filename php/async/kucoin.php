@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\kucoin as Exchange;
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
@@ -45,6 +46,7 @@ class kucoin extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
+                'editOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => true,
@@ -1479,6 +1481,10 @@ class kucoin extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * Create an order on the exchange
+             * @see https://docs.kucoin.com/spot#place-a-new-order
+             * @see https://docs.kucoin.com/spot#place-a-new-order-2
+             * @see https://docs.kucoin.com/spot#place-a-margin-order
+             * @see https://docs.kucoin.com/spot-hf/#place-hf-order
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} $type 'limit' or 'market'
              * @param {string} $side 'buy' or 'sell'
@@ -1505,6 +1511,7 @@ class kucoin extends Exchange {
              * @param {string} $params->stp '', // self trade prevention, CN, CO, CB or DC
              * @param {string} $params->marginMode 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
              * @param {bool} $params->autoBorrow false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
+             * @param {bool} $params->hf false, // true for hf order
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1549,7 +1556,10 @@ class kucoin extends Exchange {
             $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'stopPrice' ));
             $tradeType = $this->safe_string($params, 'tradeType'); // keep it for backward compatibility
             $method = 'privatePostOrders';
-            if ($isStopLoss || $isTakeProfit) {
+            $isHf = $this->safe_value($params, 'hf', false);
+            if ($isHf) {
+                $method = 'privatePostHfOrders';
+            } elseif ($isStopLoss || $isTakeProfit) {
                 $request['stop'] = $isStopLoss ? 'entry' : 'loss';
                 $triggerPrice = $isStopLoss ? $stopLossPrice : $takeProfitPrice;
                 $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
@@ -1584,35 +1594,100 @@ class kucoin extends Exchange {
         }) ();
     }
 
+    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * edit an order, kucoin currently only supports the modification of HF orders
+             * @see https://docs.kucoin.com/spot-hf/#modify-order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type not used
+             * @param {string} $side not used
+             * @param {float} $amount how much of the currency you want to trade in units of the base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the gate api endpoint
+             * @param {string} $params->clientOrderId client order $id, defaults to $id if not passed
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
+            if ($clientOrderId !== null) {
+                $request['clientOid'] = $clientOrderId;
+            } else {
+                $request['orderId'] = $id;
+            }
+            if ($amount !== null) {
+                $request['newSize'] = $this->amount_to_precision($symbol, $amount);
+            }
+            if ($price !== null) {
+                $request['newPrice'] = $this->price_to_precision($symbol, $price);
+            }
+            $response = Async\await($this->privatePostHfOrdersAlter (array_merge($request, $params)));
+            //
+            // {
+            //     "code":"200000",
+            //     "data":{
+            //        "newOrderId":"6478d7a6c883280001e92d8b"
+            //     }
+            // }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_order($data, $market);
+        }) ();
+    }
+
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             * @see https://docs.kucoin.com/spot#cancel-an-order
+             * @see https://docs.kucoin.com/spot#cancel-an-order-2
+             * @see https://docs.kucoin.com/spot#cancel-single-order-by-clientoid
+             * @see https://docs.kucoin.com/spot#cancel-single-order-by-clientoid-2
+             * @see https://docs.kucoin.com/spot-hf/#cancel-orders-by-orderid
+             * @see https://docs.kucoin.com/spot-hf/#cancel-order-by-clientoid
              * @param {string} $id order $id
-             * @param {string|null} $symbol unified $symbol of the market the order was made in
+             * @param {string|null} $symbol unified $symbol of the $market the order was made in
              * @param {array} $params extra parameters specific to the kucoin api endpoint
              * @param {bool} $params->stop True if cancelling a $stop order
+             * @param {bool} $params->hf false, // true for $hf order
              * @return Response from the exchange
              */
             Async\await($this->load_markets());
             $request = array();
             $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
-            $stop = $this->safe_value($params, 'stop');
+            $stop = $this->safe_value($params, 'stop', false);
+            $hf = $this->safe_value($params, 'hf', false);
+            if ($hf) {
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol parameter for $hf orders');
+                }
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
             $method = 'privateDeleteOrdersOrderId';
             if ($clientOrderId !== null) {
                 $request['clientOid'] = $clientOrderId;
                 if ($stop) {
                     $method = 'privateDeleteStopOrderCancelOrderByClientOid';
+                } elseif ($hf) {
+                    $method = 'privateDeleteHfOrdersClientOrderClientOid';
                 } else {
                     $method = 'privateDeleteOrderClientOrderClientOid';
                 }
             } else {
                 if ($stop) {
                     $method = 'privateDeleteStopOrderOrderId';
+                } elseif ($hf) {
+                    $method = 'privateDeleteHfOrdersOrderId';
                 }
                 $request['orderId'] = $id;
             }
-            $params = $this->omit($params, array( 'clientOid', 'clientOrderId', 'stop' ));
+            $params = $this->omit($params, array( 'clientOid', 'clientOrderId', 'stop', 'hf' ));
             return Async\await($this->$method (array_merge($request, $params)));
         }) ();
     }
@@ -1621,16 +1696,23 @@ class kucoin extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
+             * @see https://docs.kucoin.com/spot#cancel-all-orders
+             * @see https://docs.kucoin.com/spot#cancel-orders
+             * @see https://docs.kucoin.com/spot-hf/#cancel-all-$hf-orders-by-$symbol
              * @param {string|null} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
              * @param {array} $params extra parameters specific to the kucoin api endpoint
              * @param {bool} $params->stop *invalid for isolated margin* true if cancelling all $stop orders
              * @param {string} $params->marginMode 'cross' or 'isolated'
              * @param {string} $params->orderIds *$stop orders only* Comma seperated order IDs
+             * @param {bool} $params->stop True if cancelling a $stop order
+             * @param {bool} $params->hf false, // true for $hf order
              * @return Response from the exchange
              */
             Async\await($this->load_markets());
             $request = array();
-            $stop = $this->safe_value($params, 'stop');
+            $stop = $this->safe_value($params, 'stop', false);
+            $hf = $this->safe_value($params, 'hf', false);
+            $params = $this->omit($params, array( 'stop', 'hf' ));
             list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
             if ($symbol !== null) {
                 $request['symbol'] = $this->market_id($symbol);
@@ -1641,7 +1723,15 @@ class kucoin extends Exchange {
                     throw new BadRequest($this->id . ' cancelAllOrders does not support isolated margin for $stop orders');
                 }
             }
-            $method = $stop ? 'privateDeleteStopOrderCancel' : 'privateDeleteOrders';
+            $method = 'privateDeleteOrders';
+            if ($stop) {
+                $method = 'privateDeleteStopOrderCancel';
+            } elseif ($hf) {
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol parameter for $hf orders');
+                }
+                $method = 'privateDeleteHfOrders';
+            }
             return Async\await($this->$method (array_merge($request, $query)));
         }) ();
     }
@@ -1650,6 +1740,10 @@ class kucoin extends Exchange {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             /**
              * fetch a list of $orders
+             * @see https://docs.kucoin.com/spot#list-$orders
+             * @see https://docs.kucoin.com/spot#list-$stop-$orders
+             * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-active-$hf-$orders
+             * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-$hf-$orders
              * @param {string} $status *not used for $stop $orders* 'open' or 'closed'
              * @param {string|null} $symbol unified $market $symbol
              * @param {int|null} $since timestamp in ms of the earliest order
@@ -1662,13 +1756,16 @@ class kucoin extends Exchange {
              * @param {string|null} $params->tradeType TRADE for spot trading, MARGIN_TRADE for Margin Trading
              * @param {int|null} $params->currentPage *$stop $orders only* current page
              * @param {string|null} $params->orderIds *$stop $orders only* comma seperated order ID list
+             * @param {bool} $params->stop True if fetching a $stop order
+             * @param {bool} $params->hf false, // true for $hf order
              * @return An ~@link https://docs.ccxt.com/#/?id=order-structure array of order structures~
              */
             Async\await($this->load_markets());
             $lowercaseStatus = strtolower($status);
             $until = $this->safe_integer_2($params, 'until', 'till');
-            $stop = $this->safe_value($params, 'stop');
-            $params = $this->omit($params, array( 'stop', 'till', 'until' ));
+            $stop = $this->safe_value($params, 'stop', false);
+            $hf = $this->safe_value($params, 'hf', false);
+            $params = $this->omit($params, array( 'stop', 'hf', 'till', 'until' ));
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrdersByStatus', $params);
             if ($lowercaseStatus === 'open') {
                 $lowercaseStatus = 'active';
@@ -1695,6 +1792,12 @@ class kucoin extends Exchange {
             $method = 'privateGetOrders';
             if ($stop) {
                 $method = 'privateGetStopOrder';
+            } elseif ($hf) {
+                if ($lowercaseStatus === 'active') {
+                    $method = 'privateGetHfOrdersActive';
+                } elseif ($lowercaseStatus === 'done') {
+                    $method = 'privateGetHfOrdersDone';
+                }
             }
             $request['tradeType'] = $this->safe_string($this->options['marginModes'], $marginMode, 'TRADE');
             $response = Async\await($this->$method (array_merge($request, $query)));
@@ -1759,6 +1862,8 @@ class kucoin extends Exchange {
              * @param {string|null} $params->side buy or sell
              * @param {string|null} $params->type $limit, market, limit_stop or market_stop
              * @param {string|null} $params->tradeType TRADE for spot trading, MARGIN_TRADE for Margin Trading
+             * @param {bool} $params->stop True if fetching a stop order
+             * @param {bool} $params->hf false, // true for hf order
              * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_status('done', $symbol, $since, $limit, $params));
@@ -1780,6 +1885,8 @@ class kucoin extends Exchange {
              * @param {string} $params->tradeType TRADE for spot trading, MARGIN_TRADE for Margin Trading
              * @param {int} $params->currentPage *stop orders only* current page
              * @param {string} $params->orderIds *stop orders only* comma seperated order ID list
+             * @param {bool} $params->stop True if fetching a stop order
+             * @param {bool} $params->hf false, // true for hf order
              * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_status('active', $symbol, $since, $limit, $params));
@@ -1790,22 +1897,36 @@ class kucoin extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an order
+             * @see https://docs.kucoin.com/spot#get-an-order
+             * @see https://docs.kucoin.com/spot#get-single-active-order-by-clientoid
+             * @see https://docs.kucoin.com/spot#get-single-order-info
+             * @see https://docs.kucoin.com/spot#get-single-order-by-clientoid
+             * @see https://docs.kucoin.com/spot-hf/#details-of-a-single-$hf-order
+             * @see https://docs.kucoin.com/spot-hf/#obtain-details-of-a-single-$hf-order-using-clientoid
              * @param {string} $id Order $id
              * @param {string} $symbol not sent to exchange except for $stop orders with clientOid, but used internally by CCXT to filter
              * @param {array} $params exchange specific parameters
              * @param {bool} $params->stop true if fetching a $stop order
+             * @param {bool} $params->hf false, // true for $hf order
              * @param {bool} $params->clientOid unique order $id created by users to identify their orders
              * @return An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array();
             $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
-            $stop = $this->safe_value($params, 'stop');
+            $stop = $this->safe_value($params, 'stop', false);
+            $hf = $this->safe_value($params, 'hf', false);
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $params = $this->omit($params, 'stop');
+            if ($hf) {
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol parameter for $hf orders');
+                }
+                $request['symbol'] = $market['id'];
+            }
+            $params = $this->omit($params, array( 'stop', 'hf' ));
             $method = 'privateGetOrdersOrderId';
             if ($clientOrderId !== null) {
                 $request['clientOid'] = $clientOrderId;
@@ -1814,6 +1935,8 @@ class kucoin extends Exchange {
                     if ($symbol !== null) {
                         $request['symbol'] = $market['id'];
                     }
+                } elseif ($hf) {
+                    $method = 'privateGetHfOrdersClientOrderClientOid';
                 } else {
                     $method = 'privateGetOrderClientOrderClientOid';
                 }
@@ -1826,6 +1949,8 @@ class kucoin extends Exchange {
                 }
                 if ($stop) {
                     $method = 'privateGetStopOrderOrderId';
+                } elseif ($hf) {
+                    $method = 'privateGetHfOrdersOrderId';
                 }
                 $request['orderId'] = $id;
             }
@@ -1924,6 +2049,42 @@ class kucoin extends Exchange {
         //        "stopTriggerTime" => null,
         //        "stopPrice" => "0.97000000000000000000"
         //    }
+        // hf $order
+        //    {
+        //        "id":"6478cf1439bdfc0001528a1d",
+        //        "symbol":"LTC-USDT",
+        //        "opType":"DEAL",
+        //        "type":"limit",
+        //        "side":"buy",
+        //        "price":"50",
+        //        "size":"0.1",
+        //        "funds":"5",
+        //        "dealSize":"0",
+        //        "dealFunds":"0",
+        //        "fee":"0",
+        //        "feeCurrency":"USDT",
+        //        "stp":null,
+        //        "timeInForce":"GTC",
+        //        "postOnly":false,
+        //        "hidden":false,
+        //        "iceberg":false,
+        //        "visibleSize":"0",
+        //        "cancelAfter":0,
+        //        "channel":"API",
+        //        "clientOid":"d4d2016b-8e3a-445c-aa5d-dc6df5d1678d",
+        //        "remark":null,
+        //        "tags":"partner:ccxt",
+        //        "cancelExist":false,
+        //        "createdAt":1685638932074,
+        //        "lastUpdatedAt":1685639013735,
+        //        "tradeType":"TRADE",
+        //        "inOrderBook":true,
+        //        "cancelledSize":"0",
+        //        "cancelledFunds":"0",
+        //        "remainSize":"0.1",
+        //        "remainFunds":"5",
+        //        "active":true
+        //    }
         //
         $marketId = $this->safe_string($order, 'symbol');
         $timestamp = $this->safe_integer($order, 'createdAt');
@@ -1932,7 +2093,7 @@ class kucoin extends Exchange {
         $responseStop = $this->safe_string($order, 'stop');
         $stop = $responseStop !== null;
         $stopTriggered = $this->safe_value($order, 'stopTriggered', false);
-        $isActive = $this->safe_value($order, 'isActive');
+        $isActive = $this->safe_value_2($order, 'isActive', 'active');
         $status = null;
         if ($isActive !== null) {
             if ($isActive === true) {
@@ -1958,7 +2119,7 @@ class kucoin extends Exchange {
         $stopPrice = $this->safe_number($order, 'stopPrice');
         return $this->safe_order(array(
             'info' => $order,
-            'id' => $this->safe_string_2($order, 'id', 'orderId'),
+            'id' => $this->safe_string_n($order, array( 'id', 'orderId', 'newOrderId' )),
             'clientOrderId' => $this->safe_string($order, 'clientOid'),
             'symbol' => $this->safe_symbol($marketId, $market, '-'),
             'type' => $this->safe_string($order, 'type'),
@@ -2006,15 +2167,22 @@ class kucoin extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://docs.kucoin.com/#list-fills
+             * @see https://docs.kucoin.com/spot-hf/#transaction-details
              * fetch all $trades made by the user
              * @param {string|null} $symbol unified $market $symbol
              * @param {int|null} $since the earliest time in ms to fetch $trades for
              * @param {int|null} $limit the maximum number of $trades structures to retrieve
              * @param {array} $params extra parameters specific to the kucoin api endpoint
+             * @param {bool} $params->hf false, // true for $hf order
              * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array();
+            $hf = $this->safe_value($params, 'hf', false);
+            if ($hf && $symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol parameter for $hf orders');
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2025,7 +2193,9 @@ class kucoin extends Exchange {
             }
             $method = $this->options['fetchMyTradesMethod'];
             $parseResponseData = false;
-            if ($method === 'private_get_fills') {
+            if ($hf) {
+                $method = 'privateGetHfFills';
+            } elseif ($method === 'private_get_fills') {
                 // does not return $trades earlier than 2019-02-18T00:00:00Z
                 if ($since !== null) {
                     // only returns $trades up to one week after the $since param
@@ -2798,6 +2968,7 @@ class kucoin extends Exchange {
              * transfer $currency internally between wallets on the same account
              * @see https://docs.kucoin.com/#inner-transfer
              * @see https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
+             * @see https://docs.kucoin.com/spot-hf/#internal-funds-transfers-in-high-frequency-trading-accounts
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from

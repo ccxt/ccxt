@@ -272,7 +272,7 @@ class woo(ccxt.async_support.woo):
         ohlcv = await self.watch_public(topic, message)
         if self.newUpdates:
             limit = ohlcv.getLimit(market['symbol'], limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -329,7 +329,7 @@ class woo(ccxt.async_support.woo):
         trades = await self.watch_public(topic, message)
         if self.newUpdates:
             limit = trades.getLimit(market['symbol'], limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_trade(self, client: Client, message):
         #

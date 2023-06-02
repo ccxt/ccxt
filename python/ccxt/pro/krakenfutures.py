@@ -176,7 +176,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         trades = await self.subscribe_public(name, [symbol], params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -210,7 +210,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         orders = await self.subscribe_private(name, messageHash, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_since_limit(orders, since, limit, 'timestamp')
+        return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -231,7 +231,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         trades = await self.subscribe_private(name, messageHash, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_balance(self, params={}):
         """
@@ -1191,7 +1191,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         if event == 'challenge':
             self.handle_authenticate(client, message)
         elif event == 'pong':
-            return client.onPong(message)
+            client.lastPong = self.milliseconds()
         elif event is None:
             feed = self.safe_string(message, 'feed')
             methods = {

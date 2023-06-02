@@ -554,7 +554,7 @@ class phemex extends phemex$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -628,7 +628,7 @@ class phemex extends phemex$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleDelta(bookside, delta, market = undefined) {
         const bidAsk = this.customParseBidAsk(delta, 0, 1, market);
@@ -749,7 +749,7 @@ class phemex extends phemex$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleMyTrades(client, message) {
         //

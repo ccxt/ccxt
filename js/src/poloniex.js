@@ -20,7 +20,7 @@ export default class poloniex extends Exchange {
             // 200 requests per second for some unauthenticated market endpoints => 1000ms / 200 = 5ms between requests
             'rateLimit': 5,
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,

@@ -478,6 +478,45 @@ abstract class mexc extends \ccxt\Exchange {
     public function spot2_private_delete_asset_withdraw($params = array()) {
         return $this->request('asset/withdraw', array('spot2', 'private'), 'DELETE', $params, null, null, array("cost" => 2));
     }
+    public function broker_private_get_sub_account_universaltransfer($params = array()) {
+        return $this->request('sub-account/universalTransfer', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function broker_private_get_sub_account_list($params = array()) {
+        return $this->request('sub-account/list', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function broker_private_get_sub_account_apikey($params = array()) {
+        return $this->request('sub-account/apiKey', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function broker_private_get_capital_deposit_subaddress($params = array()) {
+        return $this->request('capital/deposit/subAddress', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function broker_private_get_capital_deposit_subhisrec($params = array()) {
+        return $this->request('capital/deposit/subHisrec', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function broker_private_get_capital_deposit_subhisrec_getall($params = array()) {
+        return $this->request('capital/deposit/subHisrec/getall', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function broker_private_post_sub_account_virtualsubaccount($params = array()) {
+        return $this->request('sub-account/virtualSubAccount', array('broker', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function broker_private_post_sub_account_apikey($params = array()) {
+        return $this->request('sub-account/apiKey', array('broker', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function broker_private_post_capital_deposit_subaddress($params = array()) {
+        return $this->request('capital/deposit/subAddress', array('broker', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function broker_private_post_capital_withdraw_apply($params = array()) {
+        return $this->request('capital/withdraw/apply', array('broker', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function broker_private_post_sub_account_universaltransfer($params = array()) {
+        return $this->request('sub-account/universalTransfer', array('broker', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function broker_private_post_sub_account_futures($params = array()) {
+        return $this->request('sub-account/futures', array('broker', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function broker_private_delete_sub_account_apikey($params = array()) {
+        return $this->request('sub-account/apiKey', array('broker', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
+    }
     public function spotPublicGetPing($params = array()) {
         return $this->request('ping', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -948,5 +987,44 @@ abstract class mexc extends \ccxt\Exchange {
     }
     public function spot2PrivateDeleteAssetWithdraw($params = array()) {
         return $this->request('asset/withdraw', array('spot2', 'private'), 'DELETE', $params, null, null, array("cost" => 2));
+    }
+    public function brokerPrivateGetSubAccountUniversalTransfer($params = array()) {
+        return $this->request('sub-account/universalTransfer', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function brokerPrivateGetSubAccountList($params = array()) {
+        return $this->request('sub-account/list', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function brokerPrivateGetSubAccountApiKey($params = array()) {
+        return $this->request('sub-account/apiKey', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function brokerPrivateGetCapitalDepositSubAddress($params = array()) {
+        return $this->request('capital/deposit/subAddress', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function brokerPrivateGetCapitalDepositSubHisrec($params = array()) {
+        return $this->request('capital/deposit/subHisrec', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function brokerPrivateGetCapitalDepositSubHisrecGetall($params = array()) {
+        return $this->request('capital/deposit/subHisrec/getall', array('broker', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function brokerPrivatePostSubAccountVirtualSubAccount($params = array()) {
+        return $this->request('sub-account/virtualSubAccount', array('broker', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function brokerPrivatePostSubAccountApiKey($params = array()) {
+        return $this->request('sub-account/apiKey', array('broker', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function brokerPrivatePostCapitalDepositSubAddress($params = array()) {
+        return $this->request('capital/deposit/subAddress', array('broker', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function brokerPrivatePostCapitalWithdrawApply($params = array()) {
+        return $this->request('capital/withdraw/apply', array('broker', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function brokerPrivatePostSubAccountUniversalTransfer($params = array()) {
+        return $this->request('sub-account/universalTransfer', array('broker', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function brokerPrivatePostSubAccountFutures($params = array()) {
+        return $this->request('sub-account/futures', array('broker', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function brokerPrivateDeleteSubAccountApiKey($params = array()) {
+        return $this->request('sub-account/apiKey', array('broker', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
 }

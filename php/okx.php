@@ -2746,6 +2746,7 @@ class okx extends Exchange {
             $type = 'limit';
         }
         $marketId = $this->safe_string($order, 'instId');
+        $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $filled = $this->safe_string($order, 'accFillSz');
         $price = $this->safe_string_2($order, 'px', 'ordPx');

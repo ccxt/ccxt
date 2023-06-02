@@ -569,7 +569,7 @@ export default class phemex extends phemexRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -645,7 +645,7 @@ export default class phemex extends phemexRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleDelta (bookside, delta, market = undefined) {
@@ -769,7 +769,7 @@ export default class phemex extends phemexRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
     handleMyTrades (client: Client, message) {

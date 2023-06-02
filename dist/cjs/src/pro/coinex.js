@@ -446,7 +446,7 @@ class coinex extends coinex$1 {
         this.options['watchTradesSubscriptions'] = subscribedSymbols;
         const request = this.deepExtend(message, params);
         const trades = await this.watch(url, messageHash, request, subscriptionHash);
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**

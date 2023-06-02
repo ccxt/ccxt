@@ -531,44 +531,62 @@ class bitrue(Exchange, ImplicitAPI):
             id = self.safe_string(currency, 'coin')
             name = self.safe_string(currency, 'coinFulName')
             code = self.safe_currency_code(id)
-            enableDeposit = self.safe_value(currency, 'enableDeposit')
-            enableWithdraw = self.safe_value(currency, 'enableWithdraw')
-            networkIds = self.safe_value(currency, 'chains', [])
+            deposit = None
+            withdraw = None
+            minWithdrawString = None
+            maxWithdrawString = None
+            minWithdrawFeeString = None
+            networkDetails = self.safe_value(currency, 'chainDetail', [])
             networks = {}
-            for j in range(0, len(networkIds)):
-                networkId = networkIds[j]
-                network = self.safe_network(networkId)
+            for j in range(0, len(networkDetails)):
+                entry = networkDetails[j]
+                networkId = self.safe_string(entry, 'chain')
+                network = self.network_id_to_code(networkId, code)
+                enableDeposit = self.safe_value(entry, 'enableDeposit')
+                deposit = enableDeposit if (enableDeposit) else deposit
+                enableWithdraw = self.safe_value(entry, 'enableWithdraw')
+                withdraw = enableWithdraw if (enableWithdraw) else withdraw
+                networkWithdrawFeeString = self.safe_string(entry, 'withdrawFee')
+                if networkWithdrawFeeString is not None:
+                    minWithdrawFeeString = networkWithdrawFeeString if (minWithdrawFeeString is None) else Precise.string_min(networkWithdrawFeeString, minWithdrawFeeString)
+                networkMinWithdrawString = self.safe_string(entry, 'minWithdraw')
+                if networkMinWithdrawString is not None:
+                    minWithdrawString = networkMinWithdrawString if (minWithdrawString is None) else Precise.string_min(networkMinWithdrawString, minWithdrawString)
+                networkMaxWithdrawString = self.safe_string(entry, 'maxWithdraw')
+                if networkMaxWithdrawString is not None:
+                    maxWithdrawString = networkMaxWithdrawString if (maxWithdrawString is None) else Precise.string_max(networkMaxWithdrawString, maxWithdrawString)
                 networks[network] = {
-                    'info': networkId,
+                    'info': entry,
                     'id': networkId,
                     'network': network,
-                    'active': None,
-                    'fee': None,
+                    'deposit': enableDeposit,
+                    'withdraw': enableWithdraw,
+                    'active': enableDeposit and enableWithdraw,
+                    'fee': self.parse_number(networkWithdrawFeeString),
                     'precision': None,
                     'limits': {
                         'withdraw': {
-                            'min': None,
-                            'max': None,
+                            'min': self.parse_number(networkMinWithdrawString),
+                            'max': self.parse_number(networkMaxWithdrawString),
                         },
                     },
                 }
-            active = (enableWithdraw and enableDeposit)
             result[code] = {
                 'id': id,
                 'name': name,
                 'code': code,
                 'precision': None,
                 'info': currency,
-                'active': active,
-                'deposit': enableDeposit,
-                'withdraw': enableWithdraw,
+                'active': deposit and withdraw,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'networks': networks,
-                'fee': self.safe_number(currency, 'withdrawFee'),
+                'fee': self.parse_number(minWithdrawFeeString),
                 # 'fees': fees,
                 'limits': {
                     'withdraw': {
-                        'min': self.safe_number(currency, 'minWithdraw'),
-                        'max': self.safe_number(currency, 'maxWithdraw'),
+                        'min': self.parse_number(minWithdrawString),
+                        'max': self.parse_number(maxWithdrawString),
                     },
                 },
             }

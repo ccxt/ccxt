@@ -257,7 +257,7 @@ class bitget(ccxt.async_support.bitget):
         ohlcv = await self.watch_public(messageHash, args, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -468,7 +468,7 @@ class bitget(ccxt.async_support.bitget):
         trades = await self.watch_public(messageHash, args, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
         #
@@ -834,7 +834,7 @@ class bitget(ccxt.async_support.bitget):
         trades = await self.watch_private(messageHash, subscriptionHash, args, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trades(self, client: Client, message):
         #

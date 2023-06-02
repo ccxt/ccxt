@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '3.1.14';
+const version = '3.1.19';
 
 (Exchange as any).ccxtVersion = version
 
@@ -209,6 +209,7 @@ import okcoinPro from  './src/pro/okcoin.js'
 import okexPro from  './src/pro/okex.js'
 import okxPro from  './src/pro/okx.js'
 import phemexPro from  './src/pro/phemex.js'
+import poloniexPro from  './src/pro/poloniex.js'
 import poloniexfuturesPro from  './src/pro/poloniexfutures.js'
 import probitPro from  './src/pro/probit.js'
 import upbitPro from  './src/pro/upbit.js'
@@ -380,6 +381,7 @@ const pro = {
     'okex':                   okexPro,
     'okx':                    okxPro,
     'phemex':                 phemexPro,
+    'poloniex':               poloniexPro,
     'poloniexfutures':        poloniexfuturesPro,
     'probit':                 probitPro,
     'upbit':                  upbitPro,
