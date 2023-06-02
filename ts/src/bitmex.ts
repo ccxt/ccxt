@@ -1840,12 +1840,8 @@ export default class bitmex extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'transactTime'));
         const price = this.safeString (order, 'price');
-        let amount = this.safeString (order, 'orderQty');
-        let filled = this.safeString (order, 'cumQty');
-        if (this.newPrecision ()) {
-            amount = this.convertFromRawMarketQuantity (market['symbol'], amount);
-            filled = this.convertFromRawMarketQuantity (market['symbol'], filled);
-        }
+        const amount = this.convertFromRawMarketQuantity (market['symbol'], this.safeString (order, 'orderQty'));
+        const filled = this.convertFromRawMarketQuantity (market['symbol'], this.safeString (order, 'cumQty'));
         const average = this.safeString (order, 'avgPx');
         const id = this.safeString (order, 'orderID');
         const type = this.safeStringLower (order, 'ordType');
