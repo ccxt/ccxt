@@ -540,32 +540,26 @@ export default class bitmex extends Exchange {
             } else {
                 type = 'index';
             }
-            let swap = false;
-            let future = false;
-            let spot = false;
-            let index = false;
+            const swap = type === 'swap';
+            const future = type === 'future';
+            const spot = type === 'spot';
+            const index = type === 'index';
+            const contract = swap || future;
             let symbol = undefined;
             const expiryDatetime = this.safeString (market, 'expiry');
             const expiry = this.parse8601 (expiryDatetime);
             const status = this.safeString (market, 'state');
             const active = status !== 'Unlisted';
-            let contract = false;
             // types defined here: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
-            if (type === 'spot') {
-                spot = true;
+            if (spot) {
                 symbol = base + '/' + quote;
-            } else if (type === 'swap') {
-                swap = true;
+            } else if (swap) {
                 symbol = base + '/' + quote + ':' + settle;
-                contract = true;
-            } else if (type === 'future') {
-                future = true;
+            } else if (future) {
                 symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry);
-                contract = true;
             } else if (type === 'prediction') {
                 symbol = id;
             } else {
-                index = true;
                 symbol = id;
             }
             const isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
@@ -710,8 +704,8 @@ export default class bitmex extends Exchange {
             const account = this.account ();
             const free = this.safeString (balance, 'availableMargin');
             const total = this.safeString (balance, 'marginBalance');
-            account['free'] = this.convertCurrencyAmountFromRaw (code, free);
-            account['total'] = this.convertCurrencyAmountFromRaw (code, total);
+            account['free'] = this.convertToRealAmount (code, free);
+            account['total'] = this.convertToRealAmount (code, total);
             account['info'] = balance;
             result[code] = account;
         }
@@ -1911,8 +1905,8 @@ export default class bitmex extends Exchange {
         let amount = this.safeString (order, 'orderQty');
         let filled = this.safeString (order, 'cumQty');
         if (this.newPrecision ()) {
-            amount = this.parseFromQuantity (market['symbol'], amount);
-            filled = this.parseFromQuantity (market['symbol'], filled);
+            amount = this.convertFromRawMarketQuantity (market['symbol'], amount);
+            filled = this.convertFromRawMarketQuantity (market['symbol'], filled);
         }
         const average = this.safeString (order, 'avgPx');
         const id = this.safeString (order, 'orderID');
@@ -2434,8 +2428,8 @@ export default class bitmex extends Exchange {
             const lotSize = this.safeString (market['info'], 'lotSize');
             contracts = this.parseNumber (Precise.stringDiv (currentQty, lotSize));
             const settleCurrencyCode = this.safeString (market, 'settle');
-            maintenanceMargin = this.parseNumber (this.convertCurrencyAmountFromRaw (settleCurrencyCode, maintenanceMarginString));
-            unrealisedPnl = this.parseNumber (this.convertCurrencyAmountFromRaw (settleCurrencyCode, unrealisedPnlString));
+            maintenanceMargin = this.parseNumber (this.convertToRealAmount (settleCurrencyCode, maintenanceMarginString));
+            unrealisedPnl = this.parseNumber (this.convertToRealAmount (settleCurrencyCode, unrealisedPnlString));
         }
         return this.safePosition ({
             'info': position,
@@ -2503,7 +2497,7 @@ export default class bitmex extends Exchange {
         let quantity = undefined;
         const market = this.market (symbol);
         if (market['spot']) {
-            quantity = this.convertCurrencyAmountToRaw (market['base'], amount);
+            quantity = this.convertFromRealAmount (market['base'], amount);
         } else if (market['linear']) {
             const lotSize = this.safeString (market['info'], 'lotSize');
             quantity = parseFloat (Precise.stringMul (this.numberToString (amount), lotSize));
@@ -2521,7 +2515,7 @@ export default class bitmex extends Exchange {
         let quantity = undefined;
         const market = this.market (symbol);
         if (market['spot']) {
-            quantity = this.convertCurrencyAmountFromRaw (market['base'], amountString);
+            quantity = this.convertToRealAmount (market['base'], amountString);
         } else if (market['linear']) {
             const lotSize = this.safeString (market['info'], 'lotSize');
             quantity = Precise.stringDiv (amountString, lotSize);
@@ -2531,38 +2525,18 @@ export default class bitmex extends Exchange {
         return quantity;
     }
 
-    parseFromQuantity (symbol, quantity) {
-        // if old precisions are used, return whatever was passed
-        if (!this.newPrecision ()) {
-            return quantity;
-        }
-        let amount = undefined;
-        const market = this.market (symbol);
-        if (market['spot']) {
-            const currency = this.currency (market['base']);
-            const precision = this.safeString (currency, 'precision');
-            amount = Precise.stringMul (quantity, precision);
-        } else if (market['linear']) {
-            const lotSize = this.safeString (market['info'], 'lotSize');
-            amount = Precise.stringDiv (quantity, lotSize);
-        } else {
-            amount = quantity;
-        }
-        return this.parseNumber (amount);
-    }
-
-    convertCurrencyAmountToRaw (currencyCode, amountNumeric) {
+    convertFromRealAmount (currencyCode, amountNumeric) {
         const currency = this.currency (currencyCode);
-        if (this.newPrecision ()) {
+        if (!this.newPrecision ()) {
             return amountNumeric;
         }
         const precision = this.safeString (currency, 'precision');
         return parseFloat (Precise.stringDiv (this.numberToString (amountNumeric), precision));
     }
 
-    convertCurrencyAmountFromRaw (currencyCode, amountString) {
+    convertToRealAmount (currencyCode, amountString) {
         const currency = this.currency (currencyCode);
-        if (this.newPrecision ()) {
+        if (!this.newPrecision ()) {
             return amountString;
         }
         const precision = this.safeString (currency, 'precision');
@@ -2596,7 +2570,7 @@ export default class bitmex extends Exchange {
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
-            'amount': this.convertCurrencyAmountToRaw (code, amount),
+            'amount': this.convertFromRealAmount (code, amount),
             'address': address,
             // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
             // 'fee': 0.001, // bitcoin network fee
