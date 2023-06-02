@@ -2063,15 +2063,8 @@ export default class bitmex extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'transactTime'));
         const price = this.safeString (order, 'price');
-        let amount = undefined;
-        let filled = undefined;
-        if (this.safeValue (this.options, 'oldPrecision', false)) {
-            amount = this.safeString (order, 'orderQty');
-            filled = this.safeString (order, 'cumQty');
-        } else {
-            amount = this.parseFromQuantity (market, this.safeString (order, 'orderQty'));
-            filled = this.parseFromQuantity (market, this.safeString (order, 'cumQty'));
-        }
+        const amount = this.parseFromQuantity (market, this.safeString (order, 'orderQty'));
+        const filled = this.parseFromQuantity (market, this.safeString (order, 'cumQty'));
         const average = this.safeString (order, 'avgPx');
         const id = this.safeString (order, 'orderID');
         const type = this.safeStringLower (order, 'ordType');
@@ -2189,17 +2182,11 @@ export default class bitmex extends Exchange {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only');
             }
         }
-        let orderQty = undefined;
-        if (this.safeValue (this.options, 'oldPrecision', false)) {
-            orderQty = parseFloat (this.amountToPrecision (symbol, amount)); // lot size multiplied by the number of contracts
-        } else {
-            orderQty = this.convertIntoQuantity (market, amount);
-        }
         const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'orderQty': orderQty,
+            'orderQty': this.convertIntoQuantity (market, parseFloat (this.amountToPrecision (symbol, amount))), // lot size multiplied by the number of contracts
             'ordType': orderType,
             'text': brokerId,
         };
@@ -2709,6 +2696,9 @@ export default class bitmex extends Exchange {
     }
 
     parseFromQuantity (market, quantity) {
+        if (this.safeValue (this.options, 'oldPrecision', false)) {
+            return quantity;
+        }
         let amount = undefined;
         if (market['spot']) {
             const currency = this.currency (market['base']);
