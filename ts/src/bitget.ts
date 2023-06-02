@@ -2611,11 +2611,12 @@ export default class bitget extends Exchange {
         [ postOnly, params ] = this.handlePostOnly (isMarketOrder, exchangeSpecificTifParam === 'post_only', params);
         const defaultTimeInForce = this.safeStringLower (this.options, 'defaultTimeInForce');
         const timeInForce = this.safeStringLower (params, 'timeInForce', defaultTimeInForce);
+        let timeInForceKey = undefined;
         if (marketType === 'spot') {
             if (isStopLossOrTakeProfitTrigger || isStopLossOrTakeProfit) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets');
             }
-            let timeInForceKey = 'force';
+            timeInForceKey = 'force';
             let quantityKey = 'quantity';
             let quantity = undefined;
             const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
@@ -2648,30 +2649,12 @@ export default class bitget extends Exchange {
             if (quantity !== undefined) {
                 request[quantityKey] = quantity;
             }
-            if (postOnly) {
-                request[timeInForceKey] = 'post_only';
-            } else if (timeInForce === 'gtc') {
-                request[timeInForceKey] = 'normal';
-            } else if (timeInForce === 'fok') {
-                request[timeInForceKey] = 'fok';
-            } else if (timeInForce === 'ioc') {
-                request[timeInForceKey] = 'ioc';
-            }
         } else {
             if (clientOrderId !== undefined) {
                 request['clientOid'] = clientOrderId;
             }
             if (!isStopLossOrTakeProfit) {
                 request['size'] = this.amountToPrecision (symbol, amount);
-                if (postOnly) {
-                    request['timeInForceValue'] = 'post_only';
-                } else if (timeInForce === 'gtc') {
-                    request['timeInForceValue'] = 'normal';
-                } else if (timeInForce === 'fok') {
-                    request['timeInForceValue'] = 'fok';
-                } else if (timeInForce === 'ioc') {
-                    request['timeInForceValue'] = 'ioc';
-                }
             }
             if (isTriggerOrder || isStopLossOrTakeProfit) {
                 // default triggerType to market price for unification
@@ -2730,6 +2713,17 @@ export default class bitget extends Exchange {
                 }
             }
             request['marginCoin'] = market['settleId'];
+        }
+        if (!isStopLossOrTakeProfit) {
+            if (postOnly) {
+                request[timeInForceKey] = 'post_only';
+            } else if (timeInForce === 'gtc') {
+                request[timeInForceKey] = 'normal';
+            } else if (timeInForce === 'fok') {
+                request[timeInForceKey] = 'fok';
+            } else if (timeInForce === 'ioc') {
+                request[timeInForceKey] = 'ioc';
+            }
         }
         const omitted = this.omit (query, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly' ]);
         const response = await this[method] (this.extend (request, omitted));
