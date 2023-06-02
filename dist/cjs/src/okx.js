@@ -783,6 +783,12 @@ class okx extends okx$1 {
                 'fetchClosedOrders': {
                     'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersAlgoHistory
                 },
+                'withdraw': {
+                    // a funding password credential is required by the exchange for the
+                    // withdraw call (not to be confused with the api password credential)
+                    'password': undefined,
+                    'pwd': undefined, // password or pwd both work
+                },
                 'algoOrderTypes': {
                     'conditional': true,
                     'trigger': true,
@@ -2771,6 +2777,7 @@ class okx extends okx$1 {
             type = 'limit';
         }
         const marketId = this.safeString(order, 'instId');
+        market = this.safeMarket(marketId, market);
         const symbol = this.safeSymbol(marketId, market, '-');
         const filled = this.safeString(order, 'accFillSz');
         const price = this.safeString2(order, 'px', 'ordPx');
@@ -4026,6 +4033,13 @@ class okx extends okx$1 {
         }
         else if ('pwd' in params) {
             request['pwd'] = params['pwd'];
+        }
+        else {
+            const options = this.safeValue(this.options, 'withdraw', {});
+            const password = this.safeString2(options, 'password', 'pwd');
+            if (password !== undefined) {
+                request['pwd'] = password;
+            }
         }
         const query = this.omit(params, ['fee', 'password', 'pwd']);
         if (!('pwd' in request)) {

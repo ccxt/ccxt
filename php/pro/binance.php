@@ -440,7 +440,7 @@ class binance extends \ccxt\async\binance {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($market['symbol'], $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -673,7 +673,7 @@ class binance extends \ccxt\async\binance {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 
@@ -1606,7 +1606,7 @@ class binance extends \ccxt\async\binance {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -1698,8 +1698,11 @@ class binance extends \ccxt\async\binance {
                     $parsed['fees'] = $fees;
                 }
                 $parsed['trades'] = $this->safe_value($order, 'trades');
-                $parsed['timestamp'] = $this->safe_integer($order, 'timestamp');
-                $parsed['datetime'] = $this->safe_string($order, 'datetime');
+                $timestamp = $this->safe_integer($parsed, 'timestamp');
+                if ($timestamp === null) {
+                    $parsed['timestamp'] = $this->safe_integer($order, 'timestamp');
+                    $parsed['datetime'] = $this->safe_string($order, 'datetime');
+                }
             }
             $cachedOrders->append ($parsed);
             $client->resolve ($this->orders, $messageHash);
