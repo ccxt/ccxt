@@ -1435,8 +1435,12 @@ export default class Exchange {
         const proxyUrl = this.safeString2 (this, 'proxyUrl', 'proxy_url');
         const proxyUrlCallback = this.safeValue2 (this, 'proxyUrlCallback', 'proxy_url_callback');
         // for backwards compatibility,added old keys too
-        const proxyHttp = this.safeStringN (this, [ 'proxyHttp', 'proxy_http', 'httpProxy' ]);
-        const proxyHttps = this.safeStringN (this, [ 'proxyHttps', 'proxy_https', 'httpsProxy' ]);
+        let proxyHttp = this.safeString2 (this, 'proxyHttp', 'proxy_http');
+        // support for backward compatibility (note, atm safeStringN does not work in python for class https://app.travis-ci.com/github/ccxt/ccxt/builds/263490790#L4765 , so we have to use separate safeString)
+        if (proxyHttp === undefined) {
+            proxyHttp = this.safeString (this, 'httpProxy');
+        }
+        const proxyHttps = this.safeString2 (this, 'proxyHttps', 'proxy_https');
         const proxySocks = this.safeString2 (this, 'proxySocks', 'proxy_socks');
         const proxyAgentCallback = this.safeValue2 (this, 'proxyAgentCallback', 'proxy_agent_callback');
         let val = 0;
