@@ -2755,9 +2755,7 @@ export default class gate extends Exchange {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderTrades requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOrderTrades', symbol);
         //
         //      [
         //          {
@@ -2809,9 +2807,12 @@ export default class gate extends Exchange {
         const until = this.safeInteger2 (params, 'until', 'till');
         params = this.omit (params, [ 'until', 'till' ]);
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        const contract = (type === 'swap') || (type === 'future');
+        const contract = (type === 'swap') || (type === 'future') || (type === 'option');
         if (contract) {
             [ request, params ] = this.prepareRequest (market, type, params);
+            if (type === 'option') {
+                params = this.omit (params, 'order_id');
+            }
         } else {
             if (market !== undefined) {
                 request['currency_pair'] = market['id']; // Should always be set for non-stop
@@ -2833,6 +2834,7 @@ export default class gate extends Exchange {
             'margin': 'privateSpotGetMyTrades',
             'swap': 'privateFuturesGetSettleMyTradesTimerange',
             'future': 'privateDeliveryGetSettleMyTrades',
+            'option': 'privateOptionsGetMyTrades',
         });
         const response = await this[method] (this.extend (request, params));
         //
@@ -2881,6 +2883,21 @@ export default class gate extends Exchange {
         //             "size": 100,
         //             "price": "100.123",
         //             "role": "taker"
+        //         }
+        //     ]
+        //
+        // option
+        //
+        //     [
+        //         {
+        //             "underlying_price": "26817.84",
+        //             "size": -1,
+        //             "contract": "BTC_USDT-20230602-26500-C",
+        //             "id": 16,
+        //             "role": "taker",
+        //             "create_time": 1685594770,
+        //             "order_id": 2611026125,
+        //             "price": "333"
         //         }
         //     ]
         //
@@ -2953,7 +2970,7 @@ export default class gate extends Exchange {
         //         "role": "taker"
         //     }
         //
-        // option rest
+        // fetchTrades: option
         //
         //     {
         //         "size": -5,
@@ -2961,6 +2978,19 @@ export default class gate extends Exchange {
         //         "create_time": 1682378573,
         //         "contract": "ETH_USDT-20230526-2000-P",
         //         "price": "209.1"
+        //     }
+        //
+        // fetchMyTrades: option
+        //
+        //     {
+        //         "underlying_price": "26817.84",
+        //         "size": -1,
+        //         "contract": "BTC_USDT-20230602-26500-C",
+        //         "id": 16,
+        //         "role": "taker",
+        //         "create_time": 1685594770,
+        //         "order_id": 2611026125,
+        //         "price": "333"
         //     }
         //
         const id = this.safeString (trade, 'id');
