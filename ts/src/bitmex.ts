@@ -1078,7 +1078,7 @@ export default class bitmex extends Exchange {
         const after = this.convertToRealAmount (code, afterString);
         const before = Precise.stringSub (afterString, amountString);
         let direction = undefined;
-        if (amount < 0) {
+        if (Precise.stringLt (amountString, '0')) {
             direction = 'out';
             amount = Math.abs (amount);
         } else {
