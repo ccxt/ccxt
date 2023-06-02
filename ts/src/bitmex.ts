@@ -1080,7 +1080,7 @@ export default class bitmex extends Exchange {
         let direction = undefined;
         if (Precise.stringLt (amountString, '0')) {
             direction = 'out';
-            amount = Math.abs (amount);
+            amount = this.convertToRealAmount (code, Precise.stringAbs (amountString));
         } else {
             direction = 'in';
         }
