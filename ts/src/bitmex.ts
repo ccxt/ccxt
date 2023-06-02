@@ -521,19 +521,30 @@ export default class bitmex extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'symbol');
-            const typ = this.safeString (market, 'typ'); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
             const baseId = this.safeString (market, 'underlying');
             const quoteId = this.safeString (market, 'quoteCurrency');
-            const settleId = this.safeString (market, 'settlCurrency', '');
+            const settleId = this.safeString (market, 'settlCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
             // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
             // so let's take the settlCurrency first and then adjust if needed
+            const typ = this.safeString (market, 'typ'); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
             let type = undefined;
-            let spot = false;
-            let future = false;
+            if (typ === 'IFXXXP') {
+                type = 'spot';
+            } else if (typ === 'FFWCSX' || typ === 'FFWCSF') {
+                type = 'swap';
+            } else if (typ === 'FFCCSX') {
+                type = 'future';
+            } else if (id.indexOf ('B_') >= 0) {
+                type = 'prediction';
+            } else {
+                type = 'index';
+            }
             let swap = false;
+            let future = false;
+            let spot = false;
             let prediction = false;
             let index = false;
             let symbol = undefined;
@@ -543,27 +554,22 @@ export default class bitmex extends Exchange {
             const active = status !== 'Unlisted';
             let contract = false;
             // types defined here: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
-            if (typ === 'IFXXXP') {
-                type = 'spot';
+            if (type === 'spot') {
                 spot = true;
                 symbol = base + '/' + quote;
-            } else if (typ === 'FFWCSX' || typ === 'FFWCSF') {
-                type = 'swap';
+            } else if (type === 'swap') {
                 swap = true;
                 symbol = base + '/' + quote + ':' + settle;
                 contract = true;
-            } else if (typ === 'FFCCSX') {
+            } else if (type === 'future') {
                 future = true;
-                type = 'future';
                 symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry);
                 contract = true;
-            } else if (id.indexOf ('B_') >= 0) {
+            } else if (type === 'prediction') {
                 prediction = true;
-                type = 'prediction';
                 symbol = id;
             } else {
                 index = true;
-                type = 'index';
                 symbol = id;
             }
             const isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
