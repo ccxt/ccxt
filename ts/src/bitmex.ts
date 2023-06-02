@@ -2756,61 +2756,61 @@ export default class bitmex extends Exchange {
          * @param {object} params extra parameters specific to the bitmex api endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        if (this.safeValue (this.options, 'oldPrecision', false)) {
+        if (!this.safeValue (this.options, 'oldPrecision', false)) {
             [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
             this.checkAddress (address);
             await this.loadMarkets ();
-            // let currency = this.currency (code);
-            if (code !== 'BTC') {
-                throw new ExchangeError (this.id + ' supoprts BTC withdrawals only, for full bitmex functionalities, do not use old precisions');
-            }
             const currency = this.currency (code);
+            const precision = this.safeString (currency, 'precision');
+            const amountString = this.numberToString (amount);
+            const amountFinal = parseFloat (Precise.stringDiv (amountString, precision));
+            const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+            const networkId = this.networkCodeToId (networkCode);
+            const currencyId = currency['info']['currency']; // this is specific currency-slug, like XBt, which differs from currency['id'] XBT
             const request = {
-                'currency': 'XBt', // temporarily
-                'amount': amount,
+                'currency': currencyId,
+                'amount': amountFinal,
                 'address': address,
+                'network': networkId,
                 // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
                 // 'fee': 0.001, // bitcoin network fee
             };
-            const response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
+            const response = await this.privatePostUserRequestWithdrawal (this.extend (request, paramsOmited));
+            //
+            //     {
+            //         "transactID": "3aece414-bb29-76c8-6c6d-16a477a51a1e",
+            //         "account": "1403035",
+            //         "currency": "USDt",
+            //         "network": "tron",
+            //         "transactType": "Withdrawal",
+            //         "amount": "-11000000",
+            //         "fee": "1000000",
+            //         "transactStatus": "Pending",
+            //         "address": "TRf5JxcABQsF2Nm2zu21X0HiDtnisxPo4x",
+            //         "tx": "",
+            //         "text": "",
+            //         "transactTime": "2022-12-16T07:37:06.500Z",
+            //         "timestamp": "2022-12-16T07:37:06.500Z",
+            //     }
+            //
             return this.parseTransaction (response, currency);
         }
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
+        // let currency = this.currency (code);
+        if (code !== 'BTC') {
+            throw new ExchangeError (this.id + ' supoprts BTC withdrawals only, for full bitmex functionalities, do not use old precisions');
+        }
         const currency = this.currency (code);
-        const precision = this.safeString (currency, 'precision');
-        const amountString = this.numberToString (amount);
-        const amountFinal = parseFloat (Precise.stringDiv (amountString, precision));
-        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
-        const networkId = this.networkCodeToId (networkCode);
-        const currencyId = currency['info']['currency']; // this is specific currency-slug, like XBt, which differs from currency['id'] XBT
         const request = {
-            'currency': currencyId,
-            'amount': amountFinal,
+            'currency': 'XBt', // temporarily
+            'amount': amount,
             'address': address,
-            'network': networkId,
             // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
             // 'fee': 0.001, // bitcoin network fee
         };
-        const response = await this.privatePostUserRequestWithdrawal (this.extend (request, paramsOmited));
-        //
-        //     {
-        //         "transactID": "3aece414-bb29-76c8-6c6d-16a477a51a1e",
-        //         "account": "1403035",
-        //         "currency": "USDt",
-        //         "network": "tron",
-        //         "transactType": "Withdrawal",
-        //         "amount": "-11000000",
-        //         "fee": "1000000",
-        //         "transactStatus": "Pending",
-        //         "address": "TRf5JxcABQsF2Nm2zu21X0HiDtnisxPo4x",
-        //         "tx": "",
-        //         "text": "",
-        //         "transactTime": "2022-12-16T07:37:06.500Z",
-        //         "timestamp": "2022-12-16T07:37:06.500Z",
-        //     }
-        //
+        const response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
         return this.parseTransaction (response, currency);
     }
 
@@ -2826,6 +2826,117 @@ export default class bitmex extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetInstrumentActiveAndIndices (params);
         // response is same as from "fetchMarkets"
+        //
+        //    [
+        //        {
+        //            "symbol": "LTCUSDT",
+        //            "rootSymbol": "LTC",
+        //            "state": "Open",
+        //            "typ": "FFWCSX",
+        //            "listing": "2021-11-10T04:00:00.000Z",
+        //            "front": "2021-11-10T04:00:00.000Z",
+        //            "expiry": null,
+        //            "settle": null,
+        //            "listedSettle": null,
+        //            "relistInterval": null,
+        //            "inverseLeg": "",
+        //            "sellLeg": "",
+        //            "buyLeg": "",
+        //            "optionStrikePcnt": null,
+        //            "optionStrikeRound": null,
+        //            "optionStrikePrice": null,
+        //            "optionMultiplier": null,
+        //            "positionCurrency": "LTC",
+        //            "underlying": "LTC",
+        //            "quoteCurrency": "USDT",
+        //            "underlyingSymbol": "LTCT=",
+        //            "reference": "BMEX",
+        //            "referenceSymbol": ".BLTCT",
+        //            "calcInterval": null,
+        //            "publishInterval": null,
+        //            "publishTime": null,
+        //            "maxOrderQty": 1000000000,
+        //            "maxPrice": 1000000,
+        //            "lotSize": 1000,
+        //            "tickSize": 0.01,
+        //            "multiplier": 100,
+        //            "settlCurrency": "USDt",
+        //            "underlyingToPositionMultiplier": 10000,
+        //            "underlyingToSettleMultiplier": null,
+        //            "quoteToSettleMultiplier": 1000000,
+        //            "isQuanto": false,
+        //            "isInverse": false,
+        //            "initMargin": 0.03,
+        //            "maintMargin": 0.015,
+        //            "riskLimit": 1000000000000,
+        //            "riskStep": 1000000000000,
+        //            "limit": null,
+        //            "capped": false,
+        //            "taxed": true,
+        //            "deleverage": true,
+        //            "makerFee": -0.0001,
+        //            "takerFee": 0.0005,
+        //            "settlementFee": 0,
+        //            "insuranceFee": 0,
+        //            "fundingBaseSymbol": ".LTCBON8H",
+        //            "fundingQuoteSymbol": ".USDTBON8H",
+        //            "fundingPremiumSymbol": ".LTCUSDTPI8H",
+        //            "fundingTimestamp": "2022-01-14T20:00:00.000Z",
+        //            "fundingInterval": "2000-01-01T08:00:00.000Z",
+        //            "fundingRate": 0.0001,
+        //            "indicativeFundingRate": 0.0001,
+        //            "rebalanceTimestamp": null,
+        //            "rebalanceInterval": null,
+        //            "openingTimestamp": "2022-01-14T17:00:00.000Z",
+        //            "closingTimestamp": "2022-01-14T18:00:00.000Z",
+        //            "sessionInterval": "2000-01-01T01:00:00.000Z",
+        //            "prevClosePrice": 138.511,
+        //            "limitDownPrice": null,
+        //            "limitUpPrice": null,
+        //            "bankruptLimitDownPrice": null,
+        //            "bankruptLimitUpPrice": null,
+        //            "prevTotalVolume": 12699024000,
+        //            "totalVolume": 12702160000,
+        //            "volume": 3136000,
+        //            "volume24h": 114251000,
+        //            "prevTotalTurnover": 232418052349000,
+        //            "totalTurnover": 232463353260000,
+        //            "turnover": 45300911000,
+        //            "turnover24h": 1604331340000,
+        //            "homeNotional24h": 11425.1,
+        //            "foreignNotional24h": 1604331.3400000003,
+        //            "prevPrice24h": 135.48,
+        //            "vwap": 140.42165,
+        //            "highPrice": 146.42,
+        //            "lowPrice": 135.08,
+        //            "lastPrice": 144.36,
+        //            "lastPriceProtected": 144.36,
+        //            "lastTickDirection": "MinusTick",
+        //            "lastChangePcnt": 0.0655,
+        //            "bidPrice": 143.75,
+        //            "midPrice": 143.855,
+        //            "askPrice": 143.96,
+        //            "impactBidPrice": 143.75,
+        //            "impactMidPrice": 143.855,
+        //            "impactAskPrice": 143.96,
+        //            "hasLiquidity": true,
+        //            "openInterest": 38103000,
+        //            "openValue": 547963053300,
+        //            "fairMethod": "FundingRate",
+        //            "fairBasisRate": 0.1095,
+        //            "fairBasis": 0.004,
+        //            "fairPrice": 143.811,
+        //            "markMethod": "FairPrice",
+        //            "markPrice": 143.811,
+        //            "indicativeTaxRate": null,
+        //            "indicativeSettlePrice": 143.807,
+        //            "optionUnderlyingPrice": null,
+        //            "settledPriceAdjustmentRate": null,
+        //            "settledPrice": null,
+        //            "timestamp": "2022-01-14T17:49:55.000Z"
+        //        }
+        //    ]
+        //
         const filteredResponse = [];
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
@@ -2840,6 +2951,115 @@ export default class bitmex extends Exchange {
     }
 
     parseFundingRate (contract, market = undefined) {
+        //
+        //    {
+        //        "symbol": "LTCUSDT",
+        //        "rootSymbol": "LTC",
+        //        "state": "Open",
+        //        "typ": "FFWCSX",
+        //        "listing": "2021-11-10T04:00:00.000Z",
+        //        "front": "2021-11-10T04:00:00.000Z",
+        //        "expiry": null,
+        //        "settle": null,
+        //        "listedSettle": null,
+        //        "relistInterval": null,
+        //        "inverseLeg": "",
+        //        "sellLeg": "",
+        //        "buyLeg": "",
+        //        "optionStrikePcnt": null,
+        //        "optionStrikeRound": null,
+        //        "optionStrikePrice": null,
+        //        "optionMultiplier": null,
+        //        "positionCurrency": "LTC",
+        //        "underlying": "LTC",
+        //        "quoteCurrency": "USDT",
+        //        "underlyingSymbol": "LTCT=",
+        //        "reference": "BMEX",
+        //        "referenceSymbol": ".BLTCT",
+        //        "calcInterval": null,
+        //        "publishInterval": null,
+        //        "publishTime": null,
+        //        "maxOrderQty": 1000000000,
+        //        "maxPrice": 1000000,
+        //        "lotSize": 1000,
+        //        "tickSize": 0.01,
+        //        "multiplier": 100,
+        //        "settlCurrency": "USDt",
+        //        "underlyingToPositionMultiplier": 10000,
+        //        "underlyingToSettleMultiplier": null,
+        //        "quoteToSettleMultiplier": 1000000,
+        //        "isQuanto": false,
+        //        "isInverse": false,
+        //        "initMargin": 0.03,
+        //        "maintMargin": 0.015,
+        //        "riskLimit": 1000000000000,
+        //        "riskStep": 1000000000000,
+        //        "limit": null,
+        //        "capped": false,
+        //        "taxed": true,
+        //        "deleverage": true,
+        //        "makerFee": -0.0001,
+        //        "takerFee": 0.0005,
+        //        "settlementFee": 0,
+        //        "insuranceFee": 0,
+        //        "fundingBaseSymbol": ".LTCBON8H",
+        //        "fundingQuoteSymbol": ".USDTBON8H",
+        //        "fundingPremiumSymbol": ".LTCUSDTPI8H",
+        //        "fundingTimestamp": "2022-01-14T20:00:00.000Z",
+        //        "fundingInterval": "2000-01-01T08:00:00.000Z",
+        //        "fundingRate": 0.0001,
+        //        "indicativeFundingRate": 0.0001,
+        //        "rebalanceTimestamp": null,
+        //        "rebalanceInterval": null,
+        //        "openingTimestamp": "2022-01-14T17:00:00.000Z",
+        //        "closingTimestamp": "2022-01-14T18:00:00.000Z",
+        //        "sessionInterval": "2000-01-01T01:00:00.000Z",
+        //        "prevClosePrice": 138.511,
+        //        "limitDownPrice": null,
+        //        "limitUpPrice": null,
+        //        "bankruptLimitDownPrice": null,
+        //        "bankruptLimitUpPrice": null,
+        //        "prevTotalVolume": 12699024000,
+        //        "totalVolume": 12702160000,
+        //        "volume": 3136000,
+        //        "volume24h": 114251000,
+        //        "prevTotalTurnover": 232418052349000,
+        //        "totalTurnover": 232463353260000,
+        //        "turnover": 45300911000,
+        //        "turnover24h": 1604331340000,
+        //        "homeNotional24h": 11425.1,
+        //        "foreignNotional24h": 1604331.3400000003,
+        //        "prevPrice24h": 135.48,
+        //        "vwap": 140.42165,
+        //        "highPrice": 146.42,
+        //        "lowPrice": 135.08,
+        //        "lastPrice": 144.36,
+        //        "lastPriceProtected": 144.36,
+        //        "lastTickDirection": "MinusTick",
+        //        "lastChangePcnt": 0.0655,
+        //        "bidPrice": 143.75,
+        //        "midPrice": 143.855,
+        //        "askPrice": 143.96,
+        //        "impactBidPrice": 143.75,
+        //        "impactMidPrice": 143.855,
+        //        "impactAskPrice": 143.96,
+        //        "hasLiquidity": true,
+        //        "openInterest": 38103000,
+        //        "openValue": 547963053300,
+        //        "fairMethod": "FundingRate",
+        //        "fairBasisRate": 0.1095,
+        //        "fairBasis": 0.004,
+        //        "fairPrice": 143.811,
+        //        "markMethod": "FairPrice",
+        //        "markPrice": 143.811,
+        //        "indicativeTaxRate": null,
+        //        "indicativeSettlePrice": 143.807,
+        //        "optionUnderlyingPrice": null,
+        //        "settledPriceAdjustmentRate": null,
+        //        "settledPrice": null,
+        //        "timestamp": "2022-01-14T17:49:55.000Z"
+        //    }
+        //
         const datetime = this.safeString (contract, 'timestamp');
         const marketId = this.safeString (contract, 'symbol');
         const fundingDatetime = this.safeString (contract, 'fundingTimestamp');
