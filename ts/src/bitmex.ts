@@ -271,10 +271,10 @@ export default class bitmex extends Exchange {
          */
         const response = await this.publicGetInstrumentActiveAndIndices (params);
         //
-        //     [
-        //      {
-        //        "symbol": "XBTUSDT",
-        //        "rootSymbol": "XBT",
+        //  [
+        //    {
+        //        "symbol": "LTCUSDT",
+        //        "rootSymbol": "LTC",
         //        "state": "Open",
         //        "typ": "FFWCSX",
         //        "listing": "2021-11-10T04:00:00.000Z",
@@ -290,96 +290,96 @@ export default class bitmex extends Exchange {
         //        "optionStrikeRound": null,
         //        "optionStrikePrice": null,
         //        "optionMultiplier": null,
-        //        "positionCurrency": "XBT", // can be empty for spot markets
-        //        "underlying": "XBT",
+        //        "positionCurrency": "LTC", // can be empty for spot markets
+        //        "underlying": "LTC",
         //        "quoteCurrency": "USDT",
-        //        "underlyingSymbol": "XBTT=", // can be empty for spot markets
+        //        "underlyingSymbol": "LTCT=", // can be empty for spot markets
         //        "reference": "BMEX",
-        //        "referenceSymbol": ".BXBTT", // can be empty for spot markets
+        //        "referenceSymbol": ".BLTCT", // can be empty for spot markets
         //        "calcInterval": null,
         //        "publishInterval": null,
         //        "publishTime": null,
-        //        "maxOrderQty": "1000000000",
-        //        "maxPrice": "1000000",
-        //        "lotSize": "1000",
-        //        "tickSize": "0.5",
-        //        "multiplier": "1",
+        //        "maxOrderQty": 1000000000,
+        //        "maxPrice": 1000000,
+        //        "lotSize": 1000,
+        //        "tickSize": 0.01,
+        //        "multiplier": 100,
         //        "settlCurrency": "USDt", // can be empty for spot markets
-        //        "underlyingToPositionMultiplier": "1000000",
+        //        "underlyingToPositionMultiplier": 10000,
         //        "underlyingToSettleMultiplier": null,
-        //        "quoteToSettleMultiplier": "1000000",
+        //        "quoteToSettleMultiplier": 1000000,
         //        "isQuanto": false,
         //        "isInverse": false,
-        //        "initMargin": "0.01",
-        //        "maintMargin": "0.005",
-        //        "riskLimit": "1000000000000", // can be null for spot markets
-        //        "riskStep": "1000000000000", // can be null for spot markets
+        //        "initMargin": 0.03,
+        //        "maintMargin": 0.015,
+        //        "riskLimit": 1000000000000, // can be null for spot markets
+        //        "riskStep": 1000000000000, // can be null for spot markets
         //        "limit": null,
         //        "capped": false,
         //        "taxed": true,
         //        "deleverage": true,
-        //        "makerFee": "-0.0001",
-        //        "takerFee": "0.00075",
-        //        "settlementFee": "0",
-        //        "insuranceFee": "0",
-        //        "fundingBaseSymbol": ".XBTBON8H", // can be empty for spot markets
+        //        "makerFee": -0.0001,
+        //        "takerFee": 0.0005,
+        //        "settlementFee": 0,
+        //        "insuranceFee": 0,
+        //        "fundingBaseSymbol": ".LTCBON8H", // can be empty for spot markets
         //        "fundingQuoteSymbol": ".USDTBON8H", // can be empty for spot markets
-        //        "fundingPremiumSymbol": ".XBTUSDTPI8H", // can be empty for spot markets
-        //        "fundingTimestamp": "2022-10-16T20:00:00.000Z",
+        //        "fundingPremiumSymbol": ".LTCUSDTPI8H", // can be empty for spot markets
+        //        "fundingTimestamp": "2022-01-14T20:00:00.000Z",
         //        "fundingInterval": "2000-01-01T08:00:00.000Z",
-        //        "fundingRate": "-0.000312",
-        //        "indicativeFundingRate": "0.000042",
+        //        "fundingRate": 0.0001,
+        //        "indicativeFundingRate": 0.0001,
         //        "rebalanceTimestamp": null,
         //        "rebalanceInterval": null,
-        //        "openingTimestamp": "2022-10-16T14:00:00.000Z",
-        //        "closingTimestamp": "2022-10-16T15:00:00.000Z",
+        //        "openingTimestamp": "2022-01-14T17:00:00.000Z",
+        //        "closingTimestamp": "2022-01-14T18:00:00.000Z",
         //        "sessionInterval": "2000-01-01T01:00:00.000Z",
-        //        "prevClosePrice": "19144.92",
+        //        "prevClosePrice": 138.511,
         //        "limitDownPrice": null,
         //        "limitUpPrice": null,
         //        "bankruptLimitDownPrice": null,
         //        "bankruptLimitUpPrice": null,
-        //        "prevTotalVolume": "377875230000",
-        //        "totalVolume": "377885561000",
-        //        "volume": "10331000",
-        //        "volume24h": "590798000",
-        //        "prevTotalTurnover": "12194424441136000",
-        //        "totalTurnover": "12194621889979000",
-        //        "turnover": "197448843000",
-        //        "turnover24h": "11284280291500",
-        //        "homeNotional24h": "590.7980000000003",
-        //        "foreignNotional24h": "11284280.2915",
-        //        "prevPrice24h": "19144.5",
-        //        "vwap": "19100.066",
-        //        "highPrice": "19179.5",
-        //        "lowPrice": "18977",
-        //        "lastPrice": "19130",
-        //        "lastPriceProtected": "19130",
-        //        "lastTickDirection": "PlusTick",
-        //        "lastChangePcnt": "-0.0008",
-        //        "bidPrice": "19133",
-        //        "midPrice": "19133.25",
-        //        "askPrice": "19133.5",
-        //        "impactBidPrice": "19133",
-        //        "impactMidPrice": "19133.25",
-        //        "impactAskPrice": "19133.501",
+        //        "prevTotalVolume": 12699024000,
+        //        "totalVolume": 12702160000,
+        //        "volume": 3136000,
+        //        "volume24h": 114251000,
+        //        "prevTotalTurnover": 232418052349000,
+        //        "totalTurnover": 232463353260000,
+        //        "turnover": 45300911000,
+        //        "turnover24h": 1604331340000,
+        //        "homeNotional24h": 11425.1,
+        //        "foreignNotional24h": 1604331.3400000003,
+        //        "prevPrice24h": 135.48,
+        //        "vwap": 140.42165,
+        //        "highPrice": 146.42,
+        //        "lowPrice": 135.08,
+        //        "lastPrice": 144.36,
+        //        "lastPriceProtected": 144.36,
+        //        "lastTickDirection": "MinusTick",
+        //        "lastChangePcnt": 0.0655,
+        //        "bidPrice": 143.75,
+        //        "midPrice": 143.855,
+        //        "askPrice": 143.96,
+        //        "impactBidPrice": 143.75,
+        //        "impactMidPrice": 143.855,
+        //        "impactAskPrice": 143.96,
         //        "hasLiquidity": true,
-        //        "openInterest": "426185000",
-        //        "openValue": "8153958941400",
+        //        "openInterest": 38103000,
+        //        "openValue": 547963053300,
         //        "fairMethod": "FundingRate",
-        //        "fairBasisRate": "-0.34164",
-        //        "fairBasis": "-3.83",
-        //        "fairPrice": "19132.44",
+        //        "fairBasisRate": 0.1095,
+        //        "fairBasis": 0.004,
+        //        "fairPrice": 143.811,
         //        "markMethod": "FairPrice",
-        //        "markPrice": "19132.44",
+        //        "markPrice": 143.811,
         //        "indicativeTaxRate": null,
-        //        "indicativeSettlePrice": "19136.27",
+        //        "indicativeSettlePrice": 143.807,
         //        "optionUnderlyingPrice": null,
         //        "settledPriceAdjustmentRate": null,
         //        "settledPrice": null,
-        //        "timestamp": "2022-10-16T14:52:20.000Z"
-        //      },
-        //     ]
+        //        "timestamp": "2022-01-14T17:49:55.000Z"
+        //    }
+        //  ]
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -809,57 +809,57 @@ export default class bitmex extends Exchange {
         }
         const response = await this.privateGetExecutionTradeHistory (request);
         //
-        //    [
-        //     {
-        //         "execID": "57417348-e63b-22ce-d2ad-d2d413ce63ee",
-        //         "orderID": "552ed46d-5877-4ff9-a8b5-1e49f8487437",
-        //         "clOrdID": "",
-        //         "clOrdLinkID": "",
-        //         "account": "1403163",
-        //         "symbol": "TRX_USDT",
-        //         "side": "Sell",
-        //         "lastQty": "100000000",
-        //         "lastPx": "0.0623",
-        //         "underlyingLastPx": null,
-        //         "lastMkt": "XBME",
-        //         "lastLiquidityInd": "RemovedLiquidity",
-        //         "simpleOrderQty": null,
-        //         "orderQty": "100000000",
-        //         "price": "0.0622",
-        //         "displayQty": null,
-        //         "stopPx": null,
-        //         "pegOffsetValue": null,
-        //         "pegPriceType": "",
-        //         "currency": "USDT",
-        //         "settlCurrency": "",
-        //         "execType": "Trade",
-        //         "ordType": "Limit",
-        //         "timeInForce": "GoodTillCancel",
-        //         "execInst": "",
-        //         "contingencyType": "",
-        //         "exDestination": "XBME",
-        //         "ordStatus": "Filled",
-        //         "triggered": "",
-        //         "workingIndicator": false,
-        //         "ordRejReason": "",
-        //         "simpleLeavesQty": null,
-        //         "leavesQty": "0",
-        //         "simpleCumQty": null,
-        //         "cumQty": "100000000",
-        //         "avgPx": "0.0623",
-        //         "commission": "0.001",
-        //         "tradePublishIndicator": "PublishTrade",
-        //         "multiLegReportingType": "SingleSecurity",
-        //         "text": "Submission from www.bitmex.com",
-        //         "trdMatchID": "022187a4-d901-961f-b4e3-69ccc161f2a3",
-        //         "execCost": "-6230000",
-        //         "execComm": "6230",
-        //         "homeNotional": "-100",
-        //         "foreignNotional": "6.23",
-        //         "transactTime": "2022-10-17T13:13:10.682Z",
-        //         "timestamp": "2022-10-17T13:13:10.682Z"
-        //     },
-        //    ]
+        //     [
+        //         {
+        //             "execID": "string",
+        //             "orderID": "string",
+        //             "clOrdID": "string",
+        //             "clOrdLinkID": "string",
+        //             "account": 0,
+        //             "symbol": "string",
+        //             "side": "string",
+        //             "lastQty": 0,
+        //             "lastPx": 0,
+        //             "underlyingLastPx": 0,
+        //             "lastMkt": "string",
+        //             "lastLiquidityInd": "string",
+        //             "simpleOrderQty": 0,
+        //             "orderQty": 0,
+        //             "price": 0,
+        //             "displayQty": 0,
+        //             "stopPx": 0,
+        //             "pegOffsetValue": 0,
+        //             "pegPriceType": "string",
+        //             "currency": "string",
+        //             "settlCurrency": "string",
+        //             "execType": "string",
+        //             "ordType": "string",
+        //             "timeInForce": "string",
+        //             "execInst": "string",
+        //             "contingencyType": "string",
+        //             "exDestination": "string",
+        //             "ordStatus": "string",
+        //             "triggered": "string",
+        //             "workingIndicator": true,
+        //             "ordRejReason": "string",
+        //             "simpleLeavesQty": 0,
+        //             "leavesQty": 0,
+        //             "simpleCumQty": 0,
+        //             "cumQty": 0,
+        //             "avgPx": 0,
+        //             "commission": 0,
+        //             "tradePublishIndicator": "string",
+        //             "multiLegReportingType": "string",
+        //             "text": "string",
+        //             "trdMatchID": "string",
+        //             "execCost": 0,
+        //             "execComm": 0,
+        //             "homeNotional": 0,
+        //             "foreignNotional": 0,
+        //             "transactTime": "2019-03-05T12:47:02.762Z",
+        //             "timestamp": "2019-03-05T12:47:02.762Z"
+        //         }
+        //     ]
         //
         return this.parseTrades (response, market, since, limit);
     }
@@ -1071,16 +1071,14 @@ export default class bitmex extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
-        // withdraw
-        //
         //    {
         //        'transactID': 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
-        //        'account': '123456',
+        //        'account': 123456,
         //        'currency': 'XBt',
         //        'network':'', // "tron" for USDt, etc...
         //        'transactType': 'Withdrawal',
-        //        'amount': '-100100000',
-        //        'fee': '100000',
+        //        'amount': -100100000,
+        //        'fee': 100000,
         //        'transactStatus': 'Completed',
         //        'address': '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
         //        'tx': '3BMEXabcdefghijklmnopqrstuvwxyz123',
@@ -1174,7 +1172,7 @@ export default class bitmex extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetInstrumentActiveAndIndices (params);
-        // same response as in fetchMarkets
+        // same response as under "fetchMarkets"
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const ticker = this.parseTicker (response[i]);
@@ -1436,53 +1434,53 @@ export default class bitmex extends Exchange {
         // fetchMyTrades (private)
         //
         //     {
-        //         "execID": "57417348-e63b-22ce-d2ad-d2d413ce63ee",
-        //         "orderID": "552ed46d-5877-4ff9-a8b5-1e49f8487437",
-        //         "clOrdID": "",
-        //         "clOrdLinkID": "",
-        //         "account": "1403163",
-        //         "symbol": "TRX_USDT",
-        //         "side": "Sell",
-        //         "lastQty": "100000000",
-        //         "lastPx": "0.0623",
-        //         "underlyingLastPx": null,
-        //         "lastMkt": "XBME",
-        //         "lastLiquidityInd": "RemovedLiquidity",
-        //         "simpleOrderQty": null,
-        //         "orderQty": "100000000",
-        //         "price": "0.0622",
-        //         "displayQty": null,
-        //         "stopPx": null,
-        //         "pegOffsetValue": null,
-        //         "pegPriceType": "",
-        //         "currency": "USDT",
-        //         "settlCurrency": "", //i.e. USDt for contract
-        //         "execType": "Trade",
-        //         "ordType": "Limit",
-        //         "timeInForce": "GoodTillCancel",
-        //         "execInst": "",
-        //         "contingencyType": "",
-        //         "exDestination": "XBME",
-        //         "ordStatus": "Filled",
-        //         "triggered": "",
-        //         "workingIndicator": false,
-        //         "ordRejReason": "",
-        //         "simpleLeavesQty": null,
-        //         "leavesQty": "0",
-        //         "simpleCumQty": null,
-        //         "cumQty": "100000000",
-        //         "avgPx": "0.0623",
-        //         "commission": "0.001",
-        //         "tradePublishIndicator": "PublishTrade",
-        //         "multiLegReportingType": "SingleSecurity",
-        //         "text": "Submission from www.bitmex.com",
-        //         "trdMatchID": "022187a4-d901-961f-b4e3-69ccc161f2a3",
-        //         "execCost": "-6230000",
-        //         "execComm": "6230",
-        //         "homeNotional": "-100",
-        //         "foreignNotional": "6.23",
-        //         "transactTime": "2022-10-17T13:13:10.682Z",
-        //         "timestamp": "2022-10-17T13:13:10.682Z"
+        //         "execID": "string",
+        //         "orderID": "string",
+        //         "clOrdID": "string",
+        //         "clOrdLinkID": "string",
+        //         "account": 0,
+        //         "symbol": "string",
+        //         "side": "string",
+        //         "lastQty": 0,
+        //         "lastPx": 0,
+        //         "underlyingLastPx": 0,
+        //         "lastMkt": "string",
+        //         "lastLiquidityInd": "string",
+        //         "simpleOrderQty": 0,
+        //         "orderQty": 0,
+        //         "price": 0,
+        //         "displayQty": 0,
+        //         "stopPx": 0,
+        //         "pegOffsetValue": 0,
+        //         "pegPriceType": "string",
+        //         "currency": "string",
+        //         "settlCurrency": "string",
+        //         "execType": "string",
+        //         "ordType": "string",
+        //         "timeInForce": "string",
+        //         "execInst": "string",
+        //         "contingencyType": "string",
+        //         "exDestination": "string",
+        //         "ordStatus": "string",
+        //         "triggered": "string",
+        //         "workingIndicator": true,
+        //         "ordRejReason": "string",
+        //         "simpleLeavesQty": 0,
+        //         "leavesQty": 0,
+        //         "simpleCumQty": 0,
+        //         "cumQty": 0,
+        //         "avgPx": 0,
+        //         "commission": 0,
+        //         "tradePublishIndicator": "string",
+        //         "multiLegReportingType": "string",
+        //         "text": "string",
+        //         "trdMatchID": "string",
+        //         "execCost": 0,
+        //         "execComm": 0,
+        //         "homeNotional": 0,
+        //         "foreignNotional": 0,
+        //         "transactTime": "2019-03-05T12:47:02.762Z",
+        //         "timestamp": "2019-03-05T12:47:02.762Z"
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
@@ -2208,14 +2206,14 @@ export default class bitmex extends Exchange {
         //
         //     {
         //         "transactID": "3aece414-bb29-76c8-6c6d-16a477a51a1e",
-        //         "account": "1403035",
+        //         "account": 1403035,
         //         "currency": "USDt",
         //         "network": "tron",
         //         "transactType": "Withdrawal",
-        //         "amount": "-11000000",
-        //         "fee": "1000000",
+        //         "amount": -11000000,
+        //         "fee": 1000000,
         //         "transactStatus": "Pending",
-        //         "address": "TRf5JxcABQsF2Nm2zu21X0HiDtnisxPo4x",
+        //         "address": "TAf5JxcAQQsC2Nm2zu21XE2iDtnisxPo1x",
         //         "tx": "",
         //         "text": "",
         //         "transactTime": "2022-12-16T07:37:06.500Z",
@@ -2236,7 +2234,7 @@ export default class bitmex extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.publicGetInstrumentActiveAndIndices (params);
-        // same response as in fetchMarkets
+        // same response as under "fetchMarkets"
         const filteredResponse = [];
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
