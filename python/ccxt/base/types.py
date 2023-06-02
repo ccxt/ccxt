@@ -46,16 +46,16 @@ IndexType = Union[str, int]
 
 
 class Trade(TypedDict):
-    amount: float
+    amount: None
     datetime: str
     id: str
     info: None
     order: str
-    price: float
+    price: None
     timestamp: int
     type: str
     side: str
     symbol: str
     takerOrMaker: str
-    cost: float
+    cost: None
     fee: TypedDict
