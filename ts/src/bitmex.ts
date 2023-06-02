@@ -2243,13 +2243,7 @@ export default class bitmex extends Exchange {
             request['orderID'] = id;
         }
         if (amount !== undefined) {
-            let orderQty = undefined;
-            if (this.safeValue (this.options, 'oldPrecision', false)) {
-                orderQty = amount;
-            } else {
-                orderQty = this.convertIntoQuantity (market, amount);
-            }
-            request['orderQty'] = orderQty;
+            request['orderQty'] = this.convertIntoQuantity (market, amount);
         }
         if (price !== undefined) {
             request['price'] = price;
@@ -2258,36 +2252,6 @@ export default class bitmex extends Exchange {
         request['text'] = brokerId;
         const response = await this.privatePutOrder (this.extend (request, params));
         return this.parseOrder (response);
-    }
-
-    convertIntoQuantity (market, amount) {
-        let quantity = undefined;
-        if (market['spot']) {
-            const currency = this.currency (market['base']);
-            const precision = this.safeString (currency, 'precision');
-            quantity = Precise.stringDiv (this.numberToString (amount), precision);
-        } else if (market['linear']) {
-            const lotSize = this.safeString (market['info'], 'lotSize');
-            quantity = Precise.stringMul (this.numberToString (amount), lotSize);
-        } else {
-            quantity = amount;
-        }
-        return this.amountToPrecision (market['symbol'], quantity);
-    }
-
-    parseFromQuantity (market, quantity) {
-        let amount = undefined;
-        if (market['spot']) {
-            const currency = this.currency (market['base']);
-            const precision = this.safeString (currency, 'precision');
-            amount = Precise.stringMul (quantity, precision);
-        } else if (market['linear']) {
-            const lotSize = this.safeString (market['info'], 'lotSize');
-            amount = Precise.stringDiv (quantity, lotSize);
-        } else {
-            amount = quantity;
-        }
-        return this.parseNumber (amount);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
@@ -2724,6 +2688,39 @@ export default class bitmex extends Exchange {
         }
         resultValue = (resultValue !== undefined) ? parseFloat (resultValue) : undefined;
         return resultValue;
+    }
+
+    convertIntoQuantity (market, amount) {
+        if (this.safeValue (this.options, 'oldPrecision', false)) {
+            return amount;
+        }
+        let quantity = undefined;
+        if (market['spot']) {
+            const currency = this.currency (market['base']);
+            const precision = this.safeString (currency, 'precision');
+            quantity = Precise.stringDiv (this.numberToString (amount), precision);
+        } else if (market['linear']) {
+            const lotSize = this.safeString (market['info'], 'lotSize');
+            quantity = Precise.stringMul (this.numberToString (amount), lotSize);
+        } else {
+            quantity = amount;
+        }
+        return this.amountToPrecision (market['symbol'], quantity);
+    }
+
+    parseFromQuantity (market, quantity) {
+        let amount = undefined;
+        if (market['spot']) {
+            const currency = this.currency (market['base']);
+            const precision = this.safeString (currency, 'precision');
+            amount = Precise.stringMul (quantity, precision);
+        } else if (market['linear']) {
+            const lotSize = this.safeString (market['info'], 'lotSize');
+            amount = Precise.stringDiv (quantity, lotSize);
+        } else {
+            amount = quantity;
+        }
+        return this.parseNumber (amount);
     }
 
     positionValueConversion (value, market) {
