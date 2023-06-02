@@ -4598,12 +4598,15 @@ export default class gate extends Exchange {
         }
         let request = {};
         [ request, params ] = this.prepareRequest (market, market['type'], params);
-        const method = this.getSupportedMapping (market['type'], {
-            'swap': 'privateFuturesGetSettlePositionsContract',
-            'future': 'privateDeliveryGetSettlePositionsContract',
-            'option': 'privateOptionsGetPositionsContract',
-        });
-        const response = await this[method] (this.extend (request, params));
+        const extendedRequest = this.extend (request, params);
+        let response = undefined;
+        if (market['type'] === 'swap') {
+            response = await this.privateFuturesGetSettlePositionsContract (extendedRequest);
+        } else if (market['type'] === 'future') {
+            response = await this.privateDeliveryGetSettlePositionsContract (extendedRequest);
+        } else if (market['type'] === 'option') {
+            response = await this.privateOptionsGetPositionsContract (extendedRequest);
+        }
         //
         // swap and future
         //
