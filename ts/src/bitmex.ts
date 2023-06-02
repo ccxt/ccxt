@@ -543,7 +543,6 @@ export default class bitmex extends Exchange {
             let swap = false;
             let future = false;
             let spot = false;
-            let prediction = false;
             let index = false;
             let symbol = undefined;
             const expiryDatetime = this.safeString (market, 'expiry');
@@ -564,7 +563,6 @@ export default class bitmex extends Exchange {
                 symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry);
                 contract = true;
             } else if (type === 'prediction') {
-                prediction = true;
                 symbol = id;
             } else {
                 index = true;
@@ -613,7 +611,6 @@ export default class bitmex extends Exchange {
                     'swap': swap,
                     'future': future,
                     'option': false,
-                    'prediction': prediction,
                     'index': index,
                     'active': active,
                     'contract': contract,
