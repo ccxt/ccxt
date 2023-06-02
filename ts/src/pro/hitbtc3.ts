@@ -121,10 +121,12 @@ export default class hitbtc3 extends hitbtc3Rest {
          * @returns
          */
         await this.loadMarkets ();
-        const url = this.urls['api']['ws'];
+        let url = this.urls['api']['ws'];
         let messageHash = name;
         if (isPrivate) {
             this.authenticate ();
+        } else {
+            url += '/public';
         }
         if (symbol !== undefined) {
             messageHash = messageHash + ':' + symbol;
@@ -349,7 +351,7 @@ export default class hitbtc3 extends hitbtc3Rest {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
-            const ticker = this.parseTicker (data[symbol], market);
+            const ticker = this.parseWsTicker (data[marketId], market);
             this.tickers[symbol] = ticker;
             const messageHash = channel + ':' + symbol;
             client.resolve (this.tickers[symbol], messageHash);
@@ -804,7 +806,7 @@ export default class hitbtc3 extends hitbtc3Rest {
                 }
                 previousOrder['cost'] = totalCost;
                 if (previousOrder['filled'] !== undefined) {
-                    previousOrder['filled'] = Precise.stringAdd (previousOrder['filled'], this.numberToString (trade['amount']));
+                    previousOrder['fillped'] = Precise.stringAdd (previousOrder['filled'], this.numberToString (trade['amount']));
                     if (previousOrder['amount'] !== undefined) {
                         previousOrder['remaining'] = Precise.stringSub (previousOrder['amount'], previousOrder['filled']);
                     }
@@ -1002,27 +1004,29 @@ export default class hitbtc3 extends hitbtc3Rest {
 
     handleMessage (client: Client, message) {
         let channel = this.safeString (message, 'ch');
-        const splitChannel = channel.split ('/');
-        channel = this.safeString (splitChannel, 0);
-        const methods = {
-            'candles': this.handleOHLCV,
-            'ticker': this.handleTicker,
-            'trades': this.handleTrades,
-            'updateOrderbook': this.handleOrderBook,
-            'spot_order': this.handleOrder,
-            'spot_orders': this.handleOrder,
-            'margin_order': this.handleOrder,
-            'margin_orders': this.handleOrder,
-            'futures_order': this.handleOrder,
-            'futures_orders': this.handleOrder,
-            'spot_balance': this.handleBalance,
-            'futures_balance': this.handleBalance,
-        };
-        const method = this.safeValue (methods, channel);
-        // if (method === undefined) {
-        // this.handleNotification (client, message);
-        // } else {
-        method.call (this, client, message);
-        // }
+        if (channel !== undefined) {
+            const splitChannel = channel.split ('/');
+            channel = this.safeString (splitChannel, 0);
+            const methods = {
+                'candles': this.handleOHLCV,
+                'ticker': this.handleTicker,
+                'trades': this.handleTrades,
+                'updateOrderbook': this.handleOrderBook,
+                'spot_order': this.handleOrder,
+                'spot_orders': this.handleOrder,
+                'margin_order': this.handleOrder,
+                'margin_orders': this.handleOrder,
+                'futures_order': this.handleOrder,
+                'futures_orders': this.handleOrder,
+                'spot_balance': this.handleBalance,
+                'futures_balance': this.handleBalance,
+            };
+            const method = this.safeValue (methods, channel);
+            // if (method === undefined) {
+            // this.handleNotification (client, message);
+            // } else {
+            method.call (this, client, message);
+            // }
+        }
     }
 }
