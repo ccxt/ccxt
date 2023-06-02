@@ -1679,7 +1679,7 @@ class Exchange(object):
         return array[first:second] if second else array[first:]
     
     def get_property(self, obj, property, defaultValue=None):
-        return getattr(obj,property) if hasattr(obj, property) else defaultValue
+        return getattr(obj, property) if hasattr(obj, property) else defaultValue
 
     def un_camel_case(self, str):
         return re.sub('(?!^)([A-Z]+)', r'_\1', str).lower()
