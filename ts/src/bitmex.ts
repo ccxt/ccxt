@@ -597,12 +597,12 @@ export default class bitmex extends Exchange {
                 precisionAmount = this.parseNumber (lotSize);
             }
             const positionId = this.safeString2 (market, 'positionCurrency', 'underlying');
-            const positionCode = this.safeCurrencyCode (positionId);
-            const positionIsQuote = (positionCode === quote);
+            const position = this.safeCurrencyCode (positionId);
+            const positionIsQuote = (position === quote);
             const maxOrderQty = this.safeNumber (market, 'maxOrderQty');
             const initMargin = this.safeString (market, 'initMargin', '1');
             const maxLeverage = this.parseNumber (Precise.stringDiv ('1', initMargin));
-            // temporarily filter out unlisted markets to avoid symbol conflicts
+            // temporarily filter out unlisted markets to avoid symbol conflicts // todo: remove this temp check
             if (active) {
                 result.push ({
                     'id': id,
