@@ -1060,21 +1060,8 @@ export default class bitmex extends Exchange {
         const type = this.parseLedgerEntryType (this.safeString (item, 'transactType'));
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let amount = this.safeNumber (item, 'amount');
-        if (amount !== undefined) {
-            amount = amount / 100000000;
-        }
-        if (this.newPrecision ()) {
-            if (currency === undefined) {
-                currency = this.currency (code);
-            }
-            const precision = this.safeString (currency, 'precision');
-            let amountString = this.safeString (item, 'amount');
-            if (amountString !== undefined) {
-                amountString = Precise.stringMul (amountString, precision);
-            }
-            amount = this.parseNumber (amountString);
-        }
+        const amountString = this.safeString (item, 'amount');
+        let amount = this.convertToRealAmount (code, amountString);
         let timestamp = this.parse8601 (this.safeString (item, 'transactTime'));
         if (timestamp === undefined) {
             // https://github.com/ccxt/ccxt/issues/6047
@@ -1082,37 +1069,14 @@ export default class bitmex extends Exchange {
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
-        let feeCost = this.safeNumber (item, 'fee', 0);
-        if (feeCost !== undefined) {
-            feeCost = feeCost / 100000000;
-        }
-        let fee = {
+        const feeCost = this.convertToRealAmount (code, this.safeString (item, 'fee', '0'));
+        const fee = {
             'cost': feeCost,
             'currency': code,
         };
-        let after = this.safeNumber (item, 'walletBalance');
-        if (after !== undefined) {
-            after = after / 100000000;
-        }
-        let before = this.sum (after, -amount);
-        if (this.newPrecision ()) {
-            const precision = this.safeString (currency, 'precision');
-            let feeCost = this.safeString (item, 'fee');
-            if (feeCost !== undefined) {
-                feeCost = Precise.stringMul (feeCost, precision);
-            }
-            fee = {
-                'cost': this.parseNumber (feeCost),
-                'currency': code,
-            };
-            let afterString = this.safeString (item, 'walletBalance');
-            if (afterString !== undefined) {
-                afterString = Precise.stringMul (afterString, precision);
-            }
-            after = this.parseNumber (afterString);
-            const amountString = this.safeString (item, 'amount');
-            before = Precise.stringSub (afterString, amountString);
-        }
+        const afterString = this.safeString (item, 'walletBalance');
+        const after = this.convertToRealAmount (code, afterString);
+        const before = Precise.stringSub (afterString, amountString);
         let direction = undefined;
         if (amount < 0) {
             direction = 'out';
@@ -2421,8 +2385,8 @@ export default class bitmex extends Exchange {
             const lotSize = this.safeString (market['info'], 'lotSize');
             contracts = this.parseNumber (Precise.stringDiv (currentQty, lotSize));
             const settleCurrencyCode = this.safeString (market, 'settle');
-            maintenanceMargin = this.parseNumber (this.convertToRealAmount (settleCurrencyCode, maintenanceMarginString));
-            unrealisedPnl = this.parseNumber (this.convertToRealAmount (settleCurrencyCode, unrealisedPnlString));
+            maintenanceMargin = this.convertToRealAmount (settleCurrencyCode, maintenanceMarginString);
+            unrealisedPnl = this.convertToRealAmount (settleCurrencyCode, unrealisedPnlString);
         }
         return this.safePosition ({
             'info': position,
@@ -2533,7 +2497,7 @@ export default class bitmex extends Exchange {
             return amountString;
         }
         const precision = this.safeString (currency, 'precision');
-        return Precise.stringMul (amountString, precision);
+        return this.parseNumber (Precise.stringMul (amountString, precision));
     }
 
     isFiat (currency) {
