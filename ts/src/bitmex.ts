@@ -1238,13 +1238,6 @@ export default class bitmex extends Exchange {
         amountString = Precise.stringDiv (Precise.stringAbs (amountString), scale);
         let feeCostString = this.safeString (transaction, 'fee');
         feeCostString = Precise.stringDiv (feeCostString, scale);
-        if (this.newPrecision ()) {
-            amountString = Precise.stringAbs (this.safeString (transaction, 'amount')); // withdraw has negative amount
-            const precision = this.safeString (currency, 'precision');
-            amountString = Precise.stringMul (amountString, precision);
-            feeCostString = this.safeString (transaction, 'fee');
-            feeCostString = Precise.stringMul (feeCostString, precision);
-        }
         let status = this.safeString (transaction, 'transactStatus');
         if (status !== undefined) {
             status = this.parseTransactionStatus (status);
