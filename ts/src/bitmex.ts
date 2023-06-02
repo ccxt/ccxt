@@ -2423,6 +2423,25 @@ export default class bitmex extends Exchange {
         return resultValue;
     }
 
+    convertFromRealAmount (currencyCode, amountNumeric) {
+        const currency = this.currency (currencyCode);
+        if (!this.newPrecision ()) {
+            return amountNumeric;
+        }
+        const amountString = this.numberToString (amountNumeric);
+        const precision = this.safeString (currency, 'precision');
+        return parseFloat (Precise.stringDiv (amountString, precision));
+    }
+
+    convertToRealAmount (currencyCode, amountString) {
+        const currency = this.currency (currencyCode);
+        if (!this.newPrecision ()) {
+            return amountString;
+        }
+        const precision = this.safeString (currency, 'precision');
+        return this.parseNumber (Precise.stringMul (amountString, precision));
+    }
+
     convertToRawMarketQuantity (symbol, amount) {
         // if old precisions are used, return whatever was passed
         if (!this.newPrecision ()) {
@@ -2457,25 +2476,6 @@ export default class bitmex extends Exchange {
             quantity = amountString;
         }
         return quantity;
-    }
-
-    convertFromRealAmount (currencyCode, amountNumeric) {
-        const currency = this.currency (currencyCode);
-        if (!this.newPrecision ()) {
-            return amountNumeric;
-        }
-        const amountString = this.numberToString (amountNumeric);
-        const precision = this.safeString (currency, 'precision');
-        return parseFloat (Precise.stringDiv (amountString, precision));
-    }
-
-    convertToRealAmount (currencyCode, amountString) {
-        const currency = this.currency (currencyCode);
-        if (!this.newPrecision ()) {
-            return amountString;
-        }
-        const precision = this.safeString (currency, 'precision');
-        return this.parseNumber (Precise.stringMul (amountString, precision));
     }
 
     isFiat (currency) {
