@@ -2053,13 +2053,10 @@ export default class bitmex extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'orderQty': parseFloat (this.amountToPrecision (symbol, amount)), // lot size multiplied by the number of contracts
+            'orderQty': this.convertIntoRawMarketQuantity (market['symbol'], parseFloat (this.amountToPrecision (symbol, amount))), // lot size multiplied by the number of contracts
             'ordType': orderType,
             'text': brokerId,
         };
-        if (this.newPrecision ()) {
-            request['orderQty'] = this.convertIntoRawMarketQuantity (market['symbol'], request['orderQty']);
-        }
         if ((orderType === 'Stop') || (orderType === 'StopLimit') || (orderType === 'MarketIfTouched') || (orderType === 'LimitIfTouched')) {
             const stopPrice = this.safeNumber2 (params, 'stopPx', 'stopPrice');
             if (stopPrice === undefined) {
@@ -2100,10 +2097,7 @@ export default class bitmex extends Exchange {
             request['orderID'] = id;
         }
         if (amount !== undefined) {
-            request['orderQty'] = amount;
-        }
-        if (this.newPrecision ()) {
-            request['orderQty'] = this.convertIntoRawMarketQuantity (market['symbol'], request['orderQty']);
+            request['orderQty'] = this.convertIntoRawMarketQuantity (market['symbol'], amount);
         }
         if (price !== undefined) {
             request['price'] = price;
