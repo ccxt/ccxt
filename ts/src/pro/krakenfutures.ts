@@ -3,6 +3,7 @@
 import krakenfuturesRest from '../krakenfutures.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { Int, Market, Order, Trade } from '../base/types.js';
