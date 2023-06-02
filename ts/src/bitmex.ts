@@ -1721,30 +1721,18 @@ export default class bitmex extends Exchange {
         //         "timestamp": "2019-03-05T12:47:02.762Z"
         //     }
         //
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const priceString = this.safeString2 (trade, 'avgPx', 'price');
-        let amountString = this.safeString2 (trade, 'size', 'lastQty');
+        const amountString = this.convertToRealAmount (market['base'], this.safeString2 (trade, 'size', 'lastQty'));
         const execCost = this.safeString (trade, 'execCost');
-        let costString = Precise.stringDiv (Precise.stringAbs (execCost), '1e8');
-        let quoteCurrencyPrecision = undefined;
-        if (this.newPrecision ()) {
-            const marketId = this.safeString (trade, 'symbol');
-            market = this.safeMarket (marketId, market);
-            const baseCurrency = this.currency (market['base']);
-            const baseCurrencyPrecision = this.safeString (baseCurrency, 'precision');
-            const quoteCurrency = this.currency (market['quote']);
-            quoteCurrencyPrecision = this.safeString (quoteCurrency, 'precision');
-            costString = Precise.stringMul (Precise.stringAbs (execCost), quoteCurrencyPrecision);
-            amountString = Precise.stringMul (amountString, baseCurrencyPrecision);
-        }
+        const costString = this.convertToRealAmount (market['quote'], execCost);
         const id = this.safeString (trade, 'trdMatchID');
         const order = this.safeString (trade, 'orderID');
         const side = this.safeStringLower (trade, 'side');
         let fee = undefined;
-        let feeCostString = Precise.stringDiv (this.safeString (trade, 'execComm'), '1e8');
-        if (this.newPrecision ()) {
-            feeCostString = Precise.stringMul (this.safeString (trade, 'execComm'), quoteCurrencyPrecision);
-        }
+        const feeCostString = this.convertToRealAmount (market['quote'], this.safeString (trade, 'execComm'));
         if (feeCostString !== undefined) {
             const currencyId = this.safeString (trade, 'settlCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (currencyId);
