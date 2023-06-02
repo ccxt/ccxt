@@ -1963,7 +1963,7 @@ export default class bitmex extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'orderQty': this.convertIntoRawMarketQuantity (market['symbol'], parseFloat (this.amountToPrecision (symbol, amount))), // lot size multiplied by the number of contracts
+            'orderQty': this.convertToRawMarketQuantity (market['symbol'], amount), // lot size multiplied by the number of contracts
             'ordType': orderType,
             'text': brokerId,
         };
@@ -2007,7 +2007,7 @@ export default class bitmex extends Exchange {
             request['orderID'] = id;
         }
         if (amount !== undefined) {
-            request['orderQty'] = this.convertIntoRawMarketQuantity (market['symbol'], amount);
+            request['orderQty'] = this.convertToRawMarketQuantity (market['symbol'], amount);
         }
         if (price !== undefined) {
             request['price'] = price;
@@ -2423,7 +2423,7 @@ export default class bitmex extends Exchange {
         return resultValue;
     }
 
-    convertIntoRawMarketQuantity (symbol, amount) {
+    convertToRawMarketQuantity (symbol, amount) {
         // if old precisions are used, return whatever was passed
         if (!this.newPrecision ()) {
             return amount;
