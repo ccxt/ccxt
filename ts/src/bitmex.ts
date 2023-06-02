@@ -1349,8 +1349,8 @@ export default class bitmex extends Exchange {
             'updated': timestamp,
             'comment': undefined,
             'fee': {
-                'cost': this.parseNumber (feeCostString),
                 'currency': currency['code'],
+                'cost': this.parseNumber (feeCostString),
                 'rate': undefined,
             },
         };
@@ -1808,18 +1808,19 @@ export default class bitmex extends Exchange {
         //         "timestamp": "2019-03-05T12:47:02.762Z"
         //     }
         //
-        const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const baseCurrency = this.currency (market['base']);
-        const baseCurrencyPrecision = this.safeString (baseCurrency, 'precision');
-        const quoteCurrency = this.currency (market['quote']);
-        const quoteCurrencyPrecision = this.safeString (quoteCurrency, 'precision');
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const priceString = this.safeString2 (trade, 'avgPx', 'price');
         let amountString = this.safeString2 (trade, 'size', 'lastQty');
         const execCost = this.safeString (trade, 'execCost');
         let costString = Precise.stringDiv (Precise.stringAbs (execCost), '1e8');
+        let quoteCurrencyPrecision = undefined;
         if (this.isNewPrecisions ()) {
+            const marketId = this.safeString (trade, 'symbol');
+            market = this.safeMarket (marketId, market);
+            const baseCurrency = this.currency (market['base']);
+            const baseCurrencyPrecision = this.safeString (baseCurrency, 'precision');
+            const quoteCurrency = this.currency (market['quote']);
+            quoteCurrencyPrecision = this.safeString (quoteCurrency, 'precision');
             costString = Precise.stringMul (Precise.stringAbs (execCost), quoteCurrencyPrecision);
             amountString = Precise.stringMul (amountString, baseCurrencyPrecision);
         }
@@ -2602,19 +2603,18 @@ export default class bitmex extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const precision = this.safeString (currency, 'precision');
         if (this.isNewPrecisions ()) {
+            const precision = this.safeString (currency, 'precision');
             amount = parseFloat (Precise.stringDiv (this.numberToString (amount), precision));
         }
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const networkId = this.networkCodeToId (networkCode);
         const currencyId = currency['info']['currency']; // this is specific currency-slug, like XBt, which differs from currency['id'] XBT
         const request = {
             'currency': currencyId,
             'amount': amount,
             'address': address,
-            'network': networkId,
+            'network': this.networkCodeToId (networkCode),
             // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
             // 'fee': 0.001, // bitcoin network fee
         };
