@@ -183,7 +183,6 @@ export default class Exchange {
     validateClientSsl = false
 
     timeout       = 10000 // milliseconds
-    currentLanguageExtension = 'js'
     verbose       = false
     debug         = false
     userAgent: { 'User-Agent': string } | false = undefined;
@@ -2286,7 +2285,7 @@ export default class Exchange {
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         let message = '';
         if (this.has['fetchTrades']) {
-            message = '. If you want to build OHLCV candles from trade executions data, see an example at:  https://github.com/ccxt/ccxt/tree/master/examples/' + this.currentLanguageExtension + '/build-ohlcv-bars.' + this.currentLanguageExtension;
+            message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
         }
         throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet' + message);
     }

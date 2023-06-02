@@ -106,7 +106,6 @@ class Exchange(object):
     enableRateLimit = True
     rateLimit = 2000  # milliseconds = seconds * 1000
     timeout = 10000   # milliseconds = seconds * 1000
-    currentLanguageExtension = 'py'
     asyncio_loop = None
     aiohttp_proxy = None
     trust_env = False
