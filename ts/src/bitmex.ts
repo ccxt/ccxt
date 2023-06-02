@@ -2564,54 +2564,6 @@ export default class bitmex extends Exchange {
         //         "lastValue": 39283900
         //     }
         //
-        if (!this.safeValue (this.options, 'oldPrecision', false)) {
-            market = this.safeMarket (this.safeString (position, 'symbol'), market);
-            const symbol = market['symbol'];
-            const datetime = this.safeString (position, 'timestamp');
-            const crossMargin = this.safeValue (position, 'crossMargin');
-            const marginMode = (crossMargin === true) ? 'cross' : 'isolated';
-            let notional = undefined;
-            if (market['quote'] === 'USDT' || market['quote'] === 'USD' || market['quote'] === 'EUR') {
-                notional = Precise.stringMul (this.safeString (position, 'foreignNotional'), '-1');
-            } else {
-                notional = this.safeString (position, 'homeNotional');
-            }
-            notional = this.parseNumber (notional);
-            const maintenanceMarginString = this.safeString (position, 'maintMargin');
-            const unrealisedPnlString = this.safeString (position, 'unrealisedPnl');
-            const currentQty = this.safeString (position, 'currentQty');
-            const lotSize = this.safeString (market['info'], 'lotSize');
-            const contracts = Precise.stringDiv (currentQty, lotSize);
-            const maintenanceMargin = this.positionValueConversion (maintenanceMarginString, market);
-            const unrealizedPnl = this.positionValueConversion (unrealisedPnlString, market);
-            return this.safePosition ({
-                'info': position,
-                'id': undefined,
-                'symbol': symbol,
-                'timestamp': this.parse8601 (datetime),
-                'datetime': datetime,
-                'lastUpdateTimestamp': undefined,
-                'hedged': undefined,
-                'side': undefined,
-                'contracts': this.parseNumber (contracts),
-                'contractSize': undefined,
-                'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
-                'markPrice': this.safeNumber (position, 'markPrice'),
-                'lastPrice': undefined,
-                'notional': notional,
-                'leverage': this.safeNumber (position, 'leverage'),
-                'collateral': undefined,
-                'initialMargin': this.safeNumber (position, 'initMargin'),
-                'initialMarginPercentage': this.safeNumber (position, 'initMarginReq'),
-                'maintenanceMargin': maintenanceMargin,
-                'maintenanceMarginPercentage': this.safeNumber (position, 'maintMarginReq'),
-                'unrealizedPnl': unrealizedPnl,
-                'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
-                'marginMode': marginMode,
-                'marginRatio': undefined,
-                'percentage': this.safeNumber (position, 'unrealisedPnlPcnt'),
-            });
-        }
         market = this.safeMarket (this.safeString (position, 'symbol'), market);
         const symbol = market['symbol'];
         const datetime = this.safeString (position, 'timestamp');
@@ -2623,34 +2575,52 @@ export default class bitmex extends Exchange {
         } else {
             notional = this.safeString (position, 'homeNotional');
         }
-        const maintenanceMargin = this.safeNumber (position, 'maintMargin');
-        const unrealisedPnl = this.safeNumber (position, 'unrealisedPnl');
-        const contracts = this.omitZero (this.safeNumber (position, 'currentQty'));
-        return {
+        let unrealizedPnl = undefined;
+        let maintenanceMargin = undefined;
+        let contracts = undefined;
+        if (this.safeValue (this.options, 'oldPrecision', false)) {
+            maintenanceMargin = this.safeNumber (position, 'maintMargin');
+            const unrealisedPnl = this.safeNumber (position, 'unrealisedPnl');
+            contracts = this.omitZero (this.safeNumber (position, 'currentQty'));
+            contracts = this.convertValue (contracts, market);
+            unrealizedPnl = this.convertValue (unrealisedPnl, market);
+        } else {
+            notional = this.parseNumber (notional);
+            const maintenanceMarginString = this.safeString (position, 'maintMargin');
+            const unrealisedPnlString = this.safeString (position, 'unrealisedPnl');
+            const currentQty = this.safeString (position, 'currentQty');
+            const lotSize = this.safeString (market['info'], 'lotSize');
+            contracts = this.parseNumber (Precise.stringDiv (currentQty, lotSize));
+            maintenanceMargin = this.positionValueConversion (maintenanceMarginString, market);
+            unrealizedPnl = this.positionValueConversion (unrealisedPnlString, market);
+        }
+        return this.safePosition ({
             'info': position,
-            'id': this.safeString (position, 'account'),
+            'id': undefined,
             'symbol': symbol,
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
+            'lastUpdateTimestamp': undefined,
             'hedged': undefined,
             'side': undefined,
-            'contracts': this.convertValue (contracts, market),
+            'contracts': contracts,
             'contractSize': undefined,
             'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
             'markPrice': this.safeNumber (position, 'markPrice'),
+            'lastPrice': undefined,
             'notional': notional,
             'leverage': this.safeNumber (position, 'leverage'),
             'collateral': undefined,
             'initialMargin': this.safeNumber (position, 'initMargin'),
             'initialMarginPercentage': this.safeNumber (position, 'initMarginReq'),
-            'maintenanceMargin': this.convertValue (maintenanceMargin, market),
+            'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': this.safeNumber (position, 'maintMarginReq'),
-            'unrealizedPnl': this.convertValue (unrealisedPnl, market),
+            'unrealizedPnl': unrealizedPnl,
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'marginMode': marginMode,
             'marginRatio': undefined,
             'percentage': this.safeNumber (position, 'unrealisedPnlPcnt'),
-        };
+        });
     }
 
     convertValue (value, market = undefined) {
@@ -2744,57 +2714,22 @@ export default class bitmex extends Exchange {
          * @param {object} params extra parameters specific to the bitmex api endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        if (!this.safeValue (this.options, 'oldPrecision', false)) {
-            [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-            this.checkAddress (address);
-            await this.loadMarkets ();
-            const currency = this.currency (code);
-            const precision = this.safeString (currency, 'precision');
-            const amountString = this.numberToString (amount);
-            const amountFinal = parseFloat (Precise.stringDiv (amountString, precision));
-            const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
-            const networkId = this.networkCodeToId (networkCode);
-            const currencyId = currency['info']['currency']; // this is specific currency-slug, like XBt, which differs from currency['id'] XBT
-            const request = {
-                'currency': currencyId,
-                'amount': amountFinal,
-                'address': address,
-                'network': networkId,
-                // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
-                // 'fee': 0.001, // bitcoin network fee
-            };
-            const response = await this.privatePostUserRequestWithdrawal (this.extend (request, paramsOmited));
-            //
-            //     {
-            //         "transactID": "3aece414-bb29-76c8-6c6d-16a477a51a1e",
-            //         "account": "1403035",
-            //         "currency": "USDt",
-            //         "network": "tron",
-            //         "transactType": "Withdrawal",
-            //         "amount": "-11000000",
-            //         "fee": "1000000",
-            //         "transactStatus": "Pending",
-            //         "address": "TRf5JxcABQsF2Nm2zu21X0HiDtnisxPo4x",
-            //         "tx": "",
-            //         "text": "",
-            //         "transactTime": "2022-12-16T07:37:06.500Z",
-            //         "timestamp": "2022-12-16T07:37:06.500Z",
-            //     }
-            //
-            return this.parseTransaction (response, currency);
-        }
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
-        // let currency = this.currency (code);
-        if (code !== 'BTC') {
-            throw new ExchangeError (this.id + ' supoprts BTC withdrawals only, for full bitmex functionalities, do not use old precisions');
-        }
         const currency = this.currency (code);
+        const precision = this.safeString (currency, 'precision');
+        if (!this.safeValue (this.options, 'oldPrecision', false)) {
+            amount = parseFloat (Precise.stringDiv (this.numberToString (amount), precision));
+        }
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const networkId = this.networkCodeToId (networkCode);
+        const currencyId = currency['info']['currency']; // this is specific currency-slug, like XBt, which differs from currency['id'] XBT
         const request = {
-            'currency': 'XBt', // temporarily
+            'currency': currencyId,
             'amount': amount,
             'address': address,
+            'network': networkId,
             // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
             // 'fee': 0.001, // bitcoin network fee
         };
