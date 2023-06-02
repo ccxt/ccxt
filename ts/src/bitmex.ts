@@ -1329,19 +1329,18 @@ export default class bitmex extends Exchange {
         if (status !== undefined) {
             status = this.parseTransactionStatus (status);
         }
-        const networkId = this.safeString (transaction, 'network');
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'transactID'),
             'txid': this.safeString (transaction, 'tx'),
             'type': type,
             'currency': currency['code'],
-            'network': this.networkIdToCode (networkId),
+            'network': this.networkIdToCode (this.safeString (transaction, 'network')),
             'amount': this.parseNumber (amountString),
             'status': status,
             'timestamp': transactTime,
             'datetime': this.iso8601 (transactTime),
-            'address': undefined,
+            'address': address,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'tag': undefined,
