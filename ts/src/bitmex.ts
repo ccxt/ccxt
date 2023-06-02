@@ -226,31 +226,59 @@ export default class bitmex extends Exchange {
                 'fetchOHLCVOpenTimestamp': true,
                 'networks': {
                     'BTC': 'btc',
-                    'BITCOIN': 'btc',
-                    'ERC20': 'eth',
                     'ETH': 'eth',
+                    'BSC': 'bsc',
+                    'BNB': 'bsc',
+                    'TRON': 'tron',
+                    'ERC20': 'eth',
+                    'BEP20': 'bsc',
                     'TRC20': 'tron',
                     'TRX': 'tron',
-                    'BEP20': 'bsc',
-                    'SOLANA': 'sol',
-                    'AVALANCHEC': 'avax',
+                    'AVAX': 'avax',
                     'NEAR': 'near',
-                    'TEZOS': 'xtz',
-                    'POLKADOT': 'dot',
-                    'CARDANO': 'ada',
+                    'XTZ': 'xtz',
+                    'DOT': 'dot',
+                    'SOL': 'sol',
                 },
                 'networksById': {
                     'btc': 'BTC',
                     'eth': 'ERC20',
-                    'tron': 'TRC20',
-                    'bsc': 'BEP20',
-                    'sol': 'SOLANA',
-                    'avax': 'AVALANCHEC',
+                    'bsc': 'BSC',
+                    'tron': 'TRX',
+                    'avax': 'AVAX',
                     'near': 'NEAR',
-                    'xtz': 'TEZOS',
-                    'dot': 'POLKADOT',
-                    'ada': 'CARDANO',
+                    'xtz': 'XTZ',
+                    'dot': 'DOT',
+                    'sol': 'SOL',
                 },
+                // todo:
+                // 'networks': {
+                //     'BTC': 'btc',
+                //     'BITCOIN': 'btc',
+                //     'ERC20': 'eth',
+                //     'ETH': 'eth',
+                //     'TRC20': 'tron',
+                //     'TRX': 'tron',
+                //     'BEP20': 'bsc',
+                //     'SOLANA': 'sol',
+                //     'AVALANCHEC': 'avax',
+                //     'NEAR': 'near',
+                //     'TEZOS': 'xtz',
+                //     'POLKADOT': 'dot',
+                //     'CARDANO': 'ada',
+                // },
+                // 'networksById': {
+                //     'btc': 'BTC',
+                //     'eth': 'ERC20',
+                //     'tron': 'TRC20',
+                //     'bsc': 'BEP20',
+                //     'sol': 'SOLANA',
+                //     'avax': 'AVALANCHEC',
+                //     'near': 'NEAR',
+                //     'xtz': 'TEZOS',
+                //     'dot': 'POLKADOT',
+                //     'ada': 'CARDANO',
+                // },
             },
             'commonCurrencies': {
                 'XBT': 'BTC',
@@ -831,35 +859,25 @@ export default class bitmex extends Exchange {
             'datetime': undefined,
             'nonce': undefined,
         };
-        if (this.safeValue (this.options, 'oldPrecision', false)) {
-            for (let i = 0; i < response.length; i++) {
-                const order = response[i];
-                const side = (order['side'] === 'Sell') ? 'asks' : 'bids';
-                const amount = this.safeNumber (order, 'size');
-                const price = this.safeNumber (order, 'price');
-                // https://github.com/ccxt/ccxt/issues/4926
-                // https://github.com/ccxt/ccxt/issues/4927
-                // the exchange sometimes returns null price in the orderbook
-                if (price !== undefined) {
-                    result[side].push ([ price, amount ]);
-                }
-            }
-        } else {
-            const baseCurrency = this.currency (market['base']);
-            for (let i = 0; i < response.length; i++) {
-                const order = response[i];
-                const side = (order['side'] === 'Sell') ? 'asks' : 'bids';
-                const price = this.safeNumber (order, 'price');
+        const baseCurrency = this.currency (market['base']);
+        for (let i = 0; i < response.length; i++) {
+            const order = response[i];
+            const side = (order['side'] === 'Sell') ? 'asks' : 'bids';
+            let amount = undefined;
+            if (this.safeValue (this.options, 'oldPrecision', false)) {
+                amount = this.safeNumber (order, 'size');
+            } else {
                 const sizeString = this.safeString (order, 'size');
                 const currencyPrecision = this.safeString (baseCurrency, 'precision');
                 const amountStringDivBase = Precise.stringMul (sizeString, currencyPrecision);
-                const amount = this.parseNumber (amountStringDivBase);
-                // https://github.com/ccxt/ccxt/issues/4926
-                // https://github.com/ccxt/ccxt/issues/4927
-                // the exchange sometimes returns null price in the orderbook
-                if (price !== undefined) {
-                    result[side].push ([ price, amount ]);
-                }
+                amount = this.parseNumber (amountStringDivBase);
+            }
+            const price = this.safeNumber (order, 'price');
+            // https://github.com/ccxt/ccxt/issues/4926
+            // https://github.com/ccxt/ccxt/issues/4927
+            // the exchange sometimes returns null price in the orderbook
+            if (price !== undefined) {
+                result[side].push ([ price, amount ]);
             }
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
@@ -992,57 +1010,57 @@ export default class bitmex extends Exchange {
         }
         const response = await this.privateGetExecutionTradeHistory (request);
         //
-        //    [
-        //        {
-        //            "execID": "57417348-e63b-22ce-d2ad-d2d413ce63ee",
-        //            "orderID": "552ed46d-5877-4ff9-a8b5-1e49f8487437",
-        //            "clOrdID": "",
-        //            "clOrdLinkID": "",
-        //            "account": "1403163",
-        //            "symbol": "TRX_USDT",
-        //            "side": "Sell",
-        //            "lastQty": "100000000",
-        //            "lastPx": "0.0623",
-        //            "underlyingLastPx": null,
-        //            "lastMkt": "XBME",
-        //            "lastLiquidityInd": "RemovedLiquidity",
-        //            "simpleOrderQty": null,
-        //            "orderQty": "100000000",
-        //            "price": "0.0622",
-        //            "displayQty": null,
-        //            "stopPx": null,
-        //            "pegOffsetValue": null,
-        //            "pegPriceType": "",
-        //            "currency": "USDT",
-        //            "settlCurrency": "",
-        //            "execType": "Trade",
-        //            "ordType": "Limit",
-        //            "timeInForce": "GoodTillCancel",
-        //            "execInst": "",
-        //            "contingencyType": "",
-        //            "exDestination": "XBME",
-        //            "ordStatus": "Filled",
-        //            "triggered": "",
-        //            "workingIndicator": false,
-        //            "ordRejReason": "",
-        //            "simpleLeavesQty": null,
-        //            "leavesQty": "0",
-        //            "simpleCumQty": null,
-        //            "cumQty": "100000000",
-        //            "avgPx": "0.0623",
-        //            "commission": "0.001",
-        //            "tradePublishIndicator": "PublishTrade",
-        //            "multiLegReportingType": "SingleSecurity",
-        //            "text": "Submission from www.bitmex.com",
-        //            "trdMatchID": "022187a4-d901-961f-b4e3-69ccc161f2a3",
-        //            "execCost": "-6230000",
-        //            "execComm": "6230",
-        //            "homeNotional": "-100",
-        //            "foreignNotional": "6.23",
-        //            "transactTime": "2022-10-17T13:13:10.682Z",
-        //            "timestamp": "2022-10-17T13:13:10.682Z"
-        //        },
-        //    ]
+        //     [
+        //         {
+        //             "execID": "string",
+        //             "orderID": "string",
+        //             "clOrdID": "string",
+        //             "clOrdLinkID": "string",
+        //             "account": 0,
+        //             "symbol": "string",
+        //             "side": "string",
+        //             "lastQty": 0,
+        //             "lastPx": 0,
+        //             "underlyingLastPx": 0,
+        //             "lastMkt": "string",
+        //             "lastLiquidityInd": "string",
+        //             "simpleOrderQty": 0,
+        //             "orderQty": 0,
+        //             "price": 0,
+        //             "displayQty": 0,
+        //             "stopPx": 0,
+        //             "pegOffsetValue": 0,
+        //             "pegPriceType": "string",
+        //             "currency": "string",
+        //             "settlCurrency": "string",
+        //             "execType": "string",
+        //             "ordType": "string",
+        //             "timeInForce": "string",
+        //             "execInst": "string",
+        //             "contingencyType": "string",
+        //             "exDestination": "string",
+        //             "ordStatus": "string",
+        //             "triggered": "string",
+        //             "workingIndicator": true,
+        //             "ordRejReason": "string",
+        //             "simpleLeavesQty": 0,
+        //             "leavesQty": 0,
+        //             "simpleCumQty": 0,
+        //             "cumQty": 0,
+        //             "avgPx": 0,
+        //             "commission": 0,
+        //             "tradePublishIndicator": "string",
+        //             "multiLegReportingType": "string",
+        //             "text": "string",
+        //             "trdMatchID": "string",
+        //             "execCost": 0,
+        //             "execComm": 0,
+        //             "homeNotional": 0,
+        //             "foreignNotional": 0,
+        //             "transactTime": "2019-03-05T12:47:02.762Z",
+        //             "timestamp": "2019-03-05T12:47:02.762Z"
+        //         }
+        //     ]
         //
         return this.parseTrades (response, market, since, limit);
     }
@@ -1101,64 +1119,6 @@ export default class bitmex extends Exchange {
         //         "timestamp":null  # ←---------------------------- null
         //     }
         //
-        if (this.safeValue (this.options, 'oldPrecision', false)) {
-            const id = this.safeString (item, 'transactID');
-            const account = this.safeString (item, 'account');
-            const referenceId = this.safeString (item, 'tx');
-            const referenceAccount = undefined;
-            const type = this.parseLedgerEntryType (this.safeString (item, 'transactType'));
-            const currencyId = this.safeString (item, 'currency');
-            const code = this.safeCurrencyCode (currencyId, currency);
-            let amount = this.safeNumber (item, 'amount');
-            if (amount !== undefined) {
-                amount = amount / 100000000;
-            }
-            let timestamp = this.parse8601 (this.safeString (item, 'transactTime'));
-            if (timestamp === undefined) {
-                // https://github.com/ccxt/ccxt/issues/6047
-                // set the timestamp to zero, 1970 Jan 1 00:00:00
-                // for unrealized pnl and other transactions without a timestamp
-                timestamp = 0; // see comments above
-            }
-            let feeCost = this.safeNumber (item, 'fee', 0);
-            if (feeCost !== undefined) {
-                feeCost = feeCost / 100000000;
-            }
-            const fee = {
-                'cost': feeCost,
-                'currency': code,
-            };
-            let after = this.safeNumber (item, 'walletBalance');
-            if (after !== undefined) {
-                after = after / 100000000;
-            }
-            const before = this.sum (after, -amount);
-            let direction = undefined;
-            if (amount < 0) {
-                direction = 'out';
-                amount = Math.abs (amount);
-            } else {
-                direction = 'in';
-            }
-            const status = this.parseTransactionStatus (this.safeString (item, 'transactStatus'));
-            return {
-                'id': id,
-                'info': item,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'direction': direction,
-                'account': account,
-                'referenceId': referenceId,
-                'referenceAccount': referenceAccount,
-                'type': type,
-                'currency': code,
-                'amount': amount,
-                'before': before,
-                'after': after,
-                'status': status,
-                'fee': fee,
-            };
-        }
         const id = this.safeString (item, 'transactID');
         const account = this.safeString (item, 'account');
         const referenceId = this.safeString (item, 'tx');
@@ -1170,11 +1130,19 @@ export default class bitmex extends Exchange {
             currency = this.currency (code);
         }
         const precision = this.safeString (currency, 'precision');
-        let amountString = this.safeString (item, 'amount');
-        if (amountString !== undefined) {
-            amountString = Precise.stringMul (amountString, precision);
+        let amount = undefined;
+        if (this.safeValue (this.options, 'oldPrecision', false)) {
+            amount = this.safeNumber (item, 'amount');
+            if (amount !== undefined) {
+                amount = amount / 100000000;
+            }
+        } else {
+            let amountString = this.safeString (item, 'amount');
+            if (amountString !== undefined) {
+                amountString = Precise.stringMul (amountString, precision);
+            }
+            amount = this.parseNumber (amountString);
         }
-        let amount = this.parseNumber (amountString);
         let timestamp = this.parse8601 (this.safeString (item, 'transactTime'));
         if (timestamp === undefined) {
             // https://github.com/ccxt/ccxt/issues/6047
@@ -1182,22 +1150,39 @@ export default class bitmex extends Exchange {
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
-        let feeCost = this.safeString (item, 'fee');
-        if (feeCost !== undefined) {
-            feeCost = Precise.stringMul (feeCost, precision);
+        let fee = undefined;
+        let after = undefined;
+        if (this.safeValue (this.options, 'oldPrecision', false)) {
+            let feeCost = this.safeNumber (item, 'fee', 0);
+            if (feeCost !== undefined) {
+                feeCost = feeCost / 100000000;
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+            let after = this.safeNumber (item, 'walletBalance');
+            if (after !== undefined) {
+                after = after / 100000000;
+            }
+        } else {
+            let feeCost = this.safeString (item, 'fee');
+            if (feeCost !== undefined) {
+                feeCost = Precise.stringMul (feeCost, precision);
+            }
+            fee = {
+                'cost': this.parseNumber (feeCost),
+                'currency': code,
+            };
+            let afterString = this.safeString (item, 'walletBalance');
+            if (afterString !== undefined) {
+                afterString = Precise.stringMul (afterString, precision);
+            }
+            after = this.parseNumber (afterString);
         }
-        const fee = {
-            'cost': this.parseNumber (feeCost),
-            'currency': code,
-        };
-        let afterString = this.safeString (item, 'walletBalance');
-        if (afterString !== undefined) {
-            afterString = Precise.stringMul (afterString, precision);
-        }
-        const after = this.parseNumber (afterString);
         const before = this.sum (after, -amount);
         let direction = undefined;
-        if (Precise.stringLt (amountString, '0')) {
+        if (amount < 0) {
             direction = 'out';
             amount = Math.abs (amount);
         } else {
@@ -1319,76 +1304,24 @@ export default class bitmex extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
-        // withdraw
+        //    {
+        //        'transactID': 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
+        //        'account': 123456,
+        //        'currency': 'XBt',
+        //        'network':'',
+        //        'transactType': 'Withdrawal',
+        //        'amount': -100100000,
+        //        'fee': 100000,
+        //        'transactStatus': 'Completed',
+        //        'address': '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
+        //        'tx': '3BMEXabcdefghijklmnopqrstuvwxyz123',
+        //        'text': '',
+        //        'transactTime': '2019-01-02T01:00:00.000Z',
+        //        'walletBalance': 99900000,
+        //        'marginBalance': None,
+        //        'timestamp': '2019-01-02T13:00:00.000Z'
+        //    }
         //
-        //     {
-        //         "transactID": "3aece414-bb29-76c8-6c6d-16a477a51a1e",
-        //         "account": "1403035",
-        //         "currency": "USDt",
-        //         "network": "tron",
-        //         "transactType": "Withdrawal",
-        //         "amount": "-11000000",
-        //         "fee": "1000000",
-        //         "transactStatus": "Pending",
-        //         "address": "TRf5JxcABQsF2Nm2zu21X0HiDtnisxPo4x",
-        //         "tx": "",
-        //         "text": "",
-        //         "transactTime": "2022-12-16T07:37:06.500Z",
-        //         "timestamp": "2022-12-16T07:37:06.500Z",
-        //     }
-        //
-        if (this.safeValue (this.options, 'oldPrecision', false)) {
-            const currencyId = this.safeString (transaction, 'currency');
-            currency = this.safeCurrency (currencyId, currency);
-            // For deposits, transactTime == timestamp
-            // For withdrawals, transactTime is submission, timestamp is processed
-            const transactTime = this.parse8601 (this.safeString (transaction, 'transactTime'));
-            const timestamp = this.parse8601 (this.safeString (transaction, 'timestamp'));
-            const type = this.safeStringLower (transaction, 'transactType');
-            // Deposits have no from address or to address, withdrawals have both
-            let address = undefined;
-            let addressFrom = undefined;
-            let addressTo = undefined;
-            if (type === 'withdrawal') {
-                address = this.safeString (transaction, 'address');
-                addressFrom = this.safeString (transaction, 'tx');
-                addressTo = address;
-            }
-            let amountString = this.safeString (transaction, 'amount');
-            const scale = (currency['code'] === 'BTC') ? '1e8' : '1e6';
-            amountString = Precise.stringDiv (Precise.stringAbs (amountString), scale);
-            let feeCostString = this.safeString (transaction, 'fee');
-            feeCostString = Precise.stringDiv (feeCostString, scale);
-            let status = this.safeString (transaction, 'transactStatus');
-            if (status !== undefined) {
-                status = this.parseTransactionStatus (status);
-            }
-            return {
-                'info': transaction,
-                'id': this.safeString (transaction, 'transactID'),
-                'txid': this.safeString (transaction, 'tx'),
-                'type': type,
-                'currency': currency['code'],
-                'network': this.safeString (transaction, 'status'),
-                'amount': this.parseNumber (amountString),
-                'status': status,
-                'timestamp': transactTime,
-                'datetime': this.iso8601 (transactTime),
-                'address': address,
-                'addressFrom': addressFrom,
-                'addressTo': addressTo,
-                'tag': undefined,
-                'tagFrom': undefined,
-                'tagTo': undefined,
-                'updated': timestamp,
-                'comment': undefined,
-                'fee': {
-                    'currency': currency['code'],
-                    'cost': this.parseNumber (feeCostString),
-                    'rate': undefined,
-                },
-            };
-        }
         const currencyId = this.safeString (transaction, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         // For deposits, transactTime == timestamp
@@ -1397,26 +1330,36 @@ export default class bitmex extends Exchange {
         const timestamp = this.parse8601 (this.safeString (transaction, 'timestamp'));
         const type = this.safeStringLower (transaction, 'transactType');
         // Deposits have no from address or to address, withdrawals have both
+        let address = undefined;
         let addressFrom = undefined;
         let addressTo = undefined;
         if (type === 'withdrawal') {
+            address = this.safeString (transaction, 'address');
             addressFrom = this.safeString (transaction, 'tx');
-            addressTo = this.safeString (transaction, 'address');
+            addressTo = address;
         } else if (type === 'deposit') {
             addressFrom = this.safeString (transaction, 'tx');
             addressTo = this.safeString (transaction, 'address');
         }
-        let amountString = Precise.stringAbs (this.safeString (transaction, 'amount')); // withdraw has negative amount
-        const precision = this.safeString (currency, 'precision');
-        amountString = Precise.stringMul (amountString, precision);
-        let feeCostString = this.safeString (transaction, 'fee');
-        feeCostString = Precise.stringMul (feeCostString, precision);
-        const fee = {
-            'cost': this.parseNumber (feeCostString),
-            'currency': currency['code'],
-            'rate': undefined,
-        };
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'transactStatus'));
+        let amountString = undefined;
+        let feeCostString = undefined;
+        if (this.safeValue (this.options, 'oldPrecision', false)) {
+            amountString = this.safeString (transaction, 'amount');
+            const scale = (currency['code'] === 'BTC') ? '1e8' : '1e6';
+            amountString = Precise.stringDiv (Precise.stringAbs (amountString), scale);
+            feeCostString = this.safeString (transaction, 'fee');
+            feeCostString = Precise.stringDiv (feeCostString, scale);
+        } else {
+            amountString = Precise.stringAbs (this.safeString (transaction, 'amount')); // withdraw has negative amount
+            const precision = this.safeString (currency, 'precision');
+            amountString = Precise.stringMul (amountString, precision);
+            feeCostString = this.safeString (transaction, 'fee');
+            feeCostString = Precise.stringMul (feeCostString, precision);
+        }
+        let status = this.safeString (transaction, 'transactStatus');
+        if (status !== undefined) {
+            status = this.parseTransactionStatus (status);
+        }
         const networkId = this.safeString (transaction, 'network');
         return {
             'info': transaction,
@@ -1424,20 +1367,24 @@ export default class bitmex extends Exchange {
             'txid': this.safeString (transaction, 'tx'),
             'type': type,
             'currency': currency['code'],
+            'network': this.networkIdToCode (networkId),
             'amount': this.parseNumber (amountString),
             'status': status,
             'timestamp': transactTime,
             'datetime': this.iso8601 (transactTime),
-            'network': this.networkIdToCode (networkId),
-            'addressFrom': addressFrom,
             'address': undefined,
+            'addressFrom': addressFrom,
             'addressTo': addressTo,
             'tag': undefined,
             'tagFrom': undefined,
             'tagTo': undefined,
             'updated': timestamp,
             'comment': undefined,
-            'fee': fee,
+            'fee': {
+                'cost': this.parseNumber (feeCostString),
+                'currency': currency['code'],
+                'rate': undefined,
+            },
         };
     }
 
@@ -1844,53 +1791,53 @@ export default class bitmex extends Exchange {
         // fetchMyTrades (private)
         //
         //     {
-        //         "execID": "57417348-e63b-22ce-d2ad-d2d413ce63ee",
-        //         "orderID": "552ed46d-5877-4ff9-a8b5-1e49f8487437",
-        //         "clOrdID": "",
-        //         "clOrdLinkID": "",
-        //         "account": "1403163",
-        //         "symbol": "TRX_USDT",
-        //         "side": "Sell",
-        //         "lastQty": "100000000",
-        //         "lastPx": "0.0623",
-        //         "underlyingLastPx": null,
-        //         "lastMkt": "XBME",
-        //         "lastLiquidityInd": "RemovedLiquidity",
-        //         "simpleOrderQty": null,
-        //         "orderQty": "100000000",
-        //         "price": "0.0622",
-        //         "displayQty": null,
-        //         "stopPx": null,
-        //         "pegOffsetValue": null,
-        //         "pegPriceType": "",
-        //         "currency": "USDT",
-        //         "settlCurrency": "", //i.e. USDt for contract
-        //         "execType": "Trade",
-        //         "ordType": "Limit",
-        //         "timeInForce": "GoodTillCancel",
-        //         "execInst": "",
-        //         "contingencyType": "",
-        //         "exDestination": "XBME",
-        //         "ordStatus": "Filled",
-        //         "triggered": "",
-        //         "workingIndicator": false,
-        //         "ordRejReason": "",
-        //         "simpleLeavesQty": null,
-        //         "leavesQty": "0",
-        //         "simpleCumQty": null,
-        //         "cumQty": "100000000",
-        //         "avgPx": "0.0623",
-        //         "commission": "0.001",
-        //         "tradePublishIndicator": "PublishTrade",
-        //         "multiLegReportingType": "SingleSecurity",
-        //         "text": "Submission from www.bitmex.com",
-        //         "trdMatchID": "022187a4-d901-961f-b4e3-69ccc161f2a3",
-        //         "execCost": "-6230000",
-        //         "execComm": "6230",
-        //         "homeNotional": "-100",
-        //         "foreignNotional": "6.23",
-        //         "transactTime": "2022-10-17T13:13:10.682Z",
-        //         "timestamp": "2022-10-17T13:13:10.682Z"
+        //         "execID": "string",
+        //         "orderID": "string",
+        //         "clOrdID": "string",
+        //         "clOrdLinkID": "string",
+        //         "account": 0,
+        //         "symbol": "string",
+        //         "side": "string",
+        //         "lastQty": 0,
+        //         "lastPx": 0,
+        //         "underlyingLastPx": 0,
+        //         "lastMkt": "string",
+        //         "lastLiquidityInd": "string",
+        //         "simpleOrderQty": 0,
+        //         "orderQty": 0,
+        //         "price": 0,
+        //         "displayQty": 0,
+        //         "stopPx": 0,
+        //         "pegOffsetValue": 0,
+        //         "pegPriceType": "string",
+        //         "currency": "string",
+        //         "settlCurrency": "string",
+        //         "execType": "string",
+        //         "ordType": "string",
+        //         "timeInForce": "string",
+        //         "execInst": "string",
+        //         "contingencyType": "string",
+        //         "exDestination": "string",
+        //         "ordStatus": "string",
+        //         "triggered": "string",
+        //         "workingIndicator": true,
+        //         "ordRejReason": "string",
+        //         "simpleLeavesQty": 0,
+        //         "leavesQty": 0,
+        //         "simpleCumQty": 0,
+        //         "cumQty": 0,
+        //         "avgPx": 0,
+        //         "commission": 0,
+        //         "tradePublishIndicator": "string",
+        //         "multiLegReportingType": "string",
+        //         "text": "string",
+        //         "trdMatchID": "string",
+        //         "execCost": 0,
+        //         "execComm": 0,
+        //         "homeNotional": 0,
+        //         "foreignNotional": 0,
+        //         "transactTime": "2019-03-05T12:47:02.762Z",
+        //         "timestamp": "2019-03-05T12:47:02.762Z"
         //     }
         //
         if (this.safeValue (this.options, 'oldPrecision', false)) {
