@@ -308,14 +308,12 @@ export default class bitmex extends Exchange {
         //     }
         //
         const result = {};
-        this.options['currencyIdsByAssetNames'] = {};
         this.options['currencyPrecisions'] = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const asset = this.safeString (currency, 'asset');
             const code = this.safeCurrencyCode (asset);
             const id = this.safeString (currency, 'currency');
-            this.options['currencyIdsByAssetNames'][asset] = id; // i.e. asset = XBT and id = XBt
             const name = this.safeString (currency, 'name');
             const chains = this.safeValue (currency, 'networks', []);
             let depositEnabled = false;
@@ -397,10 +395,6 @@ export default class bitmex extends Exchange {
             this.options['currencyPrecisions'][code] = precision;
         }
         return result;
-    }
-
-    currencyIdFromMarketAssetName (assetName) {
-        return this.safeString (this.options['currencyIdsByAssetNames'], assetName, assetName);
     }
 
     async fetchMarkets (params = {}) {
