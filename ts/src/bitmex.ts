@@ -839,7 +839,7 @@ export default class bitmex extends Exchange {
             const order = response[i];
             const side = (order['side'] === 'Sell') ? 'asks' : 'bids';
             let amount = this.safeNumber (order, 'size');
-            if (this.isNewPrecisions ()) {
+            if (this.newPrecision ()) {
                 const sizeString = this.safeString (order, 'size');
                 const baseCurrency = this.currency (market['base']);
                 const currencyPrecision = this.safeString (baseCurrency, 'precision');
@@ -1104,7 +1104,7 @@ export default class bitmex extends Exchange {
         if (amount !== undefined) {
             amount = amount / 100000000;
         }
-        if (this.isNewPrecisions ()) {
+        if (this.newPrecision ()) {
             if (currency === undefined) {
                 currency = this.currency (code);
             }
@@ -1135,7 +1135,7 @@ export default class bitmex extends Exchange {
             after = after / 100000000;
         }
         let before = this.sum (after, -amount);
-        if (this.isNewPrecisions ()) {
+        if (this.newPrecision ()) {
             const precision = this.safeString (currency, 'precision');
             let feeCost = this.safeString (item, 'fee');
             if (feeCost !== undefined) {
@@ -1318,7 +1318,7 @@ export default class bitmex extends Exchange {
         amountString = Precise.stringDiv (Precise.stringAbs (amountString), scale);
         let feeCostString = this.safeString (transaction, 'fee');
         feeCostString = Precise.stringDiv (feeCostString, scale);
-        if (this.isNewPrecisions ()) {
+        if (this.newPrecision ()) {
             amountString = Precise.stringAbs (this.safeString (transaction, 'amount')); // withdraw has negative amount
             const precision = this.safeString (currency, 'precision');
             amountString = Precise.stringMul (amountString, precision);
@@ -1814,7 +1814,7 @@ export default class bitmex extends Exchange {
         const execCost = this.safeString (trade, 'execCost');
         let costString = Precise.stringDiv (Precise.stringAbs (execCost), '1e8');
         let quoteCurrencyPrecision = undefined;
-        if (this.isNewPrecisions ()) {
+        if (this.newPrecision ()) {
             const marketId = this.safeString (trade, 'symbol');
             market = this.safeMarket (marketId, market);
             const baseCurrency = this.currency (market['base']);
@@ -1829,7 +1829,7 @@ export default class bitmex extends Exchange {
         const side = this.safeStringLower (trade, 'side');
         let fee = undefined;
         let feeCostString = Precise.stringDiv (this.safeString (trade, 'execComm'), '1e8');
-        if (this.isNewPrecisions ()) {
+        if (this.newPrecision ()) {
             feeCostString = Precise.stringMul (this.safeString (trade, 'execComm'), quoteCurrencyPrecision);
         }
         if (feeCostString !== undefined) {
@@ -1941,7 +1941,7 @@ export default class bitmex extends Exchange {
         const price = this.safeString (order, 'price');
         let amount = this.safeString (order, 'orderQty');
         let filled = this.safeString (order, 'cumQty');
-        if (this.isNewPrecisions ()) {
+        if (this.newPrecision ()) {
             amount = this.parseFromQuantity (market['symbol'], amount);
             filled = this.parseFromQuantity (market['symbol'], filled);
         }
@@ -2070,7 +2070,7 @@ export default class bitmex extends Exchange {
             'ordType': orderType,
             'text': brokerId,
         };
-        if (this.isNewPrecisions ()) {
+        if (this.newPrecision ()) {
             request['orderQty'] = this.convertIntoQuantity (market['symbol'], request['orderQty']);
         }
         if ((orderType === 'Stop') || (orderType === 'StopLimit') || (orderType === 'MarketIfTouched') || (orderType === 'LimitIfTouched')) {
@@ -2114,7 +2114,7 @@ export default class bitmex extends Exchange {
         if (amount !== undefined) {
             request['orderQty'] = amount;
         }
-        if (this.isNewPrecisions ()) {
+        if (this.newPrecision ()) {
             request['orderQty'] = this.convertIntoQuantity (symbol, request['orderQty']);
         }
         if (price !== undefined) {
@@ -2462,7 +2462,7 @@ export default class bitmex extends Exchange {
         let maintenanceMargin = this.safeNumber (position, 'maintMargin');
         let unrealisedPnl = this.safeNumber (position, 'unrealisedPnl');
         let contracts = this.omitZero (this.safeNumber (position, 'currentQty'));
-        if (this.isNewPrecisions ()) {
+        if (this.newPrecision ()) {
             notional = this.parseNumber (notional);
             const maintenanceMarginString = this.safeString (position, 'maintMargin');
             const unrealisedPnlString = this.safeString (position, 'unrealisedPnl');
@@ -2503,7 +2503,7 @@ export default class bitmex extends Exchange {
 
     convertValue (value, market = undefined) {
         // todo: this method will be removed in future, because it is only for this.options['oldPrecision']=true
-        if (this.isNewPrecisions ()) {
+        if (this.newPrecision ()) {
             // if new preciosions are used, no need to do anything
             return value;
         }
@@ -2532,27 +2532,34 @@ export default class bitmex extends Exchange {
 
     convertIntoQuantity (symbol, amount) {
         // if old precisions are used, return whatever was passed
-        if (!this.isNewPrecisions ()) {
+        if (!this.newPrecision ()) {
             return amount;
         }
         let quantity = undefined;
         const market = this.market (symbol);
         if (market['spot']) {
             const currency = this.currency (market['base']);
-            const precision = this.safeString (currency, 'precision');
-            quantity = Precise.stringDiv (this.numberToString (amount), precision);
+            quantity = this.convertCurrencyAmountTo (currency, amount);
         } else if (market['linear']) {
             const lotSize = this.safeString (market['info'], 'lotSize');
-            quantity = Precise.stringMul (this.numberToString (amount), lotSize);
+            quantity = parseFloat (Precise.stringMul (this.numberToString (amount), lotSize));
         } else {
             quantity = amount;
         }
-        return this.amountToPrecision (market['symbol'], quantity);
+        return parseFloat (this.amountToPrecision (market['symbol'], quantity));
+    }
+
+    convertCurrencyAmountTo (currency, amount) {
+        if (this.newPrecision ()) {
+            return amount;
+        }
+        const precision = this.safeString (currency, 'precision');
+        return parseFloat (Precise.stringDiv (this.numberToString (amount), precision));
     }
 
     parseFromQuantity (symbol, quantity) {
         // if old precisions are used, return whatever was passed
-        if (!this.isNewPrecisions ()) {
+        if (!this.newPrecision ()) {
             return quantity;
         }
         let amount = undefined;
@@ -2603,18 +2610,10 @@ export default class bitmex extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        if (this.isNewPrecisions ()) {
-            const precision = this.safeString (currency, 'precision');
-            amount = parseFloat (Precise.stringDiv (this.numberToString (amount), precision));
-        }
-        let networkCode = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const currencyId = currency['info']['currency']; // this is specific currency-slug, like XBt, which differs from currency['id'] XBT
         const request = {
-            'currency': currencyId,
-            'amount': amount,
+            'currency': currency['info']['currency'], // this is specific currency-slug, like XBt, which differs from currency['id'] XBT
+            'amount': this.convertCurrencyAmountTo (currency, amount),
             'address': address,
-            'network': this.networkCodeToId (networkCode),
             // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
             // 'fee': 0.001, // bitcoin network fee
         };
@@ -3104,7 +3103,7 @@ export default class bitmex extends Exchange {
         return undefined;
     }
 
-    isNewPrecisions () {
+    newPrecision () {
         return this.safeValue (this.options, 'oldPrecisions');
     }
 
