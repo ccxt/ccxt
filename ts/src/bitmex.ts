@@ -2612,7 +2612,7 @@ export default class bitmex extends Exchange {
         //         "lastValue": 39283900
         //     }
         //
-        if (this.safeValue (this.options, 'oldPrecision', false)) {
+        if (!this.safeValue (this.options, 'oldPrecision', false)) {
             market = this.safeMarket (this.safeString (position, 'symbol'), market);
             const symbol = market['symbol'];
             const datetime = this.safeString (position, 'timestamp');
@@ -2624,34 +2624,41 @@ export default class bitmex extends Exchange {
             } else {
                 notional = this.safeString (position, 'homeNotional');
             }
-            const maintenanceMargin = this.safeNumber (position, 'maintMargin');
-            const unrealisedPnl = this.safeNumber (position, 'unrealisedPnl');
-            const contracts = this.omitZero (this.safeNumber (position, 'currentQty'));
-            return {
+            notional = this.parseNumber (notional);
+            const maintenanceMarginString = this.safeString (position, 'maintMargin');
+            const unrealisedPnlString = this.safeString (position, 'unrealisedPnl');
+            const currentQty = this.safeString (position, 'currentQty');
+            const lotSize = this.safeString (market['info'], 'lotSize');
+            const contracts = Precise.stringDiv (currentQty, lotSize);
+            const maintenanceMargin = this.positionValueConversion (maintenanceMarginString, market);
+            const unrealizedPnl = this.positionValueConversion (unrealisedPnlString, market);
+            return this.safePosition ({
                 'info': position,
-                'id': this.safeString (position, 'account'),
+                'id': undefined,
                 'symbol': symbol,
                 'timestamp': this.parse8601 (datetime),
                 'datetime': datetime,
+                'lastUpdateTimestamp': undefined,
                 'hedged': undefined,
                 'side': undefined,
-                'contracts': this.convertValue (contracts, market),
+                'contracts': this.parseNumber (contracts),
                 'contractSize': undefined,
                 'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
                 'markPrice': this.safeNumber (position, 'markPrice'),
+                'lastPrice': undefined,
                 'notional': notional,
                 'leverage': this.safeNumber (position, 'leverage'),
                 'collateral': undefined,
                 'initialMargin': this.safeNumber (position, 'initMargin'),
                 'initialMarginPercentage': this.safeNumber (position, 'initMarginReq'),
-                'maintenanceMargin': this.convertValue (maintenanceMargin, market),
+                'maintenanceMargin': maintenanceMargin,
                 'maintenanceMarginPercentage': this.safeNumber (position, 'maintMarginReq'),
-                'unrealizedPnl': this.convertValue (unrealisedPnl, market),
+                'unrealizedPnl': unrealizedPnl,
                 'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
                 'marginMode': marginMode,
                 'marginRatio': undefined,
                 'percentage': this.safeNumber (position, 'unrealisedPnlPcnt'),
-            };
+            });
         }
         market = this.safeMarket (this.safeString (position, 'symbol'), market);
         const symbol = market['symbol'];
@@ -2664,41 +2671,34 @@ export default class bitmex extends Exchange {
         } else {
             notional = this.safeString (position, 'homeNotional');
         }
-        notional = this.parseNumber (notional);
-        const maintenanceMarginString = this.safeString (position, 'maintMargin');
-        const unrealisedPnlString = this.safeString (position, 'unrealisedPnl');
-        const currentQty = this.safeString (position, 'currentQty');
-        const lotSize = this.safeString (market['info'], 'lotSize');
-        const contracts = Precise.stringDiv (currentQty, lotSize);
-        const maintenanceMargin = this.positionValueConversion (maintenanceMarginString, market);
-        const unrealizedPnl = this.positionValueConversion (unrealisedPnlString, market);
-        return this.safePosition ({
+        const maintenanceMargin = this.safeNumber (position, 'maintMargin');
+        const unrealisedPnl = this.safeNumber (position, 'unrealisedPnl');
+        const contracts = this.omitZero (this.safeNumber (position, 'currentQty'));
+        return {
             'info': position,
-            'id': undefined,
+            'id': this.safeString (position, 'account'),
             'symbol': symbol,
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
-            'lastUpdateTimestamp': undefined,
             'hedged': undefined,
             'side': undefined,
-            'contracts': this.parseNumber (contracts),
+            'contracts': this.convertValue (contracts, market),
             'contractSize': undefined,
             'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
             'markPrice': this.safeNumber (position, 'markPrice'),
-            'lastPrice': undefined,
             'notional': notional,
             'leverage': this.safeNumber (position, 'leverage'),
             'collateral': undefined,
             'initialMargin': this.safeNumber (position, 'initMargin'),
             'initialMarginPercentage': this.safeNumber (position, 'initMarginReq'),
-            'maintenanceMargin': maintenanceMargin,
+            'maintenanceMargin': this.convertValue (maintenanceMargin, market),
             'maintenanceMarginPercentage': this.safeNumber (position, 'maintMarginReq'),
-            'unrealizedPnl': unrealizedPnl,
+            'unrealizedPnl': this.convertValue (unrealisedPnl, market),
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'marginMode': marginMode,
             'marginRatio': undefined,
             'percentage': this.safeNumber (position, 'unrealisedPnlPcnt'),
-        });
+        };
     }
 
     convertValue (value, market = undefined) {
