@@ -516,45 +516,66 @@ class bitrue extends Exchange {
             $id = $this->safe_string($currency, 'coin');
             $name = $this->safe_string($currency, 'coinFulName');
             $code = $this->safe_currency_code($id);
-            $enableDeposit = $this->safe_value($currency, 'enableDeposit');
-            $enableWithdraw = $this->safe_value($currency, 'enableWithdraw');
-            $networkIds = $this->safe_value($currency, 'chains', array());
+            $deposit = null;
+            $withdraw = null;
+            $minWithdrawString = null;
+            $maxWithdrawString = null;
+            $minWithdrawFeeString = null;
+            $networkDetails = $this->safe_value($currency, 'chainDetail', array());
             $networks = array();
-            for ($j = 0; $j < count($networkIds); $j++) {
-                $networkId = $networkIds[$j];
-                $network = $this->safe_network($networkId);
+            for ($j = 0; $j < count($networkDetails); $j++) {
+                $entry = $networkDetails[$j];
+                $networkId = $this->safe_string($entry, 'chain');
+                $network = $this->network_id_to_code($networkId, $code);
+                $enableDeposit = $this->safe_value($entry, 'enableDeposit');
+                $deposit = ($enableDeposit) ? $enableDeposit : $deposit;
+                $enableWithdraw = $this->safe_value($entry, 'enableWithdraw');
+                $withdraw = ($enableWithdraw) ? $enableWithdraw : $withdraw;
+                $networkWithdrawFeeString = $this->safe_string($entry, 'withdrawFee');
+                if ($networkWithdrawFeeString !== null) {
+                    $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $networkWithdrawFeeString : Precise::string_min($networkWithdrawFeeString, $minWithdrawFeeString);
+                }
+                $networkMinWithdrawString = $this->safe_string($entry, 'minWithdraw');
+                if ($networkMinWithdrawString !== null) {
+                    $minWithdrawString = ($minWithdrawString === null) ? $networkMinWithdrawString : Precise::string_min($networkMinWithdrawString, $minWithdrawString);
+                }
+                $networkMaxWithdrawString = $this->safe_string($entry, 'maxWithdraw');
+                if ($networkMaxWithdrawString !== null) {
+                    $maxWithdrawString = ($maxWithdrawString === null) ? $networkMaxWithdrawString : Precise::string_max($networkMaxWithdrawString, $maxWithdrawString);
+                }
                 $networks[$network] = array(
-                    'info' => $networkId,
+                    'info' => $entry,
                     'id' => $networkId,
                     'network' => $network,
-                    'active' => null,
-                    'fee' => null,
+                    'deposit' => $enableDeposit,
+                    'withdraw' => $enableWithdraw,
+                    'active' => $enableDeposit && $enableWithdraw,
+                    'fee' => $this->parse_number($networkWithdrawFeeString),
                     'precision' => null,
                     'limits' => array(
                         'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
+                            'min' => $this->parse_number($networkMinWithdrawString),
+                            'max' => $this->parse_number($networkMaxWithdrawString),
                         ),
                     ),
                 );
             }
-            $active = ($enableWithdraw && $enableDeposit);
             $result[$code] = array(
                 'id' => $id,
                 'name' => $name,
                 'code' => $code,
                 'precision' => null,
                 'info' => $currency,
-                'active' => $active,
-                'deposit' => $enableDeposit,
-                'withdraw' => $enableWithdraw,
+                'active' => $deposit && $withdraw,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
                 'networks' => $networks,
-                'fee' => $this->safe_number($currency, 'withdrawFee'),
+                'fee' => $this->parse_number($minWithdrawFeeString),
                 // 'fees' => fees,
                 'limits' => array(
                     'withdraw' => array(
-                        'min' => $this->safe_number($currency, 'minWithdraw'),
-                        'max' => $this->safe_number($currency, 'maxWithdraw'),
+                        'min' => $this->parse_number($minWithdrawString),
+                        'max' => $this->parse_number($maxWithdrawString),
                     ),
                 ),
             );

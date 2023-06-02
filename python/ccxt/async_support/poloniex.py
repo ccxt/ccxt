@@ -38,7 +38,7 @@ class poloniex(Exchange, ImplicitAPI):
             # 200 requests per second for some unauthenticated market endpoints => 1000ms / 200 = 5ms between requests
             'rateLimit': 5,
             'certified': False,
-            'pro': False,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,

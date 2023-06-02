@@ -138,6 +138,9 @@ class mexc(Exchange, ImplicitAPI):
                         'public': 'https://contract.mexc.com/api/v1/contract',
                         'private': 'https://contract.mexc.com/api/v1/private',
                     },
+                    'broker': {
+                        'private': 'https://api.mexc.com/api/v3/broker',
+                    },
                 },
                 'www': 'https://www.mexc.com/',
                 'doc': [
@@ -346,6 +349,29 @@ class mexc(Exchange, ImplicitAPI):
                             'order/cancel': 1,
                             'order/cancel_by_symbol': 1,
                             'asset/withdraw': 2,
+                        },
+                    },
+                },
+                'broker': {
+                    'private': {
+                        'get': {
+                            'sub-account/universalTransfer': 1,
+                            'sub-account/list': 1,
+                            'sub-account/apiKey': 1,
+                            'capital/deposit/subAddress': 1,
+                            'capital/deposit/subHisrec': 1,
+                            'capital/deposit/subHisrec/getall': 1,
+                        },
+                        'post': {
+                            'sub-account/virtualSubAccount': 1,
+                            'sub-account/apiKey': 1,
+                            'capital/deposit/subAddress': 1,
+                            'capital/withdraw/apply': 1,
+                            'sub-account/universalTransfer': 1,
+                            'sub-account/futures': 1,
+                        },
+                        'delete': {
+                            'sub-account/apiKey': 1,
                         },
                     },
                 },
@@ -4656,7 +4682,7 @@ class mexc(Exchange, ImplicitAPI):
         access = self.safe_string(api, 1)
         path, params = self.resolve_path(path, params)
         url = None
-        if section == 'spot':
+        if section == 'spot' or section == 'broker':
             url = self.urls['api'][section][access] + '/api/' + self.version + '/' + path
             paramsEncoded = ''
             if access == 'private':

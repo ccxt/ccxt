@@ -150,7 +150,6 @@ export default class Exchange {
     precisionFromString: typeof functions.precisionFromString;
     capitalize: (s: string) => string;
     now: () => number;
-    buildOHLCVC: (trades: Trade[], timeframe?: string, since?: number, limit?: number) => OHLCVC[];
     decimalToPrecision: (x: any, roundingMode: any, numPrecisionDigits: any, countingMode?: number, paddingMode?: number) => any;
     safeValue: (o: any, k: string | number, $default?: any) => any;
     safeValue2: (o: any, k1: string | number, k2: string | number, $default?: any) => any;
@@ -600,6 +599,7 @@ export default class Exchange {
     fetch2(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
     request(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
     loadAccounts(reload?: boolean, params?: {}): Promise<any>;
+    buildOHLCVC(trades: Trade[], timeframe?: string, since?: number, limit?: number): OHLCVC[];
     fetchOHLCVC(symbol: any, timeframe?: string, since?: any, limit?: Int, params?: {}): Promise<OHLCVC[]>;
     parseTradingViewOHLCV(ohlcvs: any, market?: any, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
     editLimitBuyOrder(id: any, symbol: any, amount: any, price?: any, params?: {}): Promise<Order>;

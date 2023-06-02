@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.14'
+__version__ = '3.1.19'
 
 # -----------------------------------------------------------------------------
 
@@ -22,11 +22,9 @@ from ccxt.async_support.base.throttler import Throttler
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.errors import BaseError, BadSymbol, AuthenticationError, ExchangeError, ExchangeNotAvailable, \
-    RequestTimeout, \
-    NotSupported, NullResponse, InvalidOrder, InvalidAddress
-from ccxt.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE, DECIMAL_PLACES
-from ccxt.base.types import OrderType, OrderSide, IndexType, Balance
+from ccxt.base.errors import BaseError, BadSymbol, BadRequest, AuthenticationError, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidOrder, InvalidAddress
+from ccxt.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE, DECIMAL_PLACES, SIGNIFICANT_DIGITS
+from ccxt.base.types import OrderType, OrderSide, IndexType, Balance, Trade
 
 # -----------------------------------------------------------------------------
 
@@ -1689,6 +1687,50 @@ class Exchange(BaseExchange):
         self.accountsById = self.index_by(self.accounts, 'id')
         return self.accounts
 
+    def build_ohlcvc(self, trades: List[Trade], timeframe: str = '1m', since: float = 0, limit: float = 2147483647):
+        # given a sorted arrays of trades(recent last) and a timeframe builds an array of OHLCV candles
+        # note, default limit value(2147483647) is max int32 value
+        ms = self.parse_timeframe(timeframe) * 1000
+        ohlcvs = []
+        i_timestamp = 0
+        # open = 1
+        i_high = 2
+        i_low = 3
+        i_close = 4
+        i_volume = 5
+        i_count = 6
+        tradesLength = len(trades)
+        oldest = min(tradesLength, limit)
+        for i in range(0, oldest):
+            trade = trades[i]
+            ts = trade['timestamp']
+            if ts < since:
+                continue
+            openingTime = int(math.floor(ts / ms)) * ms  # shift to the edge of m/h/d(but not M)
+            if openingTime < since:  # we don't need bars, that have opening time earlier than requested
+                continue
+            ohlcv_length = len(ohlcvs)
+            candle = ohlcv_length - 1
+            if (candle == -1) or (openingTime >= self.sum(ohlcvs[candle][i_timestamp], ms)):
+                # moved to a new timeframe -> create a new candle from opening trade
+                ohlcvs.append([
+                    openingTime,  # timestamp
+                    trade['price'],  # O
+                    trade['price'],  # H
+                    trade['price'],  # L
+                    trade['price'],  # C
+                    trade['amount'],  # V
+                    1,  # count
+                ])
+            else:
+                # still processing the same timeframe -> update opening trade
+                ohlcvs[candle][i_high] = max(ohlcvs[candle][i_high], trade['price'])
+                ohlcvs[candle][i_low] = min(ohlcvs[candle][i_low], trade['price'])
+                ohlcvs[candle][i_close] = trade['price']
+                ohlcvs[candle][i_volume] = self.sum(ohlcvs[candle][i_volume], trade['amount'])
+                ohlcvs[candle][i_count] = self.sum(ohlcvs[candle][i_count], 1)
+        return ohlcvs
+
     async def fetch_ohlcvc(self, symbol, timeframe='1m', since: Optional[Any] = None, limit: Optional[int] = None, params={}):
         if not self.has['fetchTrades']:
             raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
@@ -2622,7 +2664,7 @@ class Exchange(BaseExchange):
         :param str symbol: unified symbol of the market
         :param str methodName: name of the method that requires a symbol
         """
-        self.checkRequiredArgument(methodName, symbol, 'symbol')
+        self.check_required_argument(methodName, symbol, 'symbol')
 
     def parse_deposit_withdraw_fees(self, response, codes: Optional[List[str]] = None, currencyIdKey=None):
         """

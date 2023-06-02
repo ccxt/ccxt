@@ -300,11 +300,13 @@ class bitget(Exchange, ImplicitAPI):
                             'account/setMarginMode': 4,  # 5 times/1s(UID) => 20/5 = 4
                             'account/setPositionMode': 4,  # 5 times/1s(UID) => 20/5 = 4
                             'order/placeOrder': 2,
+                            'order/modifyOrder': 2,
                             'order/batch-orders': 2,
                             'order/cancel-order': 2,
                             'order/cancel-batch-orders': 2,
                             'order/cancel-symbol-orders': 2,
                             'order/cancel-all-orders': 2,
+                            'order/close-all-positions': 20,
                             'plan/placePlan': 2,
                             'plan/modifyPlan': 2,
                             'plan/modifyPlanPreset': 2,
