@@ -831,13 +831,13 @@ export default class bitmex extends Exchange {
             'datetime': undefined,
             'nonce': undefined,
         };
-        const baseCurrency = this.currency (market['base']);
         for (let i = 0; i < response.length; i++) {
             const order = response[i];
             const side = (order['side'] === 'Sell') ? 'asks' : 'bids';
             let amount = this.safeNumber (order, 'size');
             if (!this.safeValue (this.options, 'oldPrecision')) {
                 const sizeString = this.safeString (order, 'size');
+                const baseCurrency = this.currency (market['base']);
                 const currencyPrecision = this.safeString (baseCurrency, 'precision');
                 const amountStringDivBase = Precise.stringMul (sizeString, currencyPrecision);
                 amount = this.parseNumber (amountStringDivBase);
@@ -1308,15 +1308,12 @@ export default class bitmex extends Exchange {
             addressFrom = this.safeString (transaction, 'tx');
             addressTo = this.safeString (transaction, 'address');
         }
-        let amountString = undefined;
-        let feeCostString = undefined;
-        if (this.safeValue (this.options, 'oldPrecision')) {
-            amountString = this.safeString (transaction, 'amount');
-            const scale = (currency['code'] === 'BTC') ? '1e8' : '1e6';
-            amountString = Precise.stringDiv (Precise.stringAbs (amountString), scale);
-            feeCostString = this.safeString (transaction, 'fee');
-            feeCostString = Precise.stringDiv (feeCostString, scale);
-        } else {
+        let amountString = this.safeString (transaction, 'amount');
+        const scale = (currency['code'] === 'BTC') ? '1e8' : '1e6';
+        amountString = Precise.stringDiv (Precise.stringAbs (amountString), scale);
+        let feeCostString = this.safeString (transaction, 'fee');
+        feeCostString = Precise.stringDiv (feeCostString, scale);
+        if (!this.safeValue (this.options, 'oldPrecision')) {
             amountString = Precise.stringAbs (this.safeString (transaction, 'amount')); // withdraw has negative amount
             const precision = this.safeString (currency, 'precision');
             amountString = Precise.stringMul (amountString, precision);
@@ -1815,22 +1812,21 @@ export default class bitmex extends Exchange {
         const quoteCurrencyPrecision = this.safeString (quoteCurrency, 'precision');
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const priceString = this.safeString2 (trade, 'avgPx', 'price');
-        const amountString = this.safeString2 (trade, 'size', 'lastQty');
-        let amount = undefined;
+        let amountString = this.safeString2 (trade, 'size', 'lastQty');
         const execCost = this.safeString (trade, 'execCost');
-        let costString = undefined;
-        if (this.safeValue (this.options, 'oldPrecision')) {
-            costString = Precise.stringDiv (Precise.stringAbs (execCost), '1e8');
-            amount = amountString;
-        } else {
+        let costString = Precise.stringDiv (Precise.stringAbs (execCost), '1e8');
+        if (!this.safeValue (this.options, 'oldPrecision')) {
             costString = Precise.stringMul (Precise.stringAbs (execCost), quoteCurrencyPrecision);
-            amount = Precise.stringMul (amountString, baseCurrencyPrecision);
+            amountString = Precise.stringMul (amountString, baseCurrencyPrecision);
         }
         const id = this.safeString (trade, 'trdMatchID');
         const order = this.safeString (trade, 'orderID');
         const side = this.safeStringLower (trade, 'side');
         let fee = undefined;
-        const feeCostString = Precise.stringMul (this.safeString (trade, 'execComm'), quoteCurrencyPrecision);
+        let feeCostString = Precise.stringDiv (this.safeString (trade, 'execComm'), '1e8');
+        if (!this.safeValue (this.options, 'oldPrecision')) {
+            feeCostString = Precise.stringMul (this.safeString (trade, 'execComm'), quoteCurrencyPrecision);
+        }
         if (feeCostString !== undefined) {
             const currencyId = this.safeString (trade, 'settlCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (currencyId);
@@ -1860,7 +1856,7 @@ export default class bitmex extends Exchange {
             'side': side,
             'price': priceString,
             'cost': costString,
-            'amount': amount,
+            'amount': amountString,
             'fee': fee,
         }, market);
     }
@@ -1938,8 +1934,12 @@ export default class bitmex extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'transactTime'));
         const price = this.safeString (order, 'price');
-        const amount = this.parseFromQuantity (market['symbol'], this.safeString (order, 'orderQty'));
-        const filled = this.parseFromQuantity (market['symbol'], this.safeString (order, 'cumQty'));
+        let amount = this.safeString (order, 'orderQty');
+        let filled = this.safeString (order, 'cumQty');
+        if (!this.safeValue (this.options, 'oldPrecision')) {
+            amount = this.parseFromQuantity (market['symbol'], amount);
+            filled = this.parseFromQuantity (market['symbol'], filled);
+        }
         const average = this.safeString (order, 'avgPx');
         const id = this.safeString (order, 'orderID');
         const type = this.safeStringLower (order, 'ordType');
@@ -2061,10 +2061,13 @@ export default class bitmex extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'orderQty': this.convertIntoQuantity (market['symbol'], parseFloat (this.amountToPrecision (symbol, amount))), // lot size multiplied by the number of contracts
+            'orderQty': parseFloat (this.amountToPrecision (symbol, amount)), // lot size multiplied by the number of contracts
             'ordType': orderType,
             'text': brokerId,
         };
+        if (!this.safeValue (this.options, 'oldPrecision', false)) {
+            request['orderQty'] = this.convertIntoQuantity (market['symbol'], request['orderQty']);
+        }
         if ((orderType === 'Stop') || (orderType === 'StopLimit') || (orderType === 'MarketIfTouched') || (orderType === 'LimitIfTouched')) {
             const stopPrice = this.safeNumber2 (params, 'stopPx', 'stopPrice');
             if (stopPrice === undefined) {
@@ -2104,7 +2107,10 @@ export default class bitmex extends Exchange {
             request['orderID'] = id;
         }
         if (amount !== undefined) {
-            request['orderQty'] = this.convertIntoQuantity (symbol, amount);
+            request['orderQty'] = amount;
+        }
+        if (this.safeValue (this.options, 'oldPrecision', false)) {
+            request['orderQty'] = this.convertIntoQuantity (symbol, request['orderQty']);
         }
         if (price !== undefined) {
             request['price'] = price;
@@ -2463,7 +2469,7 @@ export default class bitmex extends Exchange {
         }
         return this.safePosition ({
             'info': position,
-            'id': undefined,
+            'id': this.safeString (position, 'account'),
             'symbol': symbol,
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
