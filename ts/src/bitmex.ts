@@ -805,14 +805,7 @@ export default class bitmex extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const order = response[i];
             const side = (order['side'] === 'Sell') ? 'asks' : 'bids';
-            let amount = this.safeNumber (order, 'size');
-            if (this.newPrecision ()) {
-                const sizeString = this.safeString (order, 'size');
-                const baseCurrency = this.currency (market['base']);
-                const currencyPrecision = this.safeString (baseCurrency, 'precision');
-                const amountStringDivBase = Precise.stringMul (sizeString, currencyPrecision);
-                amount = this.parseNumber (amountStringDivBase);
-            }
+            const amount = this.safeNumber (order, 'size');
             const price = this.safeNumber (order, 'price');
             // https://github.com/ccxt/ccxt/issues/4926
             // https://github.com/ccxt/ccxt/issues/4927
