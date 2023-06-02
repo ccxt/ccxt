@@ -2464,8 +2464,9 @@ export default class bitmex extends Exchange {
         if (!this.newPrecision ()) {
             return amountNumeric;
         }
+        const amountString = this.numberToString (amountNumeric);
         const precision = this.safeString (currency, 'precision');
-        return parseFloat (Precise.stringDiv (this.numberToString (amountNumeric), precision));
+        return parseFloat (Precise.stringDiv (amountString, precision));
     }
 
     convertToRealAmount (currencyCode, amountString) {
