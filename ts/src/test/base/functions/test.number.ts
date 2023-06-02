@@ -1,5 +1,6 @@
 import assert from 'assert';
 import { functions } from '../../../../ccxt.js';
+// eslint-disable-next-line import/newline-after-import
 import Precise from '../../../base/Precise.js';
 const { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, TICK_SIZE, PAD_WITH_ZERO, SIGNIFICANT_DIGITS } = functions;
 // ----------------------------------------------------------------------------
