@@ -75,10 +75,8 @@ export default class hitbtc3 extends hitbtc3Rest {
         const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
-            const accessPath = '/ws';
             const timestamp = this.milliseconds ();
-            const requestString = 'GET\n' + accessPath + '\nsignTimestamp=' + timestamp;
-            const signature = this.hmac (this.encode (requestString), this.encode (this.secret), sha256, 'base64');
+            const signature = this.hmac (this.encode (this.numberToString (timestamp)), this.encode (this.secret), sha256, 'base64');
             const request = {
                 'type': 'HS256',
                 'api_key': this.apiKey,
@@ -439,7 +437,7 @@ export default class hitbtc3 extends hitbtc3Rest {
         params = this.deepExtend ({
             'params': request,
         });
-        const trades = await this.subscribe ('trades', false, symbol, params);
+        const trades = await this.subscribe ('trades', false, market['id'], params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
