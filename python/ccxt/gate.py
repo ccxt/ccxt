@@ -136,6 +136,7 @@ class gate(Exchange, ImplicitAPI):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPosition': True,
                 'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
@@ -2626,8 +2627,7 @@ class gate(Exchange, ImplicitAPI):
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderTrades requires a symbol argument')
+        self.check_required_symbol('fetchOrderTrades', symbol)
         #
         #      [
         #          {
@@ -2653,6 +2653,10 @@ class gate(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Fetch personal trading history
+        see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history
+        see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-2
+        see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-3
+        see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-4
         :param str|None symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
@@ -2676,9 +2680,11 @@ class gate(Exchange, ImplicitAPI):
         until = self.safe_integer_2(params, 'until', 'till')
         params = self.omit(params, ['until', 'till'])
         type, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
-        contract = (type == 'swap') or (type == 'future')
+        contract = (type == 'swap') or (type == 'future') or (type == 'option')
         if contract:
             request, params = self.prepare_request(market, type, params)
+            if type == 'option':
+                params = self.omit(params, 'order_id')
         else:
             if market is not None:
                 request['currency_pair'] = market['id']  # Should always be set for non-stop
@@ -2695,6 +2701,7 @@ class gate(Exchange, ImplicitAPI):
             'margin': 'privateSpotGetMyTrades',
             'swap': 'privateFuturesGetSettleMyTradesTimerange',
             'future': 'privateDeliveryGetSettleMyTrades',
+            'option': 'privateOptionsGetMyTrades',
         })
         response = getattr(self, method)(self.extend(request, params))
         #
@@ -2743,6 +2750,21 @@ class gate(Exchange, ImplicitAPI):
         #             "size": 100,
         #             "price": "100.123",
         #             "role": "taker"
+        #         }
+        #     ]
+        #
+        # option
+        #
+        #     [
+        #         {
+        #             "underlying_price": "26817.84",
+        #             "size": -1,
+        #             "contract": "BTC_USDT-20230602-26500-C",
+        #             "id": 16,
+        #             "role": "taker",
+        #             "create_time": 1685594770,
+        #             "order_id": 2611026125,
+        #             "price": "333"
         #         }
         #     ]
         #
@@ -2814,7 +2836,7 @@ class gate(Exchange, ImplicitAPI):
         #         "role": "taker"
         #     }
         #
-        # option rest
+        # fetchTrades: option
         #
         #     {
         #         "size": -5,
@@ -2822,6 +2844,19 @@ class gate(Exchange, ImplicitAPI):
         #         "create_time": 1682378573,
         #         "contract": "ETH_USDT-20230526-2000-P",
         #         "price": "209.1"
+        #     }
+        #
+        # fetchMyTrades: option
+        #
+        #     {
+        #         "underlying_price": "26817.84",
+        #         "size": -1,
+        #         "contract": "BTC_USDT-20230602-26500-C",
+        #         "id": 16,
+        #         "role": "taker",
+        #         "create_time": 1685594770,
+        #         "order_id": 2611026125,
+        #         "price": "333"
         #     }
         #
         id = self.safe_string(trade, 'id')
@@ -4212,6 +4247,8 @@ class gate(Exchange, ImplicitAPI):
 
     def parse_position(self, position, market=None):
         #
+        # swap and future
+        #
         #     {
         #         value: "12.475572",
         #         leverage: "0",
@@ -4236,6 +4273,27 @@ class gate(Exchange, ImplicitAPI):
         #         margin: "0.740721495056",
         #         last_close_pnl: "-0.041996015",
         #         liq_price: "59058.58"
+        #     }
+        #
+        # option
+        #
+        #     {
+        #         "close_order": null,
+        #         "size": 1,
+        #         "vega": "5.29756",
+        #         "theta": "-98.98917",
+        #         "gamma": "0.00056",
+        #         "delta": "0.68691",
+        #         "contract": "BTC_USDT-20230602-26500-C",
+        #         "entry_price": "529",
+        #         "unrealised_pnl": "-1.0131",
+        #         "user": 5691076,
+        #         "mark_price": "427.69",
+        #         "underlying_price": "26810.2",
+        #         "underlying": "BTC_USDT",
+        #         "realised_pnl": "-0.08042877",
+        #         "mark_iv": "0.4224",
+        #         "pending_orders": 0
         #     }
         #
         contract = self.safe_string(position, 'contract')
@@ -4289,13 +4347,92 @@ class gate(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
+    def fetch_position(self, symbol: str, params={}):
+        """
+        fetch data on an open contract position
+        see https://www.gate.io/docs/developers/apiv4/en/#get-single-position
+        see https://www.gate.io/docs/developers/apiv4/en/#get-single-position-2
+        see https://www.gate.io/docs/developers/apiv4/en/#get-specified-contract-position
+        :param str symbol: unified market symbol of the market the position is held in
+        :param dict params: extra parameters specific to the gate api endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchPosition() supports contract markets only')
+        request = {}
+        request, params = self.prepare_request(market, market['type'], params)
+        extendedRequest = self.extend(request, params)
+        response = None
+        if market['type'] == 'swap':
+            response = self.privateFuturesGetSettlePositionsContract(extendedRequest)
+        elif market['type'] == 'future':
+            response = self.privateDeliveryGetSettlePositionsContract(extendedRequest)
+        elif market['type'] == 'option':
+            response = self.privateOptionsGetPositionsContract(extendedRequest)
+        #
+        # swap and future
+        #
+        #     {
+        #         "value": "12.475572",
+        #         "leverage": "0",
+        #         "mode": "single",
+        #         "realised_point": "0",
+        #         "contract": "BTC_USDT",
+        #         "entry_price": "62422.6",
+        #         "mark_price": "62377.86",
+        #         "history_point": "0",
+        #         "realised_pnl": "-0.00624226",
+        #         "close_order":  null,
+        #         "size": "2",
+        #         "cross_leverage_limit": "25",
+        #         "pending_orders": "0",
+        #         "adl_ranking": "5",
+        #         "maintenance_rate": "0.005",
+        #         "unrealised_pnl": "-0.008948",
+        #         "user": "6693577",
+        #         "leverage_max": "100",
+        #         "history_pnl": "14.98868396636",
+        #         "risk_limit": "1000000",
+        #         "margin": "0.740721495056",
+        #         "last_close_pnl": "-0.041996015",
+        #         "liq_price": "59058.58"
+        #     }
+        #
+        # option
+        #
+        #     {
+        #         "close_order": null,
+        #         "size": 1,
+        #         "vega": "5.29756",
+        #         "theta": "-98.98917",
+        #         "gamma": "0.00056",
+        #         "delta": "0.68691",
+        #         "contract": "BTC_USDT-20230602-26500-C",
+        #         "entry_price": "529",
+        #         "unrealised_pnl": "-1.0131",
+        #         "user": 5691076,
+        #         "mark_price": "427.69",
+        #         "underlying_price": "26810.2",
+        #         "underlying": "BTC_USDT",
+        #         "realised_pnl": "-0.08042877",
+        #         "mark_iv": "0.4224",
+        #         "pending_orders": 0
+        #     }
+        #
+        return self.parse_position(response, market)
+
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
+        see https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user
+        see https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user-2
+        see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-positions-of-specified-underlying
         :param [str]|None symbols: Not used by gate, but parsed internally by CCXT
         :param dict params: extra parameters specific to the gate api endpoint
         :param str params['settle']: 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
-        :param str params['type']: swap or future, if not provided self.options['defaultType'] is used
+        :param str params['type']: swap, future or option, if not provided self.options['defaultType'] is used
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
@@ -4309,15 +4446,25 @@ class gate(Exchange, ImplicitAPI):
                     checkMarket = self.market(symbols[i])
                     if checkMarket['type'] != market['type']:
                         raise BadRequest(self.id + ' fetchPositions() does not support multiple types of positions at the same time')
-        type, query = self.handle_market_type_and_params('fetchPositions', market, params)
-        if type != 'swap' and type != 'future':
-            raise ArgumentsRequired(self.id + ' fetchPositions requires a type parameter, "swap" or "future"')
-        request, requestParams = self.prepare_request(None, type, query)
+        type = None
+        request = {}
+        type, params = self.handle_market_type_and_params('fetchPositions', market, params)
+        self.check_required_argument('fetchPositions', type, 'type', ['swap', 'future', 'option'])
+        if type == 'option':
+            if symbols is not None:
+                marketId = market['id']
+                optionParts = marketId.split('-')
+                request['underlying'] = self.safe_string(optionParts, 0)
+        else:
+            request, params = self.prepare_request(None, type, params)
         method = self.get_supported_mapping(type, {
             'swap': 'privateFuturesGetSettlePositions',
             'future': 'privateDeliveryGetSettlePositions',
+            'option': 'privateOptionsGetPositions',
         })
-        response = getattr(self, method)(self.extend(request, requestParams))
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # swap and future
         #
         #     [
         #         {
@@ -4344,6 +4491,29 @@ class gate(Exchange, ImplicitAPI):
         #             margin: "0.740721495056",
         #             last_close_pnl: "-0.041996015",
         #             liq_price: "59058.58"
+        #         }
+        #     ]
+        #
+        # option
+        #
+        #     [
+        #         {
+        #             "close_order": null,
+        #             "size": 0,
+        #             "vega": "0.01907",
+        #             "theta": "-3.04888",
+        #             "gamma": "0.00001",
+        #             "delta": "0.0011",
+        #             "contract": "BTC_USDT-20230601-27500-C",
+        #             "entry_price": "0",
+        #             "unrealised_pnl": "0",
+        #             "user": 5691076,
+        #             "mark_price": "0.07",
+        #             "underlying_price": "26817.27",
+        #             "underlying": "BTC_USDT",
+        #             "realised_pnl": "0",
+        #             "mark_iv": "0.4339",
+        #             "pending_orders": 0
         #         }
         #     ]
         #
