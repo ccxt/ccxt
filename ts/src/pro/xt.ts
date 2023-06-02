@@ -174,7 +174,7 @@ export default class xt extends xtRest {
          * @see https://doc.xt.com/#websocket_publicallTicker
          * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
          * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
-         * @param {string} symbol not used by xt watchTickers
+         * @param {string} symbols not used by xt watchTickers
          * @param {object} params extra parameters specific to the xt api endpoint
          * @param {string} params.method 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -600,8 +600,8 @@ export default class xt extends xtRest {
         //        "event": "depth@btc_usdt,20",
         //        "data": {
         //            "s": "btc_usdt",        // symbol
-        //            "fi": 1681433733351,
-        //            "i": 1681433733371,
+        //            "fi": 1681433733351,    // firstUpdateId = previous lastUpdateId + 1
+        //            "i": 1681433733371,     // updateId
         //            "a": [                  // asks(sell order)
         //                [                   // [0]price, [1]quantity
         //                    "34000",        // price
@@ -686,6 +686,11 @@ export default class xt extends xtRest {
                     orderbook['bids'].store (price, quantity);
                 }
             }
+            const timestamp = this.safeString (data, 't');
+            orderbook['nonce'] = this.safeString2 (data, 'i', 'u');
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
+            orderbook['symbol'] = symbol;
             client.resolve (orderbook, messageHash);
         }
     }
