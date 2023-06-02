@@ -1247,11 +1247,6 @@ export default class bitmex extends Exchange {
             'currency': 'all',
             // 'start': 123,
         };
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency'] = currency['id'];
-        }
         //
         //     if (since !== undefined) {
         //         // date-based pagination not supported
@@ -1262,6 +1257,11 @@ export default class bitmex extends Exchange {
         }
         const response = await this.privateGetUserWalletHistory (this.extend (request, params));
         const transactions = this.filterByArray (response, 'transactType', [ 'Withdrawal', 'Deposit' ], false);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
@@ -1309,9 +1309,6 @@ export default class bitmex extends Exchange {
             address = this.safeString (transaction, 'address');
             addressFrom = this.safeString (transaction, 'tx');
             addressTo = address;
-        } else if (type === 'deposit') {
-            addressFrom = this.safeString (transaction, 'tx');
-            addressTo = this.safeString (transaction, 'address');
         }
         let amountString = this.safeString (transaction, 'amount');
         const scale = (currency['code'] === 'BTC') ? '1e8' : '1e6';
