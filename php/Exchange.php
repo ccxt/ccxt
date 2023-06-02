@@ -2189,13 +2189,17 @@ class Exchange {
     }
 
     public function check_proxy_settings() {
-        $proxyUrl = $this->safe_string_2(this, 'proxyUrl', 'proxy_url');
-        $proxyUrlCallback = $this->safe_value_2(this, 'proxyUrlCallback', 'proxy_url_callback');
+        $proxyUrl = $this->safe_string_2($this, 'proxyUrl', 'proxy_url');
+        $proxyUrlCallback = $this->safe_value_2($this, 'proxyUrlCallback', 'proxy_url_callback');
         // for backwards compatibility,added old keys too
-        $proxyHttp = $this->safe_string_n(this, array( 'proxyHttp', 'proxy_http', 'httpProxy' ));
-        $proxyHttps = $this->safe_string_n(this, array( 'proxyHttps', 'proxy_https', 'httpsProxy' ));
-        $proxySocks = $this->safe_string_2(this, 'proxySocks', 'proxy_socks');
-        $proxyAgentCallback = $this->safe_value_2(this, 'proxyAgentCallback', 'proxy_agent_callback');
+        $proxyHttp = $this->safe_string_2($this, 'proxyHttp', 'proxy_http');
+        // support for backward compatibility (note, atm safeStringN does not work in python for class https://app.travis-ci.com/github/ccxt/ccxt/builds/263490790#L4765 , so we have to use separate safeString)
+        if ($proxyHttp === null) {
+            $proxyHttp = $this->safe_string($this, 'httpProxy');
+        }
+        $proxyHttps = $this->safe_string_2($this, 'proxyHttps', 'proxy_https');
+        $proxySocks = $this->safe_string_2($this, 'proxySocks', 'proxy_socks');
+        $proxyAgentCallback = $this->safe_value_2($this, 'proxyAgentCallback', 'proxy_agent_callback');
         $val = 0;
         if ($proxyUrl !== null) {
             $val = $val + 1;

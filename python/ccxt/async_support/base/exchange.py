@@ -528,8 +528,11 @@ class Exchange(BaseExchange):
         proxyUrl = self.safe_string_2(self, 'proxyUrl', 'proxy_url')
         proxyUrlCallback = self.safe_value_2(self, 'proxyUrlCallback', 'proxy_url_callback')
         # for backwards compatibility,added old keys too
-        proxyHttp = self.safe_string_n(self, ['proxyHttp', 'proxy_http', 'httpProxy'])
-        proxyHttps = self.safe_string_n(self, ['proxyHttps', 'proxy_https', 'httpsProxy'])
+        proxyHttp = self.safe_string_2(self, 'proxyHttp', 'proxy_http')
+        # support for backward compatibility(note, atm safeStringN does not work in python for class https://app.travis-ci.com/github/ccxt/ccxt/builds/263490790#L4765 , so we have to use separate safeString)
+        if proxyHttp is None:
+            proxyHttp = self.safe_string(self, 'httpProxy')
+        proxyHttps = self.safe_string_2(self, 'proxyHttps', 'proxy_https')
         proxySocks = self.safe_string_2(self, 'proxySocks', 'proxy_socks')
         proxyAgentCallback = self.safe_value_2(self, 'proxyAgentCallback', 'proxy_agent_callback')
         val = 0
