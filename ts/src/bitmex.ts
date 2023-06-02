@@ -323,6 +323,7 @@ export default class bitmex extends Exchange {
             const networks = {};
             const scale = this.safeString (currency, 'scale');
             const precisionString = this.parsePrecision (scale);
+            const precision = this.parseNumber (precisionString);
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'asset');
@@ -376,7 +377,7 @@ export default class bitmex extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': undefined,
-                'precision': this.parseNumber (precisionString),
+                'precision': precision,
                 'limits': {
                     'amount': {
                         'min': undefined,
