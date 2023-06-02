@@ -1534,12 +1534,6 @@ export default class Exchange {
         return parseInt (convertedNumber);
     }
 
-    replaceAllOccurences (input: string, search: string, replacement: string) {
-        const splited = input.split (search);
-        const joined = splited.join (replacement);
-        return joined;
-    }
-
     getDefaultOptions () {
         return {
             'defaultNetworkCodeReplacements': {

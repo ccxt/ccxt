@@ -3036,7 +3036,7 @@ export default class bitmex extends Exchange {
         //
         return {
             'currency': code,
-            'address': this.replaceAllOccurences (response, '"', ''),
+            'address': (response.replace ('"', '')).replace ('"', ''), // Done twice because some languages only replace the first instance
             'tag': undefined,
             'network': this.networkIdToCode (networkId).toUpperCase (),
             'info': response,
