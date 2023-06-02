@@ -2608,7 +2608,7 @@ export default class bitmex extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency['info']['currency'], // this is specific currency-slug, like XBt, which differs from currency['id'] XBT
+            'currency': currency['id'],
             'amount': this.convertCurrencyAmountTo (currency, amount),
             'address': address,
             // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
