@@ -1104,6 +1104,9 @@ export default class bitmex extends Exchange {
             address = this.safeString (transaction, 'address');
             addressFrom = this.safeString (transaction, 'tx');
             addressTo = address;
+        } else if (type === 'deposit') {
+            addressTo = this.safeString (transaction, 'address');
+            addressFrom = this.safeString (transaction, 'tx');
         }
         let amountString = this.safeString (transaction, 'amount');
         const scale = (currency['code'] === 'BTC') ? '1e8' : '1e6';
@@ -1120,7 +1123,7 @@ export default class bitmex extends Exchange {
             'txid': this.safeString (transaction, 'tx'),
             'type': type,
             'currency': currency['code'],
-            'network': this.safeString (transaction, 'status'),
+            'network': this.safeString (transaction, 'network'),
             'amount': this.parseNumber (amountString),
             'status': status,
             'timestamp': transactTime,
@@ -2554,7 +2557,7 @@ export default class bitmex extends Exchange {
         //
         return {
             'currency': code,
-            'address': response.replace ('"', '').replace ('"', ''),  // Done twice because some languages only replace the first instance
+            'address': response.replace ('"', '').replace ('"', ''), // Done twice because some languages only replace the first instance
             'tag': undefined,
             'network': this.networkIdToCode (networkId).toUpperCase (),
             'info': response,
