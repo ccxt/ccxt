@@ -141,7 +141,6 @@ import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
 import poloniexfutures from  './src/poloniexfutures.js'
 import probit from  './src/probit.js'
-import stex from  './src/stex.js'
 import tidex from  './src/tidex.js'
 import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
@@ -313,7 +312,6 @@ const exchanges = {
     'poloniex':               poloniex,
     'poloniexfutures':        poloniexfutures,
     'probit':                 probit,
-    'stex':                   stex,
     'tidex':                  tidex,
     'timex':                  timex,
     'tokocrypto':             tokocrypto,
@@ -556,7 +554,6 @@ export {
     poloniex,
     poloniexfutures,
     probit,
-    stex,
     tidex,
     timex,
     tokocrypto,
