@@ -548,7 +548,10 @@
     },
     "coinspot": {
         "skipMethods": {
-            "loadMarkets": "precision key has an null value, but is expected to have a value| taker key missing from structure (markets are created from constructor .options, so needs to fill with default values in base)"
+            "loadMarkets": "precision key has an null value, but is expected to have a value| taker key missing from structure (markets are created from constructor .options, so needs to fill with default values in base)",
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing"
+            }
         }
     },
     "coinsph": {
