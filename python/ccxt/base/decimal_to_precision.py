@@ -169,6 +169,8 @@ def number_to_string(x):
     # avoids scientific notation for too large and too small numbers
     if x is None:
         return None
+    if isinstance(x, str):
+        return x
     d = decimal.Decimal(str(x))
     formatted = '{:f}'.format(d)
     return formatted.rstrip('0').rstrip('.') if '.' in formatted else formatted
