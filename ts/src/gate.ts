@@ -2013,6 +2013,10 @@ export default class gate extends Exchange {
          * @method
          * @name gate#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-order-book
+         * @see https://www.gate.io/docs/developers/apiv4/en/#futures-order-book
+         * @see https://www.gate.io/docs/developers/apiv4/en/#futures-order-book-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#options-order-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the gate api endpoint
@@ -2028,12 +2032,13 @@ export default class gate extends Exchange {
         //         'with_id': true, // return order book ID
         //     };
         //
-        const [ request, query ] = this.prepareRequest (market, undefined, params);
+        const [ request, query ] = this.prepareRequest (market, market['type'], params);
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetOrderBook',
             'margin': 'publicSpotGetOrderBook',
             'swap': 'publicFuturesGetSettleOrderBook',
             'future': 'publicDeliveryGetSettleOrderBook',
+            'option': 'publicOptionsGetOrderBook',
         });
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
@@ -2041,7 +2046,7 @@ export default class gate extends Exchange {
         request['with_id'] = true;
         const response = await this[method] (this.extend (request, query));
         //
-        // SPOT
+        // spot
         //
         //     {
         //         "id": 6358770031
@@ -2072,7 +2077,7 @@ export default class gate extends Exchange {
         //         ]
         //     }
         //
-        // Perpetual Swap
+        // swap, future and option
         //
         //     {
         //         "id": 6358770031
