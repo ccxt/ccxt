@@ -1933,6 +1933,10 @@ class gate(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        see https://www.gate.io/docs/developers/apiv4/en/#retrieve-order-book
+        see https://www.gate.io/docs/developers/apiv4/en/#futures-order-book
+        see https://www.gate.io/docs/developers/apiv4/en/#futures-order-book-2
+        see https://www.gate.io/docs/developers/apiv4/en/#options-order-book
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the gate api endpoint
@@ -1948,19 +1952,20 @@ class gate(Exchange, ImplicitAPI):
         #         'with_id': True,  # return order book ID
         #     }
         #
-        request, query = self.prepare_request(market, None, params)
+        request, query = self.prepare_request(market, market['type'], params)
         method = self.get_supported_mapping(market['type'], {
             'spot': 'publicSpotGetOrderBook',
             'margin': 'publicSpotGetOrderBook',
             'swap': 'publicFuturesGetSettleOrderBook',
             'future': 'publicDeliveryGetSettleOrderBook',
+            'option': 'publicOptionsGetOrderBook',
         })
         if limit is not None:
             request['limit'] = limit  # default 10, max 100
         request['with_id'] = True
         response = await getattr(self, method)(self.extend(request, query))
         #
-        # SPOT
+        # spot
         #
         #     {
         #         "id": 6358770031
@@ -1991,7 +1996,7 @@ class gate(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        # Perpetual Swap
+        # swap, future and option
         #
         #     {
         #         "id": 6358770031

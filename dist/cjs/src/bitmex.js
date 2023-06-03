@@ -1091,6 +1091,10 @@ class bitmex extends bitmex$1 {
             addressFrom = this.safeString(transaction, 'tx');
             addressTo = address;
         }
+        else if (type === 'deposit') {
+            addressTo = this.safeString(transaction, 'address');
+            addressFrom = this.safeString(transaction, 'tx');
+        }
         let amountString = this.safeString(transaction, 'amount');
         const scale = (currency['code'] === 'BTC') ? '1e8' : '1e6';
         amountString = Precise["default"].stringDiv(Precise["default"].stringAbs(amountString), scale);
@@ -1106,7 +1110,7 @@ class bitmex extends bitmex$1 {
             'txid': this.safeString(transaction, 'tx'),
             'type': type,
             'currency': currency['code'],
-            'network': this.safeString(transaction, 'status'),
+            'network': this.safeString(transaction, 'network'),
             'amount': this.parseNumber(amountString),
             'status': status,
             'timestamp': transactTime,

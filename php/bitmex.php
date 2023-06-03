@@ -1083,6 +1083,9 @@ class bitmex extends Exchange {
             $address = $this->safe_string($transaction, 'address');
             $addressFrom = $this->safe_string($transaction, 'tx');
             $addressTo = $address;
+        } elseif ($type === 'deposit') {
+            $addressTo = $this->safe_string($transaction, 'address');
+            $addressFrom = $this->safe_string($transaction, 'tx');
         }
         $amountString = $this->safe_string($transaction, 'amount');
         $scale = ($currency['code'] === 'BTC') ? '1e8' : '1e6';
@@ -1099,7 +1102,7 @@ class bitmex extends Exchange {
             'txid' => $this->safe_string($transaction, 'tx'),
             'type' => $type,
             'currency' => $currency['code'],
-            'network' => $this->safe_string($transaction, 'status'),
+            'network' => $this->safe_string($transaction, 'network'),
             'amount' => $this->parse_number($amountString),
             'status' => $status,
             'timestamp' => $transactTime,
@@ -2503,7 +2506,7 @@ class bitmex extends Exchange {
         //
         return array(
             'currency' => $code,
-            'address' => str_replace('"', '', $response->replace ('"', '')),  // Done twice because some languages only replace the first instance
+            'address' => str_replace('"', '', $response->replace ('"', '')), // Done twice because some languages only replace the first instance
             'tag' => null,
             'network' => strtoupper($this->network_id_to_code($networkId)),
             'info' => $response,

@@ -2026,6 +2026,10 @@ class gate extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-order-book
+             * @see https://www.gate.io/docs/developers/apiv4/en/#futures-order-book
+             * @see https://www.gate.io/docs/developers/apiv4/en/#futures-order-book-2
+             * @see https://www.gate.io/docs/developers/apiv4/en/#options-order-book
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the gate api endpoint
@@ -2041,12 +2045,13 @@ class gate extends Exchange {
             //         'with_id' => true, // return order book ID
             //     );
             //
-            list($request, $query) = $this->prepare_request($market, null, $params);
+            list($request, $query) = $this->prepare_request($market, $market['type'], $params);
             $method = $this->get_supported_mapping($market['type'], array(
                 'spot' => 'publicSpotGetOrderBook',
                 'margin' => 'publicSpotGetOrderBook',
                 'swap' => 'publicFuturesGetSettleOrderBook',
                 'future' => 'publicDeliveryGetSettleOrderBook',
+                'option' => 'publicOptionsGetOrderBook',
             ));
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 10, max 100
@@ -2054,7 +2059,7 @@ class gate extends Exchange {
             $request['with_id'] = true;
             $response = Async\await($this->$method (array_merge($request, $query)));
             //
-            // SPOT
+            // spot
             //
             //     {
             //         "id" => 6358770031
@@ -2085,7 +2090,7 @@ class gate extends Exchange {
             //         ]
             //     }
             //
-            // Perpetual Swap
+            // swap, future and option
             //
             //     {
             //         "id" => 6358770031

@@ -1056,6 +1056,9 @@ class bitmex(Exchange, ImplicitAPI):
             address = self.safe_string(transaction, 'address')
             addressFrom = self.safe_string(transaction, 'tx')
             addressTo = address
+        elif type == 'deposit':
+            addressTo = self.safe_string(transaction, 'address')
+            addressFrom = self.safe_string(transaction, 'tx')
         amountString = self.safe_string(transaction, 'amount')
         scale = '1e8' if (currency['code'] == 'BTC') else '1e6'
         amountString = Precise.string_div(Precise.string_abs(amountString), scale)
@@ -1070,7 +1073,7 @@ class bitmex(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'tx'),
             'type': type,
             'currency': currency['code'],
-            'network': self.safe_string(transaction, 'status'),
+            'network': self.safe_string(transaction, 'network'),
             'amount': self.parse_number(amountString),
             'status': status,
             'timestamp': transactTime,
