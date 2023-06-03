@@ -439,7 +439,7 @@ export default class hitbtc3 extends hitbtc3Rest {
         params = this.deepExtend ({
             'params': request,
         });
-        const trades = await this.subscribe ('trades', false, market['id'], params);
+        const trades = await this.subscribe ('trades', false, symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -516,7 +516,7 @@ export default class hitbtc3 extends hitbtc3Rest {
             result.push (trade);
         }
         result = this.sortBy2 (result, 'timestamp', 'id');
-        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        const symbol = this.safeString (market, 'symbol');
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
     }
 
@@ -537,11 +537,11 @@ export default class hitbtc3 extends hitbtc3Rest {
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': undefined,
+            'symbol': this.safeString (market, 'symbol'),
             'type': undefined,
             'side': this.safeString (trade, 'side'),
             'takerOrMaker': undefined,
-            'price': this.safeString (trade, 'price'),
+            'price': this.safeString2 (trade, 'p', 'price'),
             'amount': this.safeString (trade, 'q'),
             'cost': undefined,
             'fee': undefined,
