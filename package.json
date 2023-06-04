@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "3.1.12",
+  "version": "3.1.21",
   "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for 130+ exchanges",
   "unpkg": "dist/ccxt.browser.js",
   "type": "module",
@@ -116,15 +116,16 @@
     "esmify": "^2.1.1",
     "https-proxy-agent": "^5.0.1",
     "ololog": "1.1.155",
+    "piscina": "^3.2.0",
     "replace-in-file": "^6.3.5",
     "rollup": "^2.70.1",
     "rollup-plugin-execute": "1.1.1",
+    "terser-webpack-plugin": "^5.3.9",
     "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
     "typescript": "4.7.4",
     "webpack": "^5.76.2",
-    "webpack-cli": "^5.0.1",
-    "piscina": "^3.2.0"
+    "webpack-cli": "^5.0.1"
   },
   "author": {
     "name": "Igor Kroitor",

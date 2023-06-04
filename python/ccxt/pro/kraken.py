@@ -251,7 +251,7 @@ class kraken(ccxt.async_support.kraken):
         trades = await self.watch_public(name, symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -306,7 +306,7 @@ class kraken(ccxt.async_support.kraken):
         ohlcv = await self.watch(url, messageHash, request, messageHash)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     async def load_markets(self, reload=False, params={}):
         markets = await super(kraken, self).load_markets(reload, params)

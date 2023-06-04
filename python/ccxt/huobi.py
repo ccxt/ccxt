@@ -5135,10 +5135,13 @@ class huobi(Exchange, ImplicitAPI):
         if feeCost is not None:
             feeCost = Precise.string_abs(feeCost)
         networkId = self.safe_string(transaction, 'chain')
+        txHash = self.safe_string(transaction, 'tx-hash')
+        if networkId == 'ETH' and txHash.find('0x') < 0:
+            txHash = '0x' + txHash
         return {
             'info': transaction,
             'id': self.safe_string_2(transaction, 'id', 'data'),
-            'txid': self.safe_string(transaction, 'tx-hash'),
+            'txid': txHash,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'network': self.network_id_to_code(networkId, code),

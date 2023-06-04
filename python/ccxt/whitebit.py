@@ -34,6 +34,7 @@ class whitebit(Exchange, ImplicitAPI):
             'version': 'v4',
             'countries': ['EE'],
             'rateLimit': 500,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,

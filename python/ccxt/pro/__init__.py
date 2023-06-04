@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '3.1.12'
+__version__ = '3.1.21'
 
 # ----------------------------------------------------------------------------
 
@@ -64,6 +64,7 @@ from ccxt.pro.okcoin import okcoin                                        # noqa
 from ccxt.pro.okex import okex                                            # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
+from ccxt.pro.poloniex import poloniex                                    # noqa: F401
 from ccxt.pro.poloniexfutures import poloniexfutures                      # noqa: F401
 from ccxt.pro.probit import probit                                        # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
@@ -124,6 +125,7 @@ exchanges = [
     'okex',
     'okx',
     'phemex',
+    'poloniex',
     'poloniexfutures',
     'probit',
     'upbit',

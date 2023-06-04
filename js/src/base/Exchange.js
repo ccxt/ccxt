@@ -10,7 +10,7 @@ import * as functions from './functions.js';
 const { aggregate, arrayConcat, base16ToBinary, base58ToBinary, base64ToBinary, base64ToString, binaryConcat, binaryConcatArray, binaryToBase16, binaryToBase64, buildOHLCVC, capitalize, clone, crc32, DECIMAL_PLACES, decimalToPrecision, decode, deepExtend, ecdsa, encode, extend, extractParams, filterBy, flatten, groupBy, hash, hmac, implodeParams, inArray, indexBy, isArray, isEmpty, isJsonEncodedObject, isNode, iso8601, json, keys, keysort, merge, microseconds, milliseconds, NO_PADDING, now, numberToBE, numberToLE, numberToString, omit, omitZero, ordered, parse8601, parseDate, parseTimeframe, precisionFromString, rawencode, ROUND, safeFloat, safeFloat2, safeFloatN, safeInteger, safeInteger2, safeIntegerN, safeIntegerProduct, safeIntegerProduct2, safeIntegerProductN, safeString, safeString2, safeStringLower, safeStringLower2, safeStringLowerN, safeStringN, safeStringUpper, safeStringUpper2, safeStringUpperN, safeTimestamp, safeTimestamp2, safeTimestampN, safeValue, safeValue2, safeValueN, seconds, SIGNIFICANT_DIGITS, sortBy, sortBy2, stringToBase64, strip, sum, Throttler, TICK_SIZE, toArray, TRUNCATE, unCamelCase, unique, urlencode, urlencodeNested, urlencodeWithArrayRepeat, uuid, uuid16, uuid22, uuidv1, values, vwap, ymd, ymdhms, yymmdd, yyyymmdd } = functions;
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
-ArgumentsRequired, AuthenticationError, BadSymbol, DDoSProtection, ExchangeError, ExchangeNotAvailable, InvalidAddress, InvalidOrder, NetworkError, NotSupported, NullResponse, RateLimitExceeded, RequestTimeout } from "./errors.js";
+ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DDoSProtection, ExchangeError, ExchangeNotAvailable, InvalidAddress, InvalidOrder, NetworkError, NotSupported, NullResponse, RateLimitExceeded, RequestTimeout } from "./errors.js";
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
@@ -1109,6 +1109,17 @@ export default class Exchange {
     // ########################################################################
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    findMessageHashes(client, element) {
+        const result = [];
+        const messageHashes = Object.keys(client.futures);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            if (messageHash.indexOf(element) >= 0) {
+                result.push(messageHash);
+            }
+        }
+        return result;
+    }
     filterByLimit(array, limit = undefined, key = 'timestamp') {
         if (this.valueIsDefined(limit)) {
             const arrayLength = array.length;
@@ -1126,28 +1137,32 @@ export default class Exchange {
         }
         return array;
     }
-    filterBySinceLimit(array, since = undefined, limit = undefined, key = 'timestamp') {
+    filterBySinceLimit(array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
         const sinceIsDefined = this.valueIsDefined(since);
         const parsedArray = this.toArray(array);
+        let result = parsedArray;
         if (sinceIsDefined) {
-            const result = [];
+            result = [];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
                 if (entry[key] >= since) {
                     result.push(entry);
                 }
             }
-            return this.filterByLimit(result, limit, key);
         }
-        return this.filterByLimit(parsedArray, limit, key);
+        if (tail) {
+            return result.slice(-limit);
+        }
+        return this.filterByLimit(result, limit, key);
     }
-    filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp') {
+    filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
         const valueIsDefined = this.valueIsDefined(value);
         const sinceIsDefined = this.valueIsDefined(since);
         const parsedArray = this.toArray(array);
+        let result = parsedArray;
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined) {
-            const result = [];
+            result = [];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
                 const entryFiledEqualValue = entry[field] === value;
@@ -1158,9 +1173,11 @@ export default class Exchange {
                     result.push(entry);
                 }
             }
-            return this.filterByLimit(result, limit, key);
         }
-        return this.filterByLimit(parsedArray, limit, key);
+        if (tail) {
+            return result.slice(-limit);
+        }
+        return this.filterByLimit(result, limit, key);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         return {};
@@ -2065,13 +2082,18 @@ export default class Exchange {
         }
         return result;
     }
-    marketSymbols(symbols) {
+    marketSymbols(symbols, type = undefined) {
         if (symbols === undefined) {
             return symbols;
         }
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
-            result.push(this.symbol(symbols[i]));
+            const market = this.market(symbols[i]);
+            if (type !== undefined && market['type'] !== type) {
+                throw new BadRequest(this.id + ' symbols must be of same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
+            }
+            const symbol = this.safeString(market, 'symbol', symbols[i]);
+            result.push(symbol);
         }
         return result;
     }
@@ -2495,6 +2517,55 @@ export default class Exchange {
         }
         this.accountsById = this.indexBy(this.accounts, 'id');
         return this.accounts;
+    }
+    buildOHLCVC(trades, timeframe = '1m', since = 0, limit = 2147483647) {
+        // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
+        // note, default limit value (2147483647) is max int32 value
+        const ms = this.parseTimeframe(timeframe) * 1000;
+        const ohlcvs = [];
+        const i_timestamp = 0;
+        // const open = 1;
+        const i_high = 2;
+        const i_low = 3;
+        const i_close = 4;
+        const i_volume = 5;
+        const i_count = 6;
+        const tradesLength = trades.length;
+        const oldest = Math.min(tradesLength, limit);
+        for (let i = 0; i < oldest; i++) {
+            const trade = trades[i];
+            const ts = trade['timestamp'];
+            if (ts < since) {
+                continue;
+            }
+            const openingTime = Math.floor(ts / ms) * ms; // shift to the edge of m/h/d (but not M)
+            if (openingTime < since) { // we don't need bars, that have opening time earlier than requested
+                continue;
+            }
+            const ohlcv_length = ohlcvs.length;
+            const candle = ohlcv_length - 1;
+            if ((candle === -1) || (openingTime >= this.sum(ohlcvs[candle][i_timestamp], ms))) {
+                // moved to a new timeframe -> create a new candle from opening trade
+                ohlcvs.push([
+                    openingTime,
+                    trade['price'],
+                    trade['price'],
+                    trade['price'],
+                    trade['price'],
+                    trade['amount'],
+                    1, // count
+                ]);
+            }
+            else {
+                // still processing the same timeframe -> update opening trade
+                ohlcvs[candle][i_high] = Math.max(ohlcvs[candle][i_high], trade['price']);
+                ohlcvs[candle][i_low] = Math.min(ohlcvs[candle][i_low], trade['price']);
+                ohlcvs[candle][i_close] = trade['price'];
+                ohlcvs[candle][i_volume] = this.sum(ohlcvs[candle][i_volume], trade['amount']);
+                ohlcvs[candle][i_count] = this.sum(ohlcvs[candle][i_count], 1);
+            }
+        }
+        return ohlcvs;
     }
     async fetchOHLCVC(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (!this.has['fetchTrades']) {
@@ -3184,11 +3255,11 @@ export default class Exchange {
         currency = this.safeCurrency(currencyId, currency);
         return currency['code'];
     }
-    filterBySymbolSinceLimit(array, symbol = undefined, since = undefined, limit = undefined) {
-        return this.filterByValueSinceLimit(array, 'symbol', symbol, since, limit, 'timestamp');
+    filterBySymbolSinceLimit(array, symbol = undefined, since = undefined, limit = undefined, tail = false) {
+        return this.filterByValueSinceLimit(array, 'symbol', symbol, since, limit, 'timestamp', tail);
     }
-    filterByCurrencySinceLimit(array, code = undefined, since = undefined, limit = undefined) {
-        return this.filterByValueSinceLimit(array, 'currency', code, since, limit, 'timestamp');
+    filterByCurrencySinceLimit(array, code = undefined, since = undefined, limit = undefined, tail = false) {
+        return this.filterByValueSinceLimit(array, 'currency', code, since, limit, 'timestamp', tail);
     }
     parseLastPrices(pricesData, symbols = undefined, params = {}) {
         //

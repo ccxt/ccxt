@@ -373,6 +373,9 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_mix_post_order_placeorder($params = array()) {
         return $this->request('order/placeOrder', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function private_mix_post_order_modifyorder($params = array()) {
+        return $this->request('order/modifyOrder', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function private_mix_post_order_batch_orders($params = array()) {
         return $this->request('order/batch-orders', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -387,6 +390,9 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function private_mix_post_order_cancel_all_orders($params = array()) {
         return $this->request('order/cancel-all-orders', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_order_close_all_positions($params = array()) {
+        return $this->request('order/close-all-positions', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 20));
     }
     public function private_mix_post_plan_placeplan($params = array()) {
         return $this->request('plan/placePlan', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
@@ -988,6 +994,9 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function privateMixPostOrderPlaceOrder($params = array()) {
         return $this->request('order/placeOrder', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function privateMixPostOrderModifyOrder($params = array()) {
+        return $this->request('order/modifyOrder', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function privateMixPostOrderBatchOrders($params = array()) {
         return $this->request('order/batch-orders', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -1002,6 +1011,9 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function privateMixPostOrderCancelAllOrders($params = array()) {
         return $this->request('order/cancel-all-orders', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostOrderCloseAllPositions($params = array()) {
+        return $this->request('order/close-all-positions', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 20));
     }
     public function privateMixPostPlanPlacePlan($params = array()) {
         return $this->request('plan/placePlan', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));

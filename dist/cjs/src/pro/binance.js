@@ -431,7 +431,7 @@ class binance extends binance$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(market['symbol'], limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -661,7 +661,7 @@ class binance extends binance$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -1402,7 +1402,7 @@ class binance extends binance$1 {
         let timestamp = this.safeInteger(order, 'O');
         const T = this.safeInteger(order, 'T');
         let lastTradeTimestamp = undefined;
-        if (executionType === 'NEW' || executionType === 'AMENDMENT') {
+        if (executionType === 'NEW' || executionType === 'AMENDMENT' || executionType === 'CANCELED') {
             if (timestamp === undefined) {
                 timestamp = T;
             }
@@ -1592,7 +1592,7 @@ class binance extends binance$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleMyTrade(client, message) {
         const messageHash = 'myTrades';
@@ -1685,8 +1685,11 @@ class binance extends binance$1 {
                     parsed['fees'] = fees;
                 }
                 parsed['trades'] = this.safeValue(order, 'trades');
-                parsed['timestamp'] = this.safeInteger(order, 'timestamp');
-                parsed['datetime'] = this.safeString(order, 'datetime');
+                const timestamp = this.safeInteger(parsed, 'timestamp');
+                if (timestamp === undefined) {
+                    parsed['timestamp'] = this.safeInteger(order, 'timestamp');
+                    parsed['datetime'] = this.safeString(order, 'datetime');
+                }
             }
             cachedOrders.append(parsed);
             client.resolve(this.orders, messageHash);

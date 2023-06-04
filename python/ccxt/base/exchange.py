@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.12'
+__version__ = '3.1.21'
 
 # -----------------------------------------------------------------------------
 
@@ -21,14 +21,15 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import BadRequest
 
 # -----------------------------------------------------------------------------
 
 from ccxt.base.decimal_to_precision import decimal_to_precision
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import Balance, IndexType, OrderSide, OrderType
+from ccxt.base.types import Balance, IndexType, OrderSide, OrderType, Trade
 
 # -----------------------------------------------------------------------------
 
@@ -1424,41 +1425,6 @@ class Exchange(object):
             'funding': funding,
         }
 
-    def build_ohlcvc(self, trades, timeframe='1m', since=None, limit=None):
-        ms = self.parse_timeframe(timeframe) * 1000
-        ohlcvs = []
-        (timestamp, open, high, low, close, volume, count) = (0, 1, 2, 3, 4, 5, 6)
-        num_trades = len(trades)
-        oldest = num_trades if limit is None else min(num_trades, limit)
-        for i in range(0, oldest):
-            trade = trades[i]
-            if (since is not None) and (trade['timestamp'] < since):
-                continue
-            opening_time = None
-            if trade['timestamp']:
-                opening_time = int(math.floor(trade['timestamp'] / ms) * ms)  # Shift the edge of the m/h/d (but not M)
-            j = len(ohlcvs)
-            candle = j - 1
-            if (j == 0) or (opening_time and opening_time >= ohlcvs[candle][timestamp] + ms):
-                # moved to a new timeframe -> create a new candle from opening trade
-                ohlcvs.append([
-                    opening_time,
-                    trade['price'],
-                    trade['price'],
-                    trade['price'],
-                    trade['price'],
-                    trade['amount'],
-                    1,  # count
-                ])
-            else:
-                # still processing the same timeframe -> update opening trade
-                ohlcvs[candle][high] = max(ohlcvs[candle][high], trade['price'])
-                ohlcvs[candle][low] = min(ohlcvs[candle][low], trade['price'])
-                ohlcvs[candle][close] = trade['price']
-                ohlcvs[candle][volume] += trade['amount']
-                ohlcvs[candle][count] += 1
-        return ohlcvs
-
     @staticmethod
     def parse_timeframe(timeframe):
         amount = int(timeframe[0:-1])
@@ -1670,6 +1636,15 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    def find_message_hashes(self, client, element: str):
+        result = []
+        messageHashes = list(client.futures.keys())
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            if messageHash.find(element) >= 0:
+                result.append(messageHash)
+        return result
+
     def filter_by_limit(self, array: List[object], limit: Optional[int] = None, key: IndexType = 'timestamp'):
         if self.valueIsDefined(limit):
             arrayLength = len(array)
@@ -1683,22 +1658,25 @@ class Exchange(object):
                 array = self.arraySlice(array, -limit) if ascending else self.arraySlice(array, 0, limit)
         return array
 
-    def filter_by_since_limit(self, array: List[object], since: Optional[int] = None, limit: Optional[int] = None, key: IndexType = 'timestamp'):
+    def filter_by_since_limit(self, array: List[object], since: Optional[int] = None, limit: Optional[int] = None, key: IndexType = 'timestamp', tail=False):
         sinceIsDefined = self.valueIsDefined(since)
         parsedArray = self.to_array(array)
+        result = parsedArray
         if sinceIsDefined:
             result = []
             for i in range(0, len(parsedArray)):
                 entry = parsedArray[i]
                 if entry[key] >= since:
                     result.append(entry)
-            return self.filter_by_limit(result, limit, key)
-        return self.filter_by_limit(parsedArray, limit, key)
+        if tail:
+            return result[-limit:]
+        return self.filter_by_limit(result, limit, key)
 
-    def filter_by_value_since_limit(self, array: List[object], field: IndexType, value=None, since: Optional[int] = None, limit: Optional[int] = None, key='timestamp'):
+    def filter_by_value_since_limit(self, array: List[object], field: IndexType, value=None, since: Optional[int] = None, limit: Optional[int] = None, key='timestamp', tail=False):
         valueIsDefined = self.valueIsDefined(value)
         sinceIsDefined = self.valueIsDefined(since)
         parsedArray = self.to_array(array)
+        result = parsedArray
         # single-pass filter for both symbol and since
         if valueIsDefined or sinceIsDefined:
             result = []
@@ -1710,8 +1688,9 @@ class Exchange(object):
                 secondCondition = entryKeyGESince if sinceIsDefined else True
                 if firstCondition and secondCondition:
                     result.append(entry)
-            return self.filter_by_limit(result, limit, key)
-        return self.filter_by_limit(parsedArray, limit, key)
+        if tail:
+            return result[-limit:]
+        return self.filter_by_limit(result, limit, key)
 
     def sign(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None):
         return {}
@@ -2491,12 +2470,16 @@ class Exchange(object):
             result.append(self.market_id(symbols[i]))
         return result
 
-    def market_symbols(self, symbols):
+    def market_symbols(self, symbols, type: Optional[str] = None):
         if symbols is None:
             return symbols
         result = []
         for i in range(0, len(symbols)):
-            result.append(self.symbol(symbols[i]))
+            market = self.market(symbols[i])
+            if type is not None and market['type'] != type:
+                raise BadRequest(self.id + ' symbols must be of same type ' + type + '. If the type is incorrect you can change it in options or the params of the request')
+            symbol = self.safe_string(market, 'symbol', symbols[i])
+            result.append(symbol)
         return result
 
     def market_codes(self, codes):
@@ -2859,6 +2842,50 @@ class Exchange(object):
                 self.accounts = self.fetch_accounts(params)
         self.accountsById = self.index_by(self.accounts, 'id')
         return self.accounts
+
+    def build_ohlcvc(self, trades: List[Trade], timeframe: str = '1m', since: float = 0, limit: float = 2147483647):
+        # given a sorted arrays of trades(recent last) and a timeframe builds an array of OHLCV candles
+        # note, default limit value(2147483647) is max int32 value
+        ms = self.parse_timeframe(timeframe) * 1000
+        ohlcvs = []
+        i_timestamp = 0
+        # open = 1
+        i_high = 2
+        i_low = 3
+        i_close = 4
+        i_volume = 5
+        i_count = 6
+        tradesLength = len(trades)
+        oldest = min(tradesLength, limit)
+        for i in range(0, oldest):
+            trade = trades[i]
+            ts = trade['timestamp']
+            if ts < since:
+                continue
+            openingTime = int(math.floor(ts / ms)) * ms  # shift to the edge of m/h/d(but not M)
+            if openingTime < since:  # we don't need bars, that have opening time earlier than requested
+                continue
+            ohlcv_length = len(ohlcvs)
+            candle = ohlcv_length - 1
+            if (candle == -1) or (openingTime >= self.sum(ohlcvs[candle][i_timestamp], ms)):
+                # moved to a new timeframe -> create a new candle from opening trade
+                ohlcvs.append([
+                    openingTime,  # timestamp
+                    trade['price'],  # O
+                    trade['price'],  # H
+                    trade['price'],  # L
+                    trade['price'],  # C
+                    trade['amount'],  # V
+                    1,  # count
+                ])
+            else:
+                # still processing the same timeframe -> update opening trade
+                ohlcvs[candle][i_high] = max(ohlcvs[candle][i_high], trade['price'])
+                ohlcvs[candle][i_low] = min(ohlcvs[candle][i_low], trade['price'])
+                ohlcvs[candle][i_close] = trade['price']
+                ohlcvs[candle][i_volume] = self.sum(ohlcvs[candle][i_volume], trade['amount'])
+                ohlcvs[candle][i_count] = self.sum(ohlcvs[candle][i_count], 1)
+        return ohlcvs
 
     def fetch_ohlcvc(self, symbol, timeframe='1m', since: Optional[Any] = None, limit: Optional[int] = None, params={}):
         if not self.has['fetchTrades']:
@@ -3458,11 +3485,11 @@ class Exchange(object):
         currency = self.safe_currency(currencyId, currency)
         return currency['code']
 
-    def filter_by_symbol_since_limit(self, array, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None):
-        return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp')
+    def filter_by_symbol_since_limit(self, array, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
+        return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp', tail)
 
-    def filter_by_currency_since_limit(self, array, code=None, since: Optional[int] = None, limit: Optional[int] = None):
-        return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp')
+    def filter_by_currency_since_limit(self, array, code=None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
+        return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
 
     def parse_last_prices(self, pricesData, symbols: Optional[List[str]] = None, params={}):
         #
@@ -3793,7 +3820,7 @@ class Exchange(object):
         :param str symbol: unified symbol of the market
         :param str methodName: name of the method that requires a symbol
         """
-        self.checkRequiredArgument(methodName, symbol, 'symbol')
+        self.check_required_argument(methodName, symbol, 'symbol')
 
     def parse_deposit_withdraw_fees(self, response, codes: Optional[List[str]] = None, currencyIdKey=None):
         """

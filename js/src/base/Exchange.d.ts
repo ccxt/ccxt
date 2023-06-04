@@ -482,9 +482,10 @@ export default class Exchange {
     convertToBigInt(value: string): bigint;
     valueIsDefined(value: any): boolean;
     arraySlice(array: any, first: any, second?: any): any;
+    findMessageHashes(client: any, element: string): string[];
     filterByLimit(array: object[], limit?: Int, key?: IndexType): any;
-    filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType): any;
-    filterByValueSinceLimit(array: object[], field: IndexType, value?: any, since?: Int, limit?: Int, key?: string): any;
+    filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any;
+    filterByValueSinceLimit(array: object[], field: IndexType, value?: any, since?: Int, limit?: Int, key?: string, tail?: boolean): any;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {};
     fetchAccounts(params?: {}): Promise<any>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -563,7 +564,7 @@ export default class Exchange {
     convertTradingViewToOHLCV(ohlcvs: any, timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): any[];
     convertOHLCVToTradingView(ohlcvs: any, timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): {};
     marketIds(symbols: any): any;
-    marketSymbols(symbols: any): any;
+    marketSymbols(symbols: any, type?: string): any;
     marketCodes(codes: any): any;
     parseBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType): any[];
     fetchL2OrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
@@ -598,6 +599,7 @@ export default class Exchange {
     fetch2(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
     request(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
     loadAccounts(reload?: boolean, params?: {}): Promise<any>;
+    buildOHLCVC(trades: Trade[], timeframe?: string, since?: number, limit?: number): OHLCVC[];
     fetchOHLCVC(symbol: any, timeframe?: string, since?: any, limit?: Int, params?: {}): Promise<OHLCVC[]>;
     parseTradingViewOHLCV(ohlcvs: any, market?: any, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
     editLimitBuyOrder(id: any, symbol: any, amount: any, price?: any, params?: {}): Promise<Order>;
@@ -693,8 +695,8 @@ export default class Exchange {
     createStopLimitOrder(symbol: string, side: OrderSide, amount: any, price: any, stopPrice: any, params?: {}): Promise<Order>;
     createStopMarketOrder(symbol: string, side: OrderSide, amount: any, stopPrice: any, params?: {}): Promise<Order>;
     safeCurrencyCode(currencyId?: string, currency?: any): any;
-    filterBySymbolSinceLimit(array: any, symbol?: string, since?: Int, limit?: Int): any;
-    filterByCurrencySinceLimit(array: any, code?: any, since?: Int, limit?: Int): any;
+    filterBySymbolSinceLimit(array: any, symbol?: string, since?: Int, limit?: Int, tail?: boolean): any;
+    filterByCurrencySinceLimit(array: any, code?: any, since?: Int, limit?: Int, tail?: boolean): any;
     parseLastPrices(pricesData: any, symbols?: string[], params?: {}): any;
     parseTickers(tickers: any, symbols?: string[], params?: {}): any;
     parseDepositAddresses(addresses: any, codes?: string[], indexed?: boolean, params?: {}): {};

@@ -1114,6 +1114,17 @@ class Exchange {
     // ########################################################################
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    findMessageHashes(client, element) {
+        const result = [];
+        const messageHashes = Object.keys(client.futures);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            if (messageHash.indexOf(element) >= 0) {
+                result.push(messageHash);
+            }
+        }
+        return result;
+    }
     filterByLimit(array, limit = undefined, key = 'timestamp') {
         if (this.valueIsDefined(limit)) {
             const arrayLength = array.length;
@@ -1131,28 +1142,32 @@ class Exchange {
         }
         return array;
     }
-    filterBySinceLimit(array, since = undefined, limit = undefined, key = 'timestamp') {
+    filterBySinceLimit(array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
         const sinceIsDefined = this.valueIsDefined(since);
         const parsedArray = this.toArray(array);
+        let result = parsedArray;
         if (sinceIsDefined) {
-            const result = [];
+            result = [];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
                 if (entry[key] >= since) {
                     result.push(entry);
                 }
             }
-            return this.filterByLimit(result, limit, key);
         }
-        return this.filterByLimit(parsedArray, limit, key);
+        if (tail) {
+            return result.slice(-limit);
+        }
+        return this.filterByLimit(result, limit, key);
     }
-    filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp') {
+    filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
         const valueIsDefined = this.valueIsDefined(value);
         const sinceIsDefined = this.valueIsDefined(since);
         const parsedArray = this.toArray(array);
+        let result = parsedArray;
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined) {
-            const result = [];
+            result = [];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
                 const entryFiledEqualValue = entry[field] === value;
@@ -1163,9 +1178,11 @@ class Exchange {
                     result.push(entry);
                 }
             }
-            return this.filterByLimit(result, limit, key);
         }
-        return this.filterByLimit(parsedArray, limit, key);
+        if (tail) {
+            return result.slice(-limit);
+        }
+        return this.filterByLimit(result, limit, key);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         return {};
@@ -2070,13 +2087,18 @@ class Exchange {
         }
         return result;
     }
-    marketSymbols(symbols) {
+    marketSymbols(symbols, type = undefined) {
         if (symbols === undefined) {
             return symbols;
         }
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
-            result.push(this.symbol(symbols[i]));
+            const market = this.market(symbols[i]);
+            if (type !== undefined && market['type'] !== type) {
+                throw new errors.BadRequest(this.id + ' symbols must be of same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
+            }
+            const symbol = this.safeString(market, 'symbol', symbols[i]);
+            result.push(symbol);
         }
         return result;
     }
@@ -2500,6 +2522,55 @@ class Exchange {
         }
         this.accountsById = this.indexBy(this.accounts, 'id');
         return this.accounts;
+    }
+    buildOHLCVC(trades, timeframe = '1m', since = 0, limit = 2147483647) {
+        // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
+        // note, default limit value (2147483647) is max int32 value
+        const ms = this.parseTimeframe(timeframe) * 1000;
+        const ohlcvs = [];
+        const i_timestamp = 0;
+        // const open = 1;
+        const i_high = 2;
+        const i_low = 3;
+        const i_close = 4;
+        const i_volume = 5;
+        const i_count = 6;
+        const tradesLength = trades.length;
+        const oldest = Math.min(tradesLength, limit);
+        for (let i = 0; i < oldest; i++) {
+            const trade = trades[i];
+            const ts = trade['timestamp'];
+            if (ts < since) {
+                continue;
+            }
+            const openingTime = Math.floor(ts / ms) * ms; // shift to the edge of m/h/d (but not M)
+            if (openingTime < since) { // we don't need bars, that have opening time earlier than requested
+                continue;
+            }
+            const ohlcv_length = ohlcvs.length;
+            const candle = ohlcv_length - 1;
+            if ((candle === -1) || (openingTime >= this.sum(ohlcvs[candle][i_timestamp], ms))) {
+                // moved to a new timeframe -> create a new candle from opening trade
+                ohlcvs.push([
+                    openingTime,
+                    trade['price'],
+                    trade['price'],
+                    trade['price'],
+                    trade['price'],
+                    trade['amount'],
+                    1, // count
+                ]);
+            }
+            else {
+                // still processing the same timeframe -> update opening trade
+                ohlcvs[candle][i_high] = Math.max(ohlcvs[candle][i_high], trade['price']);
+                ohlcvs[candle][i_low] = Math.min(ohlcvs[candle][i_low], trade['price']);
+                ohlcvs[candle][i_close] = trade['price'];
+                ohlcvs[candle][i_volume] = this.sum(ohlcvs[candle][i_volume], trade['amount']);
+                ohlcvs[candle][i_count] = this.sum(ohlcvs[candle][i_count], 1);
+            }
+        }
+        return ohlcvs;
     }
     async fetchOHLCVC(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (!this.has['fetchTrades']) {
@@ -3189,11 +3260,11 @@ class Exchange {
         currency = this.safeCurrency(currencyId, currency);
         return currency['code'];
     }
-    filterBySymbolSinceLimit(array, symbol = undefined, since = undefined, limit = undefined) {
-        return this.filterByValueSinceLimit(array, 'symbol', symbol, since, limit, 'timestamp');
+    filterBySymbolSinceLimit(array, symbol = undefined, since = undefined, limit = undefined, tail = false) {
+        return this.filterByValueSinceLimit(array, 'symbol', symbol, since, limit, 'timestamp', tail);
     }
-    filterByCurrencySinceLimit(array, code = undefined, since = undefined, limit = undefined) {
-        return this.filterByValueSinceLimit(array, 'currency', code, since, limit, 'timestamp');
+    filterByCurrencySinceLimit(array, code = undefined, since = undefined, limit = undefined, tail = false) {
+        return this.filterByValueSinceLimit(array, 'currency', code, since, limit, 'timestamp', tail);
     }
     parseLastPrices(pricesData, symbols = undefined, params = {}) {
         //

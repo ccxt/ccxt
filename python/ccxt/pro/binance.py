@@ -398,7 +398,7 @@ class binance(ccxt.async_support.binance):
         trades = await self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
         if self.newUpdates:
             limit = trades.getLimit(market['symbol'], limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def parse_trade(self, trade, market=None):
         #
@@ -615,7 +615,7 @@ class binance(ccxt.async_support.binance):
         ohlcv = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscribe)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -1288,7 +1288,7 @@ class binance(ccxt.async_support.binance):
         timestamp = self.safe_integer(order, 'O')
         T = self.safe_integer(order, 'T')
         lastTradeTimestamp = None
-        if executionType == 'NEW' or executionType == 'AMENDMENT':
+        if executionType == 'NEW' or executionType == 'AMENDMENT' or executionType == 'CANCELED':
             if timestamp is None:
                 timestamp = T
         elif executionType == 'TRADE':
@@ -1465,7 +1465,7 @@ class binance(ccxt.async_support.binance):
         trades = await self.watch(url, messageHash, message, type)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trade(self, client: Client, message):
         messageHash = 'myTrades'
@@ -1541,8 +1541,10 @@ class binance(ccxt.async_support.binance):
                 if fees is not None:
                     parsed['fees'] = fees
                 parsed['trades'] = self.safe_value(order, 'trades')
-                parsed['timestamp'] = self.safe_integer(order, 'timestamp')
-                parsed['datetime'] = self.safe_string(order, 'datetime')
+                timestamp = self.safe_integer(parsed, 'timestamp')
+                if timestamp is None:
+                    parsed['timestamp'] = self.safe_integer(order, 'timestamp')
+                    parsed['datetime'] = self.safe_string(order, 'datetime')
             cachedOrders.append(parsed)
             client.resolve(self.orders, messageHash)
             messageHashSymbol = messageHash + ':' + symbol

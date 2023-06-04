@@ -1,5 +1,6 @@
 {
     "ace": {
+        "skip": "30/05: 504 Gateway Time-out",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
@@ -547,7 +548,10 @@
     },
     "coinspot": {
         "skipMethods": {
-            "loadMarkets": "precision key has an null value, but is expected to have a value| taker key missing from structure (markets are created from constructor .options, so needs to fill with default values in base)"
+            "loadMarkets": "precision key has an null value, but is expected to have a value| taker key missing from structure (markets are created from constructor .options, so needs to fill with default values in base)",
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing"
+            }
         }
     },
     "coinsph": {
@@ -555,6 +559,14 @@
             "loadMarkets": {
                 "taker":"messed",
                 "maker":"messed"
+            },
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
+                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "fetchTicker": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
+                "baseVolume": "quoteVolume >= baseVolume * low is failing"
             }
         }
     },
@@ -786,6 +798,7 @@
         }
     },
     "stex": {
+        "skip": "31/05 maintenance",
         "skipMethods": {
             "fetchCurrencies":{
                 "withdraw":"not provided",
@@ -975,6 +988,7 @@
         }
     },
     "ndax": {
+        "skip": "https://api.ndax.io:8443/AP/GetProducts?omsId=1 503 Service Unavailable No server is available to handle this request.",
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
@@ -1098,7 +1112,6 @@
         }
     },
     "poloniex": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "some currencies does not exist in currencies"
@@ -1123,6 +1136,9 @@
             "fetchTickers": {
                 "quoteVolume": "quoteVolume <= baseVolume * high : https://app.travis-ci.com/github/ccxt/ccxt/builds/263319874#L2132",
                 "baseVolume": "same"
+            },
+            "fetchTicker": {
+                "quoteVolume": "quoteVolume <= baseVolume * high <<< okx fetchTicker"
             }
         }
     },
