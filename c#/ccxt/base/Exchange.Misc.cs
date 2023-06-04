@@ -43,9 +43,9 @@ public partial class Exchange
         }
     }
 
-    public object buildOHLCVC(object trades, object timeframe, object since, object limit)
-    {
-        return null; // stub to implement
-    }
+    // public object buildOHLCVC(object trades, object timeframe, object since, object limit)
+    // {
+    //     return null; // stub to implement
+    // }
 
 }
