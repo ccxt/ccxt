@@ -23,7 +23,6 @@ const {
     , Throttler
     , capitalize
     , now
-    , buildOHLCVC
     , decimalToPrecision
     , safeValue
     , safeValue2
@@ -331,7 +330,6 @@ export default class Exchange {
     precisionFromString = precisionFromString
     capitalize = capitalize
     now = now
-    buildOHLCVC = buildOHLCVC
     decimalToPrecision = decimalToPrecision
     safeValue = safeValue
     safeValue2 = safeValue2
@@ -2841,6 +2839,55 @@ export default class Exchange {
         }
         this.accountsById = this.indexBy (this.accounts, 'id') as any;
         return this.accounts;
+    }
+
+    buildOHLCVC (trades: Trade[], timeframe: string = '1m', since: number = 0, limit: number = 2147483647): OHLCVC[] {
+        // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
+        // note, default limit value (2147483647) is max int32 value
+        const ms = this.parseTimeframe (timeframe) * 1000;
+        const ohlcvs = [];
+        const i_timestamp = 0;
+        // const open = 1;
+        const i_high = 2;
+        const i_low = 3;
+        const i_close = 4;
+        const i_volume = 5;
+        const i_count = 6;
+        const tradesLength = trades.length;
+        const oldest = Math.min (tradesLength, limit);
+        for (let i = 0; i < oldest; i++) {
+            const trade = trades[i];
+            const ts = trade['timestamp'];
+            if (ts < since) {
+                continue;
+            }
+            const openingTime = Math.floor (ts / ms) * ms; // shift to the edge of m/h/d (but not M)
+            if (openingTime < since) { // we don't need bars, that have opening time earlier than requested
+                continue;
+            }
+            const ohlcv_length = ohlcvs.length;
+            const candle = ohlcv_length - 1;
+            if ((candle === -1) || (openingTime >= this.sum (ohlcvs[candle][i_timestamp], ms))) {
+                // moved to a new timeframe -> create a new candle from opening trade
+                ohlcvs.push ([
+                    openingTime, // timestamp
+                    trade['price'], // O
+                    trade['price'], // H
+                    trade['price'], // L
+                    trade['price'], // C
+                    trade['amount'], // V
+                    1, // count
+                ]);
+            } else {
+                // still processing the same timeframe -> update opening trade
+                ohlcvs[candle][i_high] = Math.max (ohlcvs[candle][i_high], trade['price']);
+                ohlcvs[candle][i_low] = Math.min (ohlcvs[candle][i_low], trade['price']);
+                ohlcvs[candle][i_close] = trade['price'];
+                ohlcvs[candle][i_volume] = this.sum (ohlcvs[candle][i_volume], trade['amount']);
+                ohlcvs[candle][i_count] = this.sum (ohlcvs[candle][i_count], 1);
+            }
+        }
+        return ohlcvs;
     }
 
     async fetchOHLCVC (symbol, timeframe = '1m', since: any = undefined, limit: Int = undefined, params = {}): Promise<OHLCVC[]> {
