@@ -14,7 +14,6 @@ const {
     binaryConcatArray,
     binaryToBase16,
     binaryToBase64,
-    buildOHLCVC,
     capitalize,
     clone,
     crc32,
@@ -340,7 +339,6 @@ export default class Exchange {
     binaryConcatArray = binaryConcatArray
     binaryToBase16 = binaryToBase16
     binaryToBase64 = binaryToBase64
-    buildOHLCVC = buildOHLCVC
     capitalize = capitalize
     clone = clone
     crc32 = crc32
