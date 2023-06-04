@@ -650,7 +650,7 @@ export default class poloniex extends Exchange {
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetCurrencies (params);
+        const response = await this.publicGetCurrencies (this.extend (params, { 'includeMultiChainCurrencies': true }));
         //
         //     [
         //         {
