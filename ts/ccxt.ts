@@ -565,7 +565,7 @@ export {
     xt,
     yobit,
     zaif,
-    zonda,
+    zonda,    
 }
 
 export default ccxt;

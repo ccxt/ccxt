@@ -139,7 +139,6 @@ export default class Exchange {
     binaryConcatArray: (arr: any) => Uint8Array;
     binaryToBase16: (data: Uint8Array) => string;
     binaryToBase64: (data: Uint8Array) => string;
-    buildOHLCVC: (trades: Trade[], timeframe?: string, since?: number, limit?: number) => OHLCVC[];
     capitalize: (s: string) => string;
     clone: (x: any) => any;
     crc32: typeof functions.crc32;
