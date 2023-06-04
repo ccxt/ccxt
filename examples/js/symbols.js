@@ -1,10 +1,13 @@
 
 
-import ccxt from '../../ccxt.js';
+import ccxt from '../../js/ccxt.js';
 import fs from 'fs';
-import { noLocate as log } from 'ololog';
+import ololog from 'ololog';
 import ansicolor from 'ansicolor';
 import asTable from 'as-table';
+
+const { noLocate } = ololog;
+const log = noLocate;
 
 ansicolor.nice
 const table = asTable.configure ({ delimiter: ' | ' }), verbose   = process.argv.includes ('--verbose'), debug     = process.argv.includes ('--debug');
