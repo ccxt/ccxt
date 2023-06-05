@@ -4532,7 +4532,12 @@ class xt extends Exchange {
             $timestamp = $this->number_to_string($this->nonce());
             $body = $query;
             if (($payload === '/v4/order') || ($payload === '/future/trade/v1/order/create') || ($payload === '/future/trade/v1/entrust/create-plan') || ($payload === '/future/trade/v1/entrust/create-profit') || ($payload === '/future/trade/v1/order/create-batch')) {
-                $body['clientMedia'] = 'CCXT';
+                $id = 'CCXT';
+                if (mb_strpos($payload, 'future') > -1) {
+                    $body['clientMedia'] = $id;
+                } else {
+                    $body['media'] = $id;
+                }
             }
             $isUndefinedBody = (($method === 'GET') || ($path === 'order/{orderId}'));
             $body = $isUndefinedBody ? null : $this->json($body);
