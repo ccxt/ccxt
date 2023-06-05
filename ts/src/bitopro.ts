@@ -1616,7 +1616,7 @@ export default class bitopro extends Exchange {
             if (method === 'POST' || method === 'PUT') {
                 body = this.json (params);
                 const payload = this.stringToBase64 (body);
-                const signature = this.hmac (payload, this.encode (this.secret), sha384);
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384);
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;

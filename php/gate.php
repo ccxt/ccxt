@@ -115,6 +115,7 @@ class gate extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPosition' => true,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
@@ -1208,7 +1209,9 @@ class gate extends Exchange {
         if ($market !== null) {
             if ($market['contract']) {
                 $request['contract'] = $market['id'];
-                $request['settle'] = $market['settleId'];
+                if (!$market['option']) {
+                    $request['settle'] = $market['settleId'];
+                }
             } else {
                 $request['currency_pair'] = $market['id'];
             }
@@ -1980,6 +1983,10 @@ class gate extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-order-book
+         * @see https://www.gate.io/docs/developers/apiv4/en/#futures-order-book
+         * @see https://www.gate.io/docs/developers/apiv4/en/#futures-order-book-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#options-order-book
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {array} $params extra parameters specific to the gate api endpoint
@@ -1995,12 +2002,13 @@ class gate extends Exchange {
         //         'with_id' => true, // return order book ID
         //     );
         //
-        list($request, $query) = $this->prepare_request($market, null, $params);
+        list($request, $query) = $this->prepare_request($market, $market['type'], $params);
         $method = $this->get_supported_mapping($market['type'], array(
             'spot' => 'publicSpotGetOrderBook',
             'margin' => 'publicSpotGetOrderBook',
             'swap' => 'publicFuturesGetSettleOrderBook',
             'future' => 'publicDeliveryGetSettleOrderBook',
+            'option' => 'publicOptionsGetOrderBook',
         ));
         if ($limit !== null) {
             $request['limit'] = $limit; // default 10, max 100
@@ -2008,7 +2016,7 @@ class gate extends Exchange {
         $request['with_id'] = true;
         $response = $this->$method (array_merge($request, $query));
         //
-        // SPOT
+        // spot
         //
         //     {
         //         "id" => 6358770031
@@ -2039,7 +2047,7 @@ class gate extends Exchange {
         //         ]
         //     }
         //
-        // Perpetual Swap
+        // swap, future and option
         //
         //     {
         //         "id" => 6358770031
@@ -2263,9 +2271,10 @@ class gate extends Exchange {
             'funding' => 'privateMarginGetFundingAccounts',
             'swap' => 'privateFuturesGetSettleAccounts',
             'future' => 'privateDeliveryGetSettleAccounts',
+            'option' => 'privateOptionsGetAccounts',
         ));
         $response = $this->$method (array_merge($request, $requestQuery));
-        $contract = (($type === 'swap') || ($type === 'future'));
+        $contract = (($type === 'swap') || ($type === 'future') || ($type === 'option'));
         if ($contract) {
             $response = array( $response );
         }
@@ -2377,6 +2386,38 @@ class gate extends Exchange {
         //        position_margin => "0",
         //        user => "6333333",
         //    }
+        //
+        // option
+        //
+        //     {
+        //         "order_margin" => "0",
+        //         "bid_order_margin" => "0",
+        //         "init_margin" => "0",
+        //         "history" => array(
+        //             "dnw" => "32",
+        //             "set" => "0",
+        //             "point_fee" => "0",
+        //             "point_dnw" => "0",
+        //             "prem" => "0",
+        //             "point_refr" => "0",
+        //             "insur" => "0",
+        //             "fee" => "0",
+        //             "refr" => "0"
+        //         ),
+        //         "total" => "32",
+        //         "available" => "32",
+        //         "liq_triggered" => false,
+        //         "maint_margin" => "0",
+        //         "ask_order_margin" => "0",
+        //         "point" => "0",
+        //         "position_notional_limit" => "2000000",
+        //         "unrealised_pnl" => "0",
+        //         "equity" => "32",
+        //         "user" => 5691076,
+        //         "currency" => "USDT",
+        //         "short_enabled" => false,
+        //         "orders_limit" => 10
+        //     }
         //
         $result = array(
             'info' => $response,
@@ -2678,9 +2719,7 @@ class gate extends Exchange {
          * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
          */
         $this->load_markets();
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrderTrades requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchOrderTrades', $symbol);
         //
         //      array(
         //          {
@@ -2707,6 +2746,10 @@ class gate extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * Fetch personal trading history
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-3
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-4
          * @param {string|null} $symbol unified $market $symbol
          * @param {int|null} $since the earliest time in ms to fetch trades for
          * @param {int|null} $limit the maximum number of trades structures to retrieve
@@ -2730,9 +2773,12 @@ class gate extends Exchange {
         $until = $this->safe_integer_2($params, 'until', 'till');
         $params = $this->omit($params, array( 'until', 'till' ));
         list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
-        $contract = ($type === 'swap') || ($type === 'future');
+        $contract = ($type === 'swap') || ($type === 'future') || ($type === 'option');
         if ($contract) {
             list($request, $params) = $this->prepare_request($market, $type, $params);
+            if ($type === 'option') {
+                $params = $this->omit($params, 'order_id');
+            }
         } else {
             if ($market !== null) {
                 $request['currency_pair'] = $market['id']; // Should always be set for non-stop
@@ -2754,6 +2800,7 @@ class gate extends Exchange {
             'margin' => 'privateSpotGetMyTrades',
             'swap' => 'privateFuturesGetSettleMyTradesTimerange',
             'future' => 'privateDeliveryGetSettleMyTrades',
+            'option' => 'privateOptionsGetMyTrades',
         ));
         $response = $this->$method (array_merge($request, $params));
         //
@@ -2802,6 +2849,21 @@ class gate extends Exchange {
         //             "size" => 100,
         //             "price" => "100.123",
         //             "role" => "taker"
+        //         }
+        //     )
+        //
+        // option
+        //
+        //     array(
+        //         {
+        //             "underlying_price" => "26817.84",
+        //             "size" => -1,
+        //             "contract" => "BTC_USDT-20230602-26500-C",
+        //             "id" => 16,
+        //             "role" => "taker",
+        //             "create_time" => 1685594770,
+        //             "order_id" => 2611026125,
+        //             "price" => "333"
         //         }
         //     )
         //
@@ -2874,7 +2936,7 @@ class gate extends Exchange {
         //         "role" => "taker"
         //     }
         //
-        // option rest
+        // fetchTrades => option
         //
         //     {
         //         "size" => -5,
@@ -2882,6 +2944,19 @@ class gate extends Exchange {
         //         "create_time" => 1682378573,
         //         "contract" => "ETH_USDT-20230526-2000-P",
         //         "price" => "209.1"
+        //     }
+        //
+        // fetchMyTrades => option
+        //
+        //     {
+        //         "underlying_price" => "26817.84",
+        //         "size" => -1,
+        //         "contract" => "BTC_USDT-20230602-26500-C",
+        //         "id" => 16,
+        //         "role" => "taker",
+        //         "create_time" => 1685594770,
+        //         "order_id" => 2611026125,
+        //         "price" => "333"
         //     }
         //
         $id = $this->safe_string($trade, 'id');
@@ -3222,8 +3297,10 @@ class gate extends Exchange {
                     // 'tif' => 'gtc', // gtc, ioc, poc PendingOrCancelled == $postOnly order
                     // 'text' => $clientOrderId, // 't-abcdef1234567890',
                     // 'auto_size' => '', // close_long, close_short, note size also needs to be set to 0
-                    'settle' => $market['settleId'], // filled in prepareRequest above
                 );
+                if (!$market['option']) {
+                    $request['settle'] = $market['settleId']; // filled in prepareRequest above
+                }
                 if ($isMarketOrder) {
                     $request['price'] = $price; // set to 0 for $market orders
                 } else {
@@ -3292,6 +3369,9 @@ class gate extends Exchange {
                 $request['text'] = $clientOrderId;
             }
         } else {
+            if ($market['option']) {
+                throw new NotSupported($this->id . ' createOrder() conditional option orders are not supported');
+            }
             if ($contract) {
                 // $contract conditional order
                 $request = array(
@@ -3384,6 +3464,7 @@ class gate extends Exchange {
             'margin' => 'privateSpotPost' . $methodTail,
             'swap' => 'privateFuturesPostSettle' . $methodTail,
             'future' => 'privateDeliveryPostSettle' . $methodTail,
+            'option' => 'privateOptionsPostOrders',
         ));
         $response = $this->$method ($this->deep_extend($request, $params));
         //
@@ -3421,7 +3502,7 @@ class gate extends Exchange {
         //
         //     array("id" => 5891843)
         //
-        // future and perpetual swaps
+        // futures, perpetual swaps and $options
         //
         //     {
         //         "id" => 95938572327,
@@ -3604,7 +3685,7 @@ class gate extends Exchange {
         //        "status" => "open"
         //    }
         //
-        // FUTURE AND SWAP
+        // FUTURE, SWAP AND OPTION
         // createOrder/cancelOrder/fetchOrder
         //
         //    {
@@ -3795,6 +3876,10 @@ class gate extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * Retrieves information on an order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-3
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-4
          * @param {string} $id Order $id
          * @param {string} $symbol Unified $market $symbol, *required for spot and margin*
          * @param {array} $params Parameters specified by the exchange api
@@ -3818,7 +3903,7 @@ class gate extends Exchange {
         }
         $market = ($symbol === null) ? null : $this->market($symbol);
         list($type, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
-        $contract = ($type === 'swap') || ($type === 'future');
+        $contract = ($type === 'swap') || ($type === 'future') || ($type === 'option');
         list($request, $requestParams) = $contract ? $this->prepare_request($market, $type, $query) : $this->spot_order_prepare_request($market, $stop, $query);
         $request['order_id'] = $orderId;
         $methodMiddle = $stop ? 'PriceOrders' : 'Orders';
@@ -3827,6 +3912,7 @@ class gate extends Exchange {
             'margin' => 'privateSpotGet' . $methodMiddle . 'OrderId',
             'swap' => 'privateFuturesGetSettle' . $methodMiddle . 'OrderId',
             'future' => 'privateDeliveryGetSettle' . $methodMiddle . 'OrderId',
+            'option' => 'privateOptionsGetOrdersOrderId',
         ));
         $response = $this->$method (array_merge($request, $requestParams));
         return $this->parse_order($response, $market);
@@ -3894,10 +3980,11 @@ class gate extends Exchange {
             'margin' => 'privateSpotGet' . $methodTail,
             'swap' => 'privateFuturesGetSettle' . $methodTail,
             'future' => 'privateDeliveryGetSettle' . $methodTail,
+            'option' => 'privateOptionsGetOrders',
         ));
         $response = $this->$method (array_merge($request, $requestParams));
         //
-        // SPOT Open Orders
+        // $spot open $orders
         //
         //    array(
         //        array(
@@ -3937,7 +4024,7 @@ class gate extends Exchange {
         //        ...
         //    )
         //
-        // SPOT
+        // $spot
         //
         //    array(
         //        {
@@ -3968,7 +4055,7 @@ class gate extends Exchange {
         //        }
         //    )
         //
-        // Spot Stop
+        // $spot $stop
         //
         //    array(
         //        {
@@ -3993,7 +4080,7 @@ class gate extends Exchange {
         //        }
         //    )
         //
-        // Perpetual Swap
+        // swap
         //
         //    array(
         //        {
@@ -4015,6 +4102,32 @@ class gate extends Exchange {
         //           "price" => "0"
         //        }
         //    )
+        //
+        // option
+        //
+        //     array(
+        //         {
+        //             "id" => 2593450699,
+        //             "contract" => "BTC_USDT-20230601-27500-C",
+        //             "mkfr" => "0.0003",
+        //             "tkfr" => "0.0003",
+        //             "tif" => "gtc",
+        //             "is_reduce_only" => false,
+        //             "create_time" => 1685503873,
+        //             "price" => "200",
+        //             "size" => 1,
+        //             "refr" => "0",
+        //             "left" => 1,
+        //             "text" => "api",
+        //             "fill_price" => "0",
+        //             "user" => 5691076,
+        //             "status" => "open",
+        //             "is_liq" => false,
+        //             "refu" => 0,
+        //             "is_close" => false,
+        //             "iceberg" => 0
+        //         }
+        //     )
         //
         $result = $response;
         if ($openSpotOrders) {
@@ -4050,6 +4163,7 @@ class gate extends Exchange {
             'margin' => 'privateSpotDelete' . $pathMiddle . 'OrdersOrderId',
             'swap' => 'privateFuturesDeleteSettle' . $pathMiddle . 'OrdersOrderId',
             'future' => 'privateDeliveryDeleteSettle' . $pathMiddle . 'OrdersOrderId',
+            'option' => 'privateOptionsDeleteOrdersOrderId',
         ));
         $response = $this->$method (array_merge($request, $requestParams));
         //
@@ -4107,7 +4221,7 @@ class gate extends Exchange {
         //         "status" => "canceled"
         //     }
         //
-        // perpetual swaps
+        // swap, future and option
         //
         //     {
         //         $id => "82241928192",
@@ -4155,6 +4269,7 @@ class gate extends Exchange {
             'margin' => 'privateSpotDelete' . $methodTail,
             'swap' => 'privateFuturesDeleteSettle' . $methodTail,
             'future' => 'privateDeliveryDeleteSettle' . $methodTail,
+            'option' => 'privateOptionsDeleteOrders',
         ));
         $response = $this->$method (array_merge($request, $requestParams));
         //
@@ -4332,6 +4447,8 @@ class gate extends Exchange {
 
     public function parse_position($position, $market = null) {
         //
+        // swap and future
+        //
         //     {
         //         value => "12.475572",
         //         $leverage => "0",
@@ -4356,6 +4473,27 @@ class gate extends Exchange {
         //         margin => "0.740721495056",
         //         last_close_pnl => "-0.041996015",
         //         liq_price => "59058.58"
+        //     }
+        //
+        // option
+        //
+        //     {
+        //         "close_order" => null,
+        //         "size" => 1,
+        //         "vega" => "5.29756",
+        //         "theta" => "-98.98917",
+        //         "gamma" => "0.00056",
+        //         "delta" => "0.68691",
+        //         "contract" => "BTC_USDT-20230602-26500-C",
+        //         "entry_price" => "529",
+        //         "unrealised_pnl" => "-1.0131",
+        //         "user" => 5691076,
+        //         "mark_price" => "427.69",
+        //         "underlying_price" => "26810.2",
+        //         "underlying" => "BTC_USDT",
+        //         "realised_pnl" => "-0.08042877",
+        //         "mark_iv" => "0.4224",
+        //         "pending_orders" => 0
         //     }
         //
         $contract = $this->safe_string($position, 'contract');
@@ -4412,13 +4550,95 @@ class gate extends Exchange {
         ));
     }
 
+    public function fetch_position(string $symbol, $params = array ()) {
+        /**
+         * fetch data on an open contract position
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-single-position
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-single-position-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-specified-contract-position
+         * @param {string} $symbol unified $market $symbol of the $market the position is held in
+         * @param {array} $params extra parameters specific to the gate api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new BadRequest($this->id . ' fetchPosition() supports contract markets only');
+        }
+        $request = array();
+        list($request, $params) = $this->prepare_request($market, $market['type'], $params);
+        $extendedRequest = array_merge($request, $params);
+        $response = null;
+        if ($market['type'] === 'swap') {
+            $response = $this->privateFuturesGetSettlePositionsContract ($extendedRequest);
+        } elseif ($market['type'] === 'future') {
+            $response = $this->privateDeliveryGetSettlePositionsContract ($extendedRequest);
+        } elseif ($market['type'] === 'option') {
+            $response = $this->privateOptionsGetPositionsContract ($extendedRequest);
+        }
+        //
+        // swap and future
+        //
+        //     {
+        //         "value" => "12.475572",
+        //         "leverage" => "0",
+        //         "mode" => "single",
+        //         "realised_point" => "0",
+        //         "contract" => "BTC_USDT",
+        //         "entry_price" => "62422.6",
+        //         "mark_price" => "62377.86",
+        //         "history_point" => "0",
+        //         "realised_pnl" => "-0.00624226",
+        //         "close_order" =>  null,
+        //         "size" => "2",
+        //         "cross_leverage_limit" => "25",
+        //         "pending_orders" => "0",
+        //         "adl_ranking" => "5",
+        //         "maintenance_rate" => "0.005",
+        //         "unrealised_pnl" => "-0.008948",
+        //         "user" => "6693577",
+        //         "leverage_max" => "100",
+        //         "history_pnl" => "14.98868396636",
+        //         "risk_limit" => "1000000",
+        //         "margin" => "0.740721495056",
+        //         "last_close_pnl" => "-0.041996015",
+        //         "liq_price" => "59058.58"
+        //     }
+        //
+        // option
+        //
+        //     {
+        //         "close_order" => null,
+        //         "size" => 1,
+        //         "vega" => "5.29756",
+        //         "theta" => "-98.98917",
+        //         "gamma" => "0.00056",
+        //         "delta" => "0.68691",
+        //         "contract" => "BTC_USDT-20230602-26500-C",
+        //         "entry_price" => "529",
+        //         "unrealised_pnl" => "-1.0131",
+        //         "user" => 5691076,
+        //         "mark_price" => "427.69",
+        //         "underlying_price" => "26810.2",
+        //         "underlying" => "BTC_USDT",
+        //         "realised_pnl" => "-0.08042877",
+        //         "mark_iv" => "0.4224",
+        //         "pending_orders" => 0
+        //     }
+        //
+        return $this->parse_position($response, $market);
+    }
+
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open positions
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-positions-of-specified-underlying
          * @param {[string]|null} $symbols Not used by gate, but parsed internally by CCXT
          * @param {array} $params extra parameters specific to the gate api endpoint
          * @param {string} $params->settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
-         * @param {string} $params->type swap or future, if not provided $this->options['defaultType'] is used
+         * @param {string} $params->type swap, future or option, if not provided $this->options['defaultType'] is used
          * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
          */
         $this->load_markets();
@@ -4436,16 +4656,27 @@ class gate extends Exchange {
                 }
             }
         }
-        list($type, $query) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
-        if ($type !== 'swap' && $type !== 'future') {
-            throw new ArgumentsRequired($this->id . ' fetchPositions requires a $type parameter, "swap" or "future"');
+        $type = null;
+        $request = array();
+        list($type, $params) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
+        $this->check_required_argument('fetchPositions', $type, 'type', array( 'swap', 'future', 'option' ));
+        if ($type === 'option') {
+            if ($symbols !== null) {
+                $marketId = $market['id'];
+                $optionParts = explode('-', $marketId);
+                $request['underlying'] = $this->safe_string($optionParts, 0);
+            }
+        } else {
+            list($request, $params) = $this->prepare_request(null, $type, $params);
         }
-        list($request, $requestParams) = $this->prepare_request(null, $type, $query);
         $method = $this->get_supported_mapping($type, array(
             'swap' => 'privateFuturesGetSettlePositions',
             'future' => 'privateDeliveryGetSettlePositions',
+            'option' => 'privateOptionsGetPositions',
         ));
-        $response = $this->$method (array_merge($request, $requestParams));
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // swap and future
         //
         //     array(
         //         {
@@ -4472,6 +4703,29 @@ class gate extends Exchange {
         //             margin => "0.740721495056",
         //             last_close_pnl => "-0.041996015",
         //             liq_price => "59058.58"
+        //         }
+        //     )
+        //
+        // option
+        //
+        //     array(
+        //         {
+        //             "close_order" => null,
+        //             "size" => 0,
+        //             "vega" => "0.01907",
+        //             "theta" => "-3.04888",
+        //             "gamma" => "0.00001",
+        //             "delta" => "0.0011",
+        //             "contract" => "BTC_USDT-20230601-27500-C",
+        //             "entry_price" => "0",
+        //             "unrealised_pnl" => "0",
+        //             "user" => 5691076,
+        //             "mark_price" => "0.07",
+        //             "underlying_price" => "26817.27",
+        //             "underlying" => "BTC_USDT",
+        //             "realised_pnl" => "0",
+        //             "mark_iv" => "0.4339",
+        //             "pending_orders" => 0
         //         }
         //     )
         //

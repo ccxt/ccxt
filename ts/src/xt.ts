@@ -4605,7 +4605,12 @@ export default class xt extends Exchange {
             const timestamp = this.numberToString (this.nonce ());
             body = query;
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
-                body['clientMedia'] = 'CCXT';
+                const id = 'CCXT';
+                if (payload.indexOf ('future') > -1) {
+                    body['clientMedia'] = id;
+                } else {
+                    body['media'] = id;
+                }
             }
             const isUndefinedBody = ((method === 'GET') || (path === 'order/{orderId}'));
             body = isUndefinedBody ? undefined : this.json (body);

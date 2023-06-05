@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.14'
+__version__ = '3.1.23'
 
 # -----------------------------------------------------------------------------
 
@@ -21,14 +21,15 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import BadRequest
 
 # -----------------------------------------------------------------------------
 
 from ccxt.base.decimal_to_precision import decimal_to_precision
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import Balance, IndexType, OrderSide, OrderType
+from ccxt.base.types import Balance, IndexType, OrderSide, OrderType, Trade
 
 # -----------------------------------------------------------------------------
 
@@ -1424,41 +1425,6 @@ class Exchange(object):
             'funding': funding,
         }
 
-    def build_ohlcvc(self, trades, timeframe='1m', since=None, limit=None):
-        ms = self.parse_timeframe(timeframe) * 1000
-        ohlcvs = []
-        (timestamp, open, high, low, close, volume, count) = (0, 1, 2, 3, 4, 5, 6)
-        num_trades = len(trades)
-        oldest = num_trades if limit is None else min(num_trades, limit)
-        for i in range(0, oldest):
-            trade = trades[i]
-            if (since is not None) and (trade['timestamp'] < since):
-                continue
-            opening_time = None
-            if trade['timestamp']:
-                opening_time = int(math.floor(trade['timestamp'] / ms) * ms)  # Shift the edge of the m/h/d (but not M)
-            j = len(ohlcvs)
-            candle = j - 1
-            if (j == 0) or (opening_time and opening_time >= ohlcvs[candle][timestamp] + ms):
-                # moved to a new timeframe -> create a new candle from opening trade
-                ohlcvs.append([
-                    opening_time,
-                    trade['price'],
-                    trade['price'],
-                    trade['price'],
-                    trade['price'],
-                    trade['amount'],
-                    1,  # count
-                ])
-            else:
-                # still processing the same timeframe -> update opening trade
-                ohlcvs[candle][high] = max(ohlcvs[candle][high], trade['price'])
-                ohlcvs[candle][low] = min(ohlcvs[candle][low], trade['price'])
-                ohlcvs[candle][close] = trade['price']
-                ohlcvs[candle][volume] += trade['amount']
-                ohlcvs[candle][count] += 1
-        return ohlcvs
-
     @staticmethod
     def parse_timeframe(timeframe):
         amount = int(timeframe[0:-1])
@@ -2440,21 +2406,10 @@ class Exchange(object):
         })
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        if not self.has['fetchTrades']:
-            raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
-        trades = self.fetchTrades(symbol, since, limit, params)
-        ohlcvc = self.build_ohlcvc(trades, timeframe, since, limit)
-        result = []
-        for i in range(0, len(ohlcvc)):
-            result.append([
-                self.safe_integer(ohlcvc[i], 0),
-                self.safe_number(ohlcvc[i], 1),
-                self.safe_number(ohlcvc[i], 2),
-                self.safe_number(ohlcvc[i], 3),
-                self.safe_number(ohlcvc[i], 4),
-                self.safe_number(ohlcvc[i], 5),
-            ])
-        return result
+        message = ''
+        if self.has['fetchTrades']:
+            message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file'
+        raise NotSupported(self.id + ' fetchOHLCV() is not supported yet' + message)
 
     def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
@@ -2877,12 +2832,49 @@ class Exchange(object):
         self.accountsById = self.index_by(self.accounts, 'id')
         return self.accounts
 
-    def fetch_ohlcvc(self, symbol, timeframe='1m', since: Optional[Any] = None, limit: Optional[int] = None, params={}):
-        if not self.has['fetchTrades']:
-            raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
-        self.load_markets()
-        trades = self.fetchTrades(symbol, since, limit, params)
-        return self.build_ohlcvc(trades, timeframe, since, limit)
+    def build_ohlcvc(self, trades: List[Trade], timeframe: str = '1m', since: float = 0, limit: float = 2147483647):
+        # given a sorted arrays of trades(recent last) and a timeframe builds an array of OHLCV candles
+        # note, default limit value(2147483647) is max int32 value
+        ms = self.parse_timeframe(timeframe) * 1000
+        ohlcvs = []
+        i_timestamp = 0
+        # open = 1
+        i_high = 2
+        i_low = 3
+        i_close = 4
+        i_volume = 5
+        i_count = 6
+        tradesLength = len(trades)
+        oldest = min(tradesLength, limit)
+        for i in range(0, oldest):
+            trade = trades[i]
+            ts = trade['timestamp']
+            if ts < since:
+                continue
+            openingTime = int(math.floor(ts / ms)) * ms  # shift to the edge of m/h/d(but not M)
+            if openingTime < since:  # we don't need bars, that have opening time earlier than requested
+                continue
+            ohlcv_length = len(ohlcvs)
+            candle = ohlcv_length - 1
+            if (candle == -1) or (openingTime >= self.sum(ohlcvs[candle][i_timestamp], ms)):
+                # moved to a new timeframe -> create a new candle from opening trade
+                ohlcvs.append([
+                    openingTime,  # timestamp
+                    trade['price'],  # O
+                    trade['price'],  # H
+                    trade['price'],  # L
+                    trade['price'],  # C
+                    trade['amount'],  # V
+                    1,  # count
+                ])
+            else:
+                # still processing the same timeframe -> update opening trade
+                ohlcvs[candle][i_high] = max(ohlcvs[candle][i_high], trade['price'])
+                ohlcvs[candle][i_low] = min(ohlcvs[candle][i_low], trade['price'])
+                ohlcvs[candle][i_close] = trade['price']
+                ohlcvs[candle][i_volume] = self.sum(ohlcvs[candle][i_volume], trade['amount'])
+                ohlcvs[candle][i_count] = self.sum(ohlcvs[candle][i_count], 1)
+        return ohlcvs
 
     def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None):
         result = self.convert_trading_view_to_ohlcv(ohlcvs)
@@ -3810,7 +3802,7 @@ class Exchange(object):
         :param str symbol: unified symbol of the market
         :param str methodName: name of the method that requires a symbol
         """
-        self.checkRequiredArgument(methodName, symbol, 'symbol')
+        self.check_required_argument(methodName, symbol, 'symbol')
 
     def parse_deposit_withdraw_fees(self, response, codes: Optional[List[str]] = None, currencyIdKey=None):
         """
