@@ -29,7 +29,6 @@ use ccxt\BadSymbol;
 use React;
 use React\Async;
 use React\EventLoop\Loop;
-use Clue;
 
 use Exception;
 
@@ -96,15 +95,15 @@ class Exchange extends \ccxt\Exchange {
                 $headers['Origin'] = $this->origin;
             } else if ($proxyHttp !== null) {
                 include_once ($proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
-                $proxy = new Clue\React\HttpProxy\ProxyConnector($proxyHttp);
+                $proxy = new \Clue\React\HttpProxy\ProxyConnector($proxyHttp);
                 $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
             }  else if ($proxyHttps !== null) {
                 include_once ($proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
-                $proxy = new Clue\React\HttpProxy\ProxyConnector($proxyHttps);
+                $proxy = new \Clue\React\HttpProxy\ProxyConnector($proxyHttps);
                 $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
             } else if ($proxySocks !== null) {
                 try {
-                    $proxy = new Clue\React\Socks\Client($proxySocks);
+                    $proxy = new \Clue\React\Socks\Client($proxySocks);
                 } catch (\Exception $e) {
                     throw new NotSupported($this->id . ' - to use SOCKS proxy with ccxt, at first you need install module "composer require clue/socks-react"');
                 }
