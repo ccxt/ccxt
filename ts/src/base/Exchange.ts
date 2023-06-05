@@ -174,7 +174,7 @@ export default class Exchange {
     proxySocks: string;
     proxy_socks: string;
     proxyAgentCallback: any;
-    proxy_aget_callback: any;
+    proxy_agent_callback: any;
     origin = '*' // CORS origin
 
     minFundingAddressLength = 1 // used in checkAddress
@@ -1429,18 +1429,6 @@ export default class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    safeProp (obj, key1, defaultValue = undefined) {
-        return this.getProperty (obj, key1, defaultValue);
-    }
-
-    safeProp2 (obj, key1, key2, defaultValue = undefined) {
-        const val1 = this.safeProp (obj, key1);
-        if (val1 !== undefined) {
-            return val1;
-        }
-        return this.safeProp (obj, key2, defaultValue);
-    }
-
     setExchangePropAllCase (key: string, value: any = undefined): any {
         this[key] = value;
         const unCamelCasedKey = this.unCamelCase (key);
@@ -1448,17 +1436,20 @@ export default class Exchange {
     }
 
     checkProxySettings () {
-        const proxyUrl = this.safeProp2 (this, 'proxyUrl', 'proxy_url');
-        const proxyUrlCallback = this.safeProp2 (this, 'proxyUrlCallback', 'proxy_url_callback');
+        const proxyUrl = (this.proxyUrl !== undefined) ? this.proxyUrl : this.proxy_url;
+        const proxyUrlCallback = (this.proxyUrlCallback !== undefined) ? this.proxyUrlCallback : this.proxy_url_callback;
         // for backwards compatibility,added old keys too
-        let proxyHttp = this.safeProp2 (this, 'proxyHttp', 'proxy_http');
+        let proxyHttp = (this.proxyHttp !== undefined) ? this.proxyHttp : this.proxy_http;
         // support for backward compatibility (note, atm safeStringN does not work in python for class https://app.travis-ci.com/github/ccxt/ccxt/builds/263490790#L4765 , so we have to use separate safeString)
         if (proxyHttp === undefined) {
-            proxyHttp = this.safeProp (this, 'httpProxy');
+            const httpProxy = this.getProperty (this, 'httpProxy');
+            if (httpProxy !== undefined) {
+                proxyHttp = httpProxy;
+            }
         }
-        const proxyHttps = this.safeProp2 (this, 'proxyHttps', 'proxy_https');
-        const proxySocks = this.safeProp2 (this, 'proxySocks', 'proxy_socks');
-        const proxyAgentCallback = this.safeProp2 (this, 'proxyAgentCallback', 'proxy_agent_callback');
+        const proxyHttps = (this.proxyHttps !== undefined) ? this.proxyHttps : this.proxy_https;
+        const proxySocks = (this.proxySocks !== undefined) ? this.proxySocks : this.proxy_socks;
+        const proxyAgentCallback = (this.proxyAgentCallback !== undefined) ? this.proxyAgentCallback : this.proxy_agent_callback;
         let val = 0;
         if (proxyUrl !== undefined) {
             val = val + 1;
