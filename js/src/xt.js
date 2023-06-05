@@ -2223,10 +2223,9 @@ export default class xt extends Exchange {
     async createContractOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const convertContractsToAmount = Precise.stringDiv(this.numberToString(amount), this.numberToString(market['contractSize']));
         const request = {
             'symbol': market['id'],
-            'origQty': this.amountToPrecision(symbol, this.parseNumber(convertContractsToAmount)),
+            'origQty': this.amountToPrecision(symbol, amount),
         };
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         if (timeInForce !== undefined) {

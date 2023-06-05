@@ -2133,10 +2133,9 @@ class xt(Exchange, ImplicitAPI):
     async def create_contract_order(self, symbol: str, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        convertContractsToAmount = Precise.string_div(self.number_to_string(amount), self.number_to_string(market['contractSize']))
         request = {
             'symbol': market['id'],
-            'origQty': self.amount_to_precision(symbol, self.parse_number(convertContractsToAmount)),
+            'origQty': self.amount_to_precision(symbol, amount),
         }
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         if timeInForce is not None:
