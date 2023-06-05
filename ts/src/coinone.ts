@@ -104,7 +104,7 @@ export default class coinone extends Exchange {
                         'order/limit_sell/',
                         'order/complete_orders/',
                         'order/limit_orders/',
-                        'order/order_info/',
+                        'order/query_order/',
                         'transaction/auth_number/',
                         'transaction/history/',
                         'transaction/krw/history/',
@@ -546,35 +546,38 @@ export default class coinone extends Exchange {
             'order_id': id,
             'currency': market['id'],
         };
-        const response = await this.privatePostOrderOrderInfo (this.extend (request, params));
+        const response = await this.privatePostOrderQueryOrder (this.extend (request, params));
         //
         //     {
         //         "result": "success",
         //         "errorCode": "0",
-        //         "status": "live",
-        //         "info": {
-        //             "orderId": "32FF744B-D501-423A-8BA1-05BB6BE7814A",
-        //             "currency": "BTC",
-        //             "type": "bid",
-        //             "price": "2922000.0",
-        //             "qty": "115.4950",
-        //             "remainQty": "45.4950",
-        //             "feeRate": "0.0003",
-        //             "fee": "0",
-        //             "timestamp": "1499340941"
-        //         }
+        //         "orderId": "0e3019f2-1e4d-11e9-9ec7-00e04c3600d7",
+        //         "baseCurrency": "KRW",
+        //         "targetCurrency": "BTC",
+        //         "price": "10011000.0",
+        //         "originalQty": "3.0",
+        //         "executedQty": "0.62",
+        //         "canceledQty": "1.125",
+        //         "remainQty": "1.255",
+        //         "status": "partially_filled",
+        //         "side": "bid",
+        //         "orderedAt": 1499340941,
+        //         "updatedAt": 1499341142,
+        //         "feeRate": "0.002",
+        //         "fee": "0.00124",
+        //         "averageExecutedPrice": "10011000.0"
         //     }
         //
-        const info = this.safeValue (response, 'info', {});
-        info['status'] = this.safeString (info, 'status');
-        return this.parseOrder (info, market);
+        return this.parseOrder (response, market);
     }
 
     parseOrderStatus (status) {
         const statuses = {
             'live': 'open',
             'partially_filled': 'open',
+            'partially_canceled': 'open',
             'filled': 'closed',
+            'canceled': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -592,16 +595,23 @@ export default class coinone extends Exchange {
         // fetchOrder
         //
         //     {
-        //         "status": "live", // injected in fetchOrder
-        //         "orderId": "32FF744B-D501-423A-8BA1-05BB6BE7814A",
-        //         "currency": "BTC",
-        //         "type": "bid",
-        //         "price": "2922000.0",
-        //         "qty": "115.4950",
-        //         "remainQty": "45.4950",
-        //         "feeRate": "0.0003",
-        //         "fee": "0",
-        //         "timestamp": "1499340941"
+        //         "result": "success",
+        //         "errorCode": "0",
+        //         "orderId": "0e3019f2-1e4d-11e9-9ec7-00e04c3600d7",
+        //         "baseCurrency": "KRW",
+        //         "targetCurrency": "BTC",
+        //         "price": "10011000.0",
+        //         "originalQty": "3.0",
+        //         "executedQty": "0.62",
+        //         "canceledQty": "1.125",
+        //         "remainQty": "1.255",
+        //         "status": "partially_filled",
+        //         "side": "bid",
+        //         "orderedAt": 1499340941,
+        //         "updatedAt": 1499341142,
+        //         "feeRate": "0.002",
+        //         "fee": "0.00124",
+        //         "averageExecutedPrice": "10011000.0"
         //     }
         //
         // fetchOpenOrders
@@ -617,16 +627,21 @@ export default class coinone extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'orderId');
-        const priceString = this.safeString (order, 'price');
-        const timestamp = this.safeTimestamp (order, 'timestamp');
-        let side = this.safeString (order, 'type');
+        const baseId = this.safeString (order, 'baseCurrency');
+        const quoteId = this.safeString (order, 'targetCurrency');
+        const base = this.safeCurrencyCode (baseId, market['base']);
+        const quote = this.safeCurrencyCode (quoteId, market['quote']);
+        const symbol = base + '/' + quote;
+        market = this.safeMarket (symbol, market, '/');
+        const timestamp = this.safeTimestamp2 (order, 'timestamp', 'updatedAt');
+        let side = this.safeString2 (order, 'type', 'side');
         if (side === 'ask') {
             side = 'sell';
         } else if (side === 'bid') {
             side = 'buy';
         }
         const remainingString = this.safeString (order, 'remainQty');
-        const amountString = this.safeString (order, 'qty');
+        const amountString = this.safeString2 (order, 'originalQty', 'qty');
         let status = this.safeString (order, 'status');
         // https://github.com/ccxt/ccxt/pull/7067
         if (status === 'live') {
@@ -638,9 +653,6 @@ export default class coinone extends Exchange {
             }
         }
         status = this.parseOrderStatus (status);
-        const symbol = market['symbol'];
-        const base = market['base'];
-        const quote = market['quote'];
         let fee = undefined;
         const feeCostString = this.safeString (order, 'fee');
         if (feeCostString !== undefined) {
@@ -663,13 +675,13 @@ export default class coinone extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': priceString,
+            'price': this.safeString (order, 'price'),
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': undefined,
-            'average': undefined,
+            'average': this.safeString (order, 'averageExecutedPrice'),
             'amount': amountString,
-            'filled': undefined,
+            'filled': this.safeString (order, 'executedQty'),
             'remaining': remainingString,
             'status': status,
             'fee': fee,

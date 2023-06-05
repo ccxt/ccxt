@@ -224,7 +224,7 @@ abstract class binance extends \ccxt\async\Exchange {
         return $this->request('capital/contract/convertible-coins', 'sapi', 'GET', $params, null, null, array("cost" => 4.0002));
     }
     public function sapi_get_convert_tradeflow($params = array()) {
-        return $this->request('convert/tradeFlow', 'sapi', 'GET', $params, null, null, array("cost" => 0.6667));
+        return $this->request('convert/tradeFlow', 'sapi', 'GET', $params, null, null, array("cost" => 20.0001));
     }
     public function sapi_get_convert_exchangeinfo($params = array()) {
         return $this->request('convert/exchangeInfo', 'sapi', 'GET', $params, null, null, array("cost" => 50));
@@ -1847,7 +1847,7 @@ abstract class binance extends \ccxt\async\Exchange {
         return $this->request('capital/contract/convertible-coins', 'sapi', 'GET', $params, null, null, array("cost" => 4.0002));
     }
     public function sapiGetConvertTradeFlow($params = array()) {
-        return $this->request('convert/tradeFlow', 'sapi', 'GET', $params, null, null, array("cost" => 0.6667));
+        return $this->request('convert/tradeFlow', 'sapi', 'GET', $params, null, null, array("cost" => 20.0001));
     }
     public function sapiGetConvertExchangeInfo($params = array()) {
         return $this->request('convert/exchangeInfo', 'sapi', 'GET', $params, null, null, array("cost" => 50));

@@ -274,11 +274,13 @@ class bitget extends Exchange {
                             'account/setMarginMode' => 4, // 5 times/1s (UID) => 20/5 = 4
                             'account/setPositionMode' => 4, // 5 times/1s (UID) => 20/5 = 4
                             'order/placeOrder' => 2,
+                            'order/modifyOrder' => 2,
                             'order/batch-orders' => 2,
                             'order/cancel-order' => 2,
                             'order/cancel-batch-orders' => 2,
                             'order/cancel-symbol-orders' => 2,
                             'order/cancel-all-orders' => 2,
+                            'order/close-all-positions' => 20,
                             'plan/placePlan' => 2,
                             'plan/modifyPlan' => 2,
                             'plan/modifyPlanPreset' => 2,
@@ -977,6 +979,7 @@ class bitget extends Exchange {
                     'TRC20' => 'TRX',
                     'BSC' => 'BEP20',
                 ),
+                'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             ),
         ));
     }
@@ -2518,6 +2521,7 @@ class bitget extends Exchange {
     public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#place-order
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#place-plan-order
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-order
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-stop-order
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-position-tpsl
@@ -2534,6 +2538,7 @@ class bitget extends Exchange {
          * @param {float|null} $params->takeProfitPrice *swap only* The $price at which a take profit order is triggered at
          * @param {float|null} $params->stopLoss *swap only* *uses the Place Position TPSL* The $price at which a stop loss order is triggered at
          * @param {float|null} $params->takeProfit *swap only* *uses the Place Position TPSL* The $price at which a take profit order is triggered at
+         * @param {string|null} $params->timeInForce "GTC", "IOC", "FOK", or "PO"
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -2571,6 +2576,9 @@ class bitget extends Exchange {
         $exchangeSpecificTifParam = $this->safe_string_n($params, array( 'force', 'timeInForceValue', 'timeInForce' ));
         $postOnly = null;
         list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $exchangeSpecificTifParam === 'post_only', $params);
+        $defaultTimeInForce = $this->safe_string_lower($this->options, 'defaultTimeInForce');
+        $timeInForce = $this->safe_string_lower($params, 'timeInForce', $defaultTimeInForce);
+        $timeInForceKey = 'timeInForceValue';
         if ($marketType === 'spot') {
             if ($isStopLossOrTakeProfitTrigger || $isStopLossOrTakeProfit) {
                 throw new InvalidOrder($this->id . ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets');
@@ -2608,20 +2616,12 @@ class bitget extends Exchange {
             if ($quantity !== null) {
                 $request[$quantityKey] = $quantity;
             }
-            if ($postOnly) {
-                $request[$timeInForceKey] = 'post_only';
-            } else {
-                $request[$timeInForceKey] = 'normal';
-            }
         } else {
             if ($clientOrderId !== null) {
                 $request['clientOid'] = $clientOrderId;
             }
             if (!$isStopLossOrTakeProfit) {
                 $request['size'] = $this->amount_to_precision($symbol, $amount);
-                if ($postOnly) {
-                    $request['timeInForceValue'] = 'post_only';
-                }
             }
             if ($isTriggerOrder || $isStopLossOrTakeProfit) {
                 // default $triggerType to $market $price for unification
@@ -2680,6 +2680,17 @@ class bitget extends Exchange {
                 }
             }
             $request['marginCoin'] = $market['settleId'];
+        }
+        if (!$isStopLossOrTakeProfit) {
+            if ($postOnly) {
+                $request[$timeInForceKey] = 'post_only';
+            } elseif ($timeInForce === 'gtc') {
+                $request[$timeInForceKey] = 'normal';
+            } elseif ($timeInForce === 'fok') {
+                $request[$timeInForceKey] = 'fok';
+            } elseif ($timeInForce === 'ioc') {
+                $request[$timeInForceKey] = 'ioc';
+            }
         }
         $omitted = $this->omit($query, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly' ));
         $response = $this->$method (array_merge($request, $omitted));

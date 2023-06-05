@@ -258,6 +258,7 @@ export default class gate extends Exchange {
     };
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     parsePosition(position: any, market?: any): any;
+    fetchPosition(symbol: string, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
     parseMarketLeverageTiers(info: any, market?: any): any[];

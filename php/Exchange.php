@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.1.14';
+$version = '3.1.23';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.1.14';
+    const VERSION = '3.1.23';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -427,7 +427,6 @@ class Exchange {
         'poloniex',
         'poloniexfutures',
         'probit',
-        'stex',
         'tidex',
         'timex',
         'tokocrypto',
@@ -697,49 +696,6 @@ class Exchange {
         // Get offset based on timeframe in milliseconds
         $offset = $timestamp % $ms;
         return $timestamp - $offset + (($direction === ROUND_UP) ? $ms : 0);
-    }
-
-    // given a sorted arrays of trades (recent first) and a timeframe builds an array of OHLCV candles
-    public static function build_ohlcv($trades, $timeframe = '1m', $since = PHP_INT_MIN, $limits = PHP_INT_MAX) {
-        if (empty($trades) || !is_array($trades)) {
-            return array();
-        }
-        if (!is_numeric($since)) {
-            $since = PHP_INT_MIN;
-        }
-        if (!is_numeric($limits)) {
-            $limits = PHP_INT_MAX;
-        }
-        $ms = static::parse_timeframe($timeframe) * 1000;
-        $ohlcvs = array();
-        list(/* $timestamp */, /* $open */, $high, $low, $close, $volume) = array(0, 1, 2, 3, 4, 5);
-        for ($i = 0; $i < min(count($trades), $limits); $i++) {
-            $trade = $trades[$i];
-            if ($trade['timestamp'] < $since) {
-                continue;
-            }
-            $openingTime = floor($trade['timestamp'] / $ms) * $ms; // shift to the edge of m/h/d (but not M)
-            $j = count($ohlcvs);
-
-            if (($j == 0) || ($openingTime >= $ohlcvs[$j - 1][0] + $ms)) {
-                // moved to a new timeframe -> create a new candle from opening trade
-                $ohlcvs[] = array(
-                    $openingTime,
-                    $trade['price'],
-                    $trade['price'],
-                    $trade['price'],
-                    $trade['price'],
-                    $trade['amount'],
-                );
-            } else {
-                // still processing the same timeframe -> update opening trade
-                $ohlcvs[$j - 1][$high] = max($ohlcvs[$j - 1][$high], $trade['price']);
-                $ohlcvs[$j - 1][$low] = min($ohlcvs[$j - 1][$low], $trade['price']);
-                $ohlcvs[$j - 1][$close] = $trade['price'];
-                $ohlcvs[$j - 1][$volume] += $trade['amount'];
-            }
-        }
-        return $ohlcvs;
     }
 
     public static function capitalize($string) {
@@ -3596,6 +3552,55 @@ class Exchange {
         return $this->accounts;
     }
 
+    public function build_ohlcvc(array $trades, string $timeframe = '1m', float $since = 0, float $limit = 2147483647) {
+        // given a sorted arrays of $trades (recent last) and a $timeframe builds an array of OHLCV candles
+        // note, default $limit value (2147483647) is max int32 value
+        $ms = $this->parse_timeframe($timeframe) * 1000;
+        $ohlcvs = array();
+        $i_timestamp = 0;
+        // $open = 1;
+        $i_high = 2;
+        $i_low = 3;
+        $i_close = 4;
+        $i_volume = 5;
+        $i_count = 6;
+        $tradesLength = count($trades);
+        $oldest = min ($tradesLength, $limit);
+        for ($i = 0; $i < $oldest; $i++) {
+            $trade = $trades[$i];
+            $ts = $trade['timestamp'];
+            if ($ts < $since) {
+                continue;
+            }
+            $openingTime = (int) floor($ts / $ms) * $ms; // shift to the edge of m/h/d (but not M)
+            if ($openingTime < $since) { // we don't need bars, that have opening time earlier than requested
+                continue;
+            }
+            $ohlcv_length = count($ohlcvs);
+            $candle = $ohlcv_length - 1;
+            if (($candle === -1) || ($openingTime >= $this->sum ($ohlcvs[$candle][$i_timestamp], $ms))) {
+                // moved to a new $timeframe -> create a new $candle from opening $trade
+                $ohlcvs[] = [
+                    $openingTime, // timestamp
+                    $trade['price'], // O
+                    $trade['price'], // H
+                    $trade['price'], // L
+                    $trade['price'], // C
+                    $trade['amount'], // V
+                    1, // count
+                ];
+            } else {
+                // still processing the same $timeframe -> update opening $trade
+                $ohlcvs[$candle][$i_high] = max ($ohlcvs[$candle][$i_high], $trade['price']);
+                $ohlcvs[$candle][$i_low] = min ($ohlcvs[$candle][$i_low], $trade['price']);
+                $ohlcvs[$candle][$i_close] = $trade['price'];
+                $ohlcvs[$candle][$i_volume] = $this->sum ($ohlcvs[$candle][$i_volume], $trade['amount']);
+                $ohlcvs[$candle][$i_count] = $this->sum ($ohlcvs[$candle][$i_count], 1);
+            }
+        }
+        return $ohlcvs;
+    }
+
     public function fetch_ohlcvc($symbol, $timeframe = '1m', mixed $since = null, ?int $limit = null, $params = array ()) {
         if (!$this->has['fetchTrades']) {
             throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet');
@@ -4752,7 +4757,7 @@ class Exchange {
          * @param {string} $symbol unified $symbol of the market
          * @param {string} $methodName name of the method that requires a $symbol
          */
-        $this->checkRequiredArgument ($methodName, $symbol, 'symbol');
+        $this->check_required_argument($methodName, $symbol, 'symbol');
     }
 
     public function parse_deposit_withdraw_fees($response, ?array $codes = null, $currencyIdKey = null) {

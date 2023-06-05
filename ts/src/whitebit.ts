@@ -18,6 +18,7 @@ export default class whitebit extends Exchange {
             'version': 'v4',
             'countries': [ 'EE' ],
             'rateLimit': 500,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,

@@ -261,6 +261,7 @@ class woo(Exchange, ImplicitAPI):
                 'transfer': {
                     'fillResponseFromRequest': True,
                 },
+                'brokerId': 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -767,6 +768,10 @@ class woo(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
+        applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
+        brokerId = self.safe_string(self.options, 'brokerId', applicationId)
+        if brokerId is not None:
+            request['broker_id'] = brokerId
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'postOnly', 'timeInForce'])
         response = await self.v1PrivatePostOrder(self.extend(request, params))
         # {

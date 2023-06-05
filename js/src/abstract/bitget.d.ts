@@ -123,11 +123,13 @@ interface Exchange {
     privateMixPostAccountSetMarginMode(params?: {}): Promise<implicitReturnType>;
     privateMixPostAccountSetPositionMode(params?: {}): Promise<implicitReturnType>;
     privateMixPostOrderPlaceOrder(params?: {}): Promise<implicitReturnType>;
+    privateMixPostOrderModifyOrder(params?: {}): Promise<implicitReturnType>;
     privateMixPostOrderBatchOrders(params?: {}): Promise<implicitReturnType>;
     privateMixPostOrderCancelOrder(params?: {}): Promise<implicitReturnType>;
     privateMixPostOrderCancelBatchOrders(params?: {}): Promise<implicitReturnType>;
     privateMixPostOrderCancelSymbolOrders(params?: {}): Promise<implicitReturnType>;
     privateMixPostOrderCancelAllOrders(params?: {}): Promise<implicitReturnType>;
+    privateMixPostOrderCloseAllPositions(params?: {}): Promise<implicitReturnType>;
     privateMixPostPlanPlacePlan(params?: {}): Promise<implicitReturnType>;
     privateMixPostPlanModifyPlan(params?: {}): Promise<implicitReturnType>;
     privateMixPostPlanModifyPlanPreset(params?: {}): Promise<implicitReturnType>;
