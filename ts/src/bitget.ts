@@ -2530,6 +2530,16 @@ export default class bitget extends Exchange {
                 'currency': market['settle'],
             };
         }
+        const feeDetail = this.safeValue (order, 'feeDetail');
+        if (feeDetail !== undefined) {
+            const parsedFeeDetail = JSON.parse (feeDetail);
+            const feeValues = Object.values (parsedFeeDetail);
+            const first = this.safeValue (feeValues, 0);
+            fee = {
+                'cost': this.safeString (first, 'totalFee'),
+                'currency': this.safeCurrencyCode (this.safeString (first, 'feeCoinCode')),
+            };
+        }
         const rawStatus = this.safeString2 (order, 'status', 'state');
         const status = this.parseOrderStatus (rawStatus);
         const lastTradeTimestamp = this.safeInteger (order, 'uTime');
