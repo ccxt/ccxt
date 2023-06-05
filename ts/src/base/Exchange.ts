@@ -3289,7 +3289,12 @@ export default class Exchange {
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        throw new NotSupported (this.id + ' watchTicker() is not supported yet');
+        if (this.has['watchTickers']) {
+            const tickers = await this.watchTickers ([ symbol ], params);
+            return this.safeValue (tickers, symbol);
+        } else {
+            throw new NotSupported (this.id + ' fetchDepositAddress() is not supported yet');
+        }
     }
 
     async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
