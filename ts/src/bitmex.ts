@@ -1085,7 +1085,7 @@ export default class bitmex extends Exchange {
         }
         let feeCost = this.safeNumber (item, 'fee', 0);
         if (feeCost !== undefined) {
-            feeCost = feeCost / 100000000;
+            feeCost = this.convertToRealAmount (code, feeCost);
         }
         const fee = {
             'cost': feeCost,
@@ -1093,9 +1093,9 @@ export default class bitmex extends Exchange {
         };
         let after = this.safeNumber (item, 'walletBalance');
         if (after !== undefined) {
-            after = after / 100000000;
+            after = this.convertToRealAmount (code, after);
         }
-        const before = this.sum (after, -amount);
+        const before = this.parseNumber (Precise.stringAdd (this.numberToString (after), Precise.stringNeg (this.numberToString (amount))));
         let direction = undefined;
         if (amount < 0) {
             direction = 'out';
@@ -1745,14 +1745,13 @@ export default class bitmex extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const priceString = this.safeString2 (trade, 'avgPx', 'price');
         const amountString = this.convertFromRawQuantity (symbol, this.safeString2 (trade, 'size', 'lastQty'));
-        const execCost = this.safeString (trade, 'execCost');
-        const costString = Precise.stringDiv (Precise.stringAbs (execCost), '1e8');
+        const execCost = this.convertFromRawQuantity (symbol, this.safeString (trade, 'execCost'));
         const id = this.safeString (trade, 'trdMatchID');
         const order = this.safeString (trade, 'orderID');
         const side = this.safeStringLower (trade, 'side');
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
         let fee = undefined;
-        const feeCostString = Precise.stringDiv (this.safeString (trade, 'execComm'), '1e8');
+        const feeCostString = this.numberToString (this.convertFromRawQuantity (symbol, this.safeString (trade, 'execComm')));
         if (feeCostString !== undefined) {
             const currencyId = this.safeString (trade, 'settlCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (currencyId);
@@ -1781,7 +1780,7 @@ export default class bitmex extends Exchange {
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': priceString,
-            'cost': costString,
+            'cost': execCost,
             'amount': amountString,
             'fee': fee,
         }, market);
