@@ -1141,19 +1141,30 @@ export default class currencycom extends Exchange {
         //         ],
         //     }
         //
-        // fetchOrder
+        // fetchOrder (fetchOpenOrders is an array same structure, with some extra fields)
         //
         //    {
-        //        "accountId": "109698017413125316",
-        //        "quantity": "20.0",
-        //        "timestamp": "1661157503788",
-        //        "timeInForceType": "GTC",,
-        //        "margin": "0.1",
-        //        "orderId": "2810f1c5-0079-54c4-0000-000080421601",
-        //        "price": "0.06",
-        //        "status": "CREATED",
+        //        "symbol": "BTC/USD_LEVERAGE",
+        //        "accountId": "123456789012345678",
+        //        "orderId": "00a01234-0123-54c4-0000-123451234567",
+        //        "price": "25779.35",
+        //        "status": "MODIFIED",
         //        "type": "LIMIT",
+        //        "timeInForceType": "GTC",
         //        "side": "BUY",
+        //        "guaranteedStopLoss": false,
+        //        "trailingStopLoss": false,
+        //        "margin": "0.05",
+        //        "takeProfit": "27020.00",
+        //        "stopLoss": "24500.35",
+        //        "fills": [], // might not be present
+        //        "timestamp": "1685958369623",  // "time" in "fetchOpenOrders"
+        //        "expireTime": "1686167960000", // "expireTimestamp" in "fetchOpenOrders"
+        //        "quantity": "0.00040", // "origQty" in "fetchOpenOrders"
+        //        "executedQty": "0.0", // present in "fetchOpenOrders"
+        //        "updateTime": "1685958369542", // present in "fetchOpenOrders"
+        //        "leverage": true, // present in "fetchOpenOrders"
+        //        "working": true // present in "fetchOpenOrders"
         //    }
         //
         // cancelOrder
@@ -1169,24 +1180,6 @@ export default class currencycom extends Exchange {
         //         "type": "LIMIT",
         //         "side": "BUY",
         //     }
-        //
-        // fetchOpenOrders
-        //
-        //   {
-        //       "symbol": "DOGE/USD",
-        //       "orderId": "00000000-0000-0003-0000-000004bcc27a",
-        //       "price": "0.13",
-        //       "origQty": "39.0",
-        //       "executedQty": "0.0",
-        //       "status": "NEW",
-        //       "timeInForce": "GTC",
-        //       "type": "LIMIT",
-        //       "side": "BUY",
-        //       "time": "1645284216240",
-        //       "updateTime": "1645284216240",
-        //       "leverage": false, // whether it's swap or not
-        //       "working": true,
-        //   }
         //
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '/');
@@ -1228,6 +1221,8 @@ export default class currencycom extends Exchange {
     parseOrderStatus (status) {
         const statuses = {
             'NEW': 'open',
+            'CREATED': 'open',
+            'MODIFIED': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
@@ -1365,16 +1360,24 @@ export default class currencycom extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-        }
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name currencycom#fetchOrder
+         * @description fetches information on an order made by the user
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getOrderUsingGET
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the currencycom api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        this.checkRequiredSymbol ('fetchOrder', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'orderId': id,
             'symbol': market['id'],
         };
+        // @ts-ignore
         const response = await this.privateGetV2FetchOrder (this.extend (request, params));
         //
         //    {
@@ -1387,7 +1390,15 @@ export default class currencycom extends Exchange {
         //        "type": "LIMIT",
         //        "timeInForceType": "GTC",
         //        "side": "BUY",
-        //        "margin": "0.1"
+        //        "margin": "0.1",
+        //        "fills": [ // might not be present
+        //             {
+        //                 "price": "0.14094",
+        //                 "qty": "40.0",
+        //                 "commission": "0",
+        //                 "commissionAsset": "dUSD"
+        //             }
+        //        ]
         //    }
         //
         return this.parseOrder (response);
