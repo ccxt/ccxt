@@ -74,8 +74,11 @@ function testTicker (exchange, skippedProperties, method, entry, symbol) {
     if (!('ask' in skippedProperties) && !('bid' in skippedProperties)) {
         const askString = exchange.safeString (entry, 'ask');
         const bidString = exchange.safeString (entry, 'bid');
-        if ((askString !== undefined) && (bidString !== undefined)) {
-            testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'ask', exchange.safeString (entry, 'bid'));
+        // check bid-ask spread to be > 0
+        if (!('compareBidAsk' in skippedProperties)) {
+            if ((askString !== undefined) && (bidString !== undefined)) {
+                testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'ask', exchange.safeString (entry, 'bid'));
+            }
         }
         // todo: rethink about this
         // else {

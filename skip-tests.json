@@ -169,8 +169,12 @@
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
-            "fetchOrderBook": "multiple bids might have same value",
-            "fetchL2OrderBook": "same",
+            "fetchOrderBook": {
+                "compareToNextItem": "sometimes bid equals to next bid"
+            },
+            "fetchL2OrderBook": {
+                "compareToNextItem": "same"
+            },
             "fetchTickers": "negative values"
         }
     },
@@ -263,8 +267,12 @@
     "bitpanda": {
         "skipWs": true,
         "skipMethods": {
-            "fetchOrderBook": "some bid might be lower than next bid",
-            "fetchL2OrderBook": "same",
+            "fetchOrderBook": {
+                "compareToNextItem": "some bid might be lower than next bid"
+            },
+            "fetchL2OrderBook": {
+                "compareToNextItem": "same"
+            },
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
@@ -307,8 +315,12 @@
     "bitstamp": {
         "skipWs": true,
         "skipMethods": {
-            "fetchOrderBook": "bid/ask might be 0",
-            "fetchL2OrderBook": "same",
+            "fetchOrderBook": {
+                "compareToZero": "bid/ask might be 0"
+            },
+            "fetchL2OrderBook": {
+                "compareToZero": "bid/ask might be 0"
+            },
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
@@ -323,10 +335,12 @@
                 "precision":"not provided",
                 "active": "not provided"
             },
-            "fetchCurrencies":{
+            "fetchOrderBook": {
+                "compareToZero": "bid/ask might be 0"
             },
-            "fetchOrderBook": "bid/ask might be 0",
-            "fetchL2OrderBook": "same"
+            "fetchL2OrderBook": {
+                "compareToZero": "same"
+            }
         }
     },
     "bl3p": {
@@ -364,8 +378,12 @@
                 "taker":"not provided",
                 "maker":"not provided"
             },
-            "fetchOrderBook": "bid should be greater than next bid",
-            "fetchL2OrderBook": "same"
+            "fetchOrderBook": {
+                "compareToNextItem": "sometimes bid equals to next bid"
+            },
+            "fetchL2OrderBook": {
+                "compareToNextItem": "same"
+            }
         }
     },
     "bkex": {
@@ -405,8 +423,12 @@
                 "active":"is undefined",
                 "info": "null"
             },
-            "fetchOrderBook": "bids[0][0] (3787971.0) should be < than asks[0][0] (3787971.0) <<< btcbox ",
-            "fetchL2OrderBook": "bids[0][0] (3787971.0) should be < than asks[0][0] (3787971.0) <<< btcbox ",
+            "fetchOrderBook": {
+                "compareBidAsk": "sometimes bid equals to ask"
+            },
+            "fetchL2OrderBook": {
+                "compareBidAsk": "same"
+            },
             "fetchTickers": {
                 "bid":"broken bid-ask",
                 "ask":"broken bid-ask"
@@ -441,8 +463,12 @@
     "btcalpha": {
 	"skip": "USDT_USD high price is a negative number below zero breaking the assertion in the test",
         "skipMethods": {
-            "fetchOrderBook": "bids[0][0] is not < asks[0][0]",
-            "fetchL2OrderBook": "same",
+            "fetchOrderBook": {
+                "compareBidAsk": "sometimes bid equals to ask"
+            },
+            "fetchL2OrderBook": {
+                "compareBidAsk": "same"
+            },
             "fetchTickers": {
                 "percentage": "broken",
                 "bid": "messed bid-ask",
@@ -461,8 +487,12 @@
             "loadMarkets":{
                 "active":"is undefined"
             },
-            "fetchOrderBook": "bid should be greater than next bid",
-            "fetchL2OrderBook": "same"
+            "fetchOrderBook": {
+                "compareToNextItem": "sometimes bid equals to next bid"
+            },
+            "fetchL2OrderBook": {
+                "compareToNextItem": "same"
+            }
         }
     },
     "btctradeua": {
@@ -473,8 +503,19 @@
                 "active":"is undefined",
                 "info":"null"
             },
-            "fetchOrderBook": "bid should be greater than next bid",
-            "fetchL2OrderBook": "same"
+            "fetchOrderBook": {
+                "compareToNextItem": "sometimes bid equals to next bid"
+            },
+            "fetchL2OrderBook": {
+                "compareToNextItem": "same"
+            }
+        }
+    },
+    "btcturk": {
+        "skipMethods": {
+            "fetchOrderBook": {
+                "compareToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263287870#L2201"
+            }
         }
     },
     "bybit": {
@@ -599,8 +640,12 @@
             "loadMarkets": {
                 "active":"is undefined"
             },
-            "fetchOrderBook": "ask should be less than next ask",
-            "fetchL2OrderBook": "same"
+            "fetchOrderBook": {
+                "compareToNextItem": "sometimes ask equals to next ask"
+            },
+            "fetchL2OrderBook": {
+                "compareToNextItem": "same"
+            }
         }
     },
     "cryptocom": {
@@ -868,8 +913,12 @@
             "fetchTrades": {
                 "side":"side is undefined"
             },
-            "fetchOrderBook": "bid should be greater than next bid",
-            "fetchL2OrderBook": "same"
+            "fetchOrderBook": {
+                "compareToNextItem": "sometimes bid equals to next bid"
+            },
+            "fetchL2OrderBook": {
+                "compareToNextItem": "same"
+            }
         }
     },
     "coinfalcon": {
@@ -916,8 +965,12 @@
     },
     "luno": {
         "skipMethods": {
-            "fetchOrderBook": "bid should be greater than next bid",
-            "fetchL2OrderBook": "same"
+            "fetchOrderBook": {
+                "compareToNextItem": "sometimes bid equals to next bid"
+            },
+            "fetchL2OrderBook": {
+                "compareToNextItem": "same"
+            }
         }
     },
     "lbank": {
@@ -956,8 +1009,12 @@
             "fetchCurrencies": {
                 "fee":"not provided"
             },
-            "fetchOrderBook": "bid should be greater than next bid",
-            "fetchL2OrderBook": "same",
+            "fetchOrderBook": {
+                "compareToNextItem": "sometimes bid equals to next bid"
+            },
+            "fetchL2OrderBook": {
+                "compareToNextItem": "same"
+            },
             "fetchTickers": "negative values",
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -968,10 +1025,18 @@
     "mercado": {
         "skipMethods": {
             "loadMarkets": "needs migration to v4, as raw info is not being used. granular can be used for skipping 'info'",
-            "fetchOrderBook": "bid > ask",
-            "fetchL2OrderBook": "bid > ask",
-            "fetchTickers": "bid > ask",
-            "fetchTicker": "bid > ask",
+            "fetchOrderBook": {
+                "compareBidAsk": "sometimes bid is not lower than ask"
+            },
+            "fetchL2OrderBook": {
+                "compareBidAsk": "same"
+            },
+            "fetchTickers": {
+                "compareBidAsk": "sometimes bid is not lower than ask"
+            },
+            "fetchTicker": {
+                "compareBidAsk": "sometimes bid is not lower than ask"
+            },
             "fetchCurrencies": "info key is missing"
         }
     },
