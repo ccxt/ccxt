@@ -421,14 +421,14 @@ export default class bitmex extends Exchange {
 
     convertFromRawQuantity (symbol, rawQuantity) {
         if (this.safeValue (this.options, 'oldPrecision')) {
-            return rawQuantity;
+            return this.parseNumber (rawQuantity);
         }
         symbol = this.safeSymbol (symbol);
         const market = this.market (symbol);
         if (market['spot']) {
             return this.convertToRealAmount (market['base'], rawQuantity);
         }
-        return rawQuantity;
+        return this.parseNumber (rawQuantity);
     }
 
     async fetchMarkets (params = {}) {
@@ -820,7 +820,7 @@ export default class bitmex extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const order = response[i];
             const side = (order['side'] === 'Sell') ? 'asks' : 'bids';
-            const amount = this.safeNumber (order, 'size');
+            const amount = this.convertFromRawQuantity (symbol, this.safeString (order, 'size'));
             const price = this.safeNumber (order, 'price');
             // https://github.com/ccxt/ccxt/issues/4926
             // https://github.com/ccxt/ccxt/issues/4927
@@ -1571,8 +1571,8 @@ export default class bitmex extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'homeNotional24h'),
-            'quoteVolume': this.safeString (ticker, 'foreignNotional24h'),
+            'baseVolume': this.convertFromRawQuantity (symbol, this.safeString (ticker, 'homeNotional24h')),
+            'quoteVolume': this.convertFromRawQuantity (symbol, this.safeString (ticker, 'foreignNotional24h')),
             'info': ticker,
         }, market);
     }
