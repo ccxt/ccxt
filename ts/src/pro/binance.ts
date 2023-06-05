@@ -790,10 +790,10 @@ export default class binance extends binanceRest {
         const marketIds = this.marketIds (symbols);
         let market = undefined;
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
-        if (marketIds !== undefined) {
-            market = this.safeMarket (marketIds[0], undefined, undefined, type);
+        if (symbols !== undefined) {
+            market = this.market (symbols[0]);
         }
+        [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('watchTickers', market, params);
         if (this.isLinear (type, subType)) {
