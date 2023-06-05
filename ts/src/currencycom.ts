@@ -1377,7 +1377,6 @@ export default class currencycom extends Exchange {
             'orderId': id,
             'symbol': market['id'],
         };
-        // @ts-ignore
         const response = await this.privateGetV2FetchOrder (this.extend (request, params));
         //
         //    {
