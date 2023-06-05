@@ -73,7 +73,7 @@ export default class currencycom extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
-                'fetchOrder': undefined,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrders': undefined,
@@ -199,6 +199,7 @@ export default class currencycom extends Exchange {
                         'v2/tradingPositionsHistory': 1,
                         'v2/transactions': 1,
                         'v2/withdrawals': 1,
+                        'v2/fetchOrder': 1,
                     },
                     'post': {
                         'v1/order': 1,
@@ -254,6 +255,8 @@ export default class currencycom extends Exchange {
                     'Only leverage symbol allowed here:': BadSymbol, // when you fetchLeverage for non-leverage symbols, like 'BTC/USDT' instead of 'BTC/USDT_LEVERAGE': {"code":"-1128","msg":"Only leverage symbol allowed here: BTC/USDT"}
                     'market data service is not available': ExchangeNotAvailable, // {"code":"-1021","msg":"market data service is not available"}
                     'your time is ahead of server': InvalidNonce, // {"code":"-1021","msg":"your time is ahead of server"}
+                    'Can not find account': BadRequest, // -1128
+                    'You mentioned an invalid value for the price parameter': BadRequest, // -1030
                 },
                 'exact': {
                     '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
@@ -264,7 +267,7 @@ export default class currencycom extends Exchange {
                     '-1100': InvalidOrder, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1104': ExchangeError, // Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1025': AuthenticationError, // {"code":-1025,"msg":"Invalid API-key, IP, or permissions for action"}
-                    '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."} | {"code":"-1128","msg":"Combination of parameters invalid"} | {"code":"-1128","msg":"Invalid limit price"}
+                    '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."} | {"code":"-1128","msg":"Combination of parameters invalid"} | {"code":"-1128","msg":"Invalid limit price"} | {"code":"-1128","msg":"Can not find account: null"}
                     '-2010': ExchangeError, // generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                     '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                     '-2013': OrderNotFound, // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
@@ -615,7 +618,7 @@ export default class currencycom extends Exchange {
         const result = [];
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
-            const accountId = this.safeInteger (account, 'accountId');
+            const accountId = this.safeString (account, 'accountId'); // must be string, because the numeric value is far too big for integer, and causes bugs
             const currencyId = this.safeString (account, 'asset');
             const currencyCode = this.safeCurrencyCode (currencyId);
             result.push ({
@@ -626,6 +629,17 @@ export default class currencycom extends Exchange {
             });
         }
         return result;
+    }
+
+    async getAccountIdByCurrency (currency) {
+        await this.loadAccounts ();
+        for (let i = 0; i < this.accounts.length; i++) {
+            const account = this.accounts[i];
+            if (account['currency'] === currency) {
+                return account['id'];
+            }
+        }
+        throw new ArgumentsRequired (this.id + ' does not have an account for ' + currency);
     }
 
     async fetchTradingFees (params = {}) {
@@ -1121,28 +1135,14 @@ export default class currencycom extends Exchange {
         //         "orderId": "00000000-0000-0000-0000-000006eacaa0",
         //         "transactTime": "1645281669295",
         //         "price": "30000.00000000",
-        //         "origQty": "0.0002",
-        //         "executedQty": "0.0",  // positive for BUY, negative for SELL
-        //         "status": "NEW",
+        //         "origQty": "0.0002",     // might not be present for "market" order
+        //         "executedQty": "0.0",    // positive for BUY, negative for SELL. This property might not be present in Leverage markets
+        //         "margin": 0.1,           // present in leverage markets
+        //         "status": "NEW",         // NEW, FILLED, ...
         //         "timeInForce": "GTC",
-        //         "type": "LIMIT",
+        //         "type": "LIMIT",         // LIMIT, MARKET
         //         "side": "BUY",
-        //     }
-        //
-        // market
-        //
-        //     {
-        //         "symbol": "DOGE/USD",
-        //         "orderId": "00000000-0000-0000-0000-000006eab2ad",
-        //         "transactTime": "1645283022252",
-        //         "price": "0.14066000",
-        //         "origQty": "40",
-        //         "executedQty": "40.0",  // positive for BUY, negative for SELL
-        //         "status": "FILLED",
-        //         "timeInForce": "FOK",
-        //         "type": "MARKET",
-        //         "side": "SELL",
-        //         "fills": [
+        //         "fills": [               // this field might not be present if there were no fills
         //             {
         //                 "price": "0.14094",
         //                 "qty": "40.0",
@@ -1151,6 +1151,21 @@ export default class currencycom extends Exchange {
         //             },
         //         ],
         //     }
+        //
+        // fetchOrder
+        //
+        //    {
+        //        "accountId": "109698017413125316",
+        //        "quantity": "20.0",
+        //        "timestamp": "1661157503788",
+        //        "timeInForceType": "GTC",,
+        //        "margin": "0.1",
+        //        "orderId": "2810f1c5-0079-54c4-0000-000080421601",
+        //        "price": "0.06",
+        //        "status": "CREATED",
+        //        "type": "LIMIT",
+        //        "side": "BUY",
+        //    }
         //
         // cancelOrder
         //
@@ -1188,14 +1203,14 @@ export default class currencycom extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '/');
         const id = this.safeString (order, 'orderId');
         const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'origQty');
+        const amount = this.safeString2 (order, 'origQty', 'quantity');
         const filledRaw = this.safeString (order, 'executedQty');
         const filled = Precise.stringAbs (filledRaw);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const timeInForce = this.parseOrderTimeInForce (this.safeString (order, 'timeInForce'));
+        const timeInForce = this.parseOrderTimeInForce (this.safeString2 (order, 'timeInForce', 'timeInForceType'));
         const type = this.parseOrderType (this.safeString (order, 'type'));
         const side = this.parseOrderSide (this.safeString (order, 'side'));
-        const timestamp = this.safeInteger2 (order, 'time', 'transactTime');
+        const timestamp = this.safeIntegerN (order, [ 'time', 'transactTime', 'timestamp' ]);
         const fills = this.safeValue (order, 'fills');
         return this.safeOrder ({
             'info': order,
@@ -1359,6 +1374,34 @@ export default class currencycom extends Exchange {
         //     }
         //
         return this.parseOrder (response, market);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'orderId': id,
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetV2FetchOrder (this.extend (request, params));
+        //
+        //    {
+        //        "accountId": "109698017413125316",
+        //        "orderId": "2810f1c5-0079-54c4-0000-000080421601",
+        //        "quantity": "20.0",
+        //        "price": "0.06",
+        //        "timestamp": "1661157503788",
+        //        "status": "CREATED",
+        //        "type": "LIMIT",
+        //        "timeInForceType": "GTC",
+        //        "side": "BUY",
+        //        "margin": "0.1"
+        //    }
+        //
+        return this.parseOrder (response);
     }
 
     async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
