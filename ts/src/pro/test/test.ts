@@ -122,11 +122,11 @@ async function testPublic (exchange, symbol) {
     await tests['watchTicker']      (exchange, symbol);
     await tests['watchTrades']      (exchange, symbol);
     await tests['watchOHLCV']       (exchange, symbol);
+    await tests['watchTickers']     (exchange, [ symbol ]);
     // await tests['watchStatus']      (exchange)
     // await tests['watchHeartbeat']   (exchange)
     // await tests['watchL2OrderBook'] (exchange, symbol)
     // await tests['watchOrderBooks']  (exchange, symbol)
-    // await tests['watchTickers']     (exchange, [ symbol ])
 }
 
 async function testPrivate (exchange, symbol, code) {
