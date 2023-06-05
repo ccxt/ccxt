@@ -273,11 +273,13 @@ class bitget extends bitget$1 {
                             'account/setMarginMode': 4,
                             'account/setPositionMode': 4,
                             'order/placeOrder': 2,
+                            'order/modifyOrder': 2,
                             'order/batch-orders': 2,
                             'order/cancel-order': 2,
                             'order/cancel-batch-orders': 2,
                             'order/cancel-symbol-orders': 2,
                             'order/cancel-all-orders': 2,
+                            'order/close-all-positions': 20,
                             'plan/placePlan': 2,
                             'plan/modifyPlan': 2,
                             'plan/modifyPlanPreset': 2,
@@ -976,6 +978,7 @@ class bitget extends bitget$1 {
                     'TRC20': 'TRX',
                     'BSC': 'BEP20',
                 },
+                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             },
         });
     }
@@ -2423,19 +2426,22 @@ class bitget extends bitget$1 {
         //
         // spot
         //     {
-        //       accountId: '6394957606',
-        //       symbol: 'BTCUSDT_SPBL',
-        //       orderId: '881623995442958336',
-        //       clientOrderId: '135335e9-b054-4e43-b00a-499f11d3a5cc',
-        //       price: '39000.000000000000',
-        //       quantity: '0.000700000000',
-        //       orderType: 'limit',
-        //       side: 'buy',
-        //       status: 'new',
-        //       fillPrice: '0.000000000000',
-        //       fillQuantity: '0.000000000000',
-        //       fillTotalAmount: '0.000000000000',
-        //       cTime: '1645921460972'
+        //         "accountId": "222222222",
+        //         "symbol": "TRXUSDT_SPBL",
+        //         "orderId": "1041901704004947968",
+        //         "clientOrderId": "c5e8a5e1-a07f-4202-8061-b88bd598b264",
+        //         "price": "0",
+        //         "quantity": "10.0000000000000000",
+        //         "orderType": "market",
+        //         "side": "buy",
+        //         "status": "full_fill",
+        //         "fillPrice": "0.0699782527055350",
+        //         "fillQuantity": "142.9015000000000000",
+        //         "fillTotalAmount": "9.9999972790000000",
+        //         "enterPointSource": "API",
+        //         "feeDetail": "{\"BGB\":{\"deduction\":true,\"feeCoinCode\":\"BGB\",\"totalDeductionFee\":-0.017118519726,\"totalFee\":-0.017118519726}}",
+        //         "orderSource": "market",
+        //         "cTime": "1684134644509"
         //     }
         //
         // swap
@@ -2498,7 +2504,25 @@ class bitget extends bitget$1 {
             side = 'sell';
         }
         const clientOrderId = this.safeString2(order, 'clientOrderId', 'clientOid');
-        const fee = undefined;
+        let fee = undefined;
+        const feeCostString = this.safeString(order, 'fee');
+        if (feeCostString !== undefined) {
+            // swap
+            fee = {
+                'cost': feeCostString,
+                'currency': market['settle'],
+            };
+        }
+        const feeDetail = this.safeValue(order, 'feeDetail');
+        if (feeDetail !== undefined) {
+            const parsedFeeDetail = JSON.parse(feeDetail);
+            const feeValues = Object.values(parsedFeeDetail);
+            const first = this.safeValue(feeValues, 0);
+            fee = {
+                'cost': this.safeString(first, 'totalFee'),
+                'currency': this.safeCurrencyCode(this.safeString(first, 'feeCoinCode')),
+            };
+        }
         const rawStatus = this.safeString2(order, 'status', 'state');
         const status = this.parseOrderStatus(rawStatus);
         const lastTradeTimestamp = this.safeInteger(order, 'uTime');
@@ -2532,6 +2556,7 @@ class bitget extends bitget$1 {
          * @method
          * @name bitget#createOrder
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#place-order
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#place-plan-order
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-order
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-stop-order
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-position-tpsl
@@ -2548,6 +2573,7 @@ class bitget extends bitget$1 {
          * @param {float|undefined} params.takeProfitPrice *swap only* The price at which a take profit order is triggered at
          * @param {float|undefined} params.stopLoss *swap only* *uses the Place Position TPSL* The price at which a stop loss order is triggered at
          * @param {float|undefined} params.takeProfit *swap only* *uses the Place Position TPSL* The price at which a take profit order is triggered at
+         * @param {string|undefined} params.timeInForce "GTC", "IOC", "FOK", or "PO"
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2585,11 +2611,14 @@ class bitget extends bitget$1 {
         const exchangeSpecificTifParam = this.safeStringN(params, ['force', 'timeInForceValue', 'timeInForce']);
         let postOnly = undefined;
         [postOnly, params] = this.handlePostOnly(isMarketOrder, exchangeSpecificTifParam === 'post_only', params);
+        const defaultTimeInForce = this.safeStringLower(this.options, 'defaultTimeInForce');
+        const timeInForce = this.safeStringLower(params, 'timeInForce', defaultTimeInForce);
+        let timeInForceKey = 'timeInForceValue';
         if (marketType === 'spot') {
             if (isStopLossOrTakeProfitTrigger || isStopLossOrTakeProfit) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets');
             }
-            let timeInForceKey = 'force';
+            timeInForceKey = 'force';
             let quantityKey = 'quantity';
             let quantity = undefined;
             const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
@@ -2624,12 +2653,6 @@ class bitget extends bitget$1 {
             if (quantity !== undefined) {
                 request[quantityKey] = quantity;
             }
-            if (postOnly) {
-                request[timeInForceKey] = 'post_only';
-            }
-            else {
-                request[timeInForceKey] = 'normal';
-            }
         }
         else {
             if (clientOrderId !== undefined) {
@@ -2637,9 +2660,6 @@ class bitget extends bitget$1 {
             }
             if (!isStopLossOrTakeProfit) {
                 request['size'] = this.amountToPrecision(symbol, amount);
-                if (postOnly) {
-                    request['timeInForceValue'] = 'post_only';
-                }
             }
             if (isTriggerOrder || isStopLossOrTakeProfit) {
                 // default triggerType to market price for unification
@@ -2708,6 +2728,20 @@ class bitget extends bitget$1 {
                 }
             }
             request['marginCoin'] = market['settleId'];
+        }
+        if (!isStopLossOrTakeProfit) {
+            if (postOnly) {
+                request[timeInForceKey] = 'post_only';
+            }
+            else if (timeInForce === 'gtc') {
+                request[timeInForceKey] = 'normal';
+            }
+            else if (timeInForce === 'fok') {
+                request[timeInForceKey] = 'fok';
+            }
+            else if (timeInForce === 'ioc') {
+                request[timeInForceKey] = 'ioc';
+            }
         }
         const omitted = this.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly']);
         const response = await this[method](this.extend(request, omitted));
@@ -3471,7 +3505,11 @@ class bitget extends bitget$1 {
         //     }
         //
         const data = this.safeValue(response, 'data');
-        return this.safeValue(data, 'orderList', []);
+        if (data !== undefined) {
+            return this.safeValue2(data, 'orderList', 'data', []);
+        }
+        const parsedData = JSON.parse(response);
+        return this.safeValue(parsedData, 'data', []);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**

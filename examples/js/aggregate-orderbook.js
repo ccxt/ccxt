@@ -1,6 +1,6 @@
 
 
-import ccxt from '../../ccxt.js';
+import ccxt from '../../js/ccxt.js';
 
 const aggregateOrderBookSide = function (orderbookSide, precision = undefined) {
     const result = []

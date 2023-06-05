@@ -733,6 +733,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_get_v5_user_query_api($params = array()) {
         return $this->request('v5/user/query-api', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function private_get_v5_customer_info($params = array()) {
+        return $this->request('v5/customer/info', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function private_get_v5_spot_cross_margin_trade_loan_info($params = array()) {
         return $this->request('v5/spot-cross-margin-trade/loan-info', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -2022,6 +2025,9 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privateGetV5UserQueryApi($params = array()) {
         return $this->request('v5/user/query-api', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function privateGetV5CustomerInfo($params = array()) {
+        return $this->request('v5/customer/info', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function privateGetV5SpotCrossMarginTradeLoanInfo($params = array()) {
         return $this->request('v5/spot-cross-margin-trade/loan-info', 'private', 'GET', $params, null, null, array("cost" => 1));
