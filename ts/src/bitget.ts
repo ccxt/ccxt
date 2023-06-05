@@ -278,8 +278,10 @@ export default class bitget extends Exchange {
                             'order/batch-orders': 2,
                             'order/cancel-order': 2,
                             'order/cancel-batch-orders': 2,
+                            'order/modifyOrder': 2, // 10 times/1s (UID) => 20/10 = 2
                             'order/cancel-symbol-orders': 2,
                             'order/cancel-all-orders': 2,
+                            'order/close-all-positions': 20, // 1 times/1s (UID) => 20/1 = 20
                             'plan/placePlan': 2,
                             'plan/modifyPlan': 2,
                             'plan/modifyPlanPreset': 2,
@@ -298,6 +300,11 @@ export default class bitget extends Exchange {
                             'trace/followerCloseByAll': 2,
                             'trace/followerSetTpsl': 2,
                             'trace/cancelCopyTrader': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'trace/traderUpdateConfig': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/myTraderList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/myFollowerList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/removeFollower': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/public/getFollowerConfig': 2, // 10 times/1s (UID) => 20/10 = 2
                         },
                     },
                     'user': {
