@@ -631,15 +631,15 @@ export default class currencycom extends Exchange {
         return result;
     }
 
-    async getAccountIdByCurrency (currency) {
+    async getAccountIdBySettleCurrency (currencyCode) {
         await this.loadAccounts ();
         for (let i = 0; i < this.accounts.length; i++) {
             const account = this.accounts[i];
-            if (account['currency'] === currency) {
+            if (account['currency'] === currencyCode) {
                 return account['id'];
             }
         }
-        throw new ArgumentsRequired (this.id + ' does not have an account for ' + currency);
+        throw new ArgumentsRequired (this.id + ' does not have an account for ' + currencyCode);
     }
 
     async fetchTradingFees (params = {}) {
