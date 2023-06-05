@@ -1127,7 +1127,7 @@ module.exports = class currencycom extends Exchange {
         //
         // createOrder
         //
-        //     limit
+        // limit
         //
         //     {
         //         "symbol": "BTC/USD",
@@ -1143,7 +1143,7 @@ module.exports = class currencycom extends Exchange {
         //         "side": "BUY",
         //     }
         //
-        //     market
+        // market
         //
         //     {
         //         "symbol": "DOGE/USD",
@@ -1153,7 +1153,7 @@ module.exports = class currencycom extends Exchange {
         //         "origQty": "40",
         //         "executedQty": "40.0",  // positive for BUY, negative for SELL
         //         "status": "FILLED",
-        //         "timeInForce": "IOC",
+        //         "timeInForce": "FOK",
         //         "type": "MARKET",
         //         "side": "SELL",
         //         "margin": 0.1, // present in leverage markets
@@ -1311,6 +1311,20 @@ module.exports = class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let accountId = undefined;
+        if (market['contract']) {
+            accountId = this.safeString (this.options, 'accountId');
+            accountId = this.safeString (params, 'accountId', accountId);
+            if (accountId === undefined) {
+                let settleCurrency = this.safeString (this.options, 'settleCurrency');
+                settleCurrency = this.safeString (params, 'settleCurrency', settleCurrency);
+                if (settleCurrency === undefined) {
+                    throw new ArgumentsRequired (this.id + " createOrder() for contract markets requires a 'settleCurrency' parameter or exchange.options['settleCurrency']. Alternatively, you can directly set 'accountId' parameter/option");
+                } else {
+                    accountId = await this.getAccountIdByCurrency (settleCurrency);
+                }
+            }
+        }
         const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'RESULT');
         const request = {
             'symbol': market['id'],
@@ -1324,18 +1338,8 @@ module.exports = class currencycom extends Exchange {
             // 'stopLoss': '54.321',
             // 'guaranteedStopLoss': '54.321',
         };
-        if (market['contract']) {
-            let accountId = this.safeString (this.options, 'accountId');
-            accountId = this.safeString (params, 'accountId', accountId);
-            if (accountId === undefined) {
-                let settleCurrency = this.safeString (this.options, 'settleCurrency');
-                settleCurrency = this.safeString (params, 'settleCurrency', settleCurrency);
-                if (settleCurrency === undefined) {
-                    throw new ArgumentsRequired (this.id + " createOrder() for contract markets requires a 'settleCurrency' parameter or exchange.options['settleCurrency']. Alternatively, you can directly set 'accountId' parameter/option");
-                } else {
-                    request['accountId'] = await this.getAccountIdByCurrency (settleCurrency);
-                }
-            }
+        if (accountId !== undefined) {
+            request['accountId'] = accountId;
         }
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
