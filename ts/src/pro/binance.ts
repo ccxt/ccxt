@@ -69,7 +69,7 @@ export default class binance extends binanceRest {
                     'name': 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 },
                 'watchTickers': {
-                    'name': 'bookTicker', // ticker or miniTicker or bookTicker
+                    'name': 'ticker', // ticker or miniTicker or bookTicker
                 },
                 'watchOHLCV': {
                     'name': 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
@@ -808,7 +808,7 @@ export default class binance extends binanceRest {
         let wsParams = [];
         let messageHash = 'tickers';
         if (symbols !== undefined) {
-            messageHash = 'tickers::' + symbols.join (',')
+            messageHash = 'tickers::' + symbols.join (',');
         }
         if (name === 'bookTicker') {
             if (marketIds === undefined) {
