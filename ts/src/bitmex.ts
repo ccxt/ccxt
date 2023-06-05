@@ -393,7 +393,7 @@ export default class bitmex extends Exchange {
         return result;
     }
 
-    amountToCurrencyPrecision (code, amount) {
+    convertFromRealAmount (code, amount) {
         const currency = this.currency (code);
         const precision = this.safeString (currency, 'precision');
         const amountString = this.numberToString (amount);
@@ -414,16 +414,18 @@ export default class bitmex extends Exchange {
         const market = this.market (symbol);
         const oldPrecision = this.safeValue (this.options, 'oldPrecision');
         if (market['spot'] && !oldPrecision) {
-            amount = this.amountToCurrencyPrecision (market['base'], amount);
+            amount = this.convertFromRealAmount (market['base'], amount);
         }
         return super.amountToPrecision (symbol, amount);
     }
 
     convertFromRawQuantity (symbol, rawQuantity) {
+        if (this.safeValue (this.options, 'oldPrecision')) {
+            return rawQuantity;
+        }
         symbol = this.safeSymbol (symbol);
         const market = this.market (symbol);
-        const oldPrecision = this.safeValue (this.options, 'oldPrecision');
-        if (market['spot'] && !oldPrecision) {
+        if (market['spot']) {
             return this.convertToRealAmount (market['base'], rawQuantity);
         }
         return rawQuantity;
@@ -2448,7 +2450,7 @@ export default class bitmex extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const qty = this.amountToCurrencyPrecision (code, amount);
+        const qty = this.convertFromRealAmount (code, amount);
         const request = {
             'currency': currency['id'],
             'amount': qty,
