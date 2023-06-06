@@ -2160,11 +2160,19 @@ export default class binance extends Exchange {
         let inverse = undefined;
         const strike = this.safeInteger (market, 'strikePrice');
         let symbol = base + '/' + quote;
+        let oldFuturesSymbol = undefined;
         if (contract) {
             if (swap) {
                 symbol = symbol + ':' + settle;
             } else if (future) {
-                symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry);
+                let deliveryPrefix = '';
+                if (contractType === 'CURRENT_QUARTER' || contractType === 'NEXT_QUARTER') {
+                    deliveryPrefix = 'Q';
+                } else if (contractType === 'CURRENT_MONTH' || contractType === 'NEXT_MONTH') {
+                    deliveryPrefix = 'M';
+                }
+                symbol = symbol + ':' + settle + '-' + deliveryPrefix + this.yymmdd (expiry);
+                oldFuturesSymbol = symbol + ':' + settle + '-' + this.yymmdd (expiry);
             } else if (option) {
                 symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry) + '-' + this.numberToString (strike) + '-' + this.safeString (optionParts, 3);
             }
@@ -2281,6 +2289,9 @@ export default class binance extends Exchange {
             const filter = this.safeValue2 (filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {});
             entry['limits']['cost']['min'] = this.safeNumber2 (filter, 'minNotional', 'notional');
             entry['limits']['cost']['max'] = this.safeNumber (filter, 'maxNotional');
+        }
+        if (oldFuturesSymbol !== undefined) {
+            entry['oldFuturesSymbol'] = oldFuturesSymbol; // removed from base
         }
         return entry;
     }
