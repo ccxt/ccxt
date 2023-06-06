@@ -889,6 +889,10 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#editOrder
+         * @see https://docs.woo.org/#edit-order
+         * @see https://docs.woo.org/#edit-order-by-client_order_id
+         * @see https://docs.woo.org/#edit-algo-order
+         * @see https://docs.woo.org/#edit-algo-order-by-client_order_id
          * @description edit a trade order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
@@ -897,6 +901,9 @@ export default class woo extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the woo api endpoint
+         * @param {float} params.triggerPrice The price a trigger order is triggered at
+         * @param {float|undefined} params.stopLossPrice price to trigger stop-loss orders
+         * @param {float|undefined} params.takeProfitPrice price to trigger take-profit orders
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -914,15 +921,29 @@ export default class woo extends Exchange {
         const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
+        const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ]);
+        if (stopPrice !== undefined) {
+            request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
+        }
+        const isStop = (stopPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
         let method = undefined;
         if (isByClientOrder) {
-            method = 'v3PrivatePutOrderClientClientOrderId';
-            request['client_order_id'] = clientOrderIdExchangeSpecific;
-            params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+            if (isStop) {
+                method = 'v3PrivatePutAlgoOrderClientClientOrderId';
+                request['oid'] = id;
+            } else {
+                method = 'v3PrivatePutOrderClientClientOrderId';
+                request['client_order_id'] = clientOrderIdExchangeSpecific;
+            }
         } else {
-            method = 'v3PrivatePutOrderOid';
+            if (isStop) {
+                method = 'v3PrivatePutAlgoOrderOid';
+            } else {
+                method = 'v3PrivatePutOrderOid';
+            }
             request['oid'] = id;
         }
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice' ]);
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -1030,24 +1051,31 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#fetchOrder
+         * @see https://docs.woo.org/#get-algo-order
+         * @see https://docs.woo.org/#get-order
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the woo api endpoint
+         * @param {boolean|undefined} params.stop whether the order is a stop/algo order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const stop = this.safeValue (params, 'stop');
         const request = {};
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
-        let chosenSpotMethod = undefined;
-        if (clientOrderId) {
-            chosenSpotMethod = 'v1PrivateGetClientOrderClientOrderId';
+        let method = undefined;
+        if (stop) {
+            method = 'v3PrivateGetAlgoOrderOid';
+            request['oid'] = id;
+        } else if (clientOrderId) {
+            method = 'v1PrivateGetClientOrderClientOrderId';
             request['client_order_id'] = clientOrderId;
         } else {
-            chosenSpotMethod = 'v1PrivateGetOrderOid';
+            method = 'v1PrivateGetOrderOid';
             request['oid'] = id;
         }
-        const response = await this[chosenSpotMethod] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         // {
         //     success: true,
@@ -1083,13 +1111,16 @@ export default class woo extends Exchange {
         //     ]
         // }
         //
-        return this.parseOrder (response, market);
+        const orders = this.safeValue (response, 'data', response);
+        return this.parseOrder (orders, market);
     }
 
     async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchOrders
+         * @see https://docs.woo.org/#get-orders
+         * @see https://docs.woo.org/#get-algo-orders
          * @description fetches information on multiple orders made by the user
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
