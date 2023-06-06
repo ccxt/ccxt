@@ -281,7 +281,11 @@ export default class bitforex extends Exchange {
         if (side === undefined) {
             side = this.safeValue (trade, 'isBuyer') === true ? 'buy' : 'sell';
         }
-        const takerOrMaker = this.safeValue (trade, 'isMaker') === true ? 'maker' : 'taker';
+        let takerOrMaker = undefined;
+        const isMaker = this.safeString (trade, 'isMaker');
+        if (isMaker !== undefined) {
+            takerOrMaker = (isMaker) ? 'maker' : 'taker';
+        }
         let fee = undefined;
         const feeCostString = this.safeString (trade, 'tradeFee');
         if (feeCostString !== undefined) {
