@@ -44,8 +44,8 @@ export default class okcoin extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': undefined,
                 'fetchOrderTrades': true,
-                'fetchPosition': true,
-                'fetchPositions': true,
+                'fetchPosition': undefined,
+                'fetchPositions': undefined,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -2487,298 +2487,12 @@ export default class okcoin extends Exchange {
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchPosition (symbol: string, params = {}) {
-        /**
-         * @method
-         * @name okcoin#fetchPosition
-         * @description fetch data on a single open contract trade position
-         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
-         * @param {object} params extra parameters specific to the okcoin api endpoint
-         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        let method = undefined;
-        const request = {
-            'instrument_id': market['id'],
-            // 'order_id': id, // string
-            // 'after': '1', // pagination of data to return records earlier than the requested ledger_id
-            // 'before': '1', // P=pagination of data to return records newer than the requested ledger_id
-            // 'limit': limit, // optional, number of results per request, default = maximum = 100
-        };
-        const type = market['type'];
-        if ((type === 'futures') || (type === 'swap')) {
-            method = type + 'GetInstrumentIdPosition';
-        } else if (type === 'option') {
-            const underlying = this.safeString (params, 'underlying');
-            if (underlying === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchPosition() requires an underlying parameter for ' + type + ' market ' + symbol);
-            }
-            method = type + 'GetUnderlyingPosition';
-        } else {
-            throw new NotSupported (this.id + ' fetchPosition() does not support ' + type + ' market ' + symbol + ', supported market types are futures, swap or option');
-        }
-        const response = await this[method] (this.extend (request, params));
-        //
-        // futures
-        //
-        //     crossed margin mode
-        //
-        //     {
-        //         "result": true,
-        //         "holding": [
-        //             {
-        //                 "long_qty": "2",
-        //                 "long_avail_qty": "2",
-        //                 "long_avg_cost": "8260",
-        //                 "long_settlement_price": "8260",
-        //                 "realised_pnl": "0.00020928",
-        //                 "short_qty": "2",
-        //                 "short_avail_qty": "2",
-        //                 "short_avg_cost": "8259.99",
-        //                 "short_settlement_price": "8259.99",
-        //                 "liquidation_price": "113.81",
-        //                 "instrument_id": "BTC-USD-191227",
-        //                 "leverage": "10",
-        //                 "created_at": "2019-09-25T07:58:42.129Z",
-        //                 "updated_at": "2019-10-08T14:02:51.029Z",
-        //                 "margin_mode": "crossed",
-        //                 "short_margin": "0.00242197",
-        //                 "short_pnl": "6.63E-6",
-        //                 "short_pnl_ratio": "0.002477997",
-        //                 "short_unrealised_pnl": "6.63E-6",
-        //                 "long_margin": "0.00242197",
-        //                 "long_pnl": "-6.65E-6",
-        //                 "long_pnl_ratio": "-0.002478",
-        //                 "long_unrealised_pnl": "-6.65E-6",
-        //                 "long_settled_pnl": "0",
-        //                 "short_settled_pnl": "0",
-        //                 "last": "8257.57"
-        //             }
-        //         ],
-        //         "margin_mode": "crossed"
-        //     }
-        //
-        //     fixed margin mode
-        //
-        //     {
-        //         "result": true,
-        //         "holding": [
-        //             {
-        //                 "long_qty": "4",
-        //                 "long_avail_qty": "4",
-        //                 "long_margin": "0.00323844",
-        //                 "long_liqui_price": "7762.09",
-        //                 "long_pnl_ratio": "0.06052306",
-        //                 "long_avg_cost": "8234.43",
-        //                 "long_settlement_price": "8234.43",
-        //                 "realised_pnl": "-0.00000296",
-        //                 "short_qty": "2",
-        //                 "short_avail_qty": "2",
-        //                 "short_margin": "0.00241105",
-        //                 "short_liqui_price": "9166.74",
-        //                 "short_pnl_ratio": "0.03318052",
-        //                 "short_avg_cost": "8295.13",
-        //                 "short_settlement_price": "8295.13",
-        //                 "instrument_id": "BTC-USD-191227",
-        //                 "long_leverage": "15",
-        //                 "short_leverage": "10",
-        //                 "created_at": "2019-09-25T07:58:42.129Z",
-        //                 "updated_at": "2019-10-08T13:12:09.438Z",
-        //                 "margin_mode": "fixed",
-        //                 "short_margin_ratio": "0.10292507",
-        //                 "short_maint_margin_ratio": "0.005",
-        //                 "short_pnl": "7.853E-5",
-        //                 "short_unrealised_pnl": "7.853E-5",
-        //                 "long_margin_ratio": "0.07103743",
-        //                 "long_maint_margin_ratio": "0.005",
-        //                 "long_pnl": "1.9841E-4",
-        //                 "long_unrealised_pnl": "1.9841E-4",
-        //                 "long_settled_pnl": "0",
-        //                 "short_settled_pnl": "0",
-        //                 "last": "8266.99"
-        //             }
-        //         ],
-        //         "margin_mode": "fixed"
-        //     }
-        //
-        // swap
-        //
-        //     crossed margin mode
-        //
-        //     {
-        //         "margin_mode": "crossed",
-        //         "timestamp": "2019-09-27T03:49:02.018Z",
-        //         "holding": [
-        //             {
-        //                 "avail_position": "3",
-        //                 "avg_cost": "59.49",
-        //                 "instrument_id": "LTC-USD-SWAP",
-        //                 "last": "55.98",
-        //                 "leverage": "10.00",
-        //                 "liquidation_price": "4.37",
-        //                 "maint_margin_ratio": "0.0100",
-        //                 "margin": "0.0536",
-        //                 "position": "3",
-        //                 "realized_pnl": "0.0000",
-        //                 "unrealized_pnl": "0",
-        //                 "settled_pnl": "-0.0330",
-        //                 "settlement_price": "55.84",
-        //                 "side": "long",
-        //                 "timestamp": "2019-09-27T03:49:02.018Z"
-        //             },
-        //         ]
-        //     }
-        //
-        //     fixed margin mode
-        //
-        //     {
-        //         "margin_mode": "fixed",
-        //         "timestamp": "2019-09-27T03:47:37.230Z",
-        //         "holding": [
-        //             {
-        //                 "avail_position": "20",
-        //                 "avg_cost": "8025.0",
-        //                 "instrument_id": "BTC-USD-SWAP",
-        //                 "last": "8113.1",
-        //                 "leverage": "15.00",
-        //                 "liquidation_price": "7002.6",
-        //                 "maint_margin_ratio": "0.0050",
-        //                 "margin": "0.0454",
-        //                 "position": "20",
-        //                 "realized_pnl": "-0.0001",
-        //                 "unrealized_pnl": "0",
-        //                 "settled_pnl": "0.0076",
-        //                 "settlement_price": "8279.2",
-        //                 "side": "long",
-        //                 "timestamp": "2019-09-27T03:47:37.230Z"
-        //             }
-        //         ]
-        //     }
-        //
-        // option
-        //
-        //     {
-        //         "holding":[
-        //             {
-        //                 "instrument_id":"BTC-USD-190927-12500-C",
-        //                 "position":"20",
-        //                 "avg_cost":"3.26",
-        //                 "avail_position":"20",
-        //                 "settlement_price":"0.017",
-        //                 "total_pnl":"50",
-        //                 "pnl_ratio":"0.3",
-        //                 "realized_pnl":"40",
-        //                 "unrealized_pnl":"10",
-        //                 "pos_margin":"100",
-        //                 "option_value":"70",
-        //                 "created_at":"2019-08-30T03:09:20.315Z",
-        //                 "updated_at":"2019-08-30T03:40:18.318Z"
-        //             },
-        //             {
-        //                 "instrument_id":"BTC-USD-190927-12500-P",
-        //                 "position":"20",
-        //                 "avg_cost":"3.26",
-        //                 "avail_position":"20",
-        //                 "settlement_price":"0.019",
-        //                 "total_pnl":"50",
-        //                 "pnl_ratio":"0.3",
-        //                 "realized_pnl":"40",
-        //                 "unrealized_pnl":"10",
-        //                 "pos_margin":"100",
-        //                 "option_value":"70",
-        //                 "created_at":"2019-08-30T03:09:20.315Z",
-        //                 "updated_at":"2019-08-30T03:40:18.318Z"
-        //             }
-        //         ]
-        //     }
-        //
-        // todo unify parsePosition/parsePositions
-        return response;
-    }
-
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#fetchPositions
-         * @description fetch all open positions
-         * @param {[string]|undefined} symbols not used by okcoin fetchPositions
-         * @param {object} params extra parameters specific to the okcoin api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-         */
-        await this.loadMarkets ();
-        let method = undefined;
-        const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        if ((type === 'futures') || (type === 'swap')) {
-            method = type + 'GetPosition';
-        } else if (type === 'option') {
-            const underlying = this.safeString (params, 'underlying');
-            if (underlying === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchPositions() requires an underlying parameter for ' + type + ' markets');
-            }
-            method = type + 'GetUnderlyingPosition';
-        } else {
-            throw new NotSupported (this.id + ' fetchPositions() does not support ' + type + ' markets, supported market types are futures, swap or option');
-        }
-        params = this.omit (params, 'type');
-        const response = await this[method] (params);
-        //
-        // futures
-        //
-        //     ...
-        //
-        //
-        // swap
-        //
-        //     ...
-        //
-        // option
-        //
-        //     {
-        //         "holding":[
-        //             {
-        //                 "instrument_id":"BTC-USD-190927-12500-C",
-        //                 "position":"20",
-        //                 "avg_cost":"3.26",
-        //                 "avail_position":"20",
-        //                 "settlement_price":"0.017",
-        //                 "total_pnl":"50",
-        //                 "pnl_ratio":"0.3",
-        //                 "realized_pnl":"40",
-        //                 "unrealized_pnl":"10",
-        //                 "pos_margin":"100",
-        //                 "option_value":"70",
-        //                 "created_at":"2019-08-30T03:09:20.315Z",
-        //                 "updated_at":"2019-08-30T03:40:18.318Z"
-        //             },
-        //             {
-        //                 "instrument_id":"BTC-USD-190927-12500-P",
-        //                 "position":"20",
-        //                 "avg_cost":"3.26",
-        //                 "avail_position":"20",
-        //                 "settlement_price":"0.019",
-        //                 "total_pnl":"50",
-        //                 "pnl_ratio":"0.3",
-        //                 "realized_pnl":"40",
-        //                 "unrealized_pnl":"10",
-        //                 "pos_margin":"100",
-        //                 "option_value":"70",
-        //                 "created_at":"2019-08-30T03:09:20.315Z",
-        //                 "updated_at":"2019-08-30T03:40:18.318Z"
-        //             }
-        //         ]
-        //     }
-        //
-        // todo unify parsePosition/parsePositions
-        return response;
-    }
-
     async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
          * @param {string|undefined} code unified currency code, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
@@ -2786,300 +2500,51 @@ export default class okcoin extends Exchange {
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchLedger', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        const suffix = (type === 'account') ? '' : 'Accounts';
-        let argument = '';
-        const request = {
-            // 'from': 'id',
-            // 'to': 'id',
-        };
+        const request = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        if (since !== undefined) {
+            request['before'] = since;
+        }
         let currency = undefined;
-        if (type === 'spot') {
-            if (code === undefined) {
-                throw new ArgumentsRequired (this.id + " fetchLedger() requires a currency code argument for '" + type + "' markets");
-            }
-            argument = 'Currency';
+        if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'];
-        } else if (type === 'futures') {
-            if (code === undefined) {
-                throw new ArgumentsRequired (this.id + " fetchLedger() requires an underlying symbol for '" + type + "' markets");
-            }
-            argument = 'Underlying';
-            const market = this.market (code); // we intentionally put a market inside here for the swap ledgers
-            const marketInfo = this.safeValue (market, 'info', {});
-            const settlementCurrencyId = this.safeString (marketInfo, 'settlement_currency');
-            const settlementCurrencyCode = this.safeCurrencyCode (settlementCurrencyId);
-            currency = this.currency (settlementCurrencyCode);
-            const underlyingId = this.safeString (marketInfo, 'underlying');
-            request['underlying'] = underlyingId;
-        } else if (type === 'swap') {
-            if (code === undefined) {
-                throw new ArgumentsRequired (this.id + " fetchLedger() requires a code argument (a market symbol) for '" + type + "' markets");
-            }
-            argument = 'InstrumentId';
-            const market = this.market (code); // we intentionally put a market inside here for the swap ledgers
-            currency = this.currency (market['base']);
-            request['instrument_id'] = market['id'];
-            //
-            //     if (type === 'margin') {
-            //         //
-            //         //      3. Borrow
-            //         //      4. Repayment
-            //         //      5. Interest
-            //         //      7. Buy
-            //         //      8. Sell
-            //         //      9. From capital account
-            //         //     10. From C2C
-            //         //     11. From Futures
-            //         //     12. From Spot
-            //         //     13. From ETT
-            //         //     14. To capital account
-            //         //     15. To C2C
-            //         //     16. To Spot
-            //         //     17. To Futures
-            //         //     18. To ETT
-            //         //     19. Mandatory Repayment
-            //         //     20. From Piggybank
-            //         //     21. To Piggybank
-            //         //     22. From Perpetual
-            //         //     23. To Perpetual
-            //         //     24. Liquidation Fee
-            //         //     54. Clawback
-            //         //     59. Airdrop Return.
-            //         //
-            //         request['type'] = 'number'; // All types will be returned if this filed is left blank
-            //     }
-            //
-        } else if (type === 'account') {
-            if (code !== undefined) {
-                currency = this.currency (code);
-                request['currency'] = currency['id'];
-            }
-            //
-            //     //
-            //     //      1. deposit
-            //     //      2. withdrawal
-            //     //     13. cancel withdrawal
-            //     //     18. into futures account
-            //     //     19. out of futures account
-            //     //     20. into sub account
-            //     //     21. out of sub account
-            //     //     28. claim
-            //     //     29. into ETT account
-            //     //     30. out of ETT account
-            //     //     31. into C2C account
-            //     //     32. out of C2C account
-            //     //     33. into margin account
-            //     //     34. out of margin account
-            //     //     37. into spot account
-            //     //     38. out of spot account
-            //     //
-            //     request['type'] = 'number';
-            //
-        } else {
-            throw new NotSupported (this.id + " fetchLedger does not support the '" + type + "' type (the type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
+            request['ccy'] = currency['id'];
         }
-        const method = type + 'Get' + suffix + argument + 'Ledger';
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.privateGetAccountBillsArchive (this.extend (request, params));
         //
-        // transfer     funds transfer in/out
-        // trade        funds moved as a result of a trade, spot accounts only
-        // rebate       fee rebate as per fee schedule, spot accounts only
-        // match        open long/open short/close long/close short (futures) or a change in the amount because of trades (swap)
-        // fee          fee, futures only
-        // settlement   settlement/clawback/settle long/settle short
-        // liquidation  force close long/force close short/deliver close long/deliver close short
-        // funding      funding fee, swap only
-        // margin       a change in the amount after adjusting margin, swap only
-        //
-        // account
-        //
-        //     [
+        // {
+        //     "code": "0",
+        //     "data": [
         //         {
-        //             "amount":0.00051843,
-        //             "balance":0.00100941,
-        //             "currency":"BTC",
-        //             "fee":0,
-        //             "ledger_id":8987285,
-        //             "timestamp":"2018-10-12T11:01:14.000Z",
-        //             "typename":"Get from activity"
+        //             "bal": "1.63093282565",
+        //             "balChg": "1.63093282565",
+        //             "billId": "530758662684151809",
+        //             "ccy": "USD",
+        //             "execType": "T",
+        //             "fee": "-0.00245007435",
+        //             "from": "",
+        //             "instId": "USDT-USD",
+        //             "instType": "SPOT",
+        //             "mgnMode": "cash",
+        //             "notes": "",
+        //             "ordId": "530758662663180288",
+        //             "pnl": "0",
+        //             "posBal": "0",
+        //             "posBalChg": "0",
+        //             "subType": "1",
+        //             "sz": "1.6333829",
+        //             "to": "",
+        //             "ts": "1672814726203",
+        //             "type": "2"
         //         }
-        //     ]
+        //     ],
+        //     "msg": ""
+        // }
         //
-        // spot
-        //
-        //     [
-        //         {
-        //             "timestamp":"2019-03-18T07:08:25.000Z",
-        //             "ledger_id":"3995334780",
-        //             "created_at":"2019-03-18T07:08:25.000Z",
-        //             "currency":"BTC",
-        //             "amount":"0.0009985",
-        //             "balance":"0.0029955",
-        //             "type":"trade",
-        //             "details":{
-        //                 "instrument_id":"BTC-USDT",
-        //                 "order_id":"2500650881647616",
-        //                 "product_id":"BTC-USDT"
-        //             }
-        //         }
-        //     ]
-        //
-        // futures
-        //
-        //     [
-        //         {
-        //             "ledger_id":"2508090544914461",
-        //             "timestamp":"2019-03-19T14:40:24.000Z",
-        //             "amount":"-0.00529521",
-        //             "balance":"0",
-        //             "currency":"EOS",
-        //             "type":"fee",
-        //             "details":{
-        //                 "order_id":"2506982456445952",
-        //                 "instrument_id":"EOS-USD-190628"
-        //             }
-        //         }
-        //     ]
-        //
-        // swap
-        //
-        //     [
-        //         {
-        //             "amount":"0.004742",
-        //             "fee":"-0.000551",
-        //             "type":"match",
-        //             "instrument_id":"EOS-USD-SWAP",
-        //             "ledger_id":"197429674941902848",
-        //             "timestamp":"2019-03-25T05:56:31.286Z"
-        //         },
-        //     ]
-        //
-        const responseLength = response.length;
-        if (responseLength < 1) {
-            return [];
-        }
-        if (type === 'swap') {
-            const ledgerEntries = this.parseLedger (response);
-            return this.filterBySymbolSinceLimit (ledgerEntries, code, since, limit);
-        }
-        return this.parseLedger (response, currency, since, limit);
-    }
-
-    parseLedgerEntryType (type) {
-        const types = {
-            'transfer': 'transfer', // funds transfer in/out
-            'trade': 'trade', // funds moved as a result of a trade, spot accounts only
-            'rebate': 'rebate', // fee rebate as per fee schedule, spot accounts only
-            'match': 'trade', // open long/open short/close long/close short (futures) or a change in the amount because of trades (swap)
-            'fee': 'fee', // fee, futures only
-            'settlement': 'trade', // settlement/clawback/settle long/settle short
-            'liquidation': 'trade', // force close long/force close short/deliver close long/deliver close short
-            'funding': 'fee', // funding fee, swap only
-            'margin': 'margin', // a change in the amount after adjusting margin, swap only
-        };
-        return this.safeString (types, type, type);
-    }
-
-    parseLedgerEntry (item, currency = undefined) {
-        //
-        //
-        // account
-        //
-        //     {
-        //         "amount":0.00051843,
-        //         "balance":0.00100941,
-        //         "currency":"BTC",
-        //         "fee":0,
-        //         "ledger_id":8987285,
-        //         "timestamp":"2018-10-12T11:01:14.000Z",
-        //         "typename":"Get from activity"
-        //     }
-        //
-        // spot
-        //
-        //     {
-        //         "timestamp":"2019-03-18T07:08:25.000Z",
-        //         "ledger_id":"3995334780",
-        //         "created_at":"2019-03-18T07:08:25.000Z",
-        //         "currency":"BTC",
-        //         "amount":"0.0009985",
-        //         "balance":"0.0029955",
-        //         "type":"trade",
-        //         "details":{
-        //             "instrument_id":"BTC-USDT",
-        //             "order_id":"2500650881647616",
-        //             "product_id":"BTC-USDT"
-        //         }
-        //     }
-        //
-        // futures
-        //
-        //     {
-        //         "ledger_id":"2508090544914461",
-        //         "timestamp":"2019-03-19T14:40:24.000Z",
-        //         "amount":"-0.00529521",
-        //         "balance":"0",
-        //         "currency":"EOS",
-        //         "type":"fee",
-        //         "details":{
-        //             "order_id":"2506982456445952",
-        //             "instrument_id":"EOS-USD-190628"
-        //         }
-        //     }
-        //
-        // swap
-        //
-        //     {
-        //         "amount":"0.004742",
-        //         "fee":"-0.000551",
-        //         "type":"match",
-        //         "instrument_id":"EOS-USD-SWAP",
-        //         "ledger_id":"197429674941902848",
-        //         "timestamp":"2019-03-25T05:56:31.286Z"
-        //     },
-        //
-        const id = this.safeString (item, 'ledger_id');
-        const account = undefined;
-        const details = this.safeValue (item, 'details', {});
-        const referenceId = this.safeString (details, 'order_id');
-        const referenceAccount = undefined;
-        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
-        const code = this.safeCurrencyCode (this.safeString (item, 'currency'), currency);
-        const amount = this.safeNumber (item, 'amount');
-        const timestamp = this.parse8601 (this.safeString (item, 'timestamp'));
-        const fee = {
-            'cost': this.safeNumber (item, 'fee'),
-            'currency': code,
-        };
-        const before = undefined;
-        const after = this.safeNumber (item, 'balance');
-        const status = 'ok';
-        const marketId = this.safeString (item, 'instrument_id');
-        const symbol = this.safeSymbol (marketId);
-        return {
-            'info': item,
-            'id': id,
-            'account': account,
-            'referenceId': referenceId,
-            'referenceAccount': referenceAccount,
-            'type': type,
-            'currency': code,
-            'symbol': symbol,
-            'amount': amount,
-            'before': before, // balance before
-            'after': after, // balance after
-            'status': status,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'fee': fee,
-        };
+        const data = this.safeValue (response, 'data');
+        return this.parseLedger (data, currency, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
