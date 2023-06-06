@@ -944,22 +944,28 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#cancelOrder
+         * @see https://docs.woo.org/#cancel-algo-order
+         * @see https://docs.woo.org/#cancel-order
+         * @see https://docs.woo.org/#cancel-order-by-client_order_id
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the woo api endpoint
+         * @param {boolean|undefined} params.stop whether the order is a stop/algo order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('cancelOrder', symbol);
         await this.loadMarkets ();
         const request = {};
         const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
+        const stop = this.safeValue (params, 'stop');
         let method = undefined;
-        if (isByClientOrder) {
+        if (stop) {
+            method = 'v3PrivateDeleteAlgoOrderOid';
+            request['order_id'] = id;
+        } else if (isByClientOrder) {
             method = 'v1PrivateDeleteClientOrder';
             request['client_order_id'] = clientOrderIdExchangeSpecific;
             params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
@@ -971,7 +977,9 @@ export default class woo extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        request['symbol'] = market['id'];
+        if (!stop) {
+            request['symbol'] = market['id'];
+        }
         const response = await this[method] (this.extend (request, params));
         //
         // { success: true, status: 'CANCEL_SENT' }
