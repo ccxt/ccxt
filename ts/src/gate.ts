@@ -303,6 +303,7 @@ export default class gate extends Exchange {
                             'cross/borrowable': 1.5,
                         },
                         'post': {
+                            'uni/loans': 1.5,
                             'loans': 1.5,
                             'merged_loans': 1.5,
                             'loans/{loan_id}/repayment': 1.5,
@@ -4770,7 +4771,6 @@ export default class gate extends Exchange {
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
-        params = this.omit (params, 'marginMode');
         this.checkRequiredMarginArgument ('repayMargin', symbol, marginMode);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -4782,17 +4782,26 @@ export default class gate extends Exchange {
         if (symbol === undefined) {
             method = 'privateMarginPostCrossRepayments';
         } else {
-            method = 'privateMarginPostLoansLoanIdRepayment';
-            const market = this.market (symbol);
-            request['currency_pair'] = market['id'];
-            request['mode'] = 'partial';
-            const loanId = this.safeString2 (params, 'loan_id', 'id');
-            if (loanId === undefined) {
-                throw new ArgumentsRequired (this.id + ' repayMargin() requires loan_id param for isolated margin');
+            if (this.safeString (params, 'uni')) {
+                method = 'privateMarginPostUniLoans';
+                const market = this.market (symbol);
+                request['currency_pair'] = market['id'];
+                request['currency'] = currency['id'];
+                request['type'] = 'repay';
+                request['repaid_all'] = this.safeString (params, 'repaid_all');
+            } else {
+                method = 'privateMarginPostLoansLoanIdRepayment';
+                const market = this.market (symbol);
+                request['currency_pair'] = market['id'];
+                request['mode'] = 'partial';
+                const loanId = this.safeString2 (params, 'loan_id', 'id');
+                if (loanId === undefined) {
+                    throw new ArgumentsRequired (this.id + ' repayMargin() requires loan_id param for isolated margin');
+                }
+                request['loan_id'] = loanId;
             }
-            request['loan_id'] = loanId;
         }
-        params = this.omit (params, [ 'marginMode', 'loan_id', 'id' ]);
+        params = this.omit (params, [ 'marginMode', 'uni', 'repaid_all', 'loan_id', 'id' ]);
         let response = await this[method] (this.extend (request, params));
         //
         // Cross
