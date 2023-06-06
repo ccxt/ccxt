@@ -2521,42 +2521,54 @@ export default class gate extends Exchange {
         let maxLimit = 1000;
         if (market['contract']) {
             maxLimit = 1999;
-            limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
             if (market['future']) {
                 method = 'publicDeliveryGetSettleCandlesticks';
             } else if (market['swap']) {
                 method = 'publicFuturesGetSettleCandlesticks';
+            } else if (market['option']) {
+                maxLimit = undefined;
+                method = 'publicOptionsGetCandlesticks';
             }
-            const isMark = (price === 'mark');
-            const isIndex = (price === 'index');
-            if (isMark || isIndex) {
-                request['contract'] = price + '_' + market['id'];
-                params = this.omit (params, 'price');
+            if (!market['option']) {
+                const isMark = (price === 'mark');
+                const isIndex = (price === 'index');
+                if (isMark || isIndex) {
+                    request['contract'] = price + '_' + market['id'];
+                    params = this.omit (params, 'price');
+                }
             }
         }
-        limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
+        if (market['option']) {
+            limit = undefined;
+        } else {
+            limit = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
+        }
         let until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             until = this.parseToInt (until / 1000);
             params = this.omit (params, 'until');
         }
         if (since !== undefined) {
-            const duration = this.parseTimeframe (timeframe);
-            request['from'] = this.parseToInt (since / 1000);
-            const distance = (limit - 1) * duration;
-            const toTimestamp = this.sum (request['from'], distance);
-            const currentTimestamp = this.seconds ();
-            const to = Math.min (toTimestamp, currentTimestamp);
-            if (until !== undefined) {
-                request['to'] = Math.min (to, until);
-            } else {
-                request['to'] = to;
+            if (!market['option']) {
+                const duration = this.parseTimeframe (timeframe);
+                request['from'] = this.parseToInt (since / 1000);
+                const distance = (limit - 1) * duration;
+                const toTimestamp = this.sum (request['from'], distance);
+                const currentTimestamp = this.seconds ();
+                const to = Math.min (toTimestamp, currentTimestamp);
+                if (until !== undefined) {
+                    request['to'] = Math.min (to, until);
+                } else {
+                    request['to'] = to;
+                }
             }
         } else {
-            if (until !== undefined) {
-                request['to'] = until;
+            if (!market['option']) {
+                if (until !== undefined) {
+                    request['to'] = until;
+                }
+                request['limit'] = limit;
             }
-            request['limit'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
