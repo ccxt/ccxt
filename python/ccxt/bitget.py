@@ -299,10 +299,10 @@ class bitget(Exchange, ImplicitAPI):
                             'account/setMarginMode': 4,  # 5 times/1s(UID) => 20/5 = 4
                             'account/setPositionMode': 4,  # 5 times/1s(UID) => 20/5 = 4
                             'order/placeOrder': 2,
-                            'order/modifyOrder': 2,
                             'order/batch-orders': 2,
                             'order/cancel-order': 2,
                             'order/cancel-batch-orders': 2,
+                            'order/modifyOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'order/cancel-symbol-orders': 2,
                             'order/cancel-all-orders': 2,
                             'order/close-all-positions': 20,
@@ -324,6 +324,11 @@ class bitget(Exchange, ImplicitAPI):
                             'trace/followerCloseByAll': 2,
                             'trace/followerSetTpsl': 2,
                             'trace/cancelCopyTrader': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'trace/traderUpdateConfig': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/myTraderList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/myFollowerList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/removeFollower': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/public/getFollowerConfig': 2,  # 10 times/1s(UID) => 20/10 = 2
                         },
                     },
                     'user': {
