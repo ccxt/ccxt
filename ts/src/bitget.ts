@@ -2924,7 +2924,7 @@ export default class bitget extends Exchange {
         //       }
         //     }
         //
-        const data = this.safeValue(JSON.parse(response), 'data');
+        const data = this.safeValue (JSON.parse (response), 'data');
         const first = this.safeValue (data, 0, data);
         return this.parseOrder (first, market);
     }
@@ -3286,7 +3286,7 @@ export default class bitget extends Exchange {
         //         "requestTime":1627354109502
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (JSON.parse (response), 'data');
         return this.safeValue (data, 'orderList', []);
     }
 
