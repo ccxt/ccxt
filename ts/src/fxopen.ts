@@ -1,7 +1,6 @@
 
 //  ---------------------------------------------------------------------------
 
-// import Exchange from './base/Exchange.js';
 import Exchange from './abstract/fxopen.js';
 import { ExchangeError, BadRequest, NotSupported, RateLimitExceeded, AuthenticationError, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
@@ -276,6 +275,11 @@ export default class fxopen extends Exchange {
                 // most public method are available on private api
                 // private api should have better rate limits
                 'preferPrivateApi': true,
+                'apiUrlOverride': {
+                    // doesn't have private counterpart
+                    'ticker': 'public',
+                    'ticker/{filter}': 'public',
+                },
                 'defaultSettleCurrencyId': 'USD', // for settleId in public API markets
                 'serverType': 'marginal', // see this.options['servers']
                 'servers': {
@@ -335,6 +339,19 @@ export default class fxopen extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiUrlOverride = this.safeValue (this.options, 'apiUrlOverride', {});
+        const apiOverride = this.safeString (apiUrlOverride, path);
+        if (apiOverride !== undefined) {
+            api = apiOverride;
+        } else if (api === 'public') {
+            const preferPrivateApi = this.safeValue (this.options, 'preferPrivateApi', true);
+            if (preferPrivateApi) {
+                const hasCreds = this.checkRequiredCredentials (false);
+                if (hasCreds) {
+                    api = 'private';
+                }
+            }
+        }
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = this.resolveServerUrl (baseUrl) + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -364,17 +381,6 @@ export default class fxopen extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    chooseApiMethod (publicMethod, privateMethod) {
-        const preferPrivateApi = this.safeValue (this.options, 'preferPrivateApi', true);
-        if (preferPrivateApi) {
-            const hasCreds = this.checkRequiredCredentials (false);
-            if (hasCreds) {
-                return privateMethod;
-            }
-        }
-        return publicMethod;
-    }
-
     async fetchMarkets (params = {}) {
         /**
          * @method
@@ -387,8 +393,7 @@ export default class fxopen extends Exchange {
             // Market type depends on account type
             await this.loadAccountInfo ();
         }
-        const method = this.chooseApiMethod (this.publicGetSymbol, this.privateGetSymbol);
-        const markets = await method (params);
+        const markets = await this.publicGetSymbol (params);
         return this.parseMarkets (markets);
     }
 
@@ -576,8 +581,7 @@ export default class fxopen extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
          */
-        const method = this.chooseApiMethod (this.publicGetCurrency, this.privateGetCurrency);
-        const currencies = await method (params);
+        const currencies = await this.publicGetCurrency (params);
         return this.parseCurrencies (currencies);
     }
 
@@ -746,8 +750,7 @@ export default class fxopen extends Exchange {
         await this.loadMarkets ();
         const request = {};
         this.addSymbolsFilter (request, symbols);
-        const method = this.chooseApiMethod (this.publicGetTickFilter, this.privateGetTickFilter);
-        const response = await method (this.extend (request, params));
+        const response = await this.publicGetTickFilter (this.extend (request, params));
         // response === array of best bid/ask objects
         return this.parseBidsAsksAsTickers (response, symbols);
     }
@@ -909,8 +912,7 @@ export default class fxopen extends Exchange {
         if (limit !== undefined) {
             request['depth'] = limit;
         }
-        const method = this.chooseApiMethod (this.publicGetLevel2Filter, this.privateGetLevel2Filter);
-        const response = await method (this.extend (request, params));
+        const response = await this.publicGetLevel2Filter (this.extend (request, params));
         // response === array of orderBook objects
         return this.parseOrderBookInternal (response[0], symbol);
     }
@@ -972,8 +974,7 @@ export default class fxopen extends Exchange {
         if (limit !== undefined) {
             request['depth'] = limit;
         }
-        const method = this.chooseApiMethod (this.publicGetLevel2Filter, this.privateGetLevel2Filter);
-        const response = await method (this.extend (request, params));
+        const response = await this.publicGetLevel2Filter (this.extend (request, params));
         // response === array of orderBook objects
         return this.parseOrderBooksInternal (response, symbols);
     }
@@ -1035,8 +1036,7 @@ export default class fxopen extends Exchange {
             'timestamp': timestamp,
             'count': direction * limit,
         };
-        const method = this.chooseApiMethod (this.publicGetQuotehistorySymbolPeriodicityBarsSide, this.privateGetQuotehistorySymbolPeriodicityBarsSide);
-        const response = await method (this.extend (request, params));
+        const response = await this.publicGetQuotehistorySymbolPeriodicityBarsSide (this.extend (request, params));
         // {
         //     "Symbol": "BTCUSD",
         //     "Bars": [ ... array of objects ...]
@@ -1090,8 +1090,7 @@ export default class fxopen extends Exchange {
             'timestamp': timestamp,
             'count': direction * limit,
         };
-        const method = this.chooseApiMethod (this.publicGetQuotehistorySymbolTicks, this.privateGetQuotehistorySymbolTicks);
-        const response = await method (this.extend (request, params));
+        const response = await this.publicGetQuotehistorySymbolTicks (this.extend (request, params));
         // {
         //     "Symbol": "BTCUSD_L",
         //     "Ticks": [ ... array of objects ... ]
