@@ -364,9 +364,7 @@ export default class bitforex extends Exchange {
          * @param {object} params extra parameters specific to the bitforex api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchMyTrades', symbol);
         await this.loadMarkets ();
         const request = {
             // 'symbol': market['id'],
@@ -383,6 +381,11 @@ export default class bitforex extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
+        const endTime = this.safeInteger2 (params, 'until', 'endTime');
+        if (endTime !== undefined) {
+            request['endTime'] = endTime;
+        }
+        params = this.omit (params, [ 'until' ]);
         const response = await this.privatePostApiV1TradeMyTrades (this.extend (request, params));
         //
         //     {
