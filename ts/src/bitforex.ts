@@ -270,7 +270,8 @@ export default class bitforex extends Exchange {
         //         "isSelfTrade": true
         //     }
         //
-        market = this.safeMarket (undefined, market);
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 'time');
         const id = this.safeString (trade, 'tid');
         const orderId = this.safeString (trade, 'orderId');
