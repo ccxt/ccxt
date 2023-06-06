@@ -997,15 +997,21 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#cancelAllOrders
+         * @see https://docs.woo.org/#cancel-all-pending-orders
+         * @see https://docs.woo.org/#cancel-orders
+         * @see https://docs.woo.org/#cancel-all-pending-algo-orders
          * @description cancel all open orders in a market
          * @param {string|undefined} symbol unified market symbol
          * @param {object} params extra parameters specific to the woo api endpoint
+         * @param {boolean|undefined} params.stop whether the order is a stop/algo order
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' canelOrders() requires a symbol argument');
-        }
         await this.loadMarkets ();
+        const stop = this.safeValue (params, 'stop');
+        if (stop) {
+            return await this.v3PrivateDeleteAlgoOrdersPending (params);
+        }
+        this.checkRequiredSymbol ('cancelOrders', symbol);
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
