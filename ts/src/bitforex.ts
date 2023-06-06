@@ -280,7 +280,8 @@ export default class bitforex extends Exchange {
         const sideId = this.safeInteger (trade, 'direction');
         let side = this.parseSide (sideId);
         if (side === undefined) {
-            side = this.safeValue (trade, 'isBuyer') === true ? 'buy' : 'sell';
+            const isBuyer = this.safeValue (trade, 'isBuyer');
+            side = isBuyer ? 'buy' : 'sell';
         }
         let takerOrMaker = undefined;
         const isMaker = this.safeValue (trade, 'isMaker');
