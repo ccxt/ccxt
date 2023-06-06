@@ -3458,7 +3458,7 @@ class bybit extends Exchange {
         }
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://bybit-exchange.github.io/docs/v5/order/create-order
@@ -4110,10 +4110,10 @@ class bybit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return array(
+        return $this->safe_order(array(
             'info' => $response,
             'id' => $this->safe_string($result, 'orderId'),
-        );
+        ));
     }
 
     public function edit_unified_margin_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -4269,10 +4269,10 @@ class bybit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return array(
+        return $this->safe_order(array(
             'info' => $response,
             'id' => $this->safe_string($result, 'orderId'),
-        );
+        ));
     }
 
     public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {

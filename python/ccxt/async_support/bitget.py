@@ -9,6 +9,7 @@ import asyncio
 import hashlib
 import json
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -2487,7 +2488,7 @@ class bitget(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         see https://bitgetlimited.github.io/apidoc/en/spot/#place-order
         see https://bitgetlimited.github.io/apidoc/en/spot/#place-plan-order
@@ -2654,7 +2655,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         edit a trade order
         :param str id: cancel order id

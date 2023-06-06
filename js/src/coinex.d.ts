@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinex.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 export default class coinex extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;
@@ -37,12 +37,12 @@ export default class coinex extends Exchange {
     fetchSwapBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: any): any;
-    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
-    editOrder(id: any, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    parseOrder(order: any, market?: any): import("./base/types.js").Order;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    editOrder(id: any, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     fetchOrdersByStatus(status: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;

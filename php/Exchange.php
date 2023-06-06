@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.1.27';
+$version = '3.1.28';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.1.27';
+    const VERSION = '3.1.28';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3606,7 +3606,7 @@ class Exchange {
         return $this->edit_order($id, $symbol, 'limit', $side, $amount, $price, $params);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $this->cancelOrder ($id, $symbol);
         return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
@@ -3763,6 +3763,10 @@ class Exchange {
 
     public function fetch_balance($params = array ()) {
         throw new NotSupported($this->id . ' fetchBalance() is not supported yet');
+    }
+
+    public function parse_balance($response) {
+        throw new NotSupported($this->id . ' parseBalance() is not supported yet');
     }
 
     public function watch_balance($params = array ()) {
@@ -3997,12 +4001,7 @@ class Exchange {
     }
 
     public function watch_ticker(string $symbol, $params = array ()) {
-        if ($this->has['watchTickers']) {
-            $tickers = $this->watchTickers (array( $symbol ), $params);
-            return $this->safe_value($tickers, $symbol);
-        } else {
-            throw new NotSupported($this->id . ' watchTicker() is not supported yet');
-        }
+        throw new NotSupported($this->id . ' watchTicker() is not supported yet');
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {

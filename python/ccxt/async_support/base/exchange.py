@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.27'
+__version__ = '3.1.28'
 
 # -----------------------------------------------------------------------------
 
@@ -1733,7 +1733,7 @@ class Exchange(BaseExchange):
     async def edit_limit_order(self, id, symbol, side, amount, price=None, params={}):
         return await self.edit_order(id, symbol, 'limit', side, amount, price, params)
 
-    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         await self.cancelOrder(id, symbol)
         return await self.create_order(symbol, type, side, amount, price, params)
 
@@ -1864,6 +1864,9 @@ class Exchange(BaseExchange):
 
     async def fetch_balance(self, params={}):
         raise NotSupported(self.id + ' fetchBalance() is not supported yet')
+
+    def parse_balance(self, response):
+        raise NotSupported(self.id + ' parseBalance() is not supported yet')
 
     async def watch_balance(self, params={}):
         raise NotSupported(self.id + ' watchBalance() is not supported yet')
@@ -2047,11 +2050,7 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + ' fetchTicker() is not supported yet')
 
     async def watch_ticker(self, symbol: str, params={}):
-        if self.has['watchTickers']:
-            tickers = await self.watchTickers([symbol], params)
-            return self.safe_value(tickers, symbol)
-        else:
-            raise NotSupported(self.id + ' watchTicker() is not supported yet')
+        raise NotSupported(self.id + ' watchTicker() is not supported yet')
 
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')

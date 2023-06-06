@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitmex.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 export default class bitmex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -68,11 +68,11 @@ export default class bitmex extends Exchange {
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     parseOrderStatus(status: any): string;
     parseTimeInForce(timeInForce: any): string;
-    parseOrder(order: any, market?: any): any;
+    parseOrder(order: any, market?: any): import("./base/types.js").Order;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;

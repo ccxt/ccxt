@@ -548,7 +548,7 @@ export default class Exchange {
     safeCurrencyStructure(currency: object): any;
     setMarkets(markets: any, currencies?: any): Dictionary<any>;
     safeBalance(balance: object): Balances;
-    safeOrder(order: object, market?: object): any;
+    safeOrder(order: object, market?: object): Order;
     parseOrders(orders: object, market?: object, since?: Int, limit?: Int, params?: {}): Order[];
     calculateFee(symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker?: string, params?: {}): {
         type: string;
@@ -604,7 +604,7 @@ export default class Exchange {
     editLimitBuyOrder(id: any, symbol: any, amount: any, price?: any, params?: {}): Promise<Order>;
     editLimitSellOrder(id: any, symbol: any, amount: any, price?: any, params?: {}): Promise<Order>;
     editLimitOrder(id: any, symbol: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
     fetchPermissions(params?: {}): Promise<void>;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
@@ -616,6 +616,7 @@ export default class Exchange {
     checkRequiredCredentials(error?: boolean): boolean;
     oath(): string;
     fetchBalance(params?: {}): Promise<Balances>;
+    parseBalance(response: any): Balances;
     watchBalance(params?: {}): Promise<Balances>;
     fetchPartialBalance(part: any, params?: {}): Promise<Balance>;
     fetchFreeBalance(params?: {}): Promise<Balance>;

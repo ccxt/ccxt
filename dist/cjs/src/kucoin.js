@@ -1572,7 +1572,7 @@ class kucoin extends kucoin$1 {
         const data = this.safeValue(response, 'data', {});
         return this.parseOrder(data, market);
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#editOrder

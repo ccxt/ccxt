@@ -3565,7 +3565,7 @@ export default class gate extends Exchange {
         //
         return this.parseOrder(response, market);
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name gate#editOrder

@@ -2568,7 +2568,7 @@ class Exchange {
     async editLimitOrder(id, symbol, side, amount, price = undefined, params = {}) {
         return await this.editOrder(id, symbol, 'limit', side, amount, price, params);
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.cancelOrder(id, symbol);
         return await this.createOrder(symbol, type, side, amount, price, params);
     }
@@ -2719,6 +2719,9 @@ class Exchange {
     }
     async fetchBalance(params = {}) {
         throw new errors.NotSupported(this.id + ' fetchBalance() is not supported yet');
+    }
+    parseBalance(response) {
+        throw new errors.NotSupported(this.id + ' parseBalance() is not supported yet');
     }
     async watchBalance(params = {}) {
         throw new errors.NotSupported(this.id + ' watchBalance() is not supported yet');
@@ -2935,13 +2938,7 @@ class Exchange {
         }
     }
     async watchTicker(symbol, params = {}) {
-        if (this.has['watchTickers']) {
-            const tickers = await this.watchTickers([symbol], params);
-            return this.safeValue(tickers, symbol);
-        }
-        else {
-            throw new errors.NotSupported(this.id + ' watchTicker() is not supported yet');
-        }
+        throw new errors.NotSupported(this.id + ' watchTicker() is not supported yet');
     }
     async fetchTickers(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchTickers() is not supported yet');

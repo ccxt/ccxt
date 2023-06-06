@@ -1247,7 +1247,7 @@ class poloniex extends poloniex$1 {
         // remember the timestamp before issuing the request
         return [request, params];
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#editOrder

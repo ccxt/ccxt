@@ -3034,7 +3034,7 @@ class mexc extends mexc$1 {
         }
         return result;
     }
-    parseBalance(response, marketType) {
+    customParseBalance(response, marketType) {
         //
         // spot
         //
@@ -3284,7 +3284,7 @@ class mexc extends mexc$1 {
         //         ]
         //     }
         //
-        return this.parseBalance(response, marketType);
+        return this.customParseBalance(response, marketType);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

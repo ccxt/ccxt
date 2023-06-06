@@ -68,7 +68,7 @@ export default class binance extends binanceRest {
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseWsOrder(order: any, market?: any): any;
+    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleOrderUpdate(client: Client, message: any): void;
     watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleMyTrade(client: Client, message: any): void;

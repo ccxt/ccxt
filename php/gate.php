@@ -3212,7 +3212,7 @@ class gate extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * Create an order on the exchange
          * @param {string} $symbol Unified CCXT $market $symbol
@@ -3534,7 +3534,7 @@ class gate extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         /**
          * edit a trade order, gate currently only supports the modification of the $price or $amount fields
          * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order

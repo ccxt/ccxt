@@ -2544,7 +2544,7 @@ class bitget extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#place-order
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#place-plan-order
@@ -2735,7 +2735,7 @@ class bitget extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @param {string} $id cancel order $id

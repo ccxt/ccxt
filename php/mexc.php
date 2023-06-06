@@ -1759,7 +1759,7 @@ class mexc extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -3000,7 +3000,7 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response, $marketType) {
+    public function custom_parse_balance($response, $marketType) {
         //
         // spot
         //
@@ -3245,7 +3245,7 @@ class mexc extends Exchange {
         //         )
         //     }
         //
-        return $this->parse_balance($response, $marketType);
+        return $this->custom_parse_balance($response, $marketType);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

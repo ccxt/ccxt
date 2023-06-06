@@ -8,6 +8,7 @@ from ccxt.abstract.gate import ImplicitAPI
 import asyncio
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -3096,7 +3097,7 @@ class gate(Exchange, ImplicitAPI):
             },
         }
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
         :param str symbol: Unified CCXT market symbol
@@ -3385,7 +3386,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         edit a trade order, gate currently only supports the modification of the price or amount fields
         see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order

@@ -15,7 +15,7 @@ export default class blockchaincom extends blockchaincomRest {
     parseWsTrade(trade: any, market?: any): import("../base/types").Trade;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any): any;
-    parseWsOrder(order: any, market?: any): any;
+    parseWsOrder(order: any, market?: any): import("../base/types").Order;
     parseWsOrderStatus(status: any): string;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any): any;
