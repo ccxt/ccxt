@@ -275,7 +275,6 @@ export default class bitget extends Exchange {
                             'account/setMarginMode': 4, // 5 times/1s (UID) => 20/5 = 4
                             'account/setPositionMode': 4, // 5 times/1s (UID) => 20/5 = 4
                             'order/placeOrder': 2,
-                            'order/modifyOrder': 2,
                             'order/batch-orders': 2,
                             'order/cancel-order': 2,
                             'order/cancel-batch-orders': 2,
