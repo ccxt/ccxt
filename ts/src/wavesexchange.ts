@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder
 import { Precise } from './base/Precise.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1261,7 +1261,7 @@ export default class wavesexchange extends Exchange {
         return rates;
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#createOrder
