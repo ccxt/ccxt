@@ -4138,10 +4138,10 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return {
+        return this.safeOrder ({
             'info': response,
             'id': this.safeString (result, 'orderId'),
-        };
+        });
     }
 
     async editUnifiedMarginOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
@@ -4297,10 +4297,10 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return {
+        return this.safeOrder ({
             'info': response,
             'id': this.safeString (result, 'orderId'),
-        };
+        });
     }
 
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {

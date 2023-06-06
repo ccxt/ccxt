@@ -1025,7 +1025,7 @@ export default class idex extends Exchange {
         //        txId: '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
         //        txStatus: 'mined' } ] }
         if (Array.isArray (response)) {
-            return this.parseOrders (response, market, since, limit);
+            return this.parseOrders (response, market, since, limit) as any;
         } else {
             return this.parseOrder (response, market);
         }
