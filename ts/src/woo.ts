@@ -726,6 +726,8 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#createOrder
+         * @see https://docs.woo.org/#send-order
+         * @see https://docs.woo.org/#send-algo-order
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -733,6 +735,12 @@ export default class woo extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the woo api endpoint
+         * @param {float} params.triggerPrice The price a trigger order is triggered at
+         * @param {float|undefined} params.stopLossPrice price to trigger stop-loss orders
+         * @param {float|undefined} params.takeProfitPrice price to trigger take-profit orders
+         * @param {float|undefined} params.stopLoss for setting a stop-loss attached to an order
+         * @param {float|undefined} params.takeProfit for setting a take-profit attached to an order
+         * @param {float|undefined} params.algoType 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const reduceOnly = this.safeValue (params, 'reduceOnly');
@@ -747,26 +755,40 @@ export default class woo extends Exchange {
         const orderSide = side.toUpperCase ();
         const request = {
             'symbol': market['id'],
-            'order_type': orderType, // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
             'side': orderSide,
         };
+        const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
+        const stopLoss = this.safeValue (params, 'stopLoss');
+        const takeProfit = this.safeValue (params, 'takeProfit');
+        const algoType = this.safeString (params, 'algoType');
+        const isStop = stopPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined;
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarket, undefined, params);
-        if (postOnly) {
-            request['order_type'] = 'POST_ONLY';
-        } else if (timeInForce === 'fok') {
-            request['order_type'] = 'FOK';
-        } else if (timeInForce === 'ioc') {
-            request['order_type'] = 'IOC';
+        const reduceOnlyKey = isStop ? 'reduceOnly' : 'reduce_only';
+        const clientOrderIdKey = isStop ? 'clientOrderId' : 'client_order_id';
+        const orderQtyKey = isStop ? 'quantity' : 'order_quantity';
+        const priceKey = isStop ? 'price' : 'order_price';
+        const typeKey = isStop ? 'type' : 'order_type';
+        request[typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+        if (!isStop) {
+            if (postOnly) {
+                request['order_type'] = 'POST_ONLY';
+            } else if (timeInForce === 'fok') {
+                request['order_type'] = 'FOK';
+            } else if (timeInForce === 'ioc') {
+                request['order_type'] = 'IOC';
+            }
         }
         if (reduceOnly) {
-            request['reduce_only'] = reduceOnly;
+            request[reduceOnlyKey] = reduceOnly;
         }
         if (price !== undefined) {
-            request['order_price'] = this.priceToPrecision (symbol, price);
+            request[priceKey] = this.priceToPrecision (symbol, price);
         }
-        if (isMarket) {
+        if (isMarket && !isStop) {
             // for market buy it requires the amount of quote currency to spend
             if (market['spot'] && orderSide === 'BUY') {
                 const cost = this.safeNumber (params, 'cost');
@@ -789,20 +811,64 @@ export default class woo extends Exchange {
             } else {
                 request['order_quantity'] = this.amountToPrecision (symbol, amount);
             }
-        } else {
-            request['order_quantity'] = this.amountToPrecision (symbol, amount);
+        } else if (algoType !== 'POSITIONAL_TP_SL') {
+            request[orderQtyKey] = this.amountToPrecision (symbol, amount);
         }
-        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+        const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId !== undefined) {
-            request['client_order_id'] = clientOrderId;
+            request[clientOrderIdKey] = clientOrderId;
+        }
+        if (stopPrice !== undefined) {
+            if (algoType !== 'TRAILING_STOP') {
+                request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
+                request['algoType'] = 'STOP';
+            }
+        } else if (stopLossPrice || takeProfitPrice) {
+            if (algoType !== 'TRAILING_STOP') {
+                request['algoType'] = 'STOP';
+                if (stopLossPrice) {
+                    request['trigger_price'] = this.priceToPrecision (symbol, stopLossPrice);
+                } else {
+                    request['trigger_price'] = this.priceToPrecision (symbol, takeProfitPrice);
+                }
+            }
+            request['reduceOnly'] = true;
+        } else if (stopLoss || takeProfit) {
+            request['algoType'] = 'OCO';
+            request['childOrders'] = [];
+            if (stopLoss !== undefined) {
+                const stopLossSide = (side === 'buy') ? 'sell' : 'buy';
+                const stopLossOrder = {
+                    'side': stopLossSide,
+                    'algoType': 'STOP',
+                    'triggerPrice': this.priceToPrecision (symbol, stopLoss),
+                    'type': 'MARKET',
+                };
+                request['childOrders'].push (stopLossOrder);
+            }
+            if (stopLoss !== undefined) {
+                const takeProfitSide = (side === 'sell') ? 'buy' : 'sell';
+                const takeProfitOrder = {
+                    'side': takeProfitSide,
+                    'algoType': 'STOP',
+                    'triggerPrice': this.priceToPrecision (symbol, stopLoss),
+                    'type': 'MARKET',
+                };
+                request['childOrders'].push (takeProfitOrder);
+            }
         }
         const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
         const brokerId = this.safeString (this.options, 'brokerId', applicationId);
         if (brokerId !== undefined) {
             request['broker_id'] = brokerId;
         }
-        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ]);
-        const response = await this.v1PrivatePostOrder (this.extend (request, params));
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
+        let response = undefined;
+        if (isStop) {
+            response = await this.v3PrivatePostAlgoOrder (this.extend (request, params));
+        } else {
+            response = await this.v1PrivatePostOrder (this.extend (request, params));
+        }
         // {
         //     success: true,
         //     timestamp: '1641383206.489',
