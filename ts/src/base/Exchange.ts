@@ -3293,7 +3293,7 @@ export default class Exchange {
             const tickers = await this.watchTickers ([ symbol ], params);
             return this.safeValue (tickers, symbol);
         } else {
-            throw new NotSupported (this.id + ' fetchDepositAddress() is not supported yet');
+            throw new NotSupported (this.id + ' watchTicker() is not supported yet');
         }
     }
 
