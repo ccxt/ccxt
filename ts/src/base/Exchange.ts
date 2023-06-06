@@ -3035,6 +3035,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchBalance() is not supported yet');
     }
 
+    parseBalance (response): Balances {
+        throw new NotSupported (this.id + ' parseBalance() is not supported yet');
+    }
+
     async watchBalance (params = {}): Promise<Balances> {
         throw new NotSupported (this.id + ' watchBalance() is not supported yet');
     }
@@ -3268,12 +3272,7 @@ export default class Exchange {
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        if (this.has['watchTickers']) {
-            const tickers = await this.watchTickers ([ symbol ], params);
-            return this.safeValue (tickers, symbol);
-        } else {
-            throw new NotSupported (this.id + ' watchTicker() is not supported yet');
-        }
+        throw new NotSupported (this.id + ' watchTicker() is not supported yet');
     }
 
     async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
