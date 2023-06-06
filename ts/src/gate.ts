@@ -2541,7 +2541,7 @@ export default class gate extends Exchange {
         if (market['option']) {
             limit = undefined;
         } else {
-            limit = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
+            limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
         }
         let until = this.safeInteger (params, 'until');
         if (until !== undefined) {
