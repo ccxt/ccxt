@@ -2931,7 +2931,13 @@ export default class Exchange {
         }
     }
     async watchTicker(symbol, params = {}) {
-        throw new NotSupported(this.id + ' watchTicker() is not supported yet');
+        if (this.has['watchTickers']) {
+            const tickers = await this.watchTickers([symbol], params);
+            return this.safeValue(tickers, symbol);
+        }
+        else {
+            throw new NotSupported(this.id + ' watchTicker() is not supported yet');
+        }
     }
     async fetchTickers(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchTickers() is not supported yet');

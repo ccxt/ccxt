@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.26'
+__version__ = '3.1.27'
 
 # -----------------------------------------------------------------------------
 
@@ -2047,7 +2047,11 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + ' fetchTicker() is not supported yet')
 
     async def watch_ticker(self, symbol: str, params={}):
-        raise NotSupported(self.id + ' watchTicker() is not supported yet')
+        if self.has['watchTickers']:
+            tickers = await self.watchTickers([symbol], params)
+            return self.safe_value(tickers, symbol)
+        else:
+            raise NotSupported(self.id + ' watchTicker() is not supported yet')
 
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')

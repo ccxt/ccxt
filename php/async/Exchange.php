@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.1.26';
+$version = '3.1.27';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.1.26';
+    const VERSION = '3.1.27';
 
     public $browser;
     public $marketsLoading = null;
@@ -2216,7 +2216,14 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function watch_ticker(string $symbol, $params = array ()) {
-        throw new NotSupported($this->id . ' watchTicker() is not supported yet');
+        return Async\async(function () use ($symbol, $params) {
+            if ($this->has['watchTickers']) {
+                $tickers = Async\await($this->watchTickers (array( $symbol ), $params));
+                return $this->safe_value($tickers, $symbol);
+            } else {
+                throw new NotSupported($this->id . ' watchTicker() is not supported yet');
+            }
+        }) ();
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {

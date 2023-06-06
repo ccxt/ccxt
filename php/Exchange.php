@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.1.26';
+$version = '3.1.27';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.1.26';
+    const VERSION = '3.1.27';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3997,7 +3997,12 @@ class Exchange {
     }
 
     public function watch_ticker(string $symbol, $params = array ()) {
-        throw new NotSupported($this->id . ' watchTicker() is not supported yet');
+        if ($this->has['watchTickers']) {
+            $tickers = $this->watchTickers (array( $symbol ), $params);
+            return $this->safe_value($tickers, $symbol);
+        } else {
+            throw new NotSupported($this->id . ' watchTicker() is not supported yet');
+        }
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
