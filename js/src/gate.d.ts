@@ -336,5 +336,14 @@ export default class gate extends Exchange {
         datetime: string;
         info: any;
     };
+    fetchSettlementHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseSettlement(settlement: any, market: any): {
+        info: any;
+        symbol: any;
+        price: number;
+        timestamp: number;
+        datetime: string;
+    };
+    parseSettlements(settlements: any, market: any): any[];
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }
