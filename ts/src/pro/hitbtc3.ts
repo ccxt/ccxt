@@ -137,6 +137,7 @@ export default class hitbtc3 extends hitbtc3Rest {
             'id': this.nonce (),
             'ch': name,
         };
+        console.log (subscribe);
         const request = this.deepExtend (subscribe, params);
         return await this.watch (url, messageHash, request, messageHash);
     }
@@ -302,7 +303,7 @@ export default class hitbtc3 extends hitbtc3Rest {
                 'symbols': marketIds,
             },
         };
-        return await this.subscribe (name, undefined, this.deepExtend (request, params));
+        return await this.subscribe (name, undefined, undefined, this.deepExtend (request, params));
     }
 
     handleTicker (client: Client, message) {
