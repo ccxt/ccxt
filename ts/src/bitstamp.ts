@@ -661,10 +661,10 @@ export default class bitstamp extends Exchange {
         //     "volume": "3563.13819902",
         //     "low": "25350",
         //     "ask": "26211",
-        //     "open": "25730"
+        //     "open": "25730",
         //     "open_24": "25895",
-        //     "percent_change_24": "1.24"
-        //     "pair": "BTC/USD",
+        //     "percent_change_24": "1.24",
+        //     "pair": "BTC/USD"
         // }
         //
         const marketId = this.safeString (ticker, 'pair');
@@ -723,7 +723,7 @@ export default class bitstamp extends Exchange {
         //     "volume": "3563.13819902",
         //     "low": "25350",
         //     "ask": "26211",
-        //     "open": "25730"
+        //     "open": "25730",
         //     "open_24": "25895",
         //     "percent_change_24": "1.24"
         // }
@@ -753,10 +753,10 @@ export default class bitstamp extends Exchange {
         //     "volume": "3563.13819902",
         //     "low": "25350",
         //     "ask": "26211",
-        //     "open": "25730"
+        //     "open": "25730",
         //     "open_24": "25895",
-        //     "percent_change_24": "1.24"
-        //     "pair": "BTC/USD",
+        //     "percent_change_24": "1.24",
+        //     "pair": "BTC/USD"
         // }
         //
         return this.parseTickers (response, symbols);
