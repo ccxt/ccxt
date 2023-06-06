@@ -2469,6 +2469,7 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-days
          * @param {string} id order id
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
