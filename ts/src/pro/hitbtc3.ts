@@ -137,7 +137,6 @@ export default class hitbtc3 extends hitbtc3Rest {
             'id': this.nonce (),
             'ch': name,
         };
-        console.log (subscribe);
         const request = this.deepExtend (subscribe, params);
         return await this.watch (url, messageHash, request, messageHash);
     }
@@ -232,6 +231,7 @@ export default class hitbtc3 extends hitbtc3Rest {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
             orderbook['nonce'] = nonce;
+            orderbook['symbol'] = symbol;
             this.orderbooks[symbol] = orderbook;
             client.resolve (orderbook, messageHash);
         }
@@ -1012,7 +1012,7 @@ export default class hitbtc3 extends hitbtc3Rest {
                 'candles': this.handleOHLCV,
                 'ticker': this.handleTicker,
                 'trades': this.handleTrades,
-                'updateOrderbook': this.handleOrderBook,
+                'orderbook': this.handleOrderBook,
                 'spot_order': this.handleOrder,
                 'spot_orders': this.handleOrder,
                 'margin_order': this.handleOrder,
