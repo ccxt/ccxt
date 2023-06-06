@@ -607,7 +607,7 @@ export default class okcoin extends okcoinRest {
             }
         }
         for (let i = 0; i < data.length; i++) {
-            const balance = this.parseBalanceByType (type, data);
+            const balance = this.parseBalance (data);
             const oldBalance = this.safeValue (this.balance, type, {});
             const newBalance = this.deepExtend (oldBalance, balance);
             this.balance[type] = this.safeBalance (newBalance);
