@@ -198,6 +198,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'BDG': 'Badgercoin',
                 'BTM': 'Bitmark',
                 'CON': 'Coino',
+                'ETHTRON': 'ETH',
                 'GOLD': 'GoldEagles',
                 'GPUC': 'GPU',
                 'HOT': 'Hotcoin',
@@ -210,6 +211,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'STR': 'XLM',
                 'SOC': 'SOCC',
                 'TRADE': 'Unitrade',
+                'TRXETH': 'TRX',
                 'XAP': 'API Coin',
                 # self is not documented in the API docs for Poloniex
                 # https://github.com/ccxt/ccxt/issues/7084
@@ -220,6 +222,7 @@ class poloniex(Exchange, ImplicitAPI):
                 # with a USDTTRON or a USDTETH currency id, respectfully
                 # therefore we have map them back to the original code USDT
                 # otherwise the returned withdrawals are filtered out
+                'USDTBSC': 'USDT',
                 'USDTTRON': 'USDT',
                 'USDTETH': 'USDT',
                 'UST': 'USTC',
@@ -234,6 +237,7 @@ class poloniex(Exchange, ImplicitAPI):
                     'BSC': 'BEP20',
                     'ETH': 'ERC20',
                     'TRON': 'TRC20',
+                    'TRX': 'TRC20',
                 },
                 'limits': {
                     'cost': {
@@ -643,7 +647,7 @@ class poloniex(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the poloniex api endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = self.publicGetCurrencies(params)
+        response = self.publicGetCurrencies(self.extend(params, {'includeMultiChainCurrencies': True}))
         #
         #     [
         #         {
@@ -659,6 +663,8 @@ class poloniex(Exchange, ImplicitAPI):
         #                 "delisted": False,
         #                 "tradingState": "NORMAL",
         #                 "walletState": "DISABLED",
+        #                 "walletDepositState": 'DISABLED',
+        #                 "walletWithdrawalState": 'DISABLED',
         #                 "parentChain": null,
         #                 "isMultiChain": False,
         #                 "isChildChain": False,
@@ -674,36 +680,91 @@ class poloniex(Exchange, ImplicitAPI):
             id = self.safe_value(ids, 0)
             currency = self.safe_value(item, id)
             code = self.safe_currency_code(id)
+            name = self.safe_string(currency, 'name')
+            networkId = self.safe_string(currency, 'blockchain')
+            networkCode = self.network_id_to_code(networkId, code)
             delisted = self.safe_value(currency, 'delisted')
-            walletState = self.safe_string(currency, 'walletState')
-            enabled = walletState == 'ENABLED'
-            listed = not delisted
-            active = listed and enabled
+            walletEnabled = self.safe_string(currency, 'walletState') == 'ENABLED'
+            depositEnabled = self.safe_string(currency, 'walletDepositState') == 'ENABLED'
+            withdrawEnabled = self.safe_string(currency, 'walletWithdrawalState') == 'ENABLED'
+            active = not delisted and walletEnabled and depositEnabled and withdrawEnabled
             numericId = self.safe_integer(currency, 'id')
-            fee = self.safe_number(currency, 'withdrawalFee')
-            result[code] = {
-                'id': id,
-                'numericId': numericId,
-                'code': code,
+            feeString = self.safe_string(currency, 'withdrawalFee')
+            parentChain = self.safe_value(currency, 'parentChain')
+            noParentChain = parentChain is None
+            if self.safe_value(result, code) is None:
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'info': None,
+                    'name': name,
+                    'active': active,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
+                    'fee': self.parse_number(feeString),
+                    'precision': None,
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                }
+            minFeeString = self.safe_string(result[code], 'fee')
+            if feeString is not None:
+                minFeeString = feeString if (minFeeString is None) else Precise.string_min(feeString, minFeeString)
+            depositAvailable = self.safe_value(result[code], 'deposit')
+            depositAvailable = depositEnabled if (depositEnabled) else depositAvailable
+            withdrawAvailable = self.safe_value(result[code], 'withdraw')
+            withdrawAvailable = withdrawEnabled if (withdrawEnabled) else withdrawAvailable
+            networks = self.safe_value(result[code], 'networks', {})
+            networks[networkCode] = {
                 'info': currency,
-                'name': currency['name'],
+                'id': networkId,
+                'network': networkCode,
+                'currencyId': id,
+                'numericId': numericId,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'active': active,
-                'deposit': None,
-                'withdraw': None,
-                'fee': fee,
+                'fee': self.parse_number(feeString),
                 'precision': None,
-                'networks': {},
                 'limits': {
                     'amount': {
                         'min': None,
                         'max': None,
                     },
                     'withdraw': {
-                        'min': fee,
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': None,
                         'max': None,
                     },
                 },
             }
+            result[code]['networks'] = networks
+            info = self.safe_value(result[code], 'info', [])
+            rawInfo = {}
+            rawInfo[id] = currency
+            info.append(rawInfo)
+            result[code]['info'] = info
+            if noParentChain:
+                result[code]['id'] = id
+                result[code]['name'] = name
+            result[code]['active'] = depositAvailable and withdrawAvailable
+            result[code]['deposit'] = depositAvailable
+            result[code]['withdraw'] = withdrawAvailable
+            result[code]['fee'] = self.parse_number(minFeeString)
         return result
 
     def fetch_ticker(self, symbol: str, params={}):

@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.1.23';
+$version = '3.1.24';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.1.23';
+    const VERSION = '3.1.24';
 
     public $browser;
     public $marketsLoading = null;
@@ -1200,25 +1200,11 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            if (!$this->has['fetchTrades']) {
-                throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet');
-            }
-            $trades = Async\await($this->fetchTrades ($symbol, $since, $limit, $params));
-            $ohlcvc = $this->build_ohlcvc($trades, $timeframe, $since, $limit);
-            $result = array();
-            for ($i = 0; $i < count($ohlcvc); $i++) {
-                $result[] = [
-                    $this->safe_integer($ohlcvc[$i], 0),
-                    $this->safe_number($ohlcvc[$i], 1),
-                    $this->safe_number($ohlcvc[$i], 2),
-                    $this->safe_number($ohlcvc[$i], 3),
-                    $this->safe_number($ohlcvc[$i], 4),
-                    $this->safe_number($ohlcvc[$i], 5),
-                ];
-            }
-            return $result;
-        }) ();
+        $message = '';
+        if ($this->has['fetchTrades']) {
+            $message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
+        }
+        throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet' . $message);
     }
 
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -1790,17 +1776,6 @@ class Exchange extends \ccxt\Exchange {
             }
         }
         return $ohlcvs;
-    }
-
-    public function fetch_ohlcvc($symbol, $timeframe = '1m', mixed $since = null, ?int $limit = null, $params = array ()) {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            if (!$this->has['fetchTrades']) {
-                throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet');
-            }
-            Async\await($this->load_markets());
-            $trades = Async\await($this->fetchTrades ($symbol, $since, $limit, $params));
-            return $this->build_ohlcvc($trades, $timeframe, $since, $limit);
-        }) ();
     }
 
     public function parse_trading_view_ohlcv($ohlcvs, $market = null, $timeframe = '1m', ?int $since = null, ?int $limit = null) {

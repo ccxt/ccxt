@@ -2414,19 +2414,22 @@ class bitget extends Exchange {
         //
         // spot
         //     {
-        //       accountId => '6394957606',
-        //       $symbol => 'BTCUSDT_SPBL',
-        //       orderId => '881623995442958336',
-        //       $clientOrderId => '135335e9-b054-4e43-b00a-499f11d3a5cc',
-        //       $price => '39000.000000000000',
-        //       quantity => '0.000700000000',
-        //       orderType => 'limit',
-        //       $side => 'buy',
-        //       $status => 'new',
-        //       fillPrice => '0.000000000000',
-        //       fillQuantity => '0.000000000000',
-        //       fillTotalAmount => '0.000000000000',
-        //       cTime => '1645921460972'
+        //         "accountId" => "222222222",
+        //         "symbol" => "TRXUSDT_SPBL",
+        //         "orderId" => "1041901704004947968",
+        //         "clientOrderId" => "c5e8a5e1-a07f-4202-8061-b88bd598b264",
+        //         "price" => "0",
+        //         "quantity" => "10.0000000000000000",
+        //         "orderType" => "market",
+        //         "side" => "buy",
+        //         "status" => "full_fill",
+        //         "fillPrice" => "0.0699782527055350",
+        //         "fillQuantity" => "142.9015000000000000",
+        //         "fillTotalAmount" => "9.9999972790000000",
+        //         "enterPointSource" => "API",
+        //         "feeDetail" => "array(\"BGB\":array(\"deduction\":true,\"feeCoinCode\":\"BGB\",\"totalDeductionFee\":-0.017118519726,\"totalFee\":-0.017118519726))",
+        //         "orderSource" => "market",
+        //         "cTime" => "1684134644509"
         //     }
         //
         // swap
@@ -2489,6 +2492,24 @@ class bitget extends Exchange {
         }
         $clientOrderId = $this->safe_string_2($order, 'clientOrderId', 'clientOid');
         $fee = null;
+        $feeCostString = $this->safe_string($order, 'fee');
+        if ($feeCostString !== null) {
+            // swap
+            $fee = array(
+                'cost' => $feeCostString,
+                'currency' => $market['settle'],
+            );
+        }
+        $feeDetail = $this->safe_value($order, 'feeDetail');
+        if ($feeDetail !== null) {
+            $parsedFeeDetail = json_decode($feeDetail, $as_associative_array = true);
+            $feeValues = is_array($parsedFeeDetail) ? array_values($parsedFeeDetail) : array();
+            $first = $this->safe_value($feeValues, 0);
+            $fee = array(
+                'cost' => $this->safe_string($first, 'totalFee'),
+                'currency' => $this->safe_currency_code($this->safe_string($first, 'feeCoinCode')),
+            );
+        }
         $rawStatus = $this->safe_string_2($order, 'status', 'state');
         $status = $this->parse_order_status($rawStatus);
         $lastTradeTimestamp = $this->safe_integer($order, 'uTime');
@@ -3435,7 +3456,11 @@ class bitget extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        return $this->safe_value($data, 'orderList', array());
+        if ($data !== null) {
+            return $this->safe_value_2($data, 'orderList', 'data', array());
+        }
+        $parsedData = json_decode($response, $as_associative_array = true);
+        return $this->safe_value($parsedData, 'data', array());
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
