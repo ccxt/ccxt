@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, Inva
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -619,7 +619,7 @@ export default class oceanex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#createOrder

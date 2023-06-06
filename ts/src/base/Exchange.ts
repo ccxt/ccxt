@@ -1761,7 +1761,7 @@ export default class Exchange {
         return balance as any;
     }
 
-    safeOrder (order: object, market: object = undefined) {
+    safeOrder (order: object, market: object = undefined): Order {
         // parses numbers as strings
         // * it is important pass the trades as unparsed rawTrades
         let amount = this.omitZero (this.safeString (order, 'amount'));

@@ -5,7 +5,7 @@ import Exchange from './abstract/coinspot.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -387,7 +387,7 @@ export default class coinspot extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name coinspot#createOrder

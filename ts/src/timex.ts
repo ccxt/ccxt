@@ -2,7 +2,7 @@ import Exchange from './abstract/timex.js';
 import { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 export default class timex extends Exchange {
     describe () {
@@ -713,7 +713,7 @@ export default class timex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name timex#createOrder
