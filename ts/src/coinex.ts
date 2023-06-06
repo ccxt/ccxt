@@ -2023,7 +2023,7 @@ export default class coinex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name okx#editOrder
