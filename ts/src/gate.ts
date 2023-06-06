@@ -475,9 +475,44 @@ export default class gate extends Exchange {
                     'expiration': 86400, // for conditional orders
                 },
                 'networks': {
-                    'TRC20': 'TRX',
-                    'ERC20': 'ETH',
+                    'ALGORAND': 'ALGO',
+                    'ARBITRUM_NOVA': 'ARBNOVA',
+                    'ARBITRUM_ONE': 'ARBEVM',
+                    'AVALANCHE_C': 'AVAX_C',
                     'BEP20': 'BSC',
+                    'CHILIZ': 'CHZ',
+                    'EOS': 'EOS',
+                    'ERC20': 'ETH',
+                    'GATECHAIN': 'GTEVM',
+                    'HRC20': 'HT',
+                    'KUSAMA': 'KSMSM',
+                    'NEAR': 'NEAR',
+                    'OKC': 'OKT',
+                    'OPTIMISM': 'OPETH',
+                    'POLKADOT': 'DOTSM',
+                    'POLYGON': 'MATIC',
+                    'SOLANA': 'SOL',
+                    'TRC20': 'TRX',
+                },
+                'networksById': {
+                    'ALGO': 'ALGORAND',
+                    'ARBEVM': 'ARBITRUM_ONE',
+                    'ARBNOVA': 'ARBITRUM_NOVA',
+                    'AVAX_C': 'AVALANCHE_C',
+                    'BSC': 'BEP20',
+                    'CHZ': 'CHILIZ',
+                    'DOTSM': 'POLKADOT',
+                    'EOS': 'EOS',
+                    'ETH': 'ERC20',
+                    'GTEVM': 'GATECHAIN',
+                    'HT': 'HRC20',
+                    'KSMSM': 'KUSAMA',
+                    'MATIC': 'POLYGON',
+                    'NEAR': 'NEAR',
+                    'OKT': 'OKC',
+                    'OPETH': 'OPTIMISM',
+                    'SOL': 'SOLANA',
+                    'TRX': 'TRC20',
                 },
                 'timeInForce': {
                     'GTC': 'gtc',
@@ -1343,12 +1378,26 @@ export default class gate extends Exchange {
         //        "trade_disabled": false
         //    }
         //
+        //    {
+        //        "currency":"USDT_ETH",
+        //        "delisted":false,
+        //        "withdraw_disabled":false,
+        //        "withdraw_delayed":false,
+        //        "deposit_disabled":false,
+        //        "trade_disabled":false,
+        //        "chain":"ETH"
+        //    }
+        //
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
             const currencyIdLower = this.safeStringLower (entry, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
+            const parts = currencyId.split ('_');
+            const currency = parts[0];
+            const code = this.safeCurrencyCode (currency);
+            const networkId = this.safeString (entry, 'chain');
+            const networkCode = this.networkIdToCode (networkId, code);
             const delisted = this.safeValue (entry, 'delisted');
             const withdrawDisabled = this.safeValue (entry, 'withdraw_disabled', false);
             const depositDisabled = this.safeValue (entry, 'deposit_disabled', false);
@@ -1358,21 +1407,60 @@ export default class gate extends Exchange {
             const tradeEnabled = !tradeDisabled;
             const listed = !delisted;
             const active = listed && tradeEnabled && withdrawEnabled && depositEnabled;
-            result[code] = {
-                'id': currencyId,
-                'lowerCaseId': currencyIdLower,
-                'name': undefined,
-                'code': code,
-                'precision': this.parseNumber ('1e-4'), // todo: as gateio is done completely in html, in withdrawal page's source it has predefined "num_need_fix(this.value, 4);" function, so users cant set lower precision than 0.0001
+            if (this.safeValue (result, code) === undefined) {
+                result[code] = {
+                    'id': undefined,
+                    'code': code,
+                    'info': undefined,
+                    'name': undefined,
+                    'active': active,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
+                    'fee': undefined,
+                    'fees': [],
+                    'precision': this.parseNumber ('1e-4'),
+                    'limits': this.limits,
+                    'networks': {},
+                };
+            }
+            let depositAvailable = this.safeValue (result[code], 'deposit');
+            depositAvailable = (depositEnabled) ? depositEnabled : depositAvailable;
+            let withdrawAvailable = this.safeValue (result[code], 'withdraw');
+            withdrawAvailable = (withdrawEnabled) ? withdrawEnabled : withdrawAvailable;
+            const networks = this.safeValue (result[code], 'networks', {});
+            networks[networkCode] = {
                 'info': entry,
-                'active': active,
+                'id': networkId,
+                'network': networkCode,
+                'currencyId': currencyId,
+                'lowerCaseCurrencyId': currencyIdLower,
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
+                'active': active,
                 'fee': undefined,
-                'fees': [],
-                'limits': this.limits,
-                'networks': {},
+                'precision': this.parseNumber ('1e-4'),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
             };
+            result[code]['networks'] = networks;
+            const info = this.safeValue (result[code], 'info', []);
+            info.push (entry);
+            result[code]['info'] = info;
+            result[code]['active'] = depositAvailable && withdrawAvailable;
+            result[code]['deposit'] = depositAvailable;
+            result[code]['withdraw'] = withdrawAvailable;
         }
         return result;
     }
