@@ -931,7 +931,7 @@ class binance extends binance$1 {
                     'main': 'MAIN',
                     'spot': 'MAIN',
                     'funding': 'FUNDING',
-                    'margin': 'MARGIN',
+                    'margin': 'ISOLATED',
                     'cross': 'MARGIN',
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
@@ -4005,6 +4005,11 @@ class binance extends binance$1 {
             if (reduceOnly) {
                 request['sideEffectType'] = 'AUTO_REPAY';
                 params = this.omit(params, 'reduceOnly');
+            }
+            const autoBorrow = this.safeValue(params, 'auto_borrow');
+            if (autoBorrow) {
+                request['sideEffectType'] = 'MARGIN_BUY';
+                params = this.omit(params, 'auto_borrow');
             }
         }
         if (market['spot'] || marketType === 'margin') {

@@ -2942,7 +2942,8 @@ class huobi extends huobi$1 {
         }
         const uniqueNetworkIds = this.safeValue(this.options['networkChainIdsByNames'], currencyCode, {});
         const networkTitle = super.networkCodeToId(networkCode);
-        return this.safeValue(uniqueNetworkIds, uniqueNetworkIds[networkCode] ? networkCode : networkTitle, uniqueNetworkIds[networkCode] ? networkCode : networkTitle);
+        const networkCodeOrTitle = uniqueNetworkIds[networkCode] ? networkCode : networkTitle;
+        return this.safeValue(uniqueNetworkIds, networkCodeOrTitle, networkCodeOrTitle);
     }
     async fetchBalance(params = {}) {
         /**

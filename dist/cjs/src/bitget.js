@@ -2912,7 +2912,7 @@ class bitget extends bitget$1 {
         //       }
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeValue(JSON.parse(response), 'data');
         const first = this.safeValue(data, 0, data);
         return this.parseOrder(first, market);
     }
@@ -3272,7 +3272,7 @@ class bitget extends bitget$1 {
         //         "requestTime":1627354109502
         //     }
         //
-        return this.safeValue(JSON.parse(response), 'data');
+        const data = this.safeValue(JSON.parse(response), 'data');
         return this.safeValue(data, 'orderList', []);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
