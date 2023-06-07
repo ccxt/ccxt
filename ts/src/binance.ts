@@ -933,7 +933,7 @@ export default class binance extends Exchange {
                     'main': 'MAIN',
                     'spot': 'MAIN',
                     'funding': 'FUNDING',
-                    'margin': 'MARGIN',
+                    'margin': 'ISOLATED',
                     'cross': 'MARGIN',
                     'future': 'UMFUTURE', // backwards compatibility
                     'delivery': 'CMFUTURE', // backwards compatbility
