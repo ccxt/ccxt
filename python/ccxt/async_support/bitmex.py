@@ -1103,11 +1103,14 @@ class bitmex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        tickers = await self.fetch_tickers([market['symbol']], params)
-        ticker = self.safe_value(tickers, market['symbol'])
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicGetInstrument(self.extend(request, params))
+        ticker = self.safe_value(response, 0)
         if ticker is None:
             raise BadSymbol(self.id + ' fetchTicker() symbol ' + symbol + ' not found')
-        return ticker
+        return self.parse_ticker(ticker, market)
 
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """

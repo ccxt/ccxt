@@ -1132,12 +1132,15 @@ class bitmex extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $tickers = $this->fetch_tickers([ $market['symbol'] ], $params);
-        $ticker = $this->safe_value($tickers, $market['symbol']);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetInstrument (array_merge($request, $params));
+        $ticker = $this->safe_value($response, 0);
         if ($ticker === null) {
             throw new BadSymbol($this->id . ' fetchTicker() $symbol ' . $symbol . ' not found');
         }
-        return $ticker;
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
