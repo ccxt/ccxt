@@ -557,7 +557,6 @@ export default class binance extends Exchange {
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 },
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
                         'openInterest': 1,
-                        'pmExchangeInfo': 1,
                     },
                 },
                 'dapiData': {
@@ -638,7 +637,6 @@ export default class binance extends Exchange {
                         'indexInfo': 1,
                         'apiTradingStatus': { 'cost': 1, 'noSymbol': 10 },
                         'lvtKlines': 1,
-                        'pmExchangeInfo': 1,
                     },
                 },
                 'fapiData': {
@@ -841,6 +839,10 @@ export default class binance extends Exchange {
                         'um/apiTradingStatus': 1,
                         'um/commissionRate': 20,
                         'cm/commissionRate': 20,
+                        'um/income': 30,
+                        'cm/income ': 30,
+                        'um/account': 5,
+                        'cm/account': 5,
                         'margin/marginLoan': 0.0667,
                         'margin/repayLoan': 0.0667,
                         'margin/marginInterestHistory': 0.1,

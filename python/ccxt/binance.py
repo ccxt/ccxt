@@ -583,7 +583,6 @@ class binance(Exchange, ImplicitAPI):
                         'ticker/price': {'cost': 1, 'noSymbol': 2},
                         'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
                         'openInterest': 1,
-                        'pmExchangeInfo': 1,
                     },
                 },
                 'dapiData': {
@@ -664,7 +663,6 @@ class binance(Exchange, ImplicitAPI):
                         'indexInfo': 1,
                         'apiTradingStatus': {'cost': 1, 'noSymbol': 10},
                         'lvtKlines': 1,
-                        'pmExchangeInfo': 1,
                     },
                 },
                 'fapiData': {
@@ -867,6 +865,10 @@ class binance(Exchange, ImplicitAPI):
                         'um/apiTradingStatus': 1,  # 1
                         'um/commissionRate': 20,  # 20
                         'cm/commissionRate': 20,  # 20
+                        'um/income': 30,
+                        'cm/income ': 30,
+                        'um/account': 5,
+                        'cm/account': 5,
                         'margin/marginLoan': 0.0667,  # Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
                         'margin/repayLoan': 0.0667,  # Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
                         'margin/marginInterestHistory': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1

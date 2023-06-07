@@ -310,7 +310,6 @@ interface Exchange {
     dapiPublicGetTickerPrice(params?: {}): Promise<implicitReturnType>;
     dapiPublicGetTickerBookTicker(params?: {}): Promise<implicitReturnType>;
     dapiPublicGetOpenInterest(params?: {}): Promise<implicitReturnType>;
-    dapiPublicGetPmExchangeInfo(params?: {}): Promise<implicitReturnType>;
     dapiDataGetOpenInterestHist(params?: {}): Promise<implicitReturnType>;
     dapiDataGetTopLongShortAccountRatio(params?: {}): Promise<implicitReturnType>;
     dapiDataGetTopLongShortPositionRatio(params?: {}): Promise<implicitReturnType>;
@@ -369,7 +368,6 @@ interface Exchange {
     fapiPublicGetIndexInfo(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetApiTradingStatus(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetLvtKlines(params?: {}): Promise<implicitReturnType>;
-    fapiPublicGetPmExchangeInfo(params?: {}): Promise<implicitReturnType>;
     fapiDataGetOpenInterestHist(params?: {}): Promise<implicitReturnType>;
     fapiDataGetTopLongShortAccountRatio(params?: {}): Promise<implicitReturnType>;
     fapiDataGetTopLongShortPositionRatio(params?: {}): Promise<implicitReturnType>;
@@ -516,6 +514,10 @@ interface Exchange {
     papiGetUmApiTradingStatus(params?: {}): Promise<implicitReturnType>;
     papiGetUmCommissionRate(params?: {}): Promise<implicitReturnType>;
     papiGetCmCommissionRate(params?: {}): Promise<implicitReturnType>;
+    papiGetUmIncome(params?: {}): Promise<implicitReturnType>;
+    papiGetCmIncome(params?: {}): Promise<implicitReturnType>;
+    papiGetUmAccount(params?: {}): Promise<implicitReturnType>;
+    papiGetCmAccount(params?: {}): Promise<implicitReturnType>;
     papiGetMarginMarginLoan(params?: {}): Promise<implicitReturnType>;
     papiGetMarginRepayLoan(params?: {}): Promise<implicitReturnType>;
     papiGetMarginMarginInterestHistory(params?: {}): Promise<implicitReturnType>;
