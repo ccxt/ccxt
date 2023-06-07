@@ -40,7 +40,7 @@ export default class bitmex extends Exchange {
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
-                'fetchCurrencies': true,
+                'fetchCurrencies': undefined,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -265,138 +265,6 @@ export default class bitmex extends Exchange {
         });
     }
 
-    async fetchCurrencies (params = {}) {
-        /**
-         * @method
-         * @name bitmex#fetchCurrencies
-         * @description fetches all available currencies on an exchange
-         * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {object} an associative dictionary of currencies
-         */
-        const response = await this.publicGetWalletAssets (params);
-        //
-        //    {
-        //        "XBt": {
-        //            "asset": "XBT",
-        //            "currency": "XBt",
-        //            "majorCurrency": "XBT",
-        //            "name": "Bitcoin",
-        //            "currencyType": "Crypto",
-        //            "scale": "8",
-        //            // "mediumPrecision": "8",
-        //            // "shorterPrecision": "4",
-        //            // "symbol": "₿",
-        //            // "weight": "1",
-        //            // "tickLog": "0",
-        //            "enabled": true,
-        //            "isMarginCurrency": true,
-        //            "minDepositAmount": "10000",
-        //            "minWithdrawalAmount": "1000",
-        //            "maxWithdrawalAmount": "100000000000000",
-        //            "networks": [
-        //                {
-        //                    "asset": "btc",
-        //                    "tokenAddress": "",
-        //                    "depositEnabled": true,
-        //                    "withdrawalEnabled": true,
-        //                    "withdrawalFee": "20000",
-        //                    "minFee": "20000",
-        //                    "maxFee": "10000000"
-        //                }
-        //            ]
-        //        },
-        //     }
-        //
-        const result = {};
-        this.options['currencyPrecisions'] = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const asset = this.safeString (currency, 'asset');
-            const code = this.safeCurrencyCode (asset);
-            const id = this.safeString (currency, 'currency');
-            const name = this.safeString (currency, 'name');
-            const chains = this.safeValue (currency, 'networks', []);
-            let depositEnabled = false;
-            let withdrawEnabled = false;
-            const networks = {};
-            const scale = this.safeString (currency, 'scale');
-            const precisionString = this.parsePrecision (scale);
-            const precision = this.parseNumber (precisionString);
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString (chain, 'asset');
-                const network = this.networkIdToCode (networkId);
-                const withdrawalFeeRaw = this.safeString (chain, 'withdrawalFee');
-                const withdrawalFee = this.parseNumber (Precise.stringMul (withdrawalFeeRaw, precisionString));
-                const isDepositEnabled = this.safeValue (chain, 'depositEnabled', false);
-                const isWithdrawEnabled = this.safeValue (chain, 'withdrawalEnabled', false);
-                const active = (isDepositEnabled && isWithdrawEnabled);
-                if (isDepositEnabled) {
-                    depositEnabled = true;
-                }
-                if (isWithdrawEnabled) {
-                    withdrawEnabled = true;
-                }
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'active': active,
-                    'deposit': isDepositEnabled,
-                    'withdraw': isWithdrawEnabled,
-                    'fee': withdrawalFee,
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            const currencyEnabled = this.safeValue (currency, 'enabled');
-            const currencyActive = currencyEnabled || (depositEnabled || withdrawEnabled);
-            const minWithdrawalString = this.safeString (currency, 'minWithdrawalAmount');
-            const minWithdrawal = this.parseNumber (Precise.stringMul (minWithdrawalString, precisionString));
-            const maxWithdrawalString = this.safeString (currency, 'maxWithdrawalAmount');
-            const maxWithdrawal = this.parseNumber (Precise.stringMul (maxWithdrawalString, precisionString));
-            const minDepositString = this.safeString (currency, 'minDepositAmount');
-            const minDeposit = this.parseNumber (Precise.stringMul (minDepositString, precisionString));
-            result[code] = {
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': name,
-                'active': currencyActive,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': undefined,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': minWithdrawal,
-                        'max': maxWithdrawal,
-                    },
-                    'deposit': {
-                        'min': minDeposit,
-                        'max': undefined,
-                    },
-                },
-                'networks': networks,
-            };
-            this.options['currencyPrecisions'][code] = precision;
-        }
-        return result;
-    }
-
     async fetchMarkets (params = {}) {
         /**
          * @method
@@ -566,7 +434,7 @@ export default class bitmex extends Exchange {
             const isQuanto = this.safeValue (market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
             const inverse = isQuanto || isInverse;
             const linear = contract ? !inverse : undefined;
-            const basePrecisionString = this.safeString (this.options['currencyPrecisions'], base);
+            const basePrecisionString = this.safeString (this.options['currencyPrecisions'], base, '8'); // 8 is temporary, it should be replaced by precision from this.tempCurrencies which should be defined in fC
             const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier')); // multiplier can negative for inverse contracts, i.e. '-100000000' for BTC/USD:BTC
             const lotSize = this.safeString (market, 'lotSize');
             const lotsizeWithPrecision = Precise.stringMul (basePrecisionString, lotSize);
