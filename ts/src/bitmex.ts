@@ -1158,7 +1158,7 @@ export default class bitmex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetInstrumentActiveAndIndices (this.extend (request, params));
+        const response = await this.publicGetInstrument (this.extend (request, params));
         const ticker = this.safeValue (response, 0);
         if (ticker === undefined) {
             throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' not found');
