@@ -27,6 +27,7 @@ export default class bingx extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
+                'fetchBalance': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchMarkets': true,
@@ -36,18 +37,17 @@ export default class bingx extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchBalance': true,
             },
             'hostname': 'bingx.com',
             'urls': {
                 'logo': '',
                 'api': {
-                    'spot': 'https://open-api.bingx.com/openApi',
-                    'swap': 'https://open-api.bingx.com/openApi',
-                    'contract': 'https://open-api.bingx.com/openApi',
+                    'spot': 'https://open-api.{hostname}/openApi',
+                    'swap': 'https://open-api.{hostname}/openApi',
+                    'contract': 'https://open-api.{hostname}/openApi',
                 },
-                'www': '',
-                'doc': '',
+                'www': 'https://bingx.com/',
+                'doc': 'https://bingx-api.github.io/docs/',
                 'referral': {
                 },
                 'fees': '',
@@ -1035,7 +1035,7 @@ export default class bingx extends Exchange {
          * @name cryptocom#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://bingx-api.github.io/docs/spot/trade-interface.html#query-assets
-         * @see https://bingx-api.github.io/docs/swapV2/account-api.html#_1-get-perpetual-futures-account-asset-information
+         * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
@@ -1046,41 +1046,42 @@ export default class bingx extends Exchange {
             'swap': 'swapV2PrivateGetUserBalance',
         });
         const response = await this[method] (marketTypeQuery);
+        //
         // spot
         //
-        //  {
-        //      "code": 0,
-        //      "msg": "",
-        //      "ttl": 1,
-        //      "data": {
-        //          "balances": [
-        //              {
-        //                  "asset": "USDT",
-        //                  "free": "16.73971130673954",
-        //                  "locked": "0"
-        //              }
-        //          ]
-        //      }
-        //  }
+        //    {
+        //        "code": 0,
+        //        "msg": "",
+        //        "ttl": 1,
+        //        "data": {
+        //            "balances": [
+        //                {
+        //                    "asset": "USDT",
+        //                    "free": "16.73971130673954",
+        //                    "locked": "0"
+        //                }
+        //            ]
+        //        }
+        //    }
         //
         // swap
         //
-        // {
-        //     "code": 0,
-        //     "msg": "",
-        //     "data": {
-        //       "balance": {
-        //         "asset": "USDT",
-        //         "balance": "15.6128",
-        //         "equity": "15.6128",
-        //         "unrealizedProfit": "0.0000",
-        //         "realisedProfit": "0.0000",
-        //         "availableMargin": "15.6128",
-        //         "usedMargin": "0.0000",
-        //         "freezedMargin": "0.0000"
-        //       }
-        //     }
-        // }
+        //    {
+        //        "code": 0,
+        //        "msg": "",
+        //        "data": {
+        //          "balance": {
+        //            "asset": "USDT",
+        //            "balance": "15.6128",
+        //            "equity": "15.6128",
+        //            "unrealizedProfit": "0.0000",
+        //            "realisedProfit": "0.0000",
+        //            "availableMargin": "15.6128",
+        //            "usedMargin": "0.0000",
+        //            "freezedMargin": "0.0000"
+        //          }
+        //        }
+        //    }
         //
         return this.parseBalance (response);
     }
@@ -1858,12 +1859,12 @@ export default class bingx extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async transfer (code: string, amount, fromAccount: string, toAccount: string, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name bingx#transfer
          * @description transfer currency internally between wallets on the same account
-         * @see https://bingx-api.github.io/docs/spot/user-interface.html#user-transfer-deposit-withdrawal
+         * @see https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -2254,7 +2255,7 @@ export default class bingx extends Exchange {
         return response;
     }
 
-    async setLeverage (leverage: Int, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bingx#setLeverage
