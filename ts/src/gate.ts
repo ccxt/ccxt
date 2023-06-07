@@ -5741,7 +5741,13 @@ export default class gate extends Exchange {
         }
         const currencyId = this.safeString (item, 'currency');
         const type = this.safeString (item, 'type');
-        const timestamp = this.safeTimestamp (item, 'time');
+        const rawTimestamp = this.safeString (item, 'time');
+        let timestamp = undefined;
+        if (rawTimestamp.length > 10) {
+            timestamp = parseInt (rawTimestamp);
+        } else {
+            timestamp = parseInt (rawTimestamp) * 1000;
+        }
         return {
             'id': this.safeString (item, 'id'),
             'direction': direction,
