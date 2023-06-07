@@ -252,6 +252,7 @@ export default class woo extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'brokerId': 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -796,6 +797,11 @@ export default class woo extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
+        const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+        const brokerId = this.safeString(this.options, 'brokerId', applicationId);
+        if (brokerId !== undefined) {
+            request['broker_id'] = brokerId;
+        }
         params = this.omit(params, ['clOrdID', 'clientOrderId', 'postOnly', 'timeInForce']);
         const response = await this.v1PrivatePostOrder(this.extend(request, params));
         // {
@@ -810,7 +816,7 @@ export default class woo extends Exchange {
         // }
         return this.extend(this.parseOrder(response, market), { 'type': type });
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name woo#editOrder

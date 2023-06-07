@@ -102,7 +102,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message, subscription) {
         //
@@ -202,7 +202,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -225,7 +225,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     async watchTicker(symbol, params = {}) {
         /**
@@ -1043,7 +1043,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const trimmedStatus = this.safeString(stateParts, 0);
         const status = this.parseWsOrderStatus(trimmedStatus);
         const price = this.safeString(order, 16);
-        const timestamp = this.safeInteger(order, 4);
+        const timestamp = this.safeInteger2(order, 5, 4);
         const average = this.safeString(order, 17);
         const stopPrice = this.omitZero(this.safeString(order, 18));
         return this.safeOrder({

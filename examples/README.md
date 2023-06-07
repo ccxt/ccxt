@@ -95,6 +95,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [ccxt-go](https://github.com/prompt-cash/ccxt-go) – CCXT port to Go (Golang).
 
+[How to use Chat GPT & CCXT to Algo Trade](https://www.youtube.com/watch?v=FVS-_bMZQAQ) – A YouTube video on pairing ChatGPT with CCXT for algorithmic trading.
+
 [The GDAX Trading Toolkit (GTT)](https://github.com/coinbase/gdax-tt) – a trading toolkit developed by the GDAX team that integrates the CCXT library!
 
 [CC Power Analytics Part 1: How to get the data of the exchanges](https://www.linkedin.com/pulse/part-1-cc-power-analytics-how-get-data-exchanges-steve-rein/) – The first part of a series of articles on cryptocurrency analytics.

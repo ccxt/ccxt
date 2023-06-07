@@ -63,7 +63,7 @@ class luno(ccxt.async_support.luno):
         trades = await self.watch(url, messageHash, request, subscriptionHash, subscription)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message, subscription):
         #

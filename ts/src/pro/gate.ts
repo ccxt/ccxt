@@ -394,7 +394,7 @@ export default class gate extends gateRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     handleTrades (client: Client, message) {
@@ -460,7 +460,7 @@ export default class gate extends gateRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client: Client, message) {
@@ -561,7 +561,7 @@ export default class gate extends gateRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
     handleMyTrades (client: Client, message) {
@@ -775,7 +775,7 @@ export default class gate extends gateRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp');
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
     handleOrder (client: Client, message) {
@@ -827,10 +827,11 @@ export default class gate extends gateRest {
             // inject order status
             const info = this.safeValue (parsed, 'info');
             const event = this.safeString (info, 'event');
-            if (event === 'put') {
+            if (event === 'put' || event === ' update') {
                 parsed['status'] = 'open';
             } else if (event === 'finish') {
-                parsed['status'] = 'closed';
+                const left = this.safeNumber (info, 'left');
+                parsed['status'] = (left === 0) ? 'closed' : 'canceled';
             }
             stored.append (parsed);
             const symbol = parsed['symbol'];

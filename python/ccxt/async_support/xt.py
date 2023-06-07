@@ -447,6 +447,7 @@ class xt(Exchange, ImplicitAPI):
                     'ORDER_004': InvalidOrder,  # no transaction
                     'ORDER_005': InvalidOrder,  # Order not exist
                     'ORDER_006': InvalidOrder,  # Too many open orders
+                    'ORDER_007': PermissionDenied,  # The sub-account has no transaction authority
                     'ORDER_F0101': InvalidOrder,  # Trigger Price Filter - Min
                     'ORDER_F0102': InvalidOrder,  # Trigger Price Filter - Max
                     'ORDER_F0103': InvalidOrder,  # Trigger Price Filter - Step Value
@@ -2132,10 +2133,9 @@ class xt(Exchange, ImplicitAPI):
     async def create_contract_order(self, symbol: str, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        convertContractsToAmount = Precise.string_div(self.number_to_string(amount), self.number_to_string(market['contractSize']))
         request = {
             'symbol': market['id'],
-            'origQty': self.amount_to_precision(symbol, self.parse_number(convertContractsToAmount)),
+            'origQty': self.amount_to_precision(symbol, amount),
         }
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         if timeInForce is not None:
@@ -3519,12 +3519,14 @@ class xt(Exchange, ImplicitAPI):
         #         "id": 950898
         #     }
         #
+        type = 'deposit' if ('fromAddr' in transaction) else 'withdraw'
         timestamp = self.safe_integer(transaction, 'createdTime')
         address = self.safe_string(transaction, 'address')
         memo = self.safe_string(transaction, 'memo')
         currencyCode = self.safe_currency_code(self.safe_string(transaction, 'currency'), currency)
         fee = self.safe_number(transaction, 'fee')
         feeCurrency = currencyCode if (fee is not None) else None
+        networkId = self.safe_string(transaction, 'chain')
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'id'),
@@ -3538,10 +3540,10 @@ class xt(Exchange, ImplicitAPI):
             'tagFrom': None,
             'tagTo': None,
             'tag': memo,
-            'type': None,
+            'type': type,
             'amount': self.safe_number(transaction, 'amount'),
             'currency': currencyCode,
-            'network': self.safe_string(transaction, 'chain'),
+            'network': self.network_id_to_code(networkId, currencyCode),
             'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
             'comment': memo,
             'fee': {
@@ -4335,11 +4337,15 @@ class xt(Exchange, ImplicitAPI):
         if signed:
             self.check_required_credentials()
             defaultRecvWindow = self.safe_string(self.options, 'recvWindow')
-            recvWindow = self.safe_string(params, 'recvWindow', defaultRecvWindow)
+            recvWindow = self.safe_string(query, 'recvWindow', defaultRecvWindow)
             timestamp = self.number_to_string(self.nonce())
-            body = params
+            body = query
             if (payload == '/v4/order') or (payload == '/future/trade/v1/order/create') or (payload == '/future/trade/v1/entrust/create-plan') or (payload == '/future/trade/v1/entrust/create-profit') or (payload == '/future/trade/v1/order/create-batch'):
-                body['clientMedia'] = 'CCXT'
+                id = 'CCXT'
+                if payload.find('future') > -1:
+                    body['clientMedia'] = id
+                else:
+                    body['media'] = id
             isUndefinedBody = ((method == 'GET') or (path == 'order/{orderId}'))
             body = None if isUndefinedBody else self.json(body)
             payloadString = None

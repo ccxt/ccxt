@@ -394,7 +394,7 @@ class gate extends \ccxt\async\gate {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -460,7 +460,7 @@ class gate extends \ccxt\async\gate {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 
@@ -561,7 +561,7 @@ class gate extends \ccxt\async\gate {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -775,7 +775,7 @@ class gate extends \ccxt\async\gate {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -828,10 +828,11 @@ class gate extends \ccxt\async\gate {
             // inject order status
             $info = $this->safe_value($parsed, 'info');
             $event = $this->safe_string($info, 'event');
-            if ($event === 'put') {
+            if ($event === 'put' || $event === ' update') {
                 $parsed['status'] = 'open';
             } elseif ($event === 'finish') {
-                $parsed['status'] = 'closed';
+                $left = $this->safe_number($info, 'left');
+                $parsed['status'] = ($left === 0) ? 'closed' : 'canceled';
             }
             $stored->append ($parsed);
             $symbol = $parsed['symbol'];
