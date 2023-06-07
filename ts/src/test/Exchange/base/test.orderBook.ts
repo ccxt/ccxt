@@ -37,7 +37,9 @@ function testOrderBook (exchange, skippedProperties, method, entry, symbol) {
             }
         }
         if (!('compareToZero' in skippedProperties)) {
-            testSharedMethods.assertGreater (exchange, skippedProperties, method, bids[i], i, '0');
+            // compare price & volume to zero
+            testSharedMethods.assertGreater (exchange, skippedProperties, method, bids[i], 0, '0');
+            testSharedMethods.assertGreater (exchange, skippedProperties, method, bids[i], 1, '0');
         }
     }
     const asks = entry['asks'];
@@ -52,7 +54,9 @@ function testOrderBook (exchange, skippedProperties, method, entry, symbol) {
             }
         }
         if (!('compareToZero' in skippedProperties)) {
-            testSharedMethods.assertGreater (exchange, skippedProperties, method, asks[i], i, '0');
+            // compare price & volume to zero
+            testSharedMethods.assertGreater (exchange, skippedProperties, method, asks[i], 0, '0');
+            testSharedMethods.assertGreater (exchange, skippedProperties, method, asks[i], 1, '0');
         }
     }
     if (bidsLength && asksLength) {
