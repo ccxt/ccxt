@@ -6,6 +6,7 @@
 from ccxt.async_support.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import PermissionDenied
@@ -720,6 +721,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #
         return self.parse_ticker(response['data'], market)
 
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+        raise NotSupported(self.id + ' fetchTickers() is not supported yet')
+
     def parse_ticker(self, ticker, market=None):
         #
         #     {
@@ -1049,7 +1053,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'percentage': None,
         })
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
         see https://docs.kucoin.com/futures/#place-an-order

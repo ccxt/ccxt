@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.oceanex import ImplicitAPI
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -585,7 +586,7 @@ class oceanex(Exchange, ImplicitAPI):
         response = await self.privateGetMembersMe(params)
         return self.parse_balance(response)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -629,7 +630,8 @@ class oceanex(Exchange, ImplicitAPI):
         if data is None:
             raise OrderNotFound(self.id + ' could not found matching order')
         if isinstance(id, list):
-            return self.parse_orders(data, market)
+            orders = self.parse_orders(data, market)
+            return orders[0]
         if dataLength == 0:
             raise OrderNotFound(self.id + ' could not found matching order')
         return self.parse_order(data[0], market)

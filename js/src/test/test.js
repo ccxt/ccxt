@@ -578,66 +578,66 @@ export default class testMainClass extends baseMainTestClass {
         //     await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
         // }
         const tests = {
-            'signIn': [exchange],
-            'fetchBalance': [exchange],
-            'fetchAccounts': [exchange],
-            'fetchTransactionFees': [exchange],
-            'fetchTradingFees': [exchange],
-            'fetchStatus': [exchange],
-            'fetchOrders': [exchange, symbol],
-            'fetchOpenOrders': [exchange, symbol],
-            'fetchClosedOrders': [exchange, symbol],
-            'fetchMyTrades': [exchange, symbol],
-            'fetchLeverageTiers': [exchange, symbol],
-            'fetchLedger': [exchange, code],
-            'fetchTransactions': [exchange, code],
-            'fetchDeposits': [exchange, code],
-            'fetchWithdrawals': [exchange, code],
-            'fetchBorrowRates': [exchange, code],
-            'fetchBorrowRate': [exchange, code],
-            'fetchBorrowInterest': [exchange, code, symbol],
-            'addMargin': [exchange, symbol],
-            'reduceMargin': [exchange, symbol],
-            'setMargin': [exchange, symbol],
-            'setMarginMode': [exchange, symbol],
-            'setLeverage': [exchange, symbol],
-            'cancelAllOrders': [exchange, symbol],
-            'cancelOrder': [exchange, symbol],
-            'cancelOrders': [exchange, symbol],
-            'fetchCanceledOrders': [exchange, symbol],
-            'fetchClosedOrder': [exchange, symbol],
-            'fetchOpenOrder': [exchange, symbol],
-            'fetchOrder': [exchange, symbol],
-            'fetchOrderTrades': [exchange, symbol],
-            'fetchPosition': [exchange, symbol],
-            'fetchDeposit': [exchange, code],
-            'createDepositAddress': [exchange, code],
-            'fetchDepositAddress': [exchange, code],
-            'fetchDepositAddresses': [exchange, code],
-            'fetchDepositAddressesByNetwork': [exchange, code],
-            'editOrder': [exchange, symbol],
-            'fetchBorrowRateHistory': [exchange, symbol],
-            'fetchBorrowRatesPerSymbol': [exchange, symbol],
-            'fetchLedgerEntry': [exchange, code],
-            'fetchWithdrawal': [exchange, code],
-            'transfer': [exchange, code],
-            'withdraw': [exchange, code],
+            'signIn': [],
+            'fetchBalance': [],
+            'fetchAccounts': [],
+            'fetchTransactionFees': [],
+            'fetchTradingFees': [],
+            'fetchStatus': [],
+            'fetchOrders': [symbol],
+            'fetchOpenOrders': [symbol],
+            'fetchClosedOrders': [symbol],
+            'fetchMyTrades': [symbol],
+            'fetchLeverageTiers': [symbol],
+            'fetchLedger': [code],
+            'fetchTransactions': [code],
+            'fetchDeposits': [code],
+            'fetchWithdrawals': [code],
+            'fetchBorrowRates': [code],
+            'fetchBorrowRate': [code],
+            'fetchBorrowInterest': [code, symbol],
+            'addMargin': [symbol],
+            'reduceMargin': [symbol],
+            'setMargin': [symbol],
+            'setMarginMode': [symbol],
+            'setLeverage': [symbol],
+            'cancelAllOrders': [symbol],
+            'cancelOrder': [symbol],
+            'cancelOrders': [symbol],
+            'fetchCanceledOrders': [symbol],
+            'fetchClosedOrder': [symbol],
+            'fetchOpenOrder': [symbol],
+            'fetchOrder': [symbol],
+            'fetchOrderTrades': [symbol],
+            'fetchPosition': [symbol],
+            'fetchDeposit': [code],
+            'createDepositAddress': [code],
+            'fetchDepositAddress': [code],
+            'fetchDepositAddresses': [code],
+            'fetchDepositAddressesByNetwork': [code],
+            'editOrder': [symbol],
+            'fetchBorrowRateHistory': [symbol],
+            'fetchBorrowRatesPerSymbol': [symbol],
+            'fetchLedgerEntry': [code],
+            'fetchWithdrawal': [code],
+            'transfer': [code],
+            'withdraw': [code],
         };
         const market = exchange.market(symbol);
         const isSpot = market['spot'];
         if (isSpot) {
-            tests['fetchCurrencies'] = [exchange, symbol];
+            tests['fetchCurrencies'] = [symbol];
         }
         else {
             // derivatives only
-            tests['fetchPositions'] = [exchange, [symbol]];
-            tests['fetchPosition'] = [exchange, symbol];
-            tests['fetchPositionRisk'] = [exchange, symbol];
-            tests['setPositionMode'] = [exchange, symbol];
-            tests['setMarginMode'] = [exchange, symbol];
-            tests['fetchOpenInterestHistory'] = [exchange, symbol];
-            tests['fetchFundingRateHistory'] = [exchange, symbol];
-            tests['fetchFundingHistory'] = [exchange, symbol];
+            tests['fetchPositions'] = [symbol]; // this test fetches all positions for 1 symbol
+            tests['fetchPosition'] = [symbol];
+            tests['fetchPositionRisk'] = [symbol];
+            tests['setPositionMode'] = [symbol];
+            tests['setMarginMode'] = [symbol];
+            tests['fetchOpenInterestHistory'] = [symbol];
+            tests['fetchFundingRateHistory'] = [symbol];
+            tests['fetchFundingHistory'] = [symbol];
         }
         const combinedPublicPrivateTests = exchange.deepExtend(this.publicTests, tests);
         const testNames = Object.keys(combinedPublicPrivateTests);

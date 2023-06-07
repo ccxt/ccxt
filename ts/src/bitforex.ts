@@ -5,7 +5,7 @@ import Exchange from './abstract/bitforex.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ export default class bitforex extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -81,6 +81,8 @@ export default class bitforex extends Exchange {
             'api': {
                 'public': {
                     'get': {
+                        '/api/v1/ping': 0.2,
+                        '/api/v1/time': 0.2,
                         'api/v1/market/symbols': 20,
                         'api/v1/market/ticker': 4,
                         'api/v1/market/ticker-all': 4,
@@ -97,11 +99,12 @@ export default class bitforex extends Exchange {
                         'api/v1/trade/placeOrder': 1,
                         'api/v1/trade/placeMultiOrder': 10,
                         'api/v1/trade/cancelOrder': 1,
-                        'api/v1/trade/cancelMultiOrder': 20,
+                        'api/v1/trade/cancelMultiOrder': 6.67,
                         'api/v1/trade/cancelAllOrder': 20,
                         'api/v1/trade/orderInfo': 1,
                         'api/v1/trade/multiOrderInfo': 10,
                         'api/v1/trade/orderInfos': 20,
+                        'api/v1/trade/myTrades': 2,
                     },
                 },
             },
@@ -251,14 +254,50 @@ export default class bitforex extends Exchange {
         //          "tid":"1131019639"
         //      }
         //
-        market = this.safeMarket (undefined, market);
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         "symbol": "coin-usdt-babydoge",
+        //         "tid": 7289,
+        //         "orderId": "b6fe2b61-e5cb-4970-9bdc-8c7cd1fcb4d8",
+        //         "price": "0.000007",
+        //         "amount": "50000000",
+        //         "tradeFee": "50000",
+        //         "tradeFeeCurrency": "babydoge",
+        //         "time": "1684750536460",
+        //         "isBuyer": true,
+        //         "isMaker": true,
+        //         "isSelfTrade": true
+        //     }
+        //
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 'time');
         const id = this.safeString (trade, 'tid');
-        const orderId = undefined;
+        const orderId = this.safeString (trade, 'orderId');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const sideId = this.safeInteger (trade, 'direction');
-        const side = this.parseSide (sideId);
+        let side = this.parseSide (sideId);
+        if (side === undefined) {
+            const isBuyer = this.safeValue (trade, 'isBuyer');
+            side = isBuyer ? 'buy' : 'sell';
+        }
+        let takerOrMaker = undefined;
+        const isMaker = this.safeValue (trade, 'isMaker');
+        if (isMaker !== undefined) {
+            takerOrMaker = (isMaker) ? 'maker' : 'taker';
+        }
+        let fee = undefined;
+        const feeCostString = this.safeString (trade, 'tradeFee');
+        if (feeCostString !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'tradeFeeCurrency');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCostString,
+                'currency': feeCurrencyCode,
+            };
+        }
         return this.safeTrade ({
             'info': trade,
             'id': id,
@@ -271,8 +310,8 @@ export default class bitforex extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'order': orderId,
-            'fee': undefined,
-            'takerOrMaker': undefined,
+            'fee': fee,
+            'takerOrMaker': takerOrMaker,
         }, market);
     }
 
@@ -313,6 +352,66 @@ export default class bitforex extends Exchange {
         // }
         //
         return this.parseTrades (response['data'], market, since, limit);
+    }
+
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitforex#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @see https://apidoc.bitforex.com/#spot-account-trade
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {object} params extra parameters specific to the bitforex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        this.checkRequiredSymbol ('fetchMyTrades', symbol);
+        await this.loadMarkets ();
+        const request = {
+            // 'symbol': market['id'],
+            // 'orderId': orderId,
+            // 'startTime': timestamp,
+            // 'endTime': timestamp,
+            // 'limit': limit, // default 500, max 1000
+        };
+        const market = this.market (symbol);
+        request['symbol'] = market['id'];
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const endTime = this.safeInteger2 (params, 'until', 'endTime');
+        if (endTime !== undefined) {
+            request['endTime'] = endTime;
+        }
+        params = this.omit (params, [ 'until' ]);
+        const response = await this.privatePostApiV1TradeMyTrades (this.extend (request, params));
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "symbol": "coin-usdt-babydoge",
+        //                 "tid": 7289,
+        //                 "orderId": "a262d030-11a5-40fd-a07c-7ba84aa68752",
+        //                 "price": "0.000007",
+        //                 "amount": "50000000",
+        //                 "tradeFee": "0.35",
+        //                 "tradeFeeCurrency": "usdt",
+        //                 "time": "1684750536460",
+        //                 "isBuyer": false,
+        //                 "isMaker": false,
+        //                 "isSelfTrade": true
+        //             }
+        //         ],
+        //         "success": true,
+        //         "time": 1685009320042
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     parseBalance (response) {
@@ -633,7 +732,7 @@ export default class bitforex extends Exchange {
         return this.parseOrders (response['data'], market, since, limit);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitforex#createOrder

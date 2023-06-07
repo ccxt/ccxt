@@ -49,7 +49,7 @@ class mexc extends \ccxt\async\mexc {
                     '1M' => 'Month1',
                 ),
                 'watchOrderBook' => array(
-                    'snapshotDelay' => 5,
+                    'snapshotDelay' => 25,
                     'maxRetries' => 3,
                 ),
                 'listenKey' => null,
@@ -165,7 +165,7 @@ class mexc extends \ccxt\async\mexc {
 
     public function watch_spot_private($channel, $messageHash, $params = array ()) {
         return Async\async(function () use ($channel, $messageHash, $params) {
-            Async\await($this->check_required_credentials());
+            $this->check_required_credentials();
             $listenKey = Async\await($this->authenticate($channel));
             $url = $this->urls['api']['ws']['spot'] . '?$listenKey=' . $listenKey;
             $request = array(
@@ -242,7 +242,7 @@ class mexc extends \ccxt\async\mexc {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 
@@ -474,7 +474,7 @@ class mexc extends \ccxt\async\mexc {
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
         if ($nonce === null) {
             $cacheLength = count($storedOrderBook->cache);
-            $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 5);
+            $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 25);
             if ($cacheLength === $snapshotDelay) {
                 $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol);
             }
@@ -556,7 +556,7 @@ class mexc extends \ccxt\async\mexc {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -647,7 +647,7 @@ class mexc extends \ccxt\async\mexc {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -951,8 +951,8 @@ class mexc extends \ccxt\async\mexc {
             'triggerPrice' => $this->safe_number($order, 'P'),
             'average' => $this->safe_string($order, 'ap'),
             'amount' => $this->safe_string($order, 'v'),
-            'cost' => $this->safe_string($order, 'cv'),
-            'filled' => $this->safe_string($order, 'ca'),
+            'cost' => $this->safe_string($order, 'a'),
+            'filled' => $this->safe_string($order, 'cv'),
             'remaining' => $this->safe_string($order, 'V'),
             'fee' => $fee,
             'trades' => null,

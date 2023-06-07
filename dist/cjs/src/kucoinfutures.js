@@ -732,6 +732,9 @@ class kucoinfutures extends kucoinfutures$1 {
         //
         return this.parseTicker(response['data'], market);
     }
+    async fetchTickers(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchTickers() is not supported yet');
+    }
     parseTicker(ticker, market = undefined) {
         //
         //     {

@@ -1,5 +1,6 @@
 {
     "ace": {
+        "skip": "30/05: 504 Gateway Time-out",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
@@ -229,12 +230,14 @@
             },
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "baseVolume": "same"
             },
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            }
+                "baseVolume": "same"
+            },
+            "fetchL2OrderBook": "bid==ask , https://app.travis-ci.com/github/ccxt/ccxt/builds/263304041#L2170",
+            "fetchLOrderBook": "same"
         }
     },
     "bitmex": {
@@ -335,7 +338,7 @@
             },
             "fetchTrades": {
                 "side": "side is undefined"
-            } 
+            }
         }
     },
     "bitvavo": {
@@ -424,10 +427,19 @@
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
+            },
+            "fetchTickers": {
+                "bid": "messed bid-ask : https://app.travis-ci.com/github/ccxt/ccxt/builds/263319874#L2090",
+                "ask": "same as above"
+            },
+            "fetchTicker": {
+                "bid": "same as above",
+                "ask": "same as above"
             }
         }
     },
     "btcalpha": {
+	"skip": "USDT_USD high price is a negative number below zero breaking the assertion in the test",
         "skipMethods": {
             "fetchOrderBook": "bids[0][0] is not < asks[0][0]",
             "fetchL2OrderBook": "same",
@@ -454,6 +466,7 @@
         }
     },
     "btctradeua": {
+        "skip": "24/05 exchange not available",
         "skipMethods": {
             "loadMarkets": {
                 "precision":"is undefined",
@@ -477,10 +490,10 @@
             "fetchTrades": "endpoint return Internal System Error"
         }
     },
-    "buda": { 
+    "buda": {
         "skip": "forbidden location"
     },
-    "bigone": { 
+    "bigone": {
         "skipMethods": {
             "fetchTickers": {
                 "bid": "broken bid-ask",
@@ -535,7 +548,10 @@
     },
     "coinspot": {
         "skipMethods": {
-            "loadMarkets": "precision key has an null value, but is expected to have a value| taker key missing from structure (markets are created from constructor .options, so needs to fill with default values in base)"
+            "loadMarkets": "precision key has an null value, but is expected to have a value| taker key missing from structure (markets are created from constructor .options, so needs to fill with default values in base)",
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing"
+            }
         }
     },
     "coinsph": {
@@ -543,6 +559,14 @@
             "loadMarkets": {
                 "taker":"messed",
                 "maker":"messed"
+            },
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
+                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "fetchTicker": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
+                "baseVolume": "quoteVolume >= baseVolume * low is failing"
             }
         }
     },
@@ -774,6 +798,7 @@
         }
     },
     "stex": {
+        "skip": "31/05 maintenance",
         "skipMethods": {
             "fetchCurrencies":{
                 "withdraw":"not provided",
@@ -863,7 +888,9 @@
             },
             "fetchTickers": {
                 "bid":"messed bid-ask",
-                "ask":"messed bid-ask"
+                "ask":"messed bid-ask",
+                "quoteVolume": "quoteVolume <= baseVolume * high https://app.travis-ci.com/github/ccxt/ccxt/builds/263304041#L2190",
+                "baseVolume": "same"
             }
         }
     },
@@ -961,6 +988,7 @@
         }
     },
     "ndax": {
+        "skip": "https://api.ndax.io:8443/AP/GetProducts?omsId=1 503 Service Unavailable No server is available to handle this request.",
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
@@ -1000,7 +1028,7 @@
         "skipMethods": {
             "loadMarkets":{
                 "active":"is undefined"
-            }, 
+            },
             "fetchOrderBooks": "fetchOrderBooks returned 0 length"
         }
     },
@@ -1084,7 +1112,6 @@
         }
     },
     "poloniex": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "some currencies does not exist in currencies"
@@ -1105,6 +1132,13 @@
             "loadMarkets": "linear & inverse must not be same",
             "fetchCurrencies": {
                 "info": "null"
+            },
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume <= baseVolume * high : https://app.travis-ci.com/github/ccxt/ccxt/builds/263319874#L2132",
+                "baseVolume": "same"
+            },
+            "fetchTicker": {
+                "quoteVolume": "quoteVolume <= baseVolume * high <<< okx fetchTicker"
             }
         }
     },
@@ -1217,6 +1251,7 @@
         }
 	},
     "xt": {
+        "skip": "fetchFundingRate returns 502 Bad Gateway",
         "skipMethods": {
             "loadMarkets": "expiry and expiryDatetime are defined for non future/options markets",
             "fetchCurrencies": {

@@ -10,6 +10,7 @@ use ccxt\async\abstract\kucoinfutures as kucoin;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
+use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 
@@ -745,6 +746,10 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
+    }
+
     public function parse_ticker($ticker, $market = null) {
         //
         //     {
@@ -1090,7 +1095,7 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * Create an order on the exchange

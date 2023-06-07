@@ -138,10 +138,21 @@ export default class coinex extends coinexRest {
             const symbol = this.safeSymbol(marketId, undefined, undefined, defaultType);
             const market = this.safeMarket(marketId, undefined, undefined, defaultType);
             const parsedTicker = this.parseWSTicker(rawTicker, market);
-            const messageHash = 'ticker:' + symbol;
             this.tickers[symbol] = parsedTicker;
             newTickers.push(parsedTicker);
-            client.resolve(parsedTicker, messageHash);
+        }
+        const messageHashes = this.findMessageHashes(client, 'tickers::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const tickers = this.filterByArray(newTickers, 'symbol', symbols);
+            const tickersSymbols = Object.keys(tickers);
+            const numTickers = tickersSymbols.length;
+            if (numTickers > 0) {
+                client.resolve(tickers, messageHash);
+            }
         }
         client.resolve(newTickers, 'tickers');
     }
@@ -392,24 +403,21 @@ export default class coinex extends coinexRest {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchTickers', undefined, params);
         const url = this.urls['api']['ws'][type];
-        const messageHash = 'tickers';
+        let messageHash = 'tickers';
+        if (symbols !== undefined) {
+            messageHash = 'tickers::' + symbols.join(',');
+        }
         const subscribe = {
             'method': 'state.subscribe',
             'id': this.requestId(),
             'params': [],
         };
         const request = this.deepExtend(subscribe, params);
-        const tickers = await this.watch(url, messageHash, request, messageHash);
-        const result = this.filterByArray(tickers, 'symbol', symbols);
-        const keys = Object.keys(result);
-        const resultLength = keys.length;
-        if (resultLength > 0) {
-            if (this.newUpdates) {
-                return result;
-            }
-            return this.filterByArray(this.tickers, 'symbol', symbols);
+        const newTickers = await this.watch(url, messageHash, request, messageHash);
+        if (this.newUpdates) {
+            return newTickers;
         }
-        return await this.watchTickers(symbols, params);
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
@@ -441,7 +449,7 @@ export default class coinex extends coinexRest {
         this.options['watchTradesSubscriptions'] = subscribedSymbols;
         const request = this.deepExtend(message, params);
         const trades = await this.watch(url, messageHash, request, subscriptionHash);
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -625,7 +633,7 @@ export default class coinex extends coinexRest {
             messageHash += ':' + symbol;
         }
         else {
-            message['params'] = this.ids;
+            message['params'] = [];
         }
         const url = this.urls['api']['ws'][type];
         const request = this.deepExtend(message, query);
@@ -931,14 +939,14 @@ export default class coinex extends coinexRest {
         //         id: 1
         //     }
         //
-        const future = this.safeValue(client.futures, 'authenticated');
-        if (future !== undefined) {
-            future.resolve(true);
-        }
+        const messageHashSpot = 'authenticated:spot';
+        const messageHashSwap = 'authenticated:swap';
+        client.resolve(message, messageHashSpot);
+        client.resolve(message, messageHashSwap);
         return message;
     }
     handleSubscriptionStatus(client, message) {
-        const id = this.safeString(message, 'id');
+        const id = this.safeInteger(message, 'id');
         const subscription = this.safeValue(client.subscriptions, id);
         if (subscription !== undefined) {
             const futureIndex = this.safeString(subscription, 'future');
@@ -957,11 +965,10 @@ export default class coinex extends coinexRest {
         const time = this.milliseconds();
         if (type === 'spot') {
             const messageHash = 'authenticated:spot';
-            const authenticated = this.safeValue(client.futures, messageHash);
-            if (authenticated !== undefined) {
-                return;
+            let future = this.safeValue(client.subscriptions, messageHash);
+            if (future !== undefined) {
+                return future;
             }
-            const future = client.future(messageHash);
             const requestId = this.requestId();
             const subscribe = {
                 'id': requestId,
@@ -978,16 +985,16 @@ export default class coinex extends coinexRest {
                 ],
                 'id': requestId,
             };
-            this.spawn(this.watch, url, messageHash, request, requestId, subscribe);
+            future = this.watch(url, messageHash, request, requestId, subscribe);
+            client.subscriptions[messageHash] = future;
             return future;
         }
         else {
             const messageHash = 'authenticated:swap';
-            const authenticated = this.safeValue(client.futures, messageHash);
-            if (authenticated !== undefined) {
-                return;
+            let future = this.safeValue(client.subscriptions, messageHash);
+            if (future !== undefined) {
+                return future;
             }
-            const future = client.future('authenticated:swap');
             const requestId = this.requestId();
             const subscribe = {
                 'id': requestId,
@@ -1004,7 +1011,8 @@ export default class coinex extends coinexRest {
                 ],
                 'id': requestId,
             };
-            this.spawn(this.watch, url, messageHash, request, requestId, subscribe);
+            future = this.watch(url, messageHash, request, requestId, subscribe);
+            client.subscriptions[messageHash] = future;
             return future;
         }
     }

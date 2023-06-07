@@ -726,6 +726,10 @@ class kucoinfutures extends kucoin {
         return $this->parse_ticker($response['data'], $market);
     }
 
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
+    }
+
     public function parse_ticker($ticker, $market = null) {
         //
         //     {
@@ -1065,7 +1069,7 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * Create an order on the exchange
          * @see https://docs.kucoin.com/futures/#place-an-order

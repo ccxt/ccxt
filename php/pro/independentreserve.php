@@ -56,7 +56,7 @@ class independentreserve extends \ccxt\async\independentreserve {
             $url = $this->urls['api']['ws'] . '?subscribe=ticker-' . $market['base'] . '-' . $market['quote'];
             $messageHash = 'trades:' . $symbol;
             $trades = Async\await($this->watch($url, $messageHash, null, $messageHash));
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 

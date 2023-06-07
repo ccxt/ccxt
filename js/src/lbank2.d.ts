@@ -1,5 +1,5 @@
 import Exchange from './abstract/lbank2.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 export default class lbank2 extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -21,12 +21,12 @@ export default class lbank2 extends Exchange {
     };
     fetchTradingFee(symbol: string, params?: {}): Promise<{}>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
     parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: any): any;
+    parseOrder(order: any, market?: any): import("./base/types.js").Order;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    fetchOrderSupplement(id: string, symbol?: string, params?: {}): Promise<any>;
-    fetchOrderDefault(id: string, symbol?: string, params?: {}): Promise<any>;
+    fetchOrderSupplement(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
+    fetchOrderDefault(id: string, symbol?: string, params?: {}): Promise<any[] | import("./base/types.js").Order>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
