@@ -901,6 +901,12 @@
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
                 "ask":"messed bid-ask",
                 "bid":"messed bid-ask"
+            },
+            "fetchOrderBook": {
+                "compareToZero": "bid/ask might be 0 - https://app.travis-ci.com/github/ccxt/ccxt/builds/263552512#L2214"
+            },
+            "fetchL2OrderBook": {
+                "compareToZero": "same"
             }
         }
     },
