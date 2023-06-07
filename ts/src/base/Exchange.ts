@@ -3427,7 +3427,7 @@ export default class Exchange {
                         const fType = this.futureTypes[i];
                         const newPrefix = '-' + fType;
                         const checkSymbol = symbol.replace ('-', newPrefix);
-                        if (symbol.indexOf (newPrefix) < 0 && checkSymbol in this.markets) {
+                        if ((symbol.indexOf (newPrefix) < 0) && (checkSymbol in this.markets)) {
                             return this.markets[checkSymbol];
                         }
                     }
