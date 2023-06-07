@@ -112,6 +112,7 @@ class Exchange {
     public $trades = array();
     public $transactions = array();
     public $positions = array();
+    public $futuresOldSymbolsMap = array();
     public $ohlcvs = array();
     public $exceptions = array();
     public $accounts = array();
