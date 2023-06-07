@@ -27,7 +27,10 @@ export default class hitbtc3 extends hitbtc3Rest {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://api.hitbtc.com/api/3/ws',
+                    'ws': {
+                        'public': 'wss://api.hitbtc.com/api/3/ws/public',
+                        'private': 'wss://api.hitbtc.com/api/3/ws/trading',
+                    },
                 },
             },
             'options': {
@@ -70,7 +73,7 @@ export default class hitbtc3 extends hitbtc3Rest {
          * @returns {object} response from exchange
          */
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws']['private'];
         const messageHash = 'authenticated';
         const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
@@ -110,24 +113,18 @@ export default class hitbtc3 extends hitbtc3Rest {
         return future;
     }
 
-    async subscribe (name: string, isPrivate: boolean, symbol: string = undefined, params = {}) {
+    async subscribePublic (name: string, symbol: string = undefined, params = {}) {
         /**
          * @ignore
          * @method
          * @param {string} name websocket endpoint name
-         * @param {boolean} isPrivate true for authenticated methods
          * @param {string|undefined} symbol unified CCXT symbol
          * @param {object} params extra parameters specific to the hitbtc3 api
          * @returns
          */
         await this.loadMarkets ();
-        let url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws']['public'];
         let messageHash = name;
-        if (isPrivate) {
-            this.authenticate ();
-        } else {
-            url += '/public';
-        }
         if (symbol !== undefined) {
             messageHash = messageHash + ':' + symbol;
         }
@@ -137,8 +134,28 @@ export default class hitbtc3 extends hitbtc3Rest {
             'id': this.nonce (),
             'ch': name,
         };
-        const request = this.deepExtend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, subscribe, messageHash);
+    }
+
+    async subscribePrivate (name: string, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} name websocket endpoint name
+         * @param {object} params extra parameters specific to the hitbtc3 api
+         * @returns
+         */
+        await this.loadMarkets ();
+        this.authenticate ();
+        const url = this.urls['api']['ws']['private'];
+        const splitName = name.split ('_subscribe');
+        const messageHash = this.safeString (splitName, 0);
+        const subscribe = {
+            'method': name,
+            'params': params,
+            'id': this.nonce (),
+        };
+        return await this.watch (url, messageHash, subscribe, messageHash);
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -179,7 +196,7 @@ export default class hitbtc3 extends hitbtc3Rest {
                 'symbols': [ market['id'] ],
             },
         };
-        const orderbook = await this.subscribe (name, false, symbol, this.deepExtend (request, params));
+        const orderbook = await this.subscribePublic (name, symbol, this.deepExtend (request, params));
         return orderbook.limit ();
     }
 
@@ -272,16 +289,16 @@ export default class hitbtc3 extends hitbtc3Rest {
                 'symbols': [ market['id'] ],
             },
         };
-        return await this.subscribe (name, false, symbol, this.deepExtend (request, params));
+        return await this.subscribePublic (name, symbol, this.deepExtend (request, params));
     }
 
     async watchTickers (symbols = undefined, params = {}) {
         /**
          * @method
-         * @name poloniex#watchTicker
+         * @name hitbtc3#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
          * @param {string} params.method 'ticker/price/1s', 'ticker/price/3s', 'ticker/1s', 'ticker/3s', 'ticker/1s/batch', 'ticker/3s/batch', 'ticker/1s/price/batch', or 'ticker/3s/price/batch'
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
@@ -303,7 +320,7 @@ export default class hitbtc3 extends hitbtc3Rest {
                 'symbols': marketIds,
             },
         };
-        return await this.subscribe (name, undefined, undefined, this.deepExtend (request, params));
+        return await this.subscribePublic (name, undefined, this.deepExtend (request, params));
     }
 
     handleTicker (client: Client, message) {
@@ -440,7 +457,7 @@ export default class hitbtc3 extends hitbtc3Rest {
         params = this.deepExtend ({
             'params': request,
         });
-        const trades = await this.subscribe ('trades', false, symbol, params);
+        const trades = await this.subscribePublic ('trades', symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -574,7 +591,7 @@ export default class hitbtc3 extends hitbtc3Rest {
             request['params']['limit'] = limit;
         }
         params = this.deepExtend (request, params);
-        const ohlcv = await this.subscribe (name, false, symbol, params);
+        const ohlcv = await this.subscribePublic (name, symbol, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -699,7 +716,7 @@ export default class hitbtc3 extends hitbtc3Rest {
             'swap': 'futures_orders',
             'future': 'futures_orders',
         });
-        const orders = await this.subscribe (name, true, undefined, params);
+        const orders = await this.subscribePrivate (name, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -962,15 +979,16 @@ export default class hitbtc3 extends hitbtc3Rest {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const name = this.getSupportedMapping (type, {
-            'spot': 'spot_balance',
-            'swap': 'futures_balance',
-            'future': 'futures_balance',
+            'spot': 'spot_balance_subscribe',
+            'swap': 'futures_balance_subscribe',
+            'future': 'futures_balance_subscribe',
         });
         const mode = this.safeString (params, 'mode', 'updates');
+        params = this.omit (params, 'mode');
         const request = {
             'mode': mode,
         };
-        return await this.subscribe (name, true, undefined, this.extend (request, params));
+        return await this.subscribePrivate (name, this.extend (request, params));
     }
 
     handleBalance (client: Client, message) {
