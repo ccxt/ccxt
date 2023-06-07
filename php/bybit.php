@@ -1368,17 +1368,26 @@ class bybit extends Exchange {
         if ($this->options['adjustForTimeDifference']) {
             $this->load_time_difference();
         }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchMarkets', null, $params);
         $promisesUnresolved = array(
             $this->fetch_spot_markets($params),
             $this->fetch_derivatives_markets(array( 'category' => 'linear' )),
             $this->fetch_derivatives_markets(array( 'category' => 'inverse' )),
         );
+        if ($type === 'option') {
+            $promisesUnresolved[] = $this->fetch_derivatives_markets(array( 'category' => 'option' ));
+        }
         $promises = $promisesUnresolved;
         $spotMarkets = $promises[0];
         $linearMarkets = $promises[1];
         $inverseMarkets = $promises[2];
         $markets = $spotMarkets;
         $markets = $this->array_concat($markets, $linearMarkets);
+        if ($type === 'option') {
+            $optionMarkets = $promises[3];
+            $markets = $this->array_concat($markets, $optionMarkets);
+        }
         return $this->array_concat($markets, $inverseMarkets);
     }
 

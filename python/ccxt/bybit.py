@@ -1370,17 +1370,24 @@ class bybit(Exchange, ImplicitAPI):
         """
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
+        type = None
+        type, params = self.handle_market_type_and_params('fetchMarkets', None, params)
         promisesUnresolved = [
             self.fetch_spot_markets(params),
             self.fetch_derivatives_markets({'category': 'linear'}),
             self.fetch_derivatives_markets({'category': 'inverse'}),
         ]
+        if type == 'option':
+            promisesUnresolved.append(self.fetch_derivatives_markets({'category': 'option'}))
         promises = promisesUnresolved
         spotMarkets = promises[0]
         linearMarkets = promises[1]
         inverseMarkets = promises[2]
         markets = spotMarkets
         markets = self.array_concat(markets, linearMarkets)
+        if type == 'option':
+            optionMarkets = promises[3]
+            markets = self.array_concat(markets, optionMarkets)
         return self.array_concat(markets, inverseMarkets)
 
     def fetch_spot_markets(self, params):
