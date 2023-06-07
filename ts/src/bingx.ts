@@ -223,13 +223,13 @@ export default class bingx extends Exchange {
          */
         const response = await this.swapV2PublicGetServerTime (params);
         //
-        //  {
-        //      "code": 0,
-        //      "msg": "",
-        //      "data": {
-        //          "serverTime": 1675319535362
-        //      }
-        //  }
+        //    {
+        //        "code": 0,
+        //        "msg": "",
+        //        "data": {
+        //            "serverTime": 1675319535362
+        //        }
+        //    }
         //
         const data = this.safeValue (response, 'data');
         return this.safeInteger (data, 'serverTime');
@@ -239,28 +239,28 @@ export default class bingx extends Exchange {
         const response = await this.spotV1PublicGetCommonSymbols (params);
         //
         //    {
-        //    "code": 0,
-        //        "msg": "",
-        //        "debugMsg": "",
-        //        "data": {
-        //          "symbols": [
-        //            {
-        //              "symbol": "GEAR-USDT",
-        //              "minQty": 735,
-        //              "maxQty": 2941177,
-        //              "minNotional": 5,
-        //              "maxNotional": 20000,
-        //              "status": 1,
-        //              "tickSize": 0.000001,
-        //              "stepSize": 1
-        //            },
-        //          ]
-        //        }
+        //        "code": 0,
+        //            "msg": "",
+        //            "debugMsg": "",
+        //            "data": {
+        //              "symbols": [
+        //                {
+        //                  "symbol": "GEAR-USDT",
+        //                  "minQty": 735,
+        //                  "maxQty": 2941177,
+        //                  "minNotional": 5,
+        //                  "maxNotional": 20000,
+        //                  "status": 1,
+        //                  "tickSize": 0.000001,
+        //                  "stepSize": 1
+        //                },
+        //              ]
+        //            }
         //    }
         //
         const result = [];
         const data = this.safeValue (response, 'data');
-        const markets = this.safeValue (data, 'symbols');
+        const markets = this.safeValue (data, 'symbols', []);
         for (let i = 0; i < markets.length; i++) {
             result.push (this.parseMarket (markets[i]));
         }
@@ -308,11 +308,11 @@ export default class bingx extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         const currency = this.safeString (market, 'currency');
         const settle = this.safeCurrencyCode (currency);
-        let pricePrecision = this.safeNumber (market, 'pricePrecision');
+        let pricePrecision = this.safeInteger (market, 'pricePrecision');
         if (pricePrecision === undefined) {
             pricePrecision = this.precisionFromString (this.safeString (market, 'tickSize'));
         }
-        let quantityPrecision = this.safeNumber (market, 'quantityPrecision');
+        let quantityPrecision = this.safeInteger (market, 'quantityPrecision');
         if (quantityPrecision === undefined) {
             quantityPrecision = this.precisionFromString (this.safeString (market, 'stepSize'));
         }
@@ -384,8 +384,8 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#fetchMarkets
          * @description retrieves data on all markets for bingx
-         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information
          * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols
+         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
@@ -505,35 +505,35 @@ export default class bingx extends Exchange {
         //
         // spot
         //
-        //      {
-        //          "code": 0,
-        //          "data": [
-        //              {
-        //                  "id": 43148253,
-        //                  "price": 25714.71,
-        //                  "qty": 1.674571,
-        //                  "time": 1655085975589,
-        //                  "buyerMaker": false
-        //              }
-        //          ]
-        //      }
+        //    {
+        //        "code": 0,
+        //        "data": [
+        //            {
+        //                "id": 43148253,
+        //                "price": 25714.71,
+        //                "qty": 1.674571,
+        //                "time": 1655085975589,
+        //                "buyerMaker": false
+        //            }
+        //        ]
+        //    }
         //
         // swap
         //
-        //     {
-        //       "code":0,
-        //       "msg":"",
-        //       "data":[
-        //         {
-        //           "time": 1672025549368,
-        //           "isBuyerMaker": true,
-        //           "price": "16885.0",
-        //           "qty": "3.3002",
-        //           "quoteQty": "55723.87"
-        //         },
-        //         ...
-        //       ]
-        //     }
+        //    {
+        //      "code":0,
+        //      "msg":"",
+        //      "data":[
+        //        {
+        //          "time": 1672025549368,
+        //          "isBuyerMaker": true,
+        //          "price": "16885.0",
+        //          "qty": "3.3002",
+        //          "quoteQty": "55723.87"
+        //        },
+        //        ...
+        //      ]
+        //    }
         //
         const trades = this.safeValue (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
@@ -544,13 +544,13 @@ export default class bingx extends Exchange {
         // spot
         // fetchTrades
         //
-        //     {
-        //         "id": 43148253,
-        //         "price": 25714.71,
-        //         "qty": 1.674571,
-        //         "time": 1655085975589,
-        //         "buyerMaker": false
-        //     }
+        //    {
+        //        "id": 43148253,
+        //        "price": 25714.71,
+        //        "qty": 1.674571,
+        //        "time": 1655085975589,
+        //        "buyerMaker": false
+        //    }
         //
         // swap
         // fetchTrades
@@ -1342,12 +1342,11 @@ export default class bingx extends Exchange {
         const average = this.safeString (order, 'avgPrice');
         const amount = this.safeString (order, 'origQty');
         const filled = this.safeString (order, 'executedQty');
-        let status = this.safeStringLower (order, 'status');
-        status = status === 'pending' ? 'open' : status;
+        const statusId = this.safeString (order, 'status');
         const fee = {
             'currency': this.safeString (order, 'feeAsset'),
             'rate': this.safeString2 (order, 'fee', 'commission'),
-        }
+        };
         return this.safeOrder ({
             'info': order,
             'id': orderId,
@@ -1368,10 +1367,22 @@ export default class bingx extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
-            'status': status,
+            'status': this.parseOrderStatus (statusId),
             'fee': fee,
             'trades': undefined,
         }, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'NEW': 'open',
+            'PENDING': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+            'FAILED': 'failed',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
@@ -1379,8 +1390,8 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#cancelOrder
          * @description cancels an open order
-         * @see https://bingx-api.github.io/docs/spot/trade-interface.html#cancel-an-order
-         * @see https://bingx-api.github.io/docs/swapV2/trade-api.html#_4-cancel-an-order
+         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20an%20Order
+         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Trade%20order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the bingx api endpoint
@@ -1462,38 +1473,41 @@ export default class bingx extends Exchange {
         this.checkRequiredSymbol ('cancelAllOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['type'] !== 'swap') {
+            throw new BadRequest (this.id + ' cancelAllOrders is only supported for swap markets.');
+        }
         const request = {
             'symbol': market['id'],
         };
         const response = await this.swapV2PrivateDeleteTradeAllOpenOrders (this.extend (request, params));
         //
-        //   {
-        //       "code": 0,
-        //       "msg": "",
-        //       "data": {
-        //         "success": [
-        //           {
-        //             "symbol": "LINK-USDT",
-        //             "orderId": 1597783835095859200,
-        //             "side": "BUY",
-        //             "positionSide": "LONG",
-        //             "type": "TRIGGER_LIMIT",
-        //             "origQty": "5.0",
-        //             "price": "9.0000",
-        //             "executedQty": "0.0",
-        //             "avgPrice": "0.0000",
-        //             "cumQuote": "0",
-        //             "stopPrice": "9.5000",
-        //             "profit": "",
-        //             "commission": "",
-        //             "status": "NEW",
-        //             "time": 1669776326000,
-        //             "updateTime": 1669776326000
-        //           }
-        //         ],
-        //         "failed": null
-        //       }
-        //   }
+        //    {
+        //        "code": 0,
+        //        "msg": "",
+        //        "data": {
+        //          "success": [
+        //            {
+        //              "symbol": "LINK-USDT",
+        //              "orderId": 1597783835095859200,
+        //              "side": "BUY",
+        //              "positionSide": "LONG",
+        //              "type": "TRIGGER_LIMIT",
+        //              "origQty": "5.0",
+        //              "price": "9.0000",
+        //              "executedQty": "0.0",
+        //              "avgPrice": "0.0000",
+        //              "cumQuote": "0",
+        //              "stopPrice": "9.5000",
+        //              "profit": "",
+        //              "commission": "",
+        //              "status": "NEW",
+        //              "time": 1669776326000,
+        //              "updateTime": 1669776326000
+        //            }
+        //          ],
+        //          "failed": null
+        //        }
+        //    }
         //
         return response;
     }
@@ -1511,6 +1525,9 @@ export default class bingx extends Exchange {
         this.checkRequiredSymbol ('cancelOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['type'] !== 'swap') {
+            throw new BadRequest (this.id + ' cancelOrders is only supported for swap markets.');
+        }
         const request = {
             'symbol': market['id'],
             'ids': ids,
@@ -2279,13 +2296,12 @@ export default class bingx extends Exchange {
             return undefined; // fallback to default error handler
         }
         //
-        // {
-        //     "code": 80014,
-        //     "msg": "Invalid parameters, err:Key: 'GetTickerRequest.Symbol' Error:Field validation for 'Symbol' failed on the 'len=0|endswith=-USDT' tag",
-        //     "data": {
-        //
-        //     }
-        // }
+        //    {
+        //        "code": 80014,
+        //        "msg": "Invalid parameters, err:Key: 'GetTickerRequest.Symbol' Error:Field validation for 'Symbol' failed on the 'len=0|endswith=-USDT' tag",
+        //        "data": {
+        //        }
+        //    }
         //
         const code = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
