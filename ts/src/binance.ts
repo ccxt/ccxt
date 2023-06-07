@@ -2172,7 +2172,10 @@ export default class binance extends Exchange {
                 }
                 const oldSymbol = symbol + ':' + settle + '-' + this.yymmdd (expiry);
                 symbol = symbol + ':' + settle + '-' + deliveryPrefix + this.yymmdd (expiry);
-                this.futuresOldSymbolsMap[oldSymbol] = oldSymbol;
+                if (!(oldSymbol in this.futuresOldSymbolsMap)) {
+                    this.futuresOldSymbolsMap[oldSymbol] = [];
+                }
+                this.futuresOldSymbolsMap[oldSymbol].push (symbol);
             } else if (option) {
                 symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry) + '-' + this.numberToString (strike) + '-' + this.safeString (optionParts, 3);
             }

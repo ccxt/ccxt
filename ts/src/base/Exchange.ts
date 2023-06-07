@@ -3421,9 +3421,14 @@ export default class Exchange {
                 }
                 return markets[0];
             } else if (symbol in this.futuresOldSymbolsMap) {
-                const newSymbol = this.futuresOldSymbolsMap[symbol];
-                if (newSymbol in this.markets) {
-                    return this.markets[newSymbol];
+                const newSymbols = this.futuresOldSymbolsMap[symbol];
+                const length = newSymbols.length;
+                if (length === 1) {
+                    if (newSymbols[0] in this.markets) {
+                        return this.markets[newSymbols[0]];
+                    }
+                } else {
+                    throw new BadRequest (this.id + ' found ' + length.toString () + ' markets for old symbol ' + symbol + ', use the new one instead from ' + this.json (newSymbols));
                 }
             }
         }
