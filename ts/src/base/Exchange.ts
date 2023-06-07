@@ -205,6 +205,7 @@ export default class Exchange {
     ohlcvs: any
     myTrades: any
     positions    = {}
+    futureTypes  = []
     urls: {
         logo?: string;
         api?: string | Dictionary<string>;
@@ -653,6 +654,7 @@ export default class Exchange {
         this.ohlcvs       = {}
         this.myTrades     = undefined
         this.positions    = {}
+        this.futureTypes  = [ 'W', 'BW', 'M', 'BM', 'Q', 'BQ' ]
         // web3 and cryptography flags
         this.requiresWeb3 = false
         this.requiresEddsa = false
@@ -3418,6 +3420,17 @@ export default class Exchange {
                     }
                 }
                 return markets[0];
+            } else {
+                // temporary support for old futures
+                if (symbol.indexOf ('-') >= 0) {
+                    for (let i = 0; i < this.futureTypes.length; i++) {
+                        const fType = this.futureTypes[i];
+                        const checkSymbol = symbol.replace ('-', '-' + fType);
+                        if (checkSymbol in this.markets) {
+                            return this.markets[checkSymbol];
+                        }
+                    }
+                }
             }
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);

@@ -2290,9 +2290,6 @@ export default class binance extends Exchange {
             entry['limits']['cost']['min'] = this.safeNumber2 (filter, 'minNotional', 'notional');
             entry['limits']['cost']['max'] = this.safeNumber (filter, 'maxNotional');
         }
-        if (oldFuturesSymbol !== undefined) {
-            entry['oldFuturesSymbol'] = oldFuturesSymbol; // removed from base
-        }
         return entry;
     }
 
