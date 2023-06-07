@@ -64,7 +64,7 @@ function testOrderBook (exchange, skippedProperties, method, entry, symbol) {
         if (bidsLength && asksLength) {
             const firstBid = exchange.safeString (bids[0], 0);
             const firstAsk = exchange.safeString (asks[0], 0);
-            assert (Precise.stringLt (firstBid, firstAsk), 'bids[0][0] (' + firstAsk + ') should be < than asks[0][0] (' + firstAsk + ')' + logText);
+            assert (Precise.stringLt (firstBid, firstAsk), 'bids[0][0] (' + firstBid + ') should be < than asks[0][0] (' + firstAsk + ')' + logText);
         }
     }
 }
