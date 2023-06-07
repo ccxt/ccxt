@@ -140,11 +140,12 @@ export default class hitbtc3 extends hitbtc3Rest {
         return await this.watch (url, messageHash, subscribe, messageHash);
     }
 
-    async subscribePrivate (name: string, params = {}) {
+    async subscribePrivate (name: string, symbol: string = undefined, params = {}) {
         /**
          * @ignore
          * @method
          * @param {string} name websocket endpoint name
+         * @param {string|undefined} symbol unified CCXT symbol
          * @param {object} params extra parameters specific to the hitbtc3 api
          * @returns
          */
@@ -152,7 +153,10 @@ export default class hitbtc3 extends hitbtc3Rest {
         this.authenticate ();
         const url = this.urls['api']['ws']['private'];
         const splitName = name.split ('_subscribe');
-        const messageHash = this.safeString (splitName, 0);
+        let messageHash = this.safeString (splitName, 0);
+        if (symbol !== undefined) {
+            messageHash = messageHash + ':' + symbol;
+        }
         const subscribe = {
             'method': name,
             'params': params,
@@ -701,8 +705,8 @@ export default class hitbtc3 extends hitbtc3Rest {
          * @see https://api.hitbtc.com/#subscribe-to-reports-2
          * @see https://api.hitbtc.com/#subscribe-to-reports-3
          * @param {string|undefined} symbol unified CCXT market symbol
-         * @param {int|undefined} since not used by hitbtc3 watchOrders
-         * @param {int|undefined} limit not used by hitbtc3 watchOrders
+         * @param {int|undefined} since timestamp in ms of the earliest order to fetch
+         * @param {int|undefined} limit the maximum amount of orders to fetch
          * @param {object} params extra parameters specific to the hitbtc3 api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -716,10 +720,10 @@ export default class hitbtc3 extends hitbtc3Rest {
         const name = this.getSupportedMapping (marketType, {
             'spot': 'spot_subscribe',
             'margin': 'margin_subscribe',
-            'swap': 'futures_orders',
-            'future': 'futures_orders',
+            'swap': 'futures_subscribe',
+            'future': 'futures_subscribe',
         });
-        const orders = await this.subscribePrivate (name, params);
+        const orders = await this.subscribePrivate (name, symbol, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -794,10 +798,13 @@ export default class hitbtc3 extends hitbtc3Rest {
             orders = new ArrayCacheBySymbolById (limit);
             this.orders = orders;
         }
-        const order = this.safeValue (message, 'order');
-        if (order !== undefined) {
+        const params = this.safeValue (message, 'params', []);
+        for (let i = 0; i < params.length; i++) {
+            const order = params[i];
             const marketId = this.safeStringLower (order, 'instrument');
-            const messageHash = 'orders';
+            const method = this.safeString (message, 'method');
+            const splitMethod = method.split ('_order');
+            const messageHash = this.safeString (splitMethod, 0);
             const symbol = this.safeSymbol (marketId);
             const orderId = this.safeString (order, 'order_id');
             const previousOrders = this.safeValue (orders.hashmap, symbol, {});
@@ -991,7 +998,7 @@ export default class hitbtc3 extends hitbtc3Rest {
         const request = {
             'mode': mode,
         };
-        return await this.subscribePrivate (name, this.extend (request, params));
+        return await this.subscribePrivate (name, undefined, this.extend (request, params));
     }
 
     handleBalance (client: Client, message) {
@@ -1044,11 +1051,9 @@ export default class hitbtc3 extends hitbtc3Rest {
                 'futures_balance': this.handleBalance,
             };
             const method = this.safeValue (methods, channel);
-            // if (method === undefined) {
-            // this.handleNotification (client, message);
-            // } else {
-            method.call (this, client, message);
-            // }
+            if (method !== undefined) {
+                method.call (this, client, message);
+            }
         }
     }
 
