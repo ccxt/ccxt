@@ -102,6 +102,7 @@ export default class gate extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
+                'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
                 'fetchMarginMode': false,
@@ -261,6 +262,7 @@ export default class gate extends Exchange {
                     'spot': {
                         'get': {
                             'accounts': 1,
+                            'account_book': 1,
                             'open_orders': 1,
                             'orders': 1,
                             'orders/{order_id}': 1,
@@ -5539,6 +5541,243 @@ export default class gate extends Exchange {
             result.push(this.parseSettlement(settlements[i], market));
         }
         return result;
+    }
+    async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-margin-account-balance-change-history
+         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-account-changing-history
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry
+         * @param {int|undefined} limit max number of ledger entries to return
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+         */
+        await this.loadMarkets();
+        let type = undefined;
+        let currency = undefined;
+        let response = undefined;
+        const request = {};
+        [type, params] = this.handleMarketTypeAndParams('fetchLedger', undefined, params);
+        if ((type === 'spot') || (type === 'margin')) {
+            if (code !== undefined) {
+                currency = this.currency(code);
+                request['currency'] = currency['id'];
+            }
+        }
+        if ((type === 'swap') || (type === 'future')) {
+            const defaultSettle = (type === 'swap') ? 'usdt' : 'btc';
+            const settle = this.safeStringLower(params, 'settle', defaultSettle);
+            params = this.omit(params, 'settle');
+            request['settle'] = settle;
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (type === 'spot') {
+            response = await this.privateSpotGetAccountBook(this.extend(request, params));
+        }
+        else if (type === 'margin') {
+            response = await this.privateMarginGetAccountBook(this.extend(request, params));
+        }
+        else if (type === 'swap') {
+            response = await this.privateFuturesGetSettleAccountBook(this.extend(request, params));
+        }
+        else if (type === 'future') {
+            response = await this.privateDeliveryGetSettleAccountBook(this.extend(request, params));
+        }
+        else if (type === 'option') {
+            response = await this.privateOptionsGetAccountBook(this.extend(request, params));
+        }
+        //
+        // spot
+        //
+        //     [
+        //         {
+        //             "id": "123456",
+        //             "time": 1547633726123,
+        //             "currency": "BTC",
+        //             "change": "1.03",
+        //             "balance": "4.59316525194",
+        //             "type": "margin_in"
+        //         }
+        //     ]
+        //
+        // margin
+        //
+        //     [
+        //         {
+        //             "id": "123456",
+        //             "time": "1547633726",
+        //             "time_ms": 1547633726123,
+        //             "currency": "BTC",
+        //             "currency_pair": "BTC_USDT",
+        //             "change": "1.03",
+        //             "balance": "4.59316525194"
+        //         }
+        //     ]
+        //
+        // swap and future
+        //
+        //     [
+        //         {
+        //             "time": 1682294400.123456,
+        //             "change": "0.000010152188",
+        //             "balance": "4.59316525194",
+        //             "text": "ETH_USD:6086261",
+        //             "type": "fee"
+        //         }
+        //     ]
+        //
+        // option
+        //
+        //     [
+        //         {
+        //             "time": 1685594770,
+        //             "change": "3.33",
+        //             "balance": "29.87911771",
+        //             "text": "BTC_USDT-20230602-26500-C:2611026125",
+        //             "type": "prem"
+        //         }
+        //     ]
+        //
+        return this.parseLedger(response, currency, since, limit);
+    }
+    parseLedgerEntry(item, currency = undefined) {
+        //
+        // spot
+        //
+        //     {
+        //         "id": "123456",
+        //         "time": 1547633726123,
+        //         "currency": "BTC",
+        //         "change": "1.03",
+        //         "balance": "4.59316525194",
+        //         "type": "margin_in"
+        //     }
+        //
+        // margin
+        //
+        //     {
+        //         "id": "123456",
+        //         "time": "1547633726",
+        //         "time_ms": 1547633726123,
+        //         "currency": "BTC",
+        //         "currency_pair": "BTC_USDT",
+        //         "change": "1.03",
+        //         "balance": "4.59316525194"
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "time": 1682294400.123456,
+        //         "change": "0.000010152188",
+        //         "balance": "4.59316525194",
+        //         "text": "ETH_USD:6086261",
+        //         "type": "fee"
+        //     }
+        //
+        // option
+        //
+        //     {
+        //         "time": 1685594770,
+        //         "change": "3.33",
+        //         "balance": "29.87911771",
+        //         "text": "BTC_USDT-20230602-26500-C:2611026125",
+        //         "type": "prem"
+        //     }
+        //
+        let direction = undefined;
+        let amount = this.safeString(item, 'change');
+        if (Precise.stringLt(amount, '0')) {
+            direction = 'out';
+            amount = Precise.stringAbs(amount);
+        }
+        else {
+            direction = 'in';
+        }
+        const currencyId = this.safeString(item, 'currency');
+        const type = this.safeString(item, 'type');
+        const rawTimestamp = this.safeString(item, 'time');
+        let timestamp = undefined;
+        if (rawTimestamp.length > 10) {
+            timestamp = parseInt(rawTimestamp);
+        }
+        else {
+            timestamp = parseInt(rawTimestamp) * 1000;
+        }
+        const balanceString = this.safeString(item, 'balance');
+        const changeString = this.safeString(item, 'change');
+        const before = this.parseNumber(Precise.stringSub(balanceString, changeString));
+        return {
+            'id': this.safeString(item, 'id'),
+            'direction': direction,
+            'account': undefined,
+            'referenceAccount': undefined,
+            'referenceId': undefined,
+            'type': this.parseLedgerEntryType(type),
+            'currency': this.safeCurrencyCode(currencyId, currency),
+            'amount': this.parseNumber(amount),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'before': before,
+            'after': this.safeNumber(item, 'balance'),
+            'status': undefined,
+            'fee': undefined,
+            'info': item,
+        };
+    }
+    parseLedgerEntryType(type) {
+        const ledgerType = {
+            'deposit': 'deposit',
+            'withdraw': 'withdrawal',
+            'sub_account_transfer': 'transfer',
+            'margin_in': 'transfer',
+            'margin_out': 'transfer',
+            'margin_funding_in': 'transfer',
+            'margin_funding_out': 'transfer',
+            'cross_margin_in': 'transfer',
+            'cross_margin_out': 'transfer',
+            'copy_trading_in': 'transfer',
+            'copy_trading_out': 'transfer',
+            'quant_in': 'transfer',
+            'quant_out': 'transfer',
+            'futures_in': 'transfer',
+            'futures_out': 'transfer',
+            'delivery_in': 'transfer',
+            'delivery_out': 'transfer',
+            'new_order': 'trade',
+            'order_fill': 'trade',
+            'referral_fee': 'rebate',
+            'order_fee': 'fee',
+            'interest': 'interest',
+            'lend': 'loan',
+            'redeem': 'loan',
+            'profit': 'interest',
+            'flash_swap_buy': 'trade',
+            'flash_swap_sell': 'trade',
+            'unknown': 'unknown',
+            'set': 'settlement',
+            'prem': 'trade',
+            'point_refr': 'rebate',
+            'point_fee': 'fee',
+            'point_dnw': 'deposit/withdraw',
+            'fund': 'fee',
+            'refr': 'rebate',
+            'fee': 'fee',
+            'pnl': 'trade',
+            'dnw': 'deposit/withdraw',
+        };
+        return this.safeString(ledgerType, type, type);
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

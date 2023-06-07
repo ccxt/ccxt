@@ -124,6 +124,7 @@ class gate(Exchange, ImplicitAPI):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
+                'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': True,
                 'fetchMarginMode': False,
@@ -283,6 +284,7 @@ class gate(Exchange, ImplicitAPI):
                     'spot': {
                         'get': {
                             'accounts': 1,
+                            'account_book': 1,
                             'open_orders': 1,
                             'orders': 1,
                             'orders/{order_id}': 1,
@@ -5246,6 +5248,227 @@ class gate(Exchange, ImplicitAPI):
         for i in range(0, len(settlements)):
             result.append(self.parse_settlement(settlements[i], market))
         return result
+
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
+        see https://www.gate.io/docs/developers/apiv4/en/#query-account-book
+        see https://www.gate.io/docs/developers/apiv4/en/#list-margin-account-balance-change-history
+        see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
+        see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
+        see https://www.gate.io/docs/developers/apiv4/en/#list-account-changing-history
+        :param str|None code: unified currency code
+        :param int|None since: timestamp in ms of the earliest ledger entry
+        :param int|None limit: max number of ledger entries to return
+        :param dict params: extra parameters specific to the gate api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        """
+        await self.load_markets()
+        type = None
+        currency = None
+        response = None
+        request = {}
+        type, params = self.handle_market_type_and_params('fetchLedger', None, params)
+        if (type == 'spot') or (type == 'margin'):
+            if code is not None:
+                currency = self.currency(code)
+                request['currency'] = currency['id']
+        if (type == 'swap') or (type == 'future'):
+            defaultSettle = 'usdt' if (type == 'swap') else 'btc'
+            settle = self.safe_string_lower(params, 'settle', defaultSettle)
+            params = self.omit(params, 'settle')
+            request['settle'] = settle
+        if since is not None:
+            request['from'] = since
+        if limit is not None:
+            request['limit'] = limit
+        if type == 'spot':
+            response = await self.privateSpotGetAccountBook(self.extend(request, params))
+        elif type == 'margin':
+            response = await self.privateMarginGetAccountBook(self.extend(request, params))
+        elif type == 'swap':
+            response = await self.privateFuturesGetSettleAccountBook(self.extend(request, params))
+        elif type == 'future':
+            response = await self.privateDeliveryGetSettleAccountBook(self.extend(request, params))
+        elif type == 'option':
+            response = await self.privateOptionsGetAccountBook(self.extend(request, params))
+        #
+        # spot
+        #
+        #     [
+        #         {
+        #             "id": "123456",
+        #             "time": 1547633726123,
+        #             "currency": "BTC",
+        #             "change": "1.03",
+        #             "balance": "4.59316525194",
+        #             "type": "margin_in"
+        #         }
+        #     ]
+        #
+        # margin
+        #
+        #     [
+        #         {
+        #             "id": "123456",
+        #             "time": "1547633726",
+        #             "time_ms": 1547633726123,
+        #             "currency": "BTC",
+        #             "currency_pair": "BTC_USDT",
+        #             "change": "1.03",
+        #             "balance": "4.59316525194"
+        #         }
+        #     ]
+        #
+        # swap and future
+        #
+        #     [
+        #         {
+        #             "time": 1682294400.123456,
+        #             "change": "0.000010152188",
+        #             "balance": "4.59316525194",
+        #             "text": "ETH_USD:6086261",
+        #             "type": "fee"
+        #         }
+        #     ]
+        #
+        # option
+        #
+        #     [
+        #         {
+        #             "time": 1685594770,
+        #             "change": "3.33",
+        #             "balance": "29.87911771",
+        #             "text": "BTC_USDT-20230602-26500-C:2611026125",
+        #             "type": "prem"
+        #         }
+        #     ]
+        #
+        return self.parse_ledger(response, currency, since, limit)
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        # spot
+        #
+        #     {
+        #         "id": "123456",
+        #         "time": 1547633726123,
+        #         "currency": "BTC",
+        #         "change": "1.03",
+        #         "balance": "4.59316525194",
+        #         "type": "margin_in"
+        #     }
+        #
+        # margin
+        #
+        #     {
+        #         "id": "123456",
+        #         "time": "1547633726",
+        #         "time_ms": 1547633726123,
+        #         "currency": "BTC",
+        #         "currency_pair": "BTC_USDT",
+        #         "change": "1.03",
+        #         "balance": "4.59316525194"
+        #     }
+        #
+        # swap and future
+        #
+        #     {
+        #         "time": 1682294400.123456,
+        #         "change": "0.000010152188",
+        #         "balance": "4.59316525194",
+        #         "text": "ETH_USD:6086261",
+        #         "type": "fee"
+        #     }
+        #
+        # option
+        #
+        #     {
+        #         "time": 1685594770,
+        #         "change": "3.33",
+        #         "balance": "29.87911771",
+        #         "text": "BTC_USDT-20230602-26500-C:2611026125",
+        #         "type": "prem"
+        #     }
+        #
+        direction = None
+        amount = self.safe_string(item, 'change')
+        if Precise.string_lt(amount, '0'):
+            direction = 'out'
+            amount = Precise.string_abs(amount)
+        else:
+            direction = 'in'
+        currencyId = self.safe_string(item, 'currency')
+        type = self.safe_string(item, 'type')
+        rawTimestamp = self.safe_string(item, 'time')
+        timestamp = None
+        if len(rawTimestamp) > 10:
+            timestamp = int(rawTimestamp)
+        else:
+            timestamp = int(rawTimestamp) * 1000
+        balanceString = self.safe_string(item, 'balance')
+        changeString = self.safe_string(item, 'change')
+        before = self.parse_number(Precise.string_sub(balanceString, changeString))
+        return {
+            'id': self.safe_string(item, 'id'),
+            'direction': direction,
+            'account': None,
+            'referenceAccount': None,
+            'referenceId': None,
+            'type': self.parse_ledger_entry_type(type),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.parse_number(amount),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'before': before,
+            'after': self.safe_number(item, 'balance'),
+            'status': None,
+            'fee': None,
+            'info': item,
+        }
+
+    def parse_ledger_entry_type(self, type):
+        ledgerType = {
+            'deposit': 'deposit',
+            'withdraw': 'withdrawal',
+            'sub_account_transfer': 'transfer',
+            'margin_in': 'transfer',
+            'margin_out': 'transfer',
+            'margin_funding_in': 'transfer',
+            'margin_funding_out': 'transfer',
+            'cross_margin_in': 'transfer',
+            'cross_margin_out': 'transfer',
+            'copy_trading_in': 'transfer',
+            'copy_trading_out': 'transfer',
+            'quant_in': 'transfer',
+            'quant_out': 'transfer',
+            'futures_in': 'transfer',
+            'futures_out': 'transfer',
+            'delivery_in': 'transfer',
+            'delivery_out': 'transfer',
+            'new_order': 'trade',
+            'order_fill': 'trade',
+            'referral_fee': 'rebate',
+            'order_fee': 'fee',
+            'interest': 'interest',
+            'lend': 'loan',
+            'redeem': 'loan',
+            'profit': 'interest',
+            'flash_swap_buy': 'trade',
+            'flash_swap_sell': 'trade',
+            'unknown': 'unknown',
+            'set': 'settlement',
+            'prem': 'trade',
+            'point_refr': 'rebate',
+            'point_fee': 'fee',
+            'point_dnw': 'deposit/withdraw',
+            'fund': 'fee',
+            'refr': 'rebate',
+            'fee': 'fee',
+            'pnl': 'trade',
+            'dnw': 'deposit/withdraw',
+        }
+        return self.safe_string(ledgerType, type, type)
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

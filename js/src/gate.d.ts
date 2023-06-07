@@ -345,5 +345,24 @@ export default class gate extends Exchange {
         datetime: string;
     };
     parseSettlements(settlements: any, market: any): any[];
+    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseLedgerEntry(item: any, currency?: any): {
+        id: string;
+        direction: any;
+        account: any;
+        referenceAccount: any;
+        referenceId: any;
+        type: string;
+        currency: any;
+        amount: number;
+        timestamp: any;
+        datetime: string;
+        before: number;
+        after: number;
+        status: any;
+        fee: any;
+        info: any;
+    };
+    parseLedgerEntryType(type: any): string;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

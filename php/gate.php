@@ -101,6 +101,7 @@ class gate extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => true,
+                'fetchLedger' => true,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
                 'fetchMarginMode' => false,
@@ -260,6 +261,7 @@ class gate extends Exchange {
                     'spot' => array(
                         'get' => array(
                             'accounts' => 1,
+                            'account_book' => 1,
                             'open_orders' => 1,
                             'orders' => 1,
                             'orders/{order_id}' => 1,
@@ -5489,6 +5491,238 @@ class gate extends Exchange {
             $result[] = $this->parse_settlement($settlements[$i], $market);
         }
         return $result;
+    }
+
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-margin-account-balance-change-history
+         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-account-changing-history
+         * @param {string|null} $code unified $currency $code
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry
+         * @param {int|null} $limit max number of ledger entries to return
+         * @param {array} $params extra parameters specific to the gate api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         */
+        $this->load_markets();
+        $type = null;
+        $currency = null;
+        $response = null;
+        $request = array();
+        list($type, $params) = $this->handle_market_type_and_params('fetchLedger', null, $params);
+        if (($type === 'spot') || ($type === 'margin')) {
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['currency'] = $currency['id'];
+            }
+        }
+        if (($type === 'swap') || ($type === 'future')) {
+            $defaultSettle = ($type === 'swap') ? 'usdt' : 'btc';
+            $settle = $this->safe_string_lower($params, 'settle', $defaultSettle);
+            $params = $this->omit($params, 'settle');
+            $request['settle'] = $settle;
+        }
+        if ($since !== null) {
+            $request['from'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        if ($type === 'spot') {
+            $response = $this->privateSpotGetAccountBook (array_merge($request, $params));
+        } elseif ($type === 'margin') {
+            $response = $this->privateMarginGetAccountBook (array_merge($request, $params));
+        } elseif ($type === 'swap') {
+            $response = $this->privateFuturesGetSettleAccountBook (array_merge($request, $params));
+        } elseif ($type === 'future') {
+            $response = $this->privateDeliveryGetSettleAccountBook (array_merge($request, $params));
+        } elseif ($type === 'option') {
+            $response = $this->privateOptionsGetAccountBook (array_merge($request, $params));
+        }
+        //
+        // spot
+        //
+        //     array(
+        //         {
+        //             "id" => "123456",
+        //             "time" => 1547633726123,
+        //             "currency" => "BTC",
+        //             "change" => "1.03",
+        //             "balance" => "4.59316525194",
+        //             "type" => "margin_in"
+        //         }
+        //     )
+        //
+        // margin
+        //
+        //     array(
+        //         {
+        //             "id" => "123456",
+        //             "time" => "1547633726",
+        //             "time_ms" => 1547633726123,
+        //             "currency" => "BTC",
+        //             "currency_pair" => "BTC_USDT",
+        //             "change" => "1.03",
+        //             "balance" => "4.59316525194"
+        //         }
+        //     )
+        //
+        // swap and future
+        //
+        //     array(
+        //         {
+        //             "time" => 1682294400.123456,
+        //             "change" => "0.000010152188",
+        //             "balance" => "4.59316525194",
+        //             "text" => "ETH_USD:6086261",
+        //             "type" => "fee"
+        //         }
+        //     )
+        //
+        // option
+        //
+        //     array(
+        //         {
+        //             "time" => 1685594770,
+        //             "change" => "3.33",
+        //             "balance" => "29.87911771",
+        //             "text" => "BTC_USDT-20230602-26500-C:2611026125",
+        //             "type" => "prem"
+        //         }
+        //     )
+        //
+        return $this->parse_ledger($response, $currency, $since, $limit);
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        //
+        // spot
+        //
+        //     {
+        //         "id" => "123456",
+        //         "time" => 1547633726123,
+        //         "currency" => "BTC",
+        //         "change" => "1.03",
+        //         "balance" => "4.59316525194",
+        //         "type" => "margin_in"
+        //     }
+        //
+        // margin
+        //
+        //     {
+        //         "id" => "123456",
+        //         "time" => "1547633726",
+        //         "time_ms" => 1547633726123,
+        //         "currency" => "BTC",
+        //         "currency_pair" => "BTC_USDT",
+        //         "change" => "1.03",
+        //         "balance" => "4.59316525194"
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "time" => 1682294400.123456,
+        //         "change" => "0.000010152188",
+        //         "balance" => "4.59316525194",
+        //         "text" => "ETH_USD:6086261",
+        //         "type" => "fee"
+        //     }
+        //
+        // option
+        //
+        //     {
+        //         "time" => 1685594770,
+        //         "change" => "3.33",
+        //         "balance" => "29.87911771",
+        //         "text" => "BTC_USDT-20230602-26500-C:2611026125",
+        //         "type" => "prem"
+        //     }
+        //
+        $direction = null;
+        $amount = $this->safe_string($item, 'change');
+        if (Precise::string_lt($amount, '0')) {
+            $direction = 'out';
+            $amount = Precise::string_abs($amount);
+        } else {
+            $direction = 'in';
+        }
+        $currencyId = $this->safe_string($item, 'currency');
+        $type = $this->safe_string($item, 'type');
+        $rawTimestamp = $this->safe_string($item, 'time');
+        $timestamp = null;
+        if (strlen($rawTimestamp) > 10) {
+            $timestamp = intval($rawTimestamp);
+        } else {
+            $timestamp = intval($rawTimestamp) * 1000;
+        }
+        $balanceString = $this->safe_string($item, 'balance');
+        $changeString = $this->safe_string($item, 'change');
+        $before = $this->parse_number(Precise::string_sub($balanceString, $changeString));
+        return array(
+            'id' => $this->safe_string($item, 'id'),
+            'direction' => $direction,
+            'account' => null,
+            'referenceAccount' => null,
+            'referenceId' => null,
+            'type' => $this->parse_ledger_entry_type($type),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->parse_number($amount),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'before' => $before,
+            'after' => $this->safe_number($item, 'balance'),
+            'status' => null,
+            'fee' => null,
+            'info' => $item,
+        );
+    }
+
+    public function parse_ledger_entry_type($type) {
+        $ledgerType = array(
+            'deposit' => 'deposit',
+            'withdraw' => 'withdrawal',
+            'sub_account_transfer' => 'transfer',
+            'margin_in' => 'transfer',
+            'margin_out' => 'transfer',
+            'margin_funding_in' => 'transfer',
+            'margin_funding_out' => 'transfer',
+            'cross_margin_in' => 'transfer',
+            'cross_margin_out' => 'transfer',
+            'copy_trading_in' => 'transfer',
+            'copy_trading_out' => 'transfer',
+            'quant_in' => 'transfer',
+            'quant_out' => 'transfer',
+            'futures_in' => 'transfer',
+            'futures_out' => 'transfer',
+            'delivery_in' => 'transfer',
+            'delivery_out' => 'transfer',
+            'new_order' => 'trade',
+            'order_fill' => 'trade',
+            'referral_fee' => 'rebate',
+            'order_fee' => 'fee',
+            'interest' => 'interest',
+            'lend' => 'loan',
+            'redeem' => 'loan',
+            'profit' => 'interest',
+            'flash_swap_buy' => 'trade',
+            'flash_swap_sell' => 'trade',
+            'unknown' => 'unknown',
+            'set' => 'settlement',
+            'prem' => 'trade',
+            'point_refr' => 'rebate',
+            'point_fee' => 'fee',
+            'point_dnw' => 'deposit/withdraw',
+            'fund' => 'fee',
+            'refr' => 'rebate',
+            'fee' => 'fee',
+            'pnl' => 'trade',
+            'dnw' => 'deposit/withdraw',
+        );
+        return $this->safe_string($ledgerType, $type, $type);
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
