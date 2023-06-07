@@ -975,7 +975,7 @@ export default class hitbtc3 extends hitbtc3Rest {
          * @param {string} params.type 'spot', 'swap', or 'future'
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {string} params.mode 'updates' (default) or 'batches', 'updates' = messages arrive after balance updates, 'batches' = messages arrive at equal intervals if there were any updates
+         * @param {string} params.mode 'updates' or 'batches' (default), 'updates' = messages arrive after balance updates, 'batches' = messages arrive at equal intervals if there were any updates
          * @returns {[object]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
@@ -986,7 +986,7 @@ export default class hitbtc3 extends hitbtc3Rest {
             'swap': 'futures_balance_subscribe',
             'future': 'futures_balance_subscribe',
         });
-        const mode = this.safeString (params, 'mode', 'updates');
+        const mode = this.safeString (params, 'mode', 'batches');
         params = this.omit (params, 'mode');
         const request = {
             'mode': mode,
@@ -1025,7 +1025,7 @@ export default class hitbtc3 extends hitbtc3Rest {
     }
 
     handleMessage (client: Client, message) {
-        let channel = this.safeString (message, 'ch');
+        let channel = this.safeString2 (message, 'ch', 'method');
         if (channel !== undefined) {
             const splitChannel = channel.split ('/');
             channel = this.safeString (splitChannel, 0);
