@@ -1097,7 +1097,7 @@ export default class bitmex extends Exchange {
         if (after !== undefined) {
             after = this.convertToRealAmount (code, after);
         }
-        const before = this.parseNumber (Precise.stringAdd (this.numberToString (after), Precise.stringNeg (this.numberToString (amount))));
+        const before = this.parseNumber (Precise.stringSub (this.numberToString (after), this.numberToString (amount)));
         let direction = undefined;
         if (amount < 0) {
             direction = 'out';
