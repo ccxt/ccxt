@@ -944,8 +944,10 @@ export default class bitmex extends Exchange {
         const type = this.parseLedgerEntryType (this.safeString (item, 'transactType'));
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const amountString = this.safeString (item, 'amount');
-        let amount = this.convertToRealAmount (code, amountString);
+        let amount = this.safeNumber (item, 'amount');
+        if (amount !== undefined) {
+            amount = amount / 100000000;
+        }
         let timestamp = this.parse8601 (this.safeString (item, 'transactTime'));
         if (timestamp === undefined) {
             // https://github.com/ccxt/ccxt/issues/6047
@@ -953,18 +955,23 @@ export default class bitmex extends Exchange {
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
-        const feeCost = this.convertToRealAmount (code, this.safeString (item, 'fee', '0'));
+        let feeCost = this.safeNumber (item, 'fee', 0);
+        if (feeCost !== undefined) {
+            feeCost = feeCost / 100000000;
+        }
         const fee = {
             'cost': feeCost,
             'currency': code,
         };
-        const afterString = this.safeString (item, 'walletBalance');
-        const after = this.convertToRealAmount (code, afterString);
-        const before = Precise.stringSub (afterString, amountString);
+        let after = this.safeNumber (item, 'walletBalance');
+        if (after !== undefined) {
+            after = after / 100000000;
+        }
+        const before = this.sum (after, -amount);
         let direction = undefined;
-        if (Precise.stringLt (amountString, '0')) {
+        if (amount < 0) {
             direction = 'out';
-            amount = this.convertToRealAmount (code, Precise.stringAbs (amountString));
+            amount = Math.abs (amount);
         } else {
             direction = 'in';
         }
