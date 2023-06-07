@@ -1029,6 +1029,7 @@ export default class xt extends xtRest {
         if ((msg === 'invalid_listen_key') || (msg === 'token expire')) {
             client.subscriptions['accessToken'] = undefined;
             this.getListenKey (true);
+            return;
         }
         client.reject (message);
     }
