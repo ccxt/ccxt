@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -140,6 +141,7 @@ class gate(Exchange, ImplicitAPI):
                 'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': False,
@@ -3094,7 +3096,7 @@ class gate(Exchange, ImplicitAPI):
             },
         }
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
         :param str symbol: Unified CCXT market symbol
@@ -3383,7 +3385,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         edit a trade order, gate currently only supports the modification of the price or amount fields
         see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
@@ -5161,6 +5163,88 @@ class gate(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'info': interest,
         }
+
+    def fetch_settlement_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetches historical settlement records
+        see https://www.gate.io/docs/developers/apiv4/en/#list-settlement-history-2
+        :param str symbol: unified market symbol of the settlement history, required on gate
+        :param int|None since: timestamp in ms
+        :param int|None limit: number of records
+        :param dict params: exchange specific params
+        :returns [dict]: a list of [settlement history objects]
+        """
+        self.check_required_symbol('fetchSettlementHistory', symbol)
+        self.load_markets()
+        market = self.market(symbol)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchSettlementHistory', market, params)
+        if type != 'option':
+            raise NotSupported(self.id + ' fetchSettlementHistory() supports option markets only')
+        marketId = market['id']
+        optionParts = marketId.split('-')
+        request = {
+            'underlying': self.safe_string(optionParts, 0),
+        }
+        if since is not None:
+            request['from'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = self.publicOptionsGetSettlements(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "time": 1685952000,
+        #             "profit": "18.266806892718",
+        #             "settle_price": "26826.68068927182",
+        #             "fee": "0.040240021034",
+        #             "contract": "BTC_USDT-20230605-25000-C",
+        #             "strike_price": "25000"
+        #         }
+        #     ]
+        #
+        settlements = self.parse_settlements(response, market)
+        sorted = self.sort_by(settlements, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def parse_settlement(self, settlement, market):
+        #
+        #     {
+        #         "time": 1685952000,
+        #         "profit": "18.266806892718",
+        #         "settle_price": "26826.68068927182",
+        #         "fee": "0.040240021034",
+        #         "contract": "BTC_USDT-20230605-25000-C",
+        #         "strike_price": "25000"
+        #     }
+        #
+        timestamp = self.safe_timestamp(settlement, 'time')
+        marketId = self.safe_string(settlement, 'contract')
+        return {
+            'info': settlement,
+            'symbol': self.safe_symbol(marketId, market),
+            'price': self.safe_number(settlement, 'settle_price'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+
+    def parse_settlements(self, settlements, market):
+        #
+        #     [
+        #         {
+        #             "time": 1685952000,
+        #             "profit": "18.266806892718",
+        #             "settle_price": "26826.68068927182",
+        #             "fee": "0.040240021034",
+        #             "contract": "BTC_USDT-20230605-25000-C",
+        #             "strike_price": "25000"
+        #         }
+        #     ]
+        #
+        result = []
+        for i in range(0, len(settlements)):
+            result.append(self.parse_settlement(settlements[i], market))
+        return result
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

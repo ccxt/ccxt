@@ -2431,7 +2431,7 @@ class okx extends okx$1 {
             'side': side,
         });
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name okx#editOrder

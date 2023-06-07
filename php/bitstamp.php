@@ -111,20 +111,26 @@ class bitstamp extends Exchange {
                     'get' => array(
                         'ohlc/{pair}/' => 1,
                         'order_book/{pair}/' => 1,
+                        'ticker/' => 1,
                         'ticker_hour/{pair}/' => 1,
                         'ticker/{pair}/' => 1,
                         'transactions/{pair}/' => 1,
                         'trading-pairs-info/' => 1,
+                        'currencies/' => 1,
+                        'eur_usd/' => 1,
                     ),
                 ),
                 'private' => array(
                     'post' => array(
+                        'account_balances/' => 1,
+                        'account_balances/{currency}/' => 1,
                         'balance/' => 1,
                         'balance/{pair}/' => 1,
                         'bch_withdrawal/' => 1,
                         'bch_address/' => 1,
                         'user_transactions/' => 1,
                         'user_transactions/{pair}/' => 1,
+                        'crypto-transactions/' => 1,
                         'open_orders/all/' => 1,
                         'open_orders/{pair}/' => 1,
                         'order_status/' => 1,
@@ -139,6 +145,10 @@ class bitstamp extends Exchange {
                         'sell/instant/{pair}/' => 1,
                         'transfer-to-main/' => 1,
                         'transfer-from-main/' => 1,
+                        'my_trading_pairs/' => 1,
+                        'fees/trading/' => 1,
+                        'fees/withdrawal/' => 1,
+                        'fees/withdrawal/{currency}/' => 1,
                         'withdrawal-requests/' => 1,
                         'withdrawal/open/' => 1,
                         'withdrawal/status/' => 1,
@@ -1251,7 +1261,7 @@ class bitstamp extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @param {string} $symbol unified $symbol of the $market to create an $order in

@@ -2132,10 +2132,9 @@ class xt(Exchange, ImplicitAPI):
     def create_contract_order(self, symbol: str, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        convertContractsToAmount = Precise.string_div(self.number_to_string(amount), self.number_to_string(market['contractSize']))
         request = {
             'symbol': market['id'],
-            'origQty': self.amount_to_precision(symbol, self.parse_number(convertContractsToAmount)),
+            'origQty': self.amount_to_precision(symbol, amount),
         }
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         if timeInForce is not None:
@@ -4341,7 +4340,11 @@ class xt(Exchange, ImplicitAPI):
             timestamp = self.number_to_string(self.nonce())
             body = query
             if (payload == '/v4/order') or (payload == '/future/trade/v1/order/create') or (payload == '/future/trade/v1/entrust/create-plan') or (payload == '/future/trade/v1/entrust/create-profit') or (payload == '/future/trade/v1/order/create-batch'):
-                body['clientMedia'] = 'CCXT'
+                id = 'CCXT'
+                if payload.find('future') > -1:
+                    body['clientMedia'] = id
+                else:
+                    body['media'] = id
             isUndefinedBody = ((method == 'GET') or (path == 'order/{orderId}'))
             body = None if isUndefinedBody else self.json(body)
             payloadString = None

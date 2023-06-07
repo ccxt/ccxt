@@ -402,6 +402,7 @@ class bybit extends Exchange {
                         // user
                         'v5/user/query-sub-members' => 10,
                         'v5/user/query-api' => 10,
+                        'v5/customer/info' => 10,
                         'v5/spot-cross-margin-trade/loan-info' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/account' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders' => 1, // 50/s => cost = 50 / 50 = 1
@@ -3500,7 +3501,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -4165,10 +4166,10 @@ class bybit extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'id' => $this->safe_string($result, 'orderId'),
-            );
+            ));
         }) ();
     }
 
@@ -4328,10 +4329,10 @@ class bybit extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'id' => $this->safe_string($result, 'orderId'),
-            );
+            ));
         }) ();
     }
 

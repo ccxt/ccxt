@@ -3919,7 +3919,7 @@ class binance extends binance$1 {
         //
         return this.parseOrder(response, market);
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name binance#editOrder

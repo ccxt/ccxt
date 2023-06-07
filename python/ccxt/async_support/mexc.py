@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from ccxt.base.types import IndexType
 from typing import Optional
 from typing import List
@@ -1710,7 +1711,7 @@ class mexc(Exchange, ImplicitAPI):
             tickers = [tickers]
         return self.parse_tickers(tickers, symbols)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -2867,7 +2868,7 @@ class mexc(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_balance(self, response, marketType):
+    def custom_parse_balance(self, response, marketType):
         #
         # spot
         #
@@ -3102,7 +3103,7 @@ class mexc(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        return self.parse_balance(response, marketType)
+        return self.custom_parse_balance(response, marketType)
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

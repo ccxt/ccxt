@@ -119,6 +119,7 @@ class gate extends Exchange {
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => false,
@@ -3211,7 +3212,7 @@ class gate extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * Create an order on the exchange
          * @param {string} $symbol Unified CCXT $market $symbol
@@ -3533,7 +3534,7 @@ class gate extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         /**
          * edit a trade order, gate currently only supports the modification of the $price or $amount fields
          * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
@@ -5399,6 +5400,95 @@ class gate extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
         );
+    }
+
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical settlement records
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-settlement-history-2
+         * @param {string} $symbol unified $market $symbol of the settlement history, required on gate
+         * @param {int|null} $since timestamp in ms
+         * @param {int|null} $limit number of records
+         * @param {array} $params exchange specific $params
+         * @return {[array]} a list of [settlement history objects]
+         */
+        $this->check_required_symbol('fetchSettlementHistory', $symbol);
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
+        if ($type !== 'option') {
+            throw new NotSupported($this->id . ' fetchSettlementHistory() supports option markets only');
+        }
+        $marketId = $market['id'];
+        $optionParts = explode('-', $marketId);
+        $request = array(
+            'underlying' => $this->safe_string($optionParts, 0),
+        );
+        if ($since !== null) {
+            $request['from'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->publicOptionsGetSettlements (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "time" => 1685952000,
+        //             "profit" => "18.266806892718",
+        //             "settle_price" => "26826.68068927182",
+        //             "fee" => "0.040240021034",
+        //             "contract" => "BTC_USDT-20230605-25000-C",
+        //             "strike_price" => "25000"
+        //         }
+        //     )
+        //
+        $settlements = $this->parse_settlements($response, $market);
+        $sorted = $this->sort_by($settlements, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function parse_settlement($settlement, $market) {
+        //
+        //     {
+        //         "time" => 1685952000,
+        //         "profit" => "18.266806892718",
+        //         "settle_price" => "26826.68068927182",
+        //         "fee" => "0.040240021034",
+        //         "contract" => "BTC_USDT-20230605-25000-C",
+        //         "strike_price" => "25000"
+        //     }
+        //
+        $timestamp = $this->safe_timestamp($settlement, 'time');
+        $marketId = $this->safe_string($settlement, 'contract');
+        return array(
+            'info' => $settlement,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'price' => $this->safe_number($settlement, 'settle_price'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function parse_settlements($settlements, $market) {
+        //
+        //     array(
+        //         {
+        //             "time" => 1685952000,
+        //             "profit" => "18.266806892718",
+        //             "settle_price" => "26826.68068927182",
+        //             "fee" => "0.040240021034",
+        //             "contract" => "BTC_USDT-20230605-25000-C",
+        //             "strike_price" => "25000"
+        //         }
+        //     )
+        //
+        $result = array();
+        for ($i = 0; $i < count($settlements); $i++) {
+            $result[] = $this->parse_settlement($settlements[$i], $market);
+        }
+        return $result;
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

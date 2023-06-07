@@ -813,7 +813,7 @@ class woo extends woo$1 {
         // }
         return this.extend(this.parseOrder(response, market), { 'type': type });
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name woo#editOrder

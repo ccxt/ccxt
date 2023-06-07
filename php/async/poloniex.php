@@ -183,6 +183,7 @@ class poloniex extends Exchange {
                 'BDG' => 'Badgercoin',
                 'BTM' => 'Bitmark',
                 'CON' => 'Coino',
+                'ETHTRON' => 'ETH',
                 'GOLD' => 'GoldEagles',
                 'GPUC' => 'GPU',
                 'HOT' => 'Hotcoin',
@@ -195,6 +196,7 @@ class poloniex extends Exchange {
                 'STR' => 'XLM',
                 'SOC' => 'SOCC',
                 'TRADE' => 'Unitrade',
+                'TRXETH' => 'TRX',
                 'XAP' => 'API Coin',
                 // this is not documented in the API docs for Poloniex
                 // https://github.com/ccxt/ccxt/issues/7084
@@ -205,6 +207,7 @@ class poloniex extends Exchange {
                 // with a USDTTRON or a USDTETH currency id, respectfully
                 // therefore we have map them back to the original code USDT
                 // otherwise the returned withdrawals are filtered out
+                'USDTBSC' => 'USDT',
                 'USDTTRON' => 'USDT',
                 'USDTETH' => 'USDT',
                 'UST' => 'USTC',
@@ -219,6 +222,7 @@ class poloniex extends Exchange {
                     'BSC' => 'BEP20',
                     'ETH' => 'ERC20',
                     'TRON' => 'TRC20',
+                    'TRX' => 'TRC20',
                 ),
                 'limits' => array(
                     'cost' => array(
@@ -651,7 +655,7 @@ class poloniex extends Exchange {
              * @param {array} $params extra parameters specific to the poloniex api endpoint
              * @return {array} an associative dictionary of currencies
              */
-            $response = Async\await($this->publicGetCurrencies ($params));
+            $response = Async\await($this->publicGetCurrencies (array_merge($params, array( 'includeMultiChainCurrencies' => true ))));
             //
             //     array(
             //         {
@@ -667,6 +671,8 @@ class poloniex extends Exchange {
             //                 "delisted" => false,
             //                 "tradingState" => "NORMAL",
             //                 "walletState" => "DISABLED",
+            //                 "walletDepositState" => 'DISABLED',
+            //                 "walletWithdrawalState" => 'DISABLED',
             //                 "parentChain" => null,
             //                 "isMultiChain" => false,
             //                 "isChildChain" => false,
@@ -682,36 +688,94 @@ class poloniex extends Exchange {
                 $id = $this->safe_value($ids, 0);
                 $currency = $this->safe_value($item, $id);
                 $code = $this->safe_currency_code($id);
+                $name = $this->safe_string($currency, 'name');
+                $networkId = $this->safe_string($currency, 'blockchain');
+                $networkCode = $this->network_id_to_code($networkId, $code);
                 $delisted = $this->safe_value($currency, 'delisted');
-                $walletState = $this->safe_string($currency, 'walletState');
-                $enabled = $walletState === 'ENABLED';
-                $listed = !$delisted;
-                $active = $listed && $enabled;
+                $walletEnabled = $this->safe_string($currency, 'walletState') === 'ENABLED';
+                $depositEnabled = $this->safe_string($currency, 'walletDepositState') === 'ENABLED';
+                $withdrawEnabled = $this->safe_string($currency, 'walletWithdrawalState') === 'ENABLED';
+                $active = !$delisted && $walletEnabled && $depositEnabled && $withdrawEnabled;
                 $numericId = $this->safe_integer($currency, 'id');
-                $fee = $this->safe_number($currency, 'withdrawalFee');
-                $result[$code] = array(
-                    'id' => $id,
-                    'numericId' => $numericId,
-                    'code' => $code,
+                $feeString = $this->safe_string($currency, 'withdrawalFee');
+                $parentChain = $this->safe_value($currency, 'parentChain');
+                $noParentChain = $parentChain === null;
+                if ($this->safe_value($result, $code) === null) {
+                    $result[$code] = array(
+                        'id' => $id,
+                        'code' => $code,
+                        'info' => null,
+                        'name' => $name,
+                        'active' => $active,
+                        'deposit' => $depositEnabled,
+                        'withdraw' => $withdrawEnabled,
+                        'fee' => $this->parse_number($feeString),
+                        'precision' => null,
+                        'limits' => array(
+                            'amount' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'deposit' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'withdraw' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                        ),
+                    );
+                }
+                $minFeeString = $this->safe_string($result[$code], 'fee');
+                if ($feeString !== null) {
+                    $minFeeString = ($minFeeString === null) ? $feeString : Precise::string_min($feeString, $minFeeString);
+                }
+                $depositAvailable = $this->safe_value($result[$code], 'deposit');
+                $depositAvailable = ($depositEnabled) ? $depositEnabled : $depositAvailable;
+                $withdrawAvailable = $this->safe_value($result[$code], 'withdraw');
+                $withdrawAvailable = ($withdrawEnabled) ? $withdrawEnabled : $withdrawAvailable;
+                $networks = $this->safe_value($result[$code], 'networks', array());
+                $networks[$networkCode] = array(
                     'info' => $currency,
-                    'name' => $currency['name'],
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'currencyId' => $id,
+                    'numericId' => $numericId,
+                    'deposit' => $depositEnabled,
+                    'withdraw' => $withdrawEnabled,
                     'active' => $active,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => $fee,
+                    'fee' => $this->parse_number($feeString),
                     'precision' => null,
-                    'networks' => array(),
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => $fee,
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
                             'max' => null,
                         ),
                     ),
                 );
+                $result[$code]['networks'] = $networks;
+                $info = $this->safe_value($result[$code], 'info', array());
+                $rawInfo = array();
+                $rawInfo[$id] = $currency;
+                $info[] = $rawInfo;
+                $result[$code]['info'] = $info;
+                if ($noParentChain) {
+                    $result[$code]['id'] = $id;
+                    $result[$code]['name'] = $name;
+                }
+                $result[$code]['active'] = $depositAvailable && $withdrawAvailable;
+                $result[$code]['deposit'] = $depositAvailable;
+                $result[$code]['withdraw'] = $withdrawAvailable;
+                $result[$code]['fee'] = $this->parse_number($minFeeString);
             }
             return $result;
         }) ();
@@ -1137,7 +1201,7 @@ class poloniex extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1209,7 +1273,7 @@ class poloniex extends Exchange {
         return array( $request, $params );
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order

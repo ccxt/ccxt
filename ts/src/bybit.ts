@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -395,6 +395,7 @@ export default class bybit extends Exchange {
                         // user
                         'v5/user/query-sub-members': 10,
                         'v5/user/query-api': 10,
+                        'v5/customer/info': 10,
                         'v5/spot-cross-margin-trade/loan-info': 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/account': 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders': 1, // 50/s => cost = 50 / 50 = 1
@@ -3483,7 +3484,7 @@ export default class bybit extends Exchange {
         }
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bybit#createOrder
@@ -4137,10 +4138,10 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return {
+        return this.safeOrder ({
             'info': response,
             'id': this.safeString (result, 'orderId'),
-        };
+        });
     }
 
     async editUnifiedMarginOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
@@ -4296,10 +4297,10 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return {
+        return this.safeOrder ({
             'info': response,
             'id': this.safeString (result, 'orderId'),
-        };
+        });
     }
 
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {

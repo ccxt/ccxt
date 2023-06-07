@@ -120,6 +120,7 @@ export default class gate extends Exchange {
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': false,
@@ -3564,7 +3565,7 @@ export default class gate extends Exchange {
         //
         return this.parseOrder(response, market);
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name gate#editOrder
@@ -5450,6 +5451,94 @@ export default class gate extends Exchange {
             'datetime': this.iso8601(timestamp),
             'info': interest,
         };
+    }
+    async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchSettlementHistory
+         * @description fetches historical settlement records
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-settlement-history-2
+         * @param {string} symbol unified market symbol of the settlement history, required on gate
+         * @param {int|undefined} since timestamp in ms
+         * @param {int|undefined} limit number of records
+         * @param {object} params exchange specific params
+         * @returns {[object]} a list of [settlement history objects]
+         */
+        this.checkRequiredSymbol('fetchSettlementHistory', symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchSettlementHistory', market, params);
+        if (type !== 'option') {
+            throw new NotSupported(this.id + ' fetchSettlementHistory() supports option markets only');
+        }
+        const marketId = market['id'];
+        const optionParts = marketId.split('-');
+        const request = {
+            'underlying': this.safeString(optionParts, 0),
+        };
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicOptionsGetSettlements(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "time": 1685952000,
+        //             "profit": "18.266806892718",
+        //             "settle_price": "26826.68068927182",
+        //             "fee": "0.040240021034",
+        //             "contract": "BTC_USDT-20230605-25000-C",
+        //             "strike_price": "25000"
+        //         }
+        //     ]
+        //
+        const settlements = this.parseSettlements(response, market);
+        const sorted = this.sortBy(settlements, 'timestamp');
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+    parseSettlement(settlement, market) {
+        //
+        //     {
+        //         "time": 1685952000,
+        //         "profit": "18.266806892718",
+        //         "settle_price": "26826.68068927182",
+        //         "fee": "0.040240021034",
+        //         "contract": "BTC_USDT-20230605-25000-C",
+        //         "strike_price": "25000"
+        //     }
+        //
+        const timestamp = this.safeTimestamp(settlement, 'time');
+        const marketId = this.safeString(settlement, 'contract');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol(marketId, market),
+            'price': this.safeNumber(settlement, 'settle_price'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        };
+    }
+    parseSettlements(settlements, market) {
+        //
+        //     [
+        //         {
+        //             "time": 1685952000,
+        //             "profit": "18.266806892718",
+        //             "settle_price": "26826.68068927182",
+        //             "fee": "0.040240021034",
+        //             "contract": "BTC_USDT-20230605-25000-C",
+        //             "strike_price": "25000"
+        //         }
+        //     ]
+        //
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            result.push(this.parseSettlement(settlements[i], market));
+        }
+        return result;
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

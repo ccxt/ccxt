@@ -396,6 +396,7 @@ export default class bybit extends Exchange {
                         // user
                         'v5/user/query-sub-members': 10,
                         'v5/user/query-api': 10,
+                        'v5/customer/info': 10,
                         'v5/spot-cross-margin-trade/loan-info': 1,
                         'v5/spot-cross-margin-trade/account': 1,
                         'v5/spot-cross-margin-trade/orders': 1,
@@ -4179,10 +4180,10 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        return {
+        return this.safeOrder({
             'info': response,
             'id': this.safeString(result, 'orderId'),
-        };
+        });
     }
     async editUnifiedMarginOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
@@ -4340,10 +4341,10 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        return {
+        return this.safeOrder({
             'info': response,
             'id': this.safeString(result, 'orderId'),
-        };
+        });
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         if (symbol === undefined) {

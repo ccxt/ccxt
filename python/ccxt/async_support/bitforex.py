@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitforex import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -50,7 +51,7 @@ class bitforex(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
-                'fetchMyTrades': False,
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -93,6 +94,8 @@ class bitforex(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
+                        '/api/v1/ping': 0.2,
+                        '/api/v1/time': 0.2,
                         'api/v1/market/symbols': 20,
                         'api/v1/market/ticker': 4,
                         'api/v1/market/ticker-all': 4,
@@ -109,11 +112,12 @@ class bitforex(Exchange, ImplicitAPI):
                         'api/v1/trade/placeOrder': 1,
                         'api/v1/trade/placeMultiOrder': 10,
                         'api/v1/trade/cancelOrder': 1,
-                        'api/v1/trade/cancelMultiOrder': 20,
+                        'api/v1/trade/cancelMultiOrder': 6.67,
                         'api/v1/trade/cancelAllOrder': 20,
                         'api/v1/trade/orderInfo': 1,
                         'api/v1/trade/multiOrderInfo': 10,
                         'api/v1/trade/orderInfos': 20,
+                        'api/v1/trade/myTrades': 2,
                     },
                 },
             },
@@ -258,14 +262,47 @@ class bitforex(Exchange, ImplicitAPI):
         #          "tid":"1131019639"
         #      }
         #
-        market = self.safe_market(None, market)
+        # fetchMyTrades(private)
+        #
+        #     {
+        #         "symbol": "coin-usdt-babydoge",
+        #         "tid": 7289,
+        #         "orderId": "b6fe2b61-e5cb-4970-9bdc-8c7cd1fcb4d8",
+        #         "price": "0.000007",
+        #         "amount": "50000000",
+        #         "tradeFee": "50000",
+        #         "tradeFeeCurrency": "babydoge",
+        #         "time": "1684750536460",
+        #         "isBuyer": True,
+        #         "isMaker": True,
+        #         "isSelfTrade": True
+        #     }
+        #
+        marketId = self.safe_string(trade, 'symbol')
+        market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(trade, 'time')
         id = self.safe_string(trade, 'tid')
-        orderId = None
+        orderId = self.safe_string(trade, 'orderId')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
         sideId = self.safe_integer(trade, 'direction')
         side = self.parse_side(sideId)
+        if side is None:
+            isBuyer = self.safe_value(trade, 'isBuyer')
+            side = 'buy' if isBuyer else 'sell'
+        takerOrMaker = None
+        isMaker = self.safe_value(trade, 'isMaker')
+        if isMaker is not None:
+            takerOrMaker = 'maker' if (isMaker) else 'taker'
+        fee = None
+        feeCostString = self.safe_string(trade, 'tradeFee')
+        if feeCostString is not None:
+            feeCurrencyId = self.safe_string(trade, 'tradeFeeCurrency')
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+            fee = {
+                'cost': feeCostString,
+                'currency': feeCurrencyCode,
+            }
         return self.safe_trade({
             'info': trade,
             'id': id,
@@ -278,8 +315,8 @@ class bitforex(Exchange, ImplicitAPI):
             'amount': amountString,
             'cost': None,
             'order': orderId,
-            'fee': None,
-            'takerOrMaker': None,
+            'fee': fee,
+            'takerOrMaker': takerOrMaker,
         }, market)
 
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -316,6 +353,60 @@ class bitforex(Exchange, ImplicitAPI):
         # }
         #
         return self.parse_trades(response['data'], market, since, limit)
+
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch all trades made by the user
+        see https://apidoc.bitforex.com/#spot-account-trade
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        """
+        self.check_required_symbol('fetchMyTrades', symbol)
+        await self.load_markets()
+        request = {
+            # 'symbol': market['id'],
+            # 'orderId': orderId,
+            # 'startTime': timestamp,
+            # 'endTime': timestamp,
+            # 'limit': limit,  # default 500, max 1000
+        }
+        market = self.market(symbol)
+        request['symbol'] = market['id']
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['startTime'] = since
+        endTime = self.safe_integer_2(params, 'until', 'endTime')
+        if endTime is not None:
+            request['endTime'] = endTime
+        params = self.omit(params, ['until'])
+        response = await self.privatePostApiV1TradeMyTrades(self.extend(request, params))
+        #
+        #     {
+        #         "data": [
+        #             {
+        #                 "symbol": "coin-usdt-babydoge",
+        #                 "tid": 7289,
+        #                 "orderId": "a262d030-11a5-40fd-a07c-7ba84aa68752",
+        #                 "price": "0.000007",
+        #                 "amount": "50000000",
+        #                 "tradeFee": "0.35",
+        #                 "tradeFeeCurrency": "usdt",
+        #                 "time": "1684750536460",
+        #                 "isBuyer": False,
+        #                 "isMaker": False,
+        #                 "isSelfTrade": True
+        #             }
+        #         ],
+        #         "success": True,
+        #         "time": 1685009320042
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_trades(data, market, since, limit)
 
     def parse_balance(self, response):
         data = response['data']
@@ -602,7 +693,7 @@ class bitforex(Exchange, ImplicitAPI):
         response = await self.privatePostApiV1TradeOrderInfos(self.extend(request, params))
         return self.parse_orders(response['data'], market, since, limit)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

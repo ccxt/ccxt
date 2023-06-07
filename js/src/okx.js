@@ -2434,7 +2434,7 @@ export default class okx extends Exchange {
             'side': side,
         });
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name okx#editOrder

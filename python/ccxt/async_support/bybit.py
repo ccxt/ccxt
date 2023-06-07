@@ -8,6 +8,7 @@ from ccxt.abstract.bybit import ImplicitAPI
 import asyncio
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -411,6 +412,7 @@ class bybit(Exchange, ImplicitAPI):
                         # user
                         'v5/user/query-sub-members': 10,
                         'v5/user/query-api': 10,
+                        'v5/customer/info': 10,
                         'v5/spot-cross-margin-trade/loan-info': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/account': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders': 1,  # 50/s => cost = 50 / 50 = 1
@@ -3352,7 +3354,7 @@ class bybit(Exchange, ImplicitAPI):
                 raise InvalidOrder(self.id + ' returned more than one order')
             return self.safe_value(result, 0)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://bybit-exchange.github.io/docs/v5/order/create-order
@@ -3940,10 +3942,10 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return {
+        return self.safe_order({
             'info': response,
             'id': self.safe_string(result, 'orderId'),
-        }
+        })
 
     async def edit_unified_margin_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -4079,10 +4081,10 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return {
+        return self.safe_order({
             'info': response,
             'id': self.safe_string(result, 'orderId'),
-        }
+        })
 
     async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         if symbol is None:

@@ -1,5 +1,5 @@
 import Exchange from './abstract/gate.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 export default class gate extends Exchange {
     describe(): any;
     setSandboxMode(enable: any): void;
@@ -224,15 +224,15 @@ export default class gate extends Exchange {
             cost: number;
         };
     };
-    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
     parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: any): any;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    parseOrder(order: any, market?: any): import("./base/types.js").Order;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchOrdersByStatus(status: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         id: string;
@@ -336,5 +336,14 @@ export default class gate extends Exchange {
         datetime: string;
         info: any;
     };
+    fetchSettlementHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseSettlement(settlement: any, market: any): {
+        info: any;
+        symbol: any;
+        price: number;
+        timestamp: number;
+        datetime: string;
+    };
+    parseSettlements(settlements: any, market: any): any[];
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }
