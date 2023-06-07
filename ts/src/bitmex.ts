@@ -40,7 +40,6 @@ export default class bitmex extends Exchange {
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
-                'fetchCurrencies': undefined,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -570,10 +569,28 @@ export default class bitmex extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            const free = this.safeString (balance, 'availableMargin');
-            const total = this.safeString (balance, 'marginBalance');
-            account['free'] = this.convertToRealAmount (code, free);
-            account['total'] = this.convertToRealAmount (code, total);
+            let free = this.safeString (balance, 'availableMargin');
+            let total = this.safeString (balance, 'marginBalance');
+            if (code !== 'USDT') {
+                // tmp fix until this PR gets merged
+                // https://github.com/ccxt/ccxt/pull/15311
+                const symbol = code + '_USDT';
+                const market = this.safeMarket (symbol);
+                const info = this.safeValue (market, 'info', {});
+                const multiplier = this.safeString (info, 'underlyingToPositionMultiplier');
+                if (multiplier !== undefined) {
+                    free = Precise.stringDiv (free, multiplier);
+                    total = Precise.stringDiv (total, multiplier);
+                } else {
+                    free = Precise.stringDiv (free, '1e8');
+                    total = Precise.stringDiv (total, '1e8');
+                }
+            } else {
+                free = Precise.stringDiv (free, '1e6');
+                total = Precise.stringDiv (total, '1e6');
+            }
+            account['free'] = free;
+            account['total'] = total;
             account['info'] = balance;
             result[code] = account;
         }
