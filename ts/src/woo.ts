@@ -212,7 +212,7 @@ export default class woo extends Exchange {
                             'algo/order/client/{client_order_id}': 2,
                         },
                         'delete': {
-                            'algo/order/{oid}': 1,
+                            'algo/order/{order_id}': 1,
                             'algo/orders/pending': 1,
                             'algo/orders/pending/{symbol}': 1,
                             'orders/pending': 1,
@@ -736,8 +736,6 @@ export default class woo extends Exchange {
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the woo api endpoint
          * @param {float} params.triggerPrice The price a trigger order is triggered at
-         * @param {float|undefined} params.stopLossPrice price to trigger stop-loss orders
-         * @param {float|undefined} params.takeProfitPrice price to trigger take-profit orders
          * @param {float|undefined} params.stopLoss for setting a stop-loss attached to an order
          * @param {float|undefined} params.takeProfit for setting a take-profit attached to an order
          * @param {float|undefined} params.algoType 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
@@ -758,12 +756,10 @@ export default class woo extends Exchange {
             'side': orderSide,
         };
         const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
-        const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
         const algoType = this.safeString (params, 'algoType');
-        const isStop = stopPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined;
+        const isStop = stopPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarket, undefined, params);
@@ -823,39 +819,36 @@ export default class woo extends Exchange {
                 request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
                 request['algoType'] = 'STOP';
             }
-        } else if (stopLossPrice || takeProfitPrice) {
-            if (algoType !== 'TRAILING_STOP') {
-                request['algoType'] = 'STOP';
-                if (stopLossPrice) {
-                    request['trigger_price'] = this.priceToPrecision (symbol, stopLossPrice);
-                } else {
-                    request['trigger_price'] = this.priceToPrecision (symbol, takeProfitPrice);
-                }
-            }
-            request['reduceOnly'] = true;
         } else if (stopLoss || takeProfit) {
-            request['algoType'] = 'OCO';
-            request['childOrders'] = [];
+            request['algoType'] = 'BRACKET';
+            const outterOrder = {
+                'symbol': market['id'],
+                'reduceOnly': false,
+                'algoType': 'POSITIONAL_TP_SL',
+                'childOrders': [],
+            };
+            const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
             if (stopLoss !== undefined) {
-                const stopLossSide = (side === 'buy') ? 'sell' : 'buy';
                 const stopLossOrder = {
-                    'side': stopLossSide,
-                    'algoType': 'STOP',
+                    'side': closeSide,
+                    'algoType': 'STOP_LOSS',
                     'triggerPrice': this.priceToPrecision (symbol, stopLoss),
-                    'type': 'MARKET',
+                    'type': 'CLOSE_POSITION',
+                    'reduceOnly': true,
                 };
-                request['childOrders'].push (stopLossOrder);
+                outterOrder['childOrders'].push (stopLossOrder);
             }
-            if (stopLoss !== undefined) {
-                const takeProfitSide = (side === 'sell') ? 'buy' : 'sell';
+            if (takeProfit !== undefined) {
                 const takeProfitOrder = {
-                    'side': takeProfitSide,
-                    'algoType': 'STOP',
-                    'triggerPrice': this.priceToPrecision (symbol, stopLoss),
-                    'type': 'MARKET',
+                    'side': closeSide,
+                    'algoType': 'TAKE_PROFIT',
+                    'triggerPrice': this.priceToPrecision (symbol, takeProfit),
+                    'type': 'CLOSE_POSITION',
+                    'reduceOnly': true,
                 };
-                request['childOrders'].push (takeProfitOrder);
+                outterOrder['childOrders'].push (takeProfitOrder);
             }
+            request['childOrders'] = [ outterOrder ];
         }
         const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
         const brokerId = this.safeString (this.options, 'brokerId', applicationId);
@@ -864,7 +857,7 @@ export default class woo extends Exchange {
         } else {
             request['broker_id'] = brokerId;
         }
-        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
         let response = undefined;
         if (isStop) {
             response = await this.v3PrivatePostAlgoOrder (this.extend (request, params));
@@ -881,6 +874,26 @@ export default class woo extends Exchange {
         //     order_amount: null, // NOT-null for 'MARKET' order
         //     client_order_id: '0'
         // }
+        // stop orders
+        // {
+        //     success: true,
+        //     data: {
+        //       rows: [
+        //         {
+        //           orderId: '1578938',
+        //           clientOrderId: '0',
+        //           algoType: 'STOP_LOSS',
+        //           quantity: '0.1'
+        //         }
+        //       ]
+        //     },
+        //     timestamp: '1686149372216'
+        // }
+        const data = this.safeValue (response, 'data', {});
+        if (data !== undefined) {
+            const rows = this.safeValue (data, 'rows', []);
+            return this.parseOrder (rows[0], market);
+        }
         return this.extend (
             this.parseOrder (response, market),
             { 'type': type }
@@ -977,16 +990,18 @@ export default class woo extends Exchange {
          * @param {boolean|undefined} params.stop whether the order is a stop/algo order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('cancelOrder', symbol);
+        const stop = this.safeValue (params, 'stop', false);
+        if (!stop) {
+            this.checkRequiredSymbol ('cancelOrder', symbol);
+        }
         await this.loadMarkets ();
         const request = {};
         const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        const stop = this.safeValue (params, 'stop');
         let method = undefined;
         if (stop) {
-            method = 'v3PrivateDeleteAlgoOrderOid';
+            method = 'v3PrivateDeleteAlgoOrderOrderId';
             request['order_id'] = id;
         } else if (isByClientOrder) {
             method = 'v1PrivateDeleteClientOrder';
@@ -1128,19 +1143,35 @@ export default class woo extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the woo api endpoint
+         * @param {boolean|undefined} params.stop whether the order is a stop/algo order
+         * @param {boolean|undefined} params.isTriggered whether the order has been triggered (false by default)
+         * @param {string|undefined} params.side 'buy' or 'sell'
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
+        const stop = this.safeValue (params, 'stop');
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['start_t'] = since;
+            if (stop) {
+                request['createdTimeStart'] = since;
+            } else {
+                request['start_t'] = since;
+            }
         }
-        const response = await this.v1PrivateGetOrders (this.extend (request, params));
+        if (stop) {
+            request['algoType'] = 'stop';
+        }
+        let response = undefined;
+        if (stop) {
+            response = await this.v3PrivateGetAlgoOrders (this.extend (request, params));
+        } else {
+            response = await this.v1PrivateGetOrders (this.extend (request, params));
+        }
         //
         //     {
         //         "success":true,
@@ -1172,8 +1203,9 @@ export default class woo extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'rows');
-        return this.parseOrders (data, market, since, limit, params);
+        const data = this.safeValue (response, 'data', response);
+        const orders = this.safeValue (data, 'rows');
+        return this.parseOrders (orders, market, since, limit, params);
     }
 
     parseTimeInForce (timeInForce) {
@@ -1193,9 +1225,46 @@ export default class woo extends Exchange {
         // * fetchOrder
         // * fetchOrders
         // const isFromFetchOrder = ('order_tag' in order); TO_DO
-        const timestamp = this.safeTimestamp2 (order, 'timestamp', 'created_time');
-        const orderId = this.safeString (order, 'order_id');
-        const clientOrderId = this.safeString (order, 'client_order_id'); // Somehow, this always returns 0 for limit order
+        //
+        // stop order after creating it:
+        //   {
+        //     orderId: '1578938',
+        //     clientOrderId: '0',
+        //     algoType: 'STOP_LOSS',
+        //     quantity: '0.1'
+        //   }
+        // stop order after fetching it:
+        //   {
+        //       algoOrderId: '1578958',
+        //       clientOrderId: '0',
+        //       rootAlgoOrderId: '1578958',
+        //       parentAlgoOrderId: '0',
+        //       symbol: 'SPOT_LTC_USDT',
+        //       orderTag: 'default',
+        //       algoType: 'STOP_LOSS',
+        //       side: 'BUY',
+        //       quantity: '0.1',
+        //       isTriggered: false,
+        //       triggerPrice: '100',
+        //       triggerStatus: 'USELESS',
+        //       type: 'LIMIT',
+        //       rootAlgoStatus: 'CANCELLED',
+        //       algoStatus: 'CANCELLED',
+        //       triggerPriceType: 'MARKET_PRICE',
+        //       price: '75',
+        //       triggerTime: '0',
+        //       totalExecutedQuantity: '0',
+        //       averageExecutedPrice: '0',
+        //       totalFee: '0',
+        //       feeAsset: '',
+        //       reduceOnly: false,
+        //       createdTime: '1686149609.744',
+        //       updatedTime: '1686149903.362'
+        //   }
+        //
+        const timestamp = this.safeTimestampN (order, [ 'timestamp', 'created_time', 'createdTime' ]);
+        const orderId = this.safeStringN (order, [ 'order_id', 'orderId', 'algoOrderId' ]);
+        const clientOrderId = this.omitZero (this.safeString2 (order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -1203,14 +1272,15 @@ export default class woo extends Exchange {
         const amount = this.safeString2 (order, 'order_quantity', 'quantity'); // This is base amount
         const cost = this.safeString2 (order, 'order_amount', 'amount'); // This is quote amount
         const orderType = this.safeStringLower2 (order, 'order_type', 'type');
-        const status = this.safeValue (order, 'status');
+        const status = this.safeValue2 (order, 'status', 'algoStatus');
         const side = this.safeStringLower (order, 'side');
-        const filled = this.safeValue (order, 'executed');
-        const average = this.safeString (order, 'average_executed_price');
+        const filled = this.omitZero (this.safeValue2 (order, 'executed', 'totalExecutedQuantity'));
+        const average = this.omitZero (this.safeString2 (order, 'average_executed_price', 'averageExecutedPrice'));
         const remaining = Precise.stringSub (cost, filled);
-        const fee = this.safeValue (order, 'total_fee');
-        const feeCurrency = this.safeString (order, 'fee_asset');
+        const fee = this.safeValue2 (order, 'total_fee', 'totalFee');
+        const feeCurrency = this.safeString2 (order, 'fee_asset', 'feeAsset');
         const transactions = this.safeValue (order, 'Transactions');
+        const stopPrice = this.safeNumber (order, 'triggerPrice');
         return this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1225,8 +1295,8 @@ export default class woo extends Exchange {
             'reduceOnly': this.safeValue (order, 'reduce_only'),
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'average': average,
             'amount': amount,
             'filled': filled,
