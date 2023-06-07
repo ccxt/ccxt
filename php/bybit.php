@@ -645,6 +645,7 @@ class bybit extends Exchange {
                     '10028' => '\\ccxt\\PermissionDenied', // The API can only be accessed by unified account users.
                     '10029' => '\\ccxt\\PermissionDenied', // The requested symbol is invalid, please check symbol whitelist
                     '12201' => '\\ccxt\\BadRequest', // array("retCode":12201,"retMsg":"Invalid orderCategory parameter.","result":array(),"retExtInfo":null,"time":1666699391220)
+                    '12141' => '\\ccxt\\BadRequest', // "retCode":12141,"retMsg":"Duplicate clientOrderId.","result":array(),"retExtInfo":array(),"time":1686134298989}
                     '100028' => '\\ccxt\\PermissionDenied', // The API cannot be accessed by unified account users.
                     '110001' => '\\ccxt\\InvalidOrder', // Order does not exist
                     '110003' => '\\ccxt\\InvalidOrder', // Order price is out of permissible range
@@ -5689,10 +5690,16 @@ class bybit extends Exchange {
          * @param {int|null} $limit the maximum number of trades to retrieve
          * @param {array} $params extra parameters specific to the bybit api endpoint
          * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+         *
          */
-        $request = array(
-            'orderId' => $id,
-        );
+        $request = array();
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'orderLinkId');
+        if ($clientOrderId !== null) {
+            $request['orderLinkId'] = $clientOrderId;
+        } else {
+            $request['orderId'] = $id;
+        }
+        $params = $this->omit($params, array( 'clientOrderId', 'orderLinkId' ));
         return $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
     }
 

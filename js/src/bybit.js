@@ -648,6 +648,7 @@ export default class bybit extends Exchange {
                     '10028': PermissionDenied,
                     '10029': PermissionDenied,
                     '12201': BadRequest,
+                    '12141': BadRequest,
                     '100028': PermissionDenied,
                     '110001': InvalidOrder,
                     '110003': InvalidOrder,
@@ -5800,10 +5801,17 @@ export default class bybit extends Exchange {
          * @param {int|undefined} limit the maximum number of trades to retrieve
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         *
          */
-        const request = {
-            'orderId': id,
-        };
+        const request = {};
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'orderLinkId');
+        if (clientOrderId !== undefined) {
+            request['orderLinkId'] = clientOrderId;
+        }
+        else {
+            request['orderId'] = id;
+        }
+        params = this.omit(params, ['clientOrderId', 'orderLinkId']);
         return await this.fetchMyTrades(symbol, since, limit, this.extend(request, params));
     }
     async fetchMyUnifiedTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {

@@ -310,7 +310,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                 },
             },
             'currencies': {
-                'WX': {'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': None, 'code': 'WX', 'precision': 8},
+                'WX': self.safe_currency_structure({'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': None, 'code': 'WX', 'precision': self.parse_number('8')}),
             },
             'options': {
                 'allowedCandles': 1440,

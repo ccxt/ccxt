@@ -375,7 +375,7 @@ class bitforex extends bitforex$1 {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['startTime'] = since;
+            request['startTime'] = Math.max(since - 1, 0);
         }
         const endTime = this.safeInteger2(params, 'until', 'endTime');
         if (endTime !== undefined) {

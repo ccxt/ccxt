@@ -66,6 +66,7 @@ class bitstamp extends bitstamp$1 {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
@@ -644,19 +645,22 @@ class bitstamp extends bitstamp$1 {
     parseTicker(ticker, market = undefined) {
         //
         // {
-        //     "high": "37534.15",
-        //     "last": "36487.44",
-        //     "timestamp":
-        //     "1643370585",
-        //     "bid": "36475.15",
-        //     "vwap": "36595.67",
-        //     "volume": "2848.49168527",
-        //     "low": "35511.32",
-        //     "ask": "36487.44",
-        //     "open": "37179.62"
+        //     "timestamp": "1686068944",
+        //     "high": "26252",
+        //     "last": "26216",
+        //     "bid": "26208",
+        //     "vwap": "25681",
+        //     "volume": "3563.13819902",
+        //     "low": "25350",
+        //     "ask": "26211",
+        //     "open": "25730",
+        //     "open_24": "25895",
+        //     "percent_change_24": "1.24",
+        //     "pair": "BTC/USD"
         // }
         //
-        const symbol = this.safeSymbol(undefined, market);
+        const marketId = this.safeString(ticker, 'pair');
+        const symbol = this.safeSymbol(marketId, market, undefined);
         const timestamp = this.safeTimestamp(ticker, 'timestamp');
         const vwap = this.safeString(ticker, 'vwap');
         const baseVolume = this.safeString(ticker, 'volume');
@@ -702,19 +706,50 @@ class bitstamp extends bitstamp$1 {
         const ticker = await this.publicGetTickerPair(this.extend(request, params));
         //
         // {
-        //     "high": "37534.15",
-        //     "last": "36487.44",
-        //     "timestamp":
-        //     "1643370585",
-        //     "bid": "36475.15",
-        //     "vwap": "36595.67",
-        //     "volume": "2848.49168527",
-        //     "low": "35511.32",
-        //     "ask": "36487.44",
-        //     "open": "37179.62"
+        //     "timestamp": "1686068944",
+        //     "high": "26252",
+        //     "last": "26216",
+        //     "bid": "26208",
+        //     "vwap": "25681",
+        //     "volume": "3563.13819902",
+        //     "low": "25350",
+        //     "ask": "26211",
+        //     "open": "25730",
+        //     "open_24": "25895",
+        //     "percent_change_24": "1.24"
         // }
         //
         return this.parseTicker(ticker, market);
+    }
+    async fetchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitstamp#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://www.bitstamp.net/api/#all-tickers
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        const response = await this.publicGetTicker(params);
+        //
+        // {
+        //     "timestamp": "1686068944",
+        //     "high": "26252",
+        //     "last": "26216",
+        //     "bid": "26208",
+        //     "vwap": "25681",
+        //     "volume": "3563.13819902",
+        //     "low": "25350",
+        //     "ask": "26211",
+        //     "open": "25730",
+        //     "open_24": "25895",
+        //     "percent_change_24": "1.24",
+        //     "pair": "BTC/USD"
+        // }
+        //
+        return this.parseTickers(response, symbols);
     }
     getCurrencyIdFromTransaction(transaction) {
         //

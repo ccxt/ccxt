@@ -378,7 +378,7 @@ class bitforex(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['startTime'] = since
+            request['startTime'] = max(since - 1, 0)
         endTime = self.safe_integer_2(params, 'until', 'endTime')
         if endTime is not None:
             request['endTime'] = endTime

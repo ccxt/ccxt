@@ -383,7 +383,7 @@ class bitforex extends Exchange {
                 $request['limit'] = $limit;
             }
             if ($since !== null) {
-                $request['startTime'] = $since;
+                $request['startTime'] = max ($since - 1, 0);
             }
             $endTime = $this->safe_integer_2($params, 'until', 'endTime');
             if ($endTime !== null) {
