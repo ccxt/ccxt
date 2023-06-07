@@ -2160,7 +2160,6 @@ export default class binance extends Exchange {
         let inverse = undefined;
         const strike = this.safeInteger (market, 'strikePrice');
         let symbol = base + '/' + quote;
-        let oldFuturesSymbol = undefined;
         if (contract) {
             if (swap) {
                 symbol = symbol + ':' + settle;
@@ -2172,7 +2171,6 @@ export default class binance extends Exchange {
                     deliveryPrefix = 'M';
                 }
                 symbol = symbol + ':' + settle + '-' + deliveryPrefix + this.yymmdd (expiry);
-                oldFuturesSymbol = symbol + ':' + settle + '-' + this.yymmdd (expiry);
             } else if (option) {
                 symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry) + '-' + this.numberToString (strike) + '-' + this.safeString (optionParts, 3);
             }
