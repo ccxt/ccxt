@@ -312,6 +312,9 @@
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
+            },
+            "fetchTickers": {
+                "baseVolume": "baseVolume * low = 8.43e-6 * 3692.59081464 = 0.03112854056 < 0.0311285405674152"
             }
         }
     },
