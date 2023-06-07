@@ -1356,22 +1356,20 @@ class Transpiler {
         const { python2Folder, python3Folder, phpFolder, phpAsyncFolder } = options
 
         // exchanges.json accounts for ids included in exchanges.cfg
-        let ids = undefined
-        try {
-            ids = exchanges.ids
-        } catch (e) {
-        }
+        let ids = exchangeIds;
 
         const regex = new RegExp (pattern.replace (/[.*+?^${}()|[\]\\]/g, '\\$&'))
 
-        let exchanges
+        let exchangesToTranspile;
         if (options.exchanges && options.exchanges.length) {
-            exchanges = options.exchanges.map (x => x + pattern)
+            exchangesToTranspile = options.exchanges.map (x => x + pattern)
+        } else if (ids !== undefined) {
+            exchangesToTranspile = ids.map(id => id + '.ts');
         } else {
-            exchanges = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.js'))))
+            exchangesToTranspile = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.js'))))
         }
 
-        const classNames = exchanges.map (file => this.transpileDerivedExchangeFile (jsFolder, file, options, force))
+        const classNames = exchangesToTranspile.map (file => this.transpileDerivedExchangeFile (jsFolder, file, options, force))
 
         const classes = {}
 
