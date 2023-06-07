@@ -59,11 +59,11 @@ function testOrderBook (exchange, skippedProperties, method, entry, symbol) {
             testSharedMethods.assertGreater (exchange, skippedProperties, method, asks[i], 1, '0');
         }
     }
-    if (bidsLength && asksLength) {
-        const firstBid = exchange.safeString (bids[0], 0);
-        const firstAsk = exchange.safeString (asks[0], 0);
-        // check bid-ask spread to be > 0
-        if (!('compareBidAsk' in skippedProperties)) {
+    // check bid-ask spread to be > 0
+    if (!('compareBidAsk' in skippedProperties)) {
+        if (bidsLength && asksLength) {
+            const firstBid = exchange.safeString (bids[0], 0);
+            const firstAsk = exchange.safeString (asks[0], 0);
             assert (Precise.stringLt (firstBid, firstAsk), 'bids[0][0] (' + firstAsk + ') should be < than asks[0][0] (' + firstAsk + ')' + logText);
         }
     }
