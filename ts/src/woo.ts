@@ -859,7 +859,9 @@ export default class woo extends Exchange {
         }
         const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
         const brokerId = this.safeString (this.options, 'brokerId', applicationId);
-        if (brokerId !== undefined) {
+        if (isStop) {
+            request['brokerId'] = brokerId;
+        } else {
             request['broker_id'] = brokerId;
         }
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
