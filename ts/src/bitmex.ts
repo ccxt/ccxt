@@ -591,7 +591,6 @@ export default class bitmex extends Exchange {
             }
             account['free'] = free;
             account['total'] = total;
-            account['info'] = balance;
             result[code] = account;
         }
         return this.safeBalance (result);
