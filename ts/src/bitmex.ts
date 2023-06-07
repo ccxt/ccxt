@@ -1881,10 +1881,6 @@ export default class bitmex extends Exchange {
 
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
-        }
         const request = {};
         const origClOrdID = this.safeString2 (params, 'origClOrdID', 'clientOrderId');
         if (origClOrdID !== undefined) {
