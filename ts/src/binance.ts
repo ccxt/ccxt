@@ -3968,6 +3968,11 @@ export default class binance extends Exchange {
                 request['sideEffectType'] = 'AUTO_REPAY';
                 params = this.omit (params, 'reduceOnly');
             }
+            const autoBorrow = this.safeValue (params, 'auto_borrow');
+            if (autoBorrow) {
+                request['sideEffectType'] = 'MARGIN_BUY';
+                params = this.omit (params, 'auto_borrow');
+            }
         }
         if (market['spot'] || marketType === 'margin') {
             // support for testing orders
