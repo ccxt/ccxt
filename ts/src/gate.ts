@@ -5748,6 +5748,9 @@ export default class gate extends Exchange {
         } else {
             timestamp = parseInt (rawTimestamp) * 1000;
         }
+        const balanceString = this.safeString (item, 'balance');
+        const changeString = this.safeString (item, 'change');
+        const before = this.parseNumber (Precise.stringSub (balanceString, changeString));
         return {
             'id': this.safeString (item, 'id'),
             'direction': direction,
@@ -5759,7 +5762,7 @@ export default class gate extends Exchange {
             'amount': this.parseNumber (amount),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'before': undefined,
+            'before': before,
             'after': this.safeNumber (item, 'balance'),
             'status': undefined,
             'fee': undefined,
