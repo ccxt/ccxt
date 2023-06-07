@@ -352,7 +352,7 @@ export default class fxopen extends Exchange {
                 }
             }
         }
-        const baseUrl = this.implodeHostname (this.urls['api'][api]);
+        const baseUrl = this.urls['api'][api];
         let url = this.resolveServerUrl (baseUrl) + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
@@ -679,7 +679,7 @@ export default class fxopen extends Exchange {
         this.addSymbolFilter (request, symbol);
         const response = await this.publicGetTickerFilter (this.extend (request, params));
         // response === array of ticker objects
-        return this.parseTicker (response[0]);
+        return this.parseTicker (this.safeValue (response, 0));
     }
 
     parseTicker (ticker, market = undefined) {
@@ -914,7 +914,7 @@ export default class fxopen extends Exchange {
         }
         const response = await this.publicGetLevel2Filter (this.extend (request, params));
         // response === array of orderBook objects
-        return this.parseOrderBookInternal (response[0], symbol);
+        return this.parseOrderBookInternal (this.safeValue (response, 0), symbol);
     }
 
     parseOrderBookInternal (orderBook, symbol: string = undefined) {
@@ -2465,18 +2465,11 @@ export default class fxopen extends Exchange {
         }
         const suffix = '_L';
         // return marketId.endsWith(suffix);
-        // Transpile issue: Python has endswith not ends_W_ith
-        const n = marketId.length;
-        const k = suffix.length;
-        if (n <= k) {
-            return false;
-        }
-        for (let i = 0; i < k; i++) {
-            if (marketId[n - k + i] !== suffix[i]) {
-                return false;
-            }
-        }
-        return true;
+        // Transpile issue: Python and PHP not supported function
+        const index = marketId.indexOf (suffix);
+        // Parentheses required for correct PHP transpilation
+        const expectedIndex = (marketId.length - suffix.length);
+        return index === expectedIndex;
     }
 
     addSymbolFilter (request, symbol: string) {
@@ -2484,7 +2477,7 @@ export default class fxopen extends Exchange {
         request['filter'] = marketId;
     }
 
-    addSymbolsFilter (request, symbols: string[]) {
+    addSymbolsFilter (request, symbols: string[] = undefined) {
         request['filter'] = '';
         if (symbols !== undefined) {
             const marketIds = this.marketIds (symbols);
