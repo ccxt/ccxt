@@ -1854,7 +1854,7 @@ export default class bitmex extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'orderQty': this.convertToRawMarketQuantity (market['symbol'], amount), // lot size multiplied by the number of contracts
+            'orderQty': parseFloat (this.amountToPrecision (symbol, amount)), // lot size multiplied by the number of contracts
             'ordType': orderType,
             'text': brokerId,
         };
@@ -1898,7 +1898,7 @@ export default class bitmex extends Exchange {
             request['orderID'] = id;
         }
         if (amount !== undefined) {
-            request['orderQty'] = this.convertToRawMarketQuantity (market['symbol'], amount);
+            request['orderQty'] = amount;
         }
         if (price !== undefined) {
             request['price'] = price;
