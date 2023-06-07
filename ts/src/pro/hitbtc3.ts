@@ -8,6 +8,7 @@ import Client from '../base/ws/Client.js';
 import { Trade, OHLCV } from '../base/types';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { AuthenticationError } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -64,7 +65,7 @@ export default class hitbtc3 extends hitbtc3Rest {
         });
     }
 
-    async authenticate (params = {}) {
+    async authenticate () {
         /**
          * @ignore
          * @method
@@ -79,15 +80,17 @@ export default class hitbtc3 extends hitbtc3Rest {
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             const timestamp = this.milliseconds ();
-            const signature = this.hmac (this.encode (this.numberToString (timestamp)), this.encode (this.secret), sha256, 'base64');
+            const signature = this.hmac (this.encode (this.numberToString (timestamp)), this.encode (this.secret), sha256, 'hex');
             const request = {
-                'type': 'HS256',
-                'api_key': this.apiKey,
-                'timestamp': timestamp,
-                'signature': signature,
+                'method': 'login',
+                'params': {
+                    'type': 'HS256',
+                    'api_key': this.apiKey,
+                    'timestamp': timestamp,
+                    'signature': signature,
+                },
             };
-            const message = this.extend (request, params);
-            future = await this.watch (url, messageHash, message);
+            future = await this.watch (url, messageHash, request);
             //
             //    {
             //        "data": {
@@ -1047,5 +1050,29 @@ export default class hitbtc3 extends hitbtc3Rest {
             method.call (this, client, message);
             // }
         }
+    }
+
+    handleAuthenticate (client: Client, message) {
+        //
+        //    {
+        //        success: true,
+        //        ret_msg: '',
+        //        op: 'auth',
+        //        conn_id: 'ce3dpomvha7dha97tvp0-2xh'
+        //    }
+        //
+        const data = this.safeValue (message, 'data');
+        const success = this.safeValue (data, 'success');
+        const messageHash = 'authenticated';
+        if (success) {
+            client.resolve (message, messageHash);
+        } else {
+            const error = new AuthenticationError (this.id + ' ' + this.json (message));
+            client.reject (error, messageHash);
+            if (messageHash in client.subscriptions) {
+                delete client.subscriptions[messageHash];
+            }
+        }
+        return message;
     }
 }
