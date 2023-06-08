@@ -2147,19 +2147,25 @@ export default class gate extends Exchange {
             'future': 'publicDeliveryGetSettleTickers',
             'option': 'publicOptionsGetTickers',
         });
-        if (market['type'] === 'option') {
+        if (market['option']) {
             const marketId = market['id'];
             const optionParts = marketId.split ('-');
             request['underlying'] = this.safeString (optionParts, 0);
         }
         const response = await this[method] (this.extend (request, query));
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const ticker = this.parseTicker (entry);
-            result.push (ticker);
+        let ticker = undefined;
+        if (market['option']) {
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                if (entry['name'] === market['id']) {
+                    ticker = entry;
+                    break;
+                }
+            }
+        } else {
+            ticker = this.safeValue (response, 0);
         }
-        return this.filterBySymbolSinceLimit (result, symbol);
+        return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker, market = undefined) {
