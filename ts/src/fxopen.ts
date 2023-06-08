@@ -658,8 +658,7 @@ export default class fxopen extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const request = {};
-        this.addSymbolsFilter (request, symbols);
+        const request = this.createRequestWithSymbolsFilter (symbols);
         const response = await this.publicGetTickerFilter (this.extend (request, params));
         // response === array of ticker objects
         return this.parseTickers (response, symbols);
@@ -675,8 +674,7 @@ export default class fxopen extends Exchange {
          * @returns {object} [Ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const request = {};
-        this.addSymbolFilter (request, symbol);
+        const request = this.createRequestWithSymbolFilter (symbol);
         const response = await this.publicGetTickerFilter (this.extend (request, params));
         // response === array of ticker objects
         return this.parseTicker (this.safeValue (response, 0));
@@ -702,13 +700,13 @@ export default class fxopen extends Exchange {
         const marketId = this.safeString (ticker, 'Symbol');
         const symbol = this.safeSymbol (marketId);
         const timestamp = this.milliseconds ();
-        const bid = this.omitZero (this.safeString (ticker, 'BestBid'));
-        const ask = this.omitZero (this.safeString (ticker, 'BestAsk'));
+        const bid = this.safePriceStringInternal (ticker, 'BestBid');
+        const ask = this.safePriceStringInternal (ticker, 'BestAsk');
         const baseVolume = this.safeNumber (ticker, 'DailyTradedTotalVolume');
         const lastSellTimestamp = this.safeInteger (ticker, 'LastSellTimestamp');
-        const lastSellPrice = this.omitZero (this.safeString (ticker, 'LastSellPrice'));
+        const lastSellPrice = this.safePriceStringInternal (ticker, 'LastSellPrice');
         const lastBuyTimestamp = this.safeInteger (ticker, 'LastBuyTimestamp');
-        const lastBuyPrice = this.omitZero (this.safeString (ticker, 'LastBuyPrice'));
+        const lastBuyPrice = this.safePriceStringInternal (ticker, 'LastBuyPrice');
         let closeStr = lastSellPrice;
         if (lastSellTimestamp < lastBuyTimestamp) {
             closeStr = lastBuyPrice;
@@ -748,8 +746,7 @@ export default class fxopen extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const request = {};
-        this.addSymbolsFilter (request, symbols);
+        const request = this.createRequestWithSymbolsFilter (symbols);
         const response = await this.publicGetTickFilter (this.extend (request, params));
         // response === array of best bid/ask objects
         return this.parseBidsAsksAsTickers (response, symbols);
@@ -838,8 +835,7 @@ export default class fxopen extends Exchange {
          * @returns {object} a dictionary of [lastPrice structures]
          */
         await this.loadMarkets ();
-        const request = {};
-        this.addSymbolsFilter (request, symbols);
+        const request = this.createRequestWithSymbolsFilter (symbols);
         const response = await this.publicGetTickerFilter (this.extend (request, params));
         // response === array of ticker objects
         return this.parseLastPrices (response, symbols);
@@ -907,8 +903,7 @@ export default class fxopen extends Exchange {
          * @returns {object} [Order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure}
          */
         await this.loadMarkets ();
-        const request = {};
-        this.addSymbolFilter (request, symbol);
+        const request = this.createRequestWithSymbolFilter (symbol);
         if (limit !== undefined) {
             request['depth'] = limit;
         }
@@ -969,8 +964,7 @@ export default class fxopen extends Exchange {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const request = {};
-        this.addSymbolsFilter (request, symbols);
+        const request = this.createRequestWithSymbolsFilter (symbols);
         if (limit !== undefined) {
             request['depth'] = limit;
         }
@@ -1431,12 +1425,24 @@ export default class fxopen extends Exchange {
             'Type': type,
             'Amount': amount,
         };
-        this.addOptionalParam (request, 'Price', price);
-        this.addOptionalParam (request, 'StopPrice', stopPrice);
-        this.addOptionalParam (request, 'StopLoss', stopLossPrice);
-        this.addOptionalParam (request, 'TakeProfit', takeProfitPrice);
-        this.addOptionalParam (request, 'ClientId', clientOrderId);
-        this.addOptionalParam (request, 'ExpiredTimestamp', expiry);
+        if (amount !== undefined) {
+            request['Price'] = price;
+        }
+        if (stopPrice !== undefined) {
+            request['StopPrice'] = stopPrice;
+        }
+        if (stopLossPrice !== undefined) {
+            request['StopLoss'] = stopLossPrice;
+        }
+        if (takeProfitPrice !== undefined) {
+            request['TakeProfit'] = takeProfitPrice;
+        }
+        if (clientOrderId !== undefined) {
+            request['ClientId'] = clientOrderId;
+        }
+        if (expiry !== undefined) {
+            request['ExpiredTimestamp'] = expiry;
+        }
         if (timeInForce === 'IOC') {
             request['ImmediateOrCancel'] = true;
         }
@@ -1472,13 +1478,27 @@ export default class fxopen extends Exchange {
         const request = {
             'Id': id,
         };
-        this.addOptionalParam (request, 'Amount', amount);
-        this.addOptionalParam (request, 'Price', price);
-        this.addOptionalParam (request, 'StopPrice', stopPrice);
-        this.addOptionalParam (request, 'StopLoss', stopLossPrice);
-        this.addOptionalParam (request, 'TakeProfit', takeProfitPrice);
-        this.addOptionalParam (request, 'AmountChange', amountChange);
-        this.addOptionalParam (request, 'ExpiredTimestamp', expiry);
+        if (amount !== undefined) {
+            request['Amount'] = amount;
+        }
+        if (amount !== undefined) {
+            request['Price'] = price;
+        }
+        if (stopPrice !== undefined) {
+            request['StopPrice'] = stopPrice;
+        }
+        if (stopLossPrice !== undefined) {
+            request['StopLoss'] = stopLossPrice;
+        }
+        if (takeProfitPrice !== undefined) {
+            request['TakeProfit'] = takeProfitPrice;
+        }
+        if (amountChange !== undefined) {
+            request['AmountChange'] = amountChange;
+        }
+        if (expiry !== undefined) {
+            request['ExpiredTimestamp'] = expiry;
+        }
         const response = await this.privatePutTrade (this.extend (request, params));
         return this.parseOrder (response);
     }
@@ -1660,8 +1680,12 @@ export default class fxopen extends Exchange {
             'Type': type,
             'Id': id,
         };
-        this.addOptionalParam (request, 'Amount', amount);
-        this.addOptionalParam (request, 'ById', byId);
+        if (amount !== undefined) {
+            request['Amount'] = amount;
+        }
+        if (byId !== undefined) {
+            request['ById'] = byId;
+        }
         const response = await this.privateDeleteTrade (this.extend (request, params));
         const order = this.parseOrder (response['Trade']);
         order['status'] = 'closed';
@@ -2051,9 +2075,15 @@ export default class fxopen extends Exchange {
             'RequestDirection': directionStr,
             'RequestPageSize': limit,
         };
-        this.addOptionalParam (request, 'TimestampFrom', since);
-        this.addOptionalParam (request, 'TimestampTo', until);
-        this.addOptionalParam (request, 'OrderId', orderId);
+        if (since !== undefined) {
+            request['TimestampFrom'] = since;
+        }
+        if (until !== undefined) {
+            request['TimestampTo'] = until;
+        }
+        if (orderId !== undefined) {
+            request['OrderId'] = orderId;
+        }
         const response = await this.privatePostTradehistory (this.extend (request, params));
         // {
         //     "IsLastReport": true,
@@ -2472,18 +2502,22 @@ export default class fxopen extends Exchange {
         return index === expectedIndex;
     }
 
-    addSymbolFilter (request, symbol: string) {
+    createRequestWithSymbolFilter (symbol: string) {
+        const request = {};
         const marketId = this.marketId (symbol);
         request['filter'] = marketId;
+        return request;
     }
 
-    addSymbolsFilter (request, symbols: string[] = undefined) {
+    createRequestWithSymbolsFilter (symbols: string[] = undefined) {
+        const request = {};
         request['filter'] = '';
         if (symbols !== undefined) {
             const marketIds = this.marketIds (symbols);
             // param is injected in url space char has to be encoded
             request['filter'] = marketIds.join ('%20');
         }
+        return request;
     }
 
     getDirectionFromParams (params, since: Int = undefined) {
@@ -2493,12 +2527,6 @@ export default class fxopen extends Exchange {
             direction = -1;
         }
         return direction;
-    }
-
-    addOptionalParam (request, key: string, value) {
-        if (value !== undefined) {
-            request[key] = value;
-        }
     }
 
     safePriceStringInternal (obj, key: string, defaultVal: string = undefined) {
