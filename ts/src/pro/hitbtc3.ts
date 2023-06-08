@@ -284,12 +284,15 @@ export default class hitbtc3 extends hitbtc3Rest {
          * @see https://api.hitbtc.com/#subscribe-to-mini-ticker-in-batches
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @param {string} params.method 'ticker/1s' (default), 'ticker/3s', 'ticker/price/1s', or 'ticker/price/3s'
+         * @param {string} params.method 'ticker/{speed}' (default), or 'ticker/price/{speed}'
+         * @param {string} params.speed '1s' (default), or '3s'
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const options = this.safeValue (this.options, 'watchTicker');
-        const defaultMethod = this.safeString (options, 'method', 'ticker/1s');
-        const name = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
+        const defaultMethod = this.safeString (options, 'method', 'ticker/{speed}');
+        const method = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
+        const speed = this.safeString (params, 'speed', '1s');
+        const name = this.implodeParams (method, { 'speed': speed });
         const market = this.market (symbol);
         const request = {
             'params': {
@@ -306,13 +309,16 @@ export default class hitbtc3 extends hitbtc3Rest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the hitbtc3 api endpoint
-         * @param {string} params.method 'ticker/price/1s', 'ticker/price/3s', 'ticker/1s', 'ticker/3s', 'ticker/1s/batch', 'ticker/3s/batch', 'ticker/1s/price/batch', or 'ticker/3s/price/batch'
+         * @param {string} params.method 'ticker/{speed}' (default),'ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/{speed}/price/batch''
+         * @param {string} params.speed '1s' (default), or '3s'
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const options = this.safeValue (this.options, 'watchTicker');
-        const defaultMethod = this.safeString (options, 'method', 'ticker/1s');
-        const name = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
+        const defaultMethod = this.safeString (options, 'method', 'ticker/{speed}');
+        const method = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
+        const speed = this.safeString (params, 'speed', '1s');
+        const name = this.implodeParams (method, { 'speed': speed });
         const marketIds = [];
         if (symbols === undefined) {
             marketIds.push ('*');
