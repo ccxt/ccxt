@@ -292,7 +292,7 @@ class woo extends \ccxt\async\woo {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($market['symbol'], $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 
@@ -355,7 +355,7 @@ class woo extends \ccxt\async\woo {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($market['symbol'], $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -530,9 +530,8 @@ class woo extends \ccxt\async\woo {
         $market = $this->market($marketId);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($order, 'timestamp');
-        $cost = $this->safe_string($order, 'totalFee');
         $fee = array(
-            'cost' => $cost,
+            'cost' => $this->safe_string($order, 'totalFee'),
             'currency' => $this->safe_string($order, 'feeAsset'),
         );
         $price = $this->safe_number($order, 'price');
@@ -569,7 +568,7 @@ class woo extends \ccxt\async\woo {
             'stopPrice' => null,
             'triggerPrice' => null,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'average' => null,
             'filled' => $filled,
             'remaining' => $remaining,

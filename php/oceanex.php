@@ -600,7 +600,7 @@ class oceanex extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -648,7 +648,8 @@ class oceanex extends Exchange {
             throw new OrderNotFound($this->id . ' could not found matching order');
         }
         if (gettype($id) === 'array' && array_keys($id) === array_keys(array_keys($id))) {
-            return $this->parse_orders($data, $market);
+            $orders = $this->parse_orders($data, $market);
+            return $orders[0];
         }
         if ($dataLength === 0) {
             throw new OrderNotFound($this->id . ' could not found matching order');

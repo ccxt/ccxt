@@ -207,8 +207,8 @@ class hitbtc extends Exchange {
                 'networks' => array(
                     'ETH' => 'T20',
                     'ERC20' => 'T20',
-                    'TRX' => 'TTRX',
-                    'TRC20' => 'TTRX',
+                    'TRX' => 'TRX',
+                    'TRC20' => 'TRX',
                     'OMNI' => '',
                 ),
                 'defaultTimeInForce' => 'FOK',
@@ -957,7 +957,7 @@ class hitbtc extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @param {string} $symbol unified $symbol of the $market to create an $order in

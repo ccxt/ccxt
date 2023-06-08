@@ -269,7 +269,7 @@ class woo extends woo$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(market['symbol'], limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -328,7 +328,7 @@ class woo extends woo$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(market['symbol'], limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleTrade(client, message) {
         //
@@ -492,9 +492,8 @@ class woo extends woo$1 {
         market = this.market(marketId);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger(order, 'timestamp');
-        const cost = this.safeString(order, 'totalFee');
         const fee = {
-            'cost': cost,
+            'cost': this.safeString(order, 'totalFee'),
             'currency': this.safeString(order, 'feeAsset'),
         };
         let price = this.safeNumber(order, 'price');
@@ -531,7 +530,7 @@ class woo extends woo$1 {
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': undefined,
             'filled': filled,
             'remaining': remaining,

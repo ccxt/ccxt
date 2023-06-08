@@ -135,10 +135,21 @@ class coinex extends coinex$1 {
             const symbol = this.safeSymbol(marketId, undefined, undefined, defaultType);
             const market = this.safeMarket(marketId, undefined, undefined, defaultType);
             const parsedTicker = this.parseWSTicker(rawTicker, market);
-            const messageHash = 'ticker:' + symbol;
             this.tickers[symbol] = parsedTicker;
             newTickers.push(parsedTicker);
-            client.resolve(parsedTicker, messageHash);
+        }
+        const messageHashes = this.findMessageHashes(client, 'tickers::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const tickers = this.filterByArray(newTickers, 'symbol', symbols);
+            const tickersSymbols = Object.keys(tickers);
+            const numTickers = tickersSymbols.length;
+            if (numTickers > 0) {
+                client.resolve(tickers, messageHash);
+            }
         }
         client.resolve(newTickers, 'tickers');
     }
@@ -389,24 +400,21 @@ class coinex extends coinex$1 {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchTickers', undefined, params);
         const url = this.urls['api']['ws'][type];
-        const messageHash = 'tickers';
+        let messageHash = 'tickers';
+        if (symbols !== undefined) {
+            messageHash = 'tickers::' + symbols.join(',');
+        }
         const subscribe = {
             'method': 'state.subscribe',
             'id': this.requestId(),
             'params': [],
         };
         const request = this.deepExtend(subscribe, params);
-        const tickers = await this.watch(url, messageHash, request, messageHash);
-        const result = this.filterByArray(tickers, 'symbol', symbols);
-        const keys = Object.keys(result);
-        const resultLength = keys.length;
-        if (resultLength > 0) {
-            if (this.newUpdates) {
-                return result;
-            }
-            return this.filterByArray(this.tickers, 'symbol', symbols);
+        const newTickers = await this.watch(url, messageHash, request, messageHash);
+        if (this.newUpdates) {
+            return newTickers;
         }
-        return await this.watchTickers(symbols, params);
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
@@ -438,7 +446,7 @@ class coinex extends coinex$1 {
         this.options['watchTradesSubscriptions'] = subscribedSymbols;
         const request = this.deepExtend(message, params);
         const trades = await this.watch(url, messageHash, request, subscriptionHash);
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**

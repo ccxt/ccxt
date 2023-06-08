@@ -155,7 +155,7 @@ class idex(ccxt.async_support.idex):
         trades = await self.subscribe(subscribeObject, messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trade(self, client: Client, message):
         type = self.safe_string(message, 'type')
@@ -248,7 +248,7 @@ class idex(ccxt.async_support.idex):
         ohlcv = await self.subscribe(subscribeObject, messageHash)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message):
         # {type: 'candles',
@@ -494,7 +494,7 @@ class idex(ccxt.async_support.idex):
         orders = await self.subscribe_private(subscribeObject, messageHash)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_since_limit(orders, since, limit, 'timestamp')
+        return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
     def handle_order(self, client: Client, message):
         # {

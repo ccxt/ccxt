@@ -21,7 +21,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     handleSystemStatus(client: Client, message: any): any;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseWsOrderStatus(status: any): string;
-    parseWsOrder(order: any, market?: any): any;
+    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleOrder(client: Client, message: any): void;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;

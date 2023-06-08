@@ -213,8 +213,8 @@ class hitbtc extends Exchange {
                 'networks' => array(
                     'ETH' => 'T20',
                     'ERC20' => 'T20',
-                    'TRX' => 'TTRX',
-                    'TRC20' => 'TTRX',
+                    'TRX' => 'TRX',
+                    'TRC20' => 'TRX',
                     'OMNI' => '',
                 ),
                 'defaultTimeInForce' => 'FOK',
@@ -985,7 +985,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order

@@ -149,7 +149,7 @@ export default class cex extends cexRest {
         for (let i = 0; i < trades.length; i++) {
             trades[i]['symbol'] = symbol;
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     handleTradesSnapshot (client: Client, message) {
@@ -1029,7 +1029,7 @@ export default class cex extends cexRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleInitOHLCV (client: Client, message) {

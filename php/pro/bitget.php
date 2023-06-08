@@ -268,7 +268,7 @@ class bitget extends \ccxt\async\bitget {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 
@@ -503,7 +503,7 @@ class bitget extends \ccxt\async\bitget {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -897,7 +897,7 @@ class bitget extends \ccxt\async\bitget {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -1087,6 +1087,7 @@ class bitget extends \ccxt\async\bitget {
             $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
             $account['free'] = $this->safe_string($rawBalance, 'available');
             $account['total'] = $this->safe_string($rawBalance, 'equity');
+            $account['used'] = $this->safe_string($rawBalance, 'frozen');
             $this->balance[$code] = $account;
         }
         $this->balance = $this->safe_balance($this->balance);

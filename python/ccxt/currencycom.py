@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.currencycom import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -88,7 +89,7 @@ class currencycom(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
-                'fetchOrder': None,
+                'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': None,
                 'fetchOrders': None,
@@ -214,6 +215,7 @@ class currencycom(Exchange, ImplicitAPI):
                         'v2/tradingPositionsHistory': 1,
                         'v2/transactions': 1,
                         'v2/withdrawals': 1,
+                        'v2/fetchOrder': 1,
                     },
                     'post': {
                         'v1/order': 1,
@@ -269,6 +271,8 @@ class currencycom(Exchange, ImplicitAPI):
                     'Only leverage symbol allowed here:': BadSymbol,  # when you fetchLeverage for non-leverage symbols, like 'BTC/USDT' instead of 'BTC/USDT_LEVERAGE': {"code":"-1128","msg":"Only leverage symbol allowed here: BTC/USDT"}
                     'market data service is not available': ExchangeNotAvailable,  # {"code":"-1021","msg":"market data service is not available"}
                     'your time is ahead of server': InvalidNonce,  # {"code":"-1021","msg":"your time is ahead of server"}
+                    'Can not find account': BadRequest,  # -1128
+                    'You mentioned an invalid value for the price parameter': BadRequest,  # -1030
                 },
                 'exact': {
                     '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
@@ -279,7 +283,7 @@ class currencycom(Exchange, ImplicitAPI):
                     '-1100': InvalidOrder,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1104': ExchangeError,  # Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1025': AuthenticationError,  # {"code":-1025,"msg":"Invalid API-key, IP, or permissions for action"}
-                    '-1128': BadRequest,  # {"code":-1128,"msg":"Combination of optional parameters invalid."} | {"code":"-1128","msg":"Combination of parameters invalid"} | {"code":"-1128","msg":"Invalid limit price"}
+                    '-1128': BadRequest,  # {"code":-1128,"msg":"Combination of optional parameters invalid."} | {"code":"-1128","msg":"Combination of parameters invalid"} | {"code":"-1128","msg":"Invalid limit price"} | {"code":"-1128","msg":"Can not find account: null"}
                     '-2010': ExchangeError,  # generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                     '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                     '-2013': OrderNotFound,  # fetchOrder(1, 'BTC/USDT') -> 'Order does not exist'
@@ -607,7 +611,7 @@ class currencycom(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(accounts)):
             account = accounts[i]
-            accountId = self.safe_integer(account, 'accountId')
+            accountId = self.safe_string(account, 'accountId')  # must be string, because the numeric value is far too big for integer, and causes bugs
             currencyId = self.safe_string(account, 'asset')
             currencyCode = self.safe_currency_code(currencyId)
             result.append({
@@ -1077,28 +1081,14 @@ class currencycom(Exchange, ImplicitAPI):
         #         "orderId": "00000000-0000-0000-0000-000006eacaa0",
         #         "transactTime": "1645281669295",
         #         "price": "30000.00000000",
-        #         "origQty": "0.0002",
-        #         "executedQty": "0.0",  # positive for BUY, negative for SELL
-        #         "status": "NEW",
+        #         "origQty": "0.0002",     # might not be present for "market" order
+        #         "executedQty": "0.0",    # positive for BUY, negative for SELL. This property might not be present in Leverage markets
+        #         "margin": 0.1,           # present in leverage markets
+        #         "status": "NEW",         # NEW, FILLED, ...
         #         "timeInForce": "GTC",
-        #         "type": "LIMIT",
+        #         "type": "LIMIT",         # LIMIT, MARKET
         #         "side": "BUY",
-        #     }
-        #
-        # market
-        #
-        #     {
-        #         "symbol": "DOGE/USD",
-        #         "orderId": "00000000-0000-0000-0000-000006eab2ad",
-        #         "transactTime": "1645283022252",
-        #         "price": "0.14066000",
-        #         "origQty": "40",
-        #         "executedQty": "40.0",  # positive for BUY, negative for SELL
-        #         "status": "FILLED",
-        #         "timeInForce": "FOK",
-        #         "type": "MARKET",
-        #         "side": "SELL",
-        #         "fills": [
+        #         "fills": [              # self field might not be present if there were no fills
         #             {
         #                 "price": "0.14094",
         #                 "qty": "40.0",
@@ -1107,6 +1097,32 @@ class currencycom(Exchange, ImplicitAPI):
         #             },
         #         ],
         #     }
+        #
+        # fetchOrder(fetchOpenOrders is an array same structure, with some extra fields)
+        #
+        #    {
+        #        "symbol": "BTC/USD_LEVERAGE",
+        #        "accountId": "123456789012345678",
+        #        "orderId": "00a01234-0123-54c4-0000-123451234567",
+        #        "price": "25779.35",
+        #        "status": "MODIFIED",
+        #        "type": "LIMIT",
+        #        "timeInForceType": "GTC",
+        #        "side": "BUY",
+        #        "guaranteedStopLoss": False,
+        #        "trailingStopLoss": False,
+        #        "margin": "0.05",
+        #        "takeProfit": "27020.00",
+        #        "stopLoss": "24500.35",
+        #        "fills": [],  # might not be present
+        #        "timestamp": "1685958369623",  # "time" in "fetchOpenOrders"
+        #        "expireTime": "1686167960000",  # "expireTimestamp" in "fetchOpenOrders"
+        #        "quantity": "0.00040",  # "origQty" in "fetchOpenOrders"
+        #        "executedQty": "0.0",  # present in "fetchOpenOrders"
+        #        "updateTime": "1685958369542",  # present in "fetchOpenOrders"
+        #        "leverage": True,  # present in "fetchOpenOrders"
+        #        "working": True  # present in "fetchOpenOrders"
+        #    }
         #
         # cancelOrder
         #
@@ -1122,36 +1138,18 @@ class currencycom(Exchange, ImplicitAPI):
         #         "side": "BUY",
         #     }
         #
-        # fetchOpenOrders
-        #
-        #   {
-        #       "symbol": "DOGE/USD",
-        #       "orderId": "00000000-0000-0003-0000-000004bcc27a",
-        #       "price": "0.13",
-        #       "origQty": "39.0",
-        #       "executedQty": "0.0",
-        #       "status": "NEW",
-        #       "timeInForce": "GTC",
-        #       "type": "LIMIT",
-        #       "side": "BUY",
-        #       "time": "1645284216240",
-        #       "updateTime": "1645284216240",
-        #       "leverage": False,  # whether it's swap or not
-        #       "working": True,
-        #   }
-        #
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '/')
         id = self.safe_string(order, 'orderId')
         price = self.safe_string(order, 'price')
-        amount = self.safe_string(order, 'origQty')
+        amount = self.safe_string_2(order, 'origQty', 'quantity')
         filledRaw = self.safe_string(order, 'executedQty')
         filled = Precise.string_abs(filledRaw)
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        timeInForce = self.parse_order_time_in_force(self.safe_string(order, 'timeInForce'))
+        timeInForce = self.parse_order_time_in_force(self.safe_string_2(order, 'timeInForce', 'timeInForceType'))
         type = self.parse_order_type(self.safe_string(order, 'type'))
         side = self.parse_order_side(self.safe_string(order, 'side'))
-        timestamp = self.safe_integer_2(order, 'time', 'transactTime')
+        timestamp = self.safe_integer_n(order, ['time', 'transactTime', 'timestamp'])
         fills = self.safe_value(order, 'fills')
         return self.safe_order({
             'info': order,
@@ -1179,6 +1177,8 @@ class currencycom(Exchange, ImplicitAPI):
     def parse_order_status(self, status):
         statuses = {
             'NEW': 'open',
+            'CREATED': 'open',
+            'MODIFIED': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
@@ -1217,7 +1217,7 @@ class currencycom(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1303,6 +1303,46 @@ class currencycom(Exchange, ImplicitAPI):
         #     }
         #
         return self.parse_order(response, market)
+
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+        """
+        fetches information on an order made by the user
+        see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getOrderUsingGET
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the currencycom api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.check_required_symbol('fetchOrder', symbol)
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'orderId': id,
+            'symbol': market['id'],
+        }
+        response = self.privateGetV2FetchOrder(self.extend(request, params))
+        #
+        #    {
+        #        "accountId": "109698017413125316",
+        #        "orderId": "2810f1c5-0079-54c4-0000-000080421601",
+        #        "quantity": "20.0",
+        #        "price": "0.06",
+        #        "timestamp": "1661157503788",
+        #        "status": "CREATED",
+        #        "type": "LIMIT",
+        #        "timeInForceType": "GTC",
+        #        "side": "BUY",
+        #        "margin": "0.1",
+        #        "fills": [ # might not be present
+        #             {
+        #                 "price": "0.14094",
+        #                 "qty": "40.0",
+        #                 "commission": "0",
+        #                 "commissionAsset": "dUSD"
+        #             }
+        #        ]
+        #    }
+        #
+        return self.parse_order(response)
 
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

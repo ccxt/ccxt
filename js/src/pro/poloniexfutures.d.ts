@@ -22,7 +22,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
     parseWsOrderTrade(trade: any, market?: any): import("../base/types.js").Trade;
     handleOrder(client: Client, message: any): any;
     parseOrderStatus(status: string, type: string): string;
-    parseWsOrder(order: any, market?: any): any;
+    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleTicker(client: Client, message: any): any;
     handleL3OrderBook(client: Client, message: any): any;
     handleLevel2(client: Client, message: any): void;

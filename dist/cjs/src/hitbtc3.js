@@ -1736,7 +1736,7 @@ class hitbtc3 extends hitbtc3$1 {
         const response = await this[method](this.extend(request, query));
         return this.parseOrder(response, market);
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets();
         let market = undefined;
         const request = {

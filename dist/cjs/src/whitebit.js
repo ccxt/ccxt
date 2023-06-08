@@ -16,6 +16,7 @@ class whitebit extends whitebit$1 {
             'version': 'v4',
             'countries': ['EE'],
             'rateLimit': 500,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,

@@ -14,16 +14,15 @@ before_install:
 - nvm ls-remote
 - nvm install v16.13.2
 - rm -rf node_modules
+# common commands
 - npm install
 - git checkout package.json package-lock.json
 - git config pull.rebase false
 - git fetch --depth=1 --no-tags --verbose --progress
-- pip install requests pyopenssl
-- pip install --ignore-installed six
-- pip install tox twine
-- pip install aiohttp cryptography
+- pip install tox cryptography requests # common packages
+- pip install twine # used to publish python package
+- pip install pyopenssl aiohttp # used to run real-time tests
 - php -i | grep php.ini
-- php --version
 - composer install
 script:
 - ./build.sh 2>&1

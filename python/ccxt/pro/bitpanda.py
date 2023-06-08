@@ -1053,7 +1053,7 @@ class bitpanda(ccxt.async_support.bitpanda):
         ohlcv = await self.watch(url, messageHash, self.deep_extend(request, params), subscriptionHash, subscription)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message):
         #

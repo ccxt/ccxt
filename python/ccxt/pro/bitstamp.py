@@ -174,7 +174,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         trades = await self.watch(url, messageHash, message, messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def parse_ws_trade(self, trade, market=None):
         #
@@ -277,7 +277,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         orders = await self.subscribe_private(subscription, messageHash, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_since_limit(orders, since, limit, 'timestamp')
+        return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
     def handle_orders(self, client: Client, message):
         #

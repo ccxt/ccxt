@@ -2223,10 +2223,9 @@ export default class xt extends Exchange {
     async createContractOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const convertContractsToAmount = Precise.stringDiv(this.numberToString(amount), this.numberToString(market['contractSize']));
         const request = {
             'symbol': market['id'],
-            'origQty': this.amountToPrecision(symbol, this.parseNumber(convertContractsToAmount)),
+            'origQty': this.amountToPrecision(symbol, amount),
         };
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         if (timeInForce !== undefined) {
@@ -4622,11 +4621,17 @@ export default class xt extends Exchange {
         if (signed) {
             this.checkRequiredCredentials();
             const defaultRecvWindow = this.safeString(this.options, 'recvWindow');
-            const recvWindow = this.safeString(params, 'recvWindow', defaultRecvWindow);
+            const recvWindow = this.safeString(query, 'recvWindow', defaultRecvWindow);
             const timestamp = this.numberToString(this.nonce());
-            body = params;
+            body = query;
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
-                body['clientMedia'] = 'CCXT';
+                const id = 'CCXT';
+                if (payload.indexOf('future') > -1) {
+                    body['clientMedia'] = id;
+                }
+                else {
+                    body['media'] = id;
+                }
             }
             const isUndefinedBody = ((method === 'GET') || (path === 'order/{orderId}'));
             body = isUndefinedBody ? undefined : this.json(body);

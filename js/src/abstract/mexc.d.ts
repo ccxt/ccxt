@@ -158,6 +158,19 @@ interface Exchange {
     spot2PrivateDeleteOrderCancel(params?: {}): Promise<implicitReturnType>;
     spot2PrivateDeleteOrderCancelBySymbol(params?: {}): Promise<implicitReturnType>;
     spot2PrivateDeleteAssetWithdraw(params?: {}): Promise<implicitReturnType>;
+    brokerPrivateGetSubAccountUniversalTransfer(params?: {}): Promise<implicitReturnType>;
+    brokerPrivateGetSubAccountList(params?: {}): Promise<implicitReturnType>;
+    brokerPrivateGetSubAccountApiKey(params?: {}): Promise<implicitReturnType>;
+    brokerPrivateGetCapitalDepositSubAddress(params?: {}): Promise<implicitReturnType>;
+    brokerPrivateGetCapitalDepositSubHisrec(params?: {}): Promise<implicitReturnType>;
+    brokerPrivateGetCapitalDepositSubHisrecGetall(params?: {}): Promise<implicitReturnType>;
+    brokerPrivatePostSubAccountVirtualSubAccount(params?: {}): Promise<implicitReturnType>;
+    brokerPrivatePostSubAccountApiKey(params?: {}): Promise<implicitReturnType>;
+    brokerPrivatePostCapitalDepositSubAddress(params?: {}): Promise<implicitReturnType>;
+    brokerPrivatePostCapitalWithdrawApply(params?: {}): Promise<implicitReturnType>;
+    brokerPrivatePostSubAccountUniversalTransfer(params?: {}): Promise<implicitReturnType>;
+    brokerPrivatePostSubAccountFutures(params?: {}): Promise<implicitReturnType>;
+    brokerPrivateDeleteSubAccountApiKey(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

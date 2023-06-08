@@ -244,6 +244,7 @@ class ImplicitAPI:
     private_get_v5_asset_transfer_query_account_coins_balance = privateGetV5AssetTransferQueryAccountCoinsBalance = Entry('v5/asset/transfer/query-account-coins-balance', 'private', 'GET', {'cost': 2.5})
     private_get_v5_user_query_sub_members = privateGetV5UserQuerySubMembers = Entry('v5/user/query-sub-members', 'private', 'GET', {'cost': 10})
     private_get_v5_user_query_api = privateGetV5UserQueryApi = Entry('v5/user/query-api', 'private', 'GET', {'cost': 10})
+    private_get_v5_customer_info = privateGetV5CustomerInfo = Entry('v5/customer/info', 'private', 'GET', {'cost': 10})
     private_get_v5_spot_cross_margin_trade_loan_info = privateGetV5SpotCrossMarginTradeLoanInfo = Entry('v5/spot-cross-margin-trade/loan-info', 'private', 'GET', {'cost': 1})
     private_get_v5_spot_cross_margin_trade_account = privateGetV5SpotCrossMarginTradeAccount = Entry('v5/spot-cross-margin-trade/account', 'private', 'GET', {'cost': 1})
     private_get_v5_spot_cross_margin_trade_orders = privateGetV5SpotCrossMarginTradeOrders = Entry('v5/spot-cross-margin-trade/orders', 'private', 'GET', {'cost': 1})

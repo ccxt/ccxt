@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -35,6 +36,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'countries': ['MT'],
             'version': 'v2',
             'rateLimit': 10,  # 100 requests per second
+            'certified': True,
             'pro': True,
             'has': {
                 'CORS': False,
@@ -326,6 +328,7 @@ class cryptocom(Exchange, ImplicitAPI):
                     'ETH': 'ERC20',
                     'TRON': 'TRC20',
                 },
+                'broker': 'CCXT_',
             },
             # https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
@@ -1119,7 +1122,7 @@ class cryptocom(Exchange, ImplicitAPI):
         order = self.safe_value(result, 'order_info', result)
         return self.parse_order(order, market)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1141,14 +1144,15 @@ class cryptocom(Exchange, ImplicitAPI):
         }
         if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT'):
             request['price'] = self.price_to_precision(symbol, price)
+        broker = self.safe_string(self.options, 'broker', 'CCXT_')
         clientOrderId = self.safe_string(params, 'clientOrderId')
-        if clientOrderId:
-            request['client_oid'] = clientOrderId
-            params = self.omit(params, ['clientOrderId'])
+        if clientOrderId is None:
+            clientOrderId = broker + self.uuid22()
+        request['client_oid'] = clientOrderId
         postOnly = self.safe_value(params, 'postOnly', False)
         if postOnly:
             request['exec_inst'] = 'POST_ONLY'
-            params = self.omit(params, ['postOnly'])
+        params = self.omit(params, ['postOnly', 'clientOrderId'])
         marketType, marketTypeQuery = self.handle_market_type_and_params('createOrder', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'v2PrivatePostPrivateCreateOrder',

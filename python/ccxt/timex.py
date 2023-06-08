@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.timex import ImplicitAPI
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -687,7 +688,7 @@ class timex(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -795,10 +796,10 @@ class timex(Exchange, ImplicitAPI):
         if 'unchangedOrders' in response:
             orderIds = self.safe_value(response, 'unchangedOrders', [])
             orderId = self.safe_string(orderIds, 0)
-            return {
+            return self.safe_order({
                 'id': orderId,
                 'info': response,
-            }
+            })
         orders = self.safe_value(response, 'changedOrders', [])
         firstOrder = self.safe_value(orders, 0, {})
         order = self.safe_value(firstOrder, 'newOrder', {})

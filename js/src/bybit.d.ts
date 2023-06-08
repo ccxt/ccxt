@@ -1,5 +1,5 @@
 import Exchange from './abstract/bybit.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 export default class bybit extends Exchange {
     describe(): any;
     nonce(): number;
@@ -46,32 +46,26 @@ export default class bybit extends Exchange {
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     parseOrderStatus(status: any): string;
     parseTimeInForce(timeInForce: any): string;
-    parseOrder(order: any, market?: any): any;
-    parseContractOrder(order: any, market?: any): any;
-    parseSpotOrder(order: any, market?: any): any;
+    parseOrder(order: any, market?: any): import("./base/types.js").Order;
+    parseContractOrder(order: any, market?: any): import("./base/types.js").Order;
+    parseSpotOrder(order: any, market?: any): import("./base/types.js").Order;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
-    createUnifiedAccountOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    createSpotOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    createUnifiedMarginOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    createContractV3Order(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    createUsdcOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    editUnifiedAccountOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-    }>;
-    editUnifiedMarginOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    editContractV3Order(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-    }>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<any>;
-    cancelUnifiedAccountOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    cancelSpotOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    cancelUnifiedMarginOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    cancelUSDCOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    cancelDerivativesOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    createUnifiedAccountOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    createSpotOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    createUnifiedMarginOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    createContractV3Order(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    createUsdcOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    editUnifiedAccountOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    editUnifiedMarginOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    editContractV3Order(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    cancelUnifiedAccountOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
+    cancelSpotOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
+    cancelUnifiedMarginOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
+    cancelUSDCOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
+    cancelDerivativesOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     cancelAllUnifiedAccountOrders(symbol?: string, params?: {}): Promise<any>;
     cancelAllSpotOrders(symbol?: string, params?: {}): Promise<any>;
     cancelAllUnifiedMarginOrders(symbol?: string, params?: {}): Promise<any>;

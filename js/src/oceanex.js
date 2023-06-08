@@ -658,7 +658,8 @@ export default class oceanex extends Exchange {
             throw new OrderNotFound(this.id + ' could not found matching order');
         }
         if (Array.isArray(id)) {
-            return this.parseOrders(data, market);
+            const orders = this.parseOrders(data, market);
+            return orders[0];
         }
         if (dataLength === 0) {
             throw new OrderNotFound(this.id + ' could not found matching order');

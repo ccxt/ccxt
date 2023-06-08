@@ -264,7 +264,7 @@ export default class bitget extends bitgetRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -494,7 +494,7 @@ export default class bitget extends bitgetRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -884,7 +884,7 @@ export default class bitget extends bitgetRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleMyTrades(client, message) {
         //
@@ -1069,6 +1069,7 @@ export default class bitget extends bitgetRest {
             const account = (code in this.balance) ? this.balance[code] : this.account();
             account['free'] = this.safeString(rawBalance, 'available');
             account['total'] = this.safeString(rawBalance, 'equity');
+            account['used'] = this.safeString(rawBalance, 'frozen');
             this.balance[code] = account;
         }
         this.balance = this.safeBalance(this.balance);

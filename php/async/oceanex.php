@@ -624,7 +624,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -675,7 +675,8 @@ class oceanex extends Exchange {
                 throw new OrderNotFound($this->id . ' could not found matching order');
             }
             if (gettype($id) === 'array' && array_keys($id) === array_keys(array_keys($id))) {
-                return $this->parse_orders($data, $market);
+                $orders = $this->parse_orders($data, $market);
+                return $orders[0];
             }
             if ($dataLength === 0) {
                 throw new OrderNotFound($this->id . ' could not found matching order');

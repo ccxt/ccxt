@@ -6,7 +6,7 @@ import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 export default class cryptocom extends Exchange {
     describe () {
@@ -16,6 +16,7 @@ export default class cryptocom extends Exchange {
             'countries': [ 'MT' ],
             'version': 'v2',
             'rateLimit': 10, // 100 requests per second
+            'certified': true,
             'pro': true,
             'has': {
                 'CORS': false,
@@ -307,6 +308,7 @@ export default class cryptocom extends Exchange {
                     'ETH': 'ERC20',
                     'TRON': 'TRC20',
                 },
+                'broker': 'CCXT_',
             },
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
@@ -1159,7 +1161,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#createOrder
@@ -1184,16 +1186,17 @@ export default class cryptocom extends Exchange {
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        if (clientOrderId) {
-            request['client_oid'] = clientOrderId;
-            params = this.omit (params, [ 'clientOrderId' ]);
+        const broker = this.safeString (this.options, 'broker', 'CCXT_');
+        let clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            clientOrderId = broker + this.uuid22 ();
         }
+        request['client_oid'] = clientOrderId;
         const postOnly = this.safeValue (params, 'postOnly', false);
         if (postOnly) {
             request['exec_inst'] = 'POST_ONLY';
-            params = this.omit (params, [ 'postOnly' ]);
         }
+        params = this.omit (params, [ 'postOnly', 'clientOrderId' ]);
         const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         let method = this.getSupportedMapping (marketType, {
             'spot': 'v2PrivatePostPrivateCreateOrder',

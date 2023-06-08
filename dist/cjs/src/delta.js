@@ -1410,7 +1410,7 @@ class delta extends delta$1 {
         const result = this.safeValue(response, 'result', {});
         return this.parseOrder(result, market);
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {

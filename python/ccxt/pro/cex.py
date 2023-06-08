@@ -140,7 +140,7 @@ class cex(ccxt.async_support.cex):
         # assing symbol to the trades does not contain symbol information
         for i in range(0, len(trades)):
             trades[i]['symbol'] = symbol
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades_snapshot(self, client: Client, message):
         #
@@ -949,7 +949,7 @@ class cex(ccxt.async_support.cex):
         ohlcv = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_init_ohlcv(self, client: Client, message):
         #

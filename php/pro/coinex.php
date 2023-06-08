@@ -141,10 +141,21 @@ class coinex extends \ccxt\async\coinex {
             $symbol = $this->safe_symbol($marketId, null, null, $defaultType);
             $market = $this->safe_market($marketId, null, null, $defaultType);
             $parsedTicker = $this->parse_ws_ticker($rawTicker, $market);
-            $messageHash = 'ticker:' . $symbol;
             $this->tickers[$symbol] = $parsedTicker;
             $newTickers[] = $parsedTicker;
-            $client->resolve ($parsedTicker, $messageHash);
+        }
+        $messageHashes = $this->find_message_hashes($client, 'tickers::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            $tickers = $this->filter_by_array($newTickers, 'symbol', $symbols);
+            $tickersSymbols = is_array($tickers) ? array_keys($tickers) : array();
+            $numTickers = count($tickersSymbols);
+            if ($numTickers > 0) {
+                $client->resolve ($tickers, $messageHash);
+            }
         }
         $client->resolve ($newTickers, 'tickers');
     }
@@ -403,23 +414,20 @@ class coinex extends \ccxt\async\coinex {
             list($type, $params) = $this->handle_market_type_and_params('watchTickers', null, $params);
             $url = $this->urls['api']['ws'][$type];
             $messageHash = 'tickers';
+            if ($symbols !== null) {
+                $messageHash = 'tickers::' . implode(',', $symbols);
+            }
             $subscribe = array(
                 'method' => 'state.subscribe',
                 'id' => $this->request_id(),
                 'params' => array(),
             );
             $request = $this->deep_extend($subscribe, $params);
-            $tickers = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-            $result = $this->filter_by_array($tickers, 'symbol', $symbols);
-            $keys = is_array($result) ? array_keys($result) : array();
-            $resultLength = count($keys);
-            if ($resultLength > 0) {
-                if ($this->newUpdates) {
-                    return $result;
-                }
-                return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+            $newTickers = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            if ($this->newUpdates) {
+                return $newTickers;
             }
-            return Async\await($this->watch_tickers($symbols, $params));
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
     }
 
@@ -452,7 +460,7 @@ class coinex extends \ccxt\async\coinex {
             $this->options['watchTradesSubscriptions'] = $subscribedSymbols;
             $request = $this->deep_extend($message, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash));
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 

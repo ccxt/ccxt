@@ -55,6 +55,7 @@ class ImplicitAPI:
     private_get_v2_tradingpositionshistory = privateGetV2TradingPositionsHistory = Entry('v2/tradingPositionsHistory', 'private', 'GET', {'cost': 1})
     private_get_v2_transactions = privateGetV2Transactions = Entry('v2/transactions', 'private', 'GET', {'cost': 1})
     private_get_v2_withdrawals = privateGetV2Withdrawals = Entry('v2/withdrawals', 'private', 'GET', {'cost': 1})
+    private_get_v2_fetchorder = privateGetV2FetchOrder = Entry('v2/fetchOrder', 'private', 'GET', {'cost': 1})
     private_post_v1_order = privatePostV1Order = Entry('v1/order', 'private', 'POST', {'cost': 1})
     private_post_v1_updatetradingposition = privatePostV1UpdateTradingPosition = Entry('v1/updateTradingPosition', 'private', 'POST', {'cost': 1})
     private_post_v1_updatetradingorder = privatePostV1UpdateTradingOrder = Entry('v1/updateTradingOrder', 'private', 'POST', {'cost': 1})

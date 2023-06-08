@@ -149,7 +149,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         ohlcv = await self.watch(url, messageHash, request, messageHash, request)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -319,7 +319,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         }
         request = self.deep_extend(request, params)
         trades = await self.watch(url, messageHash, request, messageHash, request)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
         #

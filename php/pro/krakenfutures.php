@@ -194,7 +194,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -236,7 +236,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -262,7 +262,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -1277,7 +1277,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         if ($event === 'challenge') {
             $this->handle_authenticate($client, $message);
         } elseif ($event === 'pong') {
-            return $client->onPong ($message);
+            $client->lastPong = $this->milliseconds();
         } elseif ($event === null) {
             $feed = $this->safe_string($message, 'feed');
             $methods = array(

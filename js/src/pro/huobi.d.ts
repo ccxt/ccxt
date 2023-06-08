@@ -22,7 +22,7 @@ export default class huobi extends huobiRest {
     getOrderChannelAndMessageHash(type: any, subType: any, market?: any, params?: {}): any[];
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): any;
+    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     parseOrderTrade(trade: any, market?: any): import("../base/types.js").Trade;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;

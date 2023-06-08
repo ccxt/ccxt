@@ -20,7 +20,7 @@ export default class cex extends cexRest {
     handleMyTrades(client: Client, message: any): void;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
     handleOrderUpdate(client: Client, message: any): void;
-    parseWsOrderUpdate(order: any, market?: any): any;
+    parseWsOrderUpdate(order: any, market?: any): import("../base/types.js").Order;
     fromPrecision(amount: any, scale: any): string;
     currencyFromPrecision(currency: any, amount: any): string;
     handleOrdersSnapshot(client: Client, message: any): void;

@@ -273,7 +273,7 @@ class exmo(ccxt.async_support.exmo):
         }
         request = self.deep_extend(message, params)
         trades = await self.watch(url, messageHash, request, messageHash, request)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
         #
@@ -339,7 +339,7 @@ class exmo(ccxt.async_support.exmo):
         }
         request = self.deep_extend(message, query)
         trades = await self.watch(url, messageHash, request, messageHash, request)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trades(self, client: Client, message):
         #

@@ -78,7 +78,7 @@ class currencycom extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
-                'fetchOrder' => null,
+                'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => null,
                 'fetchOrders' => null,
@@ -204,6 +204,7 @@ class currencycom extends Exchange {
                         'v2/tradingPositionsHistory' => 1,
                         'v2/transactions' => 1,
                         'v2/withdrawals' => 1,
+                        'v2/fetchOrder' => 1,
                     ),
                     'post' => array(
                         'v1/order' => 1,
@@ -259,6 +260,8 @@ class currencycom extends Exchange {
                     'Only leverage symbol allowed here:' => '\\ccxt\\BadSymbol', // when you fetchLeverage for non-leverage symbols, like 'BTC/USDT' instead of 'BTC/USDT_LEVERAGE' => array("code":"-1128","msg":"Only leverage symbol allowed here => BTC/USDT")
                     'market data service is not available' => '\\ccxt\\ExchangeNotAvailable', // array("code":"-1021","msg":"market data service is not available")
                     'your time is ahead of server' => '\\ccxt\\InvalidNonce', // array("code":"-1021","msg":"your time is ahead of server")
+                    'Can not find account' => '\\ccxt\\BadRequest', // -1128
+                    'You mentioned an invalid value for the price parameter' => '\\ccxt\\BadRequest', // -1030
                 ),
                 'exact' => array(
                     '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
@@ -269,7 +272,7 @@ class currencycom extends Exchange {
                     '-1100' => '\\ccxt\\InvalidOrder', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1104' => '\\ccxt\\ExchangeError', // Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1025' => '\\ccxt\\AuthenticationError', // array("code":-1025,"msg":"Invalid API-key, IP, or permissions for action")
-                    '-1128' => '\\ccxt\\BadRequest', // array("code":-1128,"msg":"Combination of optional parameters invalid.") | array("code":"-1128","msg":"Combination of parameters invalid") | array("code":"-1128","msg":"Invalid limit price")
+                    '-1128' => '\\ccxt\\BadRequest', // array("code":-1128,"msg":"Combination of optional parameters invalid.") | array("code":"-1128","msg":"Combination of parameters invalid") | array("code":"-1128","msg":"Invalid limit price") | array("code":"-1128","msg":"Can not find account => null")
                     '-2010' => '\\ccxt\\ExchangeError', // generic error code for createOrder -> 'Account has insufficient balance for requested action.', array("code":-2010,"msg":"Rest API trading is not enabled."), etc...
                     '-2011' => '\\ccxt\\OrderNotFound', // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                     '-2013' => '\\ccxt\\OrderNotFound', // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
@@ -619,7 +622,7 @@ class currencycom extends Exchange {
             $result = array();
             for ($i = 0; $i < count($accounts); $i++) {
                 $account = $accounts[$i];
-                $accountId = $this->safe_integer($account, 'accountId');
+                $accountId = $this->safe_string($account, 'accountId'); // must be string, because the numeric value is far too big for integer, and causes bugs
                 $currencyId = $this->safe_string($account, 'asset');
                 $currencyCode = $this->safe_currency_code($currencyId);
                 $result[] = array(
@@ -1126,28 +1129,14 @@ class currencycom extends Exchange {
         //         "orderId" => "00000000-0000-0000-0000-000006eacaa0",
         //         "transactTime" => "1645281669295",
         //         "price" => "30000.00000000",
-        //         "origQty" => "0.0002",
-        //         "executedQty" => "0.0",  // positive for BUY, negative for SELL
-        //         "status" => "NEW",
+        //         "origQty" => "0.0002",     // might not be present for "market" $order
+        //         "executedQty" => "0.0",    // positive for BUY, negative for SELL. This property might not be present in Leverage markets
+        //         "margin" => 0.1,           // present in leverage markets
+        //         "status" => "NEW",         // NEW, FILLED, ...
         //         "timeInForce" => "GTC",
-        //         "type" => "LIMIT",
+        //         "type" => "LIMIT",         // LIMIT, MARKET
         //         "side" => "BUY",
-        //     }
-        //
-        // $market
-        //
-        //     {
-        //         "symbol" => "DOGE/USD",
-        //         "orderId" => "00000000-0000-0000-0000-000006eab2ad",
-        //         "transactTime" => "1645283022252",
-        //         "price" => "0.14066000",
-        //         "origQty" => "40",
-        //         "executedQty" => "40.0",  // positive for BUY, negative for SELL
-        //         "status" => "FILLED",
-        //         "timeInForce" => "FOK",
-        //         "type" => "MARKET",
-        //         "side" => "SELL",
-        //         "fills" => array(
+        //         "fills" => array(               // this field might not be present if there were no $fills
         //             array(
         //                 "price" => "0.14094",
         //                 "qty" => "40.0",
@@ -1156,6 +1145,32 @@ class currencycom extends Exchange {
         //             ),
         //         ),
         //     }
+        //
+        // fetchOrder (fetchOpenOrders is an array same structure, with some extra fields)
+        //
+        //    {
+        //        "symbol" => "BTC/USD_LEVERAGE",
+        //        "accountId" => "123456789012345678",
+        //        "orderId" => "00a01234-0123-54c4-0000-123451234567",
+        //        "price" => "25779.35",
+        //        "status" => "MODIFIED",
+        //        "type" => "LIMIT",
+        //        "timeInForceType" => "GTC",
+        //        "side" => "BUY",
+        //        "guaranteedStopLoss" => false,
+        //        "trailingStopLoss" => false,
+        //        "margin" => "0.05",
+        //        "takeProfit" => "27020.00",
+        //        "stopLoss" => "24500.35",
+        //        "fills" => array(), // might not be present
+        //        "timestamp" => "1685958369623",  // "time" in "fetchOpenOrders"
+        //        "expireTime" => "1686167960000", // "expireTimestamp" in "fetchOpenOrders"
+        //        "quantity" => "0.00040", // "origQty" in "fetchOpenOrders"
+        //        "executedQty" => "0.0", // present in "fetchOpenOrders"
+        //        "updateTime" => "1685958369542", // present in "fetchOpenOrders"
+        //        "leverage" => true, // present in "fetchOpenOrders"
+        //        "working" => true // present in "fetchOpenOrders"
+        //    }
         //
         // cancelOrder
         //
@@ -1171,36 +1186,18 @@ class currencycom extends Exchange {
         //         "side" => "BUY",
         //     }
         //
-        // fetchOpenOrders
-        //
-        //   {
-        //       "symbol" => "DOGE/USD",
-        //       "orderId" => "00000000-0000-0003-0000-000004bcc27a",
-        //       "price" => "0.13",
-        //       "origQty" => "39.0",
-        //       "executedQty" => "0.0",
-        //       "status" => "NEW",
-        //       "timeInForce" => "GTC",
-        //       "type" => "LIMIT",
-        //       "side" => "BUY",
-        //       "time" => "1645284216240",
-        //       "updateTime" => "1645284216240",
-        //       "leverage" => false, // whether it's swap or not
-        //       "working" => true,
-        //   }
-        //
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '/');
         $id = $this->safe_string($order, 'orderId');
         $price = $this->safe_string($order, 'price');
-        $amount = $this->safe_string($order, 'origQty');
+        $amount = $this->safe_string_2($order, 'origQty', 'quantity');
         $filledRaw = $this->safe_string($order, 'executedQty');
         $filled = Precise::string_abs($filledRaw);
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $timeInForce = $this->parse_order_time_in_force($this->safe_string($order, 'timeInForce'));
+        $timeInForce = $this->parse_order_time_in_force($this->safe_string_2($order, 'timeInForce', 'timeInForceType'));
         $type = $this->parse_order_type($this->safe_string($order, 'type'));
         $side = $this->parse_order_side($this->safe_string($order, 'side'));
-        $timestamp = $this->safe_integer_2($order, 'time', 'transactTime');
+        $timestamp = $this->safe_integer_n($order, array( 'time', 'transactTime', 'timestamp' ));
         $fills = $this->safe_value($order, 'fills');
         return $this->safe_order(array(
             'info' => $order,
@@ -1229,6 +1226,8 @@ class currencycom extends Exchange {
     public function parse_order_status($status) {
         $statuses = array(
             'NEW' => 'open',
+            'CREATED' => 'open',
+            'MODIFIED' => 'open',
             'PARTIALLY_FILLED' => 'open',
             'FILLED' => 'closed',
             'CANCELED' => 'canceled',
@@ -1271,7 +1270,7 @@ class currencycom extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1363,6 +1362,49 @@ class currencycom extends Exchange {
             //     }
             //
             return $this->parse_order($response, $market);
+        }) ();
+    }
+
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an order made by the user
+             * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getOrderUsingGET
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} $params extra parameters specific to the currencycom api endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            $this->check_required_symbol('fetchOrder', $symbol);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'orderId' => $id,
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->privateGetV2FetchOrder (array_merge($request, $params)));
+            //
+            //    {
+            //        "accountId" => "109698017413125316",
+            //        "orderId" => "2810f1c5-0079-54c4-0000-000080421601",
+            //        "quantity" => "20.0",
+            //        "price" => "0.06",
+            //        "timestamp" => "1661157503788",
+            //        "status" => "CREATED",
+            //        "type" => "LIMIT",
+            //        "timeInForceType" => "GTC",
+            //        "side" => "BUY",
+            //        "margin" => "0.1",
+            //        "fills" => array( // might not be present
+            //             {
+            //                 "price" => "0.14094",
+            //                 "qty" => "40.0",
+            //                 "commission" => "0",
+            //                 "commissionAsset" => "dUSD"
+            //             }
+            //        )
+            //    }
+            //
+            return $this->parse_order($response);
         }) ();
     }
 

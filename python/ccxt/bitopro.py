@@ -8,6 +8,7 @@ from ccxt.abstract.bitopro import ImplicitAPI
 import hashlib
 import math
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -934,7 +935,7 @@ class bitopro(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1507,7 +1508,7 @@ class bitopro(Exchange, ImplicitAPI):
             if method == 'POST' or method == 'PUT':
                 body = self.json(params)
                 payload = self.string_to_base64(body)
-                signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)
+                signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384)
                 headers['X-BITOPRO-APIKEY'] = self.apiKey
                 headers['X-BITOPRO-PAYLOAD'] = payload
                 headers['X-BITOPRO-SIGNATURE'] = signature

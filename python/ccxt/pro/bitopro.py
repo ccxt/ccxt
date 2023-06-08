@@ -127,7 +127,7 @@ class bitopro(ccxt.async_support.bitopro):
         trades = await self.watch_public('trades', messageHash, market['id'])
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trade(self, client: Client, message):
         #

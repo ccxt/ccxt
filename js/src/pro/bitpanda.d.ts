@@ -16,7 +16,7 @@ export default class bitpanda extends bitpandaRest {
     handleDeltas(orderbook: any, deltas: any): void;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): any;
     handleTrading(client: Client, message: any): void;
-    parseTradingOrder(order: any, market?: any): any;
+    parseTradingOrder(order: any, market?: any): import("../base/types.js").Order;
     parseTradingOrderStatus(status: any): string;
     handleOrders(client: Client, message: any): void;
     handleAccountUpdate(client: Client, message: any): void;

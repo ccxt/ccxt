@@ -822,10 +822,10 @@ export default class timex extends Exchange {
         if ('unchangedOrders' in response) {
             const orderIds = this.safeValue(response, 'unchangedOrders', []);
             const orderId = this.safeString(orderIds, 0);
-            return {
+            return this.safeOrder({
                 'id': orderId,
                 'info': response,
-            };
+            });
         }
         const orders = this.safeValue(response, 'changedOrders', []);
         const firstOrder = this.safeValue(orders, 0, {});

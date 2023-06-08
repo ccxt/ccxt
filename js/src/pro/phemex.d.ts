@@ -68,7 +68,7 @@ export default class phemex extends phemexRest {
     handleMyTrades(client: Client, message: any): void;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any): void;
-    parseWSSwapOrder(order: any, market?: any): any;
+    parseWSSwapOrder(order: any, market?: any): import("../base/types.js").Order;
     handleMessage(client: Client, message: any): any;
     handleAuthenticate(client: Client, message: any): void;
     subscribePrivate(type: any, messageHash: any, params?: {}): Promise<any>;

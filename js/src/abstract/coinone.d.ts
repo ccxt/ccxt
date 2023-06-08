@@ -16,7 +16,7 @@ interface Exchange {
     privatePostOrderLimitSell(params?: {}): Promise<implicitReturnType>;
     privatePostOrderCompleteOrders(params?: {}): Promise<implicitReturnType>;
     privatePostOrderLimitOrders(params?: {}): Promise<implicitReturnType>;
-    privatePostOrderOrderInfo(params?: {}): Promise<implicitReturnType>;
+    privatePostOrderQueryOrder(params?: {}): Promise<implicitReturnType>;
     privatePostTransactionAuthNumber(params?: {}): Promise<implicitReturnType>;
     privatePostTransactionHistory(params?: {}): Promise<implicitReturnType>;
     privatePostTransactionKrwHistory(params?: {}): Promise<implicitReturnType>;

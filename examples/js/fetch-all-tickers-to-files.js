@@ -1,7 +1,10 @@
 
 
-import ccxt from '../../ccxt.js';
-import { noLocate as log } from 'ololog'; // npm install ololog
+import ccxt from '../../js/ccxt.js';
+import ololog from 'ololog';
+
+const { noLocate } = ololog;
+const log = noLocate;
 
 import fs from 'fs';
 

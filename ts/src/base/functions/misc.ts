@@ -40,44 +40,6 @@ const roundTimeframe = (timeframe, timestamp, direction = ROUND_DOWN) => {
     return timestamp - offset + ((direction === ROUND_UP) ? ms : 0);
 };
 
-// given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
-const buildOHLCVC = (trades: Trade[], timeframe: string = '1m', since: number = -Infinity, limit: number = Infinity): OHLCVC[] => {
-    const ms = parseTimeframe (timeframe) * 1000;
-    const ohlcvs: OHLCVC[] = [];
-    const [ timestamp, /* open */, high, low, close, volume, count ] = [ 0, 1, 2, 3, 4, 5, 6 ];
-    const oldest = Math.min(trades.length, limit);
-
-    for (let i = 0; i < oldest; i++) {
-        const trade = trades[i];
-        if (trade.timestamp < since) {
-            continue;
-        }
-        const openingTime = Math.floor (trade.timestamp / ms) * ms; // shift to the edge of m/h/d (but not M)
-        const candle = ohlcvs.length - 1;
-
-        if (candle === -1 || openingTime >= ohlcvs[candle][timestamp] + ms) {
-            // moved to a new timeframe -> create a new candle from opening trade
-            ohlcvs.push ([
-                openingTime,  // timestamp
-                trade.price,  // O
-                trade.price,  // H
-                trade.price,  // L
-                trade.price,  // C
-                trade.amount, // V
-                1,            // count
-            ]);
-        } else {
-            // still processing the same timeframe -> update opening trade
-            ohlcvs[candle][high] = Math.max (ohlcvs[candle][high], trade.price);
-            ohlcvs[candle][low] = Math.min (ohlcvs[candle][low], trade.price);
-            ohlcvs[candle][close] = trade.price;
-            ohlcvs[candle][volume] += trade.amount;
-            ohlcvs[candle][count]++;
-        } // if
-    } // for
-    return ohlcvs;
-};
-
 const extractParams = (string) => {
     const re = /{([\w-]+)}/g;
     const matches = [];
@@ -126,7 +88,6 @@ export {
     aggregate,
     parseTimeframe,
     roundTimeframe,
-    buildOHLCVC,
     implodeParams,
     extractParams,
     vwap,

@@ -381,7 +381,7 @@ class bittrex(ccxt.async_support.bittrex):
         ohlcv = await self.subscribe_to_ohlcv(negotiation, symbol, timeframe, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     async def subscribe_to_ohlcv(self, negotiation, symbol, timeframe='1m', params={}):
         await self.load_markets()
@@ -446,7 +446,7 @@ class bittrex(ccxt.async_support.bittrex):
         trades = await self.subscribe_to_trades(negotiation, symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def subscribe_to_trades(self, negotiation, symbol, params={}):
         await self.load_markets()
@@ -507,7 +507,7 @@ class bittrex(ccxt.async_support.bittrex):
         trades = await self.subscribe_to_my_trades(authentication, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     async def subscribe_to_my_trades(self, authentication, params={}):
         messageHash = 'execution'

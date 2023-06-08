@@ -698,7 +698,7 @@ class timex extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @param {string} $symbol unified $symbol of the $market to create an $order in
@@ -812,10 +812,10 @@ class timex extends Exchange {
         if (is_array($response) && array_key_exists('unchangedOrders', $response)) {
             $orderIds = $this->safe_value($response, 'unchangedOrders', array());
             $orderId = $this->safe_string($orderIds, 0);
-            return array(
+            return $this->safe_order(array(
                 'id' => $orderId,
                 'info' => $response,
-            );
+            ));
         }
         $orders = $this->safe_value($response, 'changedOrders', array());
         $firstOrder = $this->safe_value($orders, 0, array());

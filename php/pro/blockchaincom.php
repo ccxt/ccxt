@@ -156,7 +156,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 
@@ -338,7 +338,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             );
             $request = $this->deep_extend($request, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 

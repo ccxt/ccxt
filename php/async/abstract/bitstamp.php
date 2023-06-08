@@ -13,6 +13,9 @@ abstract class bitstamp extends \ccxt\async\Exchange {
     public function public_get_order_book_pair($params = array()) {
         return $this->request('order_book/{pair}/', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_ticker($params = array()) {
+        return $this->request('ticker/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_get_ticker_hour_pair($params = array()) {
         return $this->request('ticker_hour/{pair}/', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -24,6 +27,18 @@ abstract class bitstamp extends \ccxt\async\Exchange {
     }
     public function public_get_trading_pairs_info($params = array()) {
         return $this->request('trading-pairs-info/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_currencies($params = array()) {
+        return $this->request('currencies/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_eur_usd($params = array()) {
+        return $this->request('eur_usd/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_account_balances($params = array()) {
+        return $this->request('account_balances/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_account_balances_currency($params = array()) {
+        return $this->request('account_balances/{currency}/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_balance($params = array()) {
         return $this->request('balance/', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -42,6 +57,9 @@ abstract class bitstamp extends \ccxt\async\Exchange {
     }
     public function private_post_user_transactions_pair($params = array()) {
         return $this->request('user_transactions/{pair}/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_crypto_transactions($params = array()) {
+        return $this->request('crypto-transactions/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_open_orders_all($params = array()) {
         return $this->request('open_orders/all/', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -84,6 +102,18 @@ abstract class bitstamp extends \ccxt\async\Exchange {
     }
     public function private_post_transfer_from_main($params = array()) {
         return $this->request('transfer-from-main/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_my_trading_pairs($params = array()) {
+        return $this->request('my_trading_pairs/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_fees_trading($params = array()) {
+        return $this->request('fees/trading/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_fees_withdrawal($params = array()) {
+        return $this->request('fees/withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_fees_withdrawal_currency($params = array()) {
+        return $this->request('fees/withdrawal/{currency}/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_withdrawal_requests($params = array()) {
         return $this->request('withdrawal-requests/', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -589,6 +619,9 @@ abstract class bitstamp extends \ccxt\async\Exchange {
     public function publicGetOrderBookPair($params = array()) {
         return $this->request('order_book/{pair}/', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function publicGetTicker($params = array()) {
+        return $this->request('ticker/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function publicGetTickerHourPair($params = array()) {
         return $this->request('ticker_hour/{pair}/', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -600,6 +633,18 @@ abstract class bitstamp extends \ccxt\async\Exchange {
     }
     public function publicGetTradingPairsInfo($params = array()) {
         return $this->request('trading-pairs-info/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetCurrencies($params = array()) {
+        return $this->request('currencies/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetEurUsd($params = array()) {
+        return $this->request('eur_usd/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostAccountBalances($params = array()) {
+        return $this->request('account_balances/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostAccountBalancesCurrency($params = array()) {
+        return $this->request('account_balances/{currency}/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostBalance($params = array()) {
         return $this->request('balance/', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -618,6 +663,9 @@ abstract class bitstamp extends \ccxt\async\Exchange {
     }
     public function privatePostUserTransactionsPair($params = array()) {
         return $this->request('user_transactions/{pair}/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostCryptoTransactions($params = array()) {
+        return $this->request('crypto-transactions/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostOpenOrdersAll($params = array()) {
         return $this->request('open_orders/all/', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -660,6 +708,18 @@ abstract class bitstamp extends \ccxt\async\Exchange {
     }
     public function privatePostTransferFromMain($params = array()) {
         return $this->request('transfer-from-main/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostMyTradingPairs($params = array()) {
+        return $this->request('my_trading_pairs/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostFeesTrading($params = array()) {
+        return $this->request('fees/trading/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostFeesWithdrawal($params = array()) {
+        return $this->request('fees/withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostFeesWithdrawalCurrency($params = array()) {
+        return $this->request('fees/withdrawal/{currency}/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostWithdrawalRequests($params = array()) {
         return $this->request('withdrawal-requests/', 'private', 'POST', $params, null, null, array("cost" => 1));

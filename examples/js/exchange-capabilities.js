@@ -1,12 +1,20 @@
 
 
-import ccxt from '../../ccxt.js';
-import { noLocate as log } from 'ololog';
+import ccxt from '../../js/ccxt.js';
+import ololog from 'ololog';
 import ansicolor from 'ansicolor';
+import asTable from 'as-table';
+
+const { noLocate } = ololog;
+const log = noLocate;
 
 ansicolor.nice
 
-const csv = process.argv.includes ('--csv'), delimiter = csv ? ',' : '|', asTableConfig = { delimiter: ' ' + delimiter + ' ', /* print: require ('string.ify').noPretty  */ }, asTable = require ('as-table').configure (asTableConfig);
+
+
+const csv = process.argv.includes ('--csv'), delimiter = csv ? ',' : '|', asTableConfig = { delimiter: ' ' + delimiter + ' ', /* print: require ('string.ify').noPretty  */ }
+
+asTable.configure (asTableConfig);
 
 const sortCertified = process.argv.includes ('--sort-certified') || process.argv.includes ('--certified')
 const exchangesArgument = process.argv.find (arg => arg.startsWith ('--exchanges='))

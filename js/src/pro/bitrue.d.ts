@@ -8,7 +8,7 @@ export default class bitrue extends bitrueRest {
     parseWSBalances(balances: any): void;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
-    parseWSOrder(order: any, market?: any): any;
+    parseWSOrder(order: any, market?: any): import("../base/types.js").Order;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any): void;
     parseWSOrderType(typeId: any): string;

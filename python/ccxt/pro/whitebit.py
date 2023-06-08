@@ -89,7 +89,7 @@ class whitebit(ccxt.async_support.whitebit):
         ohlcv = await self.watch_public(messageHash, method, reqParams, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -304,7 +304,7 @@ class whitebit(ccxt.async_support.whitebit):
         trades = await self.watch_multiple_subscription(messageHash, method, symbol, False, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
         #
@@ -367,7 +367,7 @@ class whitebit(ccxt.async_support.whitebit):
         trades = await self.watch_multiple_subscription(messageHash, method, symbol, True, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trades(self, client: Client, message, subscription=None):
         #
@@ -460,7 +460,7 @@ class whitebit(ccxt.async_support.whitebit):
         trades = await self.watch_multiple_subscription(messageHash, method, symbol, False, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_order(self, client: Client, message, subscription=None):
         #

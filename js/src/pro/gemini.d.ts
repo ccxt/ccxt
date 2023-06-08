@@ -16,7 +16,7 @@ export default class gemini extends geminiRest {
     handleHeartbeat(client: Client, message: any): any;
     handleSubscription(client: Client, message: any): any;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): any;
+    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     parseWsOrderStatus(status: any): string;
     parseWsOrderType(type: any): string;
     handleError(client: Client, message: any): void;

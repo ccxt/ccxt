@@ -40,7 +40,7 @@ export default class kraken extends krakenRest {
     };
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any, subscription?: any): void;
-    parseWsOrder(order: any, market?: any): any;
+    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleSubscriptionStatus(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): boolean;
     handleMessage(client: Client, message: any): any;
