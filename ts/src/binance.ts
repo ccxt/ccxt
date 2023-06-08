@@ -7977,7 +7977,7 @@ export default class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        amount = this.amountToPrecision (symbol, amount);
+        amount = this.costToPrecision (symbol, amount);
         const request = {
             'type': addOrReduce,
             'symbol': market['id'],
