@@ -174,15 +174,37 @@ export default class xt extends xtRest {
          * @see https://doc.xt.com/#websocket_publicallTicker
          * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
          * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
-         * @param {string} symbols not used by xt watchTickers
+         * @param {[string]} symbols unified market symbols
          * @param {object} params extra parameters specific to the xt api endpoint
          * @param {string} params.method 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
+        await this.loadMarkets ();
         const options = this.safeValue (this.options, 'watchTickers');
         const defaultMethod = this.safeString (options, 'method', 'tickers');
         const name = this.safeString (params, 'method', defaultMethod);
-        return await this.subscribe (name, 'public', 'watchTickers', undefined, params);
+        let type = undefined;
+        let market = undefined;
+        if (symbols !== undefined) {
+            market = this.market (symbols[0]);
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
+        const isContract = (type !== 'spot');
+        const subscribe = {
+            'method': isContract ? 'SUBSCRIBE' : 'subscribe',
+            'id': this.nonce (),  // call back ID
+            'params': [ name ],
+        };
+        subscribe['params'] = [ name ];
+        const tradeType = isContract ? 'contract' : 'spot';
+        let messageHash = name + ':' + tradeType;
+        if (symbols !== undefined) {
+            messageHash = messageHash + ':' + symbols.join (',');
+        }
+        const request = this.extend (subscribe, params);
+        const tail = isContract ? 'market' : 'public';
+        const url = this.urls['api']['ws'][tradeType] + '/' + tail;
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -473,6 +495,19 @@ export default class xt extends xtRest {
             const ticker = this.parseTicker (tickerData);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
+        }
+        const messageHashes = this.findMessageHashes (client, 'tickers::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const tickers = this.filterByArray (newTickers, 'symbol', symbols);
+            const tickersSymbols = Object.keys (tickers);
+            const numTickers = tickersSymbols.length;
+            if (numTickers > 0) {
+                client.resolve (tickers, messageHash);
+            }
         }
         client.resolve (this.tickers, 'tickers:' + tradeType);
         return message;
