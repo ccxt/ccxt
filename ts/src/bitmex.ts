@@ -395,18 +395,18 @@ export default class bitmex extends Exchange {
             // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
             // so let's take the settlCurrency first and then adjust if needed
             const typ = this.safeString (market, 'typ'); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
-            let type = undefined;
-            if (typ === 'IFXXXP') {
-                type = 'spot';
-            } else if (typ === 'FFWCSX' || typ === 'FFWCSF') {
-                type = 'swap';
-            } else if (typ === 'FFCCSX') {
-                type = 'future';
-            } else if (id.indexOf ('B_') >= 0) {
-                type = 'prediction';
-            } else {
-                type = 'index';
-            }
+            const types = {
+                'IFXXXP': 'spot',
+                'FFWCSX': 'swap',
+                'FFWCSF': 'swap',
+                'FFCCSX': 'future',
+                'MRBXXX': 'index',
+                'MRCXXX': 'index',
+                'MRFXXX': 'index',
+                'MRRXXX': 'index',
+                'MRIXXX': 'index',
+            };
+            const type = this.safeString (types, typ, typ);
             const swap = type === 'swap';
             const future = type === 'future';
             const spot = type === 'spot';
@@ -424,8 +424,6 @@ export default class bitmex extends Exchange {
                 symbol = base + '/' + quote + ':' + settle;
             } else if (future) {
                 symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry);
-            } else if (type === 'prediction') {
-                symbol = id;
             } else {
                 symbol = id;
             }
