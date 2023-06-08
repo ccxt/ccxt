@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/fxopen.js';
-import { ExchangeError, BadRequest, NotSupported, RateLimitExceeded, AuthenticationError, InsufficientFunds } from './base/errors.js';
+import { ExchangeError, BadRequest, NotSupported, RateLimitExceeded, AuthenticationError, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { Int, OrderSide } from './base/types.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
@@ -1388,12 +1388,15 @@ export default class fxopen extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {float|undefined} params.stopPrice the price at which order should be activated, in units of the base currency
+         * @param {float|undefined} params.stopLossPrice the price at which Gross account position should be closed by exchange to prevent further losses
+         * @param {float|undefined} params.takeProfitPrice the price at which Gross account position should be closed by exchange to gain profit
          * @param {string|undefined} params.timeInForce only 'IOC' is supported
          * @param {int|undefined} params.expiry sets a timestamp in milliseconds when Stop/Limit/StopLimit order will be canceled by exchange
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        await this.loadAccountInfo ();
+        const accInfo = await this.loadAccountInfo ();
         const market = this.market (symbol);
         const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice');
@@ -1415,7 +1418,7 @@ export default class fxopen extends Exchange {
             type = (hasStopPrice) ? 'Stop' : 'Market';
         } else if (typeIsLimit) {
             if (!hasPrice) {
-                throw new BadRequest (this.id + ' createOrder() price is required for Limit and StopLimit orders');
+                throw new ArgumentsRequired (this.id + ' createOrder() price is required for Limit and StopLimit orders');
             }
             type = (hasStopPrice) ? 'StopLimit' : 'Limit';
         }
@@ -1431,10 +1434,17 @@ export default class fxopen extends Exchange {
         if (stopPrice !== undefined) {
             request['StopPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
+        const isNotGrossAccount = (!this.isGrossAccount (accInfo));
         if (stopLossPrice !== undefined) {
+            if (isNotGrossAccount) {
+                throw new NotSupported (this.id + ' createOrder() params.stopLossPrice is ignored on this account type');
+            }
             request['StopLoss'] = this.priceToPrecision (symbol, stopLossPrice);
         }
         if (takeProfitPrice !== undefined) {
+            if (isNotGrossAccount) {
+                throw new NotSupported (this.id + ' createOrder() params.takeProfitPrice is ignored on this account type');
+            }
             request['TakeProfit'] = this.priceToPrecision (symbol, takeProfitPrice);
         }
         if (clientOrderId !== undefined) {
@@ -1454,21 +1464,23 @@ export default class fxopen extends Exchange {
         /**
          * @method
          * @name fxopen#editOrder
-         * @description edit a trade order
+         * @description edit a trade order. Can be used to edit stopLossPrice, takeProfitPrice of Gross account positions.
          * @param {string} id cancel order id
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float|undefined} amount how much of currency you want to trade in units of base currency
+         * @param {string|undefined} symbol unified symbol of the market the order was opened in. Used for rounding price/amount values
+         * @param {string|undefined} type not used by fxopen.editOrder()
+         * @param {string|undefined} side not used by fxopen.editOrder()
+         * @param {float|undefined} amount how much of currency you want to trade in units of base currency. Overriden by params.amountChange
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {float|undefined} params.stopPrice the price at which order should be activated, in units of the base currency
+         * @param {float|undefined} params.stopLossPrice the price at which Gross account position should be closed by exchange to prevent further losses
+         * @param {float|undefined} params.takeProfitPrice the price at which Gross account position should be closed by exchange to gain profit
          * @param {float|undefined} params.amountChange how much of currency you want to add/remove from trade in units of base currency. Overrides amount param
          * @param {int|undefined} params.expiry sets a timestamp in milliseconds when Stop/Limit/StopLimit order will be canceled by exchange
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        await this.loadAccountInfo ();
-        // const market = this.market (symbol);
+        const accInfo = await this.loadAccountInfo ();
         const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice');
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
@@ -1478,8 +1490,10 @@ export default class fxopen extends Exchange {
         const request = {
             'Id': id,
         };
-        const hasSymbol = (symbol in this.markets);
         if (amount !== undefined) {
+            if (amountChange !== undefined) {
+                throw new BadRequest (this.id + ' editOrder() amount and params.amountChange cannot be both specified. Prefer using params.amountChange');
+            }
             request['Amount'] = this.amountToPrecisionOptional (symbol, amount);
         }
         if (price !== undefined) {
@@ -1488,10 +1502,17 @@ export default class fxopen extends Exchange {
         if (stopPrice !== undefined) {
             request['StopPrice'] = this.priceToPrecisionOptional (symbol, stopPrice);
         }
+        const isNotGrossAccount = (!this.isGrossAccount (accInfo));
         if (stopLossPrice !== undefined) {
+            if (isNotGrossAccount) {
+                throw new NotSupported (this.id + ' editOrder() params.stopLossPrice is ignored on this account type');
+            }
             request['StopLoss'] = this.priceToPrecisionOptional (symbol, stopLossPrice);
         }
         if (takeProfitPrice !== undefined) {
+            if (isNotGrossAccount) {
+                throw new NotSupported (this.id + ' editOrder() params.takeProfitPrice is ignored on this account type');
+            }
             request['TakeProfit'] = this.priceToPrecisionOptional (symbol, takeProfitPrice);
         }
         if (amountChange !== undefined) {
@@ -1639,58 +1660,57 @@ export default class fxopen extends Exchange {
         /**
          * @method
          * @name fxopen#cancelOrder
-         * @description cancels an open order of types: 'limit', 'stop', 'stoplimit'
+         * @description cancels an open order of types: 'limit', 'stop', 'stoplimit'. Can close Gross account position with additional params
          * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {string|undefined} symbol unified symbol of the market the order was opened in. Used for rounding amount value
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
-        await this.loadAccountInfo ();
-        const request = {
-            'Type': 'Cancel',
-            'Id': id,
-        };
-        const response = await this.privateDeleteTrade (this.extend (request, params));
-        const order = this.parseOrder (response['Trade']);
-        order['status'] = 'canceled';
-        return order;
-    }
-
-    async closePosition (id: string, symbol: string = undefined, params = {}) {
-        /**
-         * @method
-         * @name fxopen#closePosition
-         * @description closes an open position
-         * @param {string} id position id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @param {float|undefined} params.amount how much to close position for in units of base currency. Works only if 'byId' is undefined
-         * @param {string|undefined} params.byId id of another position with same symbol and reverse side to use for closing
+         * @param {string|undefined} params.mode 'close' to close Gross account position.
+         * @param {float|undefined} params.closeAmount how much to close position for in units of base currency. Works only if 'byId' is undefined
+         * @param {string|undefined} params.closeById id of another position with same symbol and reverse side to use for closing
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const accInfo = await this.loadAccountInfo ();
-        if (this.isCashAccount (accInfo)) {
-            throw new NotSupported (this.id + ' closePosition() is not supported on this account type');
+        const mode = this.safeString (params, 'mode');
+        if (mode === 'close') {
+            if (!this.isGrossAccount (accInfo)) {
+                throw new NotSupported (this.id + ' cancelOrder() params.mode === close is not supported on this account type');
+            }
+            const closeAmount = this.safeValue (params, 'closeAmount');
+            const closeById = this.safeString (params, 'closeById');
+            if ((closeAmount !== undefined) && (closeById !== undefined)) {
+                throw new BadRequest (this.id + ' cancelOrder() params.closeAmount and params.closeById cannot be both specified');
+            }
+            params = this.omit (params, 'mode', 'closeAmount', 'closeById');
+            const type = (closeById === undefined) ? 'Close' : 'CloseBy';
+            const request = {
+                'Type': type,
+                'Id': id,
+            };
+            if (closeAmount !== undefined) {
+                if (closeById !== undefined) {
+                    throw new BadRequest (this.id + ' cancelOrder() params.closeAmount and params.closeById cannot be both specified');
+                }
+                request['Amount'] = this.amountToPrecisionOptional (symbol, closeAmount);
+            }
+            if (closeById !== undefined) {
+                request['ById'] = closeById;
+            }
+            const response = await this.privateDeleteTrade (this.extend (request, params));
+            const order = this.parseOrder (response['Trade']);
+            order['status'] = 'closed';
+            return order;
+        } else {
+            params = this.omit (params, 'mode', 'closeAmount', 'closeById');
+            const request = {
+                'Type': 'Cancel',
+                'Id': id,
+            };
+            const response = await this.privateDeleteTrade (this.extend (request, params));
+            const order = this.parseOrder (response['Trade']);
+            order['status'] = 'canceled';
+            return order;
         }
-        const amount = this.safeValue (params, 'amount');
-        const byId = this.safeValue (params, 'byId');
-        const type = (byId === undefined) ? 'Close' : 'CloseBy';
-        const request = {
-            'Type': type,
-            'Id': id,
-        };
-        if (amount !== undefined) {
-            request['Amount'] = amount;
-        }
-        if (byId !== undefined) {
-            request['ById'] = byId;
-        }
-        const response = await this.privateDeleteTrade (this.extend (request, params));
-        const order = this.parseOrder (response['Trade']);
-        order['status'] = 'closed';
-        return order;
     }
 
     async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2585,7 +2605,7 @@ export default class fxopen extends Exchange {
         return this.safeString (rawResponse, 'Balance');
     }
 
-    amountToPrecisionOptional(symbol: string, amount) {
+    amountToPrecisionOptional (symbol: string, amount) {
         if (symbol in this.markets) {
             return this.amountToPrecision (symbol, amount);
         } else {
@@ -2593,7 +2613,7 @@ export default class fxopen extends Exchange {
         }
     }
 
-    priceToPrecisionOptional(symbol: string, price) {
+    priceToPrecisionOptional (symbol: string, price) {
         if (symbol in this.markets) {
             return this.priceToPrecision (symbol, price);
         } else {
