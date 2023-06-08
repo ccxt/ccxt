@@ -2129,6 +2129,10 @@ export default class gate extends Exchange {
          * @method
          * @name gate#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the gate api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -2141,9 +2145,26 @@ export default class gate extends Exchange {
             'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'future': 'publicDeliveryGetSettleTickers',
+            'option': 'publicOptionsGetTickers',
         });
+        if (market['option']) {
+            const marketId = market['id'];
+            const optionParts = marketId.split ('-');
+            request['underlying'] = this.safeString (optionParts, 0);
+        }
         const response = await this[method] (this.extend (request, query));
-        const ticker = this.safeValue (response, 0);
+        let ticker = undefined;
+        if (market['option']) {
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                if (entry['name'] === market['id']) {
+                    ticker = entry;
+                    break;
+                }
+            }
+        } else {
+            ticker = this.safeValue (response, 0);
+        }
         return this.parseTicker (ticker, market);
     }
 
@@ -2195,16 +2216,37 @@ export default class gate extends Exchange {
         //        A: '0.0353' // best ask size
         //     }
         //
-        const marketId = this.safeString2 (ticker, 'currency_pair', 'contract');
-        const marketType = ('contract' in ticker) ? 'contract' : 'spot';
+        // option
+        //
+        //     {
+        //         "vega": "0.00002",
+        //         "leverage": "12.277188268663",
+        //         "ask_iv": "0",
+        //         "delta": "-0.99999",
+        //         "last_price": "0",
+        //         "theta": "-0.00661",
+        //         "bid1_price": "1096",
+        //         "mark_iv": "0.7799",
+        //         "name": "BTC_USDT-20230608-28500-P",
+        //         "bid_iv": "0",
+        //         "ask1_price": "2935",
+        //         "mark_price": "2147.3",
+        //         "position_size": 0,
+        //         "bid1_size": 12,
+        //         "ask1_size": -14,
+        //         "gamma": "0"
+        //     }
+        //
+        const marketId = this.safeStringN (ticker, [ 'currency_pair', 'contract', 'name' ]);
+        const marketType = ('mark_price' in ticker) ? 'contract' : 'spot';
         const symbol = this.safeSymbol (marketId, market, '_', marketType);
-        const last = this.safeString (ticker, 'last');
-        const ask = this.safeString2 (ticker, 'lowest_ask', 'a');
-        const bid = this.safeString2 (ticker, 'highest_bid', 'b');
+        const last = this.safeString2 (ticker, 'last', 'last_price');
+        const ask = this.safeStringN (ticker, [ 'lowest_ask', 'a', 'ask1_price' ]);
+        const bid = this.safeStringN (ticker, [ 'highest_bid', 'b', 'bid1_price' ]);
         const high = this.safeString (ticker, 'high_24h');
         const low = this.safeString (ticker, 'low_24h');
-        const bidVolume = this.safeString (ticker, 'B');
-        const askVolume = this.safeString (ticker, 'A');
+        const bidVolume = this.safeString2 (ticker, 'B', 'bid1_size');
+        const askVolume = this.safeString2 (ticker, 'A', 'ask1_size');
         const timestamp = this.safeInteger (ticker, 't');
         let baseVolume = this.safeString2 (ticker, 'base_volume', 'volume_24h_base');
         if (baseVolume === 'nan') {
@@ -2247,6 +2289,7 @@ export default class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the gate api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -2265,7 +2308,14 @@ export default class gate extends Exchange {
             'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'future': 'publicDeliveryGetSettleTickers',
+            'option': 'publicOptionsGetTickers',
         });
+        if (type === 'option') {
+            this.checkRequiredArgument ('fetchTickers', symbols, 'symbols');
+            const marketId = market['id'];
+            const optionParts = marketId.split ('-');
+            request['underlying'] = this.safeString (optionParts, 0);
+        }
         const response = await this[method] (this.extend (request, requestParams));
         return this.parseTickers (response, symbols);
     }
