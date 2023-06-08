@@ -1423,19 +1423,19 @@ export default class fxopen extends Exchange {
             'Symbol': market['id'],
             'Side': side,
             'Type': type,
-            'Amount': amount,
+            'Amount': this.amountToPrecision (symbol, amount),
         };
-        if (amount !== undefined) {
-            request['Price'] = price;
+        if (price !== undefined) {
+            request['Price'] = this.priceToPrecision (symbol, price);
         }
         if (stopPrice !== undefined) {
-            request['StopPrice'] = stopPrice;
+            request['StopPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
         if (stopLossPrice !== undefined) {
-            request['StopLoss'] = stopLossPrice;
+            request['StopLoss'] = this.priceToPrecision (symbol, stopLossPrice);
         }
         if (takeProfitPrice !== undefined) {
-            request['TakeProfit'] = takeProfitPrice;
+            request['TakeProfit'] = this.priceToPrecision (symbol, takeProfitPrice);
         }
         if (clientOrderId !== undefined) {
             request['ClientId'] = clientOrderId;
@@ -1478,23 +1478,24 @@ export default class fxopen extends Exchange {
         const request = {
             'Id': id,
         };
+        const hasSymbol = (symbol in this.markets);
         if (amount !== undefined) {
-            request['Amount'] = amount;
+            request['Amount'] = this.amountToPrecisionOptional (symbol, amount);
         }
-        if (amount !== undefined) {
-            request['Price'] = price;
+        if (price !== undefined) {
+            request['Price'] = this.priceToPrecisionOptional (symbol, price);
         }
         if (stopPrice !== undefined) {
-            request['StopPrice'] = stopPrice;
+            request['StopPrice'] = this.priceToPrecisionOptional (symbol, stopPrice);
         }
         if (stopLossPrice !== undefined) {
-            request['StopLoss'] = stopLossPrice;
+            request['StopLoss'] = this.priceToPrecisionOptional (symbol, stopLossPrice);
         }
         if (takeProfitPrice !== undefined) {
-            request['TakeProfit'] = takeProfitPrice;
+            request['TakeProfit'] = this.priceToPrecisionOptional (symbol, takeProfitPrice);
         }
         if (amountChange !== undefined) {
-            request['AmountChange'] = amountChange;
+            request['AmountChange'] = this.amountToPrecisionOptional (symbol, amountChange);
         }
         if (expiry !== undefined) {
             request['ExpiredTimestamp'] = expiry;
@@ -2582,5 +2583,21 @@ export default class fxopen extends Exchange {
     getCachedMarginBalance (accInfo) {
         const rawResponse = this.safeValue (accInfo, 'info');
         return this.safeString (rawResponse, 'Balance');
+    }
+
+    amountToPrecisionOptional(symbol: string, amount) {
+        if (symbol in this.markets) {
+            return this.amountToPrecision (symbol, amount);
+        } else {
+            return amount;
+        }
+    }
+
+    priceToPrecisionOptional(symbol: string, price) {
+        if (symbol in this.markets) {
+            return this.priceToPrecision (symbol, price);
+        } else {
+            return price;
+        }
     }
 }
