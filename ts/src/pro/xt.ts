@@ -690,13 +690,22 @@ export default class xt extends xtRest {
             const symbol = market['symbol'];
             const asks = this.safeValue (data, 'a');
             const bids = this.safeValue (data, 'b');
-            let orderbook = this.safeValue (this.orderbooks, symbol);
             const messageHash = event + '::' + tradeType;
+            let orderbook = this.safeValue (this.orderbooks, symbol);
+            const nonce = this.safeInteger (orderbook, 'nonce');
             if (orderbook === undefined) {
                 const subscription = this.safeValue (client.subscriptions, messageHash, {});
                 const limit = this.safeInteger (subscription, 'limit');
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
                 orderbook = this.orderbooks[symbol];
+            } else if (nonce === undefined) {
+                const cacheLength = orderbook.cache.length;
+                const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 25);
+                if (cacheLength === snapshotDelay) {
+                    this.spawn (this.loadOrderBook, client, messageHash, symbol);
+                }
+                orderbook.cache.push (data);
+                return;
             }
             if (asks !== undefined) {
                 for (let i = 0; i < asks.length; i++) {
