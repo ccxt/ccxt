@@ -1370,6 +1370,7 @@ export default class fxopen extends Exchange {
             const total = this.safeString (asset, 'Amount');
             const free = this.safeString (asset, 'FreeAmount');
             const used = this.safeString (asset, 'LockedAmount');
+            result[code] = {};
             result[code]['total'] = total;
             result[code]['free'] = free;
             result[code]['used'] = used;
@@ -1422,30 +1423,31 @@ export default class fxopen extends Exchange {
             }
             type = (hasStopPrice) ? 'StopLimit' : 'Limit';
         }
+        // price, amount - strings are not accepted
         const request = {
             'Symbol': market['id'],
             'Side': side,
             'Type': type,
-            'Amount': this.amountToPrecision (symbol, amount),
+            'Amount': this.parseNumber (this.amountToPrecision (symbol, amount)),
         };
         if (price !== undefined) {
-            request['Price'] = this.priceToPrecision (symbol, price);
+            request['Price'] = this.parseNumber (this.priceToPrecision (symbol, price));
         }
         if (stopPrice !== undefined) {
-            request['StopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            request['StopPrice'] = this.parseNumber (this.priceToPrecision (symbol, stopPrice));
         }
         const isNotGrossAccount = (!this.isGrossAccount (accInfo));
         if (stopLossPrice !== undefined) {
             if (isNotGrossAccount) {
                 throw new NotSupported (this.id + ' createOrder() params.stopLossPrice is ignored on this account type');
             }
-            request['StopLoss'] = this.priceToPrecision (symbol, stopLossPrice);
+            request['StopLoss'] = this.parseNumber (this.priceToPrecision (symbol, stopLossPrice));
         }
         if (takeProfitPrice !== undefined) {
             if (isNotGrossAccount) {
                 throw new NotSupported (this.id + ' createOrder() params.takeProfitPrice is ignored on this account type');
             }
-            request['TakeProfit'] = this.priceToPrecision (symbol, takeProfitPrice);
+            request['TakeProfit'] = this.parseNumber (this.priceToPrecision (symbol, takeProfitPrice));
         }
         if (clientOrderId !== undefined) {
             request['ClientId'] = clientOrderId;
@@ -1487,36 +1489,37 @@ export default class fxopen extends Exchange {
         const amountChange = this.safeValue (params, 'amountChange');
         const expiry = this.safeValue (params, 'expiry');
         this.omit ('triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'amountChange', 'expiry');
+        // id, price, amount - strings are not accepted
         const request = {
-            'Id': id,
+            'Id': this.parseNumber (id),
         };
         if (amount !== undefined) {
             if (amountChange !== undefined) {
                 throw new BadRequest (this.id + ' editOrder() amount and params.amountChange cannot be both specified. Prefer using params.amountChange');
             }
-            request['Amount'] = this.amountToPrecisionOptional (symbol, amount);
+            request['Amount'] = this.parseNumber (this.amountToPrecisionOptional (symbol, amount));
         }
         if (price !== undefined) {
-            request['Price'] = this.priceToPrecisionOptional (symbol, price);
+            request['Price'] = this.parseNumber (this.priceToPrecisionOptional (symbol, price));
         }
         if (stopPrice !== undefined) {
-            request['StopPrice'] = this.priceToPrecisionOptional (symbol, stopPrice);
+            request['StopPrice'] = this.parseNumber (this.priceToPrecisionOptional (symbol, stopPrice));
         }
         const isNotGrossAccount = (!this.isGrossAccount (accInfo));
         if (stopLossPrice !== undefined) {
             if (isNotGrossAccount) {
                 throw new NotSupported (this.id + ' editOrder() params.stopLossPrice is ignored on this account type');
             }
-            request['StopLoss'] = this.priceToPrecisionOptional (symbol, stopLossPrice);
+            request['StopLoss'] = this.parseNumber (this.priceToPrecisionOptional (symbol, stopLossPrice));
         }
         if (takeProfitPrice !== undefined) {
             if (isNotGrossAccount) {
                 throw new NotSupported (this.id + ' editOrder() params.takeProfitPrice is ignored on this account type');
             }
-            request['TakeProfit'] = this.priceToPrecisionOptional (symbol, takeProfitPrice);
+            request['TakeProfit'] = this.parseNumber (this.priceToPrecisionOptional (symbol, takeProfitPrice));
         }
         if (amountChange !== undefined) {
-            request['AmountChange'] = this.amountToPrecisionOptional (symbol, amountChange);
+            request['AmountChange'] = this.parseNumber (this.amountToPrecisionOptional (symbol, amountChange));
         }
         if (expiry !== undefined) {
             request['ExpiredTimestamp'] = expiry;
@@ -1685,16 +1688,16 @@ export default class fxopen extends Exchange {
             const type = (closeById === undefined) ? 'Close' : 'CloseBy';
             const request = {
                 'Type': type,
-                'Id': id,
+                'Id': this.parseNumber (id),
             };
             if (closeAmount !== undefined) {
                 if (closeById !== undefined) {
                     throw new BadRequest (this.id + ' cancelOrder() params.closeAmount and params.closeById cannot be both specified');
                 }
-                request['Amount'] = this.amountToPrecisionOptional (symbol, closeAmount);
+                request['Amount'] = this.parseNumber (this.amountToPrecisionOptional (symbol, closeAmount));
             }
             if (closeById !== undefined) {
-                request['ById'] = closeById;
+                request['ById'] = this.parseNumber (closeById);
             }
             const response = await this.privateDeleteTrade (this.extend (request, params));
             const order = this.parseOrder (response['Trade']);
@@ -1704,7 +1707,7 @@ export default class fxopen extends Exchange {
             params = this.omit (params, 'mode', 'closeAmount', 'closeById');
             const request = {
                 'Type': 'Cancel',
-                'Id': id,
+                'Id': this.parseNumber (id),
             };
             const response = await this.privateDeleteTrade (this.extend (request, params));
             const order = this.parseOrder (response['Trade']);
@@ -1910,19 +1913,22 @@ export default class fxopen extends Exchange {
         if (markPrice === undefined) {
             // For some reason CurrentPrice is unavailable at the moment
             // Due to rounding this is very rough estimate and doesn't represent precise markPrice
+            const commission = this.safeString (position, 'Commission');
+            const swap = this.safeString (position, 'Swap');
+            const grossPnl = Precise.stringSub (unrealizedPnl, Precise.stringAdd (commission, swap));
             if (side === 'short') {
                 // initialMargin = markPrice * remaining * settlementCurrencyConversionRate / leverage
-                // unrealizedPnl = (entryPrice - markPrice) * remaining * settlementCurrencyConversionRate
-                // => markPrice = entryPrice * (initialMargin * leverage) / (initialMargin * leverage + unrealizedPnl)
+                // grossPnl = (entryPrice - markPrice) * remaining * settlementCurrencyConversionRate
+                // => markPrice = entryPrice * (initialMargin * leverage) / (initialMargin * leverage + grossPnl)
                 const upper = Precise.stringMul (initialMargin, leverage);
-                const lower = Precise.stringAdd (upper, unrealizedPnl);
+                const lower = Precise.stringAdd (upper, grossPnl);
                 markPrice = Precise.stringMul (entryPrice, Precise.stringDiv (upper, lower));
             } else if (side === 'long') {
                 // initialMargin = markPrice * remaining * settlementCurrencyConversionRate / leverage
-                // unrealizedPnl = (markPrice - entryPrice) * remaining * settlementCurrencyConversionRate
-                // => markPrice = entryPrice * (initialMargin * leverage) / (initialMargin * leverage - unrealizedPnl)
+                // grossPnl = (markPrice - entryPrice) * remaining * settlementCurrencyConversionRate
+                // => markPrice = entryPrice * (initialMargin * leverage) / (initialMargin * leverage - grossPnl)
                 const upper = Precise.stringMul (initialMargin, leverage);
-                const lower = Precise.stringSub (upper, unrealizedPnl);
+                const lower = Precise.stringSub (upper, grossPnl);
                 markPrice = Precise.stringMul (entryPrice, Precise.stringDiv (upper, lower));
             }
         }
