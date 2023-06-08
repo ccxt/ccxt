@@ -763,7 +763,7 @@ class gate(ccxt.async_support.gate):
             # inject order status
             info = self.safe_value(parsed, 'info')
             event = self.safe_string(info, 'event')
-            if event == 'put' or event == ' update':
+            if event == 'put' or event == 'update':
                 parsed['status'] = 'open'
             elif event == 'finish':
                 left = self.safe_number(info, 'left')
