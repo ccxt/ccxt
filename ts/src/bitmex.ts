@@ -1612,18 +1612,17 @@ export default class bitmex extends Exchange {
         //         "timestamp": "2019-03-05T12:47:02.762Z"
         //     }
         //
-        const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const priceString = this.safeString2 (trade, 'avgPx', 'price');
-        const amountString = this.convertToRealAmount (market['base'], this.safeString2 (trade, 'size', 'lastQty'));
+        const amountString = this.safeString2 (trade, 'size', 'lastQty');
         const execCost = this.safeString (trade, 'execCost');
-        const costString = this.convertToRealAmount (market['quote'], execCost);
+        const costString = Precise.stringDiv (Precise.stringAbs (execCost), '1e8');
         const id = this.safeString (trade, 'trdMatchID');
         const order = this.safeString (trade, 'orderID');
         const side = this.safeStringLower (trade, 'side');
+        // price * amount doesn't work for all symbols (e.g. XBT, ETH)
         let fee = undefined;
-        const feeCostString = this.convertToRealAmount (market['quote'], this.safeString (trade, 'execComm'));
+        const feeCostString = Precise.stringDiv (this.safeString (trade, 'execComm'), '1e8');
         if (feeCostString !== undefined) {
             const currencyId = this.safeString (trade, 'settlCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (currencyId);
@@ -1640,12 +1639,14 @@ export default class bitmex extends Exchange {
         if (feeCostString !== undefined && execType === 'Trade') {
             takerOrMaker = Precise.stringLt (feeCostString, '0') ? 'maker' : 'taker';
         }
+        const marketId = this.safeString (trade, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
         const type = this.safeStringLower (trade, 'ordType');
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'id': id,
             'order': order,
             'type': type,
