@@ -75,16 +75,17 @@ class Exchange {
     public $curlopt_interface = null;
     public $timeout = 10000; // in milliseconds
     public $proxy = ''; // for backwards compatibility
-    public $proxyUrl = '';
-    public $proxy_url = '';
-    public $proxyUrlCallback = '';
-    public $proxy_url_callback = '';
-    public $proxyHttps = '';
-    public $proxy_https = '';
-    public $proxySocks = '';
-    public $proxy_socks = '';
-    public $proxyAgentCallback = '';
-    public $proxy_agent_callback = '';
+    public $proxyUrl = null;
+    public $proxy_url = null;
+    public $proxyUrlCallback = null;
+    public $proxy_url_callback = null;
+    public $proxyHttps = null;
+    public $proxy_https = null;
+    public $proxySocks = null;
+    public $proxy_socks = null;
+    public $proxyAgentCallback = null;
+    public $proxy_agent_callback = null;
+    public $httpProxy = null; // for backwards compatibility
     public $origin = '*'; // CORS origin
     public $headers = array();
     public $hostname = null; // in case of inaccessibility of the "main" domain
@@ -1177,13 +1178,6 @@ class Exchange {
         //     }
         // }
 
-        $this->set_exchange_prop_all_case('proxyUrl', null);
-        $this->set_exchange_prop_all_case('proxyUrlCallback', null);
-        $this->set_exchange_prop_all_case('proxyHttp', null);
-        $this->set_exchange_prop_all_case('proxyHttps', null);
-        $this->set_exchange_prop_all_case('proxySocks', null);
-        $this->set_exchange_prop_all_case('proxyAgentCallback', null);
-
         $this->options = $this->get_default_options();
 
         $this->urlencode_glue = ini_get('arg_separator.output'); // can be overrided by exchange constructor params
@@ -2196,12 +2190,6 @@ class Exchange {
             return $val1;
         }
         return $this->safe_prop($obj, $key2, $defaultValue);
-    }
-
-    public function set_exchange_prop_all_case(string $key, mixed $value = null) {
-        $this->$key = $value;
-        $unCamelCasedKey = $this->un_camel_case($key);
-        $this->$unCamelCasedKey = $value;
     }
 
     public function check_proxy_settings() {

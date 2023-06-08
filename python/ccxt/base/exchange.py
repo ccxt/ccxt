@@ -161,6 +161,7 @@ class Exchange(object):
     proxy_socks = ''
     proxyAgentCallback = ''
     proxy_agent_callback = ''
+    httpProxy = '' # for backwards compatibility
     origin = '*'  # CORS origin
     proxies = None
     hostname = None  # in case of inaccessibility of the "main" domain

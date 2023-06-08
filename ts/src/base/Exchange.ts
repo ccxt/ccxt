@@ -175,6 +175,7 @@ export default class Exchange {
     proxy_socks: string;
     proxyAgentCallback: any;
     proxy_agent_callback: any;
+    httpProxy:string = undefined; // obsolete, for backwards compatibility
     origin = '*' // CORS origin
 
     minFundingAddressLength = 1 // used in checkAddress
@@ -629,12 +630,6 @@ export default class Exchange {
         this.headers = {}
         // prepended to URL, like https://proxy.com/https://exchange.com/api...
         this.proxy = undefined
-        this.setExchangePropAllCase ('proxyUrl', undefined);
-        this.setExchangePropAllCase ('proxyUrlCallback', undefined);
-        this.setExchangePropAllCase ('proxyHttp', undefined);
-        this.setExchangePropAllCase ('proxyHttps', undefined);
-        this.setExchangePropAllCase ('proxySocks', undefined);
-        this.setExchangePropAllCase ('proxyAgentCallback', undefined);
         this.origin = '*' // CORS origin
         // underlying properties
         this.minFundingAddressLength = 1 // used in checkAddress
@@ -1429,12 +1424,6 @@ export default class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    setExchangePropAllCase (key: string, value: any = undefined): any {
-        this[key] = value;
-        const unCamelCasedKey = this.unCamelCase (key);
-        this[unCamelCasedKey] = value;
-    }
-
     checkProxySettings () {
         const proxyUrl = (this.proxyUrl !== undefined) ? this.proxyUrl : this.proxy_url;
         const proxyUrlCallback = (this.proxyUrlCallback !== undefined) ? this.proxyUrlCallback : this.proxy_url_callback;
@@ -1442,9 +1431,8 @@ export default class Exchange {
         let proxyHttp = (this.proxyHttp !== undefined) ? this.proxyHttp : this.proxy_http;
         // support for backward compatibility (note, atm safeStringN does not work in python for class https://app.travis-ci.com/github/ccxt/ccxt/builds/263490790#L4765 , so we have to use separate safeString)
         if (proxyHttp === undefined) {
-            const httpProxy = this.getProperty (this, 'httpProxy');
-            if (httpProxy !== undefined) {
-                proxyHttp = httpProxy;
+            if (this.httpProxy !== undefined) {
+                proxyHttp = this.httpProxy;
             }
         }
         const proxyHttps = (this.proxyHttps !== undefined) ? this.proxyHttps : this.proxy_https;
