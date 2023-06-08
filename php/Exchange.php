@@ -79,6 +79,8 @@ class Exchange {
     public $proxy_url = null;
     public $proxyUrlCallback = null;
     public $proxy_url_callback = null;
+    public $proxyHttp = null;
+    public $proxy_http = null;
     public $proxyHttps = null;
     public $proxy_https = null;
     public $proxySocks = null;

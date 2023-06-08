@@ -155,6 +155,8 @@ class Exchange(object):
     proxy_url = None
     proxyUrlCallback = None
     proxy_url_callback = None
+    proxyHttp = None
+    proxy_http = None
     proxyHttps = None
     proxy_https = None
     proxySocks = None
