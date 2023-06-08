@@ -161,7 +161,7 @@ class Exchange(object):
     proxy_socks = ''
     proxyAgentCallback = ''
     proxy_agent_callback = ''
-    httpProxy = '' # for backwards compatibility
+    httpProxy = ''  # for backwards compatibility
     origin = '*'  # CORS origin
     proxies = None
     hostname = None  # in case of inaccessibility of the "main" domain
@@ -1724,31 +1724,18 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    def safe_prop(self, obj, key1, defaultValue=None):
-        return self.get_property(obj, key1, defaultValue)
-
-    def safe_prop_2(self, obj, key1, key2, defaultValue=None):
-        val1 = self.safe_prop(obj, key1)
-        if val1 is not None:
-            return val1
-        return self.safe_prop(obj, key2, defaultValue)
-
-    def set_exchange_prop_all_case(self, key: str, value: Optional[Any] = None):
-        setattr(self, key, value)
-        unCamelCasedKey = self.un_camel_case(key)
-        setattr(self, unCamelCasedKey, value)
-
     def check_proxy_settings(self):
-        proxyUrl = self.safe_prop_2(self, 'proxyUrl', 'proxy_url')
-        proxyUrlCallback = self.safe_prop_2(self, 'proxyUrlCallback', 'proxy_url_callback')
+        proxyUrl = self.proxyUrl if (self.proxyUrl is not None) else self.proxy_url
+        proxyUrlCallback = self.proxyUrlCallback if (self.proxyUrlCallback is not None) else self.proxy_url_callback
         # for backwards compatibility,added old keys too
-        proxyHttp = self.safe_prop_2(self, 'proxyHttp', 'proxy_http')
+        proxyHttp = self.proxyHttp if (self.proxyHttp is not None) else self.proxy_http
         # support for backward compatibility(note, atm safeStringN does not work in python for class https://app.travis-ci.com/github/ccxt/ccxt/builds/263490790#L4765 , so we have to use separate safeString)
         if proxyHttp is None:
-            proxyHttp = self.safe_prop(self, 'httpProxy')
-        proxyHttps = self.safe_prop_2(self, 'proxyHttps', 'proxy_https')
-        proxySocks = self.safe_prop_2(self, 'proxySocks', 'proxy_socks')
-        proxyAgentCallback = self.safe_prop_2(self, 'proxyAgentCallback', 'proxy_agent_callback')
+            if self.httpProxy is not None:
+                proxyHttp = self.httpProxy
+        proxyHttps = self.proxyHttps if (self.proxyHttps is not None) else self.proxy_https
+        proxySocks = self.proxySocks if (self.proxySocks is not None) else self.proxy_socks
+        proxyAgentCallback = self.proxyAgentCallback if (self.proxyAgentCallback is not None) else self.proxy_agent_callback
         val = 0
         if proxyUrl is not None:
             val = val + 1
