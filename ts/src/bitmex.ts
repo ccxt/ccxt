@@ -2387,12 +2387,17 @@ export default class bitmex extends Exchange {
          * @param {object} params extra parameters specific to the bitmex api endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
+        // let currency = this.currency (code);
+        if (code !== 'BTC') {
+            throw new ExchangeError (this.id + ' supoprts BTC withdrawals only, other currencies coming soon...');
+        }
         const currency = this.currency (code);
         const request = {
-            'currency': currency['id'],
-            'amount': this.convertFromRealAmount (code, amount),
+            'currency': 'XBt', // temporarily
+            'amount': amount,
             'address': address,
             // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
             // 'fee': 0.001, // bitcoin network fee
@@ -2842,7 +2847,7 @@ export default class bitmex extends Exchange {
         //
         return {
             'currency': code,
-            'address': (response.replace ('"', '')).replace ('"', ''),  // Done twice because some languages only replace the first instance
+            'address': response.replace ('"', '').replace ('"', ''),  // Done twice because some languages only replace the first instance
             'tag': undefined,
             'network': this.networkIdToCode (networkId).toUpperCase (),
             'info': response,
