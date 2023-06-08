@@ -2044,6 +2044,10 @@ class gate(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
+        see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
+        see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
+        see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -2056,9 +2060,22 @@ class gate(Exchange, ImplicitAPI):
             'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'future': 'publicDeliveryGetSettleTickers',
+            'option': 'publicOptionsGetTickers',
         })
+        if market['option']:
+            marketId = market['id']
+            optionParts = marketId.split('-')
+            request['underlying'] = self.safe_string(optionParts, 0)
         response = getattr(self, method)(self.extend(request, query))
-        ticker = self.safe_value(response, 0)
+        ticker = None
+        if market['option']:
+            for i in range(0, len(response)):
+                entry = response[i]
+                if entry['name'] == market['id']:
+                    ticker = entry
+                    break
+        else:
+            ticker = self.safe_value(response, 0)
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
@@ -2109,16 +2126,37 @@ class gate(Exchange, ImplicitAPI):
         #        A: '0.0353'  # best ask size
         #     }
         #
-        marketId = self.safe_string_2(ticker, 'currency_pair', 'contract')
-        marketType = 'contract' if ('contract' in ticker) else 'spot'
+        # option
+        #
+        #     {
+        #         "vega": "0.00002",
+        #         "leverage": "12.277188268663",
+        #         "ask_iv": "0",
+        #         "delta": "-0.99999",
+        #         "last_price": "0",
+        #         "theta": "-0.00661",
+        #         "bid1_price": "1096",
+        #         "mark_iv": "0.7799",
+        #         "name": "BTC_USDT-20230608-28500-P",
+        #         "bid_iv": "0",
+        #         "ask1_price": "2935",
+        #         "mark_price": "2147.3",
+        #         "position_size": 0,
+        #         "bid1_size": 12,
+        #         "ask1_size": -14,
+        #         "gamma": "0"
+        #     }
+        #
+        marketId = self.safe_string_n(ticker, ['currency_pair', 'contract', 'name'])
+        marketType = 'contract' if ('mark_price' in ticker) else 'spot'
         symbol = self.safe_symbol(marketId, market, '_', marketType)
-        last = self.safe_string(ticker, 'last')
-        ask = self.safe_string_2(ticker, 'lowest_ask', 'a')
-        bid = self.safe_string_2(ticker, 'highest_bid', 'b')
+        last = self.safe_string_2(ticker, 'last', 'last_price')
+        ask = self.safe_string_n(ticker, ['lowest_ask', 'a', 'ask1_price'])
+        bid = self.safe_string_n(ticker, ['highest_bid', 'b', 'bid1_price'])
         high = self.safe_string(ticker, 'high_24h')
         low = self.safe_string(ticker, 'low_24h')
-        bidVolume = self.safe_string(ticker, 'B')
-        askVolume = self.safe_string(ticker, 'A')
+        bidVolume = self.safe_string_2(ticker, 'B', 'bid1_size')
+        askVolume = self.safe_string_2(ticker, 'A', 'ask1_size')
         timestamp = self.safe_integer(ticker, 't')
         baseVolume = self.safe_string_2(ticker, 'base_volume', 'volume_24h_base')
         if baseVolume == 'nan':
@@ -2156,6 +2194,7 @@ class gate(Exchange, ImplicitAPI):
         see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
         see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
         see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
+        see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -2173,7 +2212,13 @@ class gate(Exchange, ImplicitAPI):
             'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'future': 'publicDeliveryGetSettleTickers',
+            'option': 'publicOptionsGetTickers',
         })
+        if type == 'option':
+            self.check_required_argument('fetchTickers', symbols, 'symbols')
+            marketId = market['id']
+            optionParts = marketId.split('-')
+            request['underlying'] = self.safe_string(optionParts, 0)
         response = getattr(self, method)(self.extend(request, requestParams))
         return self.parse_tickers(response, symbols)
 
