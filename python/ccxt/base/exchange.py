@@ -151,17 +151,17 @@ class Exchange(object):
     api = None
     parseJsonResponse = True
     proxy = ''  # for backwards compatibility
-    proxyUrl = ''
-    proxy_url = ''
-    proxyUrlCallback = ''
-    proxy_url_callback = ''
-    proxyHttps = ''
-    proxy_https = ''
-    proxySocks = ''
-    proxy_socks = ''
-    proxyAgentCallback = ''
-    proxy_agent_callback = ''
-    httpProxy = ''  # for backwards compatibility
+    proxyUrl = None
+    proxy_url = None
+    proxyUrlCallback = None
+    proxy_url_callback = None
+    proxyHttps = None
+    proxy_https = None
+    proxySocks = None
+    proxy_socks = None
+    proxyAgentCallback = None
+    proxy_agent_callback = None
+    httpProxy = None  # for backwards compatibility
     origin = '*'  # CORS origin
     proxies = None
     hostname = None  # in case of inaccessibility of the "main" domain
@@ -408,13 +408,6 @@ class Exchange(object):
         # self.userAgent = {
         #     'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt/ccxt) Python/' + version
         # }
-
-        self.set_exchange_prop_all_case('proxyUrl', None)
-        self.set_exchange_prop_all_case('proxyUrlCallback', None)
-        self.set_exchange_prop_all_case('proxyHttp', None)
-        self.set_exchange_prop_all_case('proxyHttps', None)
-        self.set_exchange_prop_all_case('proxySocks', None)
-        self.set_exchange_prop_all_case('proxyAgentCallback', None)
 
         self.origin = self.uuid()
         self.userAgent = default_user_agent()
