@@ -413,6 +413,9 @@ export default class bitmex extends Exchange {
             const index = type === 'index';
             const contract = swap || future;
             let symbol = base + '/' + quote;
+            if (contract) {
+                symbol = symbol + ':' + settle;
+            }
             const status = this.safeString (market, 'state');
             const active = status !== 'Unlisted';
             let expiry = undefined;
@@ -420,10 +423,9 @@ export default class bitmex extends Exchange {
             if (future) {
                 expiryDatetime = this.safeString (market, 'expiry');
                 expiry = this.parse8601 (expiryDatetime);
-                symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry);
-            } else if (swap) {
-                symbol = symbol + ':' + settle;
+                symbol = symbol + '-' + this.yymmdd (expiry);
             } else if (index) {
+                // for index markets, default to id
                 symbol = id;
             }
             const isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
