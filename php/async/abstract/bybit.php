@@ -733,6 +733,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function private_get_v5_user_query_api($params = array()) {
         return $this->request('v5/user/query-api', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function private_get_v5_user_aff_customer_info($params = array()) {
+        return $this->request('v5/user/aff-customer-info', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function private_get_v5_customer_info($params = array()) {
         return $this->request('v5/customer/info', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -2025,6 +2028,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function privateGetV5UserQueryApi($params = array()) {
         return $this->request('v5/user/query-api', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function privateGetV5UserAffCustomerInfo($params = array()) {
+        return $this->request('v5/user/aff-customer-info', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function privateGetV5CustomerInfo($params = array()) {
         return $this->request('v5/customer/info', 'private', 'GET', $params, null, null, array("cost" => 10));

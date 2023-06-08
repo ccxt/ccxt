@@ -393,6 +393,7 @@ class bybit extends bybit$1 {
                         // user
                         'v5/user/query-sub-members': 10,
                         'v5/user/query-api': 10,
+                        'v5/user/aff-customer-info': 10,
                         'v5/customer/info': 10,
                         'v5/spot-cross-margin-trade/loan-info': 1,
                         'v5/spot-cross-margin-trade/account': 1,
