@@ -99,7 +99,7 @@ export default class xt extends xtRest {
         return client.subscriptions['accessToken'];
     }
 
-    async subscribe (name: string, access: string, methodName: string, market: object = undefined, params = {}) {
+    async subscribe (name: string, access: string, methodName: string, market: object = undefined, symbols: string[] = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -110,6 +110,7 @@ export default class xt extends xtRest {
          * @param {string} access public or private
          * @param {string} methodName the name of the CCXT class method
          * @param {object|undefined} market CCXT market
+         * @param {[string]|undefined} symbols unified market symbols
          * @param {object} params extra parameters specific to the xt api
          * @returns {object} data from the websocket stream
          */
@@ -135,7 +136,10 @@ export default class xt extends xtRest {
             subscribe['params'] = [ name ];
         }
         const tradeType = isContract ? 'contract' : 'spot';
-        const messageHash = name + ':' + tradeType;
+        let messageHash = name + '::' + tradeType;
+        if (symbols !== undefined) {
+            messageHash = messageHash + '::' + symbols.join ();
+        }
         const request = this.extend (subscribe, params);
         let tail = access;
         if (isContract) {
@@ -163,7 +167,7 @@ export default class xt extends xtRest {
         const defaultMethod = this.safeString (options, 'method', 'ticker');
         const method = this.safeString (params, 'method', defaultMethod);
         const name = method + '@' + market['id'];
-        return await this.subscribe (name, 'public', 'watchTicker', market, params);
+        return await this.subscribe (name, 'public', 'watchTicker', market, undefined, params);
     }
 
     async watchTickers (symbols: string[] = undefined, params = {}) {
@@ -174,7 +178,7 @@ export default class xt extends xtRest {
          * @see https://doc.xt.com/#websocket_publicallTicker
          * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
          * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
-         * @param {string} symbols not used by xt watchTickers
+         * @param {[string]} symbols unified market symbols
          * @param {object} params extra parameters specific to the xt api endpoint
          * @param {string} params.method 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -182,7 +186,15 @@ export default class xt extends xtRest {
         const options = this.safeValue (this.options, 'watchTickers');
         const defaultMethod = this.safeString (options, 'method', 'tickers');
         const name = this.safeString (params, 'method', defaultMethod);
-        return await this.subscribe (name, 'public', 'watchTickers', undefined, params);
+        let market = undefined;
+        if (symbols !== undefined) {
+            market = this.market (symbols[0]);
+        }
+        const tickers = await this.subscribe (name, 'public', 'watchTickers', market, symbols, params);
+        if (this.newUpdates) {
+            return tickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -201,7 +213,7 @@ export default class xt extends xtRest {
          */
         const market = this.market (symbol);
         const name = 'kline@' + market['id'] + ',' + timeframe;
-        return await this.subscribe (name, 'public', 'watchOHLCV', market, params);
+        return await this.subscribe (name, 'public', 'watchOHLCV', market, undefined, params);
     }
 
     async watchTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -220,7 +232,7 @@ export default class xt extends xtRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'trade@' + market['id'];
-        const trades = await this.subscribe (name, 'public', 'watchTrades', market, params);
+        const trades = await this.subscribe (name, 'public', 'watchTrades', market, undefined, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -249,7 +261,7 @@ export default class xt extends xtRest {
         if (levels !== undefined) {
             name = 'depth@' + market['id'] + ',' + levels;
         }
-        const orderbook = await this.subscribe (name, 'public', 'watchOrderBook', market, params);
+        const orderbook = await this.subscribe (name, 'public', 'watchOrderBook', market, undefined, params);
         return orderbook.limit ();
     }
 
@@ -272,7 +284,7 @@ export default class xt extends xtRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const orders = await this.subscribe (name, 'private', 'watchOrders', market, params);
+        const orders = await this.subscribe (name, 'private', 'watchOrders', market, undefined, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -298,7 +310,7 @@ export default class xt extends xtRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const trades = await this.subscribe (name, 'private', 'watchMyTrades', market, params);
+        const trades = await this.subscribe (name, 'private', 'watchMyTrades', market, undefined, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -317,7 +329,7 @@ export default class xt extends xtRest {
          */
         await this.loadMarkets ();
         const name = 'balance';
-        return await this.subscribe (name, 'private', 'watchBalance', undefined, params);
+        return await this.subscribe (name, 'private', 'watchBalance', undefined, undefined, params);
     }
 
     handleTicker (client: Client, message) {
@@ -390,7 +402,7 @@ export default class xt extends xtRest {
             const event = this.safeString (message, 'event');
             const market = this.market (symbol);
             const messageHashTail = market['contract'] ? 'contract' : 'spot';
-            const messageHash = event + ':' + messageHashTail;
+            const messageHash = event + '::' + messageHashTail;
             client.resolve (ticker, messageHash);
         }
         return message;
@@ -468,13 +480,29 @@ export default class xt extends xtRest {
         const firstTicker = this.safeValue (data, 0);
         const spotTest = this.safeString2 (firstTicker, 'cv', 'aq');
         const tradeType = (spotTest !== undefined) ? 'spot' : 'contract';
+        const newTickers = [];
         for (let i = 0; i < data.length; i++) {
             const tickerData = data[i];
             const ticker = this.parseTicker (tickerData);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
+            newTickers.push (ticker);
         }
-        client.resolve (this.tickers, 'tickers:' + tradeType);
+        const messageHashStart = this.safeString (message, 'topic') + '::' + tradeType;
+        const messageHashes = this.findMessageHashes (client, messageHashStart + '::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[2];
+            const symbols = symbolsString.split (',');
+            const tickers = this.filterByArray (newTickers, 'symbol', symbols);
+            const tickersSymbols = Object.keys (tickers);
+            const numTickers = tickersSymbols.length;
+            if (numTickers > 0) {
+                client.resolve (tickers, messageHash);
+            }
+        }
+        client.resolve (this.tickers, messageHashStart);
         return message;
     }
 
@@ -533,7 +561,7 @@ export default class xt extends xtRest {
             }
             stored.append (parsed);
             const event = this.safeString (message, 'event');
-            const messageHash = event + ':' + tradeType;
+            const messageHash = event + '::' + tradeType;
             client.resolve (stored, messageHash);
         }
         return message;
@@ -585,7 +613,7 @@ export default class xt extends xtRest {
                 this.trades[symbol] = tradesArray;
             }
             tradesArray.append (trade);
-            const messageHash = event + ':' + tradeType;
+            const messageHash = event + '::' + tradeType;
             client.resolve (tradesArray, messageHash);
         }
         return message;
@@ -663,7 +691,7 @@ export default class xt extends xtRest {
             const asks = this.safeValue (data, 'a');
             const bids = this.safeValue (data, 'b');
             let orderbook = this.safeValue (this.orderbooks, symbol);
-            const messageHash = event + ':' + tradeType;
+            const messageHash = event + '::' + tradeType;
             if (orderbook === undefined) {
                 const subscription = this.safeValue (client.subscriptions, messageHash, {});
                 const limit = this.safeInteger (subscription, 'limit');
@@ -878,7 +906,7 @@ export default class xt extends xtRest {
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const parsed = this.parseWsOrder (order, market);
             orders.append (parsed);
-            client.resolve (orders, 'order:' + tradeType);
+            client.resolve (orders, 'order::' + tradeType);
         }
         return message;
     }
@@ -928,7 +956,7 @@ export default class xt extends xtRest {
         this.balance[code] = account;
         this.balance = this.safeBalance (this.balance);
         const tradeType = ('coin' in data) ? 'contract' : 'spot';
-        client.resolve (this.balance, 'balance:' + tradeType);
+        client.resolve (this.balance, 'balance::' + tradeType);
     }
 
     handleMyTrades (client: Client, message) {
@@ -977,7 +1005,7 @@ export default class xt extends xtRest {
         const market = this.market (parsedTrade['symbol']);
         stored.append (parsedTrade);
         const tradeType = market['contract'] ? 'contract' : 'spot';
-        client.resolve (stored, 'trade:' + tradeType);
+        client.resolve (stored, 'trade::' + tradeType);
     }
 
     handleMessage (client, message) {
