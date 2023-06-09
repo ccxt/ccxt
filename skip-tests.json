@@ -920,10 +920,12 @@
                 "side":"side is undefined"
             },
             "fetchOrderBook": {
-                "compareToNextItem": "sometimes bid equals to next bid"
+                "compareToNextItem": "sometimes bid equals to next bid",
+                "compareToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263629640#L2165"
             },
             "fetchL2OrderBook": {
-                "compareToNextItem": "same"
+                "compareToNextItem": "same",
+                "compareToZero": "same"
             }
         }
     },
