@@ -68,7 +68,7 @@ export default class gate extends Exchange {
                 'margin': true,
                 'swap': true,
                 'future': true,
-                'option': undefined,
+                'option': true,
                 'addMargin': true,
                 'borrowMargin': true,
                 'cancelAllOrders': true,
@@ -5470,8 +5470,8 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['contract']) {
-            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        if (!market['future']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports future markets only');
         }
         const request = {
             'contract': market['id'],
