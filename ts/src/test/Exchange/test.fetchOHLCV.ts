@@ -24,11 +24,16 @@ async function testFetchOHLCV (exchange, skippedProperties, symbol) {
     const logText = testSharedMethods.logTemplate (exchange, method, ohlcvs);
     // check boundaries
     const barsLength = ohlcvs.length;
+    const barsLengthAboveZero = barsLength > 0;
     // ensure bars amount is less then limit
     assert (barsLength <= limit, 'Returned bars amount (' + barsLength.toString () + ') is more than requested (' + limit.toString () + ')' + logText);
-    // ensure bars amount is mroe than zero
+    // ensure bars amount is more than zero
     if (!('compareAmountToZero' in skippedProperties)) {
-        assert (barsLength > 0, 'Returned bars amount should be more then zero' + logText);
+        assert (barsLengthAboveZero, 'Returned bars amount should be more then zero' + logText);
+    }
+    // if no bars were returned, we can't do any more checks
+    if (!barsLengthAboveZero) {
+        return;
     }
     const minActrualTs = ohlcvs[0][0];
     const maxActualTs = ohlcvs[barsLength - 1][0];
