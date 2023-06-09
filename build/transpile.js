@@ -1995,8 +1995,8 @@ class Transpiler {
         });
 
         const baseFolders = {
-            ts: './ts/src/test/Exchange/',
-            tsBase: './ts/src/test/Exchange/base/',
+            ts: './ts/src/test/exchange/',
+            tsBase: './ts/src/test/exchange/base/',
             py: './python/ccxt/test/',
             pyBase: './python/ccxt/test/base/',
             php: './php/test/',
