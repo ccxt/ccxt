@@ -114,7 +114,7 @@ function init_exchange ($exchangeId, $args) {
 function set_test_files ($holderClass, $properties) {
     return Async\async (function() use ($holderClass, $properties){
         $skiped = ['test_throttle'];
-        foreach (glob(__DIR__ . '/' . (is_synchronous ? 'sync' : 'async') . '/test_*.php') as $filename) {
+        foreach (glob(__DIR__ . '/exchange-' . (is_synchronous ? 'sync' : 'async') . '/test_*.php') as $filename) {
             $basename = basename($filename);
             if (!in_array($basename, $skiped)) {
                 include_once $filename;
