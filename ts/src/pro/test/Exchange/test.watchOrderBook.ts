@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 
-import testOrderBook from '../../../test/Exchange/base/test.orderBook.js';
+import testOrderBook from '../../../test/exchange/base/test.orderBook.js';
 import errors from '../../../base/errors.js';
 
 /*  ------------------------------------------------------------------------ */

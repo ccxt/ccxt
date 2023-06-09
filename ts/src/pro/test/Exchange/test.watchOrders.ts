@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 import assert from 'assert';
-import testOrder from '../../../test/Exchange/base/test.order.js';
+import testOrder from '../../../test/exchange/base/test.order.js';
 import errors from '../../../base/errors.js';
 
 /*  ------------------------------------------------------------------------ */

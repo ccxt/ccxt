@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 import assert from 'assert';
-import testOHLCV from '../../../test/Exchange/base/test.ohlcv.js';
+import testOHLCV from '../../../test/exchange/base/test.ohlcv.js';
 import errors from '../../../base/errors.js';
 
 /*  ------------------------------------------------------------------------ */

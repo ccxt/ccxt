@@ -2,7 +2,7 @@
 
 // ----------------------------------------------------------------------------
 
-import testTicker from '../../../test/Exchange/base/test.ticker.js';
+import testTicker from '../../../test/exchange/base/test.ticker.js';
 import errors from '../../../base/errors.js';
 
 /*  ------------------------------------------------------------------------ */

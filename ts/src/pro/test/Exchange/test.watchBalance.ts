@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 import assert from 'assert';
-import testBalance from '../../../test/Exchange/base/test.balance.js';
+import testBalance from '../../../test/exchange/base/test.balance.js';
 import errors from '../../../base/errors.js';
 
 
