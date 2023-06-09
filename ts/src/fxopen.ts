@@ -1589,6 +1589,22 @@ export default class fxopen extends Exchange {
         return this.parseOrder (response);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'New': 'open',
+            'Calculated': 'open',
+            'Filled': 'closed',
+            'PartiallyFilled': 'open', // Calculated is considered open state for pending order
+            'Canceled': 'canceled',
+            'PendingCancel': 'canceling',
+            'Rejected': 'rejected',
+            'Expired': 'expired',
+            'PendingReplace': 'open',
+            'Executing': 'open',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
         // {
         //     "Id": 0,
@@ -1658,17 +1674,10 @@ export default class fxopen extends Exchange {
         }
         const stopLossPrice = this.omitZero (this.safeString (order, 'StopLoss'));
         const takeProfitPrice = this.omitZero (this.safeString (order, 'TakeProfit'));
-        let status = 'open';
-        // Fix status for order returned from createOrder/editOrder
-        if (type === 'market') {
-            status = 'closed';
-        } else if (type === 'limit') {
-            const hasRemainingAmount = Precise.stringGt (remaining, '0');
-            if (timeInForce === 'IOC') {
-                status = (hasRemainingAmount) ? 'canceled' : 'closed';
-            } else if (!hasRemainingAmount) {
-                status = 'closed';
-            }
+        const rawStatus = this.safeString (order, 'Status');
+        let status = this.parseOrderStatus (this.safeString (order, 'Status'));
+        if ((rawStatus === 'PartiallyFilled') && (timeInForce === 'IOC')) {
+            status = 'canceled';
         }
         let cost = undefined;
         if (price !== undefined) {
@@ -1761,9 +1770,7 @@ export default class fxopen extends Exchange {
                 request['ById'] = this.parseNumber (closeById);
             }
             const response = await this.privateDeleteTrade (this.extend (request, params));
-            const order = this.parseOrder (response['Trade']);
-            order['status'] = 'closed';
-            return order;
+            return this.parseOrder (response['Trade']);
         } else {
             params = this.omit (params, 'mode', 'closeAmount', 'closeById');
             const request = {
@@ -1771,9 +1778,7 @@ export default class fxopen extends Exchange {
                 'Id': this.parseNumber (id),
             };
             const response = await this.privateDeleteTrade (this.extend (request, params));
-            const order = this.parseOrder (response['Trade']);
-            order['status'] = 'canceled';
-            return order;
+            return this.parseOrder (response['Trade']);
         }
     }
 
@@ -2399,6 +2404,16 @@ export default class fxopen extends Exchange {
         return order;
     }
 
+    parseOrderStatusFromTradeRecord (status) {
+        const statuses = {
+            'OrderCanceled': 'canceled',
+            'OrderExpired': 'expired',
+            'OrderFilled': 'closed',
+            'PositionClosed': 'closed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrderFromTradeRecord (trade) {
         // {
         //     "Id": "string",
@@ -2527,13 +2542,7 @@ export default class fxopen extends Exchange {
             fee['currency'] = feeCurrency;
             fee['cost'] = feeCost;
         }
-        const transactionType = this.safeString (trade, 'TransactionType');
-        let status = 'closed';
-        if (transactionType === 'OrderCanceled') {
-            status = 'canceled';
-        } else if (transactionType === 'OrderExpired') {
-            status = 'expired';
-        }
+        const status = this.parseOrderStatusFromTradeRecord (this.safeString (trade, 'TransactionType'));
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
