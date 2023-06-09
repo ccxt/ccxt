@@ -133,11 +133,11 @@ export default class hitbtc3 extends hitbtc3Rest {
         }
         const subscribe = {
             'method': 'subscribe',
-            'params': params,
             'id': this.nonce (),
             'ch': name,
         };
-        return await this.watch (url, messageHash, subscribe, messageHash);
+        const request = this.extend (subscribe, params);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     async subscribePrivate (name: string, symbol: string = undefined, params = {}) {
@@ -483,15 +483,14 @@ export default class hitbtc3 extends hitbtc3Rest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbols': [ market['id'] ],
+            'params': {
+                'symbols': [ market['id'] ],
+            },
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        params = this.deepExtend ({
-            'params': request,
-        });
-        const trades = await this.subscribePublic ('trades', [ symbol ], params);
+        const trades = await this.subscribePublic ('trades', [ symbol ], this.deepExtend (request, params));
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -624,8 +623,7 @@ export default class hitbtc3 extends hitbtc3Rest {
         if (limit !== undefined) {
             request['params']['limit'] = limit;
         }
-        params = this.deepExtend (request, params);
-        const ohlcv = await this.subscribePublic (name, [ symbol ], params);
+        const ohlcv = await this.subscribePublic (name, [ symbol ], this.deepExtend (request, params));
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
