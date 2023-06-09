@@ -2222,7 +2222,13 @@ export default class fxopen extends Exchange {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        await this.loadAccountInfo ();
+        const accInfo = await this.loadAccountInfo ();
+        if (accInfo['isGrossType']) {
+            // Gross account positions are tricky to implement.
+            // Basically they consist of 2 trades: 1 when position opened, 2 opposite when position closed
+            // Though there are edge cases with closeById
+            throw new NotSupported (this.id + ' fetchMyTrades() is not supported on this account type');
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2379,7 +2385,13 @@ export default class fxopen extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        await this.loadAccountInfo ();
+        const accInfo = await this.loadAccountInfo ();
+        if (accInfo['isGrossType']) {
+            // Gross account positions are tricky to implement.
+            // Basically they consist of 2 trades: 1 when position opened, 2 opposite when position closed
+            // Though there are edge cases with closeById
+            throw new NotSupported (this.id + ' fetchOrder() is not supported on this account type');
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2390,8 +2402,24 @@ export default class fxopen extends Exchange {
         } catch (e) {
             openOrder = undefined; // bypass linter check
         }
-        const orderTrades = await this.fetchOrderTrades (id, symbol);
-        return this.parseOrderWithTrades (openOrder, orderTrades, market);
+        if (openOrder !== undefined) {
+            const orderTrades = await this.fetchOrderTrades (id, symbol);
+            openOrder['trades'] = orderTrades;
+        } else {
+            const request = {
+                'orderId': id,
+                'SkipCancelOrder': false,
+            };
+            const since = undefined;
+            const limit = 1000;
+            const historyResponse = await this.fetchTradeHistoryInternal (since, limit, request);
+            const records = this.sortBy (historyResponse['Records'], 'TransactionTimestamp', true);
+            openOrder = this.parseOrderFromTradeRecord (records[0]);
+            const requiredTypes = [ 'OrderFilled', 'PositionClosed' ];
+            const trades = this.filterByArray (records, 'TransactionType', requiredTypes, false);
+            openOrder['trades'] = this.parseTrades (trades, market, since, limit);
+        }
+        return openOrder;
     }
 
     parseOrderWithTrades (order, trades, market = undefined) {
