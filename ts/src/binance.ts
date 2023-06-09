@@ -8026,6 +8026,8 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#reduceMargin
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
+         * @see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
          * @description remove margin from a position
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
@@ -8039,6 +8041,8 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#addMargin
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
+         * @see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
          * @description add margin
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
