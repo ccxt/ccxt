@@ -415,9 +415,9 @@ export default class fxopen extends Exchange {
         let settle = undefined;
         const accInfo = this.accountInfo (false);
         if (accInfo !== undefined) {
-            marketType = this.safeString (accInfo, 'marketType');
-            settleId = this.safeString (accInfo, 'currencyId');
-            settle = this.safeString (accInfo, 'code');
+            marketType = accInfo['marketType'];
+            settleId = accInfo['settleId'];
+            settle = accInfo['settle'];
         } else {
             const serverType = this.safeString (this.options, 'serverType');
             const serverInfo = this.safeValue (this.options['servers'], serverType);
@@ -501,13 +501,13 @@ export default class fxopen extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
         const active = this.safeValue (market, 'IsTradeAllowed', false);
-        const minAmount = this.safeNumber (market, 'MinTradeAmount');
-        const maxAmount = this.safeNumber (market, 'MaxTradeAmount');
+        const minAmount = this.safeString (market, 'MinTradeAmount');
+        const maxAmount = this.safeString (market, 'MaxTradeAmount');
         const amountStep = this.safeString (market, 'TradeAmountStep');
         const pricePrecision = this.safeInteger (market, 'Precision');
         const amountPrecision = this.precisionFromString (amountStep);
-        const takerFee = this.safeNumber (market, 'Commission');
-        const makerFee = this.safeNumber (market, 'LimitsCommission');
+        const takerFee = this.safeString (market, 'Commission');
+        const makerFee = this.safeString (market, 'LimitsCommission');
         const feeType = this.safeString (market, 'CommissionType');
         // 'Forex', 'CFD'
         // Forex:
@@ -539,8 +539,8 @@ export default class fxopen extends Exchange {
             'inverse': false,
             'expiry': undefined,
             'expiryDatetime': undefined,
-            'taker': takerFee,
-            'maker': makerFee,
+            'taker': this.parseNumber (takerFee),
+            'maker': this.parseNumber (makerFee),
             'percentage': feeType === 'Percentage',
             'tierBased': false,
             'feeSide': 'get',
@@ -551,8 +551,8 @@ export default class fxopen extends Exchange {
             },
             'limits': {
                 'amount': {
-                    'min': minAmount,
-                    'max': maxAmount,
+                    'min': this.parseNumber (minAmount),
+                    'max': this.parseNumber (maxAmount),
                 },
                 'price': {
                     'min': undefined,
@@ -658,7 +658,15 @@ export default class fxopen extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const request = this.createRequestWithSymbolsFilter (symbols);
+        let filter = '';
+        if (symbols !== undefined) {
+            const marketIds = this.marketIds (symbols);
+            // param is injected in url space char has to be encoded
+            filter = marketIds.join ('%20');
+        }
+        const request = {
+            'filter': filter,
+        };
         const response = await this.publicGetTickerFilter (this.extend (request, params));
         // response === array of ticker objects
         return this.parseTickers (response, symbols);
@@ -674,7 +682,9 @@ export default class fxopen extends Exchange {
          * @returns {object} [Ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const request = this.createRequestWithSymbolFilter (symbol);
+        const request = {
+            'filter': this.marketId (symbol),
+        };
         const response = await this.publicGetTickerFilter (this.extend (request, params));
         // response === array of ticker objects
         return this.parseTicker (this.safeValue (response, 0));
@@ -700,13 +710,13 @@ export default class fxopen extends Exchange {
         const marketId = this.safeString (ticker, 'Symbol');
         const symbol = this.safeSymbol (marketId);
         const timestamp = this.milliseconds ();
-        const bid = this.safePriceStringInternal (ticker, 'BestBid');
-        const ask = this.safePriceStringInternal (ticker, 'BestAsk');
-        const baseVolume = this.safeNumber (ticker, 'DailyTradedTotalVolume');
+        const bid = this.omitZero (this.safeString (ticker, 'BestBid'));
+        const ask = this.omitZero (this.safeString (ticker, 'BestAsk'));
+        const baseVolume = this.safeString (ticker, 'DailyTradedTotalVolume');
         const lastSellTimestamp = this.safeInteger (ticker, 'LastSellTimestamp');
-        const lastSellPrice = this.safePriceStringInternal (ticker, 'LastSellPrice');
+        const lastSellPrice = this.omitZero (this.safeString (ticker, 'LastSellPrice'));
         const lastBuyTimestamp = this.safeInteger (ticker, 'LastBuyTimestamp');
-        const lastBuyPrice = this.safePriceStringInternal (ticker, 'LastBuyPrice');
+        const lastBuyPrice = this.omitZero (this.safeString (ticker, 'LastBuyPrice'));
         let closeStr = lastSellPrice;
         if (lastSellTimestamp < lastBuyTimestamp) {
             closeStr = lastBuyPrice;
@@ -730,7 +740,7 @@ export default class fxopen extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': baseVolume,
+            'baseVolume': this.parseNumber (baseVolume),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -740,13 +750,21 @@ export default class fxopen extends Exchange {
         /**
          * @method
          * @name fxopen#fetchBidsAsks
-         * @description fetches the bid and ask price and volume for multiple markets
+         * @description fetches the best bid and ask price and volume for multiple markets
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const request = this.createRequestWithSymbolsFilter (symbols);
+        let filter = '';
+        if (symbols !== undefined) {
+            const marketIds = this.marketIds (symbols);
+            // param is injected in url space char has to be encoded
+            filter = marketIds.join ('%20');
+        }
+        const request = {
+            'filter': filter,
+        };
         const response = await this.publicGetTickFilter (this.extend (request, params));
         // response === array of best bid/ask objects
         return this.parseBidsAsksAsTickers (response, symbols);
@@ -796,21 +814,27 @@ export default class fxopen extends Exchange {
         const symbol = this.safeSymbol (marketId);
         const timestamp = this.safeInteger (bidask, 'Timestamp');
         const bestBidObj = this.safeValue (bidask, 'BestBid', {});
-        const bid = this.safeNumber (bestBidObj, 'Price');
-        const bidVolume = this.safeNumber (bestBidObj, 'Volume');
+        const bid = this.safeString (bestBidObj, 'Price');
+        let bidVolume = undefined;
         const bestAskObj = this.safeValue (bidask, 'BestAsk', {});
-        const ask = this.safeNumber (bestAskObj, 'Price');
-        const askVolume = this.safeNumber (bestAskObj, 'Volume');
+        const ask = this.safeString (bestAskObj, 'Price');
+        let askVolume = undefined;
+        const isIndicativeTick = this.safeValue (bidask, 'IndicativeTick', false);
+        if (!isIndicativeTick) {
+            // indicative ticks are not tradable, they are used for conversion rates
+            bidVolume = this.safeString (bestBidObj, 'Volume');
+            askVolume = this.safeString (bestAskObj, 'Volume');
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': bid,
-            'bidVolume': bidVolume,
-            'ask': ask,
-            'askVolume': askVolume,
+            'bid': this.parseNumber (bid),
+            'bidVolume': this.parseNumber (bidVolume),
+            'ask': this.parseNumber (ask),
+            'askVolume': this.parseNumber (askVolume),
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
@@ -835,7 +859,15 @@ export default class fxopen extends Exchange {
          * @returns {object} a dictionary of [lastPrice structures]
          */
         await this.loadMarkets ();
-        const request = this.createRequestWithSymbolsFilter (symbols);
+        let filter = '';
+        if (symbols !== undefined) {
+            const marketIds = this.marketIds (symbols);
+            // param is injected in url space char has to be encoded
+            filter = marketIds.join ('%20');
+        }
+        const request = {
+            'filter': filter,
+        };
         const response = await this.publicGetTickerFilter (this.extend (request, params));
         // response === array of ticker objects
         return this.parseLastPrices (response, symbols);
@@ -903,7 +935,9 @@ export default class fxopen extends Exchange {
          * @returns {object} [Order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure}
          */
         await this.loadMarkets ();
-        const request = this.createRequestWithSymbolFilter (symbol);
+        const request = {
+            'filter': this.marketId (symbol),
+        };
         if (limit !== undefined) {
             request['depth'] = limit;
         }
@@ -948,9 +982,23 @@ export default class fxopen extends Exchange {
             symbol = this.symbol (marketId);
         }
         const timestamp = this.safeInteger (orderBook, 'Timestamp');
-        const res = this.parseOrderBook (orderBook, symbol, timestamp, 'Bids', 'Asks', 'Price', 'Volume');
-        res['info'] = orderBook;
-        return res;
+        const isIndicativeTick = this.safeValue (orderBook, 'IndicativeTick');
+        if (isIndicativeTick) {
+            // indicative ticks are not tradable, they are used for conversion rates
+            return {
+                'symbol': symbol,
+                'bids': [],
+                'asks': [],
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'nonce': undefined,
+                'info': undefined,
+            };
+        } else {
+            const res = this.parseOrderBook (orderBook, symbol, timestamp, 'Bids', 'Asks', 'Price', 'Volume');
+            res['info'] = orderBook;
+            return res;
+        }
     }
 
     async fetchOrderBooks (symbols: string[] = undefined, limit: Int = undefined, params = {}) {
@@ -964,7 +1012,15 @@ export default class fxopen extends Exchange {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const request = this.createRequestWithSymbolsFilter (symbols);
+        let filter = '';
+        if (symbols !== undefined) {
+            const marketIds = this.marketIds (symbols);
+            // param is injected in url space char has to be encoded
+            filter = marketIds.join ('%20');
+        }
+        const request = {
+            'filter': filter,
+        };
         if (limit !== undefined) {
             request['depth'] = limit;
         }
@@ -1262,37 +1318,42 @@ export default class fxopen extends Exchange {
         const id = this.safeString (account, 'Id');
         const name = this.safeString (account, 'Name');
         const fxopenType = this.safeString (account, 'AccountingType');
-        const currencyId = this.safeString (account, 'BalanceCurrency');
-        let code = this.safeCurrencyCode (currencyId);
-        let type = 'margin';
-        let marketType = 'swap';
-        if (fxopenType === 'Cash') {
-            type = 'spot';
+        const isGrossType = fxopenType === 'Gross';
+        const isNetType = fxopenType === 'Net';
+        const isCashType = fxopenType === 'Cash';
+        let marketType = undefined;
+        let settleId = undefined;
+        let settle = undefined;
+        if (isCashType) {
             marketType = 'spot';
             // cash accounts have a collection of zero or more assets
             // available at this.privateGetAsset ()
-            code = undefined;
+        } else {
+            marketType = 'swap';
+            settleId = this.safeString (account, 'BalanceCurrency');
+            settle = this.safeCurrencyCode (settleId);
         }
-        const leverage = this.safeNumber (account, 'Leverage');
+        const leverage = this.safeString (account, 'Leverage', '1');
         const marginCallLevel = this.safeString (account, 'MarginCallLevel');
         const marginCallCoeff = Precise.stringDiv (marginCallLevel, '100');
         const stopOutLevel = this.safeString (account, 'StopOutLevel');
         const stopOutCoeff = Precise.stringDiv (stopOutLevel, '100');
+        const balance = this.safeString (account, 'Balance');
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'id': id,
             'name': name,
-            'type': type,
-            'code': code,
             'marketType': marketType,
-            'fxopenType': fxopenType,
-            'currencyId': currencyId,
-            'leverage': leverage,
-            'marginCallLevel': this.parseNumber (marginCallLevel),
-            'marginCallCoeff': marginCallCoeff,
-            'stopOutLevel': this.parseNumber (stopOutLevel),
-            'stopOutCoeff': stopOutCoeff,
+            'settleId': settleId,
+            'settle': settle,
+            'isGrossType': isGrossType,
+            'isNetType': isNetType,
+            'isCashType': isCashType,
+            'leverageStr': leverage,
+            'marginCallCoeffStr': marginCallCoeff,
+            'stopOutCoeffStr': stopOutCoeff,
+            'cachedBalanceStr': balance,
             'info': account,
         };
     }
@@ -1306,7 +1367,7 @@ export default class fxopen extends Exchange {
          * @returns {object} an object representing [balance structure]{@link https://docs.ccxt.com/#/README?id=balance-structure}.
          */
         const accInfo = await this.loadAccountInfo (false, params);
-        if (this.isCashAccount (accInfo)) {
+        if (accInfo['isCashType']) {
             const response = await this.privateGetAsset (params);
             return this.parseCashAccBalance (response);
         } else {
@@ -1436,7 +1497,7 @@ export default class fxopen extends Exchange {
         if (stopPrice !== undefined) {
             request['StopPrice'] = this.parseNumber (this.priceToPrecision (symbol, stopPrice));
         }
-        const isNotGrossAccount = (!this.isGrossAccount (accInfo));
+        const isNotGrossAccount = (!accInfo['isGrossType']);
         if (stopLossPrice !== undefined) {
             if (isNotGrossAccount) {
                 throw new NotSupported (this.id + ' createOrder() params.stopLossPrice is ignored on this account type');
@@ -1468,7 +1529,7 @@ export default class fxopen extends Exchange {
          * @name fxopen#editOrder
          * @description edit a trade order. Can be used to edit stopLossPrice, takeProfitPrice of Gross account positions.
          * @param {string} id cancel order id
-         * @param {string|undefined} symbol unified symbol of the market the order was opened in. Used for rounding price/amount values
+         * @param {string} symbol unified symbol of the market the order was opened in. Used for rounding price/amount values
          * @param {string|undefined} type not used by fxopen.editOrder()
          * @param {string|undefined} side not used by fxopen.editOrder()
          * @param {float|undefined} amount how much of currency you want to trade in units of base currency. Overriden by params.amountChange
@@ -1497,29 +1558,29 @@ export default class fxopen extends Exchange {
             if (amountChange !== undefined) {
                 throw new BadRequest (this.id + ' editOrder() amount and params.amountChange cannot be both specified. Prefer using params.amountChange');
             }
-            request['Amount'] = this.parseNumber (this.amountToPrecisionOptional (symbol, amount));
+            request['Amount'] = this.parseNumber (this.amountToPrecision (symbol, amount));
         }
         if (price !== undefined) {
-            request['Price'] = this.parseNumber (this.priceToPrecisionOptional (symbol, price));
+            request['Price'] = this.parseNumber (this.priceToPrecision (symbol, price));
         }
         if (stopPrice !== undefined) {
-            request['StopPrice'] = this.parseNumber (this.priceToPrecisionOptional (symbol, stopPrice));
+            request['StopPrice'] = this.parseNumber (this.priceToPrecision (symbol, stopPrice));
         }
-        const isNotGrossAccount = (!this.isGrossAccount (accInfo));
+        const isNotGrossAccount = (!accInfo['isGrossType']);
         if (stopLossPrice !== undefined) {
             if (isNotGrossAccount) {
                 throw new NotSupported (this.id + ' editOrder() params.stopLossPrice is ignored on this account type');
             }
-            request['StopLoss'] = this.parseNumber (this.priceToPrecisionOptional (symbol, stopLossPrice));
+            request['StopLoss'] = this.parseNumber (this.priceToPrecision (symbol, stopLossPrice));
         }
         if (takeProfitPrice !== undefined) {
             if (isNotGrossAccount) {
                 throw new NotSupported (this.id + ' editOrder() params.takeProfitPrice is ignored on this account type');
             }
-            request['TakeProfit'] = this.parseNumber (this.priceToPrecisionOptional (symbol, takeProfitPrice));
+            request['TakeProfit'] = this.parseNumber (this.priceToPrecision (symbol, takeProfitPrice));
         }
         if (amountChange !== undefined) {
-            request['AmountChange'] = this.parseNumber (this.amountToPrecisionOptional (symbol, amountChange));
+            request['AmountChange'] = this.parseNumber (this.amountToPrecision (symbol, amountChange));
         }
         if (expiry !== undefined) {
             request['ExpiredTimestamp'] = expiry;
@@ -1579,7 +1640,6 @@ export default class fxopen extends Exchange {
         const type = this.safeStringLower (order, 'Type');
         const timestamp = this.safeInteger (order, 'Created');
         const lastTradeTimestamp = this.safeIntegerGt0 (order, 'Filled');
-        let price = this.safePriceStringInternal (order, 'Price');
         const amount = this.safeString (order, 'InitialAmount');
         const remaining = this.safeString (order, 'RemainingAmount');
         const filled = this.safeString (order, 'FilledAmount');
@@ -1591,12 +1651,13 @@ export default class fxopen extends Exchange {
         } else if (expiry !== undefined) {
             timeInForce = 'GTD'; // Good till date
         }
-        const stopPrice = this.safePriceStringInternal (order, 'StopPrice');
+        let price = this.omitZero (this.safeString (order, 'Price'));
+        const stopPrice = this.omitZero (this.safeString (order, 'StopPrice'));
         if (type === 'stop') {
             price = stopPrice;
         }
-        const stopLossPrice = this.safePriceStringInternal (order, 'StopLoss');
-        const takeProfitPrice = this.safePriceStringInternal (order, 'TakeProfit');
+        const stopLossPrice = this.omitZero (this.safeString (order, 'StopLoss'));
+        const takeProfitPrice = this.omitZero (this.safeString (order, 'TakeProfit'));
         let status = 'open';
         // Fix status for order returned from createOrder/editOrder
         if (type === 'market') {
@@ -1618,7 +1679,7 @@ export default class fxopen extends Exchange {
         const fee = {};
         const accInfo = this.accountInfo ();
         const commission = this.safeString (order, 'Commission', '0');
-        if (this.isCashAccount (accInfo)) {
+        if (accInfo['isCashType']) {
             if (market === undefined) {
                 market = this.market (symbol);
             }
@@ -1626,7 +1687,7 @@ export default class fxopen extends Exchange {
             fee['cost'] = commission;
         } else {
             const swap = this.safeString (order, 'Swap', '0');
-            const feeCurrency = this.safeString (accInfo, 'code');
+            const feeCurrency = accInfo['settle'];
             const feeCost = Precise.stringAdd (commission, swap);
             fee['currency'] = feeCurrency;
             fee['cost'] = feeCost;
@@ -1676,7 +1737,7 @@ export default class fxopen extends Exchange {
         const accInfo = await this.loadAccountInfo ();
         const mode = this.safeString (params, 'mode');
         if (mode === 'close') {
-            if (!this.isGrossAccount (accInfo)) {
+            if (!accInfo['isGrossType']) {
                 throw new NotSupported (this.id + ' cancelOrder() params.mode === close is not supported on this account type');
             }
             const closeAmount = this.safeValue (params, 'closeAmount');
@@ -1694,7 +1755,7 @@ export default class fxopen extends Exchange {
                 if (closeById !== undefined) {
                     throw new BadRequest (this.id + ' cancelOrder() params.closeAmount and params.closeById cannot be both specified');
                 }
-                request['Amount'] = this.parseNumber (this.amountToPrecisionOptional (symbol, closeAmount));
+                request['Amount'] = this.parseNumber (this.amountToPrecision (symbol, closeAmount));
             }
             if (closeById !== undefined) {
                 request['ById'] = this.parseNumber (closeById);
@@ -1735,7 +1796,7 @@ export default class fxopen extends Exchange {
         const accInfo = await this.loadAccountInfo ();
         const response = await this.privateGetTrade (params);
         // response === array of objects
-        if (this.isGrossAccount (accInfo)) {
+        if (accInfo['isGrossType']) {
             const orderTypes = [ 'Limit', 'Stop', 'StopLimit' ];
             const filtered = this.filterByArray (response, 'Type', orderTypes, false);
             return this.parseOrders (filtered, market, since, limit);
@@ -1777,10 +1838,10 @@ export default class fxopen extends Exchange {
          */
         await this.loadMarkets ();
         const accInfo = await this.loadAccountInfo ();
-        if (this.isCashAccount (accInfo)) {
+        if (accInfo['isCashType']) {
             throw new NotSupported (this.id + ' fetchPositions() is not supported on this account type');
         }
-        if (this.isNetAccount (accInfo)) {
+        if (accInfo['isNetType']) {
             const response = await this.privateGetPosition (params);
             return this.parsePositions (response, symbols);
         } else {
@@ -1801,7 +1862,7 @@ export default class fxopen extends Exchange {
          */
         await this.loadMarkets ();
         const accInfo = await this.loadAccountInfo ();
-        if (this.isCashAccount (accInfo)) {
+        if (accInfo['isCashType']) {
             throw new NotSupported (this.id + ' fetchPosition() is not supported on this account type');
         }
         let id = symbol;
@@ -1812,7 +1873,7 @@ export default class fxopen extends Exchange {
         const request = {
             'id': id,
         };
-        if (this.isNetAccount (accInfo)) {
+        if (accInfo['isNetType']) {
             const response = await this.privateGetPositionId (this.extend (request, params));
             return this.parsePosition (response);
         } else {
@@ -1830,9 +1891,9 @@ export default class fxopen extends Exchange {
 
     parsePosition (position, market = undefined) {
         const accInfo = this.accountInfo ();
-        if (this.isGrossAccount (accInfo)) {
+        if (accInfo['isGrossType']) {
             return this.parseGrossPosition (position, accInfo, market);
-        } else if (this.isNetAccount (accInfo)) {
+        } else if (accInfo['isNetType']) {
             return this.parseNetPosition (position, accInfo, market);
         } else {
             throw new NotSupported (this.id + ' parsePosition() is not supported on this account type');
@@ -1904,7 +1965,7 @@ export default class fxopen extends Exchange {
         const initialMargin = this.safeString (position, 'Margin');
         const initialMarginPercentage = Precise.stringDiv ('1', leverage);
         const notional = Precise.stringMul (initialMargin, leverage);
-        const stopOutCoeff = this.safeString (accInfo, 'stopOutCoeff');
+        const stopOutCoeff = accInfo['stopOutCoeffStr'];
         const maintenanceMargin = Precise.stringMul (initialMargin, stopOutCoeff);
         const maintenanceMarginPercentage = Precise.stringMul (initialMarginPercentage, stopOutCoeff);
         const unrealizedPnl = this.safeString (position, 'Profit');
@@ -1932,7 +1993,7 @@ export default class fxopen extends Exchange {
                 markPrice = Precise.stringMul (entryPrice, Precise.stringDiv (upper, lower));
             }
         }
-        const accBalance = this.getCachedMarginBalance (accInfo);
+        const accBalance = accInfo['cachedBalanceStr'];
         let collateral = undefined;
         if (side === 'long') {
             // collateral = entryPrice * remaining * settlementCurrencyConversionRate
@@ -2026,12 +2087,12 @@ export default class fxopen extends Exchange {
         const initialMargin = this.safeString (position, 'Margin');
         const initialMarginPercentage = Precise.stringDiv ('1', leverage);
         const notional = Precise.stringMul (initialMargin, leverage);
-        const stopOutCoeff = this.safeString (accInfo, 'stopOutCoeff');
+        const stopOutCoeff = accInfo['stopOutCoeffStr'];
         const maintenanceMargin = Precise.stringMul (initialMargin, stopOutCoeff);
         const maintenanceMarginPercentage = Precise.stringMul (initialMarginPercentage, stopOutCoeff);
         const unrealizedPnl = this.safeString (position, 'Profit');
         const percentage = Precise.stringMul ('100', Precise.stringDiv (unrealizedPnl, initialMargin));
-        const accBalance = this.getCachedMarginBalance (accInfo);
+        const accBalance = accInfo['cachedBalanceStr'];
         let collateral = undefined;
         if (side === 'long') {
             // collateral = entryPrice * remaining * settlementCurrencyConversionRate
@@ -2275,13 +2336,13 @@ export default class fxopen extends Exchange {
         const fee = {};
         const accInfo = this.accountInfo ();
         const commission = Precise.stringAbs (this.safeString (trade, 'Commission'));
-        if (this.isCashAccount (accInfo)) {
+        if (accInfo['isCashType']) {
             const feeCurrencyId = this.safeString (trade, 'CommissionCurrency');
             fee['currency'] = this.safeCurrencyCode (feeCurrencyId);
             fee['cost'] = commission;
         } else {
             const swap = this.safeString (trade, 'Swap');
-            const feeCurrency = this.safeString (accInfo, 'code');
+            const feeCurrency = accInfo['settle'];
             const feeCost = Precise.stringAdd (commission, swap);
             fee['currency'] = feeCurrency;
             fee['cost'] = feeCost;
@@ -2449,19 +2510,19 @@ export default class fxopen extends Exchange {
         } else if (expiry !== undefined) {
             timeInForce = 'GTD'; // Good till date
         }
-        const stopLossPrice = this.safePriceStringInternal (trade, 'StopLoss');
-        const takeProfitPrice = this.safePriceStringInternal (trade, 'TakeProfit');
+        const stopLossPrice = this.omitZero (this.safeString (trade, 'StopLoss'));
+        const takeProfitPrice = this.omitZero (this.safeString (trade, 'TakeProfit'));
         const cost = Precise.stringMul (price, amount);
         const fee = {};
         const accInfo = this.accountInfo ();
         const commission = this.safeString (trade, 'Commission');
-        if (this.isCashAccount (accInfo)) {
+        if (accInfo['isCashType']) {
             const feeCurrencyId = this.safeString (trade, 'CommissionCurrency');
             fee['currency'] = this.safeCurrencyCode (feeCurrencyId);
             fee['cost'] = commission;
         } else {
             const swap = this.safeString (trade, 'Swap');
-            const feeCurrency = this.safeString (accInfo, 'code');
+            const feeCurrency = accInfo['settle'];
             const feeCost = Precise.stringAdd (commission, swap);
             fee['currency'] = feeCurrency;
             fee['cost'] = feeCost;
@@ -2529,24 +2590,6 @@ export default class fxopen extends Exchange {
         return index === expectedIndex;
     }
 
-    createRequestWithSymbolFilter (symbol: string) {
-        const request = {};
-        const marketId = this.marketId (symbol);
-        request['filter'] = marketId;
-        return request;
-    }
-
-    createRequestWithSymbolsFilter (symbols: string[] = undefined) {
-        const request = {};
-        request['filter'] = '';
-        if (symbols !== undefined) {
-            const marketIds = this.marketIds (symbols);
-            // param is injected in url space char has to be encoded
-            request['filter'] = marketIds.join ('%20');
-        }
-        return request;
-    }
-
     getDirectionFromParams (params, since: Int = undefined) {
         const directionParam = this.safeInteger (params, 'direction');
         let direction = (directionParam === -1) ? -1 : 1;
@@ -2554,14 +2597,6 @@ export default class fxopen extends Exchange {
             direction = -1;
         }
         return direction;
-    }
-
-    safePriceStringInternal (obj, key: string, defaultVal: string = undefined) {
-        let price = this.omitZero (this.safeString (obj, key));
-        if (price === undefined) {
-            price = defaultVal;
-        }
-        return price;
     }
 
     safeIntegerGt0 (obj, key: string, defaultVal = undefined) {
@@ -2574,21 +2609,6 @@ export default class fxopen extends Exchange {
         return res;
     }
 
-    isCashAccount (accInfo) {
-        const accType = this.safeString (accInfo, 'fxopenType');
-        return accType === 'Cash';
-    }
-
-    isGrossAccount (accInfo) {
-        const accType = this.safeString (accInfo, 'fxopenType');
-        return accType === 'Gross';
-    }
-
-    isNetAccount (accInfo) {
-        const accType = this.safeString (accInfo, 'fxopenType');
-        return accType === 'Net';
-    }
-
     calculateMarketLeverage (market, accInfo) {
         // 'Forex', 'CFD'
         // Forex:
@@ -2596,34 +2616,13 @@ export default class fxopen extends Exchange {
         // Leverage of any order/position = Account.Leverage / MarginFactor
         // CFD: Account.Leverage replaced with '1'
         let leverage = this.safeString (market, 'leverageCoeff');
-        if (!this.isCashAccount (accInfo)) {
-            const leverageMode = this.safeString (market, 'leverageMode');
+        if (!accInfo['isCashType']) {
+            const leverageMode = this.safeString (market, 'leverageMode', '1');
             if (leverageMode === 'Forex') {
-                const accLeverage = this.safeString (accInfo, 'leverage', '1');
+                const accLeverage = accInfo['leverageStr'];
                 leverage = Precise.stringMul (leverage, accLeverage);
             }
         }
         return leverage;
-    }
-
-    getCachedMarginBalance (accInfo) {
-        const rawResponse = this.safeValue (accInfo, 'info');
-        return this.safeString (rawResponse, 'Balance');
-    }
-
-    amountToPrecisionOptional (symbol: string, amount) {
-        if (symbol in this.markets) {
-            return this.amountToPrecision (symbol, amount);
-        } else {
-            return amount;
-        }
-    }
-
-    priceToPrecisionOptional (symbol: string, price) {
-        if (symbol in this.markets) {
-            return this.priceToPrecision (symbol, price);
-        } else {
-            return price;
-        }
     }
 }
