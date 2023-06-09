@@ -17,7 +17,12 @@
         }
     },
     "alpaca": {
-        "skipWs": true
+        "skipWs": true,
+        "skipMethods": {
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2165"
+            }
+        }
     },
     "ascendex": {
         "skipMethods": {
@@ -257,6 +262,9 @@
             },
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToSince": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2209"
             }
         }
     },
@@ -268,6 +276,9 @@
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
+            },
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2237"
             }
         }
     },
@@ -860,6 +871,9 @@
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
                 "ask":"messed bid-ask",
                 "bid":"messed bid-ask"
+            },
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2273"
             }
         }
     },
@@ -1033,7 +1047,10 @@
             "loadMarkets":{
                 "active":"is undefined"
             },
-            "fetchOrderBooks": "fetchOrderBooks returned 0 length"
+            "fetchOrderBooks": "fetchOrderBooks returned 0 length",
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2317"
+            }
         }
     },
     "paymium": {
@@ -1159,6 +1176,9 @@
             "fetchTickers": {
                 "quoteVolume": "quoteVolume <= baseVolume * high is failing",
                 "baseVolume": "quoteVolume <= baseVolume * high is failing"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2309"
             }
         }
     },

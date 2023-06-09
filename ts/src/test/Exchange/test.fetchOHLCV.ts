@@ -29,7 +29,7 @@ async function testFetchOHLCV (exchange, skippedProperties, symbol) {
         assert (barsLength <= limit, 'Returned bars amount (' + barsLength.toString () + ') is more than requested (' + limit.toString () + ')' + logText);
     }
     // ensure bars amount is mroe than zero
-    if (!('compareLengthToZero' in skippedProperties)) {
+    if (!('compareAmountToZero' in skippedProperties)) {
         assert (barsLength > 0, 'Returned bars amount should be more then zero' + logText);
     }
     const maxTs = since + durationMs * limit;
@@ -37,11 +37,11 @@ async function testFetchOHLCV (exchange, skippedProperties, symbol) {
         const ohlcv = ohlcvs[i];
         const barTs = ohlcv[0];
         // ensure that timestamps are greaterOrEqual than since
-        if (!('compareStartToSince' in skippedProperties)) {
+        if (!('compareTimestampToSince' in skippedProperties)) {
             assert (barTs >= since, 'Returned bar timestamp (' + barTs.toString () + ') is earlier than requested since (' + since.toString () + ')' + logText);
         }
         // ensure last timestamp is under than requested since + limit * duration
-        if (!('compareEndToLimit' in skippedProperties)) {
+        if (!('compareTimestampToEnd' in skippedProperties)) {
             if (limit !== undefined) {
                 assert (barTs <= maxTs, 'Returned bar timestamp (' + barTs.toString () + ') is greated than expected limit (' + maxTs.toString () + ')' + logText);
             }
