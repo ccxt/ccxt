@@ -162,7 +162,7 @@ def set_test_files(holderClass, properties):
     skip_tests = ['test_throttle']
     setattr(holderClass, 'testFiles', {})
     syncAsync = 'async' if not is_synchronous else 'sync'
-    for file_path in glob.glob(current_dir + '/' + syncAsync + '/test_*.py'):
+    for file_path in glob.glob(current_dir + '/exchange-' + syncAsync + '/test_*.py'):
         name = os.path.basename(file_path)[:-3]
         if not (name in skip_tests):
             imp = importlib.import_module('ccxt.test.' + syncAsync + '.' + name)
