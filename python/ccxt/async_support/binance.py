@@ -7425,7 +7425,7 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' add / reduce margin only supported with type future or delivery')
         await self.load_markets()
         market = self.market(symbol)
-        amount = self.amount_to_precision(symbol, amount)
+        amount = self.cost_to_precision(symbol, amount)
         request = {
             'type': addOrReduce,
             'symbol': market['id'],
@@ -7469,6 +7469,8 @@ class binance(Exchange, ImplicitAPI):
 
     async def reduce_margin(self, symbol: str, amount, params={}):
         """
+        see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
+        see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
         remove margin from a position
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
@@ -7479,6 +7481,8 @@ class binance(Exchange, ImplicitAPI):
 
     async def add_margin(self, symbol: str, amount, params={}):
         """
+        see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
+        see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
         add margin
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add

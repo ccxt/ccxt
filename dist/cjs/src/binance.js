@@ -8070,7 +8070,7 @@ class binance extends binance$1 {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        amount = this.amountToPrecision(symbol, amount);
+        amount = this.costToPrecision(symbol, amount);
         const request = {
             'type': addOrReduce,
             'symbol': market['id'],
@@ -8118,6 +8118,8 @@ class binance extends binance$1 {
         /**
          * @method
          * @name binance#reduceMargin
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
+         * @see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
          * @description remove margin from a position
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
@@ -8130,6 +8132,8 @@ class binance extends binance$1 {
         /**
          * @method
          * @name binance#addMargin
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
+         * @see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
          * @description add margin
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add

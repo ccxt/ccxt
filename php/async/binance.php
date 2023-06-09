@@ -7991,7 +7991,7 @@ class binance extends Exchange {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $amount = $this->amount_to_precision($symbol, $amount);
+            $amount = $this->cost_to_precision($symbol, $amount);
             $request = array(
                 'type' => $addOrReduce,
                 'symbol' => $market['id'],
@@ -8040,6 +8040,8 @@ class binance extends Exchange {
     public function reduce_margin(string $symbol, $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
+             * @see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
              * remove margin from a position
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
@@ -8053,6 +8055,8 @@ class binance extends Exchange {
     public function add_margin(string $symbol, $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
+             * @see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
              * add margin
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
