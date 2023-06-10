@@ -70,7 +70,7 @@ class gate extends Exchange {
                 'margin' => true,
                 'swap' => true,
                 'future' => true,
-                'option' => null,
+                'option' => true,
                 'addMargin' => true,
                 'borrowMargin' => true,
                 'cancelAllOrders' => true,
@@ -479,9 +479,44 @@ class gate extends Exchange {
                     'expiration' => 86400, // for conditional orders
                 ),
                 'networks' => array(
-                    'TRC20' => 'TRX',
-                    'ERC20' => 'ETH',
+                    'ALGORAND' => 'ALGO',
+                    'ARBITRUM_NOVA' => 'ARBNOVA',
+                    'ARBITRUM_ONE' => 'ARBEVM',
+                    'AVALANCHE_C' => 'AVAX_C',
                     'BEP20' => 'BSC',
+                    'CHILIZ' => 'CHZ',
+                    'EOS' => 'EOS',
+                    'ERC20' => 'ETH',
+                    'GATECHAIN' => 'GTEVM',
+                    'HRC20' => 'HT',
+                    'KUSAMA' => 'KSMSM',
+                    'NEAR' => 'NEAR',
+                    'OKC' => 'OKT',
+                    'OPTIMISM' => 'OPETH',
+                    'POLKADOT' => 'DOTSM',
+                    'POLYGON' => 'MATIC',
+                    'SOLANA' => 'SOL',
+                    'TRC20' => 'TRX',
+                ),
+                'networksById' => array(
+                    'ALGO' => 'ALGORAND',
+                    'ARBEVM' => 'ARBITRUM_ONE',
+                    'ARBNOVA' => 'ARBITRUM_NOVA',
+                    'AVAX_C' => 'AVALANCHE_C',
+                    'BSC' => 'BEP20',
+                    'CHZ' => 'CHILIZ',
+                    'DOTSM' => 'POLKADOT',
+                    'EOS' => 'EOS',
+                    'ETH' => 'ERC20',
+                    'GTEVM' => 'GATECHAIN',
+                    'HT' => 'HRC20',
+                    'KSMSM' => 'KUSAMA',
+                    'MATIC' => 'POLYGON',
+                    'NEAR' => 'NEAR',
+                    'OKT' => 'OKC',
+                    'OPETH' => 'OPTIMISM',
+                    'SOL' => 'SOLANA',
+                    'TRX' => 'TRC20',
                 ),
                 'timeInForce' => array(
                     'GTC' => 'gtc',
@@ -1335,12 +1370,26 @@ class gate extends Exchange {
         //        "trade_disabled" => false
         //    }
         //
+        //    {
+        //        "currency":"USDT_ETH",
+        //        "delisted":false,
+        //        "withdraw_disabled":false,
+        //        "withdraw_delayed":false,
+        //        "deposit_disabled":false,
+        //        "trade_disabled":false,
+        //        "chain":"ETH"
+        //    }
+        //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
             $currencyId = $this->safe_string($entry, 'currency');
             $currencyIdLower = $this->safe_string_lower($entry, 'currency');
-            $code = $this->safe_currency_code($currencyId);
+            $parts = explode('_', $currencyId);
+            $currency = $parts[0];
+            $code = $this->safe_currency_code($currency);
+            $networkId = $this->safe_string($entry, 'chain');
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $delisted = $this->safe_value($entry, 'delisted');
             $withdrawDisabled = $this->safe_value($entry, 'withdraw_disabled', false);
             $depositDisabled = $this->safe_value($entry, 'deposit_disabled', false);
@@ -1350,21 +1399,60 @@ class gate extends Exchange {
             $tradeEnabled = !$tradeDisabled;
             $listed = !$delisted;
             $active = $listed && $tradeEnabled && $withdrawEnabled && $depositEnabled;
-            $result[$code] = array(
-                'id' => $currencyId,
-                'lowerCaseId' => $currencyIdLower,
-                'name' => null,
-                'code' => $code,
-                'precision' => $this->parse_number('1e-4'), // todo => is done completely in html, in withdrawal page's source it has predefined "num_need_fix($this->value, 4);" function, so users cant set lower precision than 0.0001
+            if ($this->safe_value($result, $code) === null) {
+                $result[$code] = array(
+                    'id' => strtolower($code),
+                    'code' => $code,
+                    'info' => null,
+                    'name' => null,
+                    'active' => $active,
+                    'deposit' => $depositEnabled,
+                    'withdraw' => $withdrawEnabled,
+                    'fee' => null,
+                    'fees' => array(),
+                    'precision' => $this->parse_number('1e-4'),
+                    'limits' => $this->limits,
+                    'networks' => array(),
+                );
+            }
+            $depositAvailable = $this->safe_value($result[$code], 'deposit');
+            $depositAvailable = ($depositEnabled) ? $depositEnabled : $depositAvailable;
+            $withdrawAvailable = $this->safe_value($result[$code], 'withdraw');
+            $withdrawAvailable = ($withdrawEnabled) ? $withdrawEnabled : $withdrawAvailable;
+            $networks = $this->safe_value($result[$code], 'networks', array());
+            $networks[$networkCode] = array(
                 'info' => $entry,
-                'active' => $active,
+                'id' => $networkId,
+                'network' => $networkCode,
+                'currencyId' => $currencyId,
+                'lowerCaseCurrencyId' => $currencyIdLower,
                 'deposit' => $depositEnabled,
                 'withdraw' => $withdrawEnabled,
+                'active' => $active,
                 'fee' => null,
-                'fees' => array(),
-                'limits' => $this->limits,
-                'networks' => array(),
+                'precision' => $this->parse_number('1e-4'),
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
             );
+            $result[$code]['networks'] = $networks;
+            $info = $this->safe_value($result[$code], 'info', array());
+            $info[] = $entry;
+            $result[$code]['info'] = $info;
+            $result[$code]['active'] = $depositAvailable && $withdrawAvailable;
+            $result[$code]['deposit'] = $depositAvailable;
+            $result[$code]['withdraw'] = $withdrawAvailable;
         }
         return $result;
     }
@@ -5385,8 +5473,8 @@ class gate extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if (!$market['contract']) {
-            throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+        if (!$market['future']) {
+            throw new BadRequest($this->id . ' fetchOpenInterest() supports future markets only');
         }
         $request = array(
             'contract' => $market['id'],
