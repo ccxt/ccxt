@@ -1152,7 +1152,8 @@ export default class bybit extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValueN (result, [ 'list', 'rows', 'data', 'dataList' ], []);
         const paginationCursor = this.safeString2 (result, 'nextPageCursor', 'cursor');
-        if ((paginationCursor !== undefined) && (data.length > 0)) {
+        const dataLength = data.length;
+        if ((paginationCursor !== undefined) && (dataLength > 0)) {
             const first = data[0];
             first['nextPageCursor'] = paginationCursor;
             data[0] = first;
