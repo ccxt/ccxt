@@ -5411,6 +5411,12 @@ export default class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'list', []);
+        const paginationCursor = this.safeString (result, 'nextPageCursor');
+        if ((paginationCursor !== undefined) && (data.length > 0)) {
+            const first = data[0];
+            first['nextPageCursor'] = paginationCursor;
+            data[0] = first;
+        }
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -5540,6 +5546,12 @@ export default class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const orders = this.safeValue (result, 'list', []);
+        const paginationCursor = this.safeString (result, 'nextPageCursor');
+        if ((paginationCursor !== undefined) && (orders.length > 0)) {
+            const first = orders[0];
+            first['nextPageCursor'] = paginationCursor;
+            orders[0] = first;
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -5641,6 +5653,12 @@ export default class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const orders = this.safeValue (result, 'list', []);
+        const paginationCursor = this.safeString (result, 'nextPageCursor');
+        if ((paginationCursor !== undefined) && (orders.length > 0)) {
+            const first = orders[0];
+            first['nextPageCursor'] = paginationCursor;
+            orders[0] = first;
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -5835,6 +5853,12 @@ export default class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const trades = this.safeValue (result, 'list', []);
+        const paginationCursor = this.safeString (result, 'nextPageCursor');
+        if ((paginationCursor !== undefined) && (trades.length > 0)) {
+            const first = trades[0];
+            first['nextPageCursor'] = paginationCursor;
+            trades[0] = first;
+        }
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -5891,6 +5915,12 @@ export default class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const trades = this.safeValue (result, 'list', []);
+        const paginationCursor = this.safeString (result, 'nextPageCursor');
+        if ((paginationCursor !== undefined) && (trades.length > 0)) {
+            const first = trades[0];
+            first['nextPageCursor'] = paginationCursor;
+            trades[0] = first;
+        }
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -5960,6 +5990,12 @@ export default class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const trades = this.safeValue (result, 'list', []);
+        const paginationCursor = this.safeString (result, 'nextPageCursor');
+        if ((paginationCursor !== undefined) && (trades.length > 0)) {
+            const first = trades[0];
+            first['nextPageCursor'] = paginationCursor;
+            trades[0] = first;
+        }
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -6037,6 +6073,12 @@ export default class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const trades = this.safeValue (result, 'list', []);
+        const paginationCursor = this.safeString (result, 'nextPageCursor');
+        if ((paginationCursor !== undefined) && (trades.length > 0)) {
+            const first = trades[0];
+            first['nextPageCursor'] = paginationCursor;
+            trades[0] = first;
+        }
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -7074,6 +7116,12 @@ export default class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const positions = this.safeValue (result, 'list', []);
+        const paginationCursor = this.safeString (result, 'nextPageCursor');
+        if ((paginationCursor !== undefined) && (positions.length > 0)) {
+            const first = positions[0];
+            first['nextPageCursor'] = paginationCursor;
+            positions[0] = first;
+        }
         const results = [];
         for (let i = 0; i < positions.length; i++) {
             let rawPosition = positions[i];
@@ -7228,6 +7276,12 @@ export default class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const positions = this.safeValue (result, 'list', []);
+        const paginationCursor = this.safeString (result, 'nextPageCursor');
+        if ((paginationCursor !== undefined) && (positions.length > 0)) {
+            const first = positions[0];
+            first['nextPageCursor'] = paginationCursor;
+            positions[0] = first;
+        }
         return this.parsePositions (positions, symbols, params);
     }
 
@@ -7805,6 +7859,12 @@ export default class bybit extends Exchange {
         const id = this.safeString (result, 'symbol');
         market = this.safeMarket (id, market, undefined, 'contract');
         const data = this.safeValue (result, 'list', []);
+        const paginationCursor = this.safeString (result, 'nextPageCursor');
+        if ((paginationCursor !== undefined) && (data.length > 0)) {
+            const first = data[0];
+            first['nextPageCursor'] = paginationCursor;
+            data[0] = first;
+        }
         return this.parseOpenInterest (data[0], market);
     }
 
