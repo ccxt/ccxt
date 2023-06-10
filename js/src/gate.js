@@ -71,7 +71,7 @@ export default class gate extends Exchange {
                 'margin': true,
                 'swap': true,
                 'future': true,
-                'option': undefined,
+                'option': true,
                 'addMargin': true,
                 'borrowMargin': true,
                 'cancelAllOrders': true,
@@ -102,6 +102,7 @@ export default class gate extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
+                'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
                 'fetchMarginMode': false,
@@ -120,6 +121,7 @@ export default class gate extends Exchange {
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': false,
@@ -260,6 +262,7 @@ export default class gate extends Exchange {
                     'spot': {
                         'get': {
                             'accounts': 1,
+                            'account_book': 1,
                             'open_orders': 1,
                             'orders': 1,
                             'orders/{order_id}': 1,
@@ -477,9 +480,44 @@ export default class gate extends Exchange {
                     'expiration': 86400, // for conditional orders
                 },
                 'networks': {
-                    'TRC20': 'TRX',
-                    'ERC20': 'ETH',
+                    'ALGORAND': 'ALGO',
+                    'ARBITRUM_NOVA': 'ARBNOVA',
+                    'ARBITRUM_ONE': 'ARBEVM',
+                    'AVALANCHE_C': 'AVAX_C',
                     'BEP20': 'BSC',
+                    'CHILIZ': 'CHZ',
+                    'EOS': 'EOS',
+                    'ERC20': 'ETH',
+                    'GATECHAIN': 'GTEVM',
+                    'HRC20': 'HT',
+                    'KUSAMA': 'KSMSM',
+                    'NEAR': 'NEAR',
+                    'OKC': 'OKT',
+                    'OPTIMISM': 'OPETH',
+                    'POLKADOT': 'DOTSM',
+                    'POLYGON': 'MATIC',
+                    'SOLANA': 'SOL',
+                    'TRC20': 'TRX',
+                },
+                'networksById': {
+                    'ALGO': 'ALGORAND',
+                    'ARBEVM': 'ARBITRUM_ONE',
+                    'ARBNOVA': 'ARBITRUM_NOVA',
+                    'AVAX_C': 'AVALANCHE_C',
+                    'BSC': 'BEP20',
+                    'CHZ': 'CHILIZ',
+                    'DOTSM': 'POLKADOT',
+                    'EOS': 'EOS',
+                    'ETH': 'ERC20',
+                    'GTEVM': 'GATECHAIN',
+                    'HT': 'HRC20',
+                    'KSMSM': 'KUSAMA',
+                    'MATIC': 'POLYGON',
+                    'NEAR': 'NEAR',
+                    'OKT': 'OKC',
+                    'OPETH': 'OPTIMISM',
+                    'SOL': 'SOLANA',
+                    'TRX': 'TRC20',
                 },
                 'timeInForce': {
                     'GTC': 'gtc',
@@ -1338,12 +1376,26 @@ export default class gate extends Exchange {
         //        "trade_disabled": false
         //    }
         //
+        //    {
+        //        "currency":"USDT_ETH",
+        //        "delisted":false,
+        //        "withdraw_disabled":false,
+        //        "withdraw_delayed":false,
+        //        "deposit_disabled":false,
+        //        "trade_disabled":false,
+        //        "chain":"ETH"
+        //    }
+        //
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString(entry, 'currency');
             const currencyIdLower = this.safeStringLower(entry, 'currency');
-            const code = this.safeCurrencyCode(currencyId);
+            const parts = currencyId.split('_');
+            const currency = parts[0];
+            const code = this.safeCurrencyCode(currency);
+            const networkId = this.safeString(entry, 'chain');
+            const networkCode = this.networkIdToCode(networkId, code);
             const delisted = this.safeValue(entry, 'delisted');
             const withdrawDisabled = this.safeValue(entry, 'withdraw_disabled', false);
             const depositDisabled = this.safeValue(entry, 'deposit_disabled', false);
@@ -1353,21 +1405,60 @@ export default class gate extends Exchange {
             const tradeEnabled = !tradeDisabled;
             const listed = !delisted;
             const active = listed && tradeEnabled && withdrawEnabled && depositEnabled;
-            result[code] = {
-                'id': currencyId,
-                'lowerCaseId': currencyIdLower,
-                'name': undefined,
-                'code': code,
-                'precision': this.parseNumber('1e-4'),
+            if (this.safeValue(result, code) === undefined) {
+                result[code] = {
+                    'id': code.toLowerCase(),
+                    'code': code,
+                    'info': undefined,
+                    'name': undefined,
+                    'active': active,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
+                    'fee': undefined,
+                    'fees': [],
+                    'precision': this.parseNumber('1e-4'),
+                    'limits': this.limits,
+                    'networks': {},
+                };
+            }
+            let depositAvailable = this.safeValue(result[code], 'deposit');
+            depositAvailable = (depositEnabled) ? depositEnabled : depositAvailable;
+            let withdrawAvailable = this.safeValue(result[code], 'withdraw');
+            withdrawAvailable = (withdrawEnabled) ? withdrawEnabled : withdrawAvailable;
+            const networks = this.safeValue(result[code], 'networks', {});
+            networks[networkCode] = {
                 'info': entry,
-                'active': active,
+                'id': networkId,
+                'network': networkCode,
+                'currencyId': currencyId,
+                'lowerCaseCurrencyId': currencyIdLower,
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
+                'active': active,
                 'fee': undefined,
-                'fees': [],
-                'limits': this.limits,
-                'networks': {},
+                'precision': this.parseNumber('1e-4'),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
             };
+            result[code]['networks'] = networks;
+            const info = this.safeValue(result[code], 'info', []);
+            info.push(entry);
+            result[code]['info'] = info;
+            result[code]['active'] = depositAvailable && withdrawAvailable;
+            result[code]['deposit'] = depositAvailable;
+            result[code]['withdraw'] = withdrawAvailable;
         }
         return result;
     }
@@ -2106,6 +2197,10 @@ export default class gate extends Exchange {
          * @method
          * @name gate#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the gate api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -2118,9 +2213,27 @@ export default class gate extends Exchange {
             'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'future': 'publicDeliveryGetSettleTickers',
+            'option': 'publicOptionsGetTickers',
         });
+        if (market['option']) {
+            const marketId = market['id'];
+            const optionParts = marketId.split('-');
+            request['underlying'] = this.safeString(optionParts, 0);
+        }
         const response = await this[method](this.extend(request, query));
-        const ticker = this.safeValue(response, 0);
+        let ticker = undefined;
+        if (market['option']) {
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                if (entry['name'] === market['id']) {
+                    ticker = entry;
+                    break;
+                }
+            }
+        }
+        else {
+            ticker = this.safeValue(response, 0);
+        }
         return this.parseTicker(ticker, market);
     }
     parseTicker(ticker, market = undefined) {
@@ -2171,16 +2284,37 @@ export default class gate extends Exchange {
         //        A: '0.0353' // best ask size
         //     }
         //
-        const marketId = this.safeString2(ticker, 'currency_pair', 'contract');
-        const marketType = ('contract' in ticker) ? 'contract' : 'spot';
+        // option
+        //
+        //     {
+        //         "vega": "0.00002",
+        //         "leverage": "12.277188268663",
+        //         "ask_iv": "0",
+        //         "delta": "-0.99999",
+        //         "last_price": "0",
+        //         "theta": "-0.00661",
+        //         "bid1_price": "1096",
+        //         "mark_iv": "0.7799",
+        //         "name": "BTC_USDT-20230608-28500-P",
+        //         "bid_iv": "0",
+        //         "ask1_price": "2935",
+        //         "mark_price": "2147.3",
+        //         "position_size": 0,
+        //         "bid1_size": 12,
+        //         "ask1_size": -14,
+        //         "gamma": "0"
+        //     }
+        //
+        const marketId = this.safeStringN(ticker, ['currency_pair', 'contract', 'name']);
+        const marketType = ('mark_price' in ticker) ? 'contract' : 'spot';
         const symbol = this.safeSymbol(marketId, market, '_', marketType);
-        const last = this.safeString(ticker, 'last');
-        const ask = this.safeString2(ticker, 'lowest_ask', 'a');
-        const bid = this.safeString2(ticker, 'highest_bid', 'b');
+        const last = this.safeString2(ticker, 'last', 'last_price');
+        const ask = this.safeStringN(ticker, ['lowest_ask', 'a', 'ask1_price']);
+        const bid = this.safeStringN(ticker, ['highest_bid', 'b', 'bid1_price']);
         const high = this.safeString(ticker, 'high_24h');
         const low = this.safeString(ticker, 'low_24h');
-        const bidVolume = this.safeString(ticker, 'B');
-        const askVolume = this.safeString(ticker, 'A');
+        const bidVolume = this.safeString2(ticker, 'B', 'bid1_size');
+        const askVolume = this.safeString2(ticker, 'A', 'ask1_size');
         const timestamp = this.safeInteger(ticker, 't');
         let baseVolume = this.safeString2(ticker, 'base_volume', 'volume_24h_base');
         if (baseVolume === 'nan') {
@@ -2222,6 +2356,7 @@ export default class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the gate api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -2240,7 +2375,14 @@ export default class gate extends Exchange {
             'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'future': 'publicDeliveryGetSettleTickers',
+            'option': 'publicOptionsGetTickers',
         });
+        if (type === 'option') {
+            this.checkRequiredArgument('fetchTickers', symbols, 'symbols');
+            const marketId = market['id'];
+            const optionParts = marketId.split('-');
+            request['underlying'] = this.safeString(optionParts, 0);
+        }
         const response = await this[method](this.extend(request, requestParams));
         return this.parseTickers(response, symbols);
     }
@@ -3564,7 +3706,7 @@ export default class gate extends Exchange {
         //
         return this.parseOrder(response, market);
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name gate#editOrder
@@ -5384,8 +5526,8 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['contract']) {
-            throw new BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
+        if (!market['future']) {
+            throw new BadRequest(this.id + ' fetchOpenInterest() supports future markets only');
         }
         const request = {
             'contract': market['id'],
@@ -5450,6 +5592,331 @@ export default class gate extends Exchange {
             'datetime': this.iso8601(timestamp),
             'info': interest,
         };
+    }
+    async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchSettlementHistory
+         * @description fetches historical settlement records
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-settlement-history-2
+         * @param {string} symbol unified market symbol of the settlement history, required on gate
+         * @param {int|undefined} since timestamp in ms
+         * @param {int|undefined} limit number of records
+         * @param {object} params exchange specific params
+         * @returns {[object]} a list of [settlement history objects]
+         */
+        this.checkRequiredSymbol('fetchSettlementHistory', symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchSettlementHistory', market, params);
+        if (type !== 'option') {
+            throw new NotSupported(this.id + ' fetchSettlementHistory() supports option markets only');
+        }
+        const marketId = market['id'];
+        const optionParts = marketId.split('-');
+        const request = {
+            'underlying': this.safeString(optionParts, 0),
+        };
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicOptionsGetSettlements(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "time": 1685952000,
+        //             "profit": "18.266806892718",
+        //             "settle_price": "26826.68068927182",
+        //             "fee": "0.040240021034",
+        //             "contract": "BTC_USDT-20230605-25000-C",
+        //             "strike_price": "25000"
+        //         }
+        //     ]
+        //
+        const settlements = this.parseSettlements(response, market);
+        const sorted = this.sortBy(settlements, 'timestamp');
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+    parseSettlement(settlement, market) {
+        //
+        //     {
+        //         "time": 1685952000,
+        //         "profit": "18.266806892718",
+        //         "settle_price": "26826.68068927182",
+        //         "fee": "0.040240021034",
+        //         "contract": "BTC_USDT-20230605-25000-C",
+        //         "strike_price": "25000"
+        //     }
+        //
+        const timestamp = this.safeTimestamp(settlement, 'time');
+        const marketId = this.safeString(settlement, 'contract');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol(marketId, market),
+            'price': this.safeNumber(settlement, 'settle_price'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        };
+    }
+    parseSettlements(settlements, market) {
+        //
+        //     [
+        //         {
+        //             "time": 1685952000,
+        //             "profit": "18.266806892718",
+        //             "settle_price": "26826.68068927182",
+        //             "fee": "0.040240021034",
+        //             "contract": "BTC_USDT-20230605-25000-C",
+        //             "strike_price": "25000"
+        //         }
+        //     ]
+        //
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            result.push(this.parseSettlement(settlements[i], market));
+        }
+        return result;
+    }
+    async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-margin-account-balance-change-history
+         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-account-changing-history
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry
+         * @param {int|undefined} limit max number of ledger entries to return
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+         */
+        await this.loadMarkets();
+        let type = undefined;
+        let currency = undefined;
+        let response = undefined;
+        const request = {};
+        [type, params] = this.handleMarketTypeAndParams('fetchLedger', undefined, params);
+        if ((type === 'spot') || (type === 'margin')) {
+            if (code !== undefined) {
+                currency = this.currency(code);
+                request['currency'] = currency['id'];
+            }
+        }
+        if ((type === 'swap') || (type === 'future')) {
+            const defaultSettle = (type === 'swap') ? 'usdt' : 'btc';
+            const settle = this.safeStringLower(params, 'settle', defaultSettle);
+            params = this.omit(params, 'settle');
+            request['settle'] = settle;
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (type === 'spot') {
+            response = await this.privateSpotGetAccountBook(this.extend(request, params));
+        }
+        else if (type === 'margin') {
+            response = await this.privateMarginGetAccountBook(this.extend(request, params));
+        }
+        else if (type === 'swap') {
+            response = await this.privateFuturesGetSettleAccountBook(this.extend(request, params));
+        }
+        else if (type === 'future') {
+            response = await this.privateDeliveryGetSettleAccountBook(this.extend(request, params));
+        }
+        else if (type === 'option') {
+            response = await this.privateOptionsGetAccountBook(this.extend(request, params));
+        }
+        //
+        // spot
+        //
+        //     [
+        //         {
+        //             "id": "123456",
+        //             "time": 1547633726123,
+        //             "currency": "BTC",
+        //             "change": "1.03",
+        //             "balance": "4.59316525194",
+        //             "type": "margin_in"
+        //         }
+        //     ]
+        //
+        // margin
+        //
+        //     [
+        //         {
+        //             "id": "123456",
+        //             "time": "1547633726",
+        //             "time_ms": 1547633726123,
+        //             "currency": "BTC",
+        //             "currency_pair": "BTC_USDT",
+        //             "change": "1.03",
+        //             "balance": "4.59316525194"
+        //         }
+        //     ]
+        //
+        // swap and future
+        //
+        //     [
+        //         {
+        //             "time": 1682294400.123456,
+        //             "change": "0.000010152188",
+        //             "balance": "4.59316525194",
+        //             "text": "ETH_USD:6086261",
+        //             "type": "fee"
+        //         }
+        //     ]
+        //
+        // option
+        //
+        //     [
+        //         {
+        //             "time": 1685594770,
+        //             "change": "3.33",
+        //             "balance": "29.87911771",
+        //             "text": "BTC_USDT-20230602-26500-C:2611026125",
+        //             "type": "prem"
+        //         }
+        //     ]
+        //
+        return this.parseLedger(response, currency, since, limit);
+    }
+    parseLedgerEntry(item, currency = undefined) {
+        //
+        // spot
+        //
+        //     {
+        //         "id": "123456",
+        //         "time": 1547633726123,
+        //         "currency": "BTC",
+        //         "change": "1.03",
+        //         "balance": "4.59316525194",
+        //         "type": "margin_in"
+        //     }
+        //
+        // margin
+        //
+        //     {
+        //         "id": "123456",
+        //         "time": "1547633726",
+        //         "time_ms": 1547633726123,
+        //         "currency": "BTC",
+        //         "currency_pair": "BTC_USDT",
+        //         "change": "1.03",
+        //         "balance": "4.59316525194"
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "time": 1682294400.123456,
+        //         "change": "0.000010152188",
+        //         "balance": "4.59316525194",
+        //         "text": "ETH_USD:6086261",
+        //         "type": "fee"
+        //     }
+        //
+        // option
+        //
+        //     {
+        //         "time": 1685594770,
+        //         "change": "3.33",
+        //         "balance": "29.87911771",
+        //         "text": "BTC_USDT-20230602-26500-C:2611026125",
+        //         "type": "prem"
+        //     }
+        //
+        let direction = undefined;
+        let amount = this.safeString(item, 'change');
+        if (Precise.stringLt(amount, '0')) {
+            direction = 'out';
+            amount = Precise.stringAbs(amount);
+        }
+        else {
+            direction = 'in';
+        }
+        const currencyId = this.safeString(item, 'currency');
+        const type = this.safeString(item, 'type');
+        const rawTimestamp = this.safeString(item, 'time');
+        let timestamp = undefined;
+        if (rawTimestamp.length > 10) {
+            timestamp = parseInt(rawTimestamp);
+        }
+        else {
+            timestamp = parseInt(rawTimestamp) * 1000;
+        }
+        const balanceString = this.safeString(item, 'balance');
+        const changeString = this.safeString(item, 'change');
+        const before = this.parseNumber(Precise.stringSub(balanceString, changeString));
+        return {
+            'id': this.safeString(item, 'id'),
+            'direction': direction,
+            'account': undefined,
+            'referenceAccount': undefined,
+            'referenceId': undefined,
+            'type': this.parseLedgerEntryType(type),
+            'currency': this.safeCurrencyCode(currencyId, currency),
+            'amount': this.parseNumber(amount),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'before': before,
+            'after': this.safeNumber(item, 'balance'),
+            'status': undefined,
+            'fee': undefined,
+            'info': item,
+        };
+    }
+    parseLedgerEntryType(type) {
+        const ledgerType = {
+            'deposit': 'deposit',
+            'withdraw': 'withdrawal',
+            'sub_account_transfer': 'transfer',
+            'margin_in': 'transfer',
+            'margin_out': 'transfer',
+            'margin_funding_in': 'transfer',
+            'margin_funding_out': 'transfer',
+            'cross_margin_in': 'transfer',
+            'cross_margin_out': 'transfer',
+            'copy_trading_in': 'transfer',
+            'copy_trading_out': 'transfer',
+            'quant_in': 'transfer',
+            'quant_out': 'transfer',
+            'futures_in': 'transfer',
+            'futures_out': 'transfer',
+            'delivery_in': 'transfer',
+            'delivery_out': 'transfer',
+            'new_order': 'trade',
+            'order_fill': 'trade',
+            'referral_fee': 'rebate',
+            'order_fee': 'fee',
+            'interest': 'interest',
+            'lend': 'loan',
+            'redeem': 'loan',
+            'profit': 'interest',
+            'flash_swap_buy': 'trade',
+            'flash_swap_sell': 'trade',
+            'unknown': 'unknown',
+            'set': 'settlement',
+            'prem': 'trade',
+            'point_refr': 'rebate',
+            'point_fee': 'fee',
+            'point_dnw': 'deposit/withdraw',
+            'fund': 'fee',
+            'refr': 'rebate',
+            'fee': 'fee',
+            'pnl': 'trade',
+            'dnw': 'deposit/withdraw',
+        };
+        return this.safeString(ledgerType, type, type);
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

@@ -243,6 +243,8 @@ interface Exchange {
     privateGetV5AssetTransferQueryAccountCoinsBalance(params?: {}): Promise<implicitReturnType>;
     privateGetV5UserQuerySubMembers(params?: {}): Promise<implicitReturnType>;
     privateGetV5UserQueryApi(params?: {}): Promise<implicitReturnType>;
+    privateGetV5UserAffCustomerInfo(params?: {}): Promise<implicitReturnType>;
+    privateGetV5CustomerInfo(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeLoanInfo(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeAccount(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeOrders(params?: {}): Promise<implicitReturnType>;

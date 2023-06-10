@@ -22,7 +22,7 @@ export default class wazirx extends wazirxRest {
     handleOrderBook(client: Client, message: any): void;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
-    parseWSOrder(order: any): any;
+    parseWSOrder(order: any): import("../base/types.js").Order;
     handleMyTrades(client: Client, message: any): void;
     handleConnected(client: Client, message: any): any;
     handleSubscribed(client: Client, message: any): any;

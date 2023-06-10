@@ -1132,12 +1132,15 @@ class bitmex extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $tickers = $this->fetch_tickers([ $market['symbol'] ], $params);
-        $ticker = $this->safe_value($tickers, $market['symbol']);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetInstrument (array_merge($request, $params));
+        $ticker = $this->safe_value($response, 0);
         if ($ticker === null) {
             throw new BadSymbol($this->id . ' fetchTicker() $symbol ' . $symbol . ' not found');
         }
-        return $ticker;
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
@@ -1673,7 +1676,7 @@ class bitmex extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in

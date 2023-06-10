@@ -123,10 +123,10 @@ interface Exchange {
     privateMixPostAccountSetMarginMode(params?: {}): Promise<implicitReturnType>;
     privateMixPostAccountSetPositionMode(params?: {}): Promise<implicitReturnType>;
     privateMixPostOrderPlaceOrder(params?: {}): Promise<implicitReturnType>;
-    privateMixPostOrderModifyOrder(params?: {}): Promise<implicitReturnType>;
     privateMixPostOrderBatchOrders(params?: {}): Promise<implicitReturnType>;
     privateMixPostOrderCancelOrder(params?: {}): Promise<implicitReturnType>;
     privateMixPostOrderCancelBatchOrders(params?: {}): Promise<implicitReturnType>;
+    privateMixPostOrderModifyOrder(params?: {}): Promise<implicitReturnType>;
     privateMixPostOrderCancelSymbolOrders(params?: {}): Promise<implicitReturnType>;
     privateMixPostOrderCancelAllOrders(params?: {}): Promise<implicitReturnType>;
     privateMixPostOrderCloseAllPositions(params?: {}): Promise<implicitReturnType>;
@@ -148,6 +148,11 @@ interface Exchange {
     privateMixPostTraceFollowerCloseByAll(params?: {}): Promise<implicitReturnType>;
     privateMixPostTraceFollowerSetTpsl(params?: {}): Promise<implicitReturnType>;
     privateMixPostTraceCancelCopyTrader(params?: {}): Promise<implicitReturnType>;
+    privateMixPostTraceTraderUpdateConfig(params?: {}): Promise<implicitReturnType>;
+    privateMixPostTraceMyTraderList(params?: {}): Promise<implicitReturnType>;
+    privateMixPostTraceMyFollowerList(params?: {}): Promise<implicitReturnType>;
+    privateMixPostTraceRemoveFollower(params?: {}): Promise<implicitReturnType>;
+    privateMixPostTracePublicGetFollowerConfig(params?: {}): Promise<implicitReturnType>;
     privateUserGetFeeQuery(params?: {}): Promise<implicitReturnType>;
     privateUserGetSubVirtualList(params?: {}): Promise<implicitReturnType>;
     privateUserGetSubVirtualApiList(params?: {}): Promise<implicitReturnType>;

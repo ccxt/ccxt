@@ -2234,10 +2234,9 @@ class xt extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $convertContractsToAmount = Precise::string_div($this->number_to_string($amount), $this->number_to_string($market['contractSize']));
             $request = array(
                 'symbol' => $market['id'],
-                'origQty' => $this->amount_to_precision($symbol, $this->parse_number($convertContractsToAmount)),
+                'origQty' => $this->amount_to_precision($symbol, $amount),
             );
             $timeInForce = $this->safe_string_upper($params, 'timeInForce');
             if ($timeInForce !== null) {
@@ -4624,7 +4623,12 @@ class xt extends Exchange {
             $timestamp = $this->number_to_string($this->nonce());
             $body = $query;
             if (($payload === '/v4/order') || ($payload === '/future/trade/v1/order/create') || ($payload === '/future/trade/v1/entrust/create-plan') || ($payload === '/future/trade/v1/entrust/create-profit') || ($payload === '/future/trade/v1/order/create-batch')) {
-                $body['clientMedia'] = 'CCXT';
+                $id = 'CCXT';
+                if (mb_strpos($payload, 'future') > -1) {
+                    $body['clientMedia'] = $id;
+                } else {
+                    $body['media'] = $id;
+                }
             }
             $isUndefinedBody = (($method === 'GET') || ($path === 'order/{orderId}'));
             $body = $isUndefinedBody ? null : $this->json($body);

@@ -810,7 +810,7 @@ class gate extends gate$1 {
             // inject order status
             const info = this.safeValue(parsed, 'info');
             const event = this.safeString(info, 'event');
-            if (event === 'put' || event === ' update') {
+            if (event === 'put' || event === 'update') {
                 parsed['status'] = 'open';
             }
             else if (event === 'finish') {

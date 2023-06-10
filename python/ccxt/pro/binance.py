@@ -725,9 +725,9 @@ class binance(ccxt.async_support.binance):
         marketIds = self.market_ids(symbols)
         market = None
         type = None
+        if symbols is not None:
+            market = self.market(symbols[0])
         type, params = self.handle_market_type_and_params('watchTickers', market, params)
-        if marketIds is not None:
-            market = self.safe_market(marketIds[0], None, None, type)
         subType = None
         subType, params = self.handle_sub_type_and_params('watchTickers', market, params)
         if self.isLinear(type, subType):
@@ -737,10 +737,11 @@ class binance(ccxt.async_support.binance):
         options = self.safe_value(self.options, 'watchTickers', {})
         name = self.safe_string(options, 'name', 'ticker')
         name = self.safe_string(params, 'name', name)
-        oriParams = params
         params = self.omit(params, 'name')
         wsParams = []
-        messageHash = '!' + name + '@arr'
+        messageHash = 'tickers'
+        if symbols is not None:
+            messageHash = 'tickers::' + ','.join(symbols)
         if name == 'bookTicker':
             if marketIds is None:
                 raise ArgumentsRequired(self.id + ' watchTickers() requires symbols for bookTicker')
@@ -749,7 +750,7 @@ class binance(ccxt.async_support.binance):
                 wsParams.append(marketIds[i].lower() + '@bookTicker')
         else:
             wsParams = [
-                messageHash,
+                '!' + name + '@arr',
             ]
         url = self.urls['api']['ws'][type] + '/' + self.stream(type, messageHash)
         requestId = self.request_id(url)
@@ -761,20 +762,10 @@ class binance(ccxt.async_support.binance):
         subscribe = {
             'id': requestId,
         }
-        tickers = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscribe)
-        result = {}
-        for i in range(0, len(tickers)):
-            ticker = tickers[i]
-            tickerSymbol = ticker['symbol']
-            if symbols is None or self.in_array(tickerSymbol, symbols):
-                result[tickerSymbol] = ticker
-        resultKeys = list(result.keys())
-        resultKeysLength = len(resultKeys)
-        if resultKeysLength > 0:
-            if self.newUpdates:
-                return result
-            return self.filter_by_array(self.tickers, 'symbol', symbols)
-        return await self.watch_tickers(symbols, oriParams)
+        newTickers = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscribe)
+        if self.newUpdates:
+            return newTickers
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     def parse_ws_ticker(self, message, marketType):
         #
@@ -906,24 +897,32 @@ class binance(ccxt.async_support.binance):
             client.resolve([result], '!' + 'bookTicker@arr')
 
     def handle_tickers(self, client: Client, message):
-        event = None
         index = client.url.find('/stream')
         marketType = 'spot' if (index >= 0) else 'contract'
-        for i in range(0, len(message)):
-            ticker = message[i]
-            event = self.safe_string(ticker, 'e')
-            if event == '24hrTicker':
-                event = 'ticker'
-            elif event == '24hrMiniTicker':
-                event = 'miniTicker'
-            wsMarketId = self.safe_string_lower(ticker, 's')
-            messageHash = wsMarketId + '@' + event
+        rawTickers = []
+        newTickers = []
+        if isinstance(message, list):
+            rawTickers = message
+        else:
+            rawTickers.append(message)
+        for i in range(0, len(rawTickers)):
+            ticker = rawTickers[i]
             result = self.parse_ws_ticker(ticker, marketType)
             symbol = result['symbol']
             self.tickers[symbol] = result
-            client.resolve(result, messageHash)
-        values = list(self.tickers.values())
-        client.resolve(values, '!' + event + '@arr')
+            newTickers.append(result)
+        messageHashes = self.find_message_hashes(client, 'tickers::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            tickers = self.filter_by_array(newTickers, 'symbol', symbols)
+            tickersSymbols = list(tickers.keys())
+            numTickers = len(tickersSymbols)
+            if numTickers > 0:
+                client.resolve(tickers, messageHash)
+        client.resolve(newTickers, 'tickers')
 
     async def authenticate(self, params={}):
         time = self.milliseconds()
@@ -1591,5 +1590,6 @@ class binance(ccxt.async_support.binance):
             #
             if event is None:
                 self.handle_ticker(client, message)
+                self.handle_tickers(client, message)
         else:
             return method(client, message)

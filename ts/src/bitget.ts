@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -275,10 +275,10 @@ export default class bitget extends Exchange {
                             'account/setMarginMode': 4, // 5 times/1s (UID) => 20/5 = 4
                             'account/setPositionMode': 4, // 5 times/1s (UID) => 20/5 = 4
                             'order/placeOrder': 2,
-                            'order/modifyOrder': 2,
                             'order/batch-orders': 2,
                             'order/cancel-order': 2,
                             'order/cancel-batch-orders': 2,
+                            'order/modifyOrder': 2, // 10 times/1s (UID) => 20/10 = 2
                             'order/cancel-symbol-orders': 2,
                             'order/cancel-all-orders': 2,
                             'order/close-all-positions': 20,
@@ -300,6 +300,11 @@ export default class bitget extends Exchange {
                             'trace/followerCloseByAll': 2,
                             'trace/followerSetTpsl': 2,
                             'trace/cancelCopyTrader': 4, // 5 times/1s (UID) => 20/5 = 4
+                            'trace/traderUpdateConfig': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/myTraderList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/myFollowerList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/removeFollower': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/public/getFollowerConfig': 2, // 10 times/1s (UID) => 20/10 = 2
                         },
                     },
                     'user': {
@@ -2447,19 +2452,22 @@ export default class bitget extends Exchange {
         //
         // spot
         //     {
-        //       accountId: '6394957606',
-        //       symbol: 'BTCUSDT_SPBL',
-        //       orderId: '881623995442958336',
-        //       clientOrderId: '135335e9-b054-4e43-b00a-499f11d3a5cc',
-        //       price: '39000.000000000000',
-        //       quantity: '0.000700000000',
-        //       orderType: 'limit',
-        //       side: 'buy',
-        //       status: 'new',
-        //       fillPrice: '0.000000000000',
-        //       fillQuantity: '0.000000000000',
-        //       fillTotalAmount: '0.000000000000',
-        //       cTime: '1645921460972'
+        //         "accountId": "222222222",
+        //         "symbol": "TRXUSDT_SPBL",
+        //         "orderId": "1041901704004947968",
+        //         "clientOrderId": "c5e8a5e1-a07f-4202-8061-b88bd598b264",
+        //         "price": "0",
+        //         "quantity": "10.0000000000000000",
+        //         "orderType": "market",
+        //         "side": "buy",
+        //         "status": "full_fill",
+        //         "fillPrice": "0.0699782527055350",
+        //         "fillQuantity": "142.9015000000000000",
+        //         "fillTotalAmount": "9.9999972790000000",
+        //         "enterPointSource": "API",
+        //         "feeDetail": "{\"BGB\":{\"deduction\":true,\"feeCoinCode\":\"BGB\",\"totalDeductionFee\":-0.017118519726,\"totalFee\":-0.017118519726}}",
+        //         "orderSource": "market",
+        //         "cTime": "1684134644509"
         //     }
         //
         // swap
@@ -2521,7 +2529,25 @@ export default class bitget extends Exchange {
             side = 'sell';
         }
         const clientOrderId = this.safeString2 (order, 'clientOrderId', 'clientOid');
-        const fee = undefined;
+        let fee = undefined;
+        const feeCostString = this.safeString (order, 'fee');
+        if (feeCostString !== undefined) {
+            // swap
+            fee = {
+                'cost': feeCostString,
+                'currency': market['settle'],
+            };
+        }
+        const feeDetail = this.safeValue (order, 'feeDetail');
+        if (feeDetail !== undefined) {
+            const parsedFeeDetail = JSON.parse (feeDetail);
+            const feeValues = Object.values (parsedFeeDetail);
+            const first = this.safeValue (feeValues, 0);
+            fee = {
+                'cost': this.safeString (first, 'totalFee'),
+                'currency': this.safeCurrencyCode (this.safeString (first, 'feeCoinCode')),
+            };
+        }
         const rawStatus = this.safeString2 (order, 'status', 'state');
         const status = this.parseOrderStatus (rawStatus);
         const lastTradeTimestamp = this.safeInteger (order, 'uTime');
@@ -2551,7 +2577,7 @@ export default class bitget extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitget#createOrder
@@ -2744,7 +2770,7 @@ export default class bitget extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name bitget#editOrder
@@ -3486,7 +3512,11 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        return this.safeValue (data, 'orderList', []);
+        if (data !== undefined) {
+            return this.safeValue2 (data, 'orderList', 'data', []);
+        }
+        const parsedData = JSON.parse (response);
+        return this.safeValue (parsedData, 'data', []);
     }
 
     async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

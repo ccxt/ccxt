@@ -21,7 +21,7 @@ export default class coinex extends coinexRest {
     handleOrderBook(client: Client, message: any): void;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any): void;
-    parseWSOrder(order: any): any;
+    parseWSOrder(order: any): import("../base/types.js").Order;
     parseWSOrderStatus(status: any): string;
     handleMessage(client: Client, message: any): any;
     handleAuthenticationMessage(client: Client, message: any): any;

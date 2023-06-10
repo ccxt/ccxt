@@ -3038,7 +3038,7 @@ export default class mexc extends Exchange {
         }
         return result;
     }
-    parseBalance(response, marketType) {
+    customParseBalance(response, marketType) {
         //
         // spot
         //
@@ -3288,7 +3288,7 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        return this.parseBalance(response, marketType);
+        return this.customParseBalance(response, marketType);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
