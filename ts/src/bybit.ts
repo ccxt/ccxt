@@ -1150,8 +1150,8 @@ export default class bybit extends Exchange {
 
     addPaginationCursorToResult (response) {
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValueN (result, [ 'list', 'rows', 'data' ], []);
-        const paginationCursor = this.safeString (result, 'nextPageCursor');
+        const data = this.safeValueN (result, [ 'list', 'rows', 'data', 'dataList' ], []);
+        const paginationCursor = this.safeString2 (result, 'nextPageCursor', 'cursor');
         if ((paginationCursor !== undefined) && (data.length > 0)) {
             const first = data[0];
             first['nextPageCursor'] = paginationCursor;
@@ -5644,8 +5644,7 @@ export default class bybit extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchUSDCOpenOrders', market, params);
         request['category'] = (type === 'swap') ? 'perpetual' : 'option';
         const response = await this.privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders (this.extend (request, params));
-        const result = this.safeValue (response, 'result', {});
-        const orders = this.safeValue (result, 'dataList', []);
+        const orders = this.addPaginationCursorToResult (response);
         //
         //     {
         //         "retCode": 0,
@@ -6064,8 +6063,7 @@ export default class bybit extends Exchange {
         //       "retMsg": "Success."
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        const dataList = this.safeValue (result, 'dataList', []);
+        const dataList = this.addPaginationCursorToResult (response);
         return this.parseTrades (dataList, market, since, limit);
     }
 
@@ -7128,8 +7126,7 @@ export default class bybit extends Exchange {
         //         "retMsg": "Success."
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        const positions = this.safeValue (result, 'dataList', []);
+        const positions = this.addPaginationCursorToResult (response);
         const results = [];
         for (let i = 0; i < positions.length; i++) {
             let rawPosition = positions[i];
