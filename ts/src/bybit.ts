@@ -1150,7 +1150,7 @@ export default class bybit extends Exchange {
 
     addPaginationCursorToResult (response) {
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'list', []);
+        const data = this.safeValueN (result, [ 'list', 'rows', 'data' ], []);
         const paginationCursor = this.safeString (result, 'nextPageCursor');
         if ((paginationCursor !== undefined) && (data.length > 0)) {
             const first = data[0];
@@ -6294,8 +6294,7 @@ export default class bybit extends Exchange {
         //         "time": 1672191992512
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'rows', []);
+        const data = this.addPaginationCursorToResult (response);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -6370,8 +6369,7 @@ export default class bybit extends Exchange {
         //         "time": 1672194949928
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'rows', []);
+        const data = this.addPaginationCursorToResult (response);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -6635,8 +6633,7 @@ export default class bybit extends Exchange {
         //         "time": 1672132481405
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue2 (result, 'data', 'list', []);
+        const data = this.addPaginationCursorToResult (response);
         return this.parseLedger (data, currency, since, limit);
     }
 
