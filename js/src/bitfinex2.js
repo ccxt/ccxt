@@ -289,19 +289,19 @@ export default class bitfinex2 extends Exchange {
                 // convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 // everything else remains uppercase
                 'exchangeTypes': {
-                    // 'MARKET': undefined,
+                    'MARKET': 'market',
                     'EXCHANGE MARKET': 'market',
-                    // 'LIMIT': undefined,
+                    'LIMIT': 'limit',
                     'EXCHANGE LIMIT': 'limit',
-                    // 'STOP': undefined,
+                    'STOP': 'stop',
                     'EXCHANGE STOP': 'market',
                     // 'TRAILING STOP': undefined,
                     // 'EXCHANGE TRAILING STOP': undefined,
-                    // 'FOK': undefined,
+                    'FOK': 'limit',
                     'EXCHANGE FOK': 'limit',
-                    // 'STOP LIMIT': undefined,
+                    'STOP LIMIT': 'limit',
                     'EXCHANGE STOP LIMIT': 'limit',
-                    // 'IOC': undefined,
+                    'IOC': 'limit',
                     'EXCHANGE IOC': 'limit',
                 },
                 // convert 'market' to 'EXCHANGE MARKET'
@@ -1477,12 +1477,8 @@ export default class bitfinex2 extends Exchange {
         // order types "limit" and "market" immediatley parsed "EXCHANGE LIMIT" and "EXCHANGE MARKET"
         // note: same order types exist for margin orders without the EXCHANGE prefix
         const orderTypes = this.safeValue(this.options, 'orderTypes', {});
-        let orderType = type.toUpperCase();
-        if (market['spot']) {
-            // although they claim that type needs to be 'exchange limit' or 'exchange market'
-            // in fact that's not the case for swap markets
-            orderType = this.safeStringUpper(orderTypes, type, type);
-        }
+        let orderType = this.safeStringUpper(orderTypes, type, type);
+        orderType = orderType.toUpperCase();
         const stopPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
         const timeInForce = this.safeString(params, 'timeInForce');
         const postOnlyParam = this.safeValue(params, 'postOnly', false);
@@ -1521,7 +1517,7 @@ export default class bitfinex2 extends Exchange {
         if ((ioc || fok) && exchangeMarket) {
             throw new InvalidOrder(this.id + ' createOrder() does not allow market IOC and FOK orders');
         }
-        if ((orderType !== 'MARKET') && (!exchangeMarket) && (!exchangeStop)) {
+        if ((orderType !== 'EXCHANGE MARKET') && (!exchangeMarket) && (!exchangeStop)) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         if (stopLimit || stopMarket) {
@@ -1555,6 +1551,17 @@ export default class bitfinex2 extends Exchange {
         if (clientOrderId !== undefined) {
             request['cid'] = clientOrderId;
             params = this.omit(params, ['cid', 'clientOrderId']);
+        }
+        if (market['swap']) {
+            const swapTypes = {
+                'EXCHANGE MARKET': 'MARKET',
+                'EXCHANGE LIMIT': 'LIMIT',
+                'EXCHANGE STOP': 'STOP',
+                'EXCHANGE FOK': 'FOK',
+                'EXCHANGE STOP LIMIT': 'STOP LIMIT',
+                'EXCHANGE IOC': 'IOC',
+            };
+            request['type'] = this.safeString(swapTypes, request['type'], request['type']);
         }
         const response = await this.privatePostAuthWOrderSubmit(this.extend(request, params));
         //
