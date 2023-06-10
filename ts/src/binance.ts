@@ -4109,7 +4109,7 @@ export default class binance extends Exchange {
                 if (Precise.stringGt (filled, '0')) {
                     lastTradeTimestamp = this.safeInteger (order, 'updateTime');
                 }
-            } else if (status !== 'canceled') {
+            } else if (status === 'closed') {
                 lastTradeTimestamp = this.safeInteger (order, 'updateTime');
             }
         }
