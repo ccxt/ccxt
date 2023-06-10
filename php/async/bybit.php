@@ -1155,6 +1155,19 @@ class bybit extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
+    public function add_pagination_cursor_to_result($response) {
+        $result = $this->safe_value($response, 'result', array());
+        $data = $this->safe_value_n($result, array( 'list', 'rows', 'data', 'dataList' ), array());
+        $paginationCursor = $this->safe_string_2($result, 'nextPageCursor', 'cursor');
+        $dataLength = count($data);
+        if (($paginationCursor !== null) && ($dataLength > 0)) {
+            $first = $data[0];
+            $first['nextPageCursor'] = $paginationCursor;
+            $data[0] = $first;
+        }
+        return $data;
+    }
+
     public function is_unified_enabled($params = array ()) {
         return Async\async(function () use ($params) {
             // The API key of user id must own one of permissions will be allowed to call following API endpoints.
@@ -5002,14 +5015,7 @@ class bybit extends Exchange {
             //         "time" => 1672221263862
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $data = $this->safe_value($result, 'list', array());
-            $paginationCursor = $this->safe_string($result, 'nextPageCursor');
-            if (($paginationCursor !== null) && (strlen($data) > 0)) {
-                $first = $data[0];
-                $first['nextPageCursor'] = $paginationCursor;
-                $data[0] = $first;
-            }
+            $data = $this->add_pagination_cursor_to_result($response);
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -5097,14 +5103,7 @@ class bybit extends Exchange {
             //         "time" => 1657713451741
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $data = $this->safe_value($result, 'list', array());
-            $paginationCursor = $this->safe_string($result, 'nextPageCursor');
-            if (($paginationCursor !== null) && (strlen($data) > 0)) {
-                $first = $data[0];
-                $first['nextPageCursor'] = $paginationCursor;
-                $data[0] = $first;
-            }
+            $data = $this->add_pagination_cursor_to_result($response);
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -5201,14 +5200,7 @@ class bybit extends Exchange {
             //         "time" => 1672221263862
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $data = $this->safe_value($result, 'list', array());
-            $paginationCursor = $this->safe_string($result, 'nextPageCursor');
-            if (($paginationCursor !== null) && (strlen($data) > 0)) {
-                $first = $data[0];
-                $first['nextPageCursor'] = $paginationCursor;
-                $data[0] = $first;
-            }
+            $data = $this->add_pagination_cursor_to_result($response);
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -5473,8 +5465,7 @@ class bybit extends Exchange {
             //         "time" => 1672219526294
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $data = $this->safe_value($result, 'list', array());
+            $data = $this->add_pagination_cursor_to_result($response);
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -5606,8 +5597,7 @@ class bybit extends Exchange {
             //         "time" => 1665565614320
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $orders = $this->safe_value($result, 'list', array());
+            $orders = $this->add_pagination_cursor_to_result($response);
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -5709,8 +5699,7 @@ class bybit extends Exchange {
             //         "time" => 1672219526294
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $orders = $this->safe_value($result, 'list', array());
+            $orders = $this->add_pagination_cursor_to_result($response);
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -5728,8 +5717,7 @@ class bybit extends Exchange {
             list($type, $params) = $this->handle_market_type_and_params('fetchUSDCOpenOrders', $market, $params);
             $request['category'] = ($type === 'swap') ? 'perpetual' : 'option';
             $response = Async\await($this->privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders (array_merge($request, $params)));
-            $result = $this->safe_value($response, 'result', array());
-            $orders = $this->safe_value($result, 'dataList', array());
+            $orders = $this->add_pagination_cursor_to_result($response);
             //
             //     {
             //         "retCode" => 0,
@@ -5907,8 +5895,7 @@ class bybit extends Exchange {
             //         "time" => 1672283754510
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $trades = $this->safe_value($result, 'list', array());
+            $trades = $this->add_pagination_cursor_to_result($response);
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -5965,8 +5952,7 @@ class bybit extends Exchange {
             //         "time" => "1666768215157"
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $trades = $this->safe_value($result, 'list', array());
+            $trades = $this->add_pagination_cursor_to_result($response);
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -6036,8 +6022,7 @@ class bybit extends Exchange {
             //         "time" => 1657714292783
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $trades = $this->safe_value($result, 'list', array());
+            $trades = $this->add_pagination_cursor_to_result($response);
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -6115,8 +6100,7 @@ class bybit extends Exchange {
             //         "time" => 1672283754510
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $trades = $this->safe_value($result, 'list', array());
+            $trades = $this->add_pagination_cursor_to_result($response);
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -6162,8 +6146,7 @@ class bybit extends Exchange {
             //       "retMsg" => "Success."
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $dataList = $this->safe_value($result, 'dataList', array());
+            $dataList = $this->add_pagination_cursor_to_result($response);
             return $this->parse_trades($dataList, $market, $since, $limit);
         }) ();
     }
@@ -6392,8 +6375,7 @@ class bybit extends Exchange {
             //         "time" => 1672191992512
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $data = $this->safe_value($result, 'rows', array());
+            $data = $this->add_pagination_cursor_to_result($response);
             return $this->parse_transactions($data, $currency, $since, $limit);
         }) ();
     }
@@ -6468,8 +6450,7 @@ class bybit extends Exchange {
             //         "time" => 1672194949928
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $data = $this->safe_value($result, 'rows', array());
+            $data = $this->add_pagination_cursor_to_result($response);
             return $this->parse_transactions($data, $currency, $since, $limit);
         }) ();
     }
@@ -6733,8 +6714,7 @@ class bybit extends Exchange {
             //         "time" => 1672132481405
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $data = $this->safe_value_2($result, 'data', 'list', array());
+            $data = $this->add_pagination_cursor_to_result($response);
             return $this->parse_ledger($data, $currency, $since, $limit);
         }) ();
     }
@@ -7156,8 +7136,7 @@ class bybit extends Exchange {
             //         "time" => 1657713693182
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $positions = $this->safe_value($result, 'list', array());
+            $positions = $this->add_pagination_cursor_to_result($response);
             $results = array();
             for ($i = 0; $i < count($positions); $i++) {
                 $rawPosition = $positions[$i];
@@ -7234,8 +7213,7 @@ class bybit extends Exchange {
             //         "retMsg" => "Success."
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $positions = $this->safe_value($result, 'dataList', array());
+            $positions = $this->add_pagination_cursor_to_result($response);
             $results = array();
             for ($i = 0; $i < count($positions); $i++) {
                 $rawPosition = $positions[$i];
@@ -7314,8 +7292,7 @@ class bybit extends Exchange {
             //         "time" => 1672280219169
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $positions = $this->safe_value($result, 'list', array());
+            $positions = $this->add_pagination_cursor_to_result($response);
             return $this->parse_positions($positions, $symbols, $params);
         }) ();
     }
@@ -7831,13 +7808,7 @@ class bybit extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $data = $this->safe_value($result, 'list', array());
-            $paginationCursor = $this->safe_string($result, 'nextPageCursor');
-            if (($paginationCursor !== null) && (strlen($data) > 0)) {
-                $first = $data[0];
-                $first['nextPageCursor'] = $paginationCursor;
-                $data[0] = $first;
-            }
+            $data = $this->add_pagination_cursor_to_result($response);
             $id = $this->safe_string($result, 'symbol');
             $market = $this->safe_market($id, $market, null, 'contract');
             return $this->parse_open_interests($data, $market, $since, $limit);
@@ -7900,7 +7871,7 @@ class bybit extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             $id = $this->safe_string($result, 'symbol');
             $market = $this->safe_market($id, $market, null, 'contract');
-            $data = $this->safe_value($result, 'list', array());
+            $data = $this->add_pagination_cursor_to_result($response);
             return $this->parse_open_interest($data[0], $market);
         }) ();
     }

@@ -3,6 +3,7 @@ import { Int, OrderSide, OrderType } from './base/types.js';
 export default class bybit extends Exchange {
     describe(): any;
     nonce(): number;
+    addPaginationCursorToResult(response: any): any;
     isUnifiedEnabled(params?: {}): Promise<any[]>;
     upgradeUnifiedAccount(params?: {}): Promise<any>;
     upgradeUnifiedTradeAccount(params?: {}): Promise<any>;

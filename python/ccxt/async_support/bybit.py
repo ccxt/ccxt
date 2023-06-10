@@ -1163,6 +1163,17 @@ class bybit(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
+    def add_pagination_cursor_to_result(self, response):
+        result = self.safe_value(response, 'result', {})
+        data = self.safe_value_n(result, ['list', 'rows', 'data', 'dataList'], [])
+        paginationCursor = self.safe_string_2(result, 'nextPageCursor', 'cursor')
+        dataLength = len(data)
+        if (paginationCursor is not None) and (dataLength > 0):
+            first = data[0]
+            first['nextPageCursor'] = paginationCursor
+            data[0] = first
+        return data
+
     async def is_unified_enabled(self, params={}):
         # The API key of user id must own one of permissions will be allowed to call following API endpoints.
         # SUB UID: "Account Transfer"
@@ -4665,13 +4676,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672221263862
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'list', [])
-        paginationCursor = self.safe_string(result, 'nextPageCursor')
-        if (paginationCursor is not None) and (len(data) > 0):
-            first = data[0]
-            first['nextPageCursor'] = paginationCursor
-            data[0] = first
+        data = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_unified_margin_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -4752,13 +4757,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1657713451741
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'list', [])
-        paginationCursor = self.safe_string(result, 'nextPageCursor')
-        if (paginationCursor is not None) and (len(data) > 0):
-            first = data[0]
-            first['nextPageCursor'] = paginationCursor
-            data[0] = first
+        data = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_derivatives_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -4847,13 +4846,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672221263862
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'list', [])
-        paginationCursor = self.safe_string(result, 'nextPageCursor')
-        if (paginationCursor is not None) and (len(data) > 0):
-            first = data[0]
-            first['nextPageCursor'] = paginationCursor
-            data[0] = first
+        data = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5084,8 +5077,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672219526294
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'list', [])
+        data = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_spot_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5205,8 +5197,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1665565614320
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        orders = self.safe_value(result, 'list', [])
+        orders = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_derivatives_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5299,8 +5290,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672219526294
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        orders = self.safe_value(result, 'list', [])
+        orders = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_usdc_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5314,8 +5304,7 @@ class bybit(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchUSDCOpenOrders', market, params)
         request['category'] = 'perpetual' if (type == 'swap') else 'option'
         response = await self.privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders(self.extend(request, params))
-        result = self.safe_value(response, 'result', {})
-        orders = self.safe_value(result, 'dataList', [])
+        orders = self.add_pagination_cursor_to_result(response)
         #
         #     {
         #         "retCode": 0,
@@ -5474,8 +5463,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672283754510
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        trades = self.safe_value(result, 'list', [])
+        trades = self.add_pagination_cursor_to_result(response)
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_my_spot_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5526,8 +5514,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": "1666768215157"
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        trades = self.safe_value(result, 'list', [])
+        trades = self.add_pagination_cursor_to_result(response)
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_my_unified_margin_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5590,8 +5577,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1657714292783
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        trades = self.safe_value(result, 'list', [])
+        trades = self.add_pagination_cursor_to_result(response)
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_my_contract_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5662,8 +5648,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672283754510
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        trades = self.safe_value(result, 'list', [])
+        trades = self.add_pagination_cursor_to_result(response)
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_my_usdc_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5705,8 +5690,7 @@ class bybit(Exchange, ImplicitAPI):
         #       "retMsg": "Success."
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        dataList = self.safe_value(result, 'dataList', [])
+        dataList = self.add_pagination_cursor_to_result(response)
         return self.parse_trades(dataList, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5913,8 +5897,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672191992512
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'rows', [])
+        data = self.add_pagination_cursor_to_result(response)
         return self.parse_transactions(data, currency, since, limit)
 
     async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5983,8 +5966,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672194949928
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'rows', [])
+        data = self.add_pagination_cursor_to_result(response)
         return self.parse_transactions(data, currency, since, limit)
 
     def parse_transaction_status(self, status):
@@ -6237,8 +6219,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672132481405
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value_2(result, 'data', 'list', [])
+        data = self.add_pagination_cursor_to_result(response)
         return self.parse_ledger(data, currency, since, limit)
 
     def parse_ledger_entry(self, item, currency=None):
@@ -6636,8 +6617,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1657713693182
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        positions = self.safe_value(result, 'list', [])
+        positions = self.add_pagination_cursor_to_result(response)
         results = []
         for i in range(0, len(positions)):
             rawPosition = positions[i]
@@ -6707,8 +6687,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "retMsg": "Success."
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        positions = self.safe_value(result, 'dataList', [])
+        positions = self.add_pagination_cursor_to_result(response)
         results = []
         for i in range(0, len(positions)):
             rawPosition = positions[i]
@@ -6778,8 +6757,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672280219169
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        positions = self.safe_value(result, 'list', [])
+        positions = self.add_pagination_cursor_to_result(response)
         return self.parse_positions(positions, symbols, params)
 
     async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
@@ -7239,12 +7217,7 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'list', [])
-        paginationCursor = self.safe_string(result, 'nextPageCursor')
-        if (paginationCursor is not None) and (len(data) > 0):
-            first = data[0]
-            first['nextPageCursor'] = paginationCursor
-            data[0] = first
+        data = self.add_pagination_cursor_to_result(response)
         id = self.safe_string(result, 'symbol')
         market = self.safe_market(id, market, None, 'contract')
         return self.parse_open_interests(data, market, since, limit)
@@ -7302,7 +7275,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         id = self.safe_string(result, 'symbol')
         market = self.safe_market(id, market, None, 'contract')
-        data = self.safe_value(result, 'list', [])
+        data = self.add_pagination_cursor_to_result(response)
         return self.parse_open_interest(data[0], market)
 
     async def fetch_open_interest_history(self, symbol: str, timeframe='1h', since: Optional[int] = None, limit: Optional[int] = None, params={}):
