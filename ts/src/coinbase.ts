@@ -1450,7 +1450,7 @@ export default class coinbase extends Exchange {
         }, market);
     }
 
-    parseBalance (response, params = {}) {
+    parseBalanceCustom (response, params = {}) {
         const balances = this.safeValue (response, 'data', []);
         const accounts = this.safeValue (params, 'type', this.options['accounts']);
         const result = { 'info': response };
@@ -1533,7 +1533,7 @@ export default class coinbase extends Exchange {
         //         ]
         //     }
         //
-        return this.parseBalance (response, params);
+        return this.parseBalanceCustom (response, params);
     }
 
     async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

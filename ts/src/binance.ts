@@ -2297,7 +2297,7 @@ export default class binance extends Exchange {
         return account;
     }
 
-    parseBalance (response, type = undefined, marginMode = undefined): Balances {
+    parseBalanceCustom (response, type = undefined, marginMode = undefined): Balances {
         const result = {
             'info': response,
         };
@@ -2671,7 +2671,7 @@ export default class binance extends Exchange {
         //       }
         //     ]
         //
-        return this.parseBalance (response, type, marginMode);
+        return this.parseBalanceCustom (response, type, marginMode);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
