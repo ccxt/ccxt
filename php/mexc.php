@@ -4932,11 +4932,7 @@ class mexc extends Exchange {
         list($path, $params) = $this->resolve_path($path, $params);
         $url = null;
         if ($section === 'spot' || $section === 'broker') {
-            if($section === 'broker') {
-                $url = $this->urls['api'][$section][$access] . '/' . $path;
-            } else {
-                $url = $this->urls['api'][$section][$access] . '/api/' . $this->version . '/' . $path;
-            }
+            $url = $this->urls['api'][$section][$access] . '/api/' . $this->version . '/' . $path;
             $paramsEncoded = '';
             if ($access === 'private') {
                 $params['timestamp'] = $this->milliseconds();

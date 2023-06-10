@@ -4684,10 +4684,7 @@ class mexc(Exchange, ImplicitAPI):
         path, params = self.resolve_path(path, params)
         url = None
         if section == 'spot' or section == 'broker':
-            if section == 'broker':
-                url = self.urls['api'][section][access] + '/' + path
-            else:
-                url = self.urls['api'][section][access] + '/api/' + self.version + '/' + path
+            url = self.urls['api'][section][access] + '/api/' + self.version + '/' + path
             paramsEncoded = ''
             if access == 'private':
                 params['timestamp'] = self.milliseconds()
