@@ -4102,26 +4102,15 @@ export default class binance extends Exchange {
         const marketType = ('closePosition' in order) ? 'contract' : 'spot';
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const filled = this.safeString (order, 'executedQty', '0');
-        let timestamp = undefined;
-        let lastTradeTimestamp = undefined;
-        if ('time' in order) {
-            timestamp = this.safeInteger (order, 'time');
-        } else if ('workingTime' in order) {
-            lastTradeTimestamp = this.safeInteger (order, 'transactTime');
-            timestamp = this.safeInteger (order, 'workingTime');
-        } else if ('transactTime' in order) {
-            lastTradeTimestamp = this.safeInteger (order, 'transactTime');
-            timestamp = this.safeInteger (order, 'transactTime');
-        } else if ('createTime' in order) {
-            lastTradeTimestamp = this.safeInteger (order, 'updateTime');
-            timestamp = this.safeInteger (order, 'createTime');
-        } else if ('updateTime' in order) {
+        const timestamp = this.safeIntegerN (order, [ 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime' ]); // order of the keys matters here
+        let lastTradeTimestamp = this.safeInteger (order, 'transactTime');
+        if ((lastTradeTimestamp === undefined) && ('updateTime' in order)) {
             if (status === 'open') {
                 if (Precise.stringGt (filled, '0')) {
                     lastTradeTimestamp = this.safeInteger (order, 'updateTime');
-                } else {
-                    timestamp = this.safeInteger (order, 'updateTime');
                 }
+            } else if (status !== 'canceled') {
+                lastTradeTimestamp = this.safeInteger (order, 'updateTime');
             }
         }
         const average = this.safeString (order, 'avgPrice');
