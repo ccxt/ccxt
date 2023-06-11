@@ -4103,14 +4103,15 @@ export default class binance extends Exchange {
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const filled = this.safeString (order, 'executedQty', '0');
         const timestamp = this.safeIntegerN (order, [ 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime' ]); // order of the keys matters here
-        let lastTradeTimestamp = this.safeInteger (order, 'transactTime');
-        if ((lastTradeTimestamp === undefined) && ('updateTime' in order)) {
+        let lastTradeTimestamp = undefined;
+        if (('transactTime' in order) || ('updateTime' in order)) {
+            const timestampValue = this.safeInteger2 (order, 'updateTime', 'transactTime');
             if (status === 'open') {
                 if (Precise.stringGt (filled, '0')) {
-                    lastTradeTimestamp = this.safeInteger (order, 'updateTime');
+                    lastTradeTimestamp = timestampValue;
                 }
             } else if (status === 'closed') {
-                lastTradeTimestamp = this.safeInteger (order, 'updateTime');
+                lastTradeTimestamp = timestampValue;
             }
         }
         const lastUpdateTimestamp = this.safeInteger2 (order, 'transactTime', 'updateTime');
