@@ -3021,10 +3021,14 @@ export default class binance extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
         const market = this.getMarketFromSymbols(symbols);
-        const [marketType, query] = this.handleMarketTypeAndParams('fetchLastPrices', market, params);
+        let type = undefined;
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchLastPrices', market, params);
+        [type, params] = this.handleMarketTypeAndParams('fetchLastPrices', market, params);
         let method = undefined;
-        if (marketType === 'future') {
+        if (this.isLinear(type, subType)) {
             method = 'fapiPublicGetTickerPrice';
             //
             //     [
@@ -3037,7 +3041,7 @@ export default class binance extends Exchange {
             //     ]
             //
         }
-        else if (marketType === 'delivery') {
+        else if (this.isInverse(type, subType)) {
             method = 'dapiPublicGetTickerPrice';
             //
             //     [
@@ -3050,7 +3054,7 @@ export default class binance extends Exchange {
             //     ]
             //
         }
-        else if (marketType === 'spot') {
+        else if (type === 'spot') {
             method = 'publicGetTickerPrice';
             //
             //     [
@@ -3063,9 +3067,9 @@ export default class binance extends Exchange {
             //
         }
         else {
-            throw new NotSupported(this.id + ' fetchLastPrices() does not support ' + marketType + ' markets yet');
+            throw new NotSupported(this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
         }
-        const response = await this[method](query);
+        const response = await this[method](params);
         return this.parseLastPrices(response, symbols);
     }
     parseLastPrice(info, market = undefined) {
@@ -3095,10 +3099,10 @@ export default class binance extends Exchange {
         //         "time": 1591257246176
         //     }
         //
-        const marketId = this.safeString(info, 'symbol');
-        const defaultType = this.safeString(this.options, 'defaultType', 'spot');
-        market = this.safeMarket(marketId, market, undefined, defaultType);
         const timestamp = this.safeInteger(info, 'time');
+        const type = (timestamp === undefined) ? 'spot' : 'swap';
+        const marketId = this.safeString(info, 'symbol');
+        market = this.safeMarket(marketId, market, undefined, type);
         const price = this.safeNumber(info, 'price');
         return {
             'symbol': market['symbol'],

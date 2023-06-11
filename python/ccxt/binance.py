@@ -2929,10 +2929,14 @@ class binance(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         market = self.get_market_from_symbols(symbols)
-        marketType, query = self.handle_market_type_and_params('fetchLastPrices', market, params)
+        type = None
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchLastPrices', market, params)
+        type, params = self.handle_market_type_and_params('fetchLastPrices', market, params)
         method = None
-        if marketType == 'future':
+        if self.is_linear(type, subType):
             method = 'fapiPublicGetTickerPrice'
             #
             #     [
@@ -2944,7 +2948,7 @@ class binance(Exchange, ImplicitAPI):
             #         ...
             #     ]
             #
-        elif marketType == 'delivery':
+        elif self.is_inverse(type, subType):
             method = 'dapiPublicGetTickerPrice'
             #
             #     [
@@ -2956,7 +2960,7 @@ class binance(Exchange, ImplicitAPI):
             #         }
             #     ]
             #
-        elif marketType == 'spot':
+        elif type == 'spot':
             method = 'publicGetTickerPrice'
             #
             #     [
@@ -2968,8 +2972,8 @@ class binance(Exchange, ImplicitAPI):
             #     ]
             #
         else:
-            raise NotSupported(self.id + ' fetchLastPrices() does not support ' + marketType + ' markets yet')
-        response = getattr(self, method)(query)
+            raise NotSupported(self.id + ' fetchLastPrices() does not support ' + type + ' markets yet')
+        response = getattr(self, method)(params)
         return self.parse_last_prices(response, symbols)
 
     def parse_last_price(self, info, market=None):
@@ -2999,10 +3003,10 @@ class binance(Exchange, ImplicitAPI):
         #         "time": 1591257246176
         #     }
         #
-        marketId = self.safe_string(info, 'symbol')
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        market = self.safe_market(marketId, market, None, defaultType)
         timestamp = self.safe_integer(info, 'time')
+        type = 'spot' if (timestamp is None) else 'swap'
+        marketId = self.safe_string(info, 'symbol')
+        market = self.safe_market(marketId, market, None, type)
         price = self.safe_number(info, 'price')
         return {
             'symbol': market['symbol'],

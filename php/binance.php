@@ -2984,10 +2984,14 @@ class binance extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $market = $this->get_market_from_symbols($symbols);
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
+        $type = null;
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchLastPrices', $market, $params);
+        list($type, $params) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
         $method = null;
-        if ($marketType === 'future') {
+        if ($this->is_linear($type, $subType)) {
             $method = 'fapiPublicGetTickerPrice';
             //
             //     array(
@@ -2999,7 +3003,7 @@ class binance extends Exchange {
             //         ...
             //     )
             //
-        } elseif ($marketType === 'delivery') {
+        } elseif ($this->is_inverse($type, $subType)) {
             $method = 'dapiPublicGetTickerPrice';
             //
             //     array(
@@ -3011,7 +3015,7 @@ class binance extends Exchange {
             //         }
             //     )
             //
-        } elseif ($marketType === 'spot') {
+        } elseif ($type === 'spot') {
             $method = 'publicGetTickerPrice';
             //
             //     array(
@@ -3023,9 +3027,9 @@ class binance extends Exchange {
             //     )
             //
         } else {
-            throw new NotSupported($this->id . ' fetchLastPrices() does not support ' . $marketType . ' markets yet');
+            throw new NotSupported($this->id . ' fetchLastPrices() does not support ' . $type . ' markets yet');
         }
-        $response = $this->$method ($query);
+        $response = $this->$method ($params);
         return $this->parse_last_prices($response, $symbols);
     }
 
@@ -3056,10 +3060,10 @@ class binance extends Exchange {
         //         "time" => 1591257246176
         //     }
         //
-        $marketId = $this->safe_string($info, 'symbol');
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $market = $this->safe_market($marketId, $market, null, $defaultType);
         $timestamp = $this->safe_integer($info, 'time');
+        $type = ($timestamp === null) ? 'spot' : 'swap';
+        $marketId = $this->safe_string($info, 'symbol');
+        $market = $this->safe_market($marketId, $market, null, $type);
         $price = $this->safe_number($info, 'price');
         return array(
             'symbol' => $market['symbol'],
