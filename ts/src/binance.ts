@@ -4113,6 +4113,7 @@ export default class binance extends Exchange {
                 lastTradeTimestamp = this.safeInteger (order, 'updateTime');
             }
         }
+        const lastUpdateTimestamp = this.safeInteger2 (order, 'transactTime', 'updateTime');
         const average = this.safeString (order, 'avgPrice');
         const price = this.safeString (order, 'price');
         const amount = this.safeString2 (order, 'origQty', 'quantity');
@@ -4144,6 +4145,7 @@ export default class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
