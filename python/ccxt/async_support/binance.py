@@ -3011,8 +3011,6 @@ class binance(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'price': price,
             'side': None,
-            'baseVolume': None,
-            'quoteVolume': None,
             'info': info,
         }
 

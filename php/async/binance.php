@@ -3097,8 +3097,6 @@ class binance extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'price' => $price,
             'side' => null,
-            'baseVolume' => null,
-            'quoteVolume' => null,
             'info' => $info,
         );
     }

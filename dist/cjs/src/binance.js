@@ -3103,8 +3103,6 @@ class binance extends binance$1 {
             'datetime': this.iso8601(timestamp),
             'price': price,
             'side': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': undefined,
             'info': info,
         };
     }
