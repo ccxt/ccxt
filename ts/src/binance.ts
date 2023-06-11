@@ -2970,11 +2970,7 @@ export default class binance extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let market = undefined;
-        if (symbols !== undefined) {
-            const first = this.safeString (symbols, 0);
-            market = this.market (first);
-        }
+        const market = this.getMarketFromSymbols (symbols);
         let type = undefined;
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
@@ -3004,10 +3000,14 @@ export default class binance extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const market = this.getMarketFromSymbols (symbols);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
+        let type = undefined;
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchLastPrices', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
         let method = undefined;
-        if (marketType === 'future') {
+        if (this.isLinear (type, subType)) {
             method = 'fapiPublicGetTickerPrice';
             //
             //     [
@@ -3019,7 +3019,7 @@ export default class binance extends Exchange {
             //         ...
             //     ]
             //
-        } else if (marketType === 'delivery') {
+        } else if (this.isInverse (type, subType)) {
             method = 'dapiPublicGetTickerPrice';
             //
             //     [
@@ -3031,7 +3031,7 @@ export default class binance extends Exchange {
             //         }
             //     ]
             //
-        } else if (marketType === 'spot') {
+        } else if (type === 'spot') {
             method = 'publicGetTickerPrice';
             //
             //     [
@@ -3043,9 +3043,9 @@ export default class binance extends Exchange {
             //     ]
             //
         } else {
-            throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + marketType + ' markets yet');
+            throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
         }
-        const response = await this[method] (query);
+        const response = await this[method] (params);
         return this.parseLastPrices (response, symbols);
     }
 
@@ -3087,8 +3087,6 @@ export default class binance extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'price': price,
             'side': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': undefined,
             'info': info,
         };
     }
