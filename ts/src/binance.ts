@@ -3080,10 +3080,10 @@ export default class binance extends Exchange {
         //         "time": 1591257246176
         //     }
         //
-        const marketId = this.safeString (info, 'symbol');
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        market = this.safeMarket (marketId, market, undefined, defaultType);
         const timestamp = this.safeInteger (info, 'time');
+        const type = (timestamp === undefined) ? 'spot' : 'swap';
+        const marketId = this.safeString (info, 'symbol');
+        market = this.safeMarket (marketId, market, undefined, type);
         const price = this.safeNumber (info, 'price');
         return {
             'symbol': market['symbol'],
