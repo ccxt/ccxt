@@ -4143,33 +4143,20 @@ export default class binance extends Exchange {
         const marketType = ('closePosition' in order) ? 'contract' : 'spot';
         const symbol = this.safeSymbol(marketId, market, undefined, marketType);
         const filled = this.safeString(order, 'executedQty', '0');
-        let timestamp = undefined;
+        const timestamp = this.safeIntegerN(order, ['time', 'createTime', 'workingTime', 'transactTime', 'updateTime']); // order of the keys matters here
         let lastTradeTimestamp = undefined;
-        if ('time' in order) {
-            timestamp = this.safeInteger(order, 'time');
-        }
-        else if ('workingTime' in order) {
-            lastTradeTimestamp = this.safeInteger(order, 'transactTime');
-            timestamp = this.safeInteger(order, 'workingTime');
-        }
-        else if ('transactTime' in order) {
-            lastTradeTimestamp = this.safeInteger(order, 'transactTime');
-            timestamp = this.safeInteger(order, 'transactTime');
-        }
-        else if ('createTime' in order) {
-            lastTradeTimestamp = this.safeInteger(order, 'updateTime');
-            timestamp = this.safeInteger(order, 'createTime');
-        }
-        else if ('updateTime' in order) {
+        if (('transactTime' in order) || ('updateTime' in order)) {
+            const timestampValue = this.safeInteger2(order, 'updateTime', 'transactTime');
             if (status === 'open') {
                 if (Precise.stringGt(filled, '0')) {
-                    lastTradeTimestamp = this.safeInteger(order, 'updateTime');
-                }
-                else {
-                    timestamp = this.safeInteger(order, 'updateTime');
+                    lastTradeTimestamp = timestampValue;
                 }
             }
+            else if (status === 'closed') {
+                lastTradeTimestamp = timestampValue;
+            }
         }
+        const lastUpdateTimestamp = this.safeInteger2(order, 'transactTime', 'updateTime');
         const average = this.safeString(order, 'avgPrice');
         const price = this.safeString(order, 'price');
         const amount = this.safeString2(order, 'origQty', 'quantity');
@@ -4201,6 +4188,7 @@ export default class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,

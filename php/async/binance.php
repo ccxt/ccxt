@@ -4114,28 +4114,19 @@ class binance extends Exchange {
         $marketType = (is_array($order) && array_key_exists('closePosition', $order)) ? 'contract' : 'spot';
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
         $filled = $this->safe_string($order, 'executedQty', '0');
-        $timestamp = null;
+        $timestamp = $this->safe_integer_n($order, array( 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime' )); // $order of the keys matters here
         $lastTradeTimestamp = null;
-        if (is_array($order) && array_key_exists('time', $order)) {
-            $timestamp = $this->safe_integer($order, 'time');
-        } elseif (is_array($order) && array_key_exists('workingTime', $order)) {
-            $lastTradeTimestamp = $this->safe_integer($order, 'transactTime');
-            $timestamp = $this->safe_integer($order, 'workingTime');
-        } elseif (is_array($order) && array_key_exists('transactTime', $order)) {
-            $lastTradeTimestamp = $this->safe_integer($order, 'transactTime');
-            $timestamp = $this->safe_integer($order, 'transactTime');
-        } elseif (is_array($order) && array_key_exists('createTime', $order)) {
-            $lastTradeTimestamp = $this->safe_integer($order, 'updateTime');
-            $timestamp = $this->safe_integer($order, 'createTime');
-        } elseif (is_array($order) && array_key_exists('updateTime', $order)) {
+        if ((is_array($order) && array_key_exists('transactTime', $order)) || (is_array($order) && array_key_exists('updateTime', $order))) {
+            $timestampValue = $this->safe_integer_2($order, 'updateTime', 'transactTime');
             if ($status === 'open') {
                 if (Precise::string_gt($filled, '0')) {
-                    $lastTradeTimestamp = $this->safe_integer($order, 'updateTime');
-                } else {
-                    $timestamp = $this->safe_integer($order, 'updateTime');
+                    $lastTradeTimestamp = $timestampValue;
                 }
+            } elseif ($status === 'closed') {
+                $lastTradeTimestamp = $timestampValue;
             }
         }
+        $lastUpdateTimestamp = $this->safe_integer_2($order, 'transactTime', 'updateTime');
         $average = $this->safe_string($order, 'avgPrice');
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string_2($order, 'origQty', 'quantity');
@@ -4167,6 +4158,7 @@ class binance extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,

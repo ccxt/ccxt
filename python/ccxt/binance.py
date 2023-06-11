@@ -3948,25 +3948,16 @@ class binance(Exchange, ImplicitAPI):
         marketType = 'contract' if ('closePosition' in order) else 'spot'
         symbol = self.safe_symbol(marketId, market, None, marketType)
         filled = self.safe_string(order, 'executedQty', '0')
-        timestamp = None
+        timestamp = self.safe_integer_n(order, ['time', 'createTime', 'workingTime', 'transactTime', 'updateTime'])  # order of the keys matters here
         lastTradeTimestamp = None
-        if 'time' in order:
-            timestamp = self.safe_integer(order, 'time')
-        elif 'workingTime' in order:
-            lastTradeTimestamp = self.safe_integer(order, 'transactTime')
-            timestamp = self.safe_integer(order, 'workingTime')
-        elif 'transactTime' in order:
-            lastTradeTimestamp = self.safe_integer(order, 'transactTime')
-            timestamp = self.safe_integer(order, 'transactTime')
-        elif 'createTime' in order:
-            lastTradeTimestamp = self.safe_integer(order, 'updateTime')
-            timestamp = self.safe_integer(order, 'createTime')
-        elif 'updateTime' in order:
+        if ('transactTime' in order) or ('updateTime' in order):
+            timestampValue = self.safe_integer_2(order, 'updateTime', 'transactTime')
             if status == 'open':
                 if Precise.string_gt(filled, '0'):
-                    lastTradeTimestamp = self.safe_integer(order, 'updateTime')
-                else:
-                    timestamp = self.safe_integer(order, 'updateTime')
+                    lastTradeTimestamp = timestampValue
+            elif status == 'closed':
+                lastTradeTimestamp = timestampValue
+        lastUpdateTimestamp = self.safe_integer_2(order, 'transactTime', 'updateTime')
         average = self.safe_string(order, 'avgPrice')
         price = self.safe_string(order, 'price')
         amount = self.safe_string_2(order, 'origQty', 'quantity')
@@ -3996,6 +3987,7 @@ class binance(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
