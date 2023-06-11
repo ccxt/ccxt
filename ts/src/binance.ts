@@ -2969,6 +2969,7 @@ export default class binance extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         let market = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
