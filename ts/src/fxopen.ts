@@ -1552,7 +1552,7 @@ export default class fxopen extends Exchange {
         this.omit ('triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'amountChange', 'expiry');
         // id, price, amount - strings are not accepted
         const request = {
-            'Id': this.parseNumber (id),
+            'Id': this.parseIntegerInternal (id),
         };
         if (amount !== undefined) {
             if (amountChange !== undefined) {
@@ -1659,10 +1659,10 @@ export default class fxopen extends Exchange {
         const amount = this.safeString (order, 'InitialAmount');
         const remaining = this.safeString (order, 'RemainingAmount');
         const filled = this.safeString (order, 'FilledAmount');
-        const iocFlag = this.safeString (order, 'ImmediateOrCancel');
+        const iocFlag = this.safeValue (order, 'ImmediateOrCancel');
         const expiry = this.safeIntegerGt0 (order, 'Expired');
         let timeInForce = 'GTC';
-        if (iocFlag === 'true') {
+        if (iocFlag === true) {
             timeInForce = 'IOC';
         } else if (expiry !== undefined) {
             timeInForce = 'GTD'; // Good till date
@@ -1675,7 +1675,7 @@ export default class fxopen extends Exchange {
         const stopLossPrice = this.omitZero (this.safeString (order, 'StopLoss'));
         const takeProfitPrice = this.omitZero (this.safeString (order, 'TakeProfit'));
         const rawStatus = this.safeString (order, 'Status');
-        let status = this.parseOrderStatus (this.safeString (order, 'Status'));
+        let status = this.parseOrderStatus (rawStatus);
         if ((rawStatus === 'PartiallyFilled') && (timeInForce === 'IOC')) {
             status = 'canceled';
         }
@@ -1711,7 +1711,7 @@ export default class fxopen extends Exchange {
             'side': side,
             'type': type,
             'timeInForce': timeInForce,
-            'price': price,
+            'price': this.parseNumber (price),
             'average': undefined,
             'amount': this.parseNumber (amount),
             'filled': this.parseNumber (filled),
@@ -1758,7 +1758,7 @@ export default class fxopen extends Exchange {
             const type = (closeById === undefined) ? 'Close' : 'CloseBy';
             const request = {
                 'trade.type': type,
-                'trade.id': id,
+                'trade.id': id, // ignore parse integer because imploded in query as string
             };
             if (closeAmount !== undefined) {
                 if (closeById !== undefined) {
@@ -1767,7 +1767,7 @@ export default class fxopen extends Exchange {
                 request['trade.amount'] = this.amountToPrecision (symbol, closeAmount);
             }
             if (closeById !== undefined) {
-                request['trade.byId'] = closeById;
+                request['trade.byId'] = closeById; // ignore parse integer because imploded in query as string
             }
             const response = await this.privateDeleteTrade (this.extend (request, params));
             return this.parseOrder (response['Trade']);
@@ -1775,7 +1775,7 @@ export default class fxopen extends Exchange {
             params = this.omit (params, 'mode', 'closeAmount', 'closeById');
             const request = {
                 'trade.type': 'Cancel',
-                'trade.id': id,
+                'trade.id': id, // ignore parse integer because imploded in query as string
             };
             const response = await this.privateDeleteTrade (this.extend (request, params));
             return this.parseOrder (response['Trade']);
@@ -1822,7 +1822,7 @@ export default class fxopen extends Exchange {
         await this.loadMarkets ();
         await this.loadAccountInfo ();
         const request = {
-            'id': id,
+            'id': this.parseIntegerInternal (id),
         };
         const response = await this.privateGetTradeId (this.extend (request, params));
         const type = this.safeStringLower (response, 'Type');
@@ -2202,7 +2202,7 @@ export default class fxopen extends Exchange {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         const request = {
-            'orderId': id,
+            'orderId': this.parseIntegerInternal (id),
         };
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
@@ -2407,7 +2407,7 @@ export default class fxopen extends Exchange {
             openOrder['trades'] = orderTrades;
         } else {
             const request = {
-                'orderId': id,
+                'orderId': this.parseIntegerInternal (id),
                 'SkipCancelOrder': false,
             };
             const since = undefined;
@@ -2661,5 +2661,14 @@ export default class fxopen extends Exchange {
             }
         }
         return leverage;
+    }
+
+    parseIntegerInternal (str) {
+        // Python this.parseNumber() returns Float
+        // Which produces incorrect json: { 'Id': 174064052.0 }
+        const tmp = {
+            'value': str,
+        };
+        return this.safeInteger (tmp, 'value');
     }
 }
