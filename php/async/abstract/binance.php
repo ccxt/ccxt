@@ -793,6 +793,12 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapi_post_convert_acceptquote($params = array()) {
         return $this->request('convert/acceptQuote', 'sapi', 'POST', $params, null, null, array("cost" => 3.3335));
     }
+    public function sapi_post_portfolio_auto_collection($params = array()) {
+        return $this->request('portfolio/auto-collection', 'sapi', 'POST', $params, null, null, array("cost" => 0.6667));
+    }
+    public function sapi_post_portfolio_bnb_transfer($params = array()) {
+        return $this->request('portfolio/bnb-transfer', 'sapi', 'POST', $params, null, null, array("cost" => 0.6667));
+    }
     public function sapi_put_userdatastream($params = array()) {
         return $this->request('userDataStream', 'sapi', 'PUT', $params, null, null, array("cost" => 0.1));
     }
@@ -2421,6 +2427,12 @@ abstract class binance extends \ccxt\async\Exchange {
     }
     public function sapiPostConvertAcceptQuote($params = array()) {
         return $this->request('convert/acceptQuote', 'sapi', 'POST', $params, null, null, array("cost" => 3.3335));
+    }
+    public function sapiPostPortfolioAutoCollection($params = array()) {
+        return $this->request('portfolio/auto-collection', 'sapi', 'POST', $params, null, null, array("cost" => 0.6667));
+    }
+    public function sapiPostPortfolioBnbTransfer($params = array()) {
+        return $this->request('portfolio/bnb-transfer', 'sapi', 'POST', $params, null, null, array("cost" => 0.6667));
     }
     public function sapiPutUserDataStream($params = array()) {
         return $this->request('userDataStream', 'sapi', 'PUT', $params, null, null, array("cost" => 0.1));

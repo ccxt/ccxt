@@ -505,6 +505,8 @@ class binance(Exchange, ImplicitAPI):
                         'loan/vip/repay': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'convert/getQuote': 20.001,
                         'convert/acceptQuote': 3.3335,
+                        'portfolio/auto-collection': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'portfolio/bnb-transfer': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
                     },
                     'put': {
                         'userDataStream': 0.1,
