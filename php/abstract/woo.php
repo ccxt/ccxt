@@ -109,6 +109,9 @@ abstract class woo extends \ccxt\Exchange {
     public function v1_private_get_position_symbol($params = array()) {
         return $this->request('position/{symbol}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 3.33));
     }
+    public function v1_private_get_client_transaction_history($params = array()) {
+        return $this->request('client/transaction_history', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 60));
+    }
     public function v1_private_post_order($params = array()) {
         return $this->request('order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
     }
@@ -288,6 +291,9 @@ abstract class woo extends \ccxt\Exchange {
     }
     public function v1PrivateGetPositionSymbol($params = array()) {
         return $this->request('position/{symbol}', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 3.33));
+    }
+    public function v1PrivateGetClientTransactionHistory($params = array()) {
+        return $this->request('client/transaction_history', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 60));
     }
     public function v1PrivatePostOrder($params = array()) {
         return $this->request('order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
