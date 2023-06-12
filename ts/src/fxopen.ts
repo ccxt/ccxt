@@ -355,7 +355,7 @@ export default class fxopen extends Exchange {
         const baseUrl = this.urls['api'][api];
         let url = this.resolveServerUrl (baseUrl) + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (method === 'GET') {
+        if ((method === 'GET') || (method === 'DELETE')) {
             if (Object.keys (query).length) {
                 const suffix = '?' + this.urlencode (query);
                 url += suffix;
@@ -1757,25 +1757,25 @@ export default class fxopen extends Exchange {
             params = this.omit (params, 'mode', 'closeAmount', 'closeById');
             const type = (closeById === undefined) ? 'Close' : 'CloseBy';
             const request = {
-                'Type': type,
-                'Id': this.parseNumber (id),
+                'trade.type': type,
+                'trade.id': id,
             };
             if (closeAmount !== undefined) {
                 if (closeById !== undefined) {
                     throw new BadRequest (this.id + ' cancelOrder() params.closeAmount and params.closeById cannot be both specified');
                 }
-                request['Amount'] = this.parseNumber (this.amountToPrecision (symbol, closeAmount));
+                request['trade.amount'] = this.amountToPrecision (symbol, closeAmount);
             }
             if (closeById !== undefined) {
-                request['ById'] = this.parseNumber (closeById);
+                request['trade.byId'] = closeById;
             }
             const response = await this.privateDeleteTrade (this.extend (request, params));
             return this.parseOrder (response['Trade']);
         } else {
             params = this.omit (params, 'mode', 'closeAmount', 'closeById');
             const request = {
-                'Type': 'Cancel',
-                'Id': this.parseNumber (id),
+                'trade.type': 'Cancel',
+                'trade.id': id,
             };
             const response = await this.privateDeleteTrade (this.extend (request, params));
             return this.parseOrder (response['Trade']);
