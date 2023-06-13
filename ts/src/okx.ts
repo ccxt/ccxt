@@ -4855,7 +4855,7 @@ export default class okx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': code,
-            'amount': this.parseNumber (amount),
+            'amount': amount,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
             'status': status,
