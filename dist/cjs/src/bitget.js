@@ -2694,7 +2694,9 @@ class bitget extends bitget$1 {
                 const triggerType = this.safeString(params, 'triggerType', 'market_price');
                 request['triggerType'] = triggerType;
                 request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
-                request['executePrice'] = this.priceToPrecision(symbol, price);
+                if (price !== undefined) {
+                    request['executePrice'] = this.priceToPrecision(symbol, price);
+                }
                 method = 'privateSpotPostPlanPlacePlan';
             }
             if (quantity !== undefined) {
