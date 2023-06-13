@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1102,11 +1103,14 @@ class bitmex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        tickers = await self.fetch_tickers([market['symbol']], params)
-        ticker = self.safe_value(tickers, market['symbol'])
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicGetInstrument(self.extend(request, params))
+        ticker = self.safe_value(response, 0)
         if ticker is None:
             raise BadSymbol(self.id + ' fetchTicker() symbol ' + symbol + ' not found')
-        return ticker
+        return self.parse_ticker(ticker, market)
 
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
@@ -1620,7 +1624,7 @@ class bitmex(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.1.27';
+$version = '3.1.36';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.1.27';
+    const VERSION = '3.1.36';
 
     public $browser;
     public $marketsLoading = null;
@@ -1801,7 +1801,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->cancelOrder ($id, $symbol));
             return Async\await($this->create_order($symbol, $type, $side, $amount, $price, $params));
@@ -1960,6 +1960,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_balance($params = array ()) {
         throw new NotSupported($this->id . ' fetchBalance() is not supported yet');
+    }
+
+    public function parse_balance($response) {
+        throw new NotSupported($this->id . ' parseBalance() is not supported yet');
     }
 
     public function watch_balance($params = array ()) {
@@ -2216,14 +2220,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function watch_ticker(string $symbol, $params = array ()) {
-        return Async\async(function () use ($symbol, $params) {
-            if ($this->has['watchTickers']) {
-                $tickers = Async\await($this->watchTickers (array( $symbol ), $params));
-                return $this->safe_value($tickers, $symbol);
-            } else {
-                throw new NotSupported($this->id . ' watchTicker() is not supported yet');
-            }
-        }) ();
+        throw new NotSupported($this->id . ' watchTicker() is not supported yet');
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
@@ -2846,6 +2843,7 @@ class Exchange extends \ccxt\Exchange {
             if ($this->has['fetchFundingRates']) {
                 Async\await($this->load_markets());
                 $market = $this->market ($symbol);
+                $symbol = $market['symbol'];
                 if (!$market['contract']) {
                     throw new BadSymbol($this->id . ' fetchFundingRate() supports contract markets only');
                 }

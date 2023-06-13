@@ -1141,12 +1141,15 @@ class bitmex extends bitmex$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const tickers = await this.fetchTickers([market['symbol']], params);
-        const ticker = this.safeValue(tickers, market['symbol']);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetInstrument(this.extend(request, params));
+        const ticker = this.safeValue(response, 0);
         if (ticker === undefined) {
             throw new errors.BadSymbol(this.id + ' fetchTicker() symbol ' + symbol + ' not found');
         }
-        return ticker;
+        return this.parseTicker(ticker, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
         /**

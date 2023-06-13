@@ -1162,12 +1162,15 @@ class bitmex extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $tickers = Async\await($this->fetch_tickers([ $market['symbol'] ], $params));
-            $ticker = $this->safe_value($tickers, $market['symbol']);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicGetInstrument (array_merge($request, $params)));
+            $ticker = $this->safe_value($response, 0);
             if ($ticker === null) {
                 throw new BadSymbol($this->id . ' fetchTicker() $symbol ' . $symbol . ' not found');
             }
-            return $ticker;
+            return $this->parse_ticker($ticker, $market);
         }) ();
     }
 
@@ -1710,7 +1713,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order

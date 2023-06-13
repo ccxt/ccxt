@@ -793,6 +793,12 @@ abstract class binanceus extends \ccxt\binance {
     public function sapi_post_convert_acceptquote($params = array()) {
         return $this->request('convert/acceptQuote', 'sapi', 'POST', $params, null, null, array("cost" => 3.3335));
     }
+    public function sapi_post_portfolio_auto_collection($params = array()) {
+        return $this->request('portfolio/auto-collection', 'sapi', 'POST', $params, null, null, array("cost" => 0.6667));
+    }
+    public function sapi_post_portfolio_bnb_transfer($params = array()) {
+        return $this->request('portfolio/bnb-transfer', 'sapi', 'POST', $params, null, null, array("cost" => 0.6667));
+    }
     public function sapi_put_userdatastream($params = array()) {
         return $this->request('userDataStream', 'sapi', 'PUT', $params, null, null, array("cost" => 0.1));
     }
@@ -933,9 +939,6 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function dapipublic_get_openinterest($params = array()) {
         return $this->request('openInterest', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function dapipublic_get_pmexchangeinfo($params = array()) {
-        return $this->request('pmExchangeInfo', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
     public function dapidata_get_openinteresthist($params = array()) {
         return $this->request('openInterestHist', 'dapiData', 'GET', $params, null, null, array("cost" => 1));
@@ -1110,9 +1113,6 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function fapipublic_get_lvtklines($params = array()) {
         return $this->request('lvtKlines', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function fapipublic_get_pmexchangeinfo($params = array()) {
-        return $this->request('pmExchangeInfo', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapidata_get_openinteresthist($params = array()) {
         return $this->request('openInterestHist', 'fapiData', 'GET', $params, null, null, array("cost" => 1));
@@ -1551,6 +1551,18 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function papi_get_cm_commissionrate($params = array()) {
         return $this->request('cm/commissionRate', 'papi', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function papi_get_um_income($params = array()) {
+        return $this->request('um/income', 'papi', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function papi_get_cm_income($params = array()) {
+        return $this->request('cm/income ', 'papi', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function papi_get_um_account($params = array()) {
+        return $this->request('um/account', 'papi', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function papi_get_cm_account($params = array()) {
+        return $this->request('cm/account', 'papi', 'GET', $params, null, null, array("cost" => 5));
     }
     public function papi_get_margin_marginloan($params = array()) {
         return $this->request('margin/marginLoan', 'papi', 'GET', $params, null, null, array("cost" => 0.0667));
@@ -2416,6 +2428,12 @@ abstract class binanceus extends \ccxt\binance {
     public function sapiPostConvertAcceptQuote($params = array()) {
         return $this->request('convert/acceptQuote', 'sapi', 'POST', $params, null, null, array("cost" => 3.3335));
     }
+    public function sapiPostPortfolioAutoCollection($params = array()) {
+        return $this->request('portfolio/auto-collection', 'sapi', 'POST', $params, null, null, array("cost" => 0.6667));
+    }
+    public function sapiPostPortfolioBnbTransfer($params = array()) {
+        return $this->request('portfolio/bnb-transfer', 'sapi', 'POST', $params, null, null, array("cost" => 0.6667));
+    }
     public function sapiPutUserDataStream($params = array()) {
         return $this->request('userDataStream', 'sapi', 'PUT', $params, null, null, array("cost" => 0.1));
     }
@@ -2556,9 +2574,6 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function dapiPublicGetOpenInterest($params = array()) {
         return $this->request('openInterest', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function dapiPublicGetPmExchangeInfo($params = array()) {
-        return $this->request('pmExchangeInfo', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
     public function dapiDataGetOpenInterestHist($params = array()) {
         return $this->request('openInterestHist', 'dapiData', 'GET', $params, null, null, array("cost" => 1));
@@ -2733,9 +2748,6 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function fapiPublicGetLvtKlines($params = array()) {
         return $this->request('lvtKlines', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function fapiPublicGetPmExchangeInfo($params = array()) {
-        return $this->request('pmExchangeInfo', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiDataGetOpenInterestHist($params = array()) {
         return $this->request('openInterestHist', 'fapiData', 'GET', $params, null, null, array("cost" => 1));
@@ -3174,6 +3186,18 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function papiGetCmCommissionRate($params = array()) {
         return $this->request('cm/commissionRate', 'papi', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function papiGetUmIncome($params = array()) {
+        return $this->request('um/income', 'papi', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function papiGetCmIncome($params = array()) {
+        return $this->request('cm/income ', 'papi', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function papiGetUmAccount($params = array()) {
+        return $this->request('um/account', 'papi', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function papiGetCmAccount($params = array()) {
+        return $this->request('cm/account', 'papi', 'GET', $params, null, null, array("cost" => 5));
     }
     public function papiGetMarginMarginLoan($params = array()) {
         return $this->request('margin/marginLoan', 'papi', 'GET', $params, null, null, array("cost" => 0.0667));

@@ -1471,7 +1471,7 @@ class bitmart extends bitmart$1 {
         const trades = this.safeValue(data, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
-    parseBalance(response, marketType) {
+    customParseBalance(response, marketType) {
         const data = this.safeValue(response, 'data', {});
         let wallet = undefined;
         if (marketType === 'swap') {
@@ -1647,7 +1647,7 @@ class bitmart extends bitmart$1 {
         //         }
         //     }
         //
-        return this.parseBalance(response, marketType);
+        return this.customParseBalance(response, marketType);
     }
     parseTradingFee(fee, market = undefined) {
         //

@@ -2564,7 +2564,7 @@ export default class Exchange {
     async editLimitOrder(id, symbol, side, amount, price = undefined, params = {}) {
         return await this.editOrder(id, symbol, 'limit', side, amount, price, params);
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.cancelOrder(id, symbol);
         return await this.createOrder(symbol, type, side, amount, price, params);
     }
@@ -2715,6 +2715,9 @@ export default class Exchange {
     }
     async fetchBalance(params = {}) {
         throw new NotSupported(this.id + ' fetchBalance() is not supported yet');
+    }
+    parseBalance(response) {
+        throw new NotSupported(this.id + ' parseBalance() is not supported yet');
     }
     async watchBalance(params = {}) {
         throw new NotSupported(this.id + ' watchBalance() is not supported yet');
@@ -2931,13 +2934,7 @@ export default class Exchange {
         }
     }
     async watchTicker(symbol, params = {}) {
-        if (this.has['watchTickers']) {
-            const tickers = await this.watchTickers([symbol], params);
-            return this.safeValue(tickers, symbol);
-        }
-        else {
-            throw new NotSupported(this.id + ' watchTicker() is not supported yet');
-        }
+        throw new NotSupported(this.id + ' watchTicker() is not supported yet');
     }
     async fetchTickers(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchTickers() is not supported yet');
@@ -3470,6 +3467,7 @@ export default class Exchange {
         if (this.has['fetchFundingRates']) {
             await this.loadMarkets();
             const market = this.market(symbol);
+            symbol = market['symbol'];
             if (!market['contract']) {
                 throw new BadSymbol(this.id + ' fetchFundingRate() supports contract markets only');
             }

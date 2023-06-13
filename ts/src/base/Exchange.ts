@@ -1761,7 +1761,7 @@ export default class Exchange {
         return balance as any;
     }
 
-    safeOrder (order: object, market: object = undefined) {
+    safeOrder (order: object, market: object = undefined): Order {
         // parses numbers as strings
         // * it is important pass the trades as unparsed rawTrades
         let amount = this.omitZero (this.safeString (order, 'amount'));
@@ -2876,7 +2876,7 @@ export default class Exchange {
         return await this.editOrder (id, symbol, 'limit', side, amount, price, params);
     }
 
-    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}): Promise<Order> {
         await this.cancelOrder (id, symbol);
         return await this.createOrder (symbol, type, side, amount, price, params);
     }
@@ -3033,6 +3033,10 @@ export default class Exchange {
 
     async fetchBalance (params = {}): Promise<Balances> {
         throw new NotSupported (this.id + ' fetchBalance() is not supported yet');
+    }
+
+    parseBalance (response): Balances {
+        throw new NotSupported (this.id + ' parseBalance() is not supported yet');
     }
 
     async watchBalance (params = {}): Promise<Balances> {
@@ -3268,12 +3272,7 @@ export default class Exchange {
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        if (this.has['watchTickers']) {
-            const tickers = await this.watchTickers ([ symbol ], params);
-            return this.safeValue (tickers, symbol);
-        } else {
-            throw new NotSupported (this.id + ' watchTicker() is not supported yet');
-        }
+        throw new NotSupported (this.id + ' watchTicker() is not supported yet');
     }
 
     async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
@@ -3864,6 +3863,7 @@ export default class Exchange {
         if (this.has['fetchFundingRates']) {
             await this.loadMarkets ();
             const market = this.market (symbol);
+            symbol = market['symbol'];
             if (!market['contract']) {
                 throw new BadSymbol (this.id + ' fetchFundingRate() supports contract markets only');
             }
