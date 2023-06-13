@@ -166,6 +166,7 @@ class woo extends woo$1 {
                             'funding_fee/history': 30,
                             'positions': 3.33,
                             'position/{symbol}': 3.33,
+                            'client/transaction_history': 60,
                         },
                         'post': {
                             'order': 5,

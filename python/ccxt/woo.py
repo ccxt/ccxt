@@ -179,6 +179,7 @@ class woo(Exchange, ImplicitAPI):
                             'funding_fee/history': 30,
                             'positions': 3.33,  # 30 requests per 10 seconds
                             'position/{symbol}': 3.33,
+                            'client/transaction_history': 60,
                         },
                         'post': {
                             'order': 5,  # 2 requests per 1 second per symbol

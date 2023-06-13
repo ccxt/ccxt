@@ -70,7 +70,7 @@ class gate extends Exchange {
                 'margin' => true,
                 'swap' => true,
                 'future' => true,
-                'option' => null,
+                'option' => true,
                 'addMargin' => true,
                 'borrowMargin' => true,
                 'cancelAllOrders' => true,
@@ -479,9 +479,44 @@ class gate extends Exchange {
                     'expiration' => 86400, // for conditional orders
                 ),
                 'networks' => array(
-                    'TRC20' => 'TRX',
-                    'ERC20' => 'ETH',
+                    'ALGORAND' => 'ALGO',
+                    'ARBITRUM_NOVA' => 'ARBNOVA',
+                    'ARBITRUM_ONE' => 'ARBEVM',
+                    'AVALANCHE_C' => 'AVAX_C',
                     'BEP20' => 'BSC',
+                    'CHILIZ' => 'CHZ',
+                    'EOS' => 'EOS',
+                    'ERC20' => 'ETH',
+                    'GATECHAIN' => 'GTEVM',
+                    'HRC20' => 'HT',
+                    'KUSAMA' => 'KSMSM',
+                    'NEAR' => 'NEAR',
+                    'OKC' => 'OKT',
+                    'OPTIMISM' => 'OPETH',
+                    'POLKADOT' => 'DOTSM',
+                    'POLYGON' => 'MATIC',
+                    'SOLANA' => 'SOL',
+                    'TRC20' => 'TRX',
+                ),
+                'networksById' => array(
+                    'ALGO' => 'ALGORAND',
+                    'ARBEVM' => 'ARBITRUM_ONE',
+                    'ARBNOVA' => 'ARBITRUM_NOVA',
+                    'AVAX_C' => 'AVALANCHE_C',
+                    'BSC' => 'BEP20',
+                    'CHZ' => 'CHILIZ',
+                    'DOTSM' => 'POLKADOT',
+                    'EOS' => 'EOS',
+                    'ETH' => 'ERC20',
+                    'GTEVM' => 'GATECHAIN',
+                    'HT' => 'HRC20',
+                    'KSMSM' => 'KUSAMA',
+                    'MATIC' => 'POLYGON',
+                    'NEAR' => 'NEAR',
+                    'OKT' => 'OKC',
+                    'OPETH' => 'OPTIMISM',
+                    'SOL' => 'SOLANA',
+                    'TRX' => 'TRC20',
                 ),
                 'timeInForce' => array(
                     'GTC' => 'gtc',
@@ -1335,12 +1370,26 @@ class gate extends Exchange {
         //        "trade_disabled" => false
         //    }
         //
+        //    {
+        //        "currency":"USDT_ETH",
+        //        "delisted":false,
+        //        "withdraw_disabled":false,
+        //        "withdraw_delayed":false,
+        //        "deposit_disabled":false,
+        //        "trade_disabled":false,
+        //        "chain":"ETH"
+        //    }
+        //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
             $currencyId = $this->safe_string($entry, 'currency');
             $currencyIdLower = $this->safe_string_lower($entry, 'currency');
-            $code = $this->safe_currency_code($currencyId);
+            $parts = explode('_', $currencyId);
+            $currency = $parts[0];
+            $code = $this->safe_currency_code($currency);
+            $networkId = $this->safe_string($entry, 'chain');
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $delisted = $this->safe_value($entry, 'delisted');
             $withdrawDisabled = $this->safe_value($entry, 'withdraw_disabled', false);
             $depositDisabled = $this->safe_value($entry, 'deposit_disabled', false);
@@ -1350,21 +1399,60 @@ class gate extends Exchange {
             $tradeEnabled = !$tradeDisabled;
             $listed = !$delisted;
             $active = $listed && $tradeEnabled && $withdrawEnabled && $depositEnabled;
-            $result[$code] = array(
-                'id' => $currencyId,
-                'lowerCaseId' => $currencyIdLower,
-                'name' => null,
-                'code' => $code,
-                'precision' => $this->parse_number('1e-4'), // todo => is done completely in html, in withdrawal page's source it has predefined "num_need_fix($this->value, 4);" function, so users cant set lower precision than 0.0001
+            if ($this->safe_value($result, $code) === null) {
+                $result[$code] = array(
+                    'id' => strtolower($code),
+                    'code' => $code,
+                    'info' => null,
+                    'name' => null,
+                    'active' => $active,
+                    'deposit' => $depositEnabled,
+                    'withdraw' => $withdrawEnabled,
+                    'fee' => null,
+                    'fees' => array(),
+                    'precision' => $this->parse_number('1e-4'),
+                    'limits' => $this->limits,
+                    'networks' => array(),
+                );
+            }
+            $depositAvailable = $this->safe_value($result[$code], 'deposit');
+            $depositAvailable = ($depositEnabled) ? $depositEnabled : $depositAvailable;
+            $withdrawAvailable = $this->safe_value($result[$code], 'withdraw');
+            $withdrawAvailable = ($withdrawEnabled) ? $withdrawEnabled : $withdrawAvailable;
+            $networks = $this->safe_value($result[$code], 'networks', array());
+            $networks[$networkCode] = array(
                 'info' => $entry,
-                'active' => $active,
+                'id' => $networkId,
+                'network' => $networkCode,
+                'currencyId' => $currencyId,
+                'lowerCaseCurrencyId' => $currencyIdLower,
                 'deposit' => $depositEnabled,
                 'withdraw' => $withdrawEnabled,
+                'active' => $active,
                 'fee' => null,
-                'fees' => array(),
-                'limits' => $this->limits,
-                'networks' => array(),
+                'precision' => $this->parse_number('1e-4'),
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
             );
+            $result[$code]['networks'] = $networks;
+            $info = $this->safe_value($result[$code], 'info', array());
+            $info[] = $entry;
+            $result[$code]['info'] = $info;
+            $result[$code]['active'] = $depositAvailable && $withdrawAvailable;
+            $result[$code]['deposit'] = $depositAvailable;
+            $result[$code]['withdraw'] = $withdrawAvailable;
         }
         return $result;
     }
@@ -2097,6 +2185,10 @@ class gate extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} $params extra parameters specific to the gate api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -2109,9 +2201,26 @@ class gate extends Exchange {
             'margin' => 'publicSpotGetTickers',
             'swap' => 'publicFuturesGetSettleTickers',
             'future' => 'publicDeliveryGetSettleTickers',
+            'option' => 'publicOptionsGetTickers',
         ));
+        if ($market['option']) {
+            $marketId = $market['id'];
+            $optionParts = explode('-', $marketId);
+            $request['underlying'] = $this->safe_string($optionParts, 0);
+        }
         $response = $this->$method (array_merge($request, $query));
-        $ticker = $this->safe_value($response, 0);
+        $ticker = null;
+        if ($market['option']) {
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                if ($entry['name'] === $market['id']) {
+                    $ticker = $entry;
+                    break;
+                }
+            }
+        } else {
+            $ticker = $this->safe_value($response, 0);
+        }
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -2163,16 +2272,37 @@ class gate extends Exchange {
         //        A => '0.0353' // best $ask size
         //     }
         //
-        $marketId = $this->safe_string_2($ticker, 'currency_pair', 'contract');
-        $marketType = (is_array($ticker) && array_key_exists('contract', $ticker)) ? 'contract' : 'spot';
+        // option
+        //
+        //     {
+        //         "vega" => "0.00002",
+        //         "leverage" => "12.277188268663",
+        //         "ask_iv" => "0",
+        //         "delta" => "-0.99999",
+        //         "last_price" => "0",
+        //         "theta" => "-0.00661",
+        //         "bid1_price" => "1096",
+        //         "mark_iv" => "0.7799",
+        //         "name" => "BTC_USDT-20230608-28500-P",
+        //         "bid_iv" => "0",
+        //         "ask1_price" => "2935",
+        //         "mark_price" => "2147.3",
+        //         "position_size" => 0,
+        //         "bid1_size" => 12,
+        //         "ask1_size" => -14,
+        //         "gamma" => "0"
+        //     }
+        //
+        $marketId = $this->safe_string_n($ticker, array( 'currency_pair', 'contract', 'name' ));
+        $marketType = (is_array($ticker) && array_key_exists('mark_price', $ticker)) ? 'contract' : 'spot';
         $symbol = $this->safe_symbol($marketId, $market, '_', $marketType);
-        $last = $this->safe_string($ticker, 'last');
-        $ask = $this->safe_string_2($ticker, 'lowest_ask', 'a');
-        $bid = $this->safe_string_2($ticker, 'highest_bid', 'b');
+        $last = $this->safe_string_2($ticker, 'last', 'last_price');
+        $ask = $this->safe_string_n($ticker, array( 'lowest_ask', 'a', 'ask1_price' ));
+        $bid = $this->safe_string_n($ticker, array( 'highest_bid', 'b', 'bid1_price' ));
         $high = $this->safe_string($ticker, 'high_24h');
         $low = $this->safe_string($ticker, 'low_24h');
-        $bidVolume = $this->safe_string($ticker, 'B');
-        $askVolume = $this->safe_string($ticker, 'A');
+        $bidVolume = $this->safe_string_2($ticker, 'B', 'bid1_size');
+        $askVolume = $this->safe_string_2($ticker, 'A', 'ask1_size');
         $timestamp = $this->safe_integer($ticker, 't');
         $baseVolume = $this->safe_string_2($ticker, 'base_volume', 'volume_24h_base');
         if ($baseVolume === 'nan') {
@@ -2213,6 +2343,7 @@ class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the gate api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -2231,7 +2362,14 @@ class gate extends Exchange {
             'margin' => 'publicSpotGetTickers',
             'swap' => 'publicFuturesGetSettleTickers',
             'future' => 'publicDeliveryGetSettleTickers',
+            'option' => 'publicOptionsGetTickers',
         ));
+        if ($type === 'option') {
+            $this->check_required_argument('fetchTickers', $symbols, 'symbols');
+            $marketId = $market['id'];
+            $optionParts = explode('-', $marketId);
+            $request['underlying'] = $this->safe_string($optionParts, 0);
+        }
         $response = $this->$method (array_merge($request, $requestParams));
         return $this->parse_tickers($response, $symbols);
     }
@@ -5335,8 +5473,8 @@ class gate extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if (!$market['contract']) {
-            throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+        if (!$market['future']) {
+            throw new BadRequest($this->id . ' fetchOpenInterest() supports future markets only');
         }
         $request = array(
             'contract' => $market['id'],

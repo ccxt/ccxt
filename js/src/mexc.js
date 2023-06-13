@@ -4987,7 +4987,12 @@ export default class mexc extends Exchange {
         [path, params] = this.resolvePath(path, params);
         let url = undefined;
         if (section === 'spot' || section === 'broker') {
-            url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
+            if (section === 'broker') {
+                url = this.urls['api'][section][access] + '/' + path;
+            }
+            else {
+                url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
+            }
             let paramsEncoded = '';
             if (access === 'private') {
                 params['timestamp'] = this.milliseconds();

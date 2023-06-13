@@ -43,6 +43,7 @@ interface Exchange {
     v1PrivateGetFundingFeeHistory (params?: {}): Promise<implicitReturnType>;
     v1PrivateGetPositions (params?: {}): Promise<implicitReturnType>;
     v1PrivateGetPositionSymbol (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetClientTransactionHistory (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostOrder (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostAssetMainSubTransfer (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostAssetWithdraw (params?: {}): Promise<implicitReturnType>;

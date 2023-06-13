@@ -488,6 +488,8 @@ class binance extends Exchange {
                         'loan/vip/repay' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
                         'convert/getQuote' => 20.001,
                         'convert/acceptQuote' => 3.3335,
+                        'portfolio/auto-collection' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
+                        'portfolio/bnb-transfer' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
                     ),
                     'put' => array(
                         'userDataStream' => 0.1,
@@ -3013,10 +3015,14 @@ class binance extends Exchange {
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
             $market = $this->get_market_from_symbols($symbols);
-            list($marketType, $query) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
+            $type = null;
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchLastPrices', $market, $params);
+            list($type, $params) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
             $method = null;
-            if ($marketType === 'future') {
+            if ($this->is_linear($type, $subType)) {
                 $method = 'fapiPublicGetTickerPrice';
                 //
                 //     array(
@@ -3028,7 +3034,7 @@ class binance extends Exchange {
                 //         ...
                 //     )
                 //
-            } elseif ($marketType === 'delivery') {
+            } elseif ($this->is_inverse($type, $subType)) {
                 $method = 'dapiPublicGetTickerPrice';
                 //
                 //     array(
@@ -3040,7 +3046,7 @@ class binance extends Exchange {
                 //         }
                 //     )
                 //
-            } elseif ($marketType === 'spot') {
+            } elseif ($type === 'spot') {
                 $method = 'publicGetTickerPrice';
                 //
                 //     array(
@@ -3052,9 +3058,9 @@ class binance extends Exchange {
                 //     )
                 //
             } else {
-                throw new NotSupported($this->id . ' fetchLastPrices() does not support ' . $marketType . ' markets yet');
+                throw new NotSupported($this->id . ' fetchLastPrices() does not support ' . $type . ' markets yet');
             }
-            $response = Async\await($this->$method ($query));
+            $response = Async\await($this->$method ($params));
             return $this->parse_last_prices($response, $symbols);
         }) ();
     }
@@ -3086,10 +3092,10 @@ class binance extends Exchange {
         //         "time" => 1591257246176
         //     }
         //
-        $marketId = $this->safe_string($info, 'symbol');
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $market = $this->safe_market($marketId, $market, null, $defaultType);
         $timestamp = $this->safe_integer($info, 'time');
+        $type = ($timestamp === null) ? 'spot' : 'swap';
+        $marketId = $this->safe_string($info, 'symbol');
+        $market = $this->safe_market($marketId, $market, null, $type);
         $price = $this->safe_number($info, 'price');
         return array(
             'symbol' => $market['symbol'],
@@ -3097,8 +3103,6 @@ class binance extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'price' => $price,
             'side' => null,
-            'baseVolume' => null,
-            'quoteVolume' => null,
             'info' => $info,
         );
     }
@@ -4112,28 +4116,19 @@ class binance extends Exchange {
         $marketType = (is_array($order) && array_key_exists('closePosition', $order)) ? 'contract' : 'spot';
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
         $filled = $this->safe_string($order, 'executedQty', '0');
-        $timestamp = null;
+        $timestamp = $this->safe_integer_n($order, array( 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime' )); // $order of the keys matters here
         $lastTradeTimestamp = null;
-        if (is_array($order) && array_key_exists('time', $order)) {
-            $timestamp = $this->safe_integer($order, 'time');
-        } elseif (is_array($order) && array_key_exists('workingTime', $order)) {
-            $lastTradeTimestamp = $this->safe_integer($order, 'transactTime');
-            $timestamp = $this->safe_integer($order, 'workingTime');
-        } elseif (is_array($order) && array_key_exists('transactTime', $order)) {
-            $lastTradeTimestamp = $this->safe_integer($order, 'transactTime');
-            $timestamp = $this->safe_integer($order, 'transactTime');
-        } elseif (is_array($order) && array_key_exists('createTime', $order)) {
-            $lastTradeTimestamp = $this->safe_integer($order, 'updateTime');
-            $timestamp = $this->safe_integer($order, 'createTime');
-        } elseif (is_array($order) && array_key_exists('updateTime', $order)) {
+        if ((is_array($order) && array_key_exists('transactTime', $order)) || (is_array($order) && array_key_exists('updateTime', $order))) {
+            $timestampValue = $this->safe_integer_2($order, 'updateTime', 'transactTime');
             if ($status === 'open') {
                 if (Precise::string_gt($filled, '0')) {
-                    $lastTradeTimestamp = $this->safe_integer($order, 'updateTime');
-                } else {
-                    $timestamp = $this->safe_integer($order, 'updateTime');
+                    $lastTradeTimestamp = $timestampValue;
                 }
+            } elseif ($status === 'closed') {
+                $lastTradeTimestamp = $timestampValue;
             }
         }
+        $lastUpdateTimestamp = $this->safe_integer_2($order, 'transactTime', 'updateTime');
         $average = $this->safe_string($order, 'avgPrice');
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string_2($order, 'origQty', 'quantity');
@@ -4165,6 +4160,7 @@ class binance extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
@@ -7991,7 +7987,7 @@ class binance extends Exchange {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $amount = $this->amount_to_precision($symbol, $amount);
+            $amount = $this->cost_to_precision($symbol, $amount);
             $request = array(
                 'type' => $addOrReduce,
                 'symbol' => $market['id'],
@@ -8040,6 +8036,8 @@ class binance extends Exchange {
     public function reduce_margin(string $symbol, $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
+             * @see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
              * remove margin from a position
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
@@ -8053,6 +8051,8 @@ class binance extends Exchange {
     public function add_margin(string $symbol, $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
+             * @see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
              * add margin
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add

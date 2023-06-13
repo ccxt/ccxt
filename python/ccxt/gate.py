@@ -92,7 +92,7 @@ class gate(Exchange, ImplicitAPI):
                 'margin': True,
                 'swap': True,
                 'future': True,
-                'option': None,
+                'option': True,
                 'addMargin': True,
                 'borrowMargin': True,
                 'cancelAllOrders': True,
@@ -501,9 +501,44 @@ class gate(Exchange, ImplicitAPI):
                     'expiration': 86400,  # for conditional orders
                 },
                 'networks': {
-                    'TRC20': 'TRX',
-                    'ERC20': 'ETH',
+                    'ALGORAND': 'ALGO',
+                    'ARBITRUM_NOVA': 'ARBNOVA',
+                    'ARBITRUM_ONE': 'ARBEVM',
+                    'AVALANCHE_C': 'AVAX_C',
                     'BEP20': 'BSC',
+                    'CHILIZ': 'CHZ',
+                    'EOS': 'EOS',
+                    'ERC20': 'ETH',
+                    'GATECHAIN': 'GTEVM',
+                    'HRC20': 'HT',
+                    'KUSAMA': 'KSMSM',
+                    'NEAR': 'NEAR',
+                    'OKC': 'OKT',
+                    'OPTIMISM': 'OPETH',
+                    'POLKADOT': 'DOTSM',
+                    'POLYGON': 'MATIC',
+                    'SOLANA': 'SOL',
+                    'TRC20': 'TRX',
+                },
+                'networksById': {
+                    'ALGO': 'ALGORAND',
+                    'ARBEVM': 'ARBITRUM_ONE',
+                    'ARBNOVA': 'ARBITRUM_NOVA',
+                    'AVAX_C': 'AVALANCHE_C',
+                    'BSC': 'BEP20',
+                    'CHZ': 'CHILIZ',
+                    'DOTSM': 'POLKADOT',
+                    'EOS': 'EOS',
+                    'ETH': 'ERC20',
+                    'GTEVM': 'GATECHAIN',
+                    'HT': 'HRC20',
+                    'KSMSM': 'KUSAMA',
+                    'MATIC': 'POLYGON',
+                    'NEAR': 'NEAR',
+                    'OKT': 'OKC',
+                    'OPETH': 'OPTIMISM',
+                    'SOL': 'SOLANA',
+                    'TRX': 'TRC20',
                 },
                 'timeInForce': {
                     'GTC': 'gtc',
@@ -1320,12 +1355,26 @@ class gate(Exchange, ImplicitAPI):
         #        "trade_disabled": False
         #    }
         #
+        #    {
+        #        "currency":"USDT_ETH",
+        #        "delisted":false,
+        #        "withdraw_disabled":false,
+        #        "withdraw_delayed":false,
+        #        "deposit_disabled":false,
+        #        "trade_disabled":false,
+        #        "chain":"ETH"
+        #    }
+        #
         result = {}
         for i in range(0, len(response)):
             entry = response[i]
             currencyId = self.safe_string(entry, 'currency')
             currencyIdLower = self.safe_string_lower(entry, 'currency')
-            code = self.safe_currency_code(currencyId)
+            parts = currencyId.split('_')
+            currency = parts[0]
+            code = self.safe_currency_code(currency)
+            networkId = self.safe_string(entry, 'chain')
+            networkCode = self.network_id_to_code(networkId, code)
             delisted = self.safe_value(entry, 'delisted')
             withdrawDisabled = self.safe_value(entry, 'withdraw_disabled', False)
             depositDisabled = self.safe_value(entry, 'deposit_disabled', False)
@@ -1335,21 +1384,59 @@ class gate(Exchange, ImplicitAPI):
             tradeEnabled = not tradeDisabled
             listed = not delisted
             active = listed and tradeEnabled and withdrawEnabled and depositEnabled
-            result[code] = {
-                'id': currencyId,
-                'lowerCaseId': currencyIdLower,
-                'name': None,
-                'code': code,
-                'precision': self.parse_number('1e-4'),  # todo: is done completely in html, in withdrawal page's source it has predefined "num_need_fix(self.value, 4);" function, so users cant set lower precision than 0.0001
+            if self.safe_value(result, code) is None:
+                result[code] = {
+                    'id': code.lower(),
+                    'code': code,
+                    'info': None,
+                    'name': None,
+                    'active': active,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
+                    'fee': None,
+                    'fees': [],
+                    'precision': self.parse_number('1e-4'),
+                    'limits': self.limits,
+                    'networks': {},
+                }
+            depositAvailable = self.safe_value(result[code], 'deposit')
+            depositAvailable = depositEnabled if (depositEnabled) else depositAvailable
+            withdrawAvailable = self.safe_value(result[code], 'withdraw')
+            withdrawAvailable = withdrawEnabled if (withdrawEnabled) else withdrawAvailable
+            networks = self.safe_value(result[code], 'networks', {})
+            networks[networkCode] = {
                 'info': entry,
-                'active': active,
+                'id': networkId,
+                'network': networkCode,
+                'currencyId': currencyId,
+                'lowerCaseCurrencyId': currencyIdLower,
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
+                'active': active,
                 'fee': None,
-                'fees': [],
-                'limits': self.limits,
-                'networks': {},
+                'precision': self.parse_number('1e-4'),
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
             }
+            result[code]['networks'] = networks
+            info = self.safe_value(result[code], 'info', [])
+            info.append(entry)
+            result[code]['info'] = info
+            result[code]['active'] = depositAvailable and withdrawAvailable
+            result[code]['deposit'] = depositAvailable
+            result[code]['withdraw'] = withdrawAvailable
         return result
 
     def fetch_funding_rate(self, symbol: str, params={}):
@@ -2044,6 +2131,10 @@ class gate(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
+        see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
+        see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
+        see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -2056,9 +2147,22 @@ class gate(Exchange, ImplicitAPI):
             'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'future': 'publicDeliveryGetSettleTickers',
+            'option': 'publicOptionsGetTickers',
         })
+        if market['option']:
+            marketId = market['id']
+            optionParts = marketId.split('-')
+            request['underlying'] = self.safe_string(optionParts, 0)
         response = getattr(self, method)(self.extend(request, query))
-        ticker = self.safe_value(response, 0)
+        ticker = None
+        if market['option']:
+            for i in range(0, len(response)):
+                entry = response[i]
+                if entry['name'] == market['id']:
+                    ticker = entry
+                    break
+        else:
+            ticker = self.safe_value(response, 0)
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
@@ -2109,16 +2213,37 @@ class gate(Exchange, ImplicitAPI):
         #        A: '0.0353'  # best ask size
         #     }
         #
-        marketId = self.safe_string_2(ticker, 'currency_pair', 'contract')
-        marketType = 'contract' if ('contract' in ticker) else 'spot'
+        # option
+        #
+        #     {
+        #         "vega": "0.00002",
+        #         "leverage": "12.277188268663",
+        #         "ask_iv": "0",
+        #         "delta": "-0.99999",
+        #         "last_price": "0",
+        #         "theta": "-0.00661",
+        #         "bid1_price": "1096",
+        #         "mark_iv": "0.7799",
+        #         "name": "BTC_USDT-20230608-28500-P",
+        #         "bid_iv": "0",
+        #         "ask1_price": "2935",
+        #         "mark_price": "2147.3",
+        #         "position_size": 0,
+        #         "bid1_size": 12,
+        #         "ask1_size": -14,
+        #         "gamma": "0"
+        #     }
+        #
+        marketId = self.safe_string_n(ticker, ['currency_pair', 'contract', 'name'])
+        marketType = 'contract' if ('mark_price' in ticker) else 'spot'
         symbol = self.safe_symbol(marketId, market, '_', marketType)
-        last = self.safe_string(ticker, 'last')
-        ask = self.safe_string_2(ticker, 'lowest_ask', 'a')
-        bid = self.safe_string_2(ticker, 'highest_bid', 'b')
+        last = self.safe_string_2(ticker, 'last', 'last_price')
+        ask = self.safe_string_n(ticker, ['lowest_ask', 'a', 'ask1_price'])
+        bid = self.safe_string_n(ticker, ['highest_bid', 'b', 'bid1_price'])
         high = self.safe_string(ticker, 'high_24h')
         low = self.safe_string(ticker, 'low_24h')
-        bidVolume = self.safe_string(ticker, 'B')
-        askVolume = self.safe_string(ticker, 'A')
+        bidVolume = self.safe_string_2(ticker, 'B', 'bid1_size')
+        askVolume = self.safe_string_2(ticker, 'A', 'ask1_size')
         timestamp = self.safe_integer(ticker, 't')
         baseVolume = self.safe_string_2(ticker, 'base_volume', 'volume_24h_base')
         if baseVolume == 'nan':
@@ -2156,6 +2281,7 @@ class gate(Exchange, ImplicitAPI):
         see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
         see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
         see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
+        see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -2173,7 +2299,13 @@ class gate(Exchange, ImplicitAPI):
             'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'future': 'publicDeliveryGetSettleTickers',
+            'option': 'publicOptionsGetTickers',
         })
+        if type == 'option':
+            self.check_required_argument('fetchTickers', symbols, 'symbols')
+            marketId = market['id']
+            optionParts = marketId.split('-')
+            request['underlying'] = self.safe_string(optionParts, 0)
         response = getattr(self, method)(self.extend(request, requestParams))
         return self.parse_tickers(response, symbols)
 
@@ -5102,8 +5234,8 @@ class gate(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if not market['contract']:
-            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        if not market['future']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports future markets only')
         request = {
             'contract': market['id'],
             'settle': market['settleId'],

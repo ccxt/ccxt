@@ -264,6 +264,8 @@ class ImplicitAPI:
     sapi_post_loan_vip_repay = sapiPostLoanVipRepay = Entry('loan/vip/repay', 'sapi', 'POST', {'cost': 40})
     sapi_post_convert_getquote = sapiPostConvertGetQuote = Entry('convert/getQuote', 'sapi', 'POST', {'cost': 20.001})
     sapi_post_convert_acceptquote = sapiPostConvertAcceptQuote = Entry('convert/acceptQuote', 'sapi', 'POST', {'cost': 3.3335})
+    sapi_post_portfolio_auto_collection = sapiPostPortfolioAutoCollection = Entry('portfolio/auto-collection', 'sapi', 'POST', {'cost': 0.6667})
+    sapi_post_portfolio_bnb_transfer = sapiPostPortfolioBnbTransfer = Entry('portfolio/bnb-transfer', 'sapi', 'POST', {'cost': 0.6667})
     sapi_put_userdatastream = sapiPutUserDataStream = Entry('userDataStream', 'sapi', 'PUT', {'cost': 0.1})
     sapi_put_userdatastream_isolated = sapiPutUserDataStreamIsolated = Entry('userDataStream/isolated', 'sapi', 'PUT', {'cost': 0.1})
     sapi_delete_margin_openorders = sapiDeleteMarginOpenOrders = Entry('margin/openOrders', 'sapi', 'DELETE', {'cost': 0.1})
