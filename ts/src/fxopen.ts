@@ -1465,7 +1465,7 @@ export default class fxopen extends Exchange {
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const clientOrderId = this.safeString (params, 'clientOrderId');
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
-        const expiry = this.safeValue (params, 'expiry');
+        const expiry = this.safeInteger (params, 'expiry');
         this.omit ('triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'timeInForce', 'expiry');
         if (side === 'buy') {
             side = 'Buy';
@@ -1514,7 +1514,7 @@ export default class fxopen extends Exchange {
             request['ClientId'] = clientOrderId;
         }
         if (expiry !== undefined) {
-            request['ExpiredTimestamp'] = expiry;
+            request['Expired'] = expiry;
         }
         if (timeInForce === 'IOC') {
             request['ImmediateOrCancel'] = true;
@@ -1548,7 +1548,7 @@ export default class fxopen extends Exchange {
         const stopLossPrice = this.safeValue (params, 'stopLossPrice');
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const amountChange = this.safeValue (params, 'amountChange');
-        const expiry = this.safeValue (params, 'expiry');
+        const expiry = this.safeInteger (params, 'expiry');
         this.omit ('triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'amountChange', 'expiry');
         // id, price, amount - strings are not accepted
         const request = {
@@ -1583,7 +1583,7 @@ export default class fxopen extends Exchange {
             request['AmountChange'] = this.parseNumber (this.amountToPrecision (symbol, amountChange));
         }
         if (expiry !== undefined) {
-            request['ExpiredTimestamp'] = expiry;
+            request['Expired'] = expiry;
         }
         const response = await this.privatePutTrade (this.extend (request, params));
         return this.parseOrder (response);
