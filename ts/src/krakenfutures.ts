@@ -1645,12 +1645,13 @@ export default class krakenfutures extends Exchange {
         //  'volumeQuote': 2.63}
         //
         const marketId = this.safeString (ticker, 'symbol');
+        const symbol = this.symbol (marketId);
         const timestamp = this.parse8601 (this.safeString (ticker, 'lastTime'));
         const fundingRate = this.safeNumber (ticker, 'fundingRate');
         const nextFundingRate = this.safeNumber (ticker, 'fundingRatePrediction');
         return {
             'info': ticker,
-            'symbol': marketId,
+            'symbol': symbol,
             'markPrice': undefined,
             'indexPrice': undefined,
             'interestRate': undefined,
