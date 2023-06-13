@@ -45,7 +45,7 @@ export default class bitpanda extends Exchange {
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
-                'fetchDeposits': true,
+                'fetchDeposits': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -81,7 +81,7 @@ export default class bitpanda extends Exchange {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': true,
+                'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
@@ -1101,137 +1101,6 @@ export default class bitpanda extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitpanda#fetchDeposits
-         * @description fetch all deposits made to an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
-        await this.loadMarkets ();
-        const request = {
-            // 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
-        };
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency_code'] = currency['id'];
-        }
-        if (limit !== undefined) {
-            request['max_page_size'] = limit;
-        }
-        if (since !== undefined) {
-            const to = this.safeString (params, 'to');
-            if (to === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a "to" iso8601 string param with the since argument is specified');
-            }
-            request['from'] = this.iso8601 (since);
-        }
-        const response = await this.privateGetAccountDeposits (this.extend (request, params));
-        //
-        //     {
-        //         "deposit_history": [
-        //             {
-        //                 "transaction_id": "e5342efcd-d5b7-4a56-8e12-b69ffd68c5ef",
-        //                 "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
-        //                 "amount": "100",
-        //                 "type": "CRYPTO",
-        //                 "funds_source": "INTERNAL",
-        //                 "time": "2020-04-22T09:57:47Z",
-        //                 "currency": "BTC",
-        //                 "fee_amount": "0.0",
-        //                 "fee_currency": "BTC"
-        //             },
-        //             {
-        //                 "transaction_id": "79793d00-2899-4a4d-95b7-73ae6b31384f",
-        //                 "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
-        //                 "time": "2020-05-05T11:22:07.925Z",
-        //                 "currency": "EUR",
-        //                 "funds_source": "EXTERNAL",
-        //                 "type": "FIAT",
-        //                 "amount": "50.0",
-        //                 "fee_amount": "0.01",
-        //                 "fee_currency": "EUR"
-        //             }
-        //         ],
-        //         "max_page_size": 2,
-        //         "cursor": "eyJhY2NvdW50X2lkIjp7InMiOiJlMzY5YWM4MC00NTc3LTExZTktYWUwOC05YmVkYzQ3OTBiODQiLCJzcyI6W10sIm5zIjpbXSwiYnMiOltdLCJtIjp7fSwibCI6W119LCJpdGVtX2tleSI6eyJzIjoiV0lUSERSQVdBTDo6MmFlMjYwY2ItOTk3MC00YmNiLTgxNmEtZGY4MDVmY2VhZTY1Iiwic3MiOltdLCJucyI6W10sImJzIjpbXSwibSI6e30sImwiOltdfSwiZ2xvYmFsX3dpdGhkcmF3YWxfaW5kZXhfaGFzaF9rZXkiOnsicyI6ImUzNjlhYzgwLTQ1NzctMTFlOS1hZTA4LTliZWRjNDc5MGI4NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX0sInRpbWVzdGFtcCI6eyJuIjoiMTU4ODA1ODc2Nzk0OCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX19"
-        //     }
-        //
-        const depositHistory = this.safeValue (response, 'deposit_history', []);
-        return this.parseTransactions (depositHistory, currency, since, limit, { 'type': 'deposit' });
-    }
-
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitpanda#fetchWithdrawals
-         * @description fetch all withdrawals made from an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
-        await this.loadMarkets ();
-        const request = {
-            // 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
-        };
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency_code'] = currency['id'];
-        }
-        if (limit !== undefined) {
-            request['max_page_size'] = limit;
-        }
-        if (since !== undefined) {
-            const to = this.safeString (params, 'to');
-            if (to === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a "to" iso8601 string param with the since argument is specified');
-            }
-            request['from'] = this.iso8601 (since);
-        }
-        const response = await this.privateGetAccountWithdrawals (this.extend (request, params));
-        //
-        //     {
-        //         "withdrawal_history": [
-        //             {
-        //                 "account_id": "e369ac80-4577-11e9-ae08-9bedc4790b84",
-        //                 "amount": "0.1",
-        //                 "currency": "BTC",
-        //                 "fee_amount": "0.00002",
-        //                 "fee_currency": "BTC",
-        //                 "funds_source": "EXTERNAL",
-        //                 "related_transaction_id": "e298341a-3855-405e-bce3-92db368a3157",
-        //                 "time": "2020-05-05T11:11:32.110Z",
-        //                 "transaction_id": "6693ff40-bb10-4dcf-ada7-3b287727c882",
-        //                 "type": "CRYPTO"
-        //             },
-        //             {
-        //                 "account_id": "e369ac80-4577-11e9-ae08-9bedc4790b84",
-        //                 "amount": "0.1",
-        //                 "currency": "BTC",
-        //                 "fee_amount": "0.0",
-        //                 "fee_currency": "BTC",
-        //                 "funds_source": "INTERNAL",
-        //                 "time": "2020-05-05T10:29:53.464Z",
-        //                 "transaction_id": "ec9703b1-954b-4f76-adea-faac66eabc0b",
-        //                 "type": "CRYPTO"
-        //             }
-        //         ],
-        //         "cursor": "eyJhY2NvdW50X2lkIjp7InMiOiJlMzY5YWM4MC00NTc3LTExZTktYWUwOC05YmVkYzQ3OTBiODQiLCJzcyI6W10sIm5zIjpbXSwiYnMiOltdLCJtIjp7fSwibCI6W119LCJpdGVtX2tleSI6eyJzIjoiV0lUSERSQVdBTDo6ZWM5NzAzYjEtOTU0Yi00Zjc2LWFkZWEtZmFhYzY2ZWFiYzBiIiwic3MiOltdLCJucyI6W10sImJzIjpbXSwibSI6e30sImwiOltdfSwiZ2xvYmFsX3dpdGhkcmF3YWxfaW5kZXhfaGFzaF9rZXkiOnsicyI6ImUzNjlhYzgwLTQ1NzctMTFlOS1hZTA4LTliZWRjNDc5MGI4NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX0sInRpbWVzdGFtcCI6eyJuIjoiMTU4ODY3NDU5MzQ2NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX19",
-        //         "max_page_size": 2
-        //     }
-        //
-        const withdrawalHistory = this.safeValue (response, 'withdrawal_history', []);
-        return this.parseTransactions (withdrawalHistory, currency, since, limit, { 'type': 'withdrawal' });
-    }
-
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
@@ -1259,7 +1128,7 @@ export default class bitpanda extends Exchange {
         };
         const options = this.safeValue (this.options, 'fiat', []);
         const isFiat = this.inArray (code, options);
-        const method = isFiat ? 'privatePostAccountWithdrawFiat' : 'privatePostAccountWithdrawCrypto';
+        const method = isFiat ? 'privatePostAccountFundingWithdrawal' : 'privatePostAccountWithdrawCrypto';
         if (isFiat) {
             const payoutAccountId = this.safeString (params, 'payout_account_id');
             if (payoutAccountId === undefined) {
