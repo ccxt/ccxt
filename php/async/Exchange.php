@@ -2843,6 +2843,7 @@ class Exchange extends \ccxt\Exchange {
             if ($this->has['fetchFundingRates']) {
                 Async\await($this->load_markets());
                 $market = $this->market ($symbol);
+                $symbol = $market['symbol'];
                 if (!$market['contract']) {
                     throw new BadSymbol($this->id . ' fetchFundingRate() supports contract markets only');
                 }
