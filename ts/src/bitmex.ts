@@ -1077,7 +1077,8 @@ export default class bitmex extends Exchange {
         const type = this.parseLedgerEntryType (this.safeString (item, 'transactType'));
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let amount = this.convertToRealAmount (code, this.safeString (item, 'amount'));
+        const amountString = this.safeString (item, 'amount');
+        let amount = this.convertToRealAmount (code, amountString);
         let timestamp = this.parse8601 (this.safeString (item, 'transactTime'));
         if (timestamp === undefined) {
             // https://github.com/ccxt/ccxt/issues/6047
@@ -1099,9 +1100,9 @@ export default class bitmex extends Exchange {
         }
         const before = this.parseNumber (Precise.stringSub (this.numberToString (after), this.numberToString (amount)));
         let direction = undefined;
-        if (amount < 0) {
+        if (Precise.stringLt (amountString, '0')) {
             direction = 'out';
-            amount = Math.abs (amount);
+            amount = this.convertToRealAmount (code, Precise.stringAbs (amountString));
         } else {
             direction = 'in';
         }
