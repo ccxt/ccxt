@@ -2143,50 +2143,6 @@ export default class fxopen extends Exchange {
         });
     }
 
-    async fetchTradeHistoryInternal (since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name fxopen#fetchTradeHistoryInternal
-         * @description fetches information on user trade history records
-         * @param {int|undefined} since the earliest time in ms to fetch records for
-         * @param {int|undefined} limit the maximum number of record structures to retrieve
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @param {int|undefined} params.direction 1 to seach forward search, -1 - backwards. Defaults to 1, if since is not specified then -1
-         * @param {string|undefined} params.orderId orderId to filter request
-         * @param {int|undefined} params.until the latest time in ms to fetch records for
-         * @returns {[object]} a list of trade history records returned by exchange
-         */
-        const defaultLimit = 100; // reasonable amount to view in CLI tool
-        const maxLimit = 1000; // max not specified, will stick to a 1000 since other requests have it
-        limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
-        const direction = this.getDirectionFromParams (params, since);
-        const directionStr = (direction === 1) ? 'Forward' : 'Backward';
-        const orderId = this.safeInteger (params, 'orderId'); // exchange doesn't accept strings
-        const until = this.safeInteger (params, 'until');
-        params = this.omit (params, 'direction', 'orderId', 'until');
-        const request = {
-            'RequestDirection': directionStr,
-            'RequestPageSize': limit,
-        };
-        if (since !== undefined) {
-            request['TimestampFrom'] = since;
-        }
-        if (until !== undefined) {
-            request['TimestampTo'] = until;
-        }
-        if (orderId !== undefined) {
-            request['OrderId'] = orderId;
-        }
-        const response = await this.privatePostTradehistory (this.extend (request, params));
-        // {
-        //     "IsLastReport": true,
-        //     "TotalReports": 0,
-        //     "Records": [ ... array of objects ... ],
-        //     "LastId": "string"
-        // }
-        return response;
-    }
-
     async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -2233,8 +2189,35 @@ export default class fxopen extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        const defaultLimit = 100; // reasonable amount to view in CLI tool
+        const maxLimit = 1000; // max not specified, will stick to a 1000 since other requests have it
+        limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
         const direction = this.getDirectionFromParams (params, since);
-        const response = await this.fetchTradeHistoryInternal (since, limit, params);
+        const directionStr = (direction === 1) ? 'Forward' : 'Backward';
+        const orderId = this.safeInteger (params, 'orderId'); // exchange doesn't accept strings
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'direction', 'orderId', 'until');
+        const request = {
+            'RequestDirection': directionStr,
+            'RequestPageSize': limit,
+            'SkipCancelOrder': true, // skip canceled/expired orders
+        };
+        if (since !== undefined) {
+            request['TimestampFrom'] = since;
+        }
+        if (until !== undefined) {
+            request['TimestampTo'] = until;
+        }
+        if (orderId !== undefined) {
+            request['OrderId'] = orderId;
+        }
+        const response = await this.privatePostTradehistory (this.extend (request, params));
+        // {
+        //     "IsLastReport": true,
+        //     "TotalReports": 0,
+        //     "Records": [ ... array of objects ... ],
+        //     "LastId": "string"
+        // }
         const requiredTypes = [ 'OrderFilled', 'PositionClosed' ];
         const filtered = this.filterByArray (response['Records'], 'TransactionType', requiredTypes, false);
         const sinceOverride = (direction === -1) ? undefined : since; // disable since filter when going backwards
