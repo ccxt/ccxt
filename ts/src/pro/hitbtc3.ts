@@ -59,8 +59,7 @@ export default class hitbtc3 extends hitbtc3Rest {
                 '1M': '1M',
             },
             'streaming': {
-                'keepAlive': 15000,
-                // 'ping': this.ping,
+                'keepAlive': 5000,
             },
         });
     }
