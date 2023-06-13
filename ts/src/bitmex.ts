@@ -1875,7 +1875,7 @@ export default class bitmex extends Exchange {
             }
         }
         const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
-        const qty = parseFloat (this.amountToPrecision (symbol, amount));
+        const qty = this.parseToInt (this.amountToPrecision (symbol, amount));
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
@@ -1919,7 +1919,8 @@ export default class bitmex extends Exchange {
             request['orderID'] = id;
         }
         if (amount !== undefined) {
-            request['orderQty'] = this.amountToPrecision (symbol, amount);
+            const qty = this.parseToInt (this.amountToPrecision (symbol, amount));
+            request['orderQty'] = qty;
         }
         if (price !== undefined) {
             request['price'] = price;
