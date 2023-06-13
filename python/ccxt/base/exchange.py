@@ -1719,35 +1719,6 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    def check_proxy_settings(self):
-        proxyUrl = self.proxyUrl if (self.proxyUrl is not None) else self.proxy_url
-        proxyUrlCallback = self.proxyUrlCallback if (self.proxyUrlCallback is not None) else self.proxy_url_callback
-        # for backwards compatibility,added old keys too
-        proxyHttp = self.proxyHttp if (self.proxyHttp is not None) else self.proxy_http
-        # support for backward compatibility(note, atm safeStringN does not work in python for class https://app.travis-ci.com/github/ccxt/ccxt/builds/263490790#L4765 , so we have to use separate safeString)
-        if proxyHttp is None:
-            if self.httpProxy is not None:
-                proxyHttp = self.httpProxy
-        proxyHttps = self.proxyHttps if (self.proxyHttps is not None) else self.proxy_https
-        proxySocks = self.proxySocks if (self.proxySocks is not None) else self.proxy_socks
-        proxyAgentCallback = self.proxyAgentCallback if (self.proxyAgentCallback is not None) else self.proxy_agent_callback
-        val = 0
-        if proxyUrl is not None:
-            val = val + 1
-        if proxyUrlCallback is not None:
-            val = val + 1
-        if proxyHttp is not None:
-            val = val + 1
-        if proxyHttps is not None:
-            val = val + 1
-        if proxySocks is not None:
-            val = val + 1
-        if proxyAgentCallback is not None:
-            val = val + 1
-        if val > 1:
-            raise ExchangeError(self.id + ' you have multiple proxy settings, please use only one from : proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback')
-        return [proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback]
-
     def find_message_hashes(self, client, element: str):
         result = []
         messageHashes = list(client.futures.keys())
