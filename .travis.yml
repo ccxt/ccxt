@@ -26,6 +26,7 @@ before_install:
 - composer install
 script:
 - git fetch origin refs/tags/3.0.9
+- git log 3.0.8..3.0.9
 - git tag --sort=-creatordate
 - ./change.sh
 - ./build.sh 2>&1
