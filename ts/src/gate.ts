@@ -2513,6 +2513,9 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['option']) {
+            return await this.fetchOptionOHLCV (symbol, timeframe, since, limit, params);
+        }
         const price = this.safeString (params, 'price');
         let request = {};
         [ request, params ] = this.prepareRequest (market, undefined, params);
@@ -2525,52 +2528,50 @@ export default class gate extends Exchange {
                 method = 'publicDeliveryGetSettleCandlesticks';
             } else if (market['swap']) {
                 method = 'publicFuturesGetSettleCandlesticks';
-            } else if (market['option']) {
-                maxLimit = undefined;
-                method = 'publicOptionsGetCandlesticks';
             }
-            if (!market['option']) {
-                const isMark = (price === 'mark');
-                const isIndex = (price === 'index');
-                if (isMark || isIndex) {
-                    request['contract'] = price + '_' + market['id'];
-                    params = this.omit (params, 'price');
-                }
+            const isMark = (price === 'mark');
+            const isIndex = (price === 'index');
+            if (isMark || isIndex) {
+                request['contract'] = price + '_' + market['id'];
+                params = this.omit (params, 'price');
             }
         }
-        if (market['option']) {
-            limit = undefined;
-        } else {
-            limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
-        }
+        limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
         let until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             until = this.parseToInt (until / 1000);
             params = this.omit (params, 'until');
         }
         if (since !== undefined) {
-            if (!market['option']) {
-                const duration = this.parseTimeframe (timeframe);
-                request['from'] = this.parseToInt (since / 1000);
-                const distance = (limit - 1) * duration;
-                const toTimestamp = this.sum (request['from'], distance);
-                const currentTimestamp = this.seconds ();
-                const to = Math.min (toTimestamp, currentTimestamp);
-                if (until !== undefined) {
-                    request['to'] = Math.min (to, until);
-                } else {
-                    request['to'] = to;
-                }
+            const duration = this.parseTimeframe (timeframe);
+            request['from'] = this.parseToInt (since / 1000);
+            const distance = (limit - 1) * duration;
+            const toTimestamp = this.sum (request['from'], distance);
+            const currentTimestamp = this.seconds ();
+            const to = Math.min (toTimestamp, currentTimestamp);
+            if (until !== undefined) {
+                request['to'] = Math.min (to, until);
+            } else {
+                request['to'] = to;
             }
         } else {
-            if (!market['option']) {
-                if (until !== undefined) {
-                    request['to'] = until;
-                }
-                request['limit'] = limit;
+            if (until !== undefined) {
+                request['to'] = until;
             }
+            request['limit'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    async fetchOptionOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+        // separated option logic because the from, to and limit parameters weren't functioning
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let request = {};
+        [ request, params ] = this.prepareRequest (market, undefined, params);
+        request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
+        const response = await this.publicOptionsGetCandlesticks (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
@@ -2636,7 +2637,7 @@ export default class gate extends Exchange {
         //    ]
         //
         //
-        // Mark and Index price candles
+        // Swap, Future, Option, Mark and Index price candles
         //
         //     {
         //          "t":1632873600,         // Unix timestamp in seconds
@@ -2656,7 +2657,7 @@ export default class gate extends Exchange {
                 this.safeNumber (ohlcv, 6),      // trading volume
             ];
         } else {
-            // Mark and Index price candles
+            // Swap, Future, Option, Mark and Index price candles
             return [
                 this.safeTimestamp (ohlcv, 't'), // unix timestamp in seconds
                 this.safeNumber (ohlcv, 'o'),    // open price
