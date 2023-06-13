@@ -1231,8 +1231,10 @@ export default class xt extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'price': this.safeInteger (market, 'pricePrecision'),
-                'amount': this.safeInteger (market, 'quantityPrecision'),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision'))),
+                'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseCoinPrecision'))),
+                'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quoteCoinPrecision'))),
             },
             'limits': {
                 'leverage': {
