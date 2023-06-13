@@ -155,15 +155,14 @@ class Exchange(object):
     proxy_url = None
     proxyUrlCallback = None
     proxy_url_callback = None
-    proxyHttp = None
-    proxy_http = None
-    proxyHttps = None
-    proxy_https = None
-    proxySocks = None
-    proxy_socks = None
+    httpProxy = None
+    http_proxy = None
+    httpsProxy = None
+    https_proxy = None
+    socksProxy = None
+    socks_proxy = None
     proxyAgentCallback = None
     proxy_agent_callback = None
-    httpProxy = None  # for backwards compatibility
     origin = '*'  # CORS origin
     proxies = None
     hostname = None  # in case of inaccessibility of the "main" domain
@@ -512,7 +511,7 @@ class Exchange(object):
             headers.update({'Origin': self.origin})
         else:
             # new approach
-            proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback = self.check_proxy_settings()
+            proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, proxyAgentCallback = self.check_proxy_settings()
             if self.proxyUrl is not None or self.proxyUrlCallback is not None:
                 headers.update({'Origin': self.origin})
         headers.update({'Accept-Encoding': 'gzip, deflate'})
@@ -535,22 +534,22 @@ class Exchange(object):
         request_headers = self.prepare_request_headers(headers)
         # proxy
         proxies = None  # set default
-        proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback = self.check_proxy_settings()
+        proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, proxyAgentCallback = self.check_proxy_settings()
         if proxyUrl:
             url = proxyUrl + url
         elif proxyUrlCallback:
             url = proxyUrlCallback(url, method, headers, body)
-        elif proxyHttp:
+        elif httpProxy:
             proxies = {}
-            proxies['http'] = proxyHttp
-        elif proxyHttps:
+            proxies['http'] = httpProxy
+        elif httpsProxy:
             proxies = {}
-            proxies['https'] = proxyHttps
-        elif proxySocks:
+            proxies['https'] = httpsProxy
+        elif socksProxy:
             proxies = {}
             # https://stackoverflow.com/a/15661226/2377343
-            proxies['http'] = proxySocks
-            proxies['https'] = proxySocks
+            proxies['http'] = socksProxy
+            proxies['https'] = socksProxy
         elif proxyAgentCallback:
             proxies = proxyAgentCallback(url, method, headers, body)
 

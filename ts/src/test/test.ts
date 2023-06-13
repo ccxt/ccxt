@@ -212,7 +212,7 @@ export default class testMainClass extends baseMainTestClass {
             dump ('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
             exitScript ();
         }
-        exchange.proxyHttps = exchange.safeString (skippedSettingsForExchange, 'proxyHttps');
+        exchange.httpsProxy = exchange.safeString (skippedSettingsForExchange, 'httpsProxy');
         this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
     }

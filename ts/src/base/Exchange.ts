@@ -167,15 +167,14 @@ export default class Exchange {
     proxy_url: string;
     proxyUrlCallback: string;
     proxy_url_callback: string;
-    proxyHttp: string;
-    proxy_http: string;
-    proxyHttps: string;
-    proxy_https: string;
-    proxySocks: string;
-    proxy_socks: string;
+    httpProxy: string;
+    http_proxy: string;
+    httpsProxy: string;
+    https_proxy: string;
+    socksProxy: string;
+    socks_proxy: string;
     proxyAgentCallback: any;
     proxy_agent_callback: any;
-    httpProxy:string = undefined; // obsolete, for backwards compatibility
     origin = '*' // CORS origin
 
     minFundingAddressLength = 1 // used in checkAddress
@@ -895,7 +894,7 @@ export default class Exchange {
         }
         // new code
         else {
-            const [ proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback ] = this.checkProxySettings ();
+            const [ proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, proxyAgentCallback ] = this.checkProxySettings ();
             if (proxyUrl !== undefined) {
                 // in node we need to set header to *
                 if (isNode) {
@@ -908,16 +907,16 @@ export default class Exchange {
                     headers = this.extend ({ 'Origin': this.origin }, headers)
                 }
                 url = proxyUrlCallback (url, method, headers, body);
-            } else if (proxyHttp !== undefined) {
+            } else if (httpProxy !== undefined) {
                 const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js')
-                const proxyAgent = new module.HttpProxyAgent(proxyHttp);
+                const proxyAgent = new module.HttpProxyAgent(httpProxy);
                 this.agent = proxyAgent;
-            }  else if (proxyHttps !== undefined) {
+            }  else if (httpsProxy !== undefined) {
                 const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js')
-                const proxyAgent = new module.HttpsProxyAgent(proxyHttps);
+                const proxyAgent = new module.HttpsProxyAgent(httpsProxy);
                 proxyAgent.keepAlive = true;
                 this.agent = proxyAgent;
-            } else if (proxySocks !== undefined) {
+            } else if (socksProxy !== undefined) {
                 let module = undefined;
                 try {
                     // @ts-ignore
@@ -925,7 +924,7 @@ export default class Exchange {
                 } catch (e) {
                     throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" '); 
                 }
-                const proxyAgent = new module.SocksProxyAgent(proxySocks);
+                const proxyAgent = new module.SocksProxyAgent(socksProxy);
                 this.agent = proxyAgent;
             } else if (proxyAgentCallback !== undefined) {
                 this.agent = proxyAgentCallback (url, method, headers, body);
@@ -1428,15 +1427,9 @@ export default class Exchange {
         const proxyUrl = (this.proxyUrl !== undefined) ? this.proxyUrl : this.proxy_url;
         const proxyUrlCallback = (this.proxyUrlCallback !== undefined) ? this.proxyUrlCallback : this.proxy_url_callback;
         // for backwards compatibility,added old keys too
-        let proxyHttp = (this.proxyHttp !== undefined) ? this.proxyHttp : this.proxy_http;
-        // support for backward compatibility (note, atm safeStringN does not work in python for class https://app.travis-ci.com/github/ccxt/ccxt/builds/263490790#L4765 , so we have to use separate safeString)
-        if (proxyHttp === undefined) {
-            if (this.httpProxy !== undefined) {
-                proxyHttp = this.httpProxy;
-            }
-        }
-        const proxyHttps = (this.proxyHttps !== undefined) ? this.proxyHttps : this.proxy_https;
-        const proxySocks = (this.proxySocks !== undefined) ? this.proxySocks : this.proxy_socks;
+        const httpProxy = (this.httpProxy !== undefined) ? this.httpProxy : this.http_proxy;
+        const httpsProxy = (this.httpsProxy !== undefined) ? this.httpsProxy : this.https_proxy;
+        const socksProxy = (this.socksProxy !== undefined) ? this.socksProxy : this.socks_proxy;
         const proxyAgentCallback = (this.proxyAgentCallback !== undefined) ? this.proxyAgentCallback : this.proxy_agent_callback;
         let val = 0;
         if (proxyUrl !== undefined) {
@@ -1445,22 +1438,22 @@ export default class Exchange {
         if (proxyUrlCallback !== undefined) {
             val = val + 1;
         }
-        if (proxyHttp !== undefined) {
+        if (httpProxy !== undefined) {
             val = val + 1;
         }
-        if (proxyHttps !== undefined) {
+        if (httpsProxy !== undefined) {
             val = val + 1;
         }
-        if (proxySocks !== undefined) {
+        if (socksProxy !== undefined) {
             val = val + 1;
         }
         if (proxyAgentCallback !== undefined) {
             val = val + 1;
         }
         if (val > 1) {
-            throw new ExchangeError (this.id + ' you have multiple proxy settings, please use only one from : proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback');
+            throw new ExchangeError (this.id + ' you have multiple proxy settings, please use only one from : proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, proxyAgentCallback');
         }
-        return [ proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback ];
+        return [ proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, proxyAgentCallback ];
     }
 
     findMessageHashes (client, element: string): string[] {

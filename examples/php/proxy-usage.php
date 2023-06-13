@@ -31,8 +31,8 @@ function example_1() {
 function example_2() {
     return Async\async(function () {
         $my_ex = new \ccxt\async\kucoin();
-        // same as proxyHttp
-        $my_ex->proxy_https = 'http://51.83.140.52:11230'; // It sets a real proxy for communication, so calls are made directly to url https://target_url.com , but tunneled through a proxy server (Note, this might work for websocket connections too).
+        // same as httpProxy
+        $my_ex->https_proxy = 'http://51.83.140.52:11230'; // It sets a real proxy for communication, so calls are made directly to url https://target_url.com , but tunneled through a proxy server (Note, this might work for websocket connections too).
         var_dump(Async\await($my_ex->fetch('https://api.ipify.org/')));
     }) ();
 }
@@ -41,7 +41,7 @@ function example_2() {
 function example_3() {
     return Async\async(function () {
         $my_ex = new \ccxt\async\kucoin();
-        $my_ex->proxy_socks = 'socks5://127.0.0.1:1080'; // It is for socks5 or socks5h proxy (Note, this might work for websocket connections too).
+        $my_ex->socks_proxy = 'socks5://127.0.0.1:1080'; // It is for socks5 or socks5h proxy (Note, this might work for websocket connections too).
         var_dump(Async\await($my_ex->fetch('https://api.ipify.org/')));
     }) ();
 }

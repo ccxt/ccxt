@@ -26,15 +26,15 @@ async def example_1():
 
 async def example_2():
     my_ex = ccxt.kucoin()
-    # same as proxyHttp
-    my_ex.proxy_https = 'http://51.83.140.52:11230'  # It sets a real proxy for communication, so calls are made directly to url https://target_url.com , but tunneled through a proxy server (Note, this might work for websocket connections too).
+    # same as httpProxy
+    my_ex.https_proxy = 'http://51.83.140.52:11230'  # It sets a real proxy for communication, so calls are made directly to url https://target_url.com , but tunneled through a proxy server (Note, this might work for websocket connections too).
     print(await my_ex.fetch('https://api.ipify.org/'))
 
     await my_ex.close()
 
 async def example_3():
     my_ex = ccxt.kucoin()
-    my_ex.proxy_socks = 'socks5://127.0.0.1:1080'  # It is for socks5 or socks5h proxy (Note, this might work for websocket connections too).
+    my_ex.socks_proxy = 'socks5://127.0.0.1:1080'  # It is for socks5 or socks5h proxy (Note, this might work for websocket connections too).
     print(await my_ex.fetch('https://api.ipify.org/'))
 
     await my_ex.close()

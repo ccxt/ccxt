@@ -126,22 +126,22 @@ class Exchange(BaseExchange):
         # proxy
         final_proxy = None  # set default
         final_session = None
-        proxyUrl, proxyUrlCallback, proxyHttp, proxyHttps, proxySocks, proxyAgentCallback = self.check_proxy_settings()
+        proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, proxyAgentCallback = self.check_proxy_settings()
         if proxyUrl:
             url = proxyUrl + url
         elif proxyUrlCallback:
             url = proxyUrlCallback(url, method, headers, body)
-        elif proxyHttp:
-            final_proxy = proxyHttp
-        elif proxyHttps:
-            final_proxy = proxyHttps
-        elif proxySocks:
+        elif httpProxy:
+            final_proxy = httpProxy
+        elif httpsProxy:
+            final_proxy = httpsProxy
+        elif socksProxy:
             if ProxyConnector is None:
                 raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, at first you need install module "pip install aiohttp_socks"')
             # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
             connector = ProxyConnector.from_url(
-                proxySocks,
+                socksProxy,
                 # extra args copied from self.open()
                 ssl=context,
                 loop=self.asyncio_loop,
@@ -153,7 +153,7 @@ class Exchange(BaseExchange):
             final_proxy = proxyAgentCallback(url, method, headers, body)
 
         # avoid old proxies mixing
-        if (self.aiohttp_proxy is not None) and ((final_proxy is not None) or (proxySocks is not None)):
+        if (self.aiohttp_proxy is not None) and ((final_proxy is not None) or (socksProxy is not None)):
             raise NotSupported(self.id + ' you have set multiple proxies, please use one or another')
 
         if self.verbose:

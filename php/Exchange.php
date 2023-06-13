@@ -79,15 +79,14 @@ class Exchange {
     public $proxy_url = null;
     public $proxyUrlCallback = null;
     public $proxy_url_callback = null;
-    public $proxyHttp = null;
-    public $proxy_http = null;
-    public $proxyHttps = null;
-    public $proxy_https = null;
-    public $proxySocks = null;
-    public $proxy_socks = null;
+    public $httpProxy = null;
+    public $http_proxy = null;
+    public $httpsProxy = null;
+    public $https_proxy = null;
+    public $socksProxy = null;
+    public $socks_proxy = null;
     public $proxyAgentCallback = null;
     public $proxy_agent_callback = null;
-    public $httpProxy = null; // for backwards compatibility
     public $origin = '*'; // CORS origin
     public $headers = array();
     public $hostname = null; // in case of inaccessibility of the "main" domain
@@ -1378,7 +1377,7 @@ class Exchange {
                 }
             }
         } else {
-            [ $proxyUrl, $proxyUrlCallback, $proxyHttp, $proxyHttps, $proxySocks, $proxyAgentCallback ] = $this->check_proxy_settings();
+            [ $proxyUrl, $proxyUrlCallback, $httpProxy, $httpsProxy, $socksProxy, $proxyAgentCallback ] = $this->check_proxy_settings();
             // new approach
             if ($proxyUrl !== null || $proxyUrlCallback !== null) {
                 $headers['Origin'] = $this->origin;
@@ -1464,17 +1463,17 @@ class Exchange {
                 $url = $proxyUrl . $url;
             } else if ($proxyUrlCallback !== null) {
                 $url = $proxyUrlCallback($url, $method, $headers, $body);
-            } else if ($proxyHttp !== null) {
-                curl_setopt($this->curl, CURLOPT_PROXY, $proxyHttp);
+            } else if ($httpProxy !== null) {
+                curl_setopt($this->curl, CURLOPT_PROXY, $httpProxy);
                 curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
-            }  else if ($proxyHttps !== null) {
-                curl_setopt($this->curl, CURLOPT_PROXY, $proxyHttps);
+            }  else if ($httpsProxy !== null) {
+                curl_setopt($this->curl, CURLOPT_PROXY, $httpsProxy);
                 curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTPS);
                 // atm we don't make as tunnel
                 // curl_setopt($this->curl, CURLOPT_TUNNEL, 1);
                 // curl_setopt($this->curl, CURLOPT_SUPPRESS_CONNECT_HEADERS, 1);
-            } else if ($proxySocks !== null) {
-                curl_setopt($this->curl, CURLOPT_PROXY, $proxySocks);
+            } else if ($socksProxy !== null) {
+                curl_setopt($this->curl, CURLOPT_PROXY, $socksProxy);
                 curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
             } else if ($proxyAgentCallback !== null) {
                 $this->userAgent = $proxyAgentCallback ($url, $method, $headers, $body);

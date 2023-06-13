@@ -263,7 +263,7 @@ class testMainClass(baseMainTestClass):
         if exchange.alias:
             dump('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
-        exchange.proxyHttps = exchange.safe_string(skippedSettingsForExchange, 'proxyHttps')
+        exchange.httpsProxy = exchange.safe_string(skippedSettingsForExchange, 'httpsProxy')
         self.skippedMethods = exchange.safe_value(skippedSettingsForExchange, 'skipMethods', {})
         self.checkedPublicTests = {}
 

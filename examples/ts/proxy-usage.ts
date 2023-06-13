@@ -12,15 +12,15 @@ async function example_1 () {
 
 async function example_2 () {
     const myEx = new ccxt.kucoin ();
-    // same as proxyHttp
-    myEx.proxyHttps = 'http://51.83.140.52:11230'; // It sets a real proxy for communication, so calls are made directly to url https://target_url.com , but tunneled through a proxy server (Note, this might work for websocket connections too).
+    // same as httpProxy
+    myEx.httpsProxy = 'http://51.83.140.52:11230'; // It sets a real proxy for communication, so calls are made directly to url https://target_url.com , but tunneled through a proxy server (Note, this might work for websocket connections too).
     console.log (await myEx.fetch ('https://api.ipify.org/'));
 }
 
 
 async function example_3 () {
     const myEx = new ccxt.kucoin ();
-    myEx.proxySocks = 'socks5://127.0.0.1:1080'; // It is for socks5 or socks5h proxy (Note, this might work for websocket connections too).
+    myEx.socksProxy = 'socks5://127.0.0.1:1080'; // It is for socks5 or socks5h proxy (Note, this might work for websocket connections too).
     console.log (await myEx.fetch ('https://api.ipify.org/'));
 }
 
