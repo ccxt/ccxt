@@ -4,7 +4,7 @@
 import Exchange from './abstract/xt.js';
 import { Int } from './base/types.js';
 import { Precise } from './base/Precise.js';
-import { DECIMAL_PLACES } from './base/functions/number.js';
+import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
@@ -112,7 +112,7 @@ export default class xt extends Exchange {
                 'transfer': true,
                 'withdraw': true,
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg',
                 'api': {
@@ -704,7 +704,35 @@ export default class xt extends Exchange {
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicSpotGetWalletSupportCurrency (params);
+        const [ chainsRequest, currenciesRequest ] = [ this.publicSpotGetWalletSupportCurrency (params), this.publicSpotGetCurrencies (params) ];
+        const [ chainsResponse, currenciesResponse ] = await Promise.all ([ chainsRequest, currenciesRequest ]);
+        //
+        // currencies
+        //
+        //    {
+        //        "time": "1686626116145",
+        //        "version": "5dbbb2f2527c22b2b2e3b47187ef13d1",
+        //        "currencies": [
+        //            {
+        //                "id": "2",
+        //                "currency": "btc",
+        //                "fullName": "Bitcoin",
+        //                "logo": "https://a.static-global.com/1/currency/btc.png",
+        //                "cmcLink": "https://coinmarketcap.com/currencies/bitcoin/",
+        //                "weight": "99999",
+        //                "maxPrecision": "10",
+        //                "depositStatus": "1",
+        //                "withdrawStatus": "1",
+        //                "convertEnabled": "1",
+        //                "transferEnabled": "1",
+        //                "isChainExist": "1",
+        //                "plates": [152]
+        //            },
+        //        ],
+        //    }
+        //
+        //
+        // chains
         //
         //     {
         //         "rc": 0,
@@ -727,13 +755,20 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'result', []);
+        // note: individual network's full data is available on per-currency endpoint: https://www.xt.com/sapi/v4/balance/public/currency/11
+        //
+        const chainsData = this.safeValue (chainsResponse, 'result', []);
+        const currenciesResult = this.safeValue (currenciesResponse, 'result', []);
+        const currenciesData = this.safeValue (currenciesResult, 'currencies', []);
+        const chainsDataIndexed = this.indexBy (chainsData, 'currency');
         const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
+        for (let i = 0; i < currenciesData.length; i++) {
+            const entry = currenciesData[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            const rawNetworks = this.safeValue (entry, 'supportChains', []);
+            const minPrecision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'maxPrecision')));
+            const networkEntry = this.safeValue (chainsDataIndexed, currencyId, {});
+            const rawNetworks = this.safeValue (networkEntry, 'supportChains', []);
             const networks = {};
             let minWithdrawString = undefined;
             let minWithdrawFeeString = undefined;
@@ -765,7 +800,7 @@ export default class xt extends Exchange {
                     'name': undefined,
                     'active': networkActive,
                     'fee': this.parseNumber (withdrawFeeString),
-                    'precision': undefined,
+                    'precision': minPrecision,
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'limits': {
@@ -788,7 +823,7 @@ export default class xt extends Exchange {
                 'info': entry,
                 'id': currencyId,
                 'code': code,
-                'name': undefined,
+                'name': this.safeString (entry, 'fullName'),
                 'active': active,
                 'fee': this.parseNumber (minWithdrawFeeString),
                 'precision': undefined,
