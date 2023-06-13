@@ -25,6 +25,7 @@ before_install:
 - php -i | grep php.ini
 - composer install
 script:
+- git fetch --tags
 - git tag --sort=-creatordate
 - ./change.sh
 - ./build.sh 2>&1
