@@ -26,6 +26,7 @@ before_install:
 - composer install
 script:
 - pip install git-changelog
+- git fetch --tags
 - git-changelog
 - ./change.sh
 - ./build.sh 2>&1
