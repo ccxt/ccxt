@@ -1825,6 +1825,45 @@ export default class bitget extends Exchange {
         //         quoteVolume: '5552388715.9215',
         //         usdtVolume: '5552388715.9215'
         //     }
+        // spot tickers
+        //    {
+        //        "symbol":"LINKUSDT",
+        //        "high24h":"5.2816",
+        //        "low24h":"5.0828",
+        //        "close":"5.24",
+        //        "quoteVol":"1427864.6815",
+        //        "baseVol":"276089.9017",
+        //        "usdtVol":"1427864.68148328",
+        //        "ts":"1686653354407",
+        //        "buyOne":"5.239",
+        //        "sellOne":"5.2404",
+        //        "+":"95.187",
+        //        "askSz":"947.6127",
+        //        "openUtc0":"5.1599",
+        //        "changeUtc":"0.01552",
+        //        "change":"0.02594"
+        //    }
+        // swap tickers
+        //    {
+        //        "symbol":"BTCUSDT_UMCBL",
+        //        "last":"26139",
+        //        "bestAsk":"26139",
+        //        "bestBid":"26138.5",
+        //        "bidSz":"4.62",
+        //        "askSz":"11.142",
+        //        "high24h":"26260",
+        //        "low24h":"25637",
+        //        "timestamp":"1686653988192",
+        //        "priceChangePercent":"0.01283",
+        //        "baseVolume":"130207.098",
+        //        "quoteVolume":"3378775678.441",
+        //        "usdtVolume":"3378775678.441",
+        //        "openUtc":"25889",
+        //        "chgUtc":"0.00966",
+        //        "indexPrice":"26159.375846",
+        //        "fundingRate":"0.000062",
+        //        "holdingAmount":"74551.735"
+        //    }
         //
         let marketId = this.safeString (ticker, 'symbol');
         if ((market === undefined) && (marketId !== undefined) && (marketId.indexOf ('_') === -1)) {
@@ -1841,10 +1880,13 @@ export default class bitget extends Exchange {
         const quoteVolume = this.safeString2 (ticker, 'quoteVol', 'quoteVolume');
         const baseVolume = this.safeString2 (ticker, 'baseVol', 'baseVolume');
         const timestamp = this.safeInteger2 (ticker, 'ts', 'timestamp');
+        const bidVolume = this.safeString (ticker, 'bidSz');
+        const askVolume = this.safeString (ticker, 'askSz');
         const datetime = this.iso8601 (timestamp);
         const bid = this.safeString2 (ticker, 'buyOne', 'bestBid');
         const ask = this.safeString2 (ticker, 'sellOne', 'bestAsk');
-        const percentage = Precise.stringMul (this.safeString (ticker, 'priceChangePercent'), '100');
+        const percentage = Precise.stringMul (this.safeStringN (ticker, [ 'priceChangePercent', 'changeUtc', 'change', 'chgUtc' ]), '100');
+        const open = this.safeString2 (ticker, 'openUtc0', 'openUtc');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1852,11 +1894,11 @@ export default class bitget extends Exchange {
             'high': high,
             'low': low,
             'bid': bid,
-            'bidVolume': undefined,
+            'bidVolume': bidVolume,
             'ask': ask,
-            'askVolume': undefined,
+            'askVolume': askVolume,
             'vwap': undefined,
-            'open': undefined,
+            'open': open,
             'close': close,
             'last': undefined,
             'previousClose': undefined,
