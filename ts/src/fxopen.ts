@@ -1552,7 +1552,7 @@ export default class fxopen extends Exchange {
         this.omit ('triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'amountChange', 'expiry');
         // id, price, amount - strings are not accepted
         const request = {
-            'Id': this.parseIntegerInternal (id),
+            'Id': parseInt (id),
         };
         if (amount !== undefined) {
             if (amountChange !== undefined) {
@@ -1822,7 +1822,7 @@ export default class fxopen extends Exchange {
         await this.loadMarkets ();
         await this.loadAccountInfo ();
         const request = {
-            'id': this.parseIntegerInternal (id),
+            'id': id, // ignore parse integer because imploded in query as string
         };
         const response = await this.privateGetTradeId (this.extend (request, params));
         const type = this.safeStringLower (response, 'Type');
@@ -2202,7 +2202,7 @@ export default class fxopen extends Exchange {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         const request = {
-            'orderId': this.parseIntegerInternal (id),
+            'orderId': id, // ignore parse integer because handled in fetchMyTrades
         };
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
@@ -2406,13 +2406,15 @@ export default class fxopen extends Exchange {
             const orderTrades = await this.fetchOrderTrades (id, symbol);
             openOrder['trades'] = orderTrades;
         } else {
-            const request = {
-                'orderId': this.parseIntegerInternal (id),
-                'SkipCancelOrder': false,
-            };
             const since = undefined;
             const limit = 1000;
-            const historyResponse = await this.fetchTradeHistoryInternal (since, limit, request);
+            const request = {
+                'RequestDirection': 'Backward',
+                'RequestPageSize': limit,
+                'OrderId': parseInt (id),
+                'SkipCancelOrder': false, // also get canceled and expired orders
+            };
+            const historyResponse = await this.privatePostTradehistory (this.extend (request, params));
             const records = this.sortBy (historyResponse['Records'], 'TransactionTimestamp', true);
             openOrder = this.parseOrderFromTradeRecord (records[0]);
             const requiredTypes = [ 'OrderFilled', 'PositionClosed' ];
@@ -2661,14 +2663,5 @@ export default class fxopen extends Exchange {
             }
         }
         return leverage;
-    }
-
-    parseIntegerInternal (str) {
-        // Python this.parseNumber() returns Float
-        // Which produces incorrect json: { 'Id': 174064052.0 }
-        const tmp = {
-            'value': str,
-        };
-        return this.safeInteger (tmp, 'value');
     }
 }
