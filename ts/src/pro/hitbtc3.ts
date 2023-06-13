@@ -59,7 +59,7 @@ export default class hitbtc3 extends hitbtc3Rest {
                 '1M': '1M',
             },
             'streaming': {
-                'keepAlive': 5000,
+                'keepAlive': 4000,
             },
         });
     }
@@ -817,72 +817,79 @@ export default class hitbtc3 extends hitbtc3Rest {
         //        ]
         //    }
         //
-        let orders = this.orders;
-        if (orders === undefined) {
+        if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit');
-            orders = new ArrayCacheBySymbolById (limit);
-            this.orders = orders;
+            this.orders = new ArrayCacheBySymbolById (limit);
         }
-        const params = this.safeValue (message, 'params', []);
-        for (let i = 0; i < params.length; i++) {
-            const order = params[i];
-            const marketId = this.safeStringLower (order, 'instrument');
-            const method = this.safeString (message, 'method');
-            const splitMethod = method.split ('_order');
-            const messageHash = this.safeString (splitMethod, 0);
-            const symbol = this.safeSymbol (marketId);
-            const orderId = this.safeString (order, 'order_id');
-            const previousOrders = this.safeValue (orders.hashmap, symbol, {});
-            const previousOrder = this.safeValue (previousOrders, orderId);
-            if (previousOrder === undefined) {
-                const parsed = this.parseOrder (order);
-                orders.append (parsed);
-                client.resolve (orders, messageHash);
-                client.resolve (orders, messageHash + '::' + symbol);
-            } else {
-                const trade = this.parseWsOrderTrade (order);
-                if (previousOrder['trades'] === undefined) {
-                    previousOrder['trades'] = [];
-                }
-                previousOrder['trades'].push (trade);
-                previousOrder['lastTradeTimestamp'] = trade['timestamp'];
-                let totalCost = '0';
-                let totalAmount = '0';
-                const trades = previousOrder['trades'];
-                for (let i = 0; i < trades.length; i++) {
-                    const trade = trades[i];
-                    totalCost = Precise.stringAdd (totalCost, this.numberToString (trade['cost']));
-                    totalAmount = Precise.stringAdd (totalAmount, this.numberToString (trade['amount']));
-                }
-                if (Precise.stringGt (totalAmount, '0')) {
-                    previousOrder['average'] = Precise.stringDiv (totalCost, totalAmount);
-                }
-                previousOrder['cost'] = totalCost;
-                if (previousOrder['filled'] !== undefined) {
-                    previousOrder['fillped'] = Precise.stringAdd (previousOrder['filled'], this.numberToString (trade['amount']));
-                    if (previousOrder['amount'] !== undefined) {
-                        previousOrder['remaining'] = Precise.stringSub (previousOrder['amount'], previousOrder['filled']);
-                    }
-                }
-                if (previousOrder['fee'] === undefined) {
-                    previousOrder['fee'] = {
-                        'rate': undefined,
-                        'cost': '0',
-                        'currency': this.numberToString (trade['fee']['currency']),
-                    };
-                }
-                if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
-                    const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
-                    const stringTradeCost = this.numberToString (trade['fee']['cost']);
-                    previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
-                }
-                // update the newUpdates count
-                orders.append (this.safeOrder (previousOrder));
-                client.resolve (orders, messageHash + '::' + symbol);
-                client.resolve (orders, messageHash);
+        const data = this.safeValue (message, 'params', []);
+        if (this.isArray (data)) {
+            for (let i = 0; i < data.length; i++) {
+                const order = data[i];
+                this.handleOrderHelper (client, message, order);
             }
+        } else {
+            this.handleOrderHelper (client, message, data);
         }
         return message;
+    }
+
+    handleOrderHelper (client: Client, message, order) {
+        const orders = this.orders;
+        const marketId = this.safeStringLower (order, 'instrument');
+        const method = this.safeString (message, 'method');
+        const splitMethod = method.split ('_order');
+        const messageHash = this.safeString (splitMethod, 0);
+        const symbol = this.safeSymbol (marketId);
+        const orderId = this.safeString (order, 'order_id');
+        const previousOrders = this.safeValue (orders.hashmap, symbol, {});
+        const previousOrder = this.safeValue (previousOrders, orderId);
+        if (previousOrder === undefined) {
+            const parsed = this.parseOrder (order);
+            orders.append (parsed);
+            client.resolve (orders, messageHash);
+            client.resolve (orders, messageHash + '::' + symbol);
+        } else {
+            const trade = this.parseWsOrderTrade (order);
+            if (previousOrder['trades'] === undefined) {
+                previousOrder['trades'] = [];
+            }
+            previousOrder['trades'].push (trade);
+            previousOrder['lastTradeTimestamp'] = trade['timestamp'];
+            let totalCost = '0';
+            let totalAmount = '0';
+            const trades = previousOrder['trades'];
+            for (let i = 0; i < trades.length; i++) {
+                const trade = trades[i];
+                totalCost = Precise.stringAdd (totalCost, this.numberToString (trade['cost']));
+                totalAmount = Precise.stringAdd (totalAmount, this.numberToString (trade['amount']));
+            }
+            if (Precise.stringGt (totalAmount, '0')) {
+                previousOrder['average'] = Precise.stringDiv (totalCost, totalAmount);
+            }
+            previousOrder['cost'] = totalCost;
+            if (previousOrder['filled'] !== undefined) {
+                previousOrder['fillped'] = Precise.stringAdd (previousOrder['filled'], this.numberToString (trade['amount']));
+                if (previousOrder['amount'] !== undefined) {
+                    previousOrder['remaining'] = Precise.stringSub (previousOrder['amount'], previousOrder['filled']);
+                }
+            }
+            if (previousOrder['fee'] === undefined) {
+                previousOrder['fee'] = {
+                    'rate': undefined,
+                    'cost': '0',
+                    'currency': this.numberToString (trade['fee']['currency']),
+                };
+            }
+            if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
+                const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
+                const stringTradeCost = this.numberToString (trade['fee']['cost']);
+                previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
+            }
+            // update the newUpdates count
+            orders.append (this.safeOrder (previousOrder));
+            client.resolve (orders, messageHash + '::' + symbol);
+            client.resolve (orders, messageHash);
+        }
     }
 
     parseWsOrderTrade (trade, market = undefined) {
