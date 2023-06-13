@@ -617,7 +617,7 @@ export default class hitbtc3 extends hitbtc3Rest {
         const market = this.market (symbol);
         const request = {
             'params': {
-                'symbols': market['id'],
+                'symbols': [ market['id'] ],
             },
         };
         if (limit !== undefined) {
@@ -674,7 +674,8 @@ export default class hitbtc3 extends hitbtc3Rest {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
-            let stored = this.safeValue (this.ohlcvs, symbol);
+            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCache (limit);
