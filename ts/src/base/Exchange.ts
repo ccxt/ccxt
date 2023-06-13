@@ -1524,19 +1524,19 @@ export default class Exchange {
     }
 
     parseWsTrade (trade, market: Market = undefined): Trade {
-        return this.parseTrade (trade, market);
+        throw new NotSupported (this.id + ' parseWsTrade() is not supported yet');
     }
 
     parseWsOrder (order, market: Market = undefined): Order {
-        return this.parseOrder (order, market);
+        throw new NotSupported (this.id + ' parseWsOrder() is not supported yet');
     }
 
     parseWsOrderTrade (trade, market: Market = undefined): Trade {
-        return this.parseWsTrade (trade, market);
+        throw new NotSupported (this.id + ' parseWsOrderTrade() is not supported yet');
     }
 
     parseWsOHLCV (ohlcv, market: Market = undefined): number[] {
-        return this.parseOHLCV (ohlcv, market);
+        throw new NotSupported (this.id + ' parseWsOHLCV() is not supported yet');
     }
 
     async fetchFundingRates (symbols: string[] = undefined, params = {}): Promise<any> {
