@@ -28,20 +28,20 @@ export default class fxopen extends Exchange {
                 'addMargin': false,
                 'borrowMargin': false,
                 'cancelAllOrders': false,
-                'cancelOrder': true, // todo: check
+                'cancelOrder': true,
                 'cancelOrders': false,
                 'createDepositAddress': false,
-                'createLimitOrder': true, // todo: check
-                'createMarketOrder': true, // todo: check
-                'createOrder': true, // todo: check
+                'createLimitOrder': true,
+                'createMarketOrder': true,
+                'createOrder': true,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
-                'createStopLimitOrder': true, // todo: check
-                'createStopMarketOrder': true, // todo: check
-                'createStopOrder': true, // todo: check
-                'editOrder': true, // todo: check
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
+                'editOrder': true,
                 'fetchAccounts': false,
-                'fetchBalance': true, // todo: check
+                'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
@@ -69,24 +69,24 @@ export default class fxopen extends Exchange {
                 'fetchL3OrderBook': false,
                 'fetchLastPrices': true,
                 'fetchLedger': false,
-                'fetchLeverage': true, // todo: check
+                'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': true, // todo: check
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenOrder': true, // todo: check
-                'fetchOpenOrders': true, // todo: check
-                'fetchOrder': true, // todo: check
+                'fetchOpenOrder': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': true,
                 'fetchOrders': false,
-                'fetchOrderTrades': true, // todo: check
-                'fetchPosition': true, // todo: check
-                'fetchPositions': true, // todo: check
+                'fetchOrderTrades': true,
+                'fetchPosition': true,
+                'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
