@@ -4,7 +4,7 @@
 import Exchange from './abstract/fxopen.js';
 import { ExchangeError, BadRequest, NotSupported, RateLimitExceeded, AuthenticationError, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
@@ -1439,7 +1439,7 @@ export default class fxopen extends Exchange {
         return this.safeBalance (result);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name fxopen#createOrder
@@ -1523,7 +1523,7 @@ export default class fxopen extends Exchange {
         return this.parseOrder (response);
     }
 
-    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name fxopen#editOrder
