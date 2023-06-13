@@ -40,7 +40,7 @@ export default class krakenfutures extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': undefined, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchFundingHistory': undefined,
-                'fetchFundingRate': false,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
