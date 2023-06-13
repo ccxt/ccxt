@@ -920,7 +920,7 @@ class bitso extends Exchange {
         return $this->parse_trades($response['payload'], $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1029,6 +1029,8 @@ class bitso extends Exchange {
     public function parse_order_status($status) {
         $statuses = array(
             'partial-fill' => 'open', // this is a common substitution in ccxt
+            'partially filled' => 'open',
+            'queued' => 'open',
             'completed' => 'closed',
         );
         return $this->safe_string($statuses, $status, $status);
@@ -1648,6 +1650,10 @@ class bitso extends Exchange {
             'failed' => 'failed',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function nonce() {
+        return $this->milliseconds();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

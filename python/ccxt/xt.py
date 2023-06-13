@@ -15,6 +15,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import NetworkError
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
@@ -415,6 +416,7 @@ class xt(Exchange, ImplicitAPI):
             },
             'exceptions': {
                 'exact': {
+                    '400': NetworkError,  # {"returnCode":1,"msgInfo":"failure","error":{"code":"400","msg":"Connection refused: /10.0.26.71:8080"},"result":null}
                     '404': ExchangeError,  # interface does not exist
                     '429': RateLimitExceeded,  # The request is too frequent, please control the request rate according to the speed limit requirement
                     '500': ExchangeError,  # Service exception
@@ -444,6 +446,7 @@ class xt(Exchange, ImplicitAPI):
                     'ORDER_004': InvalidOrder,  # no transaction
                     'ORDER_005': InvalidOrder,  # Order not exist
                     'ORDER_006': InvalidOrder,  # Too many open orders
+                    'ORDER_007': PermissionDenied,  # The sub-account has no transaction authority
                     'ORDER_F0101': InvalidOrder,  # Trigger Price Filter - Min
                     'ORDER_F0102': InvalidOrder,  # Trigger Price Filter - Max
                     'ORDER_F0103': InvalidOrder,  # Trigger Price Filter - Step Value
@@ -722,7 +725,10 @@ class xt(Exchange, ImplicitAPI):
         #                     {
         #                         "chain": "Bitcoin",
         #                         "depositEnabled": True,
-        #                         "withdrawEnabled": True
+        #                         "withdrawEnabled": True,
+        #                         "withdrawFeeAmount": 0.0009,
+        #                         "withdrawMinAmount": 0.0005,
+        #                         "depositFeeRate": 0
         #                     },
         #                 ]
         #             },
@@ -737,21 +743,34 @@ class xt(Exchange, ImplicitAPI):
             code = self.safe_currency_code(currencyId)
             rawNetworks = self.safe_value(entry, 'supportChains', [])
             networks = {}
-            depositEnabled = None
-            withdrawEnabled = None
+            minWithdrawString = None
+            minWithdrawFeeString = None
+            active = False
+            deposit = False
+            withdraw = False
             for j in range(0, len(rawNetworks)):
                 rawNetwork = rawNetworks[j]
                 networkId = self.safe_string(rawNetwork, 'chain')
                 network = self.network_id_to_code(networkId)
                 depositEnabled = self.safe_value(rawNetwork, 'depositEnabled')
+                deposit = depositEnabled if (depositEnabled) else deposit
                 withdrawEnabled = self.safe_value(rawNetwork, 'withdrawEnabled')
+                withdraw = withdrawEnabled if (withdrawEnabled) else withdraw
+                networkActive = depositEnabled and withdrawEnabled
+                active = networkActive if (networkActive) else active
+                withdrawFeeString = self.safe_string(rawNetwork, 'withdrawFeeAmount')
+                if withdrawFeeString is not None:
+                    minWithdrawFeeString = withdrawFeeString if (minWithdrawFeeString is None) else Precise.string_min(withdrawFeeString, minWithdrawFeeString)
+                minNetworkWithdrawString = self.safe_string(rawNetwork, 'withdrawMinAmount')
+                if minNetworkWithdrawString is not None:
+                    minWithdrawString = minNetworkWithdrawString if (minWithdrawString is None) else Precise.string_min(minNetworkWithdrawString, minWithdrawString)
                 networks[network] = {
                     'info': rawNetwork,
                     'id': networkId,
                     'network': network,
                     'name': None,
-                    'active': None,
-                    'fee': None,
+                    'active': networkActive,
+                    'fee': self.parse_number(withdrawFeeString),
                     'precision': None,
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
@@ -761,7 +780,7 @@ class xt(Exchange, ImplicitAPI):
                             'max': None,
                         },
                         'withdraw': {
-                            'min': None,
+                            'min': self.parse_number(minNetworkWithdrawString),
                             'max': None,
                         },
                         'deposit': {
@@ -775,11 +794,11 @@ class xt(Exchange, ImplicitAPI):
                 'id': currencyId,
                 'code': code,
                 'name': None,
-                'active': True,
-                'fee': None,
+                'active': active,
+                'fee': self.parse_number(minWithdrawFeeString),
                 'precision': None,
-                'deposit': None,
-                'withdraw': None,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'networks': networks,
                 'limits': {
                     'amount': {
@@ -787,7 +806,7 @@ class xt(Exchange, ImplicitAPI):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': None,
+                        'min': self.parse_number(minWithdrawString),
                         'max': None,
                     },
                     'deposit': {
@@ -981,6 +1000,18 @@ class xt(Exchange, ImplicitAPI):
         #                 "min": "1"
         #             },
         #             {
+        #                 "filter": "PRICE",
+        #                 "min": null,
+        #                 "max": null,
+        #                 "tickSize": null
+        #             },
+        #             {
+        #                 "filter": "QUANTITY",
+        #                 "min": null,
+        #                 "max": null,
+        #                 "tickSize": null
+        #             },
+        #             {
         #                 "filter": "PROTECTION_LIMIT",
         #                 "buyMaxDeviation": "0.8",
         #                 "sellMaxDeviation": "4"
@@ -988,7 +1019,12 @@ class xt(Exchange, ImplicitAPI):
         #             {
         #                 "filter": "PROTECTION_MARKET",
         #                 "maxDeviation": "0.02"
-        #             }
+        #             },
+        #             {
+        #                  "filter": "PROTECTION_ONLINE",
+        #                  "durationSeconds": "300",
+        #                  "maxPriceMultiple": "5"
+        #             },
         #         ]
         #     }
         #
@@ -1057,11 +1093,22 @@ class xt(Exchange, ImplicitAPI):
         symbol = base + '/' + quote
         filters = self.safe_value(market, 'filters', [])
         minAmount = None
+        maxAmount = None
+        minCost = None
+        maxCost = None
+        minPrice = None
+        maxPrice = None
         for i in range(0, len(filters)):
             entry = filters[i]
             filter = self.safe_string(entry, 'filter')
-            if filter == 'QUOTE_QTY':
+            if filter == 'QUANTITY':
                 minAmount = self.safe_number(entry, 'min')
+                maxAmount = self.safe_number(entry, 'max')
+            if filter == 'QUOTE_QTY':
+                minCost = self.safe_number(entry, 'min')
+            if filter == 'PRICE':
+                minPrice = self.safe_number(entry, 'min')
+                maxPrice = self.safe_number(entry, 'max')
         underlyingType = self.safe_string(market, 'underlyingType')
         linear = None
         inverse = None
@@ -1096,13 +1143,18 @@ class xt(Exchange, ImplicitAPI):
                 type = 'swap'
                 swap = True
             minAmount = self.safe_number(market, 'minQty')
+            minCost = self.safe_number(market, 'minNotional')
+            maxCost = self.safe_number(market, 'maxNotional')
+            minPrice = self.safe_number(market, 'minPrice')
+            maxPrice = self.safe_number(market, 'maxPrice')
             contract = True
             spot = False
-        isActive = True
+        isActive = False
         if contract:
             isActive = self.safe_value(market, 'isOpenApi', False)
         else:
-            isActive = (state == 'ONLINE') or (state == '0')
+            if (state == 'ONLINE') and (self.safe_value(market, 'tradingEnabled')) and (self.safe_value(market, 'openapiEnabled')):
+                isActive = True
         return {
             'id': id,
             'symbol': symbol,
@@ -1140,15 +1192,15 @@ class xt(Exchange, ImplicitAPI):
                 },
                 'amount': {
                     'min': minAmount,
-                    'max': None,
+                    'max': maxAmount,
                 },
                 'price': {
-                    'min': self.safe_number(market, 'minPrice'),
-                    'max': self.safe_number(market, 'maxPrice'),
+                    'min': minPrice,
+                    'max': maxPrice,
                 },
                 'cost': {
-                    'min': self.safe_number(market, 'minNotional'),
-                    'max': self.safe_number(market, 'maxNotional'),
+                    'min': minCost,
+                    'max': maxCost,
                 },
             },
             'info': market,
@@ -1282,6 +1334,8 @@ class xt(Exchange, ImplicitAPI):
         }
         response = None
         if market['spot']:
+            if limit is not None:
+                request['limit'] = min(limit, 500)
             response = self.publicSpotGetDepth(self.extend(request, params))
         else:
             if limit is not None:
@@ -2078,10 +2132,9 @@ class xt(Exchange, ImplicitAPI):
     def create_contract_order(self, symbol: str, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        convertContractsToAmount = Precise.string_div(self.number_to_string(amount), self.number_to_string(market['contractSize']))
         request = {
             'symbol': market['id'],
-            'origQty': self.amount_to_precision(symbol, self.parse_number(convertContractsToAmount)),
+            'origQty': self.amount_to_precision(symbol, amount),
         }
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         if timeInForce is not None:
@@ -3465,12 +3518,14 @@ class xt(Exchange, ImplicitAPI):
         #         "id": 950898
         #     }
         #
+        type = 'deposit' if ('fromAddr' in transaction) else 'withdraw'
         timestamp = self.safe_integer(transaction, 'createdTime')
         address = self.safe_string(transaction, 'address')
         memo = self.safe_string(transaction, 'memo')
         currencyCode = self.safe_currency_code(self.safe_string(transaction, 'currency'), currency)
         fee = self.safe_number(transaction, 'fee')
         feeCurrency = currencyCode if (fee is not None) else None
+        networkId = self.safe_string(transaction, 'chain')
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'id'),
@@ -3484,10 +3539,10 @@ class xt(Exchange, ImplicitAPI):
             'tagFrom': None,
             'tagTo': None,
             'tag': memo,
-            'type': None,
+            'type': type,
             'amount': self.safe_number(transaction, 'amount'),
             'currency': currencyCode,
-            'network': self.safe_string(transaction, 'chain'),
+            'network': self.network_id_to_code(networkId, currencyCode),
             'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
             'comment': memo,
             'fee': {
@@ -4281,11 +4336,15 @@ class xt(Exchange, ImplicitAPI):
         if signed:
             self.check_required_credentials()
             defaultRecvWindow = self.safe_string(self.options, 'recvWindow')
-            recvWindow = self.safe_string(params, 'recvWindow', defaultRecvWindow)
+            recvWindow = self.safe_string(query, 'recvWindow', defaultRecvWindow)
             timestamp = self.number_to_string(self.nonce())
-            body = params
+            body = query
             if (payload == '/v4/order') or (payload == '/future/trade/v1/order/create') or (payload == '/future/trade/v1/entrust/create-plan') or (payload == '/future/trade/v1/entrust/create-profit') or (payload == '/future/trade/v1/order/create-batch'):
-                body['clientMedia'] = 'CCXT'
+                id = 'CCXT'
+                if payload.find('future') > -1:
+                    body['clientMedia'] = id
+                else:
+                    body['media'] = id
             isUndefinedBody = ((method == 'GET') or (path == 'order/{orderId}'))
             body = None if isUndefinedBody else self.json(body)
             payloadString = None

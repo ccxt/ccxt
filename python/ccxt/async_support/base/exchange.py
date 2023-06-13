@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.100'
+__version__ = '3.1.37'
 
 # -----------------------------------------------------------------------------
 
@@ -22,11 +22,9 @@ from ccxt.async_support.base.throttler import Throttler
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.errors import BaseError, BadSymbol, AuthenticationError, ExchangeError, ExchangeNotAvailable, \
-    RequestTimeout, \
-    NotSupported, NullResponse, InvalidOrder, InvalidAddress
-from ccxt.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE, DECIMAL_PLACES
-from ccxt.base.types import OrderType, OrderSide, IndexType, Balance
+from ccxt.base.errors import BaseError, BadSymbol, BadRequest, AuthenticationError, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidOrder, InvalidAddress
+from ccxt.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE, DECIMAL_PLACES, SIGNIFICANT_DIGITS
+from ccxt.base.types import OrderType, OrderSide, IndexType, Balance, Trade
 
 # -----------------------------------------------------------------------------
 
@@ -482,6 +480,15 @@ class Exchange(BaseExchange):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    def find_message_hashes(self, client, element: str):
+        result = []
+        messageHashes = list(client.futures.keys())
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            if messageHash.find(element) >= 0:
+                result.append(messageHash)
+        return result
+
     def filter_by_limit(self, array: List[object], limit: Optional[int] = None, key: IndexType = 'timestamp'):
         if self.valueIsDefined(limit):
             arrayLength = len(array)
@@ -491,26 +498,29 @@ class Exchange(BaseExchange):
                     first = array[0][key]
                     last = array[arrayLength - 1][key]
                     if first is not None and last is not None:
-                        ascending = first < last  # True if array is sorted in ascending order based on 'timestamp'
+                        ascending = first <= last  # True if array is sorted in ascending order based on 'timestamp'
                 array = self.arraySlice(array, -limit) if ascending else self.arraySlice(array, 0, limit)
         return array
 
-    def filter_by_since_limit(self, array: List[object], since: Optional[int] = None, limit: Optional[int] = None, key: IndexType = 'timestamp'):
+    def filter_by_since_limit(self, array: List[object], since: Optional[int] = None, limit: Optional[int] = None, key: IndexType = 'timestamp', tail=False):
         sinceIsDefined = self.valueIsDefined(since)
         parsedArray = self.to_array(array)
+        result = parsedArray
         if sinceIsDefined:
             result = []
             for i in range(0, len(parsedArray)):
                 entry = parsedArray[i]
                 if entry[key] >= since:
                     result.append(entry)
-            return self.filterByLimit(result, limit, key)
-        return self.filterByLimit(parsedArray, limit, key)
+        if tail:
+            return result[-limit:]
+        return self.filter_by_limit(result, limit, key)
 
-    def filter_by_value_since_limit(self, array: List[object], field: IndexType, value=None, since: Optional[int] = None, limit: Optional[int] = None, key='timestamp'):
+    def filter_by_value_since_limit(self, array: List[object], field: IndexType, value=None, since: Optional[int] = None, limit: Optional[int] = None, key='timestamp', tail=False):
         valueIsDefined = self.valueIsDefined(value)
         sinceIsDefined = self.valueIsDefined(since)
         parsedArray = self.to_array(array)
+        result = parsedArray
         # single-pass filter for both symbol and since
         if valueIsDefined or sinceIsDefined:
             result = []
@@ -522,8 +532,9 @@ class Exchange(BaseExchange):
                 secondCondition = entryKeyGESince if sinceIsDefined else True
                 if firstCondition and secondCondition:
                     result.append(entry)
-            return self.filterByLimit(result, limit, key)
-        return self.filterByLimit(parsedArray, limit, key)
+        if tail:
+            return result[-limit:]
+        return self.filter_by_limit(result, limit, key)
 
     def sign(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None):
         return {}
@@ -664,8 +675,8 @@ class Exchange(BaseExchange):
             'info': entry,
         }
 
-    def currency_structure(self):
-        return {
+    def safe_currency_structure(self, currency: object):
+        return self.extend({
             'info': None,
             'id': None,
             'numericId': None,
@@ -689,7 +700,7 @@ class Exchange(BaseExchange):
                     'max': None,
                 },
             },
-        }
+        }, currency)
 
     def set_markets(self, markets, currencies=None):
         values = []
@@ -724,18 +735,20 @@ class Exchange(BaseExchange):
                 defaultCurrencyPrecision = 8 if (self.precisionMode == DECIMAL_PLACES) else self.parse_number('1e-8')
                 marketPrecision = self.safe_value(market, 'precision', {})
                 if 'base' in market:
-                    currency = self.currency_structure()
-                    currency['id'] = self.safe_string_2(market, 'baseId', 'base')
-                    currency['numericId'] = self.safe_integer(market, 'baseNumericId')
-                    currency['code'] = self.safe_string(market, 'base')
-                    currency['precision'] = self.safe_value_2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision)
+                    currency = self.safe_currency_structure({
+                        'id': self.safe_string_2(market, 'baseId', 'base'),
+                        'numericId': self.safe_integer(market, 'baseNumericId'),
+                        'code': self.safe_string(market, 'base'),
+                        'precision': self.safe_value_2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision),
+                    })
                     baseCurrencies.append(currency)
                 if 'quote' in market:
-                    currency = self.currency_structure()
-                    currency['id'] = self.safe_string_2(market, 'quoteId', 'quote')
-                    currency['numericId'] = self.safe_integer(market, 'quoteNumericId')
-                    currency['code'] = self.safe_string(market, 'quote')
-                    currency['precision'] = self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision)
+                    currency = self.safe_currency_structure({
+                        'id': self.safe_string_2(market, 'quoteId', 'quote'),
+                        'numericId': self.safe_integer(market, 'quoteNumericId'),
+                        'code': self.safe_string(market, 'quote'),
+                        'precision': self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
+                    })
                     quoteCurrencies.append(currency)
             baseCurrencies = self.sort_by(baseCurrencies, 'code')
             quoteCurrencies = self.sort_by(quoteCurrencies, 'code')
@@ -1237,21 +1250,10 @@ class Exchange(BaseExchange):
         })
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        if not self.has['fetchTrades']:
-            raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
-        trades = await self.fetchTrades(symbol, since, limit, params)
-        ohlcvc = self.build_ohlcvc(trades, timeframe, since, limit)
-        result = []
-        for i in range(0, len(ohlcvc)):
-            result.append([
-                self.safe_integer(ohlcvc[i], 0),
-                self.safe_number(ohlcvc[i], 1),
-                self.safe_number(ohlcvc[i], 2),
-                self.safe_number(ohlcvc[i], 3),
-                self.safe_number(ohlcvc[i], 4),
-                self.safe_number(ohlcvc[i], 5),
-            ])
-        return result
+        message = ''
+        if self.has['fetchTrades']:
+            message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file'
+        raise NotSupported(self.id + ' fetchOHLCV() is not supported yet' + message)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
@@ -1301,12 +1303,16 @@ class Exchange(BaseExchange):
             result.append(self.market_id(symbols[i]))
         return result
 
-    def market_symbols(self, symbols):
+    def market_symbols(self, symbols, type: Optional[str] = None):
         if symbols is None:
             return symbols
         result = []
         for i in range(0, len(symbols)):
-            result.append(self.symbol(symbols[i]))
+            market = self.market(symbols[i])
+            if type is not None and market['type'] != type:
+                raise BadRequest(self.id + ' symbols must be of same type ' + type + '. If the type is incorrect you can change it in options or the params of the request')
+            symbol = self.safe_string(market, 'symbol', symbols[i])
+            result.append(symbol)
         return result
 
     def market_codes(self, codes):
@@ -1441,21 +1447,6 @@ class Exchange(BaseExchange):
                 replacementObject = self.safe_value(defaultNetworkCodeReplacements, currencyCode, {})
                 networkCode = self.safe_string(replacementObject, networkCode, networkCode)
         return networkCode
-
-    def network_codes_to_ids(self, networkCodes=None):
-        """
-         * @ignore
-        tries to convert the provided networkCode(which is expected to be an unified network code) to a network id. In order to achieve self, derived class needs to have 'options->networks' defined.
-        :param [str]|None networkCodes: unified network codes
-        :returns [str|None]: exchange-specific network ids
-        """
-        if networkCodes is None:
-            return None
-        ids = []
-        for i in range(0, len(networkCodes)):
-            networkCode = networkCodes[i]
-            ids.append(self.networkCodeToId(networkCode))
-        return ids
 
     def handle_network_code_and_params(self, params):
         networkCodeInParams = self.safe_string_2(params, 'networkCode', 'network')
@@ -1685,12 +1676,49 @@ class Exchange(BaseExchange):
         self.accountsById = self.index_by(self.accounts, 'id')
         return self.accounts
 
-    async def fetch_ohlcvc(self, symbol, timeframe='1m', since: Optional[Any] = None, limit: Optional[int] = None, params={}):
-        if not self.has['fetchTrades']:
-            raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
-        await self.load_markets()
-        trades = await self.fetchTrades(symbol, since, limit, params)
-        return self.build_ohlcvc(trades, timeframe, since, limit)
+    def build_ohlcvc(self, trades: List[Trade], timeframe: str = '1m', since: float = 0, limit: float = 2147483647):
+        # given a sorted arrays of trades(recent last) and a timeframe builds an array of OHLCV candles
+        # note, default limit value(2147483647) is max int32 value
+        ms = self.parse_timeframe(timeframe) * 1000
+        ohlcvs = []
+        i_timestamp = 0
+        # open = 1
+        i_high = 2
+        i_low = 3
+        i_close = 4
+        i_volume = 5
+        i_count = 6
+        tradesLength = len(trades)
+        oldest = min(tradesLength, limit)
+        for i in range(0, oldest):
+            trade = trades[i]
+            ts = trade['timestamp']
+            if ts < since:
+                continue
+            openingTime = int(math.floor(ts / ms)) * ms  # shift to the edge of m/h/d(but not M)
+            if openingTime < since:  # we don't need bars, that have opening time earlier than requested
+                continue
+            ohlcv_length = len(ohlcvs)
+            candle = ohlcv_length - 1
+            if (candle == -1) or (openingTime >= self.sum(ohlcvs[candle][i_timestamp], ms)):
+                # moved to a new timeframe -> create a new candle from opening trade
+                ohlcvs.append([
+                    openingTime,  # timestamp
+                    trade['price'],  # O
+                    trade['price'],  # H
+                    trade['price'],  # L
+                    trade['price'],  # C
+                    trade['amount'],  # V
+                    1,  # count
+                ])
+            else:
+                # still processing the same timeframe -> update opening trade
+                ohlcvs[candle][i_high] = max(ohlcvs[candle][i_high], trade['price'])
+                ohlcvs[candle][i_low] = min(ohlcvs[candle][i_low], trade['price'])
+                ohlcvs[candle][i_close] = trade['price']
+                ohlcvs[candle][i_volume] = self.sum(ohlcvs[candle][i_volume], trade['amount'])
+                ohlcvs[candle][i_count] = self.sum(ohlcvs[candle][i_count], 1)
+        return ohlcvs
 
     def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None):
         result = self.convert_trading_view_to_ohlcv(ohlcvs)
@@ -1705,7 +1733,7 @@ class Exchange(BaseExchange):
     async def edit_limit_order(self, id, symbol, side, amount, price=None, params={}):
         return await self.edit_order(id, symbol, 'limit', side, amount, price, params)
 
-    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         await self.cancelOrder(id, symbol)
         return await self.create_order(symbol, type, side, amount, price, params)
 
@@ -1836,6 +1864,9 @@ class Exchange(BaseExchange):
 
     async def fetch_balance(self, params={}):
         raise NotSupported(self.id + ' fetchBalance() is not supported yet')
+
+    def parse_balance(self, response):
+        raise NotSupported(self.id + ' parseBalance() is not supported yet')
 
     async def watch_balance(self, params={}):
         raise NotSupported(self.id + ' watchBalance() is not supported yet')
@@ -2195,6 +2226,15 @@ class Exchange(BaseExchange):
         else:
             return self.decimal_to_precision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
 
+    def is_tick_precision(self):
+        return self.precisionMode == TICK_SIZE
+
+    def is_decimal_precision(self):
+        return self.precisionMode == DECIMAL_PLACES
+
+    def is_significant_precision(self):
+        return self.precisionMode == SIGNIFICANT_DIGITS
+
     def safe_number(self, obj: object, key: IndexType, defaultNumber: Optional[float] = None):
         value = self.safe_string(obj, key)
         return self.parse_number(value, defaultNumber)
@@ -2274,11 +2314,11 @@ class Exchange(BaseExchange):
         currency = self.safe_currency(currencyId, currency)
         return currency['code']
 
-    def filter_by_symbol_since_limit(self, array, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None):
-        return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp')
+    def filter_by_symbol_since_limit(self, array, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
+        return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp', tail)
 
-    def filter_by_currency_since_limit(self, array, code=None, since: Optional[int] = None, limit: Optional[int] = None):
-        return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp')
+    def filter_by_currency_since_limit(self, array, code=None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
+        return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
 
     def parse_last_prices(self, pricesData, symbols: Optional[List[str]] = None, params={}):
         #
@@ -2478,6 +2518,7 @@ class Exchange(BaseExchange):
         if self.has['fetchFundingRates']:
             await self.load_markets()
             market = self.market(symbol)
+            symbol = market['symbol']
             if not market['contract']:
                 raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
             rates = await self.fetchFundingRates([symbol], params)
@@ -2609,7 +2650,7 @@ class Exchange(BaseExchange):
         :param str symbol: unified symbol of the market
         :param str methodName: name of the method that requires a symbol
         """
-        self.checkRequiredArgument(methodName, symbol, 'symbol')
+        self.check_required_argument(methodName, symbol, 'symbol')
 
     def parse_deposit_withdraw_fees(self, response, codes: Optional[List[str]] = None, currencyIdKey=None):
         """

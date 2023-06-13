@@ -16,9 +16,9 @@ sys.path.append(root)
 from ccxt.test.base import test_borrow_interest  # noqa E402
 
 
-def test_fetch_borrow_interest(exchange, code, symbol):
+def test_fetch_borrow_interest(exchange, skipped_properties, code, symbol):
     method = 'fetchBorrowInterest'
     borrow_interest = exchange.fetch_borrow_interest(code, symbol)
     assert isinstance(borrow_interest, list), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json(borrow_interest)
     for i in range(0, len(borrow_interest)):
-        test_borrow_interest(exchange, method, borrow_interest[i], code, symbol)
+        test_borrow_interest(exchange, skipped_properties, method, borrow_interest[i], code, symbol)

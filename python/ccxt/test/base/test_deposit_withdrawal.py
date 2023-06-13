@@ -16,7 +16,7 @@ sys.path.append(root)
 from ccxt.test.base import test_shared_methods  # noqa E402
 
 
-def test_deposit_withdrawal(exchange, method, entry, requested_code, now):
+def test_deposit_withdrawal(exchange, skipped_properties, method, entry, requested_code, now):
     format = {
         'info': {},
         'id': '1234',
@@ -37,12 +37,16 @@ def test_deposit_withdrawal(exchange, method, entry, requested_code, now):
         'updated': 1502962946233,
         'fee': {},
     }
-    empty_not_allowed_for = ['type', 'amount', 'currency']
-    test_shared_methods.assert_structure(exchange, method, entry, format, empty_not_allowed_for)
-    test_shared_methods.assert_timestamp(exchange, method, entry, now)
-    test_shared_methods.assert_currency_code(exchange, method, entry, entry['currency'], requested_code)
+    empty_allowed_for = ['address', 'addressTo', 'addressFrom', 'tag', 'tagTo', 'tagFrom']  # below we still do assertion for to/from
+    test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
+    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry, now)
+    test_shared_methods.assert_currency_code(exchange, skipped_properties, method, entry, entry['currency'], requested_code)
     #
-    test_shared_methods.assert_in_array(exchange, method, entry, 'status', ['ok', 'pending', 'failed', 'rejected', 'canceled'])
-    test_shared_methods.assert_in_array(exchange, method, entry, 'type', ['deposit', 'withdrawal'])
-    test_shared_methods.assert_greater_or_equal(exchange, method, entry, 'amount', '0')
-    test_shared_methods.assert_fee(exchange, method, entry['fee'])
+    test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'status', ['ok', 'pending', 'failed', 'rejected', 'canceled'])
+    test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'type', ['deposit', 'withdrawal'])
+    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'amount', '0')
+    test_shared_methods.assert_fee_structure(exchange, skipped_properties, method, entry, 'fee')
+    if entry['type'] == 'deposit':
+        test_shared_methods.assert_type(exchange, skipped_properties, entry, 'addressFrom', format)
+    else:
+        test_shared_methods.assert_type(exchange, skipped_properties, entry, 'addressTo', format)

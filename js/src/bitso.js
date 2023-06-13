@@ -1042,6 +1042,8 @@ export default class bitso extends Exchange {
     parseOrderStatus(status) {
         const statuses = {
             'partial-fill': 'open',
+            'partially filled': 'open',
+            'queued': 'open',
             'completed': 'closed',
         };
         return this.safeString(statuses, status, status);
@@ -1666,6 +1668,9 @@ export default class bitso extends Exchange {
             'failed': 'failed',
         };
         return this.safeString(statuses, status, status);
+    }
+    nonce() {
+        return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + this.version + '/' + this.implodeParams(path, params);

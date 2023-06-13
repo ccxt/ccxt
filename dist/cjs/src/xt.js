@@ -399,6 +399,7 @@ class xt extends xt$1 {
             },
             'exceptions': {
                 'exact': {
+                    '400': errors.NetworkError,
                     '404': errors.ExchangeError,
                     '429': errors.RateLimitExceeded,
                     '500': errors.ExchangeError,
@@ -428,6 +429,7 @@ class xt extends xt$1 {
                     'ORDER_004': errors.InvalidOrder,
                     'ORDER_005': errors.InvalidOrder,
                     'ORDER_006': errors.InvalidOrder,
+                    'ORDER_007': errors.PermissionDenied,
                     'ORDER_F0101': errors.InvalidOrder,
                     'ORDER_F0102': errors.InvalidOrder,
                     'ORDER_F0103': errors.InvalidOrder,
@@ -710,7 +712,10 @@ class xt extends xt$1 {
         //                     {
         //                         "chain": "Bitcoin",
         //                         "depositEnabled": true,
-        //                         "withdrawEnabled": true
+        //                         "withdrawEnabled": true,
+        //                         "withdrawFeeAmount": 0.0009,
+        //                         "withdrawMinAmount": 0.0005,
+        //                         "depositFeeRate": 0
         //                     },
         //                 ]
         //             },
@@ -725,21 +730,36 @@ class xt extends xt$1 {
             const code = this.safeCurrencyCode(currencyId);
             const rawNetworks = this.safeValue(entry, 'supportChains', []);
             const networks = {};
-            let depositEnabled = undefined;
-            let withdrawEnabled = undefined;
+            let minWithdrawString = undefined;
+            let minWithdrawFeeString = undefined;
+            let active = false;
+            let deposit = false;
+            let withdraw = false;
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
                 const networkId = this.safeString(rawNetwork, 'chain');
                 const network = this.networkIdToCode(networkId);
-                depositEnabled = this.safeValue(rawNetwork, 'depositEnabled');
-                withdrawEnabled = this.safeValue(rawNetwork, 'withdrawEnabled');
+                const depositEnabled = this.safeValue(rawNetwork, 'depositEnabled');
+                deposit = (depositEnabled) ? depositEnabled : deposit;
+                const withdrawEnabled = this.safeValue(rawNetwork, 'withdrawEnabled');
+                withdraw = (withdrawEnabled) ? withdrawEnabled : withdraw;
+                const networkActive = depositEnabled && withdrawEnabled;
+                active = (networkActive) ? networkActive : active;
+                const withdrawFeeString = this.safeString(rawNetwork, 'withdrawFeeAmount');
+                if (withdrawFeeString !== undefined) {
+                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? withdrawFeeString : Precise["default"].stringMin(withdrawFeeString, minWithdrawFeeString);
+                }
+                const minNetworkWithdrawString = this.safeString(rawNetwork, 'withdrawMinAmount');
+                if (minNetworkWithdrawString !== undefined) {
+                    minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise["default"].stringMin(minNetworkWithdrawString, minWithdrawString);
+                }
                 networks[network] = {
                     'info': rawNetwork,
                     'id': networkId,
                     'network': network,
                     'name': undefined,
-                    'active': undefined,
-                    'fee': undefined,
+                    'active': networkActive,
+                    'fee': this.parseNumber(withdrawFeeString),
                     'precision': undefined,
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
@@ -749,7 +769,7 @@ class xt extends xt$1 {
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': undefined,
+                            'min': this.parseNumber(minNetworkWithdrawString),
                             'max': undefined,
                         },
                         'deposit': {
@@ -764,11 +784,11 @@ class xt extends xt$1 {
                 'id': currencyId,
                 'code': code,
                 'name': undefined,
-                'active': true,
-                'fee': undefined,
+                'active': active,
+                'fee': this.parseNumber(minWithdrawFeeString),
                 'precision': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'networks': networks,
                 'limits': {
                     'amount': {
@@ -776,7 +796,7 @@ class xt extends xt$1 {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.parseNumber(minWithdrawString),
                         'max': undefined,
                     },
                     'deposit': {
@@ -975,6 +995,18 @@ class xt extends xt$1 {
         //                 "min": "1"
         //             },
         //             {
+        //                 "filter": "PRICE",
+        //                 "min": null,
+        //                 "max": null,
+        //                 "tickSize": null
+        //             },
+        //             {
+        //                 "filter": "QUANTITY",
+        //                 "min": null,
+        //                 "max": null,
+        //                 "tickSize": null
+        //             },
+        //             {
         //                 "filter": "PROTECTION_LIMIT",
         //                 "buyMaxDeviation": "0.8",
         //                 "sellMaxDeviation": "4"
@@ -982,7 +1014,12 @@ class xt extends xt$1 {
         //             {
         //                 "filter": "PROTECTION_MARKET",
         //                 "maxDeviation": "0.02"
-        //             }
+        //             },
+        //             {
+        //                  "filter": "PROTECTION_ONLINE",
+        //                  "durationSeconds": "300",
+        //                  "maxPriceMultiple": "5"
+        //             },
         //         ]
         //     }
         //
@@ -1051,11 +1088,24 @@ class xt extends xt$1 {
         let symbol = base + '/' + quote;
         const filters = this.safeValue(market, 'filters', []);
         let minAmount = undefined;
+        let maxAmount = undefined;
+        let minCost = undefined;
+        let maxCost = undefined;
+        let minPrice = undefined;
+        let maxPrice = undefined;
         for (let i = 0; i < filters.length; i++) {
             const entry = filters[i];
             const filter = this.safeString(entry, 'filter');
-            if (filter === 'QUOTE_QTY') {
+            if (filter === 'QUANTITY') {
                 minAmount = this.safeNumber(entry, 'min');
+                maxAmount = this.safeNumber(entry, 'max');
+            }
+            if (filter === 'QUOTE_QTY') {
+                minCost = this.safeNumber(entry, 'min');
+            }
+            if (filter === 'PRICE') {
+                minPrice = this.safeNumber(entry, 'min');
+                maxPrice = this.safeNumber(entry, 'max');
             }
         }
         const underlyingType = this.safeString(market, 'underlyingType');
@@ -1096,15 +1146,21 @@ class xt extends xt$1 {
                 swap = true;
             }
             minAmount = this.safeNumber(market, 'minQty');
+            minCost = this.safeNumber(market, 'minNotional');
+            maxCost = this.safeNumber(market, 'maxNotional');
+            minPrice = this.safeNumber(market, 'minPrice');
+            maxPrice = this.safeNumber(market, 'maxPrice');
             contract = true;
             spot = false;
         }
-        let isActive = true;
+        let isActive = false;
         if (contract) {
             isActive = this.safeValue(market, 'isOpenApi', false);
         }
         else {
-            isActive = (state === 'ONLINE') || (state === '0');
+            if ((state === 'ONLINE') && (this.safeValue(market, 'tradingEnabled')) && (this.safeValue(market, 'openapiEnabled'))) {
+                isActive = true;
+            }
         }
         return {
             'id': id,
@@ -1143,15 +1199,15 @@ class xt extends xt$1 {
                 },
                 'amount': {
                     'min': minAmount,
-                    'max': undefined,
+                    'max': maxAmount,
                 },
                 'price': {
-                    'min': this.safeNumber(market, 'minPrice'),
-                    'max': this.safeNumber(market, 'maxPrice'),
+                    'min': minPrice,
+                    'max': maxPrice,
                 },
                 'cost': {
-                    'min': this.safeNumber(market, 'minNotional'),
-                    'max': this.safeNumber(market, 'maxNotional'),
+                    'min': minCost,
+                    'max': maxCost,
                 },
             },
             'info': market,
@@ -1294,6 +1350,9 @@ class xt extends xt$1 {
         };
         let response = undefined;
         if (market['spot']) {
+            if (limit !== undefined) {
+                request['limit'] = Math.min(limit, 500);
+            }
             response = await this.publicSpotGetDepth(this.extend(request, params));
         }
         else {
@@ -2161,10 +2220,9 @@ class xt extends xt$1 {
     async createContractOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const convertContractsToAmount = Precise["default"].stringDiv(this.numberToString(amount), this.numberToString(market['contractSize']));
         const request = {
             'symbol': market['id'],
-            'origQty': this.amountToPrecision(symbol, this.parseNumber(convertContractsToAmount)),
+            'origQty': this.amountToPrecision(symbol, amount),
         };
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         if (timeInForce !== undefined) {
@@ -3678,12 +3736,14 @@ class xt extends xt$1 {
         //         "id": 950898
         //     }
         //
+        const type = ('fromAddr' in transaction) ? 'deposit' : 'withdraw';
         const timestamp = this.safeInteger(transaction, 'createdTime');
         const address = this.safeString(transaction, 'address');
         const memo = this.safeString(transaction, 'memo');
         const currencyCode = this.safeCurrencyCode(this.safeString(transaction, 'currency'), currency);
         const fee = this.safeNumber(transaction, 'fee');
         const feeCurrency = (fee !== undefined) ? currencyCode : undefined;
+        const networkId = this.safeString(transaction, 'chain');
         return {
             'info': transaction,
             'id': this.safeString(transaction, 'id'),
@@ -3697,10 +3757,10 @@ class xt extends xt$1 {
             'tagFrom': undefined,
             'tagTo': undefined,
             'tag': memo,
-            'type': undefined,
+            'type': type,
             'amount': this.safeNumber(transaction, 'amount'),
             'currency': currencyCode,
-            'network': this.safeString(transaction, 'chain'),
+            'network': this.networkIdToCode(networkId, currencyCode),
             'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
             'comment': memo,
             'fee': {
@@ -4558,11 +4618,17 @@ class xt extends xt$1 {
         if (signed) {
             this.checkRequiredCredentials();
             const defaultRecvWindow = this.safeString(this.options, 'recvWindow');
-            const recvWindow = this.safeString(params, 'recvWindow', defaultRecvWindow);
+            const recvWindow = this.safeString(query, 'recvWindow', defaultRecvWindow);
             const timestamp = this.numberToString(this.nonce());
-            body = params;
+            body = query;
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
-                body['clientMedia'] = 'CCXT';
+                const id = 'CCXT';
+                if (payload.indexOf('future') > -1) {
+                    body['clientMedia'] = id;
+                }
+                else {
+                    body['media'] = id;
+                }
             }
             const isUndefinedBody = ((method === 'GET') || (path === 'order/{orderId}'));
             body = isUndefinedBody ? undefined : this.json(body);

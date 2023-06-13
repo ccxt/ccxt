@@ -10,12 +10,12 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_funding_rate_history.php';
 
-function test_fetch_funding_rate_history($exchange, $symbol) {
+function test_fetch_funding_rate_history($exchange, $skipped_properties, $symbol) {
     $method = 'fetchFundingRateHistory';
     $funding_rates_history = $exchange->fetch_funding_rate_history($symbol);
     assert(gettype($funding_rates_history) === 'array' && array_keys($funding_rates_history) === array_keys(array_keys($funding_rates_history)), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an array, returned ' . $exchange->json($funding_rates_history));
     for ($i = 0; $i < count($funding_rates_history); $i++) {
-        test_funding_rate_history($exchange, $method, $funding_rates_history[$i], $symbol);
+        test_funding_rate_history($exchange, $skipped_properties, $method, $funding_rates_history[$i], $symbol);
     }
     assert_timestamp_order($exchange, $method, $symbol, $funding_rates_history);
 }

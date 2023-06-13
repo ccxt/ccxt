@@ -302,8 +302,9 @@ class wavesexchange extends Exchange {
                 ),
             ),
             'currencies' => array(
-                'WX' => array( 'id' => 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId' => null, 'code' => 'WX', 'precision' => 8 ),
+                'WX' => $this->safe_currency_structure(array( 'id' => 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId' => null, 'code' => 'WX', 'precision' => $this->parse_number('8') )),
             ),
+            'precisionMode' => DECIMAL_PLACES,
             'options' => array(
                 'allowedCandles' => 1440,
                 'accessToken' => null,
@@ -1276,7 +1277,7 @@ class wavesexchange extends Exchange {
         return $rates;
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order

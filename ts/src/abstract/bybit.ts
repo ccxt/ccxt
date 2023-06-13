@@ -219,6 +219,7 @@ interface Exchange {
     privateGetV5OrderSpotBorrowCheck (params?: {}): Promise<implicitReturnType>;
     privateGetV5OrderRealtime (params?: {}): Promise<implicitReturnType>;
     privateGetV5PositionList (params?: {}): Promise<implicitReturnType>;
+    privateGetV5PositionSwitchMode (params?: {}): Promise<implicitReturnType>;
     privateGetV5ExecutionList (params?: {}): Promise<implicitReturnType>;
     privateGetV5PositionClosedPnl (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountWalletBalance (params?: {}): Promise<implicitReturnType>;
@@ -250,6 +251,8 @@ interface Exchange {
     privateGetV5AssetTransferQueryAccountCoinsBalance (params?: {}): Promise<implicitReturnType>;
     privateGetV5UserQuerySubMembers (params?: {}): Promise<implicitReturnType>;
     privateGetV5UserQueryApi (params?: {}): Promise<implicitReturnType>;
+    privateGetV5UserAffCustomerInfo (params?: {}): Promise<implicitReturnType>;
+    privateGetV5CustomerInfo (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeLoanInfo (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeAccount (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeOrders (params?: {}): Promise<implicitReturnType>;
@@ -407,6 +410,9 @@ interface Exchange {
     privatePostV5PositionSetTpslMode (params?: {}): Promise<implicitReturnType>;
     privatePostV5PositionSetRiskLimit (params?: {}): Promise<implicitReturnType>;
     privatePostV5PositionTradingStop (params?: {}): Promise<implicitReturnType>;
+    privatePostV5PositionSwitchIsolated (params?: {}): Promise<implicitReturnType>;
+    privatePostV5PositionSwitchMode (params?: {}): Promise<implicitReturnType>;
+    privatePostV5PositionSetAutoAddMargin (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountUpgradeToUta (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountSetMarginMode (params?: {}): Promise<implicitReturnType>;
     privatePostV5AssetTransferInterTransfer (params?: {}): Promise<implicitReturnType>;

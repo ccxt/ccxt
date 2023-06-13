@@ -637,6 +637,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_get_v5_position_list($params = array()) {
         return $this->request('v5/position/list', 'private', 'GET', $params, null, null, array("cost" => 2.5));
     }
+    public function private_get_v5_position_switch_mode($params = array()) {
+        return $this->request('v5/position/switch-mode', 'private', 'GET', $params, null, null, array("cost" => 2.5));
+    }
     public function private_get_v5_execution_list($params = array()) {
         return $this->request('v5/execution/list', 'private', 'GET', $params, null, null, array("cost" => 2.5));
     }
@@ -729,6 +732,12 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function private_get_v5_user_query_api($params = array()) {
         return $this->request('v5/user/query-api', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function private_get_v5_user_aff_customer_info($params = array()) {
+        return $this->request('v5/user/aff-customer-info', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function private_get_v5_customer_info($params = array()) {
+        return $this->request('v5/customer/info', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function private_get_v5_spot_cross_margin_trade_loan_info($params = array()) {
         return $this->request('v5/spot-cross-margin-trade/loan-info', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -1200,6 +1209,15 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function private_post_v5_position_trading_stop($params = array()) {
         return $this->request('v5/position/trading-stop', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function private_post_v5_position_switch_isolated($params = array()) {
+        return $this->request('v5/position/switch-isolated', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function private_post_v5_position_switch_mode($params = array()) {
+        return $this->request('v5/position/switch-mode', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function private_post_v5_position_set_auto_add_margin($params = array()) {
+        return $this->request('v5/position/set-auto-add-margin', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
     public function private_post_v5_account_upgrade_to_uta($params = array()) {
         return $this->request('v5/account/upgrade-to-uta', 'private', 'POST', $params, null, null, array("cost" => 2.5));
@@ -1915,6 +1933,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function privateGetV5PositionList($params = array()) {
         return $this->request('v5/position/list', 'private', 'GET', $params, null, null, array("cost" => 2.5));
     }
+    public function privateGetV5PositionSwitchMode($params = array()) {
+        return $this->request('v5/position/switch-mode', 'private', 'GET', $params, null, null, array("cost" => 2.5));
+    }
     public function privateGetV5ExecutionList($params = array()) {
         return $this->request('v5/execution/list', 'private', 'GET', $params, null, null, array("cost" => 2.5));
     }
@@ -2007,6 +2028,12 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privateGetV5UserQueryApi($params = array()) {
         return $this->request('v5/user/query-api', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function privateGetV5UserAffCustomerInfo($params = array()) {
+        return $this->request('v5/user/aff-customer-info', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function privateGetV5CustomerInfo($params = array()) {
+        return $this->request('v5/customer/info', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function privateGetV5SpotCrossMarginTradeLoanInfo($params = array()) {
         return $this->request('v5/spot-cross-margin-trade/loan-info', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -2478,6 +2505,15 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privatePostV5PositionTradingStop($params = array()) {
         return $this->request('v5/position/trading-stop', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function privatePostV5PositionSwitchIsolated($params = array()) {
+        return $this->request('v5/position/switch-isolated', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function privatePostV5PositionSwitchMode($params = array()) {
+        return $this->request('v5/position/switch-mode', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function privatePostV5PositionSetAutoAddMargin($params = array()) {
+        return $this->request('v5/position/set-auto-add-margin', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
     public function privatePostV5AccountUpgradeToUta($params = array()) {
         return $this->request('v5/account/upgrade-to-uta', 'private', 'POST', $params, null, null, array("cost" => 2.5));

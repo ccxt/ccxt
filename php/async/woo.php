@@ -172,6 +172,7 @@ class woo extends Exchange {
                             'funding_fee/history' => 30,
                             'positions' => 3.33, // 30 requests per 10 seconds
                             'position/{symbol}' => 3.33,
+                            'client/transaction_history' => 60,
                         ),
                         'post' => array(
                             'order' => 5, // 2 requests per 1 second per symbol
@@ -255,6 +256,7 @@ class woo extends Exchange {
                 'transfer' => array(
                     'fillResponseFromRequest' => true,
                 ),
+                'brokerId' => 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
             ),
             'commonCurrencies' => array(),
             'exceptions' => array(
@@ -725,7 +727,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -798,6 +800,11 @@ class woo extends Exchange {
             if ($clientOrderId !== null) {
                 $request['client_order_id'] = $clientOrderId;
             }
+            $applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+            $brokerId = $this->safe_string($this->options, 'brokerId', $applicationId);
+            if ($brokerId !== null) {
+                $request['broker_id'] = $brokerId;
+            }
             $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ));
             $response = Async\await($this->v1PrivatePostOrder (array_merge($request, $params)));
             // {
@@ -817,7 +824,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order

@@ -442,7 +442,7 @@ class zaif extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23
          * create a trade order

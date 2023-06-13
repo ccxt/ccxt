@@ -17,6 +17,7 @@ class whitebit extends Exchange {
             'version' => 'v4',
             'countries' => array( 'EE' ),
             'rateLimit' => 500,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -1129,7 +1130,7 @@ class whitebit extends Exchange {
         return $this->safe_integer($response, 'time');
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -2026,6 +2027,10 @@ class whitebit extends Exchange {
     public function is_fiat($currency) {
         $fiatCurrencies = $this->safe_value($this->options, 'fiatCurrencies', array());
         return $this->in_array($currency, $fiatCurrencies);
+    }
+
+    public function nonce() {
+        return $this->milliseconds();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

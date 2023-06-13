@@ -18,6 +18,7 @@ export default class cryptocom extends Exchange {
             'countries': ['MT'],
             'version': 'v2',
             'rateLimit': 10,
+            'certified': true,
             'pro': true,
             'has': {
                 'CORS': false,
@@ -309,6 +310,7 @@ export default class cryptocom extends Exchange {
                     'ETH': 'ERC20',
                     'TRON': 'TRC20',
                 },
+                'broker': 'CCXT_',
             },
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
@@ -1174,16 +1176,17 @@ export default class cryptocom extends Exchange {
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const clientOrderId = this.safeString(params, 'clientOrderId');
-        if (clientOrderId) {
-            request['client_oid'] = clientOrderId;
-            params = this.omit(params, ['clientOrderId']);
+        const broker = this.safeString(this.options, 'broker', 'CCXT_');
+        let clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            clientOrderId = broker + this.uuid22();
         }
+        request['client_oid'] = clientOrderId;
         const postOnly = this.safeValue(params, 'postOnly', false);
         if (postOnly) {
             request['exec_inst'] = 'POST_ONLY';
-            params = this.omit(params, ['postOnly']);
         }
+        params = this.omit(params, ['postOnly', 'clientOrderId']);
         const [marketType, marketTypeQuery] = this.handleMarketTypeAndParams('createOrder', market, params);
         let method = this.getSupportedMapping(marketType, {
             'spot': 'v2PrivatePostPrivateCreateOrder',

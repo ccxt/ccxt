@@ -10,7 +10,7 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_ohlcv.php';
 
-function test_fetch_ohlcv($exchange, $symbol) {
+function test_fetch_ohlcv($exchange, $skipped_properties, $symbol) {
     $method = 'fetchOHLCV';
     $timeframe_keys = is_array($exchange->timeframes) ? array_keys($exchange->timeframes) : array();
     assert(count($timeframe_keys) > 0, $exchange->id . ' ' . $method . ' - no timeframes found');
@@ -26,6 +26,6 @@ function test_fetch_ohlcv($exchange, $symbol) {
     assert(gettype($ohlcvs) === 'array' && array_keys($ohlcvs) === array_keys(array_keys($ohlcvs)), $exchange->id . ' ' . $method . ' must return an array, returned ' . $exchange->json($ohlcvs));
     $now = $exchange->milliseconds();
     for ($i = 0; $i < count($ohlcvs); $i++) {
-        test_ohlcv($exchange, $method, $ohlcvs[$i], $symbol, $now);
+        test_ohlcv($exchange, $skipped_properties, $method, $ohlcvs[$i], $symbol, $now);
     }
 }
