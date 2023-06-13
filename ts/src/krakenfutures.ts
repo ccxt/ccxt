@@ -1592,6 +1592,15 @@ export default class krakenfutures extends Exchange {
     }
 
     async fetchFundingRates (symbols: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#fetchFundingRates
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
+         * @description fetch the current funding rates
+         * @param {[string]} symbols unified market symbols
+         * @param {object} params extra parameters specific to the krakenfutures api endpoint
+         * @returns {[object]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
         await this.loadMarkets ();
         const marketIds = this.marketIds (symbols);
         const response = await this.publicGetTickers (params);
