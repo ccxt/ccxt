@@ -1787,6 +1787,45 @@ class bitget(Exchange, ImplicitAPI):
         #         quoteVolume: '5552388715.9215',
         #         usdtVolume: '5552388715.9215'
         #     }
+        # spot tickers
+        #    {
+        #        "symbol":"LINKUSDT",
+        #        "high24h":"5.2816",
+        #        "low24h":"5.0828",
+        #        "close":"5.24",
+        #        "quoteVol":"1427864.6815",
+        #        "baseVol":"276089.9017",
+        #        "usdtVol":"1427864.68148328",
+        #        "ts":"1686653354407",
+        #        "buyOne":"5.239",
+        #        "sellOne":"5.2404",
+        #        "+":"95.187",
+        #        "askSz":"947.6127",
+        #        "openUtc0":"5.1599",
+        #        "changeUtc":"0.01552",
+        #        "change":"0.02594"
+        #    }
+        # swap tickers
+        #    {
+        #        "symbol":"BTCUSDT_UMCBL",
+        #        "last":"26139",
+        #        "bestAsk":"26139",
+        #        "bestBid":"26138.5",
+        #        "bidSz":"4.62",
+        #        "askSz":"11.142",
+        #        "high24h":"26260",
+        #        "low24h":"25637",
+        #        "timestamp":"1686653988192",
+        #        "priceChangePercent":"0.01283",
+        #        "baseVolume":"130207.098",
+        #        "quoteVolume":"3378775678.441",
+        #        "usdtVolume":"3378775678.441",
+        #        "openUtc":"25889",
+        #        "chgUtc":"0.00966",
+        #        "indexPrice":"26159.375846",
+        #        "fundingRate":"0.000062",
+        #        "holdingAmount":"74551.735"
+        #    }
         #
         marketId = self.safe_string(ticker, 'symbol')
         if (market is None) and (marketId is not None) and (marketId.find('_') == -1):
@@ -1802,10 +1841,13 @@ class bitget(Exchange, ImplicitAPI):
         quoteVolume = self.safe_string_2(ticker, 'quoteVol', 'quoteVolume')
         baseVolume = self.safe_string_2(ticker, 'baseVol', 'baseVolume')
         timestamp = self.safe_integer_2(ticker, 'ts', 'timestamp')
+        bidVolume = self.safe_string(ticker, 'bidSz')
+        askVolume = self.safe_string(ticker, 'askSz')
         datetime = self.iso8601(timestamp)
         bid = self.safe_string_2(ticker, 'buyOne', 'bestBid')
         ask = self.safe_string_2(ticker, 'sellOne', 'bestAsk')
-        percentage = Precise.string_mul(self.safe_string(ticker, 'priceChangePercent'), '100')
+        percentage = Precise.string_mul(self.safe_string_n(ticker, ['priceChangePercent', 'changeUtc', 'change', 'chgUtc']), '100')
+        open = self.safe_string_2(ticker, 'openUtc0', 'openUtc')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1813,11 +1855,11 @@ class bitget(Exchange, ImplicitAPI):
             'high': high,
             'low': low,
             'bid': bid,
-            'bidVolume': None,
+            'bidVolume': bidVolume,
             'ask': ask,
-            'askVolume': None,
+            'askVolume': askVolume,
             'vwap': None,
-            'open': None,
+            'open': open,
             'close': close,
             'last': None,
             'previousClose': None,
