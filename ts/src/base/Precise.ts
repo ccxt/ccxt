@@ -1,4 +1,4 @@
-
+import { numberToString } from './functions.js';
 const zero = BigInt (0);
 const minusOne = BigInt (-1);
 const base = BigInt (10);
@@ -280,6 +280,73 @@ class Precise {
             return undefined;
         }
         return (new Precise (string1)).le (new Precise (string2));
+    }
+
+    static stringArithFromNumbers (number1: number, number2: number, methodTail: string) {
+        const string1 = numberToString (number1);
+        const string2 = numberToString (number2);
+        const method = 'string' + methodTail;
+        return this[method] (string1, string2);
+    }
+
+    static stringMulFromNumbers (number1: number, number2: number) {
+        return this.stringArithFromNumbers (number1, number2, 'Mul');
+    }
+
+    static stringDivFromNumbers (number1: number, number2: number) {
+        return this.stringArithFromNumbers (number1, number2, 'Div');
+    }
+
+    static stringAddFromNumbers (number1: number, number2: number) {
+        return this.stringArithFromNumbers (number1, number2, 'Add');
+    }
+
+    static stringSubFromNumbers (number1: number, number2: number) {
+        return this.stringArithFromNumbers (number1, number2, 'Sub');
+    }
+
+    static stringAbsFromNumbers (number1: number, number2: number) {
+        return this.stringArithFromNumbers (number1, number2, 'Abs');
+    }
+
+    static stringNegFromNumbers (number1: number, number2: number) {
+        return this.stringArithFromNumbers (number1, number2, 'Neg');
+    }
+
+    static stringModFromNumbers (number1: number, number2: number) {
+        return this.stringArithFromNumbers (number1, number2, 'Mod');
+    }
+
+    static stringEqualsFromNumbers (number1: number, number2: number) {
+        return this.stringArithFromNumbers (number1, number2, 'Equals');
+    }
+
+    static stringEqFromNumbers (number1: number, number2: number) {
+        return this.stringArithFromNumbers (number1, number2, 'Eq');
+    }
+
+    static stringMinFromNumbers (number1: number, number2: number) {
+        return this.stringArithFromNumbers (number1, number2, 'Min');
+    }
+
+    static stringMaxFromNumbers (number1: number, number2: number) {
+        return this.stringArithFromNumbers (number1, number2, 'Max');
+    }
+
+    static stringGtFromNumbers (number1: number, number2: number) {
+        return this.stringArithFromNumbers (number1, number2, 'Gt');
+    }
+
+    static stringGeFromNumbers (number1: number, number2: number) {
+        return this.stringArithFromNumbers (number1, number2, 'Ge');
+    }
+
+    static stringLtFromNumbers (number1: number, number2: number) {
+        return this.stringArithFromNumbers (number1, number2, 'Lt');
+    }
+
+    static stringLeFromNumbers (number1: number, number2: number) {
+        return this.stringArithFromNumbers (number1, number2, 'Le');
     }
 }
 
