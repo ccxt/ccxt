@@ -5,7 +5,7 @@ import bybitRest from '../bybit.js';
 import { AuthenticationError, ExchangeError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Market, Trade } from '../base/types.js';
+import { Int, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -394,7 +394,7 @@ export default class bybit extends bybitRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market: Market = undefined): number[] {
+    parseWsOHLCV (ohlcv, market = undefined): number[] {
         //
         //     {
         //         "start": 1670363160000,
@@ -599,7 +599,7 @@ export default class bybit extends bybitRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market: Market = undefined): Trade {
+    parseWsTrade (trade, market = undefined): Trade {
         //
         // public
         //    {

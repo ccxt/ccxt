@@ -4,7 +4,7 @@
 import kucoinRest from '../kucoin.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, Market, Order, Trade } from '../base/types.js';
+import { Int, Order, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -548,7 +548,7 @@ export default class kucoin extends kucoinRest {
         return this.safeString (statuses, status, status);
     }
 
-    parseWsOrder (order, market: Market = undefined): Order {
+    parseWsOrder (order, market = undefined): Order {
         //
         //     {
         //         'symbol': 'XCAD-USDT',
@@ -679,7 +679,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (trades, symbolSpecificMessageHash);
     }
 
-    parseWsTrade (trade, market: Market = undefined): Trade {
+    parseWsTrade (trade, market = undefined): Trade {
         //
         // {
         //     fee: 0.00262148,

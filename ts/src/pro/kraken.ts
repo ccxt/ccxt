@@ -5,7 +5,7 @@ import krakenRest from '../kraken.js';
 import { BadSymbol, BadRequest, ExchangeError, NotSupported, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import { Int, Market, Order, Trade } from '../base/types.js';
+import { Int, Order, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -685,7 +685,7 @@ export default class kraken extends krakenRest {
         }
     }
 
-    parseWsTrade (trade, market: Market = undefined): Trade {
+    parseWsTrade (trade, market = undefined): Trade {
         //
         //     {
         //         id: 'TIMIRG-WUNNE-RRJ6GT', // injected from outside
@@ -913,7 +913,7 @@ export default class kraken extends krakenRest {
         }
     }
 
-    parseWsOrder (order, market: Market = undefined): Order {
+    parseWsOrder (order, market = undefined): Order {
         //
         // createOrder
         //    {

@@ -5,7 +5,7 @@ import mexcRest from '../mexc.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Market, Order, Trade } from '../base/types.js';
+import { Int, Order, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -305,7 +305,7 @@ export default class mexc extends mexcRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market: Market = undefined): number[] {
+    parseWsOHLCV (ohlcv, market = undefined): number[] {
         //
         // spot
         //
@@ -685,7 +685,7 @@ export default class mexc extends mexcRest {
         client.resolve (trades, symbolSpecificMessageHash);
     }
 
-    parseWsTrade (trade, market: Market = undefined): Trade {
+    parseWsTrade (trade, market = undefined): Trade {
         //
         // public trade
         //    {
@@ -863,7 +863,7 @@ export default class mexc extends mexcRest {
         client.resolve (orders, symbolSpecificMessageHash);
     }
 
-    parseWsOrder (order, market: Market = undefined): Order {
+    parseWsOrder (order, market = undefined): Order {
         //
         // spot
         //     {

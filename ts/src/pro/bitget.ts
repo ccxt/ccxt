@@ -5,7 +5,7 @@ import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, Inval
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Market, Order, Trade } from '../base/types.js';
+import { Int, Order, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -321,7 +321,7 @@ export default class bitget extends bitgetRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market: Market = undefined): number[] {
+    parseWsOHLCV (ohlcv, market = undefined): number[] {
         //
         //   [
         //      "1595779200000", // timestamp
@@ -540,7 +540,7 @@ export default class bitget extends bitgetRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market: Market = undefined): Trade {
+    parseWsTrade (trade, market = undefined): Trade {
         //
         // public trade
         //
@@ -691,7 +691,7 @@ export default class bitget extends bitgetRest {
         client.resolve (stored, 'order');
     }
 
-    parseWsOrder (order, market: Market = undefined): Order {
+    parseWsOrder (order, market = undefined): Order {
         //
         // spot order
         //     {
