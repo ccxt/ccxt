@@ -1029,6 +1029,8 @@ class bitso extends Exchange {
     public function parse_order_status($status) {
         $statuses = array(
             'partial-fill' => 'open', // this is a common substitution in ccxt
+            'partially filled' => 'open',
+            'queued' => 'open',
             'completed' => 'closed',
         );
         return $this->safe_string($statuses, $status, $status);

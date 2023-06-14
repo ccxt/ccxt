@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.35'
+__version__ = '3.1.38'
 
 # -----------------------------------------------------------------------------
 
@@ -3674,6 +3674,7 @@ class Exchange(object):
         if self.has['fetchFundingRates']:
             self.load_markets()
             market = self.market(symbol)
+            symbol = market['symbol']
             if not market['contract']:
                 raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
             rates = self.fetchFundingRates([symbol], params)

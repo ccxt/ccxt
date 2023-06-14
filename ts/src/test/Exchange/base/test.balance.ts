@@ -16,8 +16,8 @@ function testBalance (exchange, skippedProperties, method, entry) {
     const codesTotal = Object.keys (entry['total']);
     const codesFree = Object.keys (entry['free']);
     const codesUsed = Object.keys (entry['used']);
-    let allCodes = codesTotal.concat (codesFree);
-    allCodes = allCodes.concat (codesUsed);
+    let allCodes = exchange.arrayConcat (codesTotal, codesFree);
+    allCodes = exchange.arrayConcat (allCodes, codesUsed);
     const codesLength = codesTotal.length;
     const freeLength = codesFree.length;
     const usedLength = codesUsed.length;

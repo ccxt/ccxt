@@ -39,9 +39,9 @@ class krakenfutures extends krakenfutures$1 {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': undefined,
                 'fetchFundingHistory': undefined,
-                'fetchFundingRate': false,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedPositions': false,
                 'fetchLeverageTiers': true,
@@ -1586,6 +1586,83 @@ class krakenfutures extends krakenfutures$1 {
             result[code] = account;
         }
         return this.safeBalance(result);
+    }
+    async fetchFundingRates(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#fetchFundingRates
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
+         * @description fetch the current funding rates
+         * @param {[string]} symbols unified market symbols
+         * @param {object} params extra parameters specific to the krakenfutures api endpoint
+         * @returns {[object]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets();
+        const marketIds = this.marketIds(symbols);
+        const response = await this.publicGetTickers(params);
+        const tickers = this.safeValue(response, 'tickers');
+        const fundingRates = [];
+        for (let i = 0; i < tickers.length; i++) {
+            const entry = tickers[i];
+            const entry_symbol = this.safeValue(entry, 'symbol');
+            if (marketIds !== undefined) {
+                if (!this.inArray(entry_symbol, marketIds)) {
+                    continue;
+                }
+            }
+            const market = this.safeMarket(entry_symbol);
+            const parsed = this.parseFundingRate(entry, market);
+            fundingRates.push(parsed);
+        }
+        return this.indexBy(fundingRates, 'symbol');
+    }
+    parseFundingRate(ticker, market = undefined) {
+        //
+        // {'ask': 26.283,
+        //  'askSize': 4.6,
+        //  'bid': 26.201,
+        //  'bidSize': 190,
+        //  'fundingRate': -0.000944642727438883,
+        //  'fundingRatePrediction': -0.000872671532340275,
+        //  'indexPrice': 26.253,
+        //  'last': 26.3,
+        //  'lastSize': 0.1,
+        //  'lastTime': '2023-06-11T18:55:28.958Z',
+        //  'markPrice': 26.239,
+        //  'open24h': 26.3,
+        //  'openInterest': 641.1,
+        //  'pair': 'COMP:USD',
+        //  'postOnly': False,
+        //  'suspended': False,
+        //  'symbol': 'pf_compusd',
+        //  'tag': 'perpetual',
+        //  'vol24h': 0.1,
+        //  'volumeQuote': 2.63}
+        //
+        const marketId = this.safeString(ticker, 'symbol');
+        const symbol = this.symbol(marketId);
+        const timestamp = this.parse8601(this.safeString(ticker, 'lastTime'));
+        const fundingRate = this.safeNumber(ticker, 'fundingRate');
+        const nextFundingRate = this.safeNumber(ticker, 'fundingRatePrediction');
+        return {
+            'info': ticker,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'fundingRate': fundingRate,
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': nextFundingRate,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         this.checkRequiredSymbol('fetchFundingRateHistory', symbol);

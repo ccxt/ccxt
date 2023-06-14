@@ -695,7 +695,8 @@ class testMainClass extends baseMainTestClass {
                 $errors[] = $testName;
             }
         }
-        if (strlen($errors) > 0) {
+        $errorsCnt = count($errors); // PHP transpile count($errors)
+        if ($errorsCnt > 0) {
             throw new \Exception('Failed private $tests [' . $market['type'] . '] => ' . implode(', ', $errors));
         } else {
             if ($this->info) {
