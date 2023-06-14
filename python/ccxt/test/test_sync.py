@@ -654,7 +654,8 @@ class testMainClass(baseMainTestClass):
             success = results[i]
             if not success:
                 errors.append(testName)
-        if len(errors) > 0:
+        errorsCnt = len(errors)  # PHP transpile count($errors)
+        if errorsCnt > 0:
             raise Error('Failed private tests [' + market['type'] + ']: ' + ', '.join(errors))
         else:
             if self.info:
