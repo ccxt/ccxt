@@ -468,8 +468,10 @@ export default class cryptocom extends Exchange {
             const option = inst_type === 'WARRANT';
             const baseId = this.safeString (market, 'base_ccy');
             const quoteId = this.safeString (market, 'quote_ccy');
+            const settleId = spot ? undefined : quoteId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const settle = spot ? undefined : this.safeCurrencyCode (settleId);
             const optionType = this.safeStringLower (market, 'put_call');
             const strike = this.safeString (market, 'strike');
             const marginBuyEnabled = this.safeValue (market, 'margin_buy_enabled');
@@ -503,10 +505,10 @@ export default class cryptocom extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': quoteId,
+                'settleId': settleId,
                 'type': type,
                 'spot': spot,
                 'margin': ((marginBuyEnabled) || (marginSellEnabled)),
