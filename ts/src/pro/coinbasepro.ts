@@ -5,7 +5,7 @@ import coinbaseproRest from '../coinbasepro.js';
 import { AuthenticationError, ExchangeError, BadSymbol } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int } from '../base/types.js';
+import { Int, Order, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -250,7 +250,7 @@ export default class coinbasepro extends coinbaseproRest {
         return message;
     }
 
-    parseWsTrade (trade) {
+    parseWsTrade (trade, market = undefined): Trade {
         //
         // private trades
         // {
@@ -310,7 +310,7 @@ export default class coinbasepro extends coinbaseproRest {
             parsed['takerOrMaker'] = 'taker';
             feeRate = this.safeNumber (trade, 'taker_fee_rate');
         }
-        const market = this.market (parsed['symbol']);
+        market = this.market (parsed['symbol']);
         const feeCurrency = market['quote'];
         let feeCost = undefined;
         if ((parsed['cost'] !== undefined) && (feeRate !== undefined)) {
@@ -499,7 +499,7 @@ export default class coinbasepro extends coinbaseproRest {
         }
     }
 
-    parseWsOrder (order) {
+    parseWsOrder (order, market = undefined): Order {
         const id = this.safeString (order, 'order_id');
         const clientOrderId = this.safeString (order, 'client_oid');
         const marketId = this.safeString (order, 'product_id');
