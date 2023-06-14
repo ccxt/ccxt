@@ -1806,6 +1806,45 @@ class bitget extends Exchange {
         //         $quoteVolume => '5552388715.9215',
         //         usdtVolume => '5552388715.9215'
         //     }
+        // spot tickers
+        //    {
+        //        "symbol":"LINKUSDT",
+        //        "high24h":"5.2816",
+        //        "low24h":"5.0828",
+        //        "close":"5.24",
+        //        "quoteVol":"1427864.6815",
+        //        "baseVol":"276089.9017",
+        //        "usdtVol":"1427864.68148328",
+        //        "ts":"1686653354407",
+        //        "buyOne":"5.239",
+        //        "sellOne":"5.2404",
+        //        "+":"95.187",
+        //        "askSz":"947.6127",
+        //        "openUtc0":"5.1599",
+        //        "changeUtc":"0.01552",
+        //        "change":"0.02594"
+        //    }
+        // swap tickers
+        //    {
+        //        "symbol":"BTCUSDT_UMCBL",
+        //        "last":"26139",
+        //        "bestAsk":"26139",
+        //        "bestBid":"26138.5",
+        //        "bidSz":"4.62",
+        //        "askSz":"11.142",
+        //        "high24h":"26260",
+        //        "low24h":"25637",
+        //        "timestamp":"1686653988192",
+        //        "priceChangePercent":"0.01283",
+        //        "baseVolume":"130207.098",
+        //        "quoteVolume":"3378775678.441",
+        //        "usdtVolume":"3378775678.441",
+        //        "openUtc":"25889",
+        //        "chgUtc":"0.00966",
+        //        "indexPrice":"26159.375846",
+        //        "fundingRate":"0.000062",
+        //        "holdingAmount":"74551.735"
+        //    }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         if (($market === null) && ($marketId !== null) && (mb_strpos($marketId, '_') === -1)) {
@@ -1822,10 +1861,13 @@ class bitget extends Exchange {
         $quoteVolume = $this->safe_string_2($ticker, 'quoteVol', 'quoteVolume');
         $baseVolume = $this->safe_string_2($ticker, 'baseVol', 'baseVolume');
         $timestamp = $this->safe_integer_2($ticker, 'ts', 'timestamp');
+        $bidVolume = $this->safe_string($ticker, 'bidSz');
+        $askVolume = $this->safe_string($ticker, 'askSz');
         $datetime = $this->iso8601($timestamp);
         $bid = $this->safe_string_2($ticker, 'buyOne', 'bestBid');
         $ask = $this->safe_string_2($ticker, 'sellOne', 'bestAsk');
-        $percentage = Precise::string_mul($this->safe_string($ticker, 'priceChangePercent'), '100');
+        $percentage = Precise::string_mul($this->safe_string_n($ticker, array( 'priceChangePercent', 'changeUtc', 'change', 'chgUtc' )), '100');
+        $open = $this->safe_string_2($ticker, 'openUtc0', 'openUtc');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1833,11 +1875,11 @@ class bitget extends Exchange {
             'high' => $high,
             'low' => $low,
             'bid' => $bid,
-            'bidVolume' => null,
+            'bidVolume' => $bidVolume,
             'ask' => $ask,
-            'askVolume' => null,
+            'askVolume' => $askVolume,
             'vwap' => null,
-            'open' => null,
+            'open' => $open,
             'close' => $close,
             'last' => null,
             'previousClose' => null,
@@ -2636,7 +2678,9 @@ class bitget extends Exchange {
                 $triggerType = $this->safe_string($params, 'triggerType', 'market_price');
                 $request['triggerType'] = $triggerType;
                 $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                if ($price !== null) {
+                    $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                }
                 $method = 'privateSpotPostPlanPlacePlan';
             }
             if ($quantity !== null) {

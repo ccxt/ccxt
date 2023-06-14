@@ -263,6 +263,8 @@ interface Exchange {
     sapiPostLoanVipRepay(params?: {}): Promise<implicitReturnType>;
     sapiPostConvertGetQuote(params?: {}): Promise<implicitReturnType>;
     sapiPostConvertAcceptQuote(params?: {}): Promise<implicitReturnType>;
+    sapiPostPortfolioAutoCollection(params?: {}): Promise<implicitReturnType>;
+    sapiPostPortfolioBnbTransfer(params?: {}): Promise<implicitReturnType>;
     sapiPutUserDataStream(params?: {}): Promise<implicitReturnType>;
     sapiPutUserDataStreamIsolated(params?: {}): Promise<implicitReturnType>;
     sapiDeleteMarginOpenOrders(params?: {}): Promise<implicitReturnType>;

@@ -80,6 +80,7 @@ export interface Order {
     datetime: string;
     timestamp: number;
     lastTradeTimestamp: number;
+    lastUpdateTimestamp?: number;
     status: 'open' | 'closed' | 'canceled' | string;
     symbol: string;
     type: string;

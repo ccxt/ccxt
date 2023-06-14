@@ -613,6 +613,18 @@ abstract class bitstamp extends \ccxt\async\Exchange {
     public function private_post_flr_address($params = array()) {
         return $this->request('flr_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_dgld_withdrawal($params = array()) {
+        return $this->request('dgld_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_dgld_address($params = array()) {
+        return $this->request('dgld_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_ldo_withdrawal($params = array()) {
+        return $this->request('ldo_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_ldo_address($params = array()) {
+        return $this->request('ldo_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function publicGetOhlcPair($params = array()) {
         return $this->request('ohlc/{pair}/', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1218,5 +1230,17 @@ abstract class bitstamp extends \ccxt\async\Exchange {
     }
     public function privatePostFlrAddress($params = array()) {
         return $this->request('flr_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostDgldWithdrawal($params = array()) {
+        return $this->request('dgld_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostDgldAddress($params = array()) {
+        return $this->request('dgld_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostLdoWithdrawal($params = array()) {
+        return $this->request('ldo_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostLdoAddress($params = array()) {
+        return $this->request('ldo_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

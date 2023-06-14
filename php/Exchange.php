@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.1.33';
+$version = '3.1.38';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.1.33';
+    const VERSION = '3.1.38';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4589,6 +4589,7 @@ class Exchange {
         if ($this->has['fetchFundingRates']) {
             $this->load_markets();
             $market = $this->market ($symbol);
+            $symbol = $market['symbol'];
             if (!$market['contract']) {
                 throw new BadSymbol($this->id . ' fetchFundingRate() supports contract markets only');
             }

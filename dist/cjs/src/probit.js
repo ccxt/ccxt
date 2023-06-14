@@ -136,6 +136,7 @@ class probit extends probit$1 {
                         'order_history': 1,
                         'trade_history': 1,
                         'deposit_address': 1,
+                        'transfer/payment': 1,
                     },
                 },
                 'accounts': {

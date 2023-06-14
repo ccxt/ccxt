@@ -138,6 +138,7 @@ export default class probit extends Exchange {
                         'order_history': 1,
                         'trade_history': 1,
                         'deposit_address': 1,
+                        'transfer/payment': 1,
                     },
                 },
                 'accounts': {

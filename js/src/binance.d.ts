@@ -89,8 +89,6 @@ export default class binance extends Exchange {
         datetime: string;
         price: number;
         side: any;
-        baseVolume: any;
-        quoteVolume: any;
         info: any;
     };
     fetchTickers(symbols?: string[], params?: {}): Promise<any>;

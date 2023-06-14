@@ -975,7 +975,7 @@ class bitfinex2 extends bitfinex2$1 {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
             'EXECUTED': 'closed',
-            'PARTIALLY FILLED': 'open',
+            'PARTIALLY': 'open',
         };
         return this.safeString(statuses, status, status);
     }

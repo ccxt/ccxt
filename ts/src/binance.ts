@@ -478,6 +478,8 @@ export default class binance extends Exchange {
                         'loan/vip/repay': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'convert/getQuote': 20.001,
                         'convert/acceptQuote': 3.3335,
+                        'portfolio/auto-collection': 0.6667, // Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'portfolio/bnb-transfer': 0.6667, // Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -3004,10 +3006,14 @@ export default class binance extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const market = this.getMarketFromSymbols (symbols);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
+        let type = undefined;
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchLastPrices', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
         let method = undefined;
-        if (marketType === 'future') {
+        if (this.isLinear (type, subType)) {
             method = 'fapiPublicGetTickerPrice';
             //
             //     [
@@ -3019,7 +3025,7 @@ export default class binance extends Exchange {
             //         ...
             //     ]
             //
-        } else if (marketType === 'delivery') {
+        } else if (this.isInverse (type, subType)) {
             method = 'dapiPublicGetTickerPrice';
             //
             //     [
@@ -3031,7 +3037,7 @@ export default class binance extends Exchange {
             //         }
             //     ]
             //
-        } else if (marketType === 'spot') {
+        } else if (type === 'spot') {
             method = 'publicGetTickerPrice';
             //
             //     [
@@ -3043,9 +3049,9 @@ export default class binance extends Exchange {
             //     ]
             //
         } else {
-            throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + marketType + ' markets yet');
+            throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
         }
-        const response = await this[method] (query);
+        const response = await this[method] (params);
         return this.parseLastPrices (response, symbols);
     }
 
@@ -3076,10 +3082,10 @@ export default class binance extends Exchange {
         //         "time": 1591257246176
         //     }
         //
-        const marketId = this.safeString (info, 'symbol');
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        market = this.safeMarket (marketId, market, undefined, defaultType);
         const timestamp = this.safeInteger (info, 'time');
+        const type = (timestamp === undefined) ? 'spot' : 'swap';
+        const marketId = this.safeString (info, 'symbol');
+        market = this.safeMarket (marketId, market, undefined, type);
         const price = this.safeNumber (info, 'price');
         return {
             'symbol': market['symbol'],
@@ -3087,8 +3093,6 @@ export default class binance extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'price': price,
             'side': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': undefined,
             'info': info,
         };
     }
@@ -4102,28 +4106,19 @@ export default class binance extends Exchange {
         const marketType = ('closePosition' in order) ? 'contract' : 'spot';
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const filled = this.safeString (order, 'executedQty', '0');
-        let timestamp = undefined;
+        const timestamp = this.safeIntegerN (order, [ 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime' ]); // order of the keys matters here
         let lastTradeTimestamp = undefined;
-        if ('time' in order) {
-            timestamp = this.safeInteger (order, 'time');
-        } else if ('workingTime' in order) {
-            lastTradeTimestamp = this.safeInteger (order, 'transactTime');
-            timestamp = this.safeInteger (order, 'workingTime');
-        } else if ('transactTime' in order) {
-            lastTradeTimestamp = this.safeInteger (order, 'transactTime');
-            timestamp = this.safeInteger (order, 'transactTime');
-        } else if ('createTime' in order) {
-            lastTradeTimestamp = this.safeInteger (order, 'updateTime');
-            timestamp = this.safeInteger (order, 'createTime');
-        } else if ('updateTime' in order) {
+        if (('transactTime' in order) || ('updateTime' in order)) {
+            const timestampValue = this.safeInteger2 (order, 'updateTime', 'transactTime');
             if (status === 'open') {
                 if (Precise.stringGt (filled, '0')) {
-                    lastTradeTimestamp = this.safeInteger (order, 'updateTime');
-                } else {
-                    timestamp = this.safeInteger (order, 'updateTime');
+                    lastTradeTimestamp = timestampValue;
                 }
+            } else if (status === 'closed') {
+                lastTradeTimestamp = timestampValue;
             }
         }
+        const lastUpdateTimestamp = this.safeInteger2 (order, 'transactTime', 'updateTime');
         const average = this.safeString (order, 'avgPrice');
         const price = this.safeString (order, 'price');
         const amount = this.safeString2 (order, 'origQty', 'quantity');
@@ -4155,6 +4150,7 @@ export default class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
