@@ -1968,7 +1968,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -2433,7 +2433,7 @@ class coinbase extends Exchange {
                 $request['limit'] = $limit;
             }
             if ($since !== null) {
-                $request['start_date'] = $this->parse8601($since);
+                $request['start_date'] = $this->iso8601($since);
             }
             $response = Async\await($this->v3PrivateGetBrokerageOrdersHistoricalBatch (array_merge($request, $params)));
             //
@@ -2501,7 +2501,7 @@ class coinbase extends Exchange {
             }
             $request['limit'] = $limit;
             if ($since !== null) {
-                $request['start_date'] = $this->parse8601($since);
+                $request['start_date'] = $this->iso8601($since);
             }
             $response = Async\await($this->v3PrivateGetBrokerageOrdersHistoricalBatch (array_merge($request, $params)));
             //

@@ -17,7 +17,7 @@ from ccxt.test.base import test_shared_methods  # noqa E402
 from ccxt.test.base.test_trade import test_trade  # noqa E402
 
 
-def test_order(exchange, method, entry, symbol, now):
+def test_order(exchange, skipped_properties, method, entry, symbol, now):
     format = {
         'info': {},
         'id': '123',
@@ -41,28 +41,27 @@ def test_order(exchange, method, entry, symbol, now):
         'fee': {},
         'trades': [],
     }
-    empty_not_allowed_for = ['id']
-    # todo: skip some exchanges
-    # const emptyNotAllowedFor = [ 'id', 'timestamp', 'symbol', 'type', 'side', 'price' ];
-    test_shared_methods.assert_structure(exchange, method, entry, format, empty_not_allowed_for)
-    test_shared_methods.assert_timestamp(exchange, method, entry, now)
+    empty_allowed_for = ['clientOrderId', 'stopPrice', 'trades']  # todo: we need more detailed property to skip the exchanges, that return only order id when executing order (in createOrder)
+    test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
+    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry, now)
     #
-    test_shared_methods.assert_in_array(exchange, method, entry, 'timeInForce', ['GTC', 'GTK', 'IOC', 'FOK'])
-    test_shared_methods.assert_in_array(exchange, method, entry, 'status', ['open', 'closed', 'canceled'])
-    test_shared_methods.assert_in_array(exchange, method, entry, 'side', ['buy', 'sell'])
-    test_shared_methods.assert_in_array(exchange, method, entry, 'postOnly', [True, False])
-    test_shared_methods.assert_symbol(exchange, method, entry, 'symbol', symbol)
-    test_shared_methods.assert_greater(exchange, method, entry, 'price', '0')
-    test_shared_methods.assert_greater(exchange, method, entry, 'stopPrice', '0')
-    test_shared_methods.assert_greater(exchange, method, entry, 'cost', '0')
-    test_shared_methods.assert_greater(exchange, method, entry, 'average', '0')
-    test_shared_methods.assert_greater(exchange, method, entry, 'average', '0')
-    test_shared_methods.assert_greater_or_equal(exchange, method, entry, 'filled', '0')
-    test_shared_methods.assert_greater_or_equal(exchange, method, entry, 'remaining', '0')
-    test_shared_methods.assert_greater_or_equal(exchange, method, entry, 'amount', '0')
-    test_shared_methods.assert_greater_or_equal(exchange, method, entry, 'amount', exchange.safe_string(entry, 'remaining'))
-    test_shared_methods.assert_greater_or_equal(exchange, method, entry, 'amount', exchange.safe_string(entry, 'filled'))
-    if entry['trades'] is not None:
-        for i in range(0, len(entry['trades'])):
-            test_trade(exchange, method, entry['trades'][i], symbol, now)
-    test_shared_methods.assert_fee(exchange, method, entry['fee'])
+    test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'timeInForce', ['GTC', 'GTK', 'IOC', 'FOK'])
+    test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'status', ['open', 'closed', 'canceled'])
+    test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'side', ['buy', 'sell'])
+    test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'postOnly', [True, False])
+    test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, 'symbol', symbol)
+    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'price', '0')
+    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'stopPrice', '0')
+    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'cost', '0')
+    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'average', '0')
+    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'average', '0')
+    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'filled', '0')
+    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'remaining', '0')
+    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'amount', '0')
+    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'amount', exchange.safe_string(entry, 'remaining'))
+    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'amount', exchange.safe_string(entry, 'filled'))
+    if not ('trades' in skipped_properties):
+        if entry['trades'] is not None:
+            for i in range(0, len(entry['trades'])):
+                test_trade(exchange, skipped_properties, method, entry['trades'][i], symbol, now)
+    test_shared_methods.assert_fee_structure(exchange, skipped_properties, method, entry, 'fee')

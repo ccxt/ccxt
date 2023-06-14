@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.btcalpha import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -388,7 +389,7 @@ class btcalpha(Exchange, ImplicitAPI):
         marketId = self.safe_string(trade, 'pair')
         market = self.safe_market(marketId, market, '_')
         timestampRaw = self.safe_string(trade, 'timestamp')
-        timestamp = self.parse_number(Precise.string_mul(timestampRaw, '1000000'))
+        timestamp = self.parse_to_int(Precise.string_mul(timestampRaw, '1000000'))
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
         id = self.safe_string(trade, 'id')
@@ -689,7 +690,7 @@ class btcalpha(Exchange, ImplicitAPI):
             'average': None,
         }, market)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

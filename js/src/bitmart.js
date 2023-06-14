@@ -128,6 +128,7 @@ export default class bitmart extends Exchange {
                         'contract/public/open-interest': 30,
                         'contract/public/funding-rate': 30,
                         'contract/public/kline': 5,
+                        'account/v1/currencies': 30,
                     },
                 },
                 'private': {
@@ -619,8 +620,13 @@ export default class bitmart extends Exchange {
             const settleId = 'USDT'; // this is bitmart's ID for usdt
             const settle = this.safeCurrencyCode(settleId);
             const symbol = base + '/' + quote + ':' + settle;
-            const productType = this.safeNumber(market, 'product_type');
-            const expiry = this.safeInteger(market, 'expire_timestamp');
+            const productType = this.safeInteger(market, 'product_type');
+            const isSwap = (productType === 1);
+            const isFutures = (productType === 2);
+            let expiry = this.safeInteger(market, 'expire_timestamp');
+            if (!isFutures && (expiry === 0)) {
+                expiry = undefined;
+            }
             result.push({
                 'id': id,
                 'numericId': undefined,
@@ -631,11 +637,11 @@ export default class bitmart extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': 'swap',
+                'type': isSwap ? 'swap' : 'future',
                 'spot': false,
                 'margin': false,
-                'swap': (productType === 1),
-                'future': (productType === 2),
+                'swap': isSwap,
+                'future': isFutures,
                 'option': false,
                 'active': true,
                 'contract': true,
@@ -1468,7 +1474,7 @@ export default class bitmart extends Exchange {
         const trades = this.safeValue(data, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
-    parseBalance(response, marketType) {
+    customParseBalance(response, marketType) {
         const data = this.safeValue(response, 'data', {});
         let wallet = undefined;
         if (marketType === 'swap') {
@@ -1644,7 +1650,7 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        return this.parseBalance(response, marketType);
+        return this.customParseBalance(response, marketType);
     }
     parseTradingFee(fee, market = undefined) {
         //

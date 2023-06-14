@@ -389,7 +389,7 @@ class btcalpha extends Exchange {
         $marketId = $this->safe_string($trade, 'pair');
         $market = $this->safe_market($marketId, $market, '_');
         $timestampRaw = $this->safe_string($trade, 'timestamp');
-        $timestamp = $this->parse_number(Precise::string_mul($timestampRaw, '1000000'));
+        $timestamp = $this->parse_to_int(Precise::string_mul($timestampRaw, '1000000'));
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
         $id = $this->safe_string($trade, 'id');
@@ -710,7 +710,7 @@ class btcalpha extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @param {string} $symbol unified $symbol of the $market to create an $order in

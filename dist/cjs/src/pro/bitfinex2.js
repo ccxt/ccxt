@@ -99,7 +99,7 @@ class bitfinex2 extends bitfinex2$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message, subscription) {
         //
@@ -199,7 +199,7 @@ class bitfinex2 extends bitfinex2$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -222,7 +222,7 @@ class bitfinex2 extends bitfinex2$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     async watchTicker(symbol, params = {}) {
         /**
@@ -656,10 +656,16 @@ class bitfinex2 extends bitfinex2$1 {
         const asks = book['asks'];
         // pepperoni pizza from bitfinex
         for (let i = 0; i < depth; i++) {
-            stringArray.push(this.numberToString(bids[i][0]));
-            stringArray.push(this.numberToString(bids[i][1]));
-            stringArray.push(this.numberToString(asks[i][0]));
-            stringArray.push(this.numberToString(-asks[i][1]));
+            const bid = this.safeValue(bids, i);
+            const ask = this.safeValue(asks, i);
+            if (bid !== undefined) {
+                stringArray.push(this.numberToString(bids[i][0]));
+                stringArray.push(this.numberToString(bids[i][1]));
+            }
+            if (ask !== undefined) {
+                stringArray.push(this.numberToString(asks[i][0]));
+                stringArray.push(this.numberToString(-asks[i][1]));
+            }
         }
         const payload = stringArray.join(':');
         const localChecksum = this.crc32(payload, true);
@@ -969,7 +975,7 @@ class bitfinex2 extends bitfinex2$1 {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
             'EXECUTED': 'closed',
-            'PARTIALLY FILLED': 'open',
+            'PARTIALLY': 'open',
         };
         return this.safeString(statuses, status, status);
     }
@@ -1034,7 +1040,7 @@ class bitfinex2 extends bitfinex2$1 {
         const trimmedStatus = this.safeString(stateParts, 0);
         const status = this.parseWsOrderStatus(trimmedStatus);
         const price = this.safeString(order, 16);
-        const timestamp = this.safeInteger(order, 4);
+        const timestamp = this.safeInteger2(order, 5, 4);
         const average = this.safeString(order, 17);
         const stopPrice = this.omitZero(this.safeString(order, 18));
         return this.safeOrder({

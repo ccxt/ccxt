@@ -113,9 +113,10 @@ const exec = (bin, ...args) =>
         psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); hasWarnings = true })
 
         psSpawn.on ('exit', code => {
-            // keep this commented code for a while (just in case), as the below avoids vscode false positive: https://github.com/nodejs/node/issues/34799 during debugging
-            // stderr = stderr.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '');
-            // output = output.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '');
+            // keep this commented code for a while (just in case), as the below avoids vscode false positive warnings from output: https://github.com/nodejs/node/issues/34799 during debugging
+            // const removeDebuger = (str) => str.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '').replace(/\(node:\d+\) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
+            // stderr = removeDebuger(stderr);
+            // output = removeDebuger(output);
             // if (stderr === '') { hasWarnings = false; }
 
             output = ansi.strip (output.trim ())
@@ -135,7 +136,18 @@ const exec = (bin, ...args) =>
 
             // detect error
             let hasFailed = false;
-            if (output.indexOf('ERROR:') > -1) {
+            if (
+                // exception caught in "test -> testMethod"
+                output.indexOf('[TEST_FAILURE]') > -1 ||
+                // 1) thrown from JS assert module
+                output.indexOf('AssertionError:') > -1 ||
+                // 2) thrown from PYTHON (i.e. [AssertionError], [KeyError], [ValueError], etc)
+                output.indexOf('Error]') > -1 ||
+                // 3) thrown from PHP assert hook
+                output.indexOf('[ASSERT_ERROR]') > -1 ||
+                // 4) thrown from PHP async library
+                output.indexOf('Fatal error:') > -1
+            ) {
                 hasFailed = true;
             }
 

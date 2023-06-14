@@ -10,7 +10,7 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 
 
-function test_fetch_transaction_fees($exchange = null) {
+function test_fetch_transaction_fees($exchange, $skipped_properties) {
     // const method = 'fetchTransactionFees';
     // const fees = await exchange.fetchTransactionFees ();
     // const withdrawKeys = Object.keys (fees['withdraw']);

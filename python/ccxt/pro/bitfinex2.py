@@ -102,7 +102,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         ohlcv = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message, subscription):
         #
@@ -195,7 +195,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         trades = await self.subscribe('trades', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -214,7 +214,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         trades = await self.subscribe_private(messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     async def watch_ticker(self, symbol: str, params={}):
         """
@@ -618,10 +618,14 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         asks = book['asks']
         # pepperoni pizza from bitfinex
         for i in range(0, depth):
-            stringArray.append(self.number_to_string(bids[i][0]))
-            stringArray.append(self.number_to_string(bids[i][1]))
-            stringArray.append(self.number_to_string(asks[i][0]))
-            stringArray.append(self.number_to_string(-asks[i][1]))
+            bid = self.safe_value(bids, i)
+            ask = self.safe_value(asks, i)
+            if bid is not None:
+                stringArray.append(self.number_to_string(bids[i][0]))
+                stringArray.append(self.number_to_string(bids[i][1]))
+            if ask is not None:
+                stringArray.append(self.number_to_string(asks[i][0]))
+                stringArray.append(self.number_to_string(-asks[i][1]))
         payload = ':'.join(stringArray)
         localChecksum = self.crc32(payload, True)
         responseChecksum = self.safe_integer(message, 2)
@@ -908,7 +912,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
             'EXECUTED': 'closed',
-            'PARTIALLY FILLED': 'open',
+            'PARTIALLY': 'open',
         }
         return self.safe_string(statuses, status, status)
 
@@ -970,7 +974,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         trimmedStatus = self.safe_string(stateParts, 0)
         status = self.parse_ws_order_status(trimmedStatus)
         price = self.safe_string(order, 16)
-        timestamp = self.safe_integer(order, 4)
+        timestamp = self.safe_integer_2(order, 5, 4)
         average = self.safe_string(order, 17)
         stopPrice = self.omit_zero(self.safe_string(order, 18))
         return self.safe_order({

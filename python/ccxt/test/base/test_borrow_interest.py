@@ -16,7 +16,7 @@ sys.path.append(root)
 from ccxt.test.base import test_shared_methods  # noqa E402
 
 
-def test_borrow_interest(exchange, method, entry, requested_code, requested_symbol):
+def test_borrow_interest(exchange, skipped_properties, method, entry, requested_code, requested_symbol):
     format = {
         'info': {},
         'account': 'BTC/USDT',
@@ -27,11 +27,11 @@ def test_borrow_interest(exchange, method, entry, requested_code, requested_symb
         'timestamp': 1638230400000,
         'datetime': '2021-11-30T00:00:00.000Z',
     }
-    empty_not_allowed_for = ['currency', 'interest', 'interestRate', 'amountBorrowed', 'timestamp']
-    test_shared_methods.assert_structure(exchange, method, entry, format, empty_not_allowed_for)
-    test_shared_methods.assert_timestamp(exchange, method, entry)
-    test_shared_methods.assert_currency_code(exchange, method, entry, entry['currency'], requested_code)
-    test_shared_methods.assert_symbol(exchange, method, entry, entry['account'], requested_symbol)
-    test_shared_methods.assert_greater(exchange, method, entry, 'interest', '0')
-    test_shared_methods.assert_greater(exchange, method, entry, 'interestRate', '0')
-    test_shared_methods.assert_greater(exchange, method, entry, 'amountBorrowed', '0')
+    empty_allowed_for = ['account']
+    test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
+    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry)
+    test_shared_methods.assert_currency_code(exchange, skipped_properties, method, entry, entry['currency'], requested_code)
+    test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, entry['account'], requested_symbol)
+    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'interest', '0')
+    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'interestRate', '0')
+    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'amountBorrowed', '0')

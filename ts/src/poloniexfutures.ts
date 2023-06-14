@@ -5,7 +5,7 @@ import Exchange from './abstract/poloniexfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AccountSuspended, OrderNotFound } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ export default class poloniexfutures extends Exchange {
             // 30 requests per second
             'rateLimit': 33.3,
             'certified': false,
-            'pro': false,
+            'pro': true,
             'version': 'v1',
             'has': {
                 'CORS': undefined,
@@ -340,10 +340,34 @@ export default class poloniexfutures extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //    {
+        //        "symbol": "BTCUSDTPERP",                   // Market of the symbol
+        //        "sequence": 45,                            // Sequence number which is used to judge the continuity of the pushed messages
+        //        "side": "sell",                            // Transaction side of the last traded taker order
+        //        "price": 3600.00,                          // Filled price
+        //        "size": 16,                                // Filled quantity
+        //        "tradeId": "5c9dcf4170744d6f5a3d32fb",     // Order ID
+        //        "bestBidSize": 795,                        // Best bid size
+        //        "bestBidPrice": 3200.00,                   // Best bid
+        //        "bestAskPrice": 3600.00,                   // Best ask size
+        //        "bestAskSize": 284,                        // Best ask
+        //        "ts": 1553846081210004941                  // Filled time - nanosecond
+        //    }
+        //
+        //    {
+        //        "volume": 30449670,            //24h Volume
+        //        "turnover": 845169919063,      //24h Turnover
+        //        "lastPrice": 3551,           //Last price
+        //        "priceChgPct": 0.0043,         //24h Change
+        //        "ts": 1547697294838004923      //Snapshot time (nanosecond)
+        //    }
+        //
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeIntegerProduct (ticker, 'ts', 0.000001);
-        const last = this.safeString (ticker, 'price');
+        const last = this.safeString2 (ticker, 'price', 'lastPrice');
+        const percentage = Precise.stringMul (this.safeString (ticker, 'priceChgPct'), '100');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -360,10 +384,10 @@ export default class poloniexfutures extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': undefined,
+            'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'size'),
-            'quoteVolume': undefined,
+            'baseVolume': this.safeString2 (ticker, 'size', 'volume'),
+            'quoteVolume': this.safeString (ticker, 'turnover'),
             'info': ticker,
         }, market);
     }
@@ -778,7 +802,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#createOrder

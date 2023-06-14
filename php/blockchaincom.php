@@ -18,6 +18,7 @@ class blockchaincom extends Exchange {
             'countries' => array( 'LX' ),
             'rateLimit' => 500, // prev 1000
             'version' => 'v3',
+            'pro' => true,
             'has' => array(
                 'CORS' => false,
                 'spot' => true,
@@ -481,7 +482,7 @@ class blockchaincom extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in

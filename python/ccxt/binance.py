@@ -8,6 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import hashlib
 import json
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -53,7 +54,7 @@ class binance(Exchange, ImplicitAPI):
                 'margin': True,
                 'swap': True,
                 'future': True,
-                'option': None,
+                'option': True,
                 'addMargin': True,
                 'borrowMargin': True,
                 'cancelAllOrders': True,
@@ -191,6 +192,7 @@ class binance(Exchange, ImplicitAPI):
                     'public': 'https://api.binance.com/api/v3',
                     'private': 'https://api.binance.com/api/v3',
                     'v1': 'https://api.binance.com/api/v1',
+                    'papi': 'https://papi.binance.com/papi/v1',
                 },
                 'www': 'https://www.binance.com',
                 'referral': {
@@ -288,7 +290,7 @@ class binance(Exchange, ImplicitAPI):
                         'capital/deposit/subHisrec': 0.1,
                         'capital/withdraw/history': 0.1,
                         'capital/contract/convertible-coins': 4.0002,
-                        'convert/tradeFlow': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'convert/tradeFlow': 20.0001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.0001
                         'convert/exchangeInfo': 50,
                         'convert/assetInfo': 10,
                         'convert/orderStatus': 0.6667,
@@ -403,6 +405,7 @@ class binance(Exchange, ImplicitAPI):
                         'portfolio/pmLoan': 3.3335,
                         'portfolio/interest-history': 0.6667,
                         'portfolio/interest-rate': 0.6667,
+                        'portfolio/asset-index-price': 0.1,
                         # staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -421,6 +424,7 @@ class binance(Exchange, ImplicitAPI):
                         # 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
                         'capital/withdraw/apply': 4.0002,  # Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'capital/contract/convertible-coins': 4.0002,
+                        'capital/deposit/credit-apply': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'margin/transfer': 1,  # Weight(IP): 600 => cost = 0.1 * 600 = 60
                         'margin/loan': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay': 20.001,
@@ -501,6 +505,8 @@ class binance(Exchange, ImplicitAPI):
                         'loan/vip/repay': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'convert/getQuote': 20.001,
                         'convert/acceptQuote': 3.3335,
+                        'portfolio/auto-collection': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'portfolio/bnb-transfer': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -579,7 +585,6 @@ class binance(Exchange, ImplicitAPI):
                         'ticker/price': {'cost': 1, 'noSymbol': 2},
                         'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
                         'openInterest': 1,
-                        'pmExchangeInfo': 1,
                     },
                 },
                 'dapiData': {
@@ -660,7 +665,6 @@ class binance(Exchange, ImplicitAPI):
                         'indexInfo': 1,
                         'apiTradingStatus': {'cost': 1, 'noSymbol': 10},
                         'lvtKlines': 1,
-                        'pmExchangeInfo': 1,
                     },
                 },
                 'fapiData': {
@@ -701,6 +705,7 @@ class binance(Exchange, ImplicitAPI):
                         'apiReferral/traderSummary': 1,
                         'adlQuantile': 5,
                         'pmAccountInfo': 5,
+                        'orderAmendment': 1,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -718,6 +723,8 @@ class binance(Exchange, ImplicitAPI):
                     },
                     'put': {
                         'listenKey': 1,
+                        'order': 1,
+                        'batchOrders': 5,
                     },
                     'delete': {
                         'batchOrders': 1,
@@ -830,6 +837,72 @@ class binance(Exchange, ImplicitAPI):
                         'openOrders': 1,  # added on 2020-04-25 for canceling all open orders per symbol
                         'orderList': 1,  # oco
                         'order': 1,
+                    },
+                },
+                'papi': {
+                    'get': {
+                        'um/order': 1,  # 1
+                        'um/openOrder': 1,  # 1
+                        'um/openOrders': 1,  # 1
+                        'um/allOrders': 5,  # 5
+                        'cm/order': 1,  # 1
+                        'cm/openOrder': 1,  # 1
+                        'cm/openOrders': 1,  # 1
+                        'cm/allOrders': 20,  # 20
+                        'balance': 20,  # 20
+                        'account': 20,  # 20
+                        'margin/maxBorrowable': 5,  # 5
+                        'margin/maxWithdraw': 5,  # 5
+                        'um/positionRisk': 5,  # 5
+                        'cm/positionRisk': 1,  # 1
+                        'um/positionSide/dual': 30,  # 30
+                        'cm/positionSide/dual': 30,  # 30
+                        'um/userTrades': 5,  # 5
+                        'cm/userTrades': 20,  # 20
+                        'um/leverageBracket': 1,  # 1
+                        'cm/leverageBracket': 1,  # 1
+                        'margin/forceOrders': 1,  # 1
+                        'um/forceOrders': 20,  # 20
+                        'cm/forceOrders': 20,  # 20
+                        'um/apiTradingStatus': 1,  # 1
+                        'um/commissionRate': 20,  # 20
+                        'cm/commissionRate': 20,  # 20
+                        'um/income': 30,
+                        'cm/income ': 30,
+                        'um/account': 5,
+                        'cm/account': 5,
+                        'margin/marginLoan': 0.0667,  # Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
+                        'margin/repayLoan': 0.0667,  # Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
+                        'margin/marginInterestHistory': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'portfolio/interest-history': 50,  # 50
+                    },
+                    'post': {
+                        'um/order': 1,  # 0
+                        'cm/order': 1,  # 0
+                        'margin/order': 0.0133,  # Weight(UID): 2 => cost = 0.006667 * 2 = 0.013334
+                        'marginLoan': 0.1333,  # Weight(UID): 20 => cost = 0.006667 * 20 = 0.13334
+                        'repayLoan': 0.1333,  # Weight(UID): 20 => cost = 0.006667 * 20 = 0.13334
+                        'margin/order/oco': 0.0400,  # Weight(UID): 6 => cost = 0.006667 * 6 = 0.040002
+                        'um/leverage': 1,  # 1
+                        'cm/leverage': 1,  # 1
+                        'um/positionSide/dual': 1,  # 1
+                        'cm/positionSide/dual': 1,  # 1
+                        'auto-collection': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'bnb-transfer': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'listenKey': 1,  # 1
+                    },
+                    'put': {
+                        'listenKey': 1,  # 1
+                    },
+                    'delete': {
+                        'um/order': 1,  # 1
+                        'um/allOpenOrders': 1,  # 1
+                        'cm/order': 1,  # 1
+                        'cm/allOpenOrders': 1,  # 1
+                        'margin/order': 1,  # Weight(IP): 10 => cost = 0.1 * 10 = 1
+                        'margin/allOpenOrders': 5,  # 5
+                        'margin/orderList': 2,  # 2
+                        'listenKey': 1,  # 1
                     },
                 },
             },
@@ -2647,6 +2720,7 @@ class binance(Exchange, ImplicitAPI):
         #     }
         #
         # coinm
+        #
         #     {
         #         baseVolume: '214549.95171161',
         #         closeTime: '1621965286847',
@@ -2666,7 +2740,32 @@ class binance(Exchange, ImplicitAPI):
         #         volume: '81990451',
         #         weightedAvgPrice: '38215.08713747'
         #     }
+        #
+        # eapi: fetchTicker, fetchTickers
+        #
+        #     {
+        #         "symbol": "ETH-230510-1825-C",
+        #         "priceChange": "-5.1",
+        #         "priceChangePercent": "-0.1854",
+        #         "lastPrice": "22.4",
+        #         "lastQty": "0",
+        #         "open": "27.5",
+        #         "high": "34.1",
+        #         "low": "22.4",
+        #         "volume": "6.83",
+        #         "amount": "201.44",
+        #         "bidPrice": "21.9",
+        #         "askPrice": "22.4",
+        #         "openTime": 1683614771898,
+        #         "closeTime": 1683695017784,
+        #         "firstTradeId": 12,
+        #         "tradeCount": 22,
+        #         "strikePrice": "1825",
+        #         "exercisePrice": "1845.95341176"
+        #     }
+        #
         # spot bidsAsks
+        #
         #     {
         #         "symbol":"ETHBTC",
         #         "bidPrice":"0.07466800",
@@ -2674,7 +2773,9 @@ class binance(Exchange, ImplicitAPI):
         #         "askPrice":"0.07466900",
         #         "askQty":"10.93540000"
         #     }
+        #
         # usdm bidsAsks
+        #
         #     {
         #         "symbol":"BTCUSDT",
         #         "bidPrice":"21321.90",
@@ -2683,7 +2784,9 @@ class binance(Exchange, ImplicitAPI):
         #         "askQty":"1.427",
         #         "time":"1673899207538"
         #     }
+        #
         # coinm bidsAsks
+        #
         #     {
         #         "symbol":"BTCUSD_PERP",
         #         "pair":"BTCUSD",
@@ -2711,19 +2814,19 @@ class binance(Exchange, ImplicitAPI):
             quoteVolume = self.safe_string(ticker, 'volume')
         else:
             baseVolume = self.safe_string(ticker, 'volume')
-            quoteVolume = self.safe_string(ticker, 'quoteVolume')
+            quoteVolume = self.safe_string_2(ticker, 'quoteVolume', 'amount')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(ticker, 'highPrice'),
-            'low': self.safe_string(ticker, 'lowPrice'),
+            'high': self.safe_string_2(ticker, 'highPrice', 'high'),
+            'low': self.safe_string_2(ticker, 'lowPrice', 'low'),
             'bid': self.safe_string(ticker, 'bidPrice'),
             'bidVolume': self.safe_string(ticker, 'bidQty'),
             'ask': self.safe_string(ticker, 'askPrice'),
             'askVolume': self.safe_string(ticker, 'askQty'),
             'vwap': self.safe_string(ticker, 'weightedAvgPrice'),
-            'open': self.safe_string(ticker, 'openPrice'),
+            'open': self.safe_string_2(ticker, 'openPrice', 'open'),
             'close': last,
             'last': last,
             'previousClose': self.safe_string(ticker, 'prevClosePrice'),  # previous day close
@@ -2764,6 +2867,7 @@ class binance(Exchange, ImplicitAPI):
         see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         # spot
         see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      # swap
         see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     # future
+        see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     # option
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -2774,7 +2878,9 @@ class binance(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         method = 'publicGetTicker24hr'
-        if market['linear']:
+        if market['option']:
+            method = 'eapiPublicGetTicker'
+        elif market['linear']:
             method = 'fapiPublicGetTicker24hr'
         elif market['inverse']:
             method = 'dapiPublicGetTicker24hr'
@@ -2825,10 +2931,14 @@ class binance(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         market = self.get_market_from_symbols(symbols)
-        marketType, query = self.handle_market_type_and_params('fetchLastPrices', market, params)
+        type = None
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchLastPrices', market, params)
+        type, params = self.handle_market_type_and_params('fetchLastPrices', market, params)
         method = None
-        if marketType == 'future':
+        if self.is_linear(type, subType):
             method = 'fapiPublicGetTickerPrice'
             #
             #     [
@@ -2840,7 +2950,7 @@ class binance(Exchange, ImplicitAPI):
             #         ...
             #     ]
             #
-        elif marketType == 'delivery':
+        elif self.is_inverse(type, subType):
             method = 'dapiPublicGetTickerPrice'
             #
             #     [
@@ -2852,7 +2962,7 @@ class binance(Exchange, ImplicitAPI):
             #         }
             #     ]
             #
-        elif marketType == 'spot':
+        elif type == 'spot':
             method = 'publicGetTickerPrice'
             #
             #     [
@@ -2864,8 +2974,8 @@ class binance(Exchange, ImplicitAPI):
             #     ]
             #
         else:
-            raise NotSupported(self.id + ' fetchLastPrices() does not support ' + marketType + ' markets yet')
-        response = getattr(self, method)(query)
+            raise NotSupported(self.id + ' fetchLastPrices() does not support ' + type + ' markets yet')
+        response = getattr(self, method)(params)
         return self.parse_last_prices(response, symbols)
 
     def parse_last_price(self, info, market=None):
@@ -2895,10 +3005,10 @@ class binance(Exchange, ImplicitAPI):
         #         "time": 1591257246176
         #     }
         #
-        marketId = self.safe_string(info, 'symbol')
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        market = self.safe_market(marketId, market, None, defaultType)
         timestamp = self.safe_integer(info, 'time')
+        type = 'spot' if (timestamp is None) else 'swap'
+        marketId = self.safe_string(info, 'symbol')
+        market = self.safe_market(marketId, market, None, type)
         price = self.safe_number(info, 'price')
         return {
             'symbol': market['symbol'],
@@ -2906,8 +3016,6 @@ class binance(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'price': price,
             'side': None,
-            'baseVolume': None,
-            'quoteVolume': None,
             'info': info,
         }
 
@@ -2917,18 +3025,25 @@ class binance(Exchange, ImplicitAPI):
         see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         # spot
         see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      # swap
         see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     # future
+        see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     # option
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
+        type = None
+        market = None
+        if symbols is not None:
+            first = self.safe_string(symbols, 0)
+            market = self.market(first)
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('fetchTickers', None, params)
+        subType, params = self.handle_sub_type_and_params('fetchTickers', market, params)
         query = self.omit(params, 'type')
         defaultMethod = None
-        if self.is_linear(type, subType):
+        if type == 'option':
+            defaultMethod = 'eapiPublicGetTicker'
+        elif self.is_linear(type, subType):
             defaultMethod = 'fapiPublicGetTicker24hr'
         elif self.is_inverse(type, subType):
             defaultMethod = 'dapiPublicGetTicker24hr'
@@ -3397,7 +3512,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    def edit_spot_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         """
         edit a trade order
         see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
@@ -3413,98 +3528,112 @@ class binance(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
-            raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
+            raise NotSupported(self.id + ' editSpotOrder() does not support ' + market['type'] + ' orders')
         request = {
             'symbol': market['id'],
             'side': side.upper(),
-            'cancelReplaceMode': 'STOP_ON_FAILURE',
-            # STOP_ON_FAILURE - If the cancel request fails, the new order placement will not be attempted.
-            # ALLOW_FAILURE - new order placement will be attempted even if cancel request fails.
         }
-        cancelId = self.safe_string_2(params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId')
-        if cancelId is None:
-            request['cancelOrderId'] = id  # user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
-        clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
-        initialUppercaseType = type.upper()
-        uppercaseType = initialUppercaseType
-        postOnly = self.is_post_only(initialUppercaseType == 'MARKET', initialUppercaseType == 'LIMIT_MAKER', params)
-        if postOnly:
-            uppercaseType = 'LIMIT_MAKER'
-        request['type'] = uppercaseType
-        stopPrice = self.safe_number(params, 'stopPrice')
-        if stopPrice is not None:
-            if uppercaseType == 'MARKET':
-                uppercaseType = 'STOP_LOSS'
-            elif uppercaseType == 'LIMIT':
-                uppercaseType = 'STOP_LOSS_LIMIT'
-        validOrderTypes = self.safe_value(market['info'], 'orderTypes')
-        if not self.in_array(uppercaseType, validOrderTypes):
-            if initialUppercaseType != uppercaseType:
-                raise InvalidOrder(self.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
+        clientOrderId = self.safe_string_n(params, ['newClientOrderId', 'clientOrderId', 'origClientOrderId'])
+        response = None
+        if market['spot']:
+            initialUppercaseType = type.upper()
+            uppercaseType = initialUppercaseType
+            postOnly = self.is_post_only(initialUppercaseType == 'MARKET', initialUppercaseType == 'LIMIT_MAKER', params)
+            if postOnly:
+                uppercaseType = 'LIMIT_MAKER'
+            request['type'] = uppercaseType
+            stopPrice = self.safe_number(params, 'stopPrice')
+            if stopPrice is not None:
+                if uppercaseType == 'MARKET':
+                    uppercaseType = 'STOP_LOSS'
+                elif uppercaseType == 'LIMIT':
+                    uppercaseType = 'STOP_LOSS_LIMIT'
+            validOrderTypes = self.safe_value(market['info'], 'orderTypes')
+            if not self.in_array(uppercaseType, validOrderTypes):
+                if initialUppercaseType != uppercaseType:
+                    raise InvalidOrder(self.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
+                else:
+                    raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
+            if clientOrderId is None:
+                broker = self.safe_value(self.options, 'broker')
+                if broker is not None:
+                    brokerId = self.safe_string(broker, 'spot')
+                    if brokerId is not None:
+                        request['newClientOrderId'] = brokerId + self.uuid22()
             else:
-                raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
-        if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker')
-            if broker is not None:
-                brokerId = self.safe_string(broker, 'spot')
-                if brokerId is not None:
-                    request['newClientOrderId'] = brokerId + self.uuid22()
-        else:
-            request['newClientOrderId'] = clientOrderId
-        request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        timeInForceIsRequired = False
-        priceIsRequired = False
-        stopPriceIsRequired = False
-        quantityIsRequired = False
-        if uppercaseType == 'MARKET':
-            quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', True)
-            if quoteOrderQty:
-                quoteOrderQtyNew = self.safe_value_2(params, 'quoteOrderQty', 'cost')
-                precision = market['precision']['price']
-                if quoteOrderQtyNew is not None:
-                    request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQtyNew, TRUNCATE, precision, self.precisionMode)
-                elif price is not None:
-                    amountString = self.number_to_string(amount)
-                    priceString = self.number_to_string(price)
-                    quoteOrderQuantity = Precise.string_mul(amountString, priceString)
-                    request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQuantity, TRUNCATE, precision, self.precisionMode)
+                request['newClientOrderId'] = clientOrderId
+            request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+            timeInForceIsRequired = False
+            priceIsRequired = False
+            stopPriceIsRequired = False
+            quantityIsRequired = False
+            if uppercaseType == 'MARKET':
+                quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', True)
+                if quoteOrderQty:
+                    quoteOrderQtyNew = self.safe_value_2(params, 'quoteOrderQty', 'cost')
+                    precision = market['precision']['price']
+                    if quoteOrderQtyNew is not None:
+                        request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQtyNew, TRUNCATE, precision, self.precisionMode)
+                    elif price is not None:
+                        amountString = self.number_to_string(amount)
+                        priceString = self.number_to_string(price)
+                        quoteOrderQuantity = Precise.string_mul(amountString, priceString)
+                        request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQuantity, TRUNCATE, precision, self.precisionMode)
+                    else:
+                        quantityIsRequired = True
                 else:
                     quantityIsRequired = True
-            else:
+            elif uppercaseType == 'LIMIT':
+                priceIsRequired = True
+                timeInForceIsRequired = True
                 quantityIsRequired = True
-        elif uppercaseType == 'LIMIT':
-            priceIsRequired = True
-            timeInForceIsRequired = True
-            quantityIsRequired = True
-        elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
-            stopPriceIsRequired = True
-            quantityIsRequired = True
-        elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
-            quantityIsRequired = True
-            stopPriceIsRequired = True
-            priceIsRequired = True
-            timeInForceIsRequired = True
-        elif uppercaseType == 'LIMIT_MAKER':
-            priceIsRequired = True
-            quantityIsRequired = True
-        if quantityIsRequired:
+            elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
+                stopPriceIsRequired = True
+                quantityIsRequired = True
+            elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
+                quantityIsRequired = True
+                stopPriceIsRequired = True
+                priceIsRequired = True
+                timeInForceIsRequired = True
+            elif uppercaseType == 'LIMIT_MAKER':
+                priceIsRequired = True
+                quantityIsRequired = True
+            if quantityIsRequired:
+                request['quantity'] = self.amount_to_precision(symbol, amount)
+            if priceIsRequired:
+                if price is None:
+                    raise InvalidOrder(self.id + ' editOrder() requires a price argument for a ' + type + ' order')
+                request['price'] = self.price_to_precision(symbol, price)
+            if timeInForceIsRequired:
+                request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+            if stopPriceIsRequired:
+                if stopPrice is None:
+                    raise InvalidOrder(self.id + ' editOrder() requires a stopPrice extra param for a ' + type + ' order')
+                else:
+                    request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['cancelReplaceMode'] = 'STOP_ON_FAILURE'  # If the cancel request fails, the new order placement will not be attempted.
+            cancelId = self.safe_string_2(params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId')
+            if cancelId is None:
+                request['cancelOrderId'] = id  # user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
+            # remove timeInForce from params because PO is only used by self.is_post_onlyand it's not a valid value for Binance
+            if self.safe_string(params, 'timeInForce') == 'PO':
+                params = self.omit(params, ['timeInForce'])
+            params = self.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly'])
+            response = self.privatePostOrderCancelReplace(self.extend(request, params))
+        else:
+            request['orderId'] = id
             request['quantity'] = self.amount_to_precision(symbol, amount)
-        if priceIsRequired:
-            if price is None:
-                raise InvalidOrder(self.id + ' editOrder() requires a price argument for a ' + type + ' order')
-            request['price'] = self.price_to_precision(symbol, price)
-        if timeInForceIsRequired:
-            request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-        if stopPriceIsRequired:
-            if stopPrice is None:
-                raise InvalidOrder(self.id + ' editOrder() requires a stopPrice extra param for a ' + type + ' order')
-            else:
-                request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-        # remove timeInForce from params because PO is only used by self.is_post_onlyand it's not a valid value for Binance
-        if self.safe_string(params, 'timeInForce') == 'PO':
-            params = self.omit(params, ['timeInForce'])
-        requestParams = self.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly'])
-        response = self.privatePostOrderCancelReplace(self.extend(request, requestParams))
+            if price is not None:
+                request['price'] = self.price_to_precision(symbol, price)
+            if clientOrderId is not None:
+                request['origClientOrderId'] = clientOrderId
+            params = self.omit(params, ['clientOrderId', 'newClientOrderId'])
+            if market['linear']:
+                response = self.fapiPrivatePutOrder(self.extend(request, params))
+            elif market['inverse']:
+                response = self.dapiPrivatePutOrder(self.extend(request, params))
+        #
+        # spot
         #
         #     {
         #         "cancelResult": "SUCCESS",
@@ -3544,6 +3673,94 @@ class binance(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'newOrderResponse')
         return self.parse_order(data, market)
+
+    def edit_contract_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+        """
+        edit a trade order
+        see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
+        see https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
+        :param str id: cancel order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise NotSupported(self.id + ' editContractOrder() does not support ' + market['type'] + ' orders')
+        request = {
+            'symbol': market['id'],
+            'side': side.upper(),
+        }
+        clientOrderId = self.safe_string_n(params, ['newClientOrderId', 'clientOrderId', 'origClientOrderId'])
+        request['orderId'] = id
+        request['quantity'] = self.amount_to_precision(symbol, amount)
+        if price is not None:
+            request['price'] = self.price_to_precision(symbol, price)
+        if clientOrderId is not None:
+            request['origClientOrderId'] = clientOrderId
+        params = self.omit(params, ['clientOrderId', 'newClientOrderId'])
+        response = None
+        if market['linear']:
+            response = self.fapiPrivatePutOrder(self.extend(request, params))
+        elif market['inverse']:
+            response = self.dapiPrivatePutOrder(self.extend(request, params))
+        #
+        # swap and future
+        #
+        #     {
+        #         "orderId": 151007482392,
+        #         "symbol": "BTCUSDT",
+        #         "status": "NEW",
+        #         "clientOrderId": "web_pCCGp9AIHjziKLlpGpXI",
+        #         "price": "25000",
+        #         "avgPrice": "0.00000",
+        #         "origQty": "0.001",
+        #         "executedQty": "0",
+        #         "cumQty": "0",
+        #         "cumQuote": "0",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "reduceOnly": False,
+        #         "closePosition": False,
+        #         "side": "BUY",
+        #         "positionSide": "BOTH",
+        #         "stopPrice": "0",
+        #         "workingType": "CONTRACT_PRICE",
+        #         "priceProtect": False,
+        #         "origType": "LIMIT",
+        #         "updateTime": 1684300587845
+        #     }
+        #
+        return self.parse_order(response, market)
+
+    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        """
+        edit a trade order
+        see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
+        see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
+        see https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
+        :param str id: cancel order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if market['option']:
+            raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders')
+        if market['spot']:
+            return self.edit_spot_order(id, symbol, type, side, amount, price, params)
+        else:
+            return self.edit_contract_order(id, symbol, type, side, amount, price, params)
 
     def parse_order_status(self, status):
         statuses = {
@@ -3600,6 +3817,32 @@ class binance(Exchange, ImplicitAPI):
         #         "type": "LIMIT",
         #         "side": "BUY",
         #         "fills": []
+        #     }
+        #
+        # swap and future: editOrder
+        #
+        #     {
+        #         "orderId": 151007482392,
+        #         "symbol": "BTCUSDT",
+        #         "status": "NEW",
+        #         "clientOrderId": "web_pCCGp9AIHjziKLlpGpXI",
+        #         "price": "25000",
+        #         "avgPrice": "0.00000",
+        #         "origQty": "0.001",
+        #         "executedQty": "0",
+        #         "cumQty": "0",
+        #         "cumQuote": "0",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "reduceOnly": False,
+        #         "closePosition": False,
+        #         "side": "BUY",
+        #         "positionSide": "BOTH",
+        #         "stopPrice": "0",
+        #         "workingType": "CONTRACT_PRICE",
+        #         "priceProtect": False,
+        #         "origType": "LIMIT",
+        #         "updateTime": 1684300587845
         #     }
         #
         # futures
@@ -3707,25 +3950,16 @@ class binance(Exchange, ImplicitAPI):
         marketType = 'contract' if ('closePosition' in order) else 'spot'
         symbol = self.safe_symbol(marketId, market, None, marketType)
         filled = self.safe_string(order, 'executedQty', '0')
-        timestamp = None
+        timestamp = self.safe_integer_n(order, ['time', 'createTime', 'workingTime', 'transactTime', 'updateTime'])  # order of the keys matters here
         lastTradeTimestamp = None
-        if 'time' in order:
-            timestamp = self.safe_integer(order, 'time')
-        elif 'workingTime' in order:
-            lastTradeTimestamp = self.safe_integer(order, 'transactTime')
-            timestamp = self.safe_integer(order, 'workingTime')
-        elif 'transactTime' in order:
-            lastTradeTimestamp = self.safe_integer(order, 'transactTime')
-            timestamp = self.safe_integer(order, 'transactTime')
-        elif 'createTime' in order:
-            lastTradeTimestamp = self.safe_integer(order, 'updateTime')
-            timestamp = self.safe_integer(order, 'createTime')
-        elif 'updateTime' in order:
+        if ('transactTime' in order) or ('updateTime' in order):
+            timestampValue = self.safe_integer_2(order, 'updateTime', 'transactTime')
             if status == 'open':
                 if Precise.string_gt(filled, '0'):
-                    lastTradeTimestamp = self.safe_integer(order, 'updateTime')
-                else:
-                    timestamp = self.safe_integer(order, 'updateTime')
+                    lastTradeTimestamp = timestampValue
+            elif status == 'closed':
+                lastTradeTimestamp = timestampValue
+        lastUpdateTimestamp = self.safe_integer_2(order, 'transactTime', 'updateTime')
         average = self.safe_string(order, 'avgPrice')
         price = self.safe_string(order, 'price')
         amount = self.safe_string_2(order, 'origQty', 'quantity')
@@ -3755,6 +3989,7 @@ class binance(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
@@ -3777,11 +4012,16 @@ class binance(Exchange, ImplicitAPI):
             'trades': fills,
         }, market)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        see https://binance-docs.github.io/apidocs/spot/en/#new-order-trade
+        see https://binance-docs.github.io/apidocs/spot/en/#test-new-order-trade
+        see https://binance-docs.github.io/apidocs/futures/en/#new-order-trade
+        see https://binance-docs.github.io/apidocs/delivery/en/#new-order-trade
+        see https://binance-docs.github.io/apidocs/voptions/en/#new-order-trade
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -3800,7 +4040,8 @@ class binance(Exchange, ImplicitAPI):
         triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)  # fallback to stopLoss
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-        isStopLoss = stopLossPrice is not None
+        trailingDelta = self.safe_value(params, 'trailingDelta')
+        isStopLoss = stopLossPrice is not None or trailingDelta is not None
         isTakeProfit = takeProfitPrice is not None
         params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice'])
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
@@ -3961,7 +4202,6 @@ class binance(Exchange, ImplicitAPI):
                     raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
             else:
                 # check for delta price
-                trailingDelta = self.safe_value(params, 'trailingDelta')
                 if trailingDelta is None and stopPrice is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a stopPrice or trailingDelta param for a ' + type + ' order')
             if stopPrice is not None:
@@ -7180,7 +7420,7 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' add / reduce margin only supported with type future or delivery')
         self.load_markets()
         market = self.market(symbol)
-        amount = self.amount_to_precision(symbol, amount)
+        amount = self.cost_to_precision(symbol, amount)
         request = {
             'type': addOrReduce,
             'symbol': market['id'],
@@ -7224,6 +7464,8 @@ class binance(Exchange, ImplicitAPI):
 
     def reduce_margin(self, symbol: str, amount, params={}):
         """
+        see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
+        see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
         remove margin from a position
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
@@ -7234,6 +7476,8 @@ class binance(Exchange, ImplicitAPI):
 
     def add_margin(self, symbol: str, amount, params={}):
         """
+        see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
+        see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
         add margin
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add

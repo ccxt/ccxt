@@ -23,7 +23,6 @@ const {
     , Throttler
     , capitalize
     , now
-    , buildOHLCVC
     , decimalToPrecision
     , safeValue
     , safeValue2
@@ -107,6 +106,7 @@ const {
     , DECIMAL_PLACES
     , NO_PADDING
     , TICK_SIZE
+    , SIGNIFICANT_DIGITS
 } = functions
 
 // import exceptions from "./errors.js"
@@ -124,7 +124,8 @@ const {
     , NetworkError
     , ExchangeNotAvailable
     , ArgumentsRequired
-    , RateLimitExceeded } from "./errors.js"
+    , RateLimitExceeded, 
+    BadRequest} from "./errors.js"
 
 import { Precise } from './Precise.js'
 
@@ -322,7 +323,6 @@ export default class Exchange {
     precisionFromString = precisionFromString
     capitalize = capitalize
     now = now
-    buildOHLCVC = buildOHLCVC
     decimalToPrecision = decimalToPrecision
     safeValue = safeValue
     safeValue2 = safeValue2
@@ -468,7 +468,7 @@ export default class Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
-                'fetchOHLCV': 'emulated',
+                'fetchOHLCV': undefined,
                 'fetchOpenInterest': undefined,
                 'fetchOpenInterestHistory': undefined,
                 'fetchOpenOrder': undefined,
@@ -1183,6 +1183,12 @@ export default class Exchange {
             return client.futures[messageHash];
         }
         const future = client.future (messageHash);
+        // read and write subscription, this is done before connecting the client
+        // to avoid race conditions when other parts of the code read or write to the client.subscriptions
+        const clientSubscription = client.subscriptions[subscribeHash];
+        if (!clientSubscription) {
+            client.subscriptions[subscribeHash] = subscription || true;
+        }
         // we intentionally do not use await here to avoid unhandled exceptions
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
@@ -1191,28 +1197,28 @@ export default class Exchange {
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
         // (connection established successfully)
-        connected.then (() => {
-            if (!client.subscriptions[subscribeHash]) {
-                if (subscribeHash !== undefined) {
-                    client.subscriptions[subscribeHash] = subscription || true;
-                }
-                const options = this.safeValue (this.options, 'ws');
-                const cost = this.safeValue (options, 'cost', 1);
-                if (message) {
-                    if (this.enableRateLimit && client.throttle) {
-                        // add cost here |
-                        //               |
-                        //               V
-                        client.throttle (cost).then (() => {
-                            client.send (message);
-                        }).catch ((e) => { throw e });
-                    } else {
-                        client.send (message)
-                        .catch ((e) => { throw e });;
+        if (!clientSubscription) {
+            connected.then (() => {
+                    const options = this.safeValue (this.options, 'ws');
+                    const cost = this.safeValue (options, 'cost', 1);
+                    if (message) {
+                        if (this.enableRateLimit && client.throttle) {
+                            // add cost here |
+                            //               |
+                            //               V
+                            client.throttle (cost).then (() => {
+                                client.send (message);
+                            }).catch ((e) => { throw e });
+                        } else {
+                            client.send (message)
+                            .catch ((e) => { throw e });;
+                        }
                     }
-                }
-            }
-        })
+                }).catch ((e)=> {
+                    delete (client.subscriptions[subscribeHash])
+                    throw e
+            });
+        }
         return future;
     }
 
@@ -1351,6 +1357,18 @@ export default class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    findMessageHashes (client, element: string): string[] {
+        const result = [];
+        const messageHashes = Object.keys (client.futures);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            if (messageHash.indexOf (element) >= 0) {
+                result.push (messageHash);
+            }
+        }
+        return result;
+    }
+
     filterByLimit (array: object[], limit: Int = undefined, key: IndexType = 'timestamp'): any {
         if (this.valueIsDefined (limit)) {
             const arrayLength = array.length;
@@ -1360,7 +1378,7 @@ export default class Exchange {
                     const first = array[0][key];
                     const last = array[arrayLength - 1][key];
                     if (first !== undefined && last !== undefined) {
-                        ascending = first < last;  // true if array is sorted in ascending order based on 'timestamp'
+                        ascending = first <= last;  // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
                 array = ascending ? this.arraySlice (array, -limit) : this.arraySlice (array, 0, limit);
@@ -1369,29 +1387,33 @@ export default class Exchange {
         return array;
     }
 
-    filterBySinceLimit (array: object[], since: Int = undefined, limit: Int = undefined, key: IndexType = 'timestamp'): any {
+    filterBySinceLimit (array: object[], since: Int = undefined, limit: Int = undefined, key: IndexType = 'timestamp', tail = false): any {
         const sinceIsDefined = this.valueIsDefined (since);
         const parsedArray = this.toArray (array) as any;
+        let result = parsedArray;
         if (sinceIsDefined) {
-            const result = [ ];
+            result = [ ];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
                 if (entry[key] >= since) {
                     result.push (entry);
                 }
             }
-            return this.filterByLimit (result, limit, key);
         }
-        return this.filterByLimit (parsedArray, limit, key);
+        if (tail) {
+            return result.slice (-limit);
+        }
+        return this.filterByLimit (result, limit, key);
     }
 
-    filterByValueSinceLimit (array: object[], field: IndexType, value = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp'): any {
+    filterByValueSinceLimit (array: object[], field: IndexType, value = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any {
         const valueIsDefined = this.valueIsDefined (value);
         const sinceIsDefined = this.valueIsDefined (since);
         const parsedArray = this.toArray (array) as any;
+        let result = parsedArray;
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined) {
-            const result = [ ];
+            result = [ ];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
                 const entryFiledEqualValue = entry[field] === value;
@@ -1402,9 +1424,11 @@ export default class Exchange {
                     result.push (entry);
                 }
             }
-            return this.filterByLimit (result, limit, key);
         }
-        return this.filterByLimit (parsedArray, limit, key);
+        if (tail) {
+            return result.slice (-limit);
+        }
+        return this.filterByLimit (result, limit, key);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
@@ -1584,6 +1608,34 @@ export default class Exchange {
         };
     }
 
+    safeCurrencyStructure (currency: object) {
+        return this.extend ({
+            'info': undefined,
+            'id': undefined,
+            'numericId': undefined,
+            'code': undefined,
+            'precision': undefined,
+            'type': undefined,
+            'name': undefined,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'fees': {},
+            'networks': {},
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+        }, currency);
+    }
+
     setMarkets (markets, currencies = undefined) {
         const values = [];
         this.markets_by_id = {};
@@ -1609,6 +1661,7 @@ export default class Exchange {
         this.symbols = Object.keys (marketsSortedBySymbol);
         this.ids = Object.keys (marketsSortedById);
         if (currencies !== undefined) {
+            // currencies is always undefined when called in constructor but not when called from loadMarkets
             this.currencies = this.deepExtend (this.currencies, currencies);
         } else {
             let baseCurrencies = [];
@@ -1618,23 +1671,21 @@ export default class Exchange {
                 const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('1e-8');
                 const marketPrecision = this.safeValue (market, 'precision', {});
                 if ('base' in market) {
-                    const currencyPrecision = this.safeValue2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision);
-                    const currency = {
+                    const currency = this.safeCurrencyStructure ({
                         'id': this.safeString2 (market, 'baseId', 'base'),
                         'numericId': this.safeInteger (market, 'baseNumericId'),
                         'code': this.safeString (market, 'base'),
-                        'precision': currencyPrecision,
-                    };
+                        'precision': this.safeValue2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision),
+                    });
                     baseCurrencies.push (currency);
                 }
                 if ('quote' in market) {
-                    const currencyPrecision = this.safeValue2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision);
-                    const currency = {
+                    const currency = this.safeCurrencyStructure ({
                         'id': this.safeString2 (market, 'quoteId', 'quote'),
                         'numericId': this.safeInteger (market, 'quoteNumericId'),
                         'code': this.safeString (market, 'quote'),
-                        'precision': currencyPrecision,
-                    };
+                        'precision': this.safeValue2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
+                    });
                     quoteCurrencies.push (currency);
                 }
             }
@@ -1710,7 +1761,7 @@ export default class Exchange {
         return balance as any;
     }
 
-    safeOrder (order: object, market: object = undefined) {
+    safeOrder (order: object, market: object = undefined): Order {
         // parses numbers as strings
         // * it is important pass the trades as unparsed rawTrades
         let amount = this.omitZero (this.safeString (order, 'amount'));
@@ -2236,23 +2287,11 @@ export default class Exchange {
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        if (!this.has['fetchTrades']) {
-            throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet');
+        let message = '';
+        if (this.has['fetchTrades']) {
+            message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
         }
-        const trades = await this.fetchTrades (symbol, since, limit, params);
-        const ohlcvc = this.buildOHLCVC (trades, timeframe, since, limit);
-        const result = [];
-        for (let i = 0; i < ohlcvc.length; i++) {
-            result.push ([
-                this.safeInteger (ohlcvc[i], 0),
-                this.safeNumber (ohlcvc[i], 1),
-                this.safeNumber (ohlcvc[i], 2),
-                this.safeNumber (ohlcvc[i], 3),
-                this.safeNumber (ohlcvc[i], 4),
-                this.safeNumber (ohlcvc[i], 5),
-            ]);
-        }
-        return result;
+        throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet' + message);
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -2311,13 +2350,18 @@ export default class Exchange {
         return result;
     }
 
-    marketSymbols (symbols) {
+    marketSymbols (symbols, type: string = undefined) {
         if (symbols === undefined) {
             return symbols;
         }
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
-            result.push (this.symbol (symbols[i]));
+            const market = this.market (symbols[i]);
+            if (type !== undefined && market['type'] !== type) {
+                throw new BadRequest (this.id + ' symbols must be of same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
+            }
+            const symbol = this.safeString (market, 'symbol', symbols[i]);
+            result.push (symbol);
         }
         return result;
     }
@@ -2481,26 +2525,6 @@ export default class Exchange {
             }
         }
         return networkCode;
-    }
-
-    networkCodesToIds (networkCodes = undefined) {
-        /**
-         * @ignore
-         * @method
-         * @name exchange#networkCodesToIds
-         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
-         * @param {[string]|undefined} networkCodes unified network codes
-         * @returns {[string|undefined]} exchange-specific network ids
-         */
-        if (networkCodes === undefined) {
-            return undefined;
-        }
-        const ids = [];
-        for (let i = 0; i < networkCodes.length; i++) {
-            const networkCode = networkCodes[i];
-            ids.push (this.networkCodeToId (networkCode));
-        }
-        return ids;
     }
 
     handleNetworkCodeAndParams (params) {
@@ -2786,13 +2810,53 @@ export default class Exchange {
         return this.accounts;
     }
 
-    async fetchOHLCVC (symbol, timeframe = '1m', since: any = undefined, limit: Int = undefined, params = {}): Promise<OHLCVC[]> {
-        if (!this.has['fetchTrades']) {
-            throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet');
+    buildOHLCVC (trades: Trade[], timeframe: string = '1m', since: number = 0, limit: number = 2147483647): OHLCVC[] {
+        // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
+        // note, default limit value (2147483647) is max int32 value
+        const ms = this.parseTimeframe (timeframe) * 1000;
+        const ohlcvs = [];
+        const i_timestamp = 0;
+        // const open = 1;
+        const i_high = 2;
+        const i_low = 3;
+        const i_close = 4;
+        const i_volume = 5;
+        const i_count = 6;
+        const tradesLength = trades.length;
+        const oldest = Math.min (tradesLength, limit);
+        for (let i = 0; i < oldest; i++) {
+            const trade = trades[i];
+            const ts = trade['timestamp'];
+            if (ts < since) {
+                continue;
+            }
+            const openingTime = Math.floor (ts / ms) * ms; // shift to the edge of m/h/d (but not M)
+            if (openingTime < since) { // we don't need bars, that have opening time earlier than requested
+                continue;
+            }
+            const ohlcv_length = ohlcvs.length;
+            const candle = ohlcv_length - 1;
+            if ((candle === -1) || (openingTime >= this.sum (ohlcvs[candle][i_timestamp], ms))) {
+                // moved to a new timeframe -> create a new candle from opening trade
+                ohlcvs.push ([
+                    openingTime, // timestamp
+                    trade['price'], // O
+                    trade['price'], // H
+                    trade['price'], // L
+                    trade['price'], // C
+                    trade['amount'], // V
+                    1, // count
+                ]);
+            } else {
+                // still processing the same timeframe -> update opening trade
+                ohlcvs[candle][i_high] = Math.max (ohlcvs[candle][i_high], trade['price']);
+                ohlcvs[candle][i_low] = Math.min (ohlcvs[candle][i_low], trade['price']);
+                ohlcvs[candle][i_close] = trade['price'];
+                ohlcvs[candle][i_volume] = this.sum (ohlcvs[candle][i_volume], trade['amount']);
+                ohlcvs[candle][i_count] = this.sum (ohlcvs[candle][i_count], 1);
+            }
         }
-        await this.loadMarkets ();
-        const trades = await this.fetchTrades (symbol, since, limit, params);
-        return this.buildOHLCVC (trades, timeframe, since, limit);
+        return ohlcvs;
     }
 
     parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined) {
@@ -2812,7 +2876,7 @@ export default class Exchange {
         return await this.editOrder (id, symbol, 'limit', side, amount, price, params);
     }
 
-    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}): Promise<Order> {
         await this.cancelOrder (id, symbol);
         return await this.createOrder (symbol, type, side, amount, price, params);
     }
@@ -2969,6 +3033,10 @@ export default class Exchange {
 
     async fetchBalance (params = {}): Promise<Balances> {
         throw new NotSupported (this.id + ' fetchBalance() is not supported yet');
+    }
+
+    parseBalance (response): Balances {
+        throw new NotSupported (this.id + ' parseBalance() is not supported yet');
     }
 
     async watchBalance (params = {}): Promise<Balances> {
@@ -3436,6 +3504,18 @@ export default class Exchange {
         }
     }
 
+    isTickPrecision () {
+        return this.precisionMode === TICK_SIZE;
+    }
+
+    isDecimalPrecision () {
+        return this.precisionMode === DECIMAL_PLACES;
+    }
+
+    isSignificantPrecision () {
+        return this.precisionMode === SIGNIFICANT_DIGITS;
+    }
+
     safeNumber (obj: object, key: IndexType, defaultNumber: number = undefined): number {
         const value = this.safeString (obj, key);
         return this.parseNumber (value, defaultNumber);
@@ -3539,12 +3619,12 @@ export default class Exchange {
         return currency['code'];
     }
 
-    filterBySymbolSinceLimit (array, symbol: string = undefined, since: Int = undefined, limit: Int = undefined) {
-        return this.filterByValueSinceLimit (array, 'symbol', symbol, since, limit, 'timestamp');
+    filterBySymbolSinceLimit (array, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+        return this.filterByValueSinceLimit (array, 'symbol', symbol, since, limit, 'timestamp', tail);
     }
 
-    filterByCurrencySinceLimit (array, code = undefined, since: Int = undefined, limit: Int = undefined) {
-        return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp');
+    filterByCurrencySinceLimit (array, code = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+        return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp', tail);
     }
 
     parseLastPrices (pricesData, symbols: string[] = undefined, params = {}) {
@@ -3783,6 +3863,7 @@ export default class Exchange {
         if (this.has['fetchFundingRates']) {
             await this.loadMarkets ();
             const market = this.market (symbol);
+            symbol = market['symbol'];
             if (!market['contract']) {
                 throw new BadSymbol (this.id + ' fetchFundingRate() supports contract markets only');
             }

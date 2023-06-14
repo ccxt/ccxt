@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '3.0.92';
+const version = '3.1.39';
 
 (Exchange as any).ccxtVersion = version
 
@@ -141,7 +141,6 @@ import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
 import poloniexfutures from  './src/poloniexfutures.js'
 import probit from  './src/probit.js'
-import stex from  './src/stex.js'
 import tidex from  './src/tidex.js'
 import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
@@ -171,10 +170,12 @@ import bitgetPro from  './src/pro/bitget.js'
 import bitmartPro from  './src/pro/bitmart.js'
 import bitmexPro from  './src/pro/bitmex.js'
 import bitoproPro from  './src/pro/bitopro.js'
+import bitpandaPro from  './src/pro/bitpanda.js'
 import bitruePro from  './src/pro/bitrue.js'
 import bitstampPro from  './src/pro/bitstamp.js'
 import bittrexPro from  './src/pro/bittrex.js'
 import bitvavoPro from  './src/pro/bitvavo.js'
+import blockchaincomPro from  './src/pro/blockchaincom.js'
 import btcexPro from  './src/pro/btcex.js'
 import bybitPro from  './src/pro/bybit.js'
 import cexPro from  './src/pro/cex.js'
@@ -207,6 +208,8 @@ import okcoinPro from  './src/pro/okcoin.js'
 import okexPro from  './src/pro/okex.js'
 import okxPro from  './src/pro/okx.js'
 import phemexPro from  './src/pro/phemex.js'
+import poloniexPro from  './src/pro/poloniex.js'
+import poloniexfuturesPro from  './src/pro/poloniexfutures.js'
 import probitPro from  './src/pro/probit.js'
 import upbitPro from  './src/pro/upbit.js'
 import wazirxPro from  './src/pro/wazirx.js'
@@ -309,7 +312,6 @@ const exchanges = {
     'poloniex':               poloniex,
     'poloniexfutures':        poloniexfutures,
     'probit':                 probit,
-    'stex':                   stex,
     'tidex':                  tidex,
     'timex':                  timex,
     'tokocrypto':             tokocrypto,
@@ -339,10 +341,12 @@ const pro = {
     'bitmart':                bitmartPro,
     'bitmex':                 bitmexPro,
     'bitopro':                bitoproPro,
+    'bitpanda':               bitpandaPro,
     'bitrue':                 bitruePro,
     'bitstamp':               bitstampPro,
     'bittrex':                bittrexPro,
     'bitvavo':                bitvavoPro,
+    'blockchaincom':          blockchaincomPro,
     'btcex':                  btcexPro,
     'bybit':                  bybitPro,
     'cex':                    cexPro,
@@ -375,6 +379,8 @@ const pro = {
     'okex':                   okexPro,
     'okx':                    okxPro,
     'phemex':                 phemexPro,
+    'poloniex':               poloniexPro,
+    'poloniexfutures':        poloniexfuturesPro,
     'probit':                 probitPro,
     'upbit':                  upbitPro,
     'wazirx':                 wazirxPro,
@@ -548,7 +554,6 @@ export {
     poloniex,
     poloniexfutures,
     probit,
-    stex,
     tidex,
     timex,
     tokocrypto,

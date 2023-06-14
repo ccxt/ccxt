@@ -303,6 +303,7 @@ class stex extends Exchange {
 
     public function fetch_currencies($params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Public/paths/{1public}1currencies/get
          * fetches all available $currencies on an exchange
          * @param {array} $params extra parameters specific to the stex api endpoint
          * @return {array} an associative dictionary of $currencies
@@ -383,6 +384,7 @@ class stex extends Exchange {
 
     public function fetch_markets($params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Public/paths/{1public}1currency_pairs{1list}1{code}/get
          * retrieves data on all $markets for stex
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of objects representing $market data
@@ -497,6 +499,7 @@ class stex extends Exchange {
 
     public function fetch_ticker(string $symbol, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Public/paths/{1public}1ticker{1}currencyPairId~/get
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} $params extra parameters specific to the stex api endpoint
@@ -556,6 +559,7 @@ class stex extends Exchange {
 
     public function fetch_time($params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Public/paths/{1public}1ping/get
          * fetches the current integer timestamp in milliseconds from the exchange server
          * @param {array} $params extra parameters specific to the stex api endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -581,6 +585,7 @@ class stex extends Exchange {
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Public/paths/{1public}1orderbook{1}currencyPairId~/get
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
@@ -691,6 +696,7 @@ class stex extends Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Public/paths/{1public}1ticker/get
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the stex api endpoint
@@ -770,6 +776,7 @@ class stex extends Exchange {
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Public/paths/{1public}1chart{1}currencyPairId~{1}candlesType~/get
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
@@ -874,6 +881,7 @@ class stex extends Exchange {
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Public/paths/{1public}1trades{1}currencyPairId~/get
          * get the list of most recent $trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
@@ -919,6 +927,7 @@ class stex extends Exchange {
 
     public function fetch_trading_fee(string $symbol, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Trading/paths/{1trading}1fees{1}currencyPairId~/get
          * fetch the trading fees for a $market
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the stex api endpoint
@@ -968,6 +977,7 @@ class stex extends Exchange {
 
     public function fetch_balance($params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Profile/paths/{1profile}1wallets/get
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} $params extra parameters specific to the stex api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
@@ -1153,6 +1163,7 @@ class stex extends Exchange {
 
     public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Trading/paths/{1trading}1orders{1}currencyPairId~/post
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -1203,6 +1214,7 @@ class stex extends Exchange {
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Trading/paths/{1trading}1order{1}orderId~/get
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the order was made in
          * @param {array} $params extra parameters specific to the stex api endpoint
@@ -1242,6 +1254,7 @@ class stex extends Exchange {
 
     public function fetch_closed_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Trading-History-and-Reports/paths/{1reports}1orders{1}orderId~/get
          * fetch an open order by it's $id
          * @param {string} $id order $id
          * @param {string|null} $symbol unified $market $symbol, default is null
@@ -1312,6 +1325,8 @@ class stex extends Exchange {
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Trading/paths/{1trading}1orders/get
+         * @see https://apidocs.stex.com/#tag/Trading/paths/{1trading}1orders{1}currencyPairId~/get
          * fetch all unfilled currently open orders
          * @param {string|null} $symbol unified $market $symbol
          * @param {int|null} $since the earliest time in ms to fetch open orders for
@@ -1362,6 +1377,7 @@ class stex extends Exchange {
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Trading/paths/{1trading}1order{1}orderId~/delete
          * cancels an open order
          * @param {string} $id order $id
          * @param {string|null} $symbol not used by stex cancelOrder ()
@@ -1435,6 +1451,8 @@ class stex extends Exchange {
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Trading/paths/{1trading}1orders/delete
+         * @see https://apidocs.stex.com/#tag/Trading/paths/{1trading}1orders{1}currencyPairId~/delete
          * cancel all open orders
          * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} $params extra parameters specific to the stex api endpoint
@@ -1464,6 +1482,7 @@ class stex extends Exchange {
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Trading-History-and-Reports/paths/{1reports}1trades{1}currencyPairId~/get
          * fetch all $trades made by the user
          * @param {string} $symbol unified $market $symbol
          * @param {int|null} $since the earliest time in ms to fetch $trades for
@@ -1512,6 +1531,7 @@ class stex extends Exchange {
 
     public function create_deposit_address(string $code, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Profile/paths/{1profile}1wallets{1}currencyId~/post
          * create a $currency deposit $address
          * @param {string} $code unified $currency $code of the $currency for the deposit $address
          * @param {array} $params extra parameters specific to the stex api endpoint
@@ -1593,6 +1613,7 @@ class stex extends Exchange {
 
     public function fetch_deposit_address(string $code, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Profile/paths/{1profile}1wallets{1}$walletId~/get
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
          * @param {array} $params extra parameters specific to the stex api endpoint
@@ -1832,6 +1853,7 @@ class stex extends Exchange {
 
     public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Profile/paths/{1profile}1deposits{1}$id~/get
          * fetch information on a deposit
          * @param {string} $id deposit $id
          * @param {string|null} $code not used by stex fetchDeposit ()
@@ -1881,6 +1903,7 @@ class stex extends Exchange {
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Profile/paths/{1profile}1deposits/get
          * fetch all $deposits made to an account
          * @param {string|null} $code unified $currency $code
          * @param {int|null} $since the earliest time in ms to fetch $deposits for
@@ -1937,6 +1960,7 @@ class stex extends Exchange {
 
     public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Profile/paths/{1profile}1withdrawals{1}$id~/get
          * fetch $data on a currency withdrawal via the withdrawal $id
          * @param {string} $id withdrawal $id
          * @param {string|null} $code not used by stex.fetchWithdrawal
@@ -1993,6 +2017,7 @@ class stex extends Exchange {
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Profile/paths/{1profile}1withdrawals/get
          * fetch all $withdrawals made from an account
          * @param {string|null} $code unified $currency $code
          * @param {int|null} $since the earliest time in ms to fetch $withdrawals for
@@ -2060,6 +2085,8 @@ class stex extends Exchange {
 
     public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Profile/paths/{1profile}1referral{1bonus_transfer}1{currencyId}/post
+         * @see https://apidocs.stex.com/#tag/Profile/paths/{1profile}1wallets{1}walletId~~1hold_amount/post
          * $transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to $transfer
@@ -2294,6 +2321,7 @@ class stex extends Exchange {
 
     public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
+         * @see https://apidocs.stex.com/#tag/Profile/paths/{1profile}1withdraw/post
          * make a withdrawal
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw

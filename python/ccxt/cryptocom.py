@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -35,6 +36,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'countries': ['MT'],
             'version': 'v2',
             'rateLimit': 10,  # 100 requests per second
+            'certified': True,
             'pro': True,
             'has': {
                 'CORS': False,
@@ -326,6 +328,7 @@ class cryptocom(Exchange, ImplicitAPI):
                     'ETH': 'ERC20',
                     'TRON': 'TRC20',
                 },
+                'broker': 'CCXT_',
             },
             # https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
@@ -823,6 +826,8 @@ class cryptocom(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://exchange-docs.crypto.com/derivatives/index.html#public-get-candlestick
+        see https://exchange-docs.crypto.com/spot/index.html#public-get-candlestick
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -837,18 +842,22 @@ class cryptocom(Exchange, ImplicitAPI):
             'instrument_name': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        marketType, query = self.handle_market_type_and_params('fetchOHLCV', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'v2PublicGetPublicGetCandlestick',
-            'future': 'derivativesPublicGetPublicGetCandlestick',
-            'swap': 'derivativesPublicGetPublicGetCandlestick',
-        })
-        if marketType != 'spot':
+        if not market['spot']:
             reqLimit = 100
             if limit is not None:
                 reqLimit = limit
             request['count'] = reqLimit
-        response = getattr(self, method)(self.extend(request, query))
+        if since is not None:
+            request['start_ts'] = since
+        until = self.safe_integer_2(params, 'until', 'till')
+        params = self.omit(params, ['until', 'till'])
+        if until is not None:
+            request['end_ts'] = until
+        response = None
+        if market['spot']:
+            response = self.v2PublicGetPublicGetCandlestick(self.extend(request, params))
+        elif market['contract']:
+            response = self.derivativesPublicGetPublicGetCandlestick(self.extend(request, params))
         # {
         #     "code":0,
         #     "method":"public/get-candlestick",
@@ -1113,7 +1122,7 @@ class cryptocom(Exchange, ImplicitAPI):
         order = self.safe_value(result, 'order_info', result)
         return self.parse_order(order, market)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1135,14 +1144,15 @@ class cryptocom(Exchange, ImplicitAPI):
         }
         if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT'):
             request['price'] = self.price_to_precision(symbol, price)
+        broker = self.safe_string(self.options, 'broker', 'CCXT_')
         clientOrderId = self.safe_string(params, 'clientOrderId')
-        if clientOrderId:
-            request['client_oid'] = clientOrderId
-            params = self.omit(params, ['clientOrderId'])
+        if clientOrderId is None:
+            clientOrderId = broker + self.uuid22()
+        request['client_oid'] = clientOrderId
         postOnly = self.safe_value(params, 'postOnly', False)
         if postOnly:
             request['exec_inst'] = 'POST_ONLY'
-            params = self.omit(params, ['postOnly'])
+        params = self.omit(params, ['postOnly', 'clientOrderId'])
         marketType, marketTypeQuery = self.handle_market_type_and_params('createOrder', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'v2PrivatePostPrivateCreateOrder',

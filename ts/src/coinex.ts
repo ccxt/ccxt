@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -171,6 +171,7 @@ export default class coinex extends Exchange {
                         'order/market/trade/info': 1,
                         'sub_account/balance': 1,
                         'sub_account/transfer/history': 40,
+                        'sub_account/auth/api': 40,
                         'sub_account/auth/api/{user_auth_id}': 40,
                     },
                     'post': {
@@ -310,7 +311,8 @@ export default class coinex extends Exchange {
         //                  "can_withdraw": true,
         //                  "deposit_least_amount": "4.9",
         //                  "withdraw_least_amount": "4.9",
-        //                  "withdraw_tx_fee": "4.9"
+        //                  "withdraw_tx_fee": "4.9",
+        //                  "explorer_asset_url": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7"
         //             },
         //             ...
         //         },
@@ -326,18 +328,27 @@ export default class coinex extends Exchange {
             const currencyId = this.safeString (currency, 'asset');
             const networkId = this.safeString (currency, 'chain');
             const code = this.safeCurrencyCode (currencyId);
-            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdrawal_precision')));
+            const precisionString = this.parsePrecision (this.safeString (currency, 'withdrawal_precision'));
+            const precision = this.parseNumber (precisionString);
+            const canDeposit = this.safeValue (currency, 'can_deposit');
+            const canWithdraw = this.safeValue (currency, 'can_withdraw');
+            const feeString = this.safeString (currency, 'withdraw_tx_fee');
+            const fee = this.parseNumber (feeString);
+            const minNetworkDepositString = this.safeString (currency, 'deposit_least_amount');
+            const minNetworkDeposit = this.parseNumber (minNetworkDepositString);
+            const minNetworkWithdrawString = this.safeString (currency, 'withdraw_least_amount');
+            const minNetworkWithdraw = this.parseNumber (minNetworkWithdrawString);
             if (this.safeValue (result, code) === undefined) {
                 result[code] = {
                     'id': currencyId,
                     'numericId': undefined,
                     'code': code,
-                    'info': currency,
+                    'info': undefined,
                     'name': undefined,
-                    'active': true,
-                    'deposit': this.safeValue (currency, 'can_deposit'),
-                    'withdraw': this.safeValue (currency, 'can_withdraw'),
-                    'fee': this.safeNumber (currency, 'withdraw_tx_fee'),
+                    'active': canDeposit && canWithdraw,
+                    'deposit': canDeposit,
+                    'withdraw': canWithdraw,
+                    'fee': fee,
                     'precision': precision,
                     'limits': {
                         'amount': {
@@ -345,15 +356,35 @@ export default class coinex extends Exchange {
                             'max': undefined,
                         },
                         'deposit': {
-                            'min': this.safeNumber (currency, 'deposit_least_amount'),
+                            'min': minNetworkDeposit,
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': this.safeNumber (currency, 'withdraw_least_amount'),
+                            'min': minNetworkWithdraw,
                             'max': undefined,
                         },
                     },
                 };
+            }
+            let minFeeString = this.safeString (result[code], 'fee');
+            if (feeString !== undefined) {
+                minFeeString = (minFeeString === undefined) ? feeString : Precise.stringMin (feeString, minFeeString);
+            }
+            let depositAvailable = this.safeValue (result[code], 'deposit');
+            depositAvailable = (canDeposit) ? canDeposit : depositAvailable;
+            let withdrawAvailable = this.safeValue (result[code], 'withdraw');
+            withdrawAvailable = (canWithdraw) ? canWithdraw : withdrawAvailable;
+            let minDepositString = this.safeString (result[code]['limits']['deposit'], 'min');
+            if (minNetworkDepositString !== undefined) {
+                minDepositString = (minDepositString === undefined) ? minNetworkDepositString : Precise.stringMin (minNetworkDepositString, minDepositString);
+            }
+            let minWithdrawString = this.safeString (result[code]['limits']['withdraw'], 'min');
+            if (minNetworkWithdrawString !== undefined) {
+                minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise.stringMin (minNetworkWithdrawString, minWithdrawString);
+            }
+            let minPrecisionString = this.safeString (result[code], 'precision');
+            if (precisionString !== undefined) {
+                minPrecisionString = (minPrecisionString === undefined) ? precisionString : Precise.stringMin (precisionString, minPrecisionString);
             }
             const networks = this.safeValue (result[code], 'networks', {});
             const network = {
@@ -375,14 +406,24 @@ export default class coinex extends Exchange {
                         'max': undefined,
                     },
                 },
-                'active': true,
-                'deposit': this.safeValue (currency, 'can_deposit'),
-                'withdraw': this.safeValue (currency, 'can_withdraw'),
-                'fee': this.safeNumber (currency, 'withdraw_tx_fee'),
+                'active': canDeposit && canWithdraw,
+                'deposit': canDeposit,
+                'withdraw': canWithdraw,
+                'fee': fee,
                 'precision': precision,
             };
             networks[networkId] = network;
             result[code]['networks'] = networks;
+            result[code]['active'] = depositAvailable && withdrawAvailable;
+            result[code]['deposit'] = depositAvailable;
+            result[code]['withdraw'] = withdrawAvailable;
+            const info = this.safeValue (result[code], 'info', []);
+            info.push (currency);
+            result[code]['info'] = info;
+            result[code]['fee'] = this.parseNumber (minFeeString);
+            result[code]['precision'] = this.parseNumber (minPrecisionString);
+            result[code]['limits']['deposit']['min'] = this.parseNumber (minDepositString);
+            result[code]['limits']['withdraw']['min'] = this.parseNumber (minWithdrawString);
         }
         return result;
     }
@@ -1123,7 +1164,7 @@ export default class coinex extends Exchange {
         //      }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseTradingFee (data);
+        return this.parseTradingFee (data, market);
     }
 
     async fetchTradingFees (params = {}) {
@@ -1729,11 +1770,17 @@ export default class coinex extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name coinex#createOrder
          * @description create a trade order
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http017_put_limit
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http018_put_market
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http019_put_limit_stop
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http020_put_market_stop
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http031_market_close
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http030_limit_close
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1747,6 +1794,7 @@ export default class coinex extends Exchange {
          * @param {string} params.timeInForce "GTC", "IOC", "FOK", "PO"
          * @param {bool} params.postOnly
          * @param {bool} params.reduceOnly
+         * @param {bool|undefined} params.position_id *required for reduce only orders* the position id to reduce
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1761,9 +1809,12 @@ export default class coinex extends Exchange {
         const positionId = this.safeInteger2 (params, 'position_id', 'positionId'); // Required for closing swap positions
         const timeInForceRaw = this.safeString (params, 'timeInForce'); // Spot: IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
         const reduceOnly = this.safeValue (params, 'reduceOnly');
-        if (reduceOnly !== undefined) {
+        if (reduceOnly) {
             if (market['type'] !== 'swap') {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap markets only');
+            }
+            if (positionId === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a position_id/positionId parameter for reduceOnly orders');
             }
         }
         let method = undefined;
@@ -1972,7 +2023,7 @@ export default class coinex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name okx#editOrder
@@ -2718,7 +2769,7 @@ export default class coinex extends Exchange {
         let address = undefined;
         let tag = undefined;
         const partsLength = parts.length;
-        if (partsLength > 1) {
+        if (partsLength > 1 && parts[0] !== 'cfx') {
             address = parts[0];
             tag = parts[1];
         } else {

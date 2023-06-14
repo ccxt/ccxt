@@ -132,6 +132,7 @@ class bitmart extends Exchange {
                         'contract/public/open-interest' => 30,
                         'contract/public/funding-rate' => 30,
                         'contract/public/kline' => 5,
+                        'account/v1/currencies' => 30,
                     ),
                 ),
                 'private' => array(
@@ -629,8 +630,13 @@ class bitmart extends Exchange {
                 $settleId = 'USDT'; // this is bitmart's ID for usdt
                 $settle = $this->safe_currency_code($settleId);
                 $symbol = $base . '/' . $quote . ':' . $settle;
-                $productType = $this->safe_number($market, 'product_type');
+                $productType = $this->safe_integer($market, 'product_type');
+                $isSwap = ($productType === 1);
+                $isFutures = ($productType === 2);
                 $expiry = $this->safe_integer($market, 'expire_timestamp');
+                if (!$isFutures && ($expiry === 0)) {
+                    $expiry = null;
+                }
                 $result[] = array(
                     'id' => $id,
                     'numericId' => null,
@@ -641,11 +647,11 @@ class bitmart extends Exchange {
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
                     'settleId' => $settleId,
-                    'type' => 'swap',
+                    'type' => $isSwap ? 'swap' : 'future',
                     'spot' => false,
                     'margin' => false,
-                    'swap' => ($productType === 1),
-                    'future' => ($productType === 2),
+                    'swap' => $isSwap,
+                    'future' => $isFutures,
                     'option' => false,
                     'active' => true,
                     'contract' => true,
@@ -1489,7 +1495,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response, $marketType) {
+    public function custom_parse_balance($response, $marketType) {
         $data = $this->safe_value($response, 'data', array());
         $wallet = null;
         if ($marketType === 'swap') {
@@ -1663,7 +1669,7 @@ class bitmart extends Exchange {
             //         }
             //     }
             //
-            return $this->parse_balance($response, $marketType);
+            return $this->custom_parse_balance($response, $marketType);
         }) ();
     }
 
@@ -1826,7 +1832,7 @@ class bitmart extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order

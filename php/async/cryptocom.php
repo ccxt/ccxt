@@ -23,6 +23,7 @@ class cryptocom extends Exchange {
             'countries' => array( 'MT' ),
             'version' => 'v2',
             'rateLimit' => 10, // 100 requests per second
+            'certified' => true,
             'pro' => true,
             'has' => array(
                 'CORS' => false,
@@ -314,6 +315,7 @@ class cryptocom extends Exchange {
                     'ETH' => 'ERC20',
                     'TRON' => 'TRC20',
                 ),
+                'broker' => 'CCXT_',
             ),
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies' => array(
@@ -849,6 +851,8 @@ class cryptocom extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-candlestick
+             * @see https://exchange-docs.crypto.com/spot/index.html#public-get-candlestick
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
@@ -863,20 +867,27 @@ class cryptocom extends Exchange {
                 'instrument_name' => $market['id'],
                 'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
-            list($marketType, $query) = $this->handle_market_type_and_params('fetchOHLCV', $market, $params);
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'v2PublicGetPublicGetCandlestick',
-                'future' => 'derivativesPublicGetPublicGetCandlestick',
-                'swap' => 'derivativesPublicGetPublicGetCandlestick',
-            ));
-            if ($marketType !== 'spot') {
+            if (!$market['spot']) {
                 $reqLimit = 100;
                 if ($limit !== null) {
                     $reqLimit = $limit;
                 }
                 $request['count'] = $reqLimit;
             }
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            if ($since !== null) {
+                $request['start_ts'] = $since;
+            }
+            $until = $this->safe_integer_2($params, 'until', 'till');
+            $params = $this->omit($params, array( 'until', 'till' ));
+            if ($until !== null) {
+                $request['end_ts'] = $until;
+            }
+            $response = null;
+            if ($market['spot']) {
+                $response = Async\await($this->v2PublicGetPublicGetCandlestick (array_merge($request, $params)));
+            } elseif ($market['contract']) {
+                $response = Async\await($this->derivativesPublicGetPublicGetCandlestick (array_merge($request, $params)));
+            }
             // {
             //     "code":0,
             //     "method":"public/get-candlestick",
@@ -1161,7 +1172,7 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1185,16 +1196,17 @@ class cryptocom extends Exchange {
             if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
+            $broker = $this->safe_string($this->options, 'broker', 'CCXT_');
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            if ($clientOrderId) {
-                $request['client_oid'] = $clientOrderId;
-                $params = $this->omit($params, array( 'clientOrderId' ));
+            if ($clientOrderId === null) {
+                $clientOrderId = $broker . $this->uuid22();
             }
+            $request['client_oid'] = $clientOrderId;
             $postOnly = $this->safe_value($params, 'postOnly', false);
             if ($postOnly) {
                 $request['exec_inst'] = 'POST_ONLY';
-                $params = $this->omit($params, array( 'postOnly' ));
             }
+            $params = $this->omit($params, array( 'postOnly', 'clientOrderId' ));
             list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('createOrder', $market, $params);
             $method = $this->get_supported_mapping($marketType, array(
                 'spot' => 'v2PrivatePostPrivateCreateOrder',

@@ -1,2 +1,2 @@
-declare function testTicker(exchange: any, method: any, entry: any, symbol: any): void;
+declare function testTicker(exchange: any, skippedProperties: any, method: any, entry: any, symbol: any): void;
 export default testTicker;

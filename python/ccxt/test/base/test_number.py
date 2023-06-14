@@ -23,9 +23,7 @@ from ccxt.base.decimal_to_precision import number_to_string      # noqa F401
 from ccxt.base.exchange import Exchange                          # noqa F401
 from ccxt.base.precise import Precise                            # noqa F401
 
-
-# @ts-nocheck
-# eslint-disable-next-line
+# eslint-disable-next-line import/newline-after-import
 
 # ----------------------------------------------------------------------------
 # number_to_string
@@ -119,7 +117,7 @@ assert decimal_to_precision('12.3456', ROUND, 2, DECIMAL_PLACES) == '12.35'
 assert decimal_to_precision('12.3456', ROUND, 1, DECIMAL_PLACES) == '12.3'
 assert decimal_to_precision('12.3456', ROUND, 0, DECIMAL_PLACES) == '12'
 
-# todo: 
+# todo:
 # ['9.999',     ROUND,   3, DECIMAL_PLACES,    NO_PADDING,  '9.999'],
 # ['9.999',     ROUND,   2, DECIMAL_PLACES,    NO_PADDING,  '10'],
 # ['9.999',     ROUND,   2, DECIMAL_PLACES, PAD_WITH_ZERO,  '10.00'],
@@ -409,4 +407,5 @@ assert Precise.string_le('3.1415', '3.14150000000000000000001')
 # $self->assertSame(0,   Exchange::sum())
 # $self->assertSame(2,   Exchange::sum(2))
 # $self->assertSame(432, Exchange::sum(2, 30, 400))
+# eslint-disable-next-line eol-last
 # $self->assertSame(439, Exchange::sum(2, null, [88], 30, '7', 400, null))
