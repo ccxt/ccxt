@@ -19,4 +19,5 @@ class ImplicitAPI:
     private_get_order_history = privateGetOrderHistory = Entry('order_history', 'private', 'GET', {'cost': 1})
     private_get_trade_history = privateGetTradeHistory = Entry('trade_history', 'private', 'GET', {'cost': 1})
     private_get_deposit_address = privateGetDepositAddress = Entry('deposit_address', 'private', 'GET', {'cost': 1})
+    private_get_transfer_payment = privateGetTransferPayment = Entry('transfer/payment', 'private', 'GET', {'cost': 1})
     accounts_post_token = accountsPostToken = Entry('token', 'accounts', 'POST', {'cost': 1})
