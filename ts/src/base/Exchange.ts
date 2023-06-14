@@ -3879,6 +3879,7 @@ export default class Exchange {
         if (this.has['fetchFundingRates']) {
             await this.loadMarkets ();
             const market = this.market (symbol);
+            symbol = market['symbol'];
             if (!market['contract']) {
                 throw new BadSymbol (this.id + ' fetchFundingRate() supports contract markets only');
             }

@@ -42,7 +42,10 @@ class gate(ccxt.async_support.gate):
                         'usdt': 'wss://fx-ws.gateio.ws/v4/ws/delivery/usdt',
                         'btc': 'wss://fx-ws.gateio.ws/v4/ws/delivery/btc',
                     },
-                    'option': 'wss://op-ws.gateio.live/v4/ws',
+                    'option': {
+                        'usdt': 'wss://op-ws.gateio.live/v4/ws/usdt',
+                        'btc': 'wss://op-ws.gateio.live/v4/ws/btc',
+                    },
                 },
                 'test': {
                     'swap': {
@@ -53,7 +56,10 @@ class gate(ccxt.async_support.gate):
                         'usdt': 'wss://fx-ws-testnet.gateio.ws/v4/ws/usdt',
                         'btc': 'wss://fx-ws-testnet.gateio.ws/v4/ws/btc',
                     },
-                    'option': 'wss://op-ws-testnet.gateio.live/v4/ws',
+                    'option': {
+                        'usdt': 'wss://op-ws-testnet.gateio.live/v4/ws/usdt',
+                        'btc': 'wss://op-ws-testnet.gateio.live/v4/ws/btc',
+                    },
                 },
             },
             'options': {
