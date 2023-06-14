@@ -1618,7 +1618,7 @@ export default class krakenfutures extends Exchange {
             const parsed = this.parseFundingRate (entry, market);
             fundingRates.push (parsed);
         }
-        return this.indexBy (fundingRates, 'symbol');
+        return this.indexBy (fundingRates, 'symbol') as any;
     }
 
     parseFundingRate (ticker, market = undefined) {
