@@ -760,7 +760,7 @@ export default class okx extends Exchange {
                 'fetchPositions': {
                     'method': 'privateGetAccountPositions', // privateGetAccountPositions or privateGetAccountPositionsHistory
                 },
-                'createOrder': 'privatePostTradeBatchOrders', // privateGetAccountBills or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
+                'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': false,
                 'fetchMarkets': [ 'spot', 'future', 'swap', 'option' ], // spot, future, swap, option
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
@@ -768,7 +768,7 @@ export default class okx extends Exchange {
                 //     'type': 'spot', // 'funding', 'trading', 'spot'
                 // },
                 'fetchLedger': {
-                    'method': 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
+                    'method': 'privateGetAccountBills', // privateGetAccountBills, privateGetAccountBillsArchive, privateGetAssetBills
                 },
                 // 6: Funding account, 18: Trading account
                 'fetchOrder': {
