@@ -670,7 +670,8 @@ export default class testMainClass extends baseMainTestClass {
                 errors.push (testName);
             }
         }
-        if (errors.length > 0) {
+        const errorsCnt = errors.length; // PHP transpile count($errors)
+        if (errorsCnt > 0) {
             throw new Error ('Failed private tests [' + market['type'] + ']: ' + errors.join (', '));
         } else {
             if (this.info) {
