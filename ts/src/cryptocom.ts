@@ -476,10 +476,7 @@ export default class cryptocom extends Exchange {
             const strike = this.safeString (market, 'strike');
             const marginBuyEnabled = this.safeValue (market, 'margin_buy_enabled');
             const marginSellEnabled = this.safeValue (market, 'margin_sell_enabled');
-            let expiry = this.safeInteger (market, 'expiry_timestamp_ms');
-            if (expiry === 0) {
-                expiry = undefined;
-            }
+            const expiry = this.omitZero (this.safeInteger (market, 'expiry_timestamp_ms'));
             let symbol = base + '/' + quote;
             let type = undefined;
             let contract = undefined;
@@ -525,8 +522,8 @@ export default class cryptocom extends Exchange {
                 'strike': this.parseNumber (strike),
                 'optionType': optionType,
                 'precision': {
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quote_decimals'))),
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantity_decimals'))),
+                    'price': this.parseNumber (this.safeString (market, 'price_tick_size')),
+                    'amount': this.parseNumber (this.safeString (market, 'qty_tick_size')),
                 },
                 'limits': {
                     'leverage': {
