@@ -579,12 +579,20 @@ export default class okcoin extends Exchange {
          */
         const response = await this.publicGetPublicTime (params);
         //
+        // {
+        //     "code":"0",
+        //     "msg":"",
+        //     "data":[
         //     {
-        //         "iso": "2015-01-07T23:47:25.201Z",
-        //         "epoch": 1420674445.201
+        //         "ts":"1597026383085"
         //     }
+        //   ]
+        // }
         //
-        return this.parse8601 (this.safeString (response, 'iso'));
+        const data = this.safeValue (response, 'data');
+        const ts = this.safeValue (data, 0);
+        const timestamp = this.safeFloat (ts, 'ts');
+        return timestamp;
     }
 
     async fetchMarkets (params = {}) {
