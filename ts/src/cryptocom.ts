@@ -490,6 +490,7 @@ export default class cryptocom extends Exchange {
             let minWithdrawFound = undefined;
             const networks = {};
             let withdrawPrecision = this.safeString (entry, 'withdrawal_decimals');
+            const defaultNetworkId = this.safeString (entry, 'default_network');
             if (withdrawPrecision === undefined) {
                 // todo: precision info is present only in their "public" endpoint, so for "private" endpoint we add this till they fix their response
                 // for USDT & GUSD precision is 2, for most other coins it's 6,7,8 (only several coins have 4). So, assume 6 as default, to cover most of the cases
@@ -499,6 +500,7 @@ export default class cryptocom extends Exchange {
                 const chainEntry = networkList[j];
                 const networkId = this.safeString2 (chainEntry, 'network_id', 'network');
                 const networkCode = this.networkIdToCode (networkId);
+                const isDefaultNetwork = defaultNetworkId === networkId;
                 const feeNetwork = this.safeNumber2 (chainEntry, 'withdrawal_fee', 'withdrawalFees');
                 let withdraw = this.safeValue (chainEntry, 'withdraw_enabled');
                 if (withdraw === undefined) {
@@ -531,6 +533,7 @@ export default class cryptocom extends Exchange {
                     },
                     'name': this.safeString (chainEntry, 'networkDisplayName'),
                     'isMemoRequired': (isMemoType ? true : undefined), // because of vague values, don't set false
+                    'isDefaultNetwork': isDefaultNetwork,
                 };
                 if (depositEnabled !== undefined || deposit) {
                     depositEnabled = deposit;
@@ -545,7 +548,6 @@ export default class cryptocom extends Exchange {
                     minWithdrawFound = minWithdraw;
                 }
             }
-            const defaultNetwork = this.networkIdToCode (this.safeString (entry, 'default_network'));
             result[code] = {
                 'info': entry,
                 'id': currencyId,
@@ -567,7 +569,6 @@ export default class cryptocom extends Exchange {
                 },
                 'precision': this.parseNumber (this.parsePrecision (withdrawPrecision)),
                 'networks': networks,
-                'defaultNetwork': defaultNetwork,
             };
         }
         return result;
