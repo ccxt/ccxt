@@ -2544,6 +2544,8 @@ class gate(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
+        if market['option']:
+            return self.fetch_option_ohlcv(symbol, timeframe, since, limit, params)
         price = self.safe_string(params, 'price')
         request = {}
         request, params = self.prepare_request(market, None, params)
@@ -2552,7 +2554,6 @@ class gate(Exchange, ImplicitAPI):
         maxLimit = 1000
         if market['contract']:
             maxLimit = 1999
-            limit = maxLimit if (limit is None) else min(limit, maxLimit)
             if market['future']:
                 method = 'publicDeliveryGetSettleCandlesticks'
             elif market['swap']:
@@ -2583,6 +2584,16 @@ class gate(Exchange, ImplicitAPI):
                 request['to'] = until
             request['limit'] = limit
         response = getattr(self, method)(self.extend(request, params))
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
+    def fetch_option_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        # separated option logic because the from, to and limit parameters weren't functioning
+        self.load_markets()
+        market = self.market(symbol)
+        request = {}
+        request, params = self.prepare_request(market, None, params)
+        request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
+        response = self.publicOptionsGetCandlesticks(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -2640,7 +2651,7 @@ class gate(Exchange, ImplicitAPI):
         #    ]
         #
         #
-        # Mark and Index price candles
+        # Swap, Future, Option, Mark and Index price candles
         #
         #     {
         #          "t":1632873600,         # Unix timestamp in seconds
@@ -2660,7 +2671,7 @@ class gate(Exchange, ImplicitAPI):
                 self.safe_number(ohlcv, 6),      # trading volume
             ]
         else:
-            # Mark and Index price candles
+            # Swap, Future, Option, Mark and Index price candles
             return [
                 self.safe_timestamp(ohlcv, 't'),  # unix timestamp in seconds
                 self.safe_number(ohlcv, 'o'),    # open price
