@@ -43,7 +43,7 @@ export default class gemini extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': false, // TODO
+                'fetchDepositAddress': undefined, // TODO
                 'fetchDepositAddressesByNetwork': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -273,7 +273,7 @@ export default class gemini extends Exchange {
                     'DOGE': 'dogecoin',
                     'XTZ': 'tezos',
                 },
-                'nonce': 'seconds', // milliseconds, seconds (if getting a Network 400 error change to seconds)
+                'nonce': 'milliseconds', // if getting a Network 400 error change to seconds
             },
         });
     }
