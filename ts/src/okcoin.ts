@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/okcoin.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol, RateLimitExceeded } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, PermissionDenied, InsufficientFunds, InvalidOrder, AuthenticationError, NotSupported, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -193,335 +193,327 @@ export default class okcoin extends Exchange {
                 // 429 Client Error: Too Many Requests for url
                 // 500 Internal Server Error — We had a problem with our server
                 'exact': {
-                    '1': ExchangeError, // { "code": 1, "message": "System error" }
-                    // undocumented
-                    'failure to get a peer from the ring-balancer': ExchangeNotAvailable, // { "message": "failure to get a peer from the ring-balancer" }
-                    'Server is busy, please try again.': ExchangeNotAvailable, // { "message": "Server is busy, please try again." }
-                    'An unexpected error occurred': ExchangeError, // { "message": "An unexpected error occurred" }
-                    'System error': ExchangeError, // {"error_message":"System error","message":"System error"}
-                    '4010': PermissionDenied, // { "code": 4010, "message": "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " }
-                    // common
-                    // '0': ExchangeError, // 200 successful,when the order placement / cancellation / operation is successful
-                    '4001': ExchangeError, // no data received in 30s
-                    '4002': ExchangeError, // Buffer full. cannot write data
-                    // --------------------------------------------------------
-                    '30001': AuthenticationError, // { "code": 30001, "message": 'request header "OK_ACCESS_KEY" cannot be blank'}
-                    '30002': AuthenticationError, // { "code": 30002, "message": 'request header "OK_ACCESS_SIGN" cannot be blank'}
-                    '30003': AuthenticationError, // { "code": 30003, "message": 'request header "OK_ACCESS_TIMESTAMP" cannot be blank'}
-                    '30004': AuthenticationError, // { "code": 30004, "message": 'request header "OK_ACCESS_PASSPHRASE" cannot be blank'}
-                    '30005': InvalidNonce, // { "code": 30005, "message": "invalid OK_ACCESS_TIMESTAMP" }
-                    '30006': AuthenticationError, // { "code": 30006, "message": "invalid OK_ACCESS_KEY" }
-                    '30007': BadRequest, // { "code": 30007, "message": 'invalid Content_Type, please use "application/json" format'}
-                    '30008': RequestTimeout, // { "code": 30008, "message": "timestamp request expired" }
-                    '30009': ExchangeError, // { "code": 30009, "message": "system error" }
-                    '30010': AuthenticationError, // { "code": 30010, "message": "API validation failed" }
-                    '30011': PermissionDenied, // { "code": 30011, "message": "invalid IP" }
-                    '30012': AuthenticationError, // { "code": 30012, "message": "invalid authorization" }
-                    '30013': AuthenticationError, // { "code": 30013, "message": "invalid sign" }
-                    '30014': DDoSProtection, // { "code": 30014, "message": "request too frequent" }
-                    '30015': AuthenticationError, // { "code": 30015, "message": 'request header "OK_ACCESS_PASSPHRASE" incorrect'}
-                    '30016': ExchangeError, // { "code": 30015, "message": "you are using v1 apiKey, please use v1 endpoint. If you would like to use v3 endpoint, please subscribe to v3 apiKey" }
-                    '30017': ExchangeError, // { "code": 30017, "message": "apikey's broker id does not match" }
-                    '30018': ExchangeError, // { "code": 30018, "message": "apikey's domain does not match" }
-                    '30019': ExchangeNotAvailable, // { "code": 30019, "message": "Api is offline or unavailable" }
-                    '30020': BadRequest, // { "code": 30020, "message": "body cannot be blank" }
-                    '30021': BadRequest, // { "code": 30021, "message": "Json data format error" }, { "code": 30021, "message": "json data format error" }
-                    '30022': PermissionDenied, // { "code": 30022, "message": "Api has been frozen" }
-                    '30023': BadRequest, // { "code": 30023, "message": "{0} parameter cannot be blank" }
-                    '30024': BadSymbol, // {"code":30024,"message":"\"instrument_id\" is an invalid parameter"}
-                    '30025': BadRequest, // { "code": 30025, "message": "{0} parameter category error" }
-                    '30026': DDoSProtection, // { "code": 30026, "message": "requested too frequent" }
-                    '30027': AuthenticationError, // { "code": 30027, "message": "login failure" }
-                    '30028': PermissionDenied, // { "code": 30028, "message": "unauthorized execution" }
-                    '30029': AccountSuspended, // { "code": 30029, "message": "account suspended" }
-                    '30030': ExchangeNotAvailable, // { "code": 30030, "message": "endpoint request failed. Please try again" }
-                    '30031': BadRequest, // { "code": 30031, "message": "token does not exist" }
-                    '30032': BadSymbol, // { "code": 30032, "message": "pair does not exist" }
-                    '30033': BadRequest, // { "code": 30033, "message": "exchange domain does not exist" }
-                    '30034': ExchangeError, // { "code": 30034, "message": "exchange ID does not exist" }
-                    '30035': ExchangeError, // { "code": 30035, "message": "trading is not supported in this website" }
-                    '30036': ExchangeError, // { "code": 30036, "message": "no relevant data" }
-                    '30037': ExchangeNotAvailable, // { "code": 30037, "message": "endpoint is offline or unavailable" }
-                    // '30038': AuthenticationError, // { "code": 30038, "message": "user does not exist" }
-                    '30038': OnMaintenance, // {"client_oid":"","code":"30038","error_code":"30038","error_message":"Matching engine is being upgraded. Please try in about 1 minute.","message":"Matching engine is being upgraded. Please try in about 1 minute.","order_id":"-1","result":false}
-                    '30044': RequestTimeout, // { "code":30044, "message":"Endpoint request timeout" }
-                    // futures
-                    '32001': AccountSuspended, // { "code": 32001, "message": "futures account suspended" }
-                    '32002': PermissionDenied, // { "code": 32002, "message": "futures account does not exist" }
-                    '32003': CancelPending, // { "code": 32003, "message": "canceling, please wait" }
-                    '32004': ExchangeError, // { "code": 32004, "message": "you have no unfilled orders" }
-                    '32005': InvalidOrder, // { "code": 32005, "message": "max order quantity" }
-                    '32006': InvalidOrder, // { "code": 32006, "message": "the order price or trigger price exceeds USD 1 million" }
-                    '32007': InvalidOrder, // { "code": 32007, "message": "leverage level must be the same for orders on the same side of the contract" }
-                    '32008': InvalidOrder, // { "code": 32008, "message": "Max. positions to open (cross margin)" }
-                    '32009': InvalidOrder, // { "code": 32009, "message": "Max. positions to open (fixed margin)" }
-                    '32010': ExchangeError, // { "code": 32010, "message": "leverage cannot be changed with open positions" }
-                    '32011': ExchangeError, // { "code": 32011, "message": "futures status error" }
-                    '32012': ExchangeError, // { "code": 32012, "message": "futures order update error" }
-                    '32013': ExchangeError, // { "code": 32013, "message": "token type is blank" }
-                    '32014': ExchangeError, // { "code": 32014, "message": "your number of contracts closing is larger than the number of contracts available" }
-                    '32015': ExchangeError, // { "code": 32015, "message": "margin ratio is lower than 100% before opening positions" }
-                    '32016': ExchangeError, // { "code": 32016, "message": "margin ratio is lower than 100% after opening position" }
-                    '32017': ExchangeError, // { "code": 32017, "message": "no BBO" }
-                    '32018': ExchangeError, // { "code": 32018, "message": "the order quantity is less than 1, please try again" }
-                    '32019': ExchangeError, // { "code": 32019, "message": "the order price deviates from the price of the previous minute by more than 3%" }
-                    '32020': ExchangeError, // { "code": 32020, "message": "the price is not in the range of the price limit" }
-                    '32021': ExchangeError, // { "code": 32021, "message": "leverage error" }
-                    '32022': ExchangeError, // { "code": 32022, "message": "this function is not supported in your country or region according to the regulations" }
-                    '32023': ExchangeError, // { "code": 32023, "message": "this account has outstanding loan" }
-                    '32024': ExchangeError, // { "code": 32024, "message": "order cannot be placed during delivery" }
-                    '32025': ExchangeError, // { "code": 32025, "message": "order cannot be placed during settlement" }
-                    '32026': ExchangeError, // { "code": 32026, "message": "your account is restricted from opening positions" }
-                    '32027': ExchangeError, // { "code": 32027, "message": "cancelled over 20 orders" }
-                    '32028': ExchangeError, // { "code": 32028, "message": "account is suspended and liquidated" }
-                    '32029': ExchangeError, // { "code": 32029, "message": "order info does not exist" }
-                    '32030': InvalidOrder, // The order cannot be cancelled
-                    '32031': ArgumentsRequired, // client_oid or order_id is required.
-                    '32038': AuthenticationError, // User does not exist
-                    '32040': ExchangeError, // User have open contract orders or position
-                    '32044': ExchangeError, // { "code": 32044, "message": "The margin ratio after submitting this order is lower than the minimum requirement ({0}) for your tier." }
-                    '32045': ExchangeError, // String of commission over 1 million
-                    '32046': ExchangeError, // Each user can hold up to 10 trade plans at the same time
-                    '32047': ExchangeError, // system error
-                    '32048': InvalidOrder, // Order strategy track range error
-                    '32049': ExchangeError, // Each user can hold up to 10 track plans at the same time
-                    '32050': InvalidOrder, // Order strategy rang error
-                    '32051': InvalidOrder, // Order strategy ice depth error
-                    '32052': ExchangeError, // String of commission over 100 thousand
-                    '32053': ExchangeError, // Each user can hold up to 6 ice plans at the same time
-                    '32057': ExchangeError, // The order price is zero. Market-close-all function cannot be executed
-                    '32054': ExchangeError, // Trade not allow
-                    '32055': InvalidOrder, // cancel order error
-                    '32056': ExchangeError, // iceberg per order average should between {0}-{1} contracts
-                    '32058': ExchangeError, // Each user can hold up to 6 initiative plans at the same time
-                    '32059': InvalidOrder, // Total amount should exceed per order amount
-                    '32060': InvalidOrder, // Order strategy type error
-                    '32061': InvalidOrder, // Order strategy initiative limit error
-                    '32062': InvalidOrder, // Order strategy initiative range error
-                    '32063': InvalidOrder, // Order strategy initiative rate error
-                    '32064': ExchangeError, // Time Stringerval of orders should set between 5-120s
-                    '32065': ExchangeError, // Close amount exceeds the limit of Market-close-all (999 for BTC, and 9999 for the rest tokens)
-                    '32066': ExchangeError, // You have open orders. Please cancel all open orders before changing your leverage level.
-                    '32067': ExchangeError, // Account equity < required margin in this setting. Please adjust your leverage level again.
-                    '32068': ExchangeError, // The margin for this position will fall short of the required margin in this setting. Please adjust your leverage level or increase your margin to proceed.
-                    '32069': ExchangeError, // Target leverage level too low. Your account balance is insufficient to cover the margin required. Please adjust the leverage level again.
-                    '32070': ExchangeError, // Please check open position or unfilled order
-                    '32071': ExchangeError, // Your current liquidation mode does not support this action.
-                    '32072': ExchangeError, // The highest available margin for your order’s tier is {0}. Please edit your margin and place a new order.
-                    '32073': ExchangeError, // The action does not apply to the token
-                    '32074': ExchangeError, // The number of contracts of your position, open orders, and the current order has exceeded the maximum order limit of this asset.
-                    '32075': ExchangeError, // Account risk rate breach
-                    '32076': ExchangeError, // Liquidation of the holding position(s) at market price will require cancellation of all pending close orders of the contracts.
-                    '32077': ExchangeError, // Your margin for this asset in futures account is insufficient and the position has been taken over for liquidation. (You will not be able to place orders, close positions, transfer funds, or add margin during this period of time. Your account will be restored after the liquidation is complete.)
-                    '32078': ExchangeError, // Please cancel all open orders before switching the liquidation mode(Please cancel all open orders before switching the liquidation mode)
-                    '32079': ExchangeError, // Your open positions are at high risk.(Please add margin or reduce positions before switching the mode)
-                    '32080': ExchangeError, // Funds cannot be transferred out within 30 minutes after futures settlement
-                    '32083': ExchangeError, // The number of contracts should be a positive multiple of %%. Please place your order again
-                    // token and margin trading
-                    '33001': PermissionDenied, // { "code": 33001, "message": "margin account for this pair is not enabled yet" }
-                    '33002': AccountSuspended, // { "code": 33002, "message": "margin account for this pair is suspended" }
-                    '33003': InsufficientFunds, // { "code": 33003, "message": "no loan balance" }
-                    '33004': ExchangeError, // { "code": 33004, "message": "loan amount cannot be smaller than the minimum limit" }
-                    '33005': ExchangeError, // { "code": 33005, "message": "repayment amount must exceed 0" }
-                    '33006': ExchangeError, // { "code": 33006, "message": "loan order not found" }
-                    '33007': ExchangeError, // { "code": 33007, "message": "status not found" }
-                    '33008': InsufficientFunds, // { "code": 33008, "message": "loan amount cannot exceed the maximum limit" }
-                    '33009': ExchangeError, // { "code": 33009, "message": "user ID is blank" }
-                    '33010': ExchangeError, // { "code": 33010, "message": "you cannot cancel an order during session 2 of call auction" }
-                    '33011': ExchangeError, // { "code": 33011, "message": "no new market data" }
-                    '33012': ExchangeError, // { "code": 33012, "message": "order cancellation failed" }
-                    '33013': InvalidOrder, // { "code": 33013, "message": "order placement failed" }
-                    '33014': OrderNotFound, // { "code": 33014, "message": "order does not exist" }
-                    '33015': InvalidOrder, // { "code": 33015, "message": "exceeded maximum limit" }
-                    '33016': ExchangeError, // { "code": 33016, "message": "margin trading is not open for this token" }
-                    '33017': InsufficientFunds, // { "code": 33017, "message": "insufficient balance" }
-                    '33018': ExchangeError, // { "code": 33018, "message": "this parameter must be smaller than 1" }
-                    '33020': ExchangeError, // { "code": 33020, "message": "request not supported" }
-                    '33021': BadRequest, // { "code": 33021, "message": "token and the pair do not match" }
-                    '33022': InvalidOrder, // { "code": 33022, "message": "pair and the order do not match" }
-                    '33023': ExchangeError, // { "code": 33023, "message": "you can only place market orders during call auction" }
-                    '33024': InvalidOrder, // { "code": 33024, "message": "trading amount too small" }
-                    '33025': InvalidOrder, // { "code": 33025, "message": "base token amount is blank" }
-                    '33026': ExchangeError, // { "code": 33026, "message": "transaction completed" }
-                    '33027': InvalidOrder, // { "code": 33027, "message": "cancelled order or order cancelling" }
-                    '33028': InvalidOrder, // { "code": 33028, "message": "the decimal places of the trading price exceeded the limit" }
-                    '33029': InvalidOrder, // { "code": 33029, "message": "the decimal places of the trading size exceeded the limit" }
-                    '33034': ExchangeError, // { "code": 33034, "message": "You can only place limit order after Call Auction has started" }
-                    '33035': ExchangeError, // This type of order cannot be canceled(This type of order cannot be canceled)
-                    '33036': ExchangeError, // Exceeding the limit of entrust order
-                    '33037': ExchangeError, // The buy order price should be lower than 130% of the trigger price
-                    '33038': ExchangeError, // The sell order price should be higher than 70% of the trigger price
-                    '33039': ExchangeError, // The limit of callback rate is 0 < x <= 5%
-                    '33040': ExchangeError, // The trigger price of a buy order should be lower than the latest transaction price
-                    '33041': ExchangeError, // The trigger price of a sell order should be higher than the latest transaction price
-                    '33042': ExchangeError, // The limit of price variance is 0 < x <= 1%
-                    '33043': ExchangeError, // The total amount must be larger than 0
-                    '33044': ExchangeError, // The average amount should be 1/1000 * total amount <= x <= total amount
-                    '33045': ExchangeError, // The price should not be 0, including trigger price, order price, and price limit
-                    '33046': ExchangeError, // Price variance should be 0 < x <= 1%
-                    '33047': ExchangeError, // Sweep ratio should be 0 < x <= 100%
-                    '33048': ExchangeError, // Per order limit: Total amount/1000 < x <= Total amount
-                    '33049': ExchangeError, // Total amount should be X > 0
-                    '33050': ExchangeError, // Time interval should be 5 <= x <= 120s
-                    '33051': ExchangeError, // cancel order number not higher limit: plan and track entrust no more than 10, ice and time entrust no more than 6
-                    '33059': BadRequest, // { "code": 33059, "message": "client_oid or order_id is required" }
-                    '33060': BadRequest, // { "code": 33060, "message": "Only fill in either parameter client_oid or order_id" }
-                    '33061': ExchangeError, // Value of a single market price order cannot exceed 100,000 USD
-                    '33062': ExchangeError, // The leverage ratio is too high. The borrowed position has exceeded the maximum position of this leverage ratio. Please readjust the leverage ratio
-                    '33063': ExchangeError, // Leverage multiple is too low, there is insufficient margin in the account, please readjust the leverage ratio
-                    '33064': ExchangeError, // The setting of the leverage ratio cannot be less than 2, please readjust the leverage ratio
-                    '33065': ExchangeError, // Leverage ratio exceeds maximum leverage ratio, please readjust leverage ratio
-                    '33085': InvalidOrder, // The value of the position and buying order has reached the position limit, and no further buying is allowed.
-                    // account
-                    '21009': ExchangeError, // Funds cannot be transferred out within 30 minutes after swap settlement(Funds cannot be transferred out within 30 minutes after swap settlement)
-                    '34001': PermissionDenied, // { "code": 34001, "message": "withdrawal suspended" }
-                    '34002': InvalidAddress, // { "code": 34002, "message": "please add a withdrawal address" }
-                    '34003': ExchangeError, // { "code": 34003, "message": "sorry, this token cannot be withdrawn to xx at the moment" }
-                    '34004': ExchangeError, // { "code": 34004, "message": "withdrawal fee is smaller than minimum limit" }
-                    '34005': ExchangeError, // { "code": 34005, "message": "withdrawal fee exceeds the maximum limit" }
-                    '34006': ExchangeError, // { "code": 34006, "message": "withdrawal amount is lower than the minimum limit" }
-                    '34007': ExchangeError, // { "code": 34007, "message": "withdrawal amount exceeds the maximum limit" }
-                    '34008': InsufficientFunds, // { "code": 34008, "message": "insufficient balance" }
-                    '34009': ExchangeError, // { "code": 34009, "message": "your withdrawal amount exceeds the daily limit" }
-                    '34010': ExchangeError, // { "code": 34010, "message": "transfer amount must be larger than 0" }
-                    '34011': ExchangeError, // { "code": 34011, "message": "conditions not met" }
-                    '34012': ExchangeError, // { "code": 34012, "message": "the minimum withdrawal amount for NEO is 1, and the amount must be an integer" }
-                    '34013': ExchangeError, // { "code": 34013, "message": "please transfer" }
-                    '34014': ExchangeError, // { "code": 34014, "message": "transfer limited" }
-                    '34015': ExchangeError, // { "code": 34015, "message": "subaccount does not exist" }
-                    '34016': PermissionDenied, // { "code": 34016, "message": "transfer suspended" }
-                    '34017': AccountSuspended, // { "code": 34017, "message": "account suspended" }
-                    '34018': AuthenticationError, // { "code": 34018, "message": "incorrect trades password" }
-                    '34019': PermissionDenied, // { "code": 34019, "message": "please bind your email before withdrawal" }
-                    '34020': PermissionDenied, // { "code": 34020, "message": "please bind your funds password before withdrawal" }
-                    '34021': InvalidAddress, // { "code": 34021, "message": "Not verified address" }
-                    '34022': ExchangeError, // { "code": 34022, "message": "Withdrawals are not available for sub accounts" }
-                    '34023': PermissionDenied, // { "code": 34023, "message": "Please enable futures trading before transferring your funds" }
-                    '34026': RateLimitExceeded, // transfer too frequently(transfer too frequently)
-                    '34036': ExchangeError, // Parameter is incorrect, please refer to API documentation
-                    '34037': ExchangeError, // Get the sub-account balance interface, account type is not supported
-                    '34038': ExchangeError, // Since your C2C transaction is unusual, you are restricted from fund transfer. Please contact our customer support to cancel the restriction
-                    '34039': ExchangeError, // You are now restricted from transferring out your funds due to abnormal trades on C2C Market. Please transfer your fund on our website or app instead to verify your identity
-                    // swap
-                    '35001': ExchangeError, // { "code": 35001, "message": "Contract does not exist" }
-                    '35002': ExchangeError, // { "code": 35002, "message": "Contract settling" }
-                    '35003': ExchangeError, // { "code": 35003, "message": "Contract paused" }
-                    '35004': ExchangeError, // { "code": 35004, "message": "Contract pending settlement" }
-                    '35005': AuthenticationError, // { "code": 35005, "message": "User does not exist" }
-                    '35008': InvalidOrder, // { "code": 35008, "message": "Risk ratio too high" }
-                    '35010': InvalidOrder, // { "code": 35010, "message": "Position closing too large" }
-                    '35012': InvalidOrder, // { "code": 35012, "message": "Incorrect order size" }
-                    '35014': InvalidOrder, // { "code": 35014, "message": "Order price is not within limit" }
-                    '35015': InvalidOrder, // { "code": 35015, "message": "Invalid leverage level" }
-                    '35017': ExchangeError, // { "code": 35017, "message": "Open orders exist" }
-                    '35019': InvalidOrder, // { "code": 35019, "message": "Order size too large" }
-                    '35020': InvalidOrder, // { "code": 35020, "message": "Order price too high" }
-                    '35021': InvalidOrder, // { "code": 35021, "message": "Order size exceeded current tier limit" }
-                    '35022': BadRequest, // { "code": 35022, "message": "Contract status error" }
-                    '35024': BadRequest, // { "code": 35024, "message": "Contract not initialized" }
-                    '35025': InsufficientFunds, // { "code": 35025, "message": "No account balance" }
-                    '35026': BadRequest, // { "code": 35026, "message": "Contract settings not initialized" }
-                    '35029': OrderNotFound, // { "code": 35029, "message": "Order does not exist" }
-                    '35030': InvalidOrder, // { "code": 35030, "message": "Order size too large" }
-                    '35031': InvalidOrder, // { "code": 35031, "message": "Cancel order size too large" }
-                    '35032': ExchangeError, // { "code": 35032, "message": "Invalid user status" }
-                    '35037': ExchangeError, // No last traded price in cache
-                    '35039': InsufficientFunds, // { "code": 35039, "message": "Open order quantity exceeds limit" }
-                    '35040': InvalidOrder, // {"error_message":"Invalid order type","result":"true","error_code":"35040","order_id":"-1"}
-                    '35044': ExchangeError, // { "code": 35044, "message": "Invalid order status" }
-                    '35046': InsufficientFunds, // { "code": 35046, "message": "Negative account balance" }
-                    '35047': InsufficientFunds, // { "code": 35047, "message": "Insufficient account balance" }
-                    '35048': ExchangeError, // { "code": 35048, "message": "User contract is frozen and liquidating" }
-                    '35049': InvalidOrder, // { "code": 35049, "message": "Invalid order type" }
-                    '35050': InvalidOrder, // { "code": 35050, "message": "Position settings are blank" }
-                    '35052': InsufficientFunds, // { "code": 35052, "message": "Insufficient cross margin" }
-                    '35053': ExchangeError, // { "code": 35053, "message": "Account risk too high" }
-                    '35055': InsufficientFunds, // { "code": 35055, "message": "Insufficient account balance" }
-                    '35057': ExchangeError, // { "code": 35057, "message": "No last traded price" }
-                    '35058': ExchangeError, // { "code": 35058, "message": "No limit" }
-                    '35059': BadRequest, // { "code": 35059, "message": "client_oid or order_id is required" }
-                    '35060': BadRequest, // { "code": 35060, "message": "Only fill in either parameter client_oid or order_id" }
-                    '35061': BadRequest, // { "code": 35061, "message": "Invalid instrument_id" }
-                    '35062': InvalidOrder, // { "code": 35062, "message": "Invalid match_price" }
-                    '35063': InvalidOrder, // { "code": 35063, "message": "Invalid order_size" }
-                    '35064': InvalidOrder, // { "code": 35064, "message": "Invalid client_oid" }
-                    '35066': InvalidOrder, // Order interval error
-                    '35067': InvalidOrder, // Time-weighted order ratio error
-                    '35068': InvalidOrder, // Time-weighted order range error
-                    '35069': InvalidOrder, // Time-weighted single transaction limit error
-                    '35070': InvalidOrder, // Algo order type error
-                    '35071': InvalidOrder, // Order total must be larger than single order limit
-                    '35072': InvalidOrder, // Maximum 6 unfulfilled time-weighted orders can be held at the same time
-                    '35073': InvalidOrder, // Order price is 0. Market-close-all not available
-                    '35074': InvalidOrder, // Iceberg order single transaction average error
-                    '35075': InvalidOrder, // Failed to cancel order
-                    '35076': InvalidOrder, // LTC 20x leverage. Not allowed to open position
-                    '35077': InvalidOrder, // Maximum 6 unfulfilled iceberg orders can be held at the same time
-                    '35078': InvalidOrder, // Order amount exceeded 100,000
-                    '35079': InvalidOrder, // Iceberg order price variance error
-                    '35080': InvalidOrder, // Callback rate error
-                    '35081': InvalidOrder, // Maximum 10 unfulfilled trail orders can be held at the same time
-                    '35082': InvalidOrder, // Trail order callback rate error
-                    '35083': InvalidOrder, // Each user can only hold a maximum of 10 unfulfilled stop-limit orders at the same time
-                    '35084': InvalidOrder, // Order amount exceeded 1 million
-                    '35085': InvalidOrder, // Order amount is not in the correct range
-                    '35086': InvalidOrder, // Price exceeds 100 thousand
-                    '35087': InvalidOrder, // Price exceeds 100 thousand
-                    '35088': InvalidOrder, // Average amount error
-                    '35089': InvalidOrder, // Price exceeds 100 thousand
-                    '35090': ExchangeError, // No stop-limit orders available for cancelation
-                    '35091': ExchangeError, // No trail orders available for cancellation
-                    '35092': ExchangeError, // No iceberg orders available for cancellation
-                    '35093': ExchangeError, // No trail orders available for cancellation
-                    '35094': ExchangeError, // Stop-limit order last traded price error
-                    '35095': BadRequest, // Instrument_id error
-                    '35096': ExchangeError, // Algo order status error
-                    '35097': ExchangeError, // Order status and order ID cannot exist at the same time
-                    '35098': ExchangeError, // An order status or order ID must exist
-                    '35099': ExchangeError, // Algo order ID error
-                    '35102': RateLimitExceeded, // {"error_message":"The operation that close all at market price is too frequent","result":"true","error_code":"35102","order_id":"-1"}
-                    // option
-                    '36001': BadRequest, // Invalid underlying index.
-                    '36002': BadRequest, // Instrument does not exist.
-                    '36005': ExchangeError, // Instrument status is invalid.
-                    '36101': AuthenticationError, // Account does not exist.
-                    '36102': PermissionDenied, // Account status is invalid.
-                    '36103': PermissionDenied, // Account is suspended due to ongoing liquidation.
-                    '36104': PermissionDenied, // Account is not enabled for options trading.
-                    '36105': PermissionDenied, // Please enable the account for option contract.
-                    '36106': PermissionDenied, // Funds cannot be transferred in or out, as account is suspended.
-                    '36107': PermissionDenied, // Funds cannot be transferred out within 30 minutes after option exercising or settlement.
-                    '36108': InsufficientFunds, // Funds cannot be transferred in or out, as equity of the account is less than zero.
-                    '36109': PermissionDenied, // Funds cannot be transferred in or out during option exercising or settlement.
-                    '36201': PermissionDenied, // New order function is blocked.
-                    '36202': PermissionDenied, // Account does not have permission to short option.
-                    '36203': InvalidOrder, // Invalid format for client_oid.
-                    '36204': ExchangeError, // Invalid format for request_id.
-                    '36205': BadRequest, // Instrument id does not match underlying index.
-                    '36206': BadRequest, // Order_id and client_oid can not be used at the same time.
-                    '36207': InvalidOrder, // Either order price or fartouch price must be present.
-                    '36208': InvalidOrder, // Either order price or size must be present.
-                    '36209': InvalidOrder, // Either order_id or client_oid must be present.
-                    '36210': InvalidOrder, // Either order_ids or client_oids must be present.
-                    '36211': InvalidOrder, // Exceeding max batch size for order submission.
-                    '36212': InvalidOrder, // Exceeding max batch size for oder cancellation.
-                    '36213': InvalidOrder, // Exceeding max batch size for order amendment.
-                    '36214': ExchangeError, // Instrument does not have valid bid/ask quote.
-                    '36216': OrderNotFound, // Order does not exist.
-                    '36217': InvalidOrder, // Order submission failed.
-                    '36218': InvalidOrder, // Order cancellation failed.
-                    '36219': InvalidOrder, // Order amendment failed.
-                    '36220': InvalidOrder, // Order is pending cancel.
-                    '36221': InvalidOrder, // Order qty is not valid multiple of lot size.
-                    '36222': InvalidOrder, // Order price is breaching highest buy limit.
-                    '36223': InvalidOrder, // Order price is breaching lowest sell limit.
-                    '36224': InvalidOrder, // Exceeding max order size.
-                    '36225': InvalidOrder, // Exceeding max open order count for instrument.
-                    '36226': InvalidOrder, // Exceeding max open order count for underlying.
-                    '36227': InvalidOrder, // Exceeding max open size across all orders for underlying
-                    '36228': InvalidOrder, // Exceeding max available qty for instrument.
-                    '36229': InvalidOrder, // Exceeding max available qty for underlying.
-                    '36230': InvalidOrder, // Exceeding max position limit for underlying.
+                    '1': ExchangeError, // Operation failed.
+                    '2': ExchangeError, // Bulk operation partially succeeded.
+                    '50000': ExchangeError, // Body cannot be empty.
+                    '50001': ExchangeError, // Service temporarily unavailable, please try again later.
+                    '50002': BadRequest, // Json data format error.
+                    '50004': ExchangeError, // Endpoint request timeout (does not mean that the request was successful or failed, please check the request result).
+                    '50005': ExchangeError, // API is offline or unavailable.
+                    '50006': BadRequest, // Invalid Content_Type, please use "application/json" format.
+                    '50007': AccountSuspended, // Account blocked.
+                    '50008': AuthenticationError, // User does not exist.
+                    '50009': AccountSuspended, // Account is suspended due to ongoing liquidation.
+                    '50010': BadRequest, // User ID cannot be empty.
+                    '50011': RateLimitExceeded, // Requests too frequent.
+                    '50012': BadRequest, // Account status invalid.
+                    '50013': RateLimitExceeded, // System is busy, please try again later.
+                    '50014': BadRequest, // Parameter  cannot be empty.
+                    '50015': ExchangeError, // Either parameter  or  is required.
+                    '50016': BadRequest, // Parameter  does not match parameter .
+                    '50024': BadRequest, // Parameter  and  cannot exist at the same time.
+                    '50025': BadRequest, // Parameter  count exceeds the limit .
+                    '50026': ExchangeError, // System error, please try again later.
+                    '50027': PermissionDenied, // The account is restricted from trading.
+                    '50028': ExchangeError, // Unable to take the order, please reach out to support center for details.
+                    '50029': ExchangeError, // This instrument () is unavailable at present due to risk management. Please contact customer service for help.
+                    '50030': PermissionDenied, // No permission to use this API
+                    '50032': InvalidOrder, // This asset is blocked, allow its trading and try again
+                    '50033': InvalidOrder, // This instrument is blocked, allow its trading and try again
+                    '50035': PermissionDenied, // This endpoint requires that APIKey must be bound to IP
+                    '50036': InvalidOrder, // Invalid expTime
+                    '50037': InvalidOrder, // Order expired
+                    '50038': ExchangeError, // This feature is temporarily unavailable in demo trading
+                    '50039': BadRequest, // The before parameter is not available for implementing timestamp pagination
+                    '50041': ExchangeError, // You are not currently on the whitelist, please contact customer service
+                    '50100': ExchangeError, // API frozen, please contact customer service.
+                    '50101': AuthenticationError, // APIKey does not match current environment.
+                    '50102': BadRequest, // Timestamp request expired.
+                    '50103': BadRequest, // Request header "OK-ACCESS-KEY" cannot be empty.
+                    '50104': BadRequest, // Request header "OK-ACCESS-PASSPHRASE" cannot be empty.
+                    '50105': BadRequest, // Request header "OK-ACCESS-PASSPHRASE" incorrect.
+                    '50106': BadRequest, // Request header "OK-ACCESS-SIGN" cannot be empty.
+                    '50107': BadRequest, // Request header "OK-ACCESS-TIMESTAMP" cannot be empty.
+                    '50108': BadRequest, // Exchange ID does not exist.
+                    '50109': BadRequest, // Exchange domain does not exist.
+                    '50110': PermissionDenied, // Your IP  is not included in your API key's IP whitelist.
+                    '50111': AuthenticationError, // Invalid OK-ACCESS-KEY.
+                    '50112': AuthenticationError, // Invalid OK-ACCESS-TIMESTAMP.
+                    '50113': AuthenticationError, // Invalid signature.
+                    '50114': AuthenticationError, // Invalid authorization.
+                    '50115': AuthenticationError, // Invalid request method.
+                    '51000': BadRequest, // Parameter  error.
+                    '51001': InvalidOrder, // Instrument ID does not exist.
+                    '51003': InvalidOrder, // Either client order ID or order ID is required.
+                    '51005': InvalidOrder, // Order amount exceeds the limit.
+                    '51006': InvalidOrder, // Order price is not within the price limit (max buy price:  min sell price: )
+                    '51008': InsufficientFunds, // Order failed. Insufficient account balance
+                    '51009': ExchangeError, // Order placement function is blocked by the platform.
+                    '51010': PermissionDenied, // Operation is not supported under the current account mode.
+                    '51011': InvalidOrder, // Duplicated order ID.
+                    '51012': InvalidOrder, // Token does not exist.
+                    '51014': InvalidOrder, // Index does not exist.
+                    '51015': InvalidOrder, // Instrument ID does not match instrument type.
+                    '51016': InvalidOrder, // Duplicated client order ID.
+                    '51020': InvalidOrder, // Order amount should be greater than the min available amount.
+                    '51023': InvalidOrder, // Position does not exist.
+                    '51024': PermissionDenied, // Trading account is blocked.
+                    '51025': InvalidOrder, // Order count exceeds the limit.
+                    '51026': InvalidOrder, // Instrument type does not match underlying index.
+                    '51030': InvalidOrder, // Funding fee is being settled.
+                    '51031': InvalidOrder, // This order price is not within the closing price range.
+                    '51032': InvalidOrder, // Closing all positions at market price.
+                    '51033': InvalidOrder, // The total amount per order for this pair has reached the upper limit.
+                    '51037': InvalidOrder, // The current account risk status only supports you to place IOC orders that can reduce the risk of your account.
+                    '51038': InvalidOrder, // There is already an IOC order under the current risk module that reduces the risk of the account.
+                    '51044': InvalidOrder, // The order type ,  is not allowed to set stop loss and take profit
+                    '51046': InvalidOrder, // The take profit trigger price should be higher than the order price
+                    '51047': InvalidOrder, // The stop loss trigger price should be lower than the order price
+                    '51048': InvalidOrder, // The take profit trigger price should be lower than the order price
+                    '51049': InvalidOrder, // The stop loss trigger price should be higher than the order price
+                    '51050': InvalidOrder, // The take profit trigger price should be higher than the best ask price
+                    '51051': InvalidOrder, // The stop loss trigger price should be lower than the best ask price
+                    '51052': InvalidOrder, // The take profit trigger price should be lower than the best bid price
+                    '51053': InvalidOrder, // The stop loss trigger price should be higher than the best bid price
+                    '51054': ExchangeError, // Getting information timed out, please try again later
+                    '51056': PermissionDenied, // Action not allowed
+                    '51058': InvalidOrder, // No available position for this algo order
+                    '51059': InvalidOrder, // Strategy for the current state does not support this operation
+                    '51101': InvalidOrder, // Entered amount exceeds the max pending order amount (Cont) per transaction.
+                    '51103': InvalidOrder, // Entered amount exceeds the max pending order count of the underlying asset.
+                    '51104': InvalidOrder, // Entered amount exceeds the max pending order amount (Cont) of the underlying asset.
+                    '51106': InvalidOrder, // Entered amount exceeds the max order amount (Cont) of the underlying asset.
+                    '51107': InvalidOrder, // Entered amount exceeds the max holding amount (Cont).
+                    '51109': InvalidOrder, // No available offer.
+                    '51110': InvalidOrder, // You can only place a limit order after Call Auction has started.
+                    '51111': InvalidOrder, // Maximum  orders can be placed in bulk.
+                    '51112': InvalidOrder, // Close order size exceeds your available size.
+                    '51113': RateLimitExceeded, // Market-price liquidation requests too frequent.
+                    '51115': InvalidOrder, // Cancel all pending close-orders before liquidation.
+                    '51116': InvalidOrder, // Order price or trigger price exceeds .
+                    '51117': InvalidOrder, // Pending close-orders count exceeds limit.
+                    '51120': InvalidOrder, // Order quantity is less than , please try again.
+                    '51121': InvalidOrder, // Order count should be the integer multiples of the lot size.
+                    '51122': InvalidOrder, // Order price should be higher than the min price .
+                    '51124': InvalidOrder, // You can only place limit orders during call auction.
+                    '51127': InsufficientFunds, // Available balance is 0.
+                    '51129': InvalidOrder, // The value of the position and buy order has reached the position limit, and no further buying is allowed.
+                    '51131': InsufficientFunds, // Insufficient balance.
+                    '51132': InvalidOrder, // Your position amount is negative and less than the minimum trading amount.
+                    '51134': InvalidOrder, // Closing position failed. Please check your holdings and pending orders.
+                    '51135': InvalidOrder, // Your closing price has triggered the limit price, and the max buy price is .
+                    '51136': InvalidOrder, // Your closing price has triggered the limit price, and the min sell price is .
+                    '51137': InvalidOrder, // Your opening price has triggered the limit price, and the max buy price is .
+                    '51138': InvalidOrder, // Your opening price has triggered the limit price, and the min sell price is .
+                    '51139': InvalidOrder, // Reduce-only feature is unavailable for the spot transactions by simple account.
+                    '51143': InvalidOrder, // There is no valid quotation in the market, and the order cannot be filled in USDT mode, please try to switch to currency mode
+                    '51148': InvalidOrder, // ReduceOnly cannot increase the position quantity.
+                    '51149': ExchangeError, // Order timed out, please try again later.
+                    '51150': InvalidOrder, // The precision of the number of trades or the price exceeds the limit.
+                    '51201': InvalidOrder, // Value of per market order cannot exceed 1,000,000 USDT.
+                    '51202': InvalidOrder, // Market - order amount exceeds the max amount.
+                    '51203': InvalidOrder, // Order amount exceeds the limit .
+                    '51204': InvalidOrder, // The price for the limit order cannot be empty.
+                    '51205': InvalidOrder, // Reduce-Only is not available.
+                    '51206': InvalidOrder, // Please cancel the Reduce Only order before placing the current  order to avoid opening a reverse position.
+                    '51250': InvalidOrder, // Algo order price is out of the available range.
+                    '51251': InvalidOrder, // Algo order type error (when user place an iceberg order).
+                    '51252': InvalidOrder, // Algo order amount is out of the available range.
+                    '51253': InvalidOrder, // Average amount exceeds the limit of per iceberg order.
+                    '51254': InvalidOrder, // Iceberg average amount error (when user place an iceberg order).
+                    '51255': InvalidOrder, // Limit of per iceberg order: Total amount/1000 < x <= Total amount.
+                    '51256': InvalidOrder, // Iceberg order price variance error.
+                    '51257': InvalidOrder, // Trail order callback rate error.
+                    '51258': InvalidOrder, // Trail - order placement failed. The trigger price of a sell order should be higher than the last transaction price.
+                    '51259': InvalidOrder, // Trail - order placement failed. The trigger price of a buy order should be lower than the last transaction price.
+                    '51260': InvalidOrder, // Maximum  pending trail - orders can be held at the same time.
+                    '51261': InvalidOrder, // Each user can hold up to  pending stop - orders at the same time.
+                    '51262': InvalidOrder, // Maximum  pending iceberg orders can be held at the same time.
+                    '51263': InvalidOrder, // Maximum  pending time-weighted orders can be held at the same time.
+                    '51264': InvalidOrder, // Average amount exceeds the limit of per time-weighted order.
+                    '51265': InvalidOrder, // Time-weighted order limit error.
+                    '51267': InvalidOrder, // Time-weighted order strategy initiative rate error.
+                    '51268': InvalidOrder, // Time-weighted order strategy initiative range error.
+                    '51269': InvalidOrder, // Time-weighted order interval error, the interval should be <= x<=.
+                    '51270': InvalidOrder, // The limit of time-weighted order price variance is 0 < x <= 1%.
+                    '51271': InvalidOrder, // Sweep ratio should be 0 < x <= 100%.
+                    '51272': InvalidOrder, // Price variance should be 0 < x <= 1%.
+                    '51273': InvalidOrder, // Total amount should be more than .
+                    '51274': InvalidOrder, // Total quantity of time-weighted order must be larger than single order limit.
+                    '51275': InvalidOrder, // The amount of single stop-market order cannot exceed the upper limit.
+                    '51276': InvalidOrder, // Stop - Market orders cannot specify a price.
+                    '51277': InvalidOrder, // TP trigger price cannot be higher than the last price.
+                    '51278': InvalidOrder, // SL trigger price cannot be lower than the last price.
+                    '51279': InvalidOrder, // TP trigger price cannot be lower than the last price.
+                    '51280': InvalidOrder, // SL trigger price cannot be higher than the last price.
+                    '51281': InvalidOrder, // trigger not support the tgtCcy parameter.
+                    '51282': InvalidOrder, // The range of Price variance is ~
+                    '51283': InvalidOrder, // The range of Time interval is ~
+                    '51284': InvalidOrder, // The range of Average amount is ~
+                    '51285': InvalidOrder, // The range of Total amount is ~
+                    '51286': InvalidOrder, // The total amount should not be less than
+                    '51288': ExchangeError, // We are stopping the Bot. Please do not click it multiple times
+                    '51289': ExchangeError, // Bot configuration does not exist. Please try again later
+                    '51290': ExchangeError, // The Bot engine is being upgraded. Please try again later
+                    '51291': ExchangeError, // This Bot does not exist or has been stopped
+                    '51292': ExchangeError, // This Bot type does not exist
+                    '51293': ExchangeError, // This Bot does not exist
+                    '51294': ExchangeError, // This Bot cannot be created temporarily. Please try again later
+                    '51299': InvalidOrder, // Order did not go through. You can hold maximum  orders of this type
+                    '51300': InvalidOrder, // TP trigger price cannot be higher than the mark price
+                    '51302': InvalidOrder, // SL trigger price cannot be lower than the mark price
+                    '51303': InvalidOrder, // TP trigger price cannot be lower than the mark price
+                    '51304': InvalidOrder, // SL trigger price cannot be higher than the mark price
+                    '51305': InvalidOrder, // TP trigger price cannot be higher than the index price
+                    '51306': InvalidOrder, // SL trigger price cannot be lower than the index price
+                    '51307': InvalidOrder, // TP trigger price cannot be lower than the index price
+                    '51308': InvalidOrder, // SL trigger price cannot be higher than the index price
+                    '51309': InvalidOrder, // Cannot create trading bot during call auction
+                    '51311': InvalidOrder, // Failed to place trailing stop order. Callback rate should be within <x<=
+                    '51312': InvalidOrder, // Failed to place trailing stop order. Order amount should be within <x<=
+                    '51313': InvalidOrder, // Manual transfer in isolated mode does not support bot trading
+                    '51341': InvalidOrder, // Position closing not allowed
+                    '51342': InvalidOrder, // Closing order already exists. Please try again later
+                    '51343': InvalidOrder, // TP price must be less than the lower price
+                    '51344': InvalidOrder, // SL price must be greater than the upper price
+                    '51345': InvalidOrder, // Policy type is not grid policy
+                    '51346': InvalidOrder, // The highest price cannot be lower than the lowest price
+                    '51347': InvalidOrder, // No profit available
+                    '51348': InvalidOrder, // Stop loss price should be less than the lower price in the range
+                    '51349': InvalidOrder, // Stop profit price should be greater than the highest price in the range
+                    '51350': InvalidOrder, // No recommended parameters
+                    '51351': InvalidOrder, // Single income must be greater than 0
+                    '51400': InvalidOrder, // Cancelation failed as the order does not exist.
+                    '51401': InvalidOrder, // Cancelation failed as the order is already canceled.
+                    '51402': InvalidOrder, // Cancelation failed as the order is already completed.
+                    '51403': InvalidOrder, // Cancelation failed as the order type does not support cancelation.
+                    '51404': InvalidOrder, // Order cancelation unavailable during the second phase of call auction.
+                    '51405': InvalidOrder, // Cancelation failed as you do not have any pending orders.
+                    '51406': InvalidOrder, // Canceled - order count exceeds the limit .
+                    '51407': BadRequest, // Either order ID or client order ID is required.
+                    '51408': InvalidOrder, // Pair ID or name does not match the order info.
+                    '51409': InvalidOrder, // Either pair ID or pair name ID is required.
+                    '51410': InvalidOrder, // Cancelation pending. Duplicate order rejected.
+                    '51411': PermissionDenied, // Account does not have permission for mass cancelation.
+                    '51412': InvalidOrder, // The order has been triggered and cannot be canceled.
+                    '51413': InvalidOrder, // Cancelation failed as the order type is not supported by endpoint.
+                    '51415': InvalidOrder, // Unable to place order. Spot trading only supports using the last price as trigger price. Please select "Last" and try again.
+                    '51500': InvalidOrder, // Either order price or amount is required.
+                    '51501': InvalidOrder, // Maximum  orders can be modified.
+                    '51503': InvalidOrder, // Order modification failed as the order does not exist.
+                    '51506': InvalidOrder, // Order modification unavailable for the order type.
+                    '51508': InvalidOrder, // Orders are not allowed to be modified during the call auction.
+                    '51509': InvalidOrder, // Modification failed as the order has been canceled.
+                    '51510': InvalidOrder, // Modification failed as the order has been completed.
+                    '51511': InvalidOrder, // Operation failed as the order price did not meet the requirement for Post Only.
+                    '51512': InvalidOrder, // Failed to amend orders in batches. You cannot have duplicate orders in the same amend-batch-orders request.
+                    '51513': InvalidOrder, // Number of modification requests that are currently in progress for an order cannot exceed 3.
+                    '51600': InvalidOrder, // Status not found.
+                    '51601': InvalidOrder, // Order status and order ID cannot exist at the same time.
+                    '51602': InvalidOrder, // Either order status or order ID is required.
+                    '51603': InvalidOrder, // Order does not exist.
+                    '51607': ExchangeError, // The file is generating.
+                    '52000': ExchangeError, // No market data found.
+                    '54000': ExchangeError, // Margin trading is not supported.
+                    '58002': PermissionDenied, // Please activate Savings Account first.
+                    '58003': BadRequest, // Currency type is not supported by Savings Account.
+                    '58004': AccountSuspended, // Account blocked
+                    '58005': BadRequest, // The purchase/redeemed amount must be no greater than .
+                    '58006': ExchangeError, // Service unavailable for token .
+                    '58007': ExchangeError, // Abnormal Assets interface. Please try again later.
+                    '58008': InsufficientFunds, // You do not have assets in this currency.
+                    '58009': BadRequest, // Currency pair do not exist.
+                    '58010': BadRequest, // The chain  is not supported.
+                    '58011': PermissionDenied, // Sorry, we are unable to provide services to unverified users in  due to local laws and regulations. Please verify your account in order to use the services.
+                    '58012': PermissionDenied, // Sorry, you can't transfer assets to this recipient as Okcoin are unable to provide services to unverified users in  due to local laws and regulations.
+                    '58100': PermissionDenied, // The trading product triggers risk control, and the platform has suspended the fund transfer-out function with related users. Please wait patiently.
+                    '58101': PermissionDenied, // Transfer suspended
+                    '58102': RateLimitExceeded, // Too frequent transfer (transfer too frequently).
+                    '58104': PermissionDenied, // Since your P2P transaction is abnormal, you are restricted from making fund transfers. Please contact customer support to remove the restriction.
+                    '58105': PermissionDenied, // Since your P2P transaction is abnormal, you are restricted from making fund transfers. Please transfer funds on our website or app to complete identity verification.
+                    '58112': ExchangeError, // Your fund transfer failed. Please try again later.
+                    '58114': BadRequest, // Transfer amount must be more than 0.
+                    '58115': BadRequest, // Sub-account does not exist.
+                    '58116': BadRequest, // Transfer amount exceeds the limit.
+                    '58117': BadRequest, // Account assets are abnormal, please deal with negative assets before transferring.
+                    '58119': PermissionDenied, //  Sub-account has no permission to transfer out, please set first.
+                    '58120': ExchangeError, // The transfer service is temporarily unavailable, please try again later.
+                    '58121': BadRequest, // This transfer will result in a high-risk level of your position, which may lead to forced liquidation. You need to re-adjust the transfer amount to make sure the position is at a safe level before proceeding with the transfer.
+                    '58123': BadRequest, // Parameter from cannot equal to parameter to.
+                    '58124': BadRequest, // Your transfer is being processed, transfer id:. Please check the latest state of your transfer from the endpoint (GET /api/v5/asset/transfer-state)
+                    '58200': ExchangeError, // Withdrawal from  to  is currently not supported for this currency.
+                    '58201': ExchangeError, // Withdrawal amount exceeds the daily limit.
+                    '58202': BadRequest, // The minimum withdrawal amount for NEO is 1, and the amount must be an integer.
+                    '58203': BadRequest, // Please add a withdrawal address.
+                    '58204': PermissionDenied, // Withdrawal suspended.
+                    '58205': BadRequest, // Withdrawal amount exceeds the upper limit.
+                    '58206': BadRequest, // Withdrawal amount is less than the lower limit.
+                    '58207': BadRequest, // Withdrawal address is not in the verification-free whitelist.
+                    '58208': BadRequest, // Withdrawal failed. Please link your email.
+                    '58209': BadRequest, // Sub-accounts cannot be deposits or withdrawals
+                    '58210': BadRequest, // Withdrawal fee exceeds the upper limit.
+                    '58211': BadRequest, // Withdrawal fee is lower than the lower limit (withdrawal endpoint: incorrect fee).
+                    '58212': BadRequest, // Withdrawal fee should be % of the withdrawal amount.
+                    '58213': BadRequest, // Please set a trading password before withdrawing.
+                    '58214': OnMaintenance, // Withdrawals suspended due to  maintenance
+                    '58215': BadRequest, // Withdrawal ID does not exist.
+                    '58216': ExchangeError, // Operation not allowed.
+                    '58217': ExchangeError, // You cannot withdraw your asset at the moment due to a risk detected in your withdrawal address, contact customer support for details.
+                    '58218': PermissionDenied, // Your saved withdrawal account has expired.
+                    '58220': BadRequest, // The withdrawal order is already canceled.
+                    '58221': BadRequest, // Missing label of withdrawal address.
+                    '58222': ExchangeError, // Temporarily unable to process withdrawal address.
+                    '58224': BadRequest, // This type of coin does not support on-chain withdrawals. Please use internal transfers.
+                    '58225': PermissionDenied, // Sorry, you can't transfer assets to this recipient as Okcoin are unable to provide services to unverified users in  due to local laws and regulations.
+                    '58226': BadRequest, //  is delisted and not available for crypto withdrawal.
+                    '58300': BadRequest, // Deposit-address count exceeds the limit.
+                    '58301': BadRequest, // Deposit-address not exist.
+                    '58302': BadRequest, // Deposit-address needs tag.
+                    '58303': BadRequest, // Deposit for the chain  is closed now.
+                    '58304': ExchangeError, // Failed to create invoice.
+                    '58350': InsufficientFunds, // Insufficient balance.
+                    '58351': BadRequest, // Invoice expired.
+                    '58352': BadRequest, // Invalid invoice.
+                    '58353': BadRequest, // Deposit amount must be within limits.
+                    '58354': BadRequest, // You have reached the limit of 10,000 invoices per day.
+                    '58355': PermissionDenied, // Permission denied. Please contact your account manager.
+                    '58356': ExchangeError, // The accounts of the same node do not support the Lightning network deposit or withdrawal.
+                    '58357': BadRequest, //  is not allowed to create a deposit address
+                    '58358': BadRequest, // fromCcy should not be the same as toCcy
+                    '58370': BadRequest, // The daily usage of small assets convert exceeds the limit.
+                    '58371': BadRequest, // Small assets exceed the maximum limit.
+                    '58372': InsufficientFunds, // Insufficient small assets.
+                    '59000': BadRequest, // Your settings failed as you have positions or open orders.
+                    '59002': BadRequest, // Sub-account settings failed as it has positions, open orders, or trading bots.
+                    '59004': BadRequest, // Only IDs with the same instrument type are supported
+                    '59110': BadRequest, // The instrument type corresponding to this  does not support the tgtCcy parameter.
+                    '59200': InsufficientFunds, // Insufficient account balance.
+                    '59201': InsufficientFunds, // Negative account balance.
+                    '59401': BadRequest, // Holdings already reached the limit.
+                    '59402': BadRequest, // None of the passed instId is in live state, please check them separately.
+                    '59500': PermissionDenied, // Only the APIKey of the main account has permission.
+                    '59501': PermissionDenied, // Only 50 APIKeys can be created per account.
+                    '59502': BadRequest, // Note name cannot be duplicate with the currently created APIKey note name.
+                    '59503': BadRequest, // Each APIKey can bind up to 20 IP addresses.
+                    '59504': BadRequest, // The sub account does not support the withdrawal function.
+                    '59505': BadRequest, // The passphrase format is incorrect.
+                    '59506': BadRequest, // APIKey does not exist.
+                    '59507': BadRequest, // The two accounts involved in a transfer must be two different sub accounts under the same parent account.
+                    '59508': PermissionDenied, // The sub account of  is suspended.
+                    '59510': BadRequest, // Sub-account does not exist
+                    '59601': BadRequest, // This sub-account name already exists, try another name
+                    '59602': BadRequest, // Number of API keys exceeds the limit
+                    '59603': BadRequest, // Number of sub accounts exceeds the limit
+                    '59604': PermissionDenied, // Only the main account APIkey can access this API
+                    '59605': BadRequest, // This API key does not exist in your sub-account, try another API key
+                    '59606': BadRequest, // Transfer funds to your main account before deleting your sub-account
+                    '59612': BadRequest, // Cannot convert time format
+                    '59613': BadRequest, // There is currently no escrow relationship established with the sub account
+                    '59614': BadRequest, // Managed sub account do not support this operation
+                    '59615': BadRequest, // The time interval between the begin date and end date cannot exceed 180 days.
+                    '59616': BadRequest, // Begin date cannot be greater than end date.
+                    '59617': ExchangeError, // Sub-account created. Failed to set up account level.
+                    '59618': ExchangeError, // Failed to create sub-account.
                 },
                 'broad': {
                 },
