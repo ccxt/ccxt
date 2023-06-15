@@ -395,34 +395,22 @@ export default class krakenfutures extends krakenfuturesRest {
     parseWsOrderTrade (trade, market = undefined) {
         //
         //    {
-        //        "symbol": "BTC_USDT",
-        //        "type": "LIMIT",
-        //        "quantity": "1",
-        //        "orderId": "32471407854219264",
-        //        "tradeFee": "0",
-        //        "clientOrderId": "",
-        //        "accountType": "SPOT",
-        //        "feeCurrency": "",
-        //        "eventType": "place",
-        //        "source": "API",
-        //        "side": "BUY",
-        //        "filledQuantity": "0",
-        //        "filledAmount": "0",
-        //        "matchRole": "MAKER",
-        //        "state": "NEW",
-        //        "tradeTime": 0,
-        //        "tradeAmount": "0",
-        //        "orderAmount": "0",
-        //        "createTime": 1648708186922,
-        //        "price": "47112.1",
-        //        "tradeQty": "0",
-        //        "tradePrice": "0",
-        //        "tradeId": "0",
-        //        "ts": 1648708187469
+        //        "instrument": "PI_XBTUSD",
+        //        "time": 1567597581495,
+        //        "last_update_time": 1567597581495,
+        //        "qty": 102.0,
+        //        "filled": 0.0,
+        //        "limit_price": 10601.0,
+        //        "stop_price": 0.0,
+        //        "type": "limit",
+        //        "order_id": "fa9806c9-cba9-4661-9f31-8c5fd045a95d",
+        //        "direction": 0,
+        //        "reduce_only": false
         //    }
         //
-        const timestamp = this.safeInteger (trade, 'tradeTime');
-        const marketId = this.safeStringLower (trade, 'symbol');
+        const timestamp = this.safeInteger (trade, 'last_update_time');
+        const marketId = this.safeStringLower (trade, 'instrument');
+        const direction = this.safeInteger (trade, 'direction');
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'tradeId'),
@@ -431,15 +419,15 @@ export default class krakenfutures extends krakenfuturesRest {
             'datetime': this.iso8601 (timestamp),
             'order': this.safeString (trade, 'orderId'),
             'type': this.safeStringLower (trade, 'type'),
-            'side': this.safeString (trade, 'side'),
-            'takerOrMaker': this.safeString (trade, 'matchRole'),
-            'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'tradeAmount'), // ? tradeQty?
+            'side': (direction === 0) ? 'buy' : 'sell',
+            'takerOrMaker': undefined,
+            'price': this.safeString (trade, 'limit_price'),
+            'amount': undefined,
             'cost': undefined,
             'fee': {
                 'rate': undefined,
-                'cost': this.safeString (trade, 'tradeFee'),
-                'currency': this.safeString (trade, 'feeCurrency'),
+                'cost': undefined,
+                'currency': undefined,
             },
         }, market);
     }
