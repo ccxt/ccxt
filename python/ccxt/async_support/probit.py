@@ -1359,6 +1359,83 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_transaction(data, currency)
 
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of transaction structures to retrieve
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        request = {
+            'type': 'deposit',
+        }
+        result = await self.fetch_transactions(code, since, limit, self.extend(request, params))
+        return result
+
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch all withdrawals made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of transaction structures to retrieve
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        request = {
+            'type': 'withdrawal',
+        }
+        result = await self.fetch_transactions(code, since, limit, self.extend(request, params))
+        return result
+
+    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch all transactions made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch transactions for
+        :param int|None limit: the maximum number of transaction structures to retrieve
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        await self.load_markets()
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['currency_id'] = currency['id']
+        if since is not None:
+            request['start_time'] = self.iso8601(since)
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privateGetTransferPayment(self.extend(request, params))
+        #
+        #     {
+        #         "data": [
+        #             {
+        #                 "id": "01211d4b-0e68-41d6-97cb-298bfe2cab67",
+        #                 "type": "deposit",
+        #                 "status": "done",
+        #                 "amount": "0.01",
+        #                 "address": "0x9e7430fc0bdd14745bd00a1b92ed25133a7c765f",
+        #                 "time": "2023-06-14T12:03:11.000Z",
+        #                 "hash": "0x0ff5bedc9e378f9529acc6b9840fa8c2ef00fd0275e0bac7fa0589a9b5d1712e",
+        #                 "currency_id": "ETH",
+        #                 "confirmations":0,
+        #                 "fee": "0",
+        #                 "destination_tag": null,
+        #                 "platform_id": "ETH",
+        #                 "fee_currency_id": "ETH",
+        #                 "payment_service_name":null,
+        #                 "payment_service_display_name":null,
+        #                 "crypto":null
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_transactions(data, currency, since, limit)
+
     def parse_transaction(self, transaction, currency=None):
         id = self.safe_string(transaction, 'id')
         amount = self.safe_number(transaction, 'amount')
@@ -1415,9 +1492,8 @@ class probit(Exchange, ImplicitAPI):
         """
         see https://docs-en.probit.com/reference/currency
         fetch deposit and withdraw fees
-        see https://docs.poloniex.com/#public-endpoints-reference-data-currency-information
         :param [str]|None codes: list of unified currency codes
-        :param dict params: extra parameters specific to the poloniex api endpoint
+        :param dict params: extra parameters specific to the probit api endpoint
         :returns [dict]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
