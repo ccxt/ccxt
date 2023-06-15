@@ -81,41 +81,88 @@ export default async (exchange, symbol) => {
         "reduce_only": true
     };
 
+    const response3 = {
+        "instrument": "PI_XBTUSD",
+        "time": 1567702877410,
+        "last_update_time": 1567702877410,
+        "qty": 304.0,
+        "filled": 30.0,
+        "limit_price": 10640.0,
+        "stop_price": 0.0,
+        "type": "limit",
+        "order_id": "59302619-41d2-4f0b-941f-7e7914760ad3",
+        "direction": 1,
+        "reduce_only": true
+    };
+
     const order1 = exchange.parseWsOrder (response1);
 
-    // exchange.orders.hashmap['BTC/USDT'] = {
-    //     '59302619-41d2-4f0b-941f-7e7914760ad3': order1,
-    // };
-
-    // const parsedOrder = exchange.handleOrderPreviousOrder (response1, exchange.orders, 'BTC/USD:BTC');
-
-    exchange.orders.append (order1);
     const parsedOrder1 = exchange.handlePreviousOrder (response1, 'BTC/USD:BTC');
+    exchange.orders.append (parsedOrder1);
     assert (parsedOrder1 === order1);
 
     const trades = [
         {
-            'info': trade,
-            'id': this.safeString (trade, 'fill_id'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': this.safeString (market, 'symbol'),
-            'order': this.safeString (trade, 'order_id'),
-            'type': this.safeString (trade, 'type'),
-            'side': isBuy ? 'buy' : 'sell',
-            'takerOrMaker': this.safeString (trade, 'fill_type'),
-            'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'qty'),
-            'cost': undefined,
-            'fee': {
-                'currency': this.safeCurrencyCode (feeCurrencyId),
-                'cost': this.safeString (trade, 'fee_paid'),
-                'rate': undefined,
+            'info': {
+                'instrument': 'PI_XBTUSD',
+                'time': 1567702877410,
+                'last_update_time': 1567702877410,
+                'qty': 304,
+                'filled': 20,
+                'limit_price': 10640,
+                'stop_price': 0,
+                'type': 'limit',
+                'order_id': '59302619-41d2-4f0b-941f-7e7914760ad3',
+                'direction': 1,
+                'reduce_only': true
             },
+            'id': undefined,
+            'symbol': 'BTC/USD:BTC',
+            'timestamp': 1567702877410,
+            'datetime': '2019-09-05T17:01:17.410Z',
+            'order': undefined,
+            'type': 'limit',
+            'side': 'sell',
+            'takerOrMaker': undefined,
+            'price': 10640,
+            'amount': 20,
+            'cost': 212800,
+            'fee': { 'rate': undefined, 'cost': undefined, 'currency': undefined },
+            'fees': [ { 'rate': undefined, 'cost': undefined, 'currency': undefined } ]
+        },
+        {
+            'info': {
+                'instrument': 'PI_XBTUSD',
+                'time': 1567702877410,
+                'last_update_time': 1567702877410,
+                'qty': 304,
+                'filled': 30,
+                'limit_price': 10640,
+                'stop_price': 0,
+                'type': 'limit',
+                'order_id': '59302619-41d2-4f0b-941f-7e7914760ad3',
+                'direction': 1,
+                'reduce_only': true
+            },
+            'id': undefined,
+            'symbol': 'BTC/USD:BTC',
+            'timestamp': 1567702877410,
+            'datetime': '2019-09-05T17:01:17.410Z',
+            'order': undefined,
+            'type': 'limit',
+            'side': 'sell',
+            'takerOrMaker': undefined,
+            'price': 10640,
+            'amount': 10,
+            'cost': 106400,
+            'fee': { 'rate': undefined, 'cost': undefined, 'currency': undefined },
+            'fees': [ { 'rate': undefined, 'cost': undefined, 'currency': undefined } ]
         }
     ];
-    const parsedOrderTrades = parsedOrder2['trades'];
-    assert (parsedOrderTrades[0] === trade);
+    const parsedOrder2 = exchange.handlePreviousOrder (response2, 'BTC/USD:BTC');
+    exchange.orders.append (parsedOrder2);
+    const parsedOrder3 = exchange.handlePreviousOrder (response3, 'BTC/USD:BTC');
+    assert (trades === parsedOrder3['trades']);
 
     return response;
 };
