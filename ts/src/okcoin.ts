@@ -533,6 +533,7 @@ export default class okcoin extends Exchange {
                 },
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarkets': [ 'spot' ],
+                'fetchBalance': 'account', // 'account', 'asset'
                 'defaultType': 'spot', // 'account', 'spot', 'futures', 'swap', 'option'
                 'accountsByType': {
                     'spot': '1',
@@ -1281,6 +1282,8 @@ export default class okcoin extends Exchange {
             'datetime': undefined,
         };
         //
+        // asset balance
+        //
         // [
         //     {
         //         "availBal": "37.11827078",
@@ -1290,12 +1293,66 @@ export default class okcoin extends Exchange {
         //     }
         // ]
         //
-        for (let i = 0; i < balance.length; i++) {
-            const entry = balance[i];
+        // account balance
+        //
+        // [
+        //     {
+        //         "adjEq": "",
+        //         "details": [
+        //             {
+        //                 "availBal": "1.63427",
+        //                 "availEq": "",
+        //                 "cashBal": "1.63427",
+        //                 "ccy": "USD",
+        //                 "crossLiab": "",
+        //                 "disEq": "0",
+        //                 "eq": "1.63427",
+        //                 "eqUsd": "1.63427",
+        //                 "fixedBal": "0",
+        //                 "frozenBal": "0",
+        //                 "interest": "",
+        //                 "isoEq": "",
+        //                 "isoLiab": "",
+        //                 "isoUpl": "",
+        //                 "liab": "",
+        //                 "maxLoan": "",
+        //                 "mgnRatio": "",
+        //                 "notionalLever": "",
+        //                 "ordFrozen": "0",
+        //                 "spotInUseAmt": "",
+        //                 "stgyEq": "0",
+        //                 "twap": "0",
+        //                 "uTime": "1672814264380",
+        //                 "upl": "",
+        //                 "uplLiab": ""
+        //             }
+        //         ],
+        //         "imr": "",
+        //         "isoEq": "",
+        //         "mgnRatio": "",
+        //         "mmr": "",
+        //         "notionalUsd": "",
+        //         "ordFroz": "",
+        //         "totalEq": "1.63427",
+        //         "uTime": "1672814275772"
+        //     }
+        // ]
+        //
+        let data = this.safeValue (balance, 0);
+        const details = this.safeValue (data, 'details');
+        if (details != null) {
+            const timestamp = this.safeFloat (data, 'uTime');
+            result['timestamp'] = timestamp;
+            result['datetime'] = this.iso8601 (timestamp);
+            data = details;
+        } else {
+            data = balance;
+        }
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
             const marketId = this.safeString (entry, 'ccy');
             const code = this.safeSymbol (marketId);
             const account = this.account ();
-            account['total'] = this.safeString (entry, 'bal');
             account['free'] = this.safeString (entry, 'availBal');
             account['used'] = this.safeString (entry, 'frozenBal');
             result[code] = account;
@@ -1310,11 +1367,25 @@ export default class okcoin extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-balance
          * @param {object} params extra parameters specific to the okcoin api endpoint
+         * @param {string} params.type fetch account type, [asset, account]
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const request = {};
-        const response = await this.privateGetAssetBalances (this.extend (request, params));
+        let method = '';
+        const defaultType = this.safeString (this.options, 'fetchBalance', 'account'); // 'account', 'asset'
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, [ 'type' ]);
+        if (type === 'account') {
+            method = 'privateGetAccountBalance';
+        } else if (type === 'asset') {
+            method = 'privateGetAssetBalances';
+        } else {
+            throw new NotSupported ('fetchBalance() type "' + type + '" not supported');
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // asset balance
         //
         // {
         //     "code": "0",
@@ -1326,6 +1397,55 @@ export default class okcoin extends Exchange {
         //             "frozenBal": "0"
         //         }
         //     ]
+        // }
+        //
+        // account balance
+        //
+        // {
+        //     "code": "0",
+        //     "data": [
+        //         {
+        //             "adjEq": "",
+        //             "details": [
+        //                 {
+        //                     "availBal": "1.63427",
+        //                     "availEq": "",
+        //                     "cashBal": "1.63427",
+        //                     "ccy": "USD",
+        //                     "crossLiab": "",
+        //                     "disEq": "0",
+        //                     "eq": "1.63427",
+        //                     "eqUsd": "1.63427",
+        //                     "fixedBal": "0",
+        //                     "frozenBal": "0",
+        //                     "interest": "",
+        //                     "isoEq": "",
+        //                     "isoLiab": "",
+        //                     "isoUpl": "",
+        //                     "liab": "",
+        //                     "maxLoan": "",
+        //                     "mgnRatio": "",
+        //                     "notionalLever": "",
+        //                     "ordFrozen": "0",
+        //                     "spotInUseAmt": "",
+        //                     "stgyEq": "0",
+        //                     "twap": "0",
+        //                     "uTime": "1672814264380",
+        //                     "upl": "",
+        //                     "uplLiab": ""
+        //                 }
+        //             ],
+        //             "imr": "",
+        //             "isoEq": "",
+        //             "mgnRatio": "",
+        //             "mmr": "",
+        //             "notionalUsd": "",
+        //             "ordFroz": "",
+        //             "totalEq": "1.63427",
+        //             "uTime": "1672814275772"
+        //         }
+        //     ],
+        //     "msg": ""
         // }
         //
         const data = this.safeValue (response, 'data');
