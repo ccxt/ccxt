@@ -54,6 +54,7 @@ export default async (exchange, symbol) => {
     }
 
     // krakenfutures
+    // exchange = new ccxt.pro.krakenfutures();
 
     let response1 = {
         "instrument": "PI_XBTUSD",
@@ -167,6 +168,8 @@ export default async (exchange, symbol) => {
     assert (trades === parsedOrder3['trades']);
 
     // hitbtc3
+
+    // exchange = new ccxt.pro.hitbtc3();
 
     response1 = {
         'id': 1089241146910,
