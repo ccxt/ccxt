@@ -423,6 +423,56 @@ export default class cryptocom extends Exchange {
             //
             const resultData = this.safeValue (response, 'result', {});
             currenciesData = this.safeValue (resultData, 'currency_map', {});
+        } else {
+            const response = await this.webApiPublicGetCommonSupportedCoins (params);
+            //
+            //     {
+            //       "code": "0",
+            //       "msg": "Success",
+            //       "data": {
+            //         "lastUpdatedAt": 1686817296000,
+            //         "symbols": {
+            //             "AGLD": {
+            //               "withdrawal_decimals": 8,
+            //               "fullName": "Adventure Gold",
+            //               "networks": [
+            //                 {
+            //                   "minWithdrawalAmount": "10",
+            //                   "address_type": "basic",
+            //                   "withdraw_open": 1,
+            //                   "deposit_open": 1,
+            //                   "withdrawalFees": "5",
+            //                   "confirmation": 64,
+            //                   "is_xapp_released": 1,
+            //                   "is_public_release": 1,
+            //                   "address_max_length": 256,
+            //                   "address_pattern": "^.*",
+            //                   "networkDisplayName": "ERC20",
+            //                   "network": "ETH"
+            //                 },
+            //                 {
+            //                   "minWithdrawalAmount": "0.4",
+            //                   "address_type": "basic",
+            //                   "withdraw_open": 1,
+            //                   "deposit_open": 1,
+            //                   "withdrawalFees": "0.2",
+            //                   "confirmation": 1,
+            //                   "is_xapp_released": 1,
+            //                   "is_public_release": 1,
+            //                   "address_max_length": 256,
+            //                   "address_pattern": "^.*",
+            //                   "networkDisplayName": "Cronos",
+            //                   "network": "CRONOS"
+            //                 }
+            //               ]
+            //             },
+            //             ...
+            //         }
+            //       }
+            //     }
+            //
+            const resultData = this.safeValue (response, 'data', {});
+            currenciesData = this.safeValue (resultData, 'symbols', {});
         }
         const result = {};
         const keys = Object.keys (currenciesData);
