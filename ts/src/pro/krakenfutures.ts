@@ -505,7 +505,7 @@ export default class krakenfutures extends krakenfuturesRest {
             const marketId = this.safeStringLower (order, 'instrument');
             const messageHash = 'orders';
             const symbol = this.safeSymbol (marketId);
-            const parsed = this.handleOrderPreviousOrder (order, orders, symbol);
+            const parsed = this.handlePreviousOrder (order, orders, symbol);
             orders.append (parsed);
             client.resolve (orders, messageHash + ':' + symbol);
             client.resolve (orders, messageHash);
