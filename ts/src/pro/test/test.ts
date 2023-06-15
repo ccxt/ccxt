@@ -144,6 +144,10 @@ async function testPrivate (exchange, symbol, code) {
     }
 }
 
+async function testParser (exchange, symbol = undefined, code = undefined) {
+    await tests['handlePreviousOrder']      (exchange);
+}
+
 //-----------------------------------------------------------------------------
 
 async function testExchange (exchange) {
@@ -196,6 +200,9 @@ async function testExchange (exchange) {
         await testPublic  (exchange, symbol);
         await testPrivate (exchange, symbol, code);
     }
+
+    await testParser ('krakenfutures');
+    // await testParser ('hitbtc3');
 }
 
 //-----------------------------------------------------------------------------
