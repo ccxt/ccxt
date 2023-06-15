@@ -4212,7 +4212,6 @@ export default class Exchange {
                     previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
                 }
                 // update the newUpdates count
-                return this.safeOrder (previousOrder);
             } else {
                 const parsedAmount = this.safeString (parsedOrder, 'amount');
                 const previousAmount = this.safeString (previousOrder, 'amount');
