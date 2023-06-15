@@ -4841,10 +4841,7 @@ export default class okx extends Exchange {
         const fromAccountId = this.safeString (transfer, 'from');
         const toAccountId = this.safeString (transfer, 'to');
         const accountsById = this.safeValue (this.options, 'accountsById', {});
-        const fromAccount = this.safeString (accountsById, fromAccountId);
-        const toAccount = this.safeString (accountsById, toAccountId);
         const timestamp = this.safeInteger (transfer, 'ts', this.milliseconds ());
-        const status = this.safeString (transfer, 'state');
         const balanceChange = this.safeString (transfer, 'sz');
         if (balanceChange !== undefined) {
             amount = this.parseNumber (Precise.stringAbs (balanceChange));
@@ -4856,10 +4853,17 @@ export default class okx extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'currency': code,
             'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'status': status,
+            'fromAccount': this.safeString (accountsById, fromAccountId),
+            'toAccount': this.safeString (accountsById, toAccountId),
+            'status': this.parseTransferStatus (this.safeString (transfer, 'state')),
         };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'success': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     async fetchTransfer (id: string, code: string = undefined, params = {}) {
