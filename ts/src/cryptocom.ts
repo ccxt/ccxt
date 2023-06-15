@@ -492,7 +492,7 @@ export default class cryptocom extends Exchange {
             let withdrawPrecision = this.safeString (entry, 'withdrawal_decimals');
             if (withdrawPrecision === undefined) {
                 // todo: precision info is present only in their "public" endpoint, so for "private" endpoint we add this till they fix their response
-                // for USDT & GUSD precision is 2, for most other coins it's 6-8. So, assume 6 as default, to cover all cases
+                // for USDT & GUSD precision is 2, for most other coins it's 6,7,8 (only several coins have 4). So, assume 6 as default, to cover most of the cases
                 withdrawPrecision = this.inArray (code, [ 'USDT', 'GUSD' ]) ? '2' : '6';
             }
             for (let j = 0; j < networkList.length; j++) {
