@@ -1166,12 +1166,15 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#createOrder
          * @description create a trade order
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {string|undefined} params.timeInForce 'GTC', 'IOC', 'FOK' or 'PO'
+         * @param {float|undefined} params.stopPrice price to trigger a stop order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1192,31 +1195,49 @@ export default class cryptocom extends Exchange {
             clientOrderId = broker + this.uuid22 ();
         }
         request['client_oid'] = clientOrderId;
+        let marketType = undefined;
+        let marginMode = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        [ marginMode, params ] = this.customHandleMarginModeAndParams ('createOrder', params);
+        if ((marketType === 'margin') || (marginMode !== undefined)) {
+            request['spot_margin'] = 'MARGIN';
+        } else if (marketType === 'spot') {
+            request['spot_margin'] = 'SPOT';
+        }
+        const stopPrice = this.safeNumberN (params, [ 'stopPrice', 'triggerPrice', 'ref_price' ]);
+        if (stopPrice !== undefined) {
+            request['ref_price'] = this.priceToPrecision (symbol, stopPrice);
+        }
+        const timeInForce = this.safeStringUpper2 (params, 'timeInForce', 'time_in_force');
+        if (timeInForce !== undefined) {
+            if (timeInForce === 'GTC') {
+                request['time_in_force'] = 'GOOD_TILL_CANCEL';
+            } else if (timeInForce === 'IOC') {
+                request['time_in_force'] = 'IMMEDIATE_OR_CANCEL';
+            } else if (timeInForce === 'FOK') {
+                request['time_in_force'] = 'FILL_OR_KILL';
+            } else {
+                request['time_in_force'] = timeInForce;
+            }
+        }
         const postOnly = this.safeValue (params, 'postOnly', false);
-        if (postOnly) {
+        if ((postOnly) || (timeInForce === 'PO')) {
             request['exec_inst'] = 'POST_ONLY';
+            request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
-        params = this.omit (params, [ 'postOnly', 'clientOrderId' ]);
-        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'v2PrivatePostPrivateCreateOrder',
-            'margin': 'v2PrivatePostPrivateMarginCreateOrder',
-            'future': 'derivativesPrivatePostPrivateCreateOrder',
-            'swap': 'derivativesPrivatePostPrivateCreateOrder',
-        });
-        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('createOrder', marketTypeQuery);
-        if (marginMode !== undefined) {
-            method = 'v2PrivatePostPrivateMarginCreateOrder';
-        }
-        const response = await this[method] (this.extend (request, query));
-        // {
-        //     "id": 11,
-        //     "method": "private/create-order",
-        //     "result": {
-        //       "order_id": "337843775021233500",
-        //       "client_oid": "my_order_0002"
+        params = this.omit (params, [ 'postOnly', 'clientOrderId', 'stopPrice', 'triggerPrice', 'timeInForce' ]);
+        const response = await this.v1PrivatePostPrivateCreateOrder (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1686804664362,
+        //         "method": "private/create-order",
+        //         "code" : 0,
+        //         "result": {
+        //             "order_id": "6540219377766741832",
+        //             "client_oid": "CCXT_d6ef7c3db6c1495aa8b757"
+        //         }
         //     }
-        // }
+        //
         const result = this.safeValue (response, 'result', {});
         return this.parseOrder (result, market);
     }
@@ -2031,6 +2052,14 @@ export default class cryptocom extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //     {
+        //         "order_id": "6540219377766741832",
+        //         "client_oid": "CCXT_d6ef7c3db6c1495aa8b757"
+        //     }
+        //
         //       {
         //         "status": "FILLED",
         //         "side": "BUY",
