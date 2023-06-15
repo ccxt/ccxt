@@ -1260,9 +1260,10 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-open-orders
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {int|undefined} limit the maximum number of open order structures to retrieve
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1273,68 +1274,47 @@ export default class cryptocom extends Exchange {
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
         }
-        if (limit !== undefined) {
-            request['page_size'] = limit;
-        }
-        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'v2PrivatePostPrivateGetOpenOrders',
-            'margin': 'v2PrivatePostPrivateMarginGetOpenOrders',
-            'future': 'derivativesPrivatePostPrivateGetOpenOrders',
-            'swap': 'derivativesPrivatePostPrivateGetOpenOrders',
-        });
-        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchOpenOrders', marketTypeQuery);
-        if (marginMode !== undefined) {
-            method = 'v2PrivatePostPrivateMarginGetOpenOrders';
-        }
-        const response = await this[method] (this.extend (request, query));
-        // {
-        //     "id": 11,
-        //     "method": "private/get-open-orders",
-        //     "code": 0,
-        //     "result": {
-        //       "count": 1177,
-        //       "order_list": [
-        //         {
-        //           "status": "ACTIVE",
-        //           "side": "BUY",
-        //           "price": 1,
-        //           "quantity": 1,
-        //           "order_id": "366543374673423753",
-        //           "client_oid": "my_order_0002",
-        //           "create_time": 1588760643829,
-        //           "update_time": 1588760644292,
-        //           "type": "LIMIT",
-        //           "instrument_name": "ETH_CRO",
-        //           "cumulative_quantity": 0,
-        //           "cumulative_value": 0,
-        //           "avg_price": 0,
-        //           "fee_currency": "CRO",
-        //           "time_in_force": "GOOD_TILL_CANCEL"
-        //         },
-        //         {
-        //           "status": "ACTIVE",
-        //           "side": "BUY",
-        //           "price": 1,
-        //           "quantity": 1,
-        //           "order_id": "366455245775097673",
-        //           "client_oid": "my_order_0002",
-        //           "create_time": 1588758017375,
-        //           "update_time": 1588758017411,
-        //           "type": "LIMIT",
-        //           "instrument_name": "ETH_CRO",
-        //           "cumulative_quantity": 0,
-        //           "cumulative_value": 0,
-        //           "avg_price": 0,
-        //           "fee_currency": "CRO",
-        //           "time_in_force": "GOOD_TILL_CANCEL"
+        const response = await this.v1PrivatePostPrivateGetOpenOrders (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1686806134961,
+        //         "method": "private/get-open-orders",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "account_id": "ce075bef-1234-4321-bd6g-ff9007252e63",
+        //                     "order_id": "6530219477767564494",
+        //                     "client_oid": "CCXT_7ce730f0388441df9bc218",
+        //                     "order_type": "LIMIT",
+        //                     "time_in_force": "GOOD_TILL_CANCEL",
+        //                     "side": "BUY",
+        //                     "exec_inst": [ ],
+        //                     "quantity": "0.00020",
+        //                     "limit_price": "20000.00",
+        //                     "order_value": "4",
+        //                     "avg_price": "0",
+        //                     "trigger_price": "0",
+        //                     "ref_price": "0",
+        //                     "cumulative_quantity": "0",
+        //                     "cumulative_value": "0",
+        //                     "cumulative_fee": "0",
+        //                     "status": "ACTIVE",
+        //                     "update_user_id": "ce075bef-1234-4321-bd6g-gg9007252e63",
+        //                     "order_date": "2023-06-15",
+        //                     "instrument_name": "BTC_USD",
+        //                     "fee_instrument_name": "BTC",
+        //                     "create_time": 1686806053992,
+        //                     "create_time_ns": "1686806053992921880",
+        //                     "update_time": 1686806053993
+        //                 }
+        //             ]
         //         }
-        //       ]
         //     }
-        // }
+        //
         const data = this.safeValue (response, 'result', {});
-        const resultList = this.safeValue2 (data, 'order_list', 'data', []);
-        return this.parseOrders (resultList, market, since, limit);
+        const orders = this.safeValue (data, 'data', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1989,81 +1969,51 @@ export default class cryptocom extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        //       {
-        //         "status": "FILLED",
-        //         "side": "BUY",
-        //         "order_id": "371302913889488619",
-        //         "client_oid": "9_yMYJDNEeqHxLqtD_2j3g",
-        //         "create_time": 1588902489144,
-        //         "update_time": 1588902493024,
-        //         "type": "LIMIT",
-        //         "instrument_name": "ETH_CRO",
-        //         "cumulative_quantity": 7,
-        //         "cumulative_value": 7,
-        //         "avg_price": 7,
-        //         "fee_currency": "CRO",
-        //         "time_in_force": "GOOD_TILL_CANCEL",
-        //         "exec_inst": "POST_ONLY"
-        //       }
+        //
+        // createOrder
         //
         //     {
-        //       id: 1641026373106,
-        //       method: 'private/get-order-history',
-        //       code: 0,
-        //       result: {
-        //         data: [
-        //           {
-        //             account_id: '85ff689a-7508-4b96-aa79-dc0545d6e637',
-        //             order_id: 13191401932,
-        //             client_oid: '1641025941461',
-        //             order_type: 'LIMIT',
-        //             time_in_force: 'GOOD_TILL_CANCEL',
-        //             side: 'BUY',
-        //             exec_inst: [],
-        //             quantity: '0.0001',
-        //             limit_price: '48000.0',
-        //             order_value: '4.80000000',
-        //             maker_fee_rate: '0.00050',
-        //             taker_fee_rate: '0.00070',
-        //             avg_price: '47253.5',
-        //             trigger_price: '0.0',
-        //             ref_price_type: 'NULL_VAL',
-        //             cumulative_quantity: '0.0001',
-        //             cumulative_value: '4.72535000',
-        //             cumulative_fee: '0.00330775',
-        //             status: 'FILLED',
-        //             update_user_id: 'ce075bef-b600-4277-bd6e-ff9007251e63',
-        //             order_date: '2022-01-01',
-        //             instrument_name: 'BTCUSD-PERP',
-        //             fee_instrument_name: 'USD_Stable_Coin',
-        //             create_time: 1641025941827,
-        //             create_time_ns: '1641025941827994756',
-        //             update_time: 1641025941827
-        //           }
-        //         ]
-        //       }
+        //         "order_id": "6540219377766741832",
+        //         "client_oid": "CCXT_d6ef7c3db6c1495aa8b757"
+        //     }
+        //
+        // fetchOpenOrders
+        //
+        //     {
+        //         "account_id": "ce075bef-1234-4321-bd6g-ff9007252e63",
+        //         "order_id": "6530219477767564494",
+        //         "client_oid": "CCXT_7ce730f0388441df9bc218",
+        //         "order_type": "LIMIT",
+        //         "time_in_force": "GOOD_TILL_CANCEL",
+        //         "side": "BUY",
+        //         "exec_inst": [ ],
+        //         "quantity": "0.00020",
+        //         "limit_price": "20000.00",
+        //         "order_value": "4",
+        //         "avg_price": "0",
+        //         "trigger_price": "0",
+        //         "ref_price": "0",
+        //         "cumulative_quantity": "0",
+        //         "cumulative_value": "0",
+        //         "cumulative_fee": "0",
+        //         "status": "ACTIVE",
+        //         "update_user_id": "ce075bef-1234-4321-bd6g-gg9007252e63",
+        //         "order_date": "2023-06-15",
+        //         "instrument_name": "BTC_USD",
+        //         "fee_instrument_name": "BTC",
+        //         "create_time": 1686806053992,
+        //         "create_time_ns": "1686806053992921880",
+        //         "update_time": 1686806053993
         //     }
         //
         const created = this.safeInteger (order, 'create_time');
-        const updated = this.safeInteger (order, 'update_time');
         const marketId = this.safeString (order, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
-        const amount = this.safeString (order, 'quantity');
-        const filled = this.safeString (order, 'cumulative_quantity');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const id = this.safeString (order, 'order_id');
-        const clientOrderId = this.safeString (order, 'client_oid');
-        const price = this.safeString2 (order, 'price', 'limit_price');
-        const average = this.safeString (order, 'avg_price');
-        const type = this.safeStringLower2 (order, 'type', 'order_type');
-        const side = this.safeStringLower (order, 'side');
-        const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
         const execInst = this.safeString (order, 'exec_inst');
         let postOnly = undefined;
         if (execInst !== undefined) {
             postOnly = (execInst === 'POST_ONLY');
         }
-        const cost = this.safeString (order, 'cumulative_value');
         const feeCost = this.safeString (order, 'cumulative_fee');
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -2075,24 +2025,24 @@ export default class cryptocom extends Exchange {
         }
         return this.safeOrder ({
             'info': order,
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': this.safeString (order, 'order_id'),
+            'clientOrderId': this.safeString (order, 'client_oid'),
             'timestamp': created,
             'datetime': this.iso8601 (created),
-            'lastTradeTimestamp': updated,
-            'status': status,
+            'lastTradeTimestamp': this.safeInteger (order, 'update_time'),
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'symbol': symbol,
-            'type': type,
-            'timeInForce': timeInForce,
+            'type': this.safeStringLower2 (order, 'type', 'order_type'),
+            'timeInForce': this.parseTimeInForce (this.safeString (order, 'time_in_force')),
             'postOnly': postOnly,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'filled': filled,
+            'side': this.safeStringLower (order, 'side'),
+            'price': this.safeNumber2 (order, 'price', 'limit_price'),
+            'amount': this.safeNumber (order, 'quantity'),
+            'filled': this.safeNumber (order, 'cumulative_quantity'),
             'remaining': undefined,
-            'cost': cost,
+            'average': this.safeNumber (order, 'avg_price'),
+            'cost': this.safeNumber (order, 'cumulative_value'),
             'fee': fee,
-            'average': average,
             'trades': [],
         }, market);
     }
