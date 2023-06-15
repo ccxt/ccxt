@@ -5,7 +5,7 @@ import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Trade } from '../base/types.js';
+import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -528,7 +528,7 @@ export default class cex extends cexRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market = undefined): Trade {
+    parseWsTrade (trade, market = undefined) {
         //
         //     {
         //         d: 'order:59091012956:a:BTC',

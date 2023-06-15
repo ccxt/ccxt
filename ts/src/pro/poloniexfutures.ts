@@ -5,7 +5,7 @@
 import poloniexfuturesRest from '../poloniexfutures.js';
 import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, Order, Trade } from '../base/types.js';
+import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -379,7 +379,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return message;
     }
 
-    parseWsTrade (trade, market = undefined): Trade {
+    parseWsTrade (trade, market = undefined) {
         //
         // handleTrade
         //
@@ -559,7 +559,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return parsedStatus;
     }
 
-    parseWsOrder (order, market = undefined): Order {
+    parseWsOrder (order, market = undefined) {
         //
         //    {
         //        symbol: 'ADAUSDTPERP',

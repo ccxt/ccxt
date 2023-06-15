@@ -5,7 +5,7 @@ import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Order, Trade } from '../base/types.js';
+import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -376,7 +376,7 @@ export default class woo extends wooRest {
         client.resolve (tradesArray, topic);
     }
 
-    parseWsTrade (trade, market = undefined): Trade {
+    parseWsTrade (trade, market = undefined) {
         //
         //     {
         //         "symbol":"SPOT_ADA_USDT",
@@ -481,7 +481,7 @@ export default class woo extends wooRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    parseWsOrder (order, market = undefined): Order {
+    parseWsOrder (order, market = undefined) {
         //
         //     {
         //         symbol: 'PERP_BTC_USDT',

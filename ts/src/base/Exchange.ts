@@ -1523,19 +1523,19 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseBorrowInterest() is not supported yet');
     }
 
-    parseWsTrade (trade, market = undefined): Trade {
+    parseWsTrade (trade, market = undefined) {
         throw new NotSupported (this.id + ' parseWsTrade() is not supported yet');
     }
 
-    parseWsOrder (order, market = undefined): Order {
+    parseWsOrder (order, market = undefined) {
         throw new NotSupported (this.id + ' parseWsOrder() is not supported yet');
     }
 
-    parseWsOrderTrade (trade, market = undefined): Trade {
+    parseWsOrderTrade (trade, market = undefined) {
         throw new NotSupported (this.id + ' parseWsOrderTrade() is not supported yet');
     }
 
-    parseWsOHLCV (ohlcv, market = undefined): number[] {
+    parseWsOHLCV (ohlcv, market = undefined) {
         throw new NotSupported (this.id + ' parseWsOHLCV() is not supported yet');
     }
 

@@ -458,7 +458,7 @@ export default class wazirx extends wazirxRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined): number[] {
+    parseWsOHLCV (ohlcv, market = undefined) {
         //
         //    {
         //        "E":1631683058904,      Event time
