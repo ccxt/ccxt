@@ -380,13 +380,14 @@ export default class cryptocom extends Exchange {
          */
         const options = this.safeValue (this.options, 'fetchCurrencies', {});
         const enabledPrivateEndpoint = this.safeValue (options, 'usePrivateApi');
+        let response = undefined;
         let currenciesData = undefined;
         const apiKeysPresent = this.checkRequiredCredentials (false);
         if (enabledPrivateEndpoint || apiKeysPresent) {
             if (!apiKeysPresent) {
                 throw new AuthenticationError (this.id + ' fetchCurrencies() requires is private endpoint and requires apikeys. Alternatively, you can set ".options["fetchCurrencies"]["usePrivateApi"] = false" to use public data about currencies');
             }
-            const response = await this.v2PrivatePostPrivateGetCurrencyNetworks (params);
+            response = await this.v2PrivatePostPrivateGetCurrencyNetworks (params);
             //
             //    {
             //        "id": "1674652336623",
@@ -425,8 +426,11 @@ export default class cryptocom extends Exchange {
             const resultData = this.safeValue (response, 'result', {});
             currenciesData = this.safeValue (resultData, 'currency_map', {});
         } else {
-            // @ts-ignore
-            const response = await this.webApiPublicGetCommonSupportedCoins (params);
+            try {
+                response = await this.webApiPublicGetCommonSupportedCoins (params);
+            } catch (e) {
+                response = {};
+            }
             //
             //     {
             //       "code": "0",
