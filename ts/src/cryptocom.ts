@@ -509,7 +509,7 @@ export default class cryptocom extends Exchange {
                     deposit = this.safeInteger (chainEntry, 'deposit_open') === 1;
                 }
                 const minWithdraw = this.safeNumber2 (chainEntry, 'min_withdrawal_amount', 'minWithdrawalAmount');
-                const isMemoRequired = (this.safeString (chainEntry, 'address_type', '') === 'memo') ? true : undefined; // because of vague values, don't set false
+                const isMemoType = this.safeString (chainEntry, 'address_type', '') === 'memo';
                 networks[networkCode] = {
                     'info': chainEntry,
                     'id': networkId,
@@ -529,8 +529,8 @@ export default class cryptocom extends Exchange {
                             'max': undefined,
                         },
                     },
-                    'isMemoRequired': isMemoRequired,
                     'name': this.safeString (chainEntry, 'networkDisplayName'),
+                    'isMemoRequired': (isMemoType ? true : undefined), // because of vague values, don't set false
                 };
                 if (depositEnabled !== undefined || deposit) {
                     depositEnabled = deposit;
