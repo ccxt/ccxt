@@ -532,8 +532,8 @@ export default class cryptocom extends Exchange {
                         },
                     },
                     'name': this.safeString (chainEntry, 'networkDisplayName'),
-                    'isMemoRequired': (isMemoType ? true : undefined), // because of vague values, don't set false
-                    'isDefaultNetwork': isDefaultNetwork,
+                    'memoRequired': (isMemoType ? true : undefined), // because of vague values, don't set false
+                    'default': isDefaultNetwork,
                 };
                 if (depositEnabled !== undefined || deposit) {
                     depositEnabled = deposit;
