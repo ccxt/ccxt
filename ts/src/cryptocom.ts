@@ -427,6 +427,7 @@ export default class cryptocom extends Exchange {
             currenciesData = this.safeValue (resultData, 'currency_map', {});
         } else {
             try {
+                // @ts-ignore
                 response = await this.webApiPublicGetCommonSupportedCoins (params);
             } catch (e) {
                 response = {};
@@ -536,7 +537,7 @@ export default class cryptocom extends Exchange {
                         },
                     },
                     'name': this.safeString (chainEntry, 'networkDisplayName'),
-                    'memoRequired': (isMemoType ? true : undefined), // because of vague values, don't set false
+                    'memoRequired': isMemoType ? true : undefined, // because of vague values, don't set false
                     'default': isDefaultNetwork,
                 };
                 if (depositEnabled !== undefined || deposit) {
