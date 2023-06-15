@@ -592,7 +592,7 @@ export default class okcoin extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const ts = this.safeValue (data, 0);
-        const timestamp = this.safeFloat (ts, 'ts');
+        const timestamp = this.safeInteger (ts, 'ts');
         return timestamp;
     }
 
@@ -684,7 +684,7 @@ export default class okcoin extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
-        const expiry = this.safeFloat (market, 'expTime');
+        const expiry = this.safeInteger (market, 'expTime');
         const strike = this.safeValue (market, 'strike');
         if (contract) {
             symbol = symbol + ':' + settle;
@@ -920,7 +920,7 @@ export default class okcoin extends Exchange {
         // }
         //
         const data = response['data'][0];
-        const timestamp = this.safeFloat (data, 'ts');
+        const timestamp = this.safeInteger (data, 'ts');
         return this.parseOrderBook (data, symbol, timestamp);
     }
 
@@ -945,7 +945,7 @@ export default class okcoin extends Exchange {
         //     "sodUtc8": "16700.35"
         // }
         //
-        const timestamp = this.safeFloat (ticker, 'ts');
+        const timestamp = this.safeInteger (ticker, 'ts');
         const marketId = this.safeString (ticker, 'instId');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
@@ -1092,7 +1092,7 @@ export default class okcoin extends Exchange {
         const marketId = this.safeString (trade, 'instId');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
-        const timestamp = this.safeFloat (trade, 'ts');
+        const timestamp = this.safeInteger (trade, 'ts');
         const priceString = this.safeString2 (trade, 'px', 'fillPx');
         const amountString = this.safeString (trade, 'sz', 'fillSz');
         let takerOrMaker = this.safeString (trade, 'execType');
@@ -1138,6 +1138,7 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
@@ -1197,7 +1198,7 @@ export default class okcoin extends Exchange {
         //
         if (Array.isArray (ohlcv)) {
             return [
-                this.safeFloat (ohlcv, 0),             // timestamp
+                this.safeInteger (ohlcv, 0),             // timestamp
                 this.safeNumber (ohlcv, 1),            // Open
                 this.safeNumber (ohlcv, 2),            // High
                 this.safeNumber (ohlcv, 3),            // Low
@@ -1341,7 +1342,7 @@ export default class okcoin extends Exchange {
         let data = this.safeValue (balance, 0);
         const details = this.safeValue (data, 'details');
         if (details != null) {
-            const timestamp = this.safeFloat (data, 'uTime');
+            const timestamp = this.safeInteger (data, 'uTime');
             result['timestamp'] = timestamp;
             result['datetime'] = this.iso8601 (timestamp);
             data = details;
@@ -1626,7 +1627,7 @@ export default class okcoin extends Exchange {
         // }
         //
         const id = this.safeString (order, 'ordId');
-        const timestamp = this.safeFloat (order, 'cTime');
+        const timestamp = this.safeInteger (order, 'cTime');
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'ordType');
         const marketId = this.safeString (order, 'instId');
@@ -1676,7 +1677,7 @@ export default class okcoin extends Exchange {
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': this.safeFloat (order, 'fillTime'),
+            'lastTradeTimestamp': this.safeInteger (order, 'fillTime'),
             'symbol': market['symbol'],
             'type': type,
             'timeInForce': undefined,
