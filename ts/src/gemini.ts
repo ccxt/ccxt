@@ -42,7 +42,8 @@ export default class gemini extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': false,
-                'fetchDepositAddress': undefined, // TODO
+                'fetchCurrencies': true,
+                'fetchDepositAddress': false, // TODO
                 'fetchDepositAddressesByNetwork': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -85,6 +86,7 @@ export default class gemini extends Exchange {
                     'public': 'https://api.gemini.com',
                     'private': 'https://api.gemini.com',
                     'web': 'https://docs.gemini.com',
+                    'webExchange': 'https://exchange.gemini.com',
                 },
                 'www': 'https://gemini.com/',
                 'doc': [
@@ -107,6 +109,11 @@ export default class gemini extends Exchange {
                 ],
             },
             'api': {
+                'webExchange': {
+                    'get': [
+                        '',
+                    ],
+                },
                 'web': {
                     'get': [
                         'rest-api',
@@ -266,9 +273,126 @@ export default class gemini extends Exchange {
                     'DOGE': 'dogecoin',
                     'XTZ': 'tezos',
                 },
-                'nonce': 'milliseconds', // if getting a Network 400 error change to seconds
+                'nonce': 'seconds', // milliseconds, seconds (if getting a Network 400 error change to seconds)
             },
         });
+    }
+
+    async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name gemini#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {object} params extra parameters specific to the endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        return await this.fetchCurrenciesFromWeb (params);
+    }
+
+    async fetchCurrenciesFromWeb (params = {}) {
+        /**
+         * @method
+         * @name gemini#fetchCurrenciesFromWeb
+         * @description fetches all available currencies on an exchange
+         * @param {object} params extra parameters specific to the endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const response = await this.webExchangeGet (params);
+        const innerData = this.getJsonFromContent (response, '<script type="application/json" id="currencyData">', '</script>');
+        //
+        //    {
+        //        "tradingPairs": [
+        //            [ "BTCAUD", 2, 8, "0.00001", 10, true ],
+        //            ...
+        //        ],
+        //        "currencies": [
+        //            [ "ORCA", "Orca", 204, 6, 0, 6, 8, false, null, "solana" ],
+        //            [ "ATOM", "Cosmos", 44, 6, 0, 6, 8, false, null, "cosmos" ],
+        //            [ "ETH", "Ether", 2, 6, 0, 18, 8, false, null, "ethereum" ],
+        //            [ "GBP", "Pound Sterling", 22, 2, 2, 2, 2, true, '£', null ],
+        //            ...
+        //        ],
+        //        "networks": [
+        //            [ "solana", "SOL", "Solana" ],
+        //            [ "zcash", "ZEC", "Zcash" ],
+        //            [ "tezos", "XTZ", "Tezos" ],
+        //            [ "cosmos", "ATOM", "Cosmos" ],
+        //            [ "ethereum", "ETH", "Ethereum" ],
+        //            ...
+        //        ]
+        //    }
+        //
+        const result = {};
+        const currenciesArray = this.safeValue (innerData, 'currencies', []);
+        for (let i = 0; i < currenciesArray.length; i++) {
+            const currency = currenciesArray[i];
+            const id = this.safeString (currency, 0);
+            const code = this.safeCurrencyCode (id);
+            const type = this.safeString (currency, 7) ? 'fiat' : 'crypto';
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 3)));
+            const networks = {};
+            const networkId = this.safeString (currency, 9);
+            const networkCode = this.networkIdToCode (networkId);
+            networks[networkCode] = {
+                'info': currency,
+                'id': networkId,
+                'network': networkCode,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'precision': precision,
+                'limits': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
+            result[code] = {
+                'info': currency,
+                'id': id,
+                'code': code,
+                'name': this.safeString (currency, 1),
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'type': type,
+                'precision': precision,
+                'limits': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+            };
+        }
+        return result;
+    }
+
+    getJsonFromContent (content, startSpliter, endSpliter) {
+        try {
+            const sectionsFirst = content.split (startSpliter);
+            const sectionsSecond = sectionsFirst[1].split (endSpliter);
+            let foundContent = sectionsSecond[0].replace ('\n', '').replace ('\n', '');
+            foundContent = this.parseJson (foundContent.trim ());
+            if (foundContent) {
+                return foundContent;
+            }
+        } catch (e) {
+            throw new ExchangeError (this.id + ' getJsonFromContent failed, probably exchange data has been changed');
+        }
+        return {};
     }
 
     async fetchMarkets (params = {}) {
@@ -1548,7 +1672,6 @@ export default class gemini extends Exchange {
 
     async fetchDepositAddressesByNetwork (code: string, params = {}) {
         await this.loadMarkets ();
-        const currency = this.currency (code);
         const network = this.safeString (params, 'network');
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddressesByNetwork() requires a network parameter');
@@ -1562,7 +1685,7 @@ export default class gemini extends Exchange {
             'network': networkId,
         };
         const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
-        const results = this.parseDepositAddresses (response, [ currency['code'] ], false, { 'network': networkCode, 'currency': code });
+        const results = this.parseDepositAddresses (response, [ code ], false, { 'network': networkCode, 'currency': code });
         return this.groupBy (results, 'network');
     }
 
