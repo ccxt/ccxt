@@ -53,7 +53,9 @@ export default async (exchange, symbol) => {
         }
     }
 
-    const response1 = {
+    // krakenfutures
+
+    let response1 = {
         "instrument": "PI_XBTUSD",
         "time": 1567702877410,
         "last_update_time": 1567702877410,
@@ -67,7 +69,7 @@ export default async (exchange, symbol) => {
         "reduce_only": true
     };
 
-    const response2 = {
+    let response2 = {
         "instrument": "PI_XBTUSD",
         "time": 1567702877410,
         "last_update_time": 1567702877410,
@@ -81,7 +83,7 @@ export default async (exchange, symbol) => {
         "reduce_only": true
     };
 
-    const response3 = {
+    let response3 = {
         "instrument": "PI_XBTUSD",
         "time": 1567702877410,
         "last_update_time": 1567702877410,
@@ -95,13 +97,13 @@ export default async (exchange, symbol) => {
         "reduce_only": true
     };
 
-    const order1 = exchange.parseWsOrder (response1);
+    let order1 = exchange.parseWsOrder (response1);
 
-    const parsedOrder1 = exchange.handlePreviousOrder (response1, 'BTC/USD:BTC');
+    let parsedOrder1 = exchange.handlePreviousOrder (response1, 'BTC/USD:BTC');
     exchange.orders.append (parsedOrder1);
     assert (parsedOrder1 === order1);
 
-    const trades = [
+    let trades = [
         {
             'info': {
                 'instrument': 'PI_XBTUSD',
@@ -159,10 +161,164 @@ export default async (exchange, symbol) => {
             'fees': [ { 'rate': undefined, 'cost': undefined, 'currency': undefined } ]
         }
     ];
-    const parsedOrder2 = exchange.handlePreviousOrder (response2, 'BTC/USD:BTC');
+    let parsedOrder2 = exchange.handlePreviousOrder (response2, 'BTC/USD:BTC');
     exchange.orders.append (parsedOrder2);
-    const parsedOrder3 = exchange.handlePreviousOrder (response3, 'BTC/USD:BTC');
+    let parsedOrder3 = exchange.handlePreviousOrder (response3, 'BTC/USD:BTC');
     assert (trades === parsedOrder3['trades']);
+
+    // hitbtc3
+
+    response1 = {
+        'id': 1089241146910,
+        'client_order_id': 'cY5C79g9SpWHrnZ_FBmanFE3pcCumpnA',
+        'symbol': 'USDTUSDC',
+        'side': 'buy',
+        'status': 'new',
+        'type': 'limit',
+        'time_in_force': 'GTC',
+        'quantity': '3',
+        'quantity_cumulative': '0',
+        'price': '0.99000000',
+        'post_only': false,
+        'created_at': '2023-06-15T05:58:43.95Z',
+        'updated_at': '2023-06-15T05:58:43.95Z',
+        'report_type': 'status',
+    };
+
+    response2 = {
+        'id': 1089241146910,
+        'client_order_id': 'cY5C79g9SpWHrnZ_FBmanFE3pcCumpnA',
+        'symbol': 'USDTUSDC',
+        'side': 'buy',
+        'status': 'new',
+        'type': 'limit',
+        'time_in_force': 'GTC',
+        'quantity': '3',
+        'quantity_cumulative': '0',
+        'price': '0.99000000',
+        'post_only': false,
+        'created_at': '2023-06-15T05:58:43.95Z',
+        'updated_at': '2023-06-15T05:58:43.95Z',
+        'trade_id': 1361977606,
+        'trade_quantity': '1',
+        'trade_price': '0.99',
+        'trade_fee': '0.001',
+        'trade_taker': true,
+        'trade_position_id': 485308,
+        'report_type': 'new',
+    };
+
+    response3 = {
+        'id': 1089241146911,
+        'client_order_id': 'cY5C79g9SpWHrnZ_FBmanFE3pcCumpnA',
+        'symbol': 'USDTUSDC',
+        'side': 'buy',
+        'status': 'new',
+        'type': 'limit',
+        'time_in_force': 'GTC',
+        'quantity': '3',
+        'quantity_cumulative': '0',
+        'price': '0.99000000',
+        'post_only': false,
+        'created_at': '2023-06-15T05:58:43.95Z',
+        'updated_at': '2023-06-15T05:58:43.95Z',
+        'trade_id': 1361977606,
+        'trade_quantity': '1',
+        'trade_price': '0.99',
+        'trade_fee': '0.001',
+        'trade_taker': true,
+        'trade_position_id': 485309,
+        'report_type': 'new',
+    };
+
+    order1 = exchange.parseWsOrder (response1);
+    parsedOrder1 = exchange.handlePreviousOrder (response1, 'USDT/USDC');
+    exchange.orders.append (parsedOrder1);
+    assert (parsedOrder1 === order1);
+
+    trades = [
+        {
+            'info': {
+                'id': 1089241146910,
+                'client_order_id': 'cY5C79g9SpWHrnZ_FBmanFE3pcCumpnA',
+                'symbol': 'USDTUSDC',
+                'side': 'buy',
+                'status': 'new',
+                'type': 'limit',
+                'time_in_force': 'GTC',
+                'quantity': '3',
+                'quantity_cumulative': '0',
+                'price': '0.99000000',
+                'post_only': false,
+                'created_at': '2023-06-15T05:58:43.95Z',
+                'updated_at': '2023-06-15T05:58:43.95Z',
+                'trade_id': 1361977606,
+                'trade_quantity': '1',
+                'trade_price': '0.99',
+                'trade_fee': '0.001',
+                'trade_taker': true,
+                'trade_position_id': 485308,
+                'report_type': 'new'
+            },
+            'id': '1361977606',
+            'order': '1089241146910',
+            'timestamp': undefined,
+            'datetime': undefined,
+            'symbol': 'USDT/USDC',
+            'type': undefined,
+            'side': 'buy',
+            'takerOrMaker': 'taker',
+            'price': 0.99,
+            'amount': 1,
+            'cost': 0.99,
+            'fee': { 'cost': 0.001, 'currency': undefined, 'rate': undefined },
+            'fees': [ { 'cost': 0.001, 'currency': undefined, 'rate': undefined } ]
+        },
+        {
+            'info': {
+                'id': 1089241146911,
+                'client_order_id': 'cY5C79g9SpWHrnZ_FBmanFE3pcCumpnA',
+                'symbol': 'USDTUSDC',
+                'side': 'buy',
+                'status': 'new',
+                'type': 'limit',
+                'time_in_force': 'GTC',
+                'quantity': '3',
+                'quantity_cumulative': '0',
+                'price': '0.99000000',
+                'post_only': false,
+                'created_at': '2023-06-15T05:58:43.95Z',
+                'updated_at': '2023-06-15T05:58:43.95Z',
+                'trade_id': 1361977606,
+                'trade_quantity': '1',
+                'trade_price': '0.99',
+                'trade_fee': '0.001',
+                'trade_taker': true,
+                'trade_position_id': 485309,
+                'report_type': 'new'
+            },
+            'id': '1361977606',
+            'order': '1089241146911',
+            'timestamp': undefined,
+            'datetime': undefined,
+            'symbol': 'USDT/USDC',
+            'type': undefined,
+            'side': 'buy',
+            'takerOrMaker': 'taker',
+            'price': 0.99,
+            'amount': 1,
+            'cost': 0.99,
+            'fee': { 'cost': 0.001, 'currency': undefined, 'rate': undefined },
+            'fees': [ { 'cost': 0.001, 'currency': undefined, 'rate': undefined } ]
+        }
+    ];
+    parsedOrder2 = exchange.handlePreviousOrder (response2, 'USDT/USDC');
+    exchange.orders.append (parsedOrder2);
+    parsedOrder3 = exchange.handlePreviousOrder (response3, 'USDT/USDC');
+    assert (trades === parsedOrder3['trades']);
+    assert (parsedOrder3['average'] === 0.99);
+    assert (parsedOrder3['remaining'] === 1);
+    assert (parsedOrder3['fee']['cost'] === 0.002);
 
     return response;
 };
