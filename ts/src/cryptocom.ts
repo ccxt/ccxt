@@ -318,7 +318,7 @@ export default class cryptocom extends Exchange {
                 },
                 'broker': 'CCXT_',
                 'fetchCurrencies': {
-                    'usePrivateApi': true, // this is a private call and it requires API keys, you can disable it to use "public" endpoint for currencies, but it has less detailed information about coins
+                    'usePrivateApi': false, // this is a private call and it requires API keys, if this is disabled, then "public" endpoint for currencies will be used. To see differences check comments in "fetchCurrencies"
                 },
             },
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
@@ -381,9 +381,10 @@ export default class cryptocom extends Exchange {
         const options = this.safeValue (this.options, 'fetchCurrencies', {});
         const enabledPrivateEndpoint = this.safeValue (options, 'usePrivateApi');
         let currenciesData = undefined;
-        if (enabledPrivateEndpoint) {
-            if (!this.checkRequiredCredentials (false)) {
-                throw new AuthenticationError (this.id + ' fetchCurrencies() requires is private endpoint and requires apikeys. Alternatively, you can set ".options["fetchCurrencies"]["usePrivateApi"] = false" to use public data about currencies, but it has less detailed information about coins');
+        const apiKeysPresent = this.checkRequiredCredentials (false);
+        if (enabledPrivateEndpoint || apiKeysPresent) {
+            if (!apiKeysPresent) {
+                throw new AuthenticationError (this.id + ' fetchCurrencies() requires is private endpoint and requires apikeys. Alternatively, you can set ".options["fetchCurrencies"]["usePrivateApi"] = false" to use public data about currencies');
             }
             const response = await this.v2PrivatePostPrivateGetCurrencyNetworks (params);
             //
