@@ -425,6 +425,7 @@ export default class cryptocom extends Exchange {
             const resultData = this.safeValue (response, 'result', {});
             currenciesData = this.safeValue (resultData, 'currency_map', {});
         } else {
+            // @ts-ignore
             const response = await this.webApiPublicGetCommonSupportedCoins (params);
             //
             //     {
@@ -488,7 +489,12 @@ export default class cryptocom extends Exchange {
             let feeFound = undefined;
             let minWithdrawFound = undefined;
             const networks = {};
-            const withdrawPrecision = this.safeInteger (entry, 'withdrawal_decimals');
+            let withdrawPrecision = this.safeString (entry, 'withdrawal_decimals');
+            if (withdrawPrecision === undefined) {
+                // todo: precision info is present only in their "public" endpoint, so for "private" endpoint we add this till they fix their response
+                // for USDT & GUSD precision is 2, for all other coins its 4,6,7 or 8. So, assume 4 as default, to cover all cases
+                withdrawPrecision = this.inArray (code, [ 'USDT', 'GUSD' ]) ? '2' : '4';
+            }
             for (let j = 0; j < networkList.length; j++) {
                 const chainEntry = networkList[j];
                 const networkId = this.safeString2 (chainEntry, 'network_id', 'network');
@@ -559,7 +565,7 @@ export default class cryptocom extends Exchange {
                         'max': undefined,
                     },
                 },
-                'precision': withdrawPrecision,
+                'precision': this.parseNumber (this.parsePrecision (withdrawPrecision)),
                 'networks': networks,
                 'defaultNetwork': defaultNetwork,
             };
