@@ -297,8 +297,9 @@ export default class gemini extends Exchange {
          * @param {object} params extra parameters specific to the endpoint
          * @returns {object} an associative dictionary of currencies
          */
+        // @ts-ignore
         const response = await this.webExchangeGet (params);
-        const innerData = this.getJsonFromContent (response, '<script type="application/json" id="currencyData">', '</script>');
+        const innerData = this.getJsonFromContent (response, '"application/json" id="currencyData">', '</script>');
         //
         //    {
         //        "tradingPairs": [
@@ -384,8 +385,10 @@ export default class gemini extends Exchange {
         try {
             const sectionsFirst = content.split (startSpliter);
             const sectionsSecond = sectionsFirst[1].split (endSpliter);
-            let foundContent = sectionsSecond[0].replace ('\n', '').replace ('\n', '');
-            foundContent = this.parseJson (foundContent.trim ());
+            let foundContent = sectionsSecond[0].replace ('\n', '');
+            foundContent = foundContent.replace ('\n', ''); // need two times
+            foundContent = foundContent.trim ();
+            foundContent = this.parseJson (foundContent);
             if (foundContent) {
                 return foundContent;
             }
