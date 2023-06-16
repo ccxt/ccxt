@@ -375,6 +375,7 @@ class Transpiler {
             [ /\;$/gm, '' ],
             [ /\.toUpperCase\s*/g, '.upper' ],
             [ /\.toLowerCase\s*/g, '.lower' ],
+            [ /\.trim\s*/g, '.strip' ],
             [ /(\b)String(\b)/g, '$1str$2'],
             [ /JSON\.stringify\s*/g, 'json.dumps' ],
             [ /JSON\.parse\s*/g, "json.loads" ],
