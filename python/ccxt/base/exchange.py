@@ -106,6 +106,7 @@ class Exchange(object):
     # rate limiter settings
     enableRateLimit = True
     rateLimit = 2000  # milliseconds = seconds * 1000
+    sandboxFlag = False
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_proxy = None
@@ -459,11 +460,13 @@ class Exchange(object):
             if 'test' in self.urls:
                 self.urls['apiBackup'] = self.urls['api']
                 self.urls['api'] = self.urls['test']
+                self.sandboxFlag = True
             else:
                 raise NotSupported(self.id + ' does not have a sandbox URL')
         elif 'apiBackup' in self.urls:
             self.urls['api'] = self.urls['apiBackup']
             del self.urls['apiBackup']
+            self.sandboxFlag = False
 
     def throttle(self, cost=None):
         now = float(self.milliseconds())

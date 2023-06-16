@@ -73,6 +73,8 @@ class Exchange {
     public $validateServerSsl = true;
     public $validateClientSsl = false;
     public $curlopt_interface = null;
+
+    public $sandboxFlag = false;
     public $timeout = 10000; // in milliseconds
     public $proxy = '';
     public $origin = '*'; // CORS origin
@@ -1165,12 +1167,14 @@ class Exchange {
             if (array_key_exists('test', $this->urls)) {
                 $this->urls['apiBackup'] = $this->urls['api'];
                 $this->urls['api'] = $this->urls['test'];
+                $this->sandboxFlag = true;
             } else {
                 throw new NotSupported($this->id . ' does not have a sandbox URL');
             }
         } elseif (array_key_exists('apiBackup', $this->urls)) {
             $this->urls['api'] = $this->urls['apiBackup'];
             unset($this->urls['apiBackup']);
+            $this->sandboxFlag = false;
         }
     }
 
