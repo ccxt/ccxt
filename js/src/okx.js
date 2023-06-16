@@ -2285,6 +2285,10 @@ export default class okx extends Exchange {
         const slOrdPx = this.safeValue(params, 'slOrdPx', price);
         const slTriggerPxType = this.safeString(params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
+        const stopLoss = this.safeValue(params, 'stopLoss');
+        const stopLossDefined = (stopLoss !== undefined);
+        const takeProfit = this.safeValue(params, 'takeProfit');
+        const takeProfitDefined = (takeProfit !== undefined);
         const defaultMarginMode = this.safeString2(this.options, 'defaultMarginMode', 'marginMode', 'cross');
         let marginMode = this.safeString2(params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so as to be extended into the request
         let margin = false;
@@ -2310,7 +2314,7 @@ export default class okx extends Exchange {
         const isMarketOrder = type === 'market';
         let postOnly = false;
         [postOnly, params] = this.handlePostOnly(isMarketOrder, type === 'post_only', params);
-        params = this.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin']);
+        params = this.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit']);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
         const fok = (timeInForce === 'FOK') || (type === 'fok');
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
@@ -2362,16 +2366,95 @@ export default class okx extends Exchange {
             }
         }
         if (postOnly) {
-            method = defaultMethod;
             request['ordType'] = 'post_only';
         }
         else if (ioc && !marketIOC) {
-            method = defaultMethod;
             request['ordType'] = 'ioc';
         }
         else if (fok) {
-            method = defaultMethod;
             request['ordType'] = 'fok';
+        }
+        else if (stopLossDefined || takeProfitDefined) {
+            if (stopLossDefined) {
+                const stopLossTriggerPrice = this.safeValueN(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx']);
+                if (stopLossTriggerPrice === undefined) {
+                    throw new InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order');
+                }
+                request['slTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                const stopLossLimitPrice = this.safeValueN(stopLoss, ['price', 'stopLossPrice', 'slOrdPx']);
+                const stopLossOrderType = this.safeString(stopLoss, 'type');
+                if (stopLossOrderType !== undefined) {
+                    const stopLossLimitOrderType = (stopLossOrderType === 'limit');
+                    const stopLossMarketOrderType = (stopLossOrderType === 'market');
+                    if ((!stopLossLimitOrderType) && (!stopLossMarketOrderType)) {
+                        throw new InvalidOrder(this.id + ' createOrder() params["stopLoss"]["type"] must be either "limit" or "market"');
+                    }
+                    else if (stopLossLimitOrderType) {
+                        if (stopLossLimitPrice === undefined) {
+                            throw new InvalidOrder(this.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] or params["stopLoss"]["slOrdPx"] for a stop loss limit order');
+                        }
+                        else {
+                            request['slOrdPx'] = this.priceToPrecision(symbol, stopLossLimitPrice);
+                        }
+                    }
+                    else if (stopLossOrderType === 'market') {
+                        request['slOrdPx'] = '-1';
+                    }
+                }
+                else if (stopLossLimitPrice !== undefined) {
+                    request['slOrdPx'] = this.priceToPrecision(symbol, stopLossLimitPrice); // limit sl order
+                }
+                else {
+                    request['slOrdPx'] = '-1'; // market sl order
+                }
+                const stopLossTriggerPriceType = this.safeString2(stopLoss, 'triggerPriceType', 'slTriggerPxType');
+                if (stopLossTriggerPriceType !== undefined) {
+                    if ((stopLossTriggerPriceType !== 'last') && (stopLossTriggerPriceType !== 'index') && (stopLossTriggerPriceType !== 'mark')) {
+                        throw new InvalidOrder(this.id + ' createOrder() stop loss trigger price type must be one of "last", "index" or "mark"');
+                    }
+                    request['slTriggerPxType'] = stopLossTriggerPriceType;
+                }
+            }
+            if (takeProfitDefined) {
+                const takeProfitTriggerPrice = this.safeValueN(takeProfit, ['triggerPrice', 'stopPrice', 'tpTriggerPx']);
+                if (takeProfitTriggerPrice === undefined) {
+                    throw new InvalidOrder(this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order');
+                }
+                request['tpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                const takeProfitLimitPrice = this.safeValueN(takeProfit, ['price', 'takeProfitPrice', 'tpOrdPx']);
+                const takeProfitOrderType = this.safeString(takeProfit, 'type');
+                if (takeProfitOrderType !== undefined) {
+                    const takeProfitLimitOrderType = (takeProfitOrderType === 'limit');
+                    const takeProfitMarketOrderType = (takeProfitOrderType === 'market');
+                    if ((!takeProfitLimitOrderType) && (!takeProfitMarketOrderType)) {
+                        throw new InvalidOrder(this.id + ' createOrder() params["takeProfit"]["type"] must be either "limit" or "market"');
+                    }
+                    else if (takeProfitLimitOrderType) {
+                        if (takeProfitLimitPrice === undefined) {
+                            throw new InvalidOrder(this.id + ' createOrder() requires a limit price in params["takeProfit"]["price"] or params["takeProfit"]["tpOrdPx"] for a take profit limit order');
+                        }
+                        else {
+                            request['tpOrdPx'] = this.priceToPrecision(symbol, takeProfitLimitPrice);
+                        }
+                    }
+                    else if (takeProfitOrderType === 'market') {
+                        request['tpOrdPx'] = '-1';
+                    }
+                }
+                else if (takeProfitLimitPrice !== undefined) {
+                    request['tpOrdPx'] = this.priceToPrecision(symbol, takeProfitLimitPrice); // limit tp order
+                }
+                else {
+                    request['tpOrdPx'] = '-1'; // market tp order
+                }
+                const takeProfitTriggerPriceType = this.safeString2(stopLoss, 'triggerPriceType', 'tpTriggerPxType');
+                if (takeProfitTriggerPriceType !== undefined) {
+                    if ((takeProfitTriggerPriceType !== 'last') && (takeProfitTriggerPriceType !== 'index') && (takeProfitTriggerPriceType !== 'mark')) {
+                        throw new InvalidOrder(this.id + ' createOrder() take profit trigger price type must be one of "last", "index" or "mark"');
+                    }
+                    request['tpTriggerPxType'] = takeProfitTriggerPriceType;
+                }
+            }
         }
         else if (trigger) {
             method = 'privatePostTradeOrderAlgo';
