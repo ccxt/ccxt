@@ -680,7 +680,12 @@
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
+                "currencyIdAndCode": "messed codes",
                 "active": "not provided"
+            },
+            "fetchCurrencies":{
+                "withdraw": "not provided",
+                "deposit": "not provided"
             }
         }
     },
