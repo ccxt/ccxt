@@ -374,7 +374,6 @@ class Transpiler {
             [ /\;$/gm, '' ],
             [ /\.toUpperCase\s*/g, '.upper' ],
             [ /\.toLowerCase\s*/g, '.lower' ],
-            [ /\.trim\s*/g, '.strip' ],
             [ /(\b)String(\b)/g, '$1str$2'],
             [ /JSON\.stringify\s*/g, 'json.dumps' ],
             [ /JSON\.parse\s*/g, "json.loads" ],
@@ -383,8 +382,7 @@ class Transpiler {
             [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "format($1, '.$2f')" ],
             [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "format($1, '.' + str($2) + 'f')" ],
             [ /parseFloat\s*/g, 'float'],
-            [ /parseInt\s*/g, 'int'],
-            [ /replaceAll\s*/g, 'replace'],
+            [ /parseInt\s*/g, 'int
             [ /self\[([^\]+]+)\]/g, 'getattr(self, $1)' ],
             [ /Math\.floor\s*\(([^\)]+)\)/g, 'int(math.floor($1))' ],
             [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs($1)' ],
@@ -608,10 +606,8 @@ class Transpiler {
             [ / \+\= (?!\d)/g, ' .= ' ],
             [ /([^\s\(]+(?:\s*\(.+\))?)\.toUpperCase\s*\(\)/g, 'strtoupper($1)' ],
             [ /([^\s\(]+(?:\s*\(.+\))?)\.toLowerCase\s*\(\)/g, 'strtolower($1)' ],
-            [ /([^\s\(]+(?:\s*\(.+\))?)\.trim\s*\(\)/g, 'trim($1)' ],
             // [ /([^\s\(]+(?:\s*\(.+\))?)\.replaceAll\s*\(([^)]+)\)/g, 'str_replace($2, $1)' ], // still not a part of the standard in Node.js 13
             [ /([^\s\(]+(?:\s*\(.+\))?)\.replace\s*\(([^)]+)\)/g, 'str_replace($2, $1)' ],
-            [ /([^\s\(]+(?:\s*\(.+\))?)\.replaceAll\s*\(([^)]+)\)/g, 'str_replace($2, $1)' ],
             [ /this\[([^\]+]+)\]/g, '$$this->$$$1' ],
             [ /([^\s\(]+).slice \(([^\)\:,]+)\)/g, 'mb_substr($1, $2)' ],
             [ /([^\s\(]+).slice \(([^\,\)]+)\,\s*([^\)]+)\)/g, 'mb_substr($1, $2, $3 - $2)' ],
