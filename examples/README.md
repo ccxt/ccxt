@@ -180,6 +180,10 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Download Historical Data of All Cryptocoins with CCXT for free](https://www.linkedin.com/pulse/download-historical-data-all-cryptocoins-ccxt-gursel-karacor/) – An article on linked.in explaining how to download historical market data with CCXT.
 
+[Automated Trading Bots for Profit](https://python.plainenglish.io/automated-trading-bots-for-profit-659da17a4715) – Automating trading bots with CCXT and Python.
+
+[Avoiding Bear Traps in Options Trading: How to Safeguard Your Investments with a Python Bot](https://medium.com/coinmonks/avoiding-bear-traps-in-options-trading-how-to-safeguard-your-investments-with-a-python-bot-6289eecb3048) – An article by Coinmonks on risk management with options trading using CCXT and Python.
+
 [비트코인 해외 거래소 API - 바이낸스 CCXT설치](https://www.youtube.com/watch?v=7dMGbjwZwlU) – Using CCXT to trade with Binance API, a video overview of CCXT in Korean.
 
 [ccxt_라이브러리](https://www.youtube.com/watch?v=ifkJ5FtMpKY) – A quick short demo of CCXT on YouTube.
@@ -248,6 +252,8 @@ https://www.youtube.com/watch?v=K-EZ9QXezZM
 [Algorithmic Trading - Aula 4](https://www.youtube.com/watch?v=BkKebXrhMGY) – A video introduction to algorithmic trading with CCXT from Curso Algo Trading in Portuguese language.
 
 [Лучшая криптотрейдинг библиотека?](http://medium.com/@vladthelittleone/лучшая-криптотрейдинг-библиотека-67e308f96c1f) – An article in Russian on setting up CCXT to connect and trade with crypto exchanges.
+
+[Open source бот для торгов на Binance](https://habr.com/ru/articles/737236/) – A russian article on building an open source trading bot with CCXT.
 
 [Présentation de projet - Créer un Bot Telegram de A à Z (+CCXT)](https://www.youtube.com/watch?v=yayJKRtg5M4) – La création d'un bot Telegram en Node.js, qui va rechercher des informations sur les différentes marketpalce de crypto-monnaies, et cela via la librairie CCXT.
 
