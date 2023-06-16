@@ -382,7 +382,7 @@ class Transpiler {
             [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "format($1, '.$2f')" ],
             [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "format($1, '.' + str($2) + 'f')" ],
             [ /parseFloat\s*/g, 'float'],
-            [ /parseInt\s*/g, 'int
+            [ /parseInt\s*/g, 'int'],
             [ /self\[([^\]+]+)\]/g, 'getattr(self, $1)' ],
             [ /Math\.floor\s*\(([^\)]+)\)/g, 'int(math.floor($1))' ],
             [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs($1)' ],
