@@ -102,7 +102,7 @@ export default class okx extends Exchange {
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfer': true,
-                'fetchTransfers': false,
+                'fetchTransfers': true,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
@@ -231,6 +231,7 @@ export default class okx extends Exchange {
                         'asset/deposit-address': 5 / 3,
                         'asset/balances': 5 / 3,
                         'asset/transfer-state': 10,
+                        'asset/transfer-record': 10,
                         'asset/deposit-history': 5 / 3,
                         'asset/withdrawal-history': 5 / 3,
                         'asset/deposit-withdraw-status': 20,
@@ -767,7 +768,7 @@ export default class okx extends Exchange {
                 //     'type': 'spot', // 'funding', 'trading', 'spot'
                 // },
                 'fetchLedger': {
-                    'method': 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
+                    'method': 'privateGetAccountBills', // privateGetAccountBills, privateGetAccountBillsArchive, privateGetAssetBills
                 },
                 // 6: Funding account, 18: Trading account
                 'fetchOrder': {
@@ -3595,58 +3596,10 @@ export default class okx extends Exchange {
             // 'ccy': undefined, // currency['id'],
             // 'mgnMode': undefined, // 'isolated', 'cross'
             // 'ctType': undefined, // 'linear', 'inverse', only applicable to FUTURES/SWAP
-            // 'type': undefined,
-            //     1 Transfer,
-            //     2 Trade,
-            //     3 Delivery,
-            //     4 Auto token conversion,
-            //     5 Liquidation,
-            //     6 Margin transfer,
-            //     7 Interest deduction,
-            //     8 Funding rate,
-            //     9 ADL,
-            //     10 Clawback,
-            //     11 System token conversion
-            // 'subType': undefined,
-            //     1 Buy
-            //     2 Sell
-            //     3 Open long
-            //     4 Open short
-            //     5 Close long
-            //     6 Close short
-            //     9 Interest deduction
-            //     11 Transfer in
-            //     12 Transfer out
-            //     160 Manual margin increase
-            //     161 Manual margin decrease
-            //     162 Auto margin increase
-            //     110 Auto buy
-            //     111 Auto sell
-            //     118 System token conversion transfer in
-            //     119 System token conversion transfer out
-            //     100 Partial liquidation close long
-            //     101 Partial liquidation close short
-            //     102 Partial liquidation buy
-            //     103 Partial liquidation sell
-            //     104 Liquidation long
-            //     105 Liquidation short
-            //     106 Liquidation buy
-            //     107 Liquidation sell
-            //     110 Liquidation transfer in
-            //     111 Liquidation transfer out
-            //     125 ADL close long
-            //     126 ADL close short
-            //     127 ADL buy
-            //     128 ADL sell
-            //     170 Exercised
-            //     171 Counterparty exercised
-            //     172 Expired OTM
-            //     112 Delivery long
-            //     113 Delivery short
-            //     117 Delivery/Exercise clawback
-            //     173 Funding fee expense
-            //     174 Funding fee income
-            //
+            // 'type': varies depending the 'method' endpoint :
+            //     - https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+            //     - https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
+            //     - https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
             // 'after': 'id', // return records earlier than the requested bill id
             // 'before': 'id', // return records newer than the requested bill id
             // 'limit': 100, // default 100, max 100
@@ -4855,17 +4808,44 @@ export default class okx extends Exchange {
         //         "type": "0"
         //     }
         //
-        const id = this.safeString (transfer, 'transId');
+        // fetchTransfers
+        //
+        //     {
+        //         "bal": "70.6874353780312913",
+        //         "balChg": "-4.0000000000000000", // negative means "to funding", positive meand "from funding"
+        //         "billId": "588900695232225299",
+        //         "ccy": "USDT",
+        //         "execType": "",
+        //         "fee": "",
+        //         "from": "18",
+        //         "instId": "",
+        //         "instType": "",
+        //         "mgnMode": "",
+        //         "notes": "To Funding Account",
+        //         "ordId": "",
+        //         "pnl": "",
+        //         "posBal": "",
+        //         "posBalChg": "",
+        //         "price": "0",
+        //         "subType": "12",
+        //         "sz": "-4",
+        //         "to": "6",
+        //         "ts": "1686676866989",
+        //         "type": "1"
+        //     }
+        //
+        const id = this.safeString2 (transfer, 'transId', 'billId');
         const currencyId = this.safeString (transfer, 'ccy');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const amount = this.safeNumber (transfer, 'amt');
+        let amount = this.safeNumber (transfer, 'amt');
         const fromAccountId = this.safeString (transfer, 'from');
         const toAccountId = this.safeString (transfer, 'to');
         const accountsById = this.safeValue (this.options, 'accountsById', {});
-        const fromAccount = this.safeString (accountsById, fromAccountId);
-        const toAccount = this.safeString (accountsById, toAccountId);
-        const timestamp = this.milliseconds ();
-        const status = this.safeString (transfer, 'state');
+        const timestamp = this.safeInteger (transfer, 'ts', this.milliseconds ());
+        const balanceChange = this.safeString (transfer, 'sz');
+        if (balanceChange !== undefined) {
+            amount = this.parseNumber (Precise.stringAbs (balanceChange));
+        }
         return {
             'info': transfer,
             'id': id,
@@ -4873,10 +4853,17 @@ export default class okx extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'currency': code,
             'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'status': status,
+            'fromAccount': this.safeString (accountsById, fromAccountId),
+            'toAccount': this.safeString (accountsById, toAccountId),
+            'status': this.parseTransferStatus (this.safeString (transfer, 'state')),
         };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'success': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     async fetchTransfer (id: string, code: string = undefined, params = {}) {
@@ -4909,6 +4896,69 @@ export default class okx extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const transfer = this.safeValue (data, 0);
         return this.parseTransfer (transfer);
+    }
+
+    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchTransfers
+         * @description fetch a history of internal transfers made on an account
+         * @param {string|undefined} code unified currency code of the currency transferred
+         * @param {int|undefined} since the earliest time in ms to fetch transfers for
+         * @param {int|undefined} limit the maximum number of transfers structures to retrieve
+         * @param {object} params extra parameters specific to the okx api endpoint
+         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {
+            'type': '1', // https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+        };
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['ccy'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetAccountBillsArchive (this.extend (request, params));
+        //
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "bal": "70.6874353780312913",
+        //                "balChg": "-4.0000000000000000",
+        //                "billId": "588900695232225299",
+        //                "ccy": "USDT",
+        //                "execType": "",
+        //                "fee": "",
+        //                "from": "18",
+        //                "instId": "",
+        //                "instType": "",
+        //                "mgnMode": "",
+        //                "notes": "To Funding Account",
+        //                "ordId": "",
+        //                "pnl": "",
+        //                "posBal": "",
+        //                "posBalChg": "",
+        //                "price": "0",
+        //                "subType": "12",
+        //                "sz": "-4",
+        //                "to": "6",
+        //                "ts": "1686676866989",
+        //                "type": "1"
+        //            },
+        //            ...
+        //        ],
+        //        "msg": ""
+        //    }
+        //
+        const transfers = this.safeValue (response, 'data', []);
+        return this.parseTransfers (transfers, currency, since, limit, params);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

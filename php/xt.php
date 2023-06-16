@@ -4490,7 +4490,7 @@ class xt extends Exchange {
         //     }
         //
         $status = $this->safe_string_upper_2($response, 'msgInfo', 'mc');
-        if ($status !== 'SUCCESS') {
+        if ($status !== null && $status !== 'SUCCESS') {
             $feedback = $this->id . ' ' . $body;
             $error = $this->safe_value($response, 'error', array());
             $spotErrorCode = $this->safe_string($response, 'mc');
