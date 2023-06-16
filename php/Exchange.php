@@ -73,7 +73,6 @@ class Exchange {
     public $validateServerSsl = true;
     public $validateClientSsl = false;
     public $curlopt_interface = null;
-
     public $timeout = 10000; // in milliseconds
     public $proxy = '';
     public $origin = '*'; // CORS origin
