@@ -628,10 +628,12 @@
                 "settleId": "not defined when contract"
             },
             "fetchTickers": {
+                "ask": "not above bid https://app.travis-ci.com/github/ccxt/ccxt/builds/263871244#L2163",
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
             "fetchTicker": {
+                "ask": "not above bid https://app.travis-ci.com/github/ccxt/ccxt/builds/263871244#L2163",
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             }
