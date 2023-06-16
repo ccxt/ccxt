@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
-import asyncio
 import hashlib
 from ccxt.base.types import OrderSide
 from ccxt.base.types import OrderType
@@ -381,201 +380,166 @@ class cryptocom(Exchange, ImplicitAPI):
 
     async def fetch_markets(self, params={}):
         """
-        see https://exchange-docs.crypto.com/spot/index.html#public-get-instruments
-        see https://exchange-docs.crypto.com/derivatives/index.html#public-get-instruments
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments
         retrieves data on all markets for cryptocom
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
-        promises = [self.fetch_spot_markets(params), self.fetch_derivatives_markets(params)]
-        # @ts-ignore
-        promises = await asyncio.gather(*promises)
-        spotMarkets = promises[0]
-        derivativeMarkets = promises[1]
-        markets = self.array_concat(spotMarkets, derivativeMarkets)
-        return markets
-
-    async def fetch_spot_markets(self, params={}):
-        response = await self.v2PublicGetPublicGetInstruments(params)
-        #
-        #    {
-        #        id: 11,
-        #        method: 'public/get-instruments',
-        #        code: 0,
-        #        result: {
-        #            'instruments': [
-        #                {
-        #                    instrument_name: 'NEAR_BTC',
-        #                    quote_currency: 'BTC',
-        #                    base_currency: 'NEAR',
-        #                    price_decimals: '8',
-        #                    quantity_decimals: '2',
-        #                    margin_trading_enabled: True,
-        #                    margin_trading_enabled_5x: True,
-        #                    margin_trading_enabled_10x: True,
-        #                    max_quantity: '100000000',
-        #                    min_quantity: '0.01',
-        #                    max_price:'1',
-        #                    min_price:'0.00000001',
-        #                    last_update_date:1667263094857,
-        #                    quantity_tick_size:'0.1',
-        #                    price_tick_size:'0.00000001'
-        #               },
-        #            ]
-        #        }
-        #    }
-        #
-        resultResponse = self.safe_value(response, 'result', {})
-        markets = self.safe_value(resultResponse, 'instruments', [])
-        result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
-            id = self.safe_string(market, 'instrument_name')
-            baseId = self.safe_string(market, 'base_currency')
-            quoteId = self.safe_string(market, 'quote_currency')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            minPrice = self.safe_string(market, 'min_price')
-            minQuantity = self.safe_string(market, 'min_quantity')
-            maxLeverage = self.parse_number('1')
-            margin_trading_enabled_5x = self.safe_value(market, 'margin_trading_enabled_5x')
-            if margin_trading_enabled_5x:
-                maxLeverage = self.parse_number('5')
-            margin_trading_enabled_10x = self.safe_value(market, 'margin_trading_enabled_10x')
-            if margin_trading_enabled_10x:
-                maxLeverage = self.parse_number('10')
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': self.safe_value(market, 'margin_trading_enabled'),
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': None,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.safe_number(market, 'quantity_tick_size'),
-                    'price': self.safe_number(market, 'price_tick_size'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': self.parse_number('1'),
-                        'max': maxLeverage,
-                    },
-                    'amount': {
-                        'min': self.parse_number(minQuantity),
-                        'max': self.safe_number(market, 'max_quantity'),
-                    },
-                    'price': {
-                        'min': self.parse_number(minPrice),
-                        'max': self.safe_number(market, 'max_price'),
-                    },
-                    'cost': {
-                        'min': self.parse_number(Precise.string_mul(minQuantity, minPrice)),
-                        'max': None,
-                    },
-                },
-                'info': market,
-            })
-        return result
-
-    async def fetch_derivatives_markets(self, params={}):
-        result = []
-        futuresResponse = await self.derivativesPublicGetPublicGetInstruments()
+        response = await self.v1PublicGetPublicGetInstruments(params)
         #
         #     {
-        #       id: -1,
-        #       method: 'public/get-instruments',
-        #       code: 0,
-        #       result: {
-        #         data: [
-        #           {
-        #             symbol: '1INCHUSD-PERP',
-        #             inst_type: 'PERPETUAL_SWAP',
-        #             display_name: '1INCHUSD Perpetual',
-        #             base_ccy: '1INCH',
-        #             quote_ccy: 'USD_Stable_Coin',
-        #             quote_decimals: 4,
-        #             quantity_decimals: 0,
-        #             price_tick_size: '0.0001',
-        #             qty_tick_size: '1',
-        #             max_leverage: '50',
-        #             tradable: True,
-        #             expiry_timestamp_ms: 0,
-        #             beta_product: False,
-        #             underlying_symbol: '1INCHUSD-INDEX',
-        #             put_call: 'UNDEFINED',
-        #             strike: '0',
-        #             contract_size: '1'
-        #           },
-        #         ]
-        #       }
+        #         "id": 1,
+        #         "method": "public/get-instruments",
+        #         "code": 0,
+        #         "result": {
+        #             "data": [
+        #                 {
+        #                     "symbol": "BTC_USDT",
+        #                     "inst_type": "CCY_PAIR",
+        #                     "display_name": "BTC/USDT",
+        #                     "base_ccy": "BTC",
+        #                     "quote_ccy": "USDT",
+        #                     "quote_decimals": 2,
+        #                     "quantity_decimals": 5,
+        #                     "price_tick_size": "0.01",
+        #                     "qty_tick_size": "0.00001",
+        #                     "max_leverage": "50",
+        #                     "tradable": True,
+        #                     "expiry_timestamp_ms": 0,
+        #                     "beta_product": False,
+        #                     "margin_buy_enabled": False,
+        #                     "margin_sell_enabled": True
+        #                 },
+        #                 {
+        #                     "symbol": "RUNEUSD-PERP",
+        #                     "inst_type": "PERPETUAL_SWAP",
+        #                     "display_name": "RUNEUSD Perpetual",
+        #                     "base_ccy": "RUNE",
+        #                     "quote_ccy": "USD",
+        #                     "quote_decimals": 3,
+        #                     "quantity_decimals": 1,
+        #                     "price_tick_size": "0.001",
+        #                     "qty_tick_size": "0.1",
+        #                     "max_leverage": "50",
+        #                     "tradable": True,
+        #                     "expiry_timestamp_ms": 0,
+        #                     "beta_product": False,
+        #                     "underlying_symbol": "RUNEUSD-INDEX",
+        #                     "contract_size": "1",
+        #                     "margin_buy_enabled": False,
+        #                     "margin_sell_enabled": False
+        #                 },
+        #                 {
+        #                     "symbol": "ETHUSD-230825",
+        #                     "inst_type": "FUTURE",
+        #                     "display_name": "ETHUSD Futures 20230825",
+        #                     "base_ccy": "ETH",
+        #                     "quote_ccy": "USD",
+        #                     "quote_decimals": 2,
+        #                     "quantity_decimals": 4,
+        #                     "price_tick_size": "0.01",
+        #                     "qty_tick_size": "0.0001",
+        #                     "max_leverage": "100",
+        #                     "tradable": True,
+        #                     "expiry_timestamp_ms": 1692950400000,
+        #                     "beta_product": False,
+        #                     "underlying_symbol": "ETHUSD-INDEX",
+        #                     "contract_size": "1",
+        #                     "margin_buy_enabled": False,
+        #                     "margin_sell_enabled": False
+        #                 },
+        #                 {
+        #                     "symbol": "BTCUSD-230630-CW30000",
+        #                     "inst_type": "WARRANT",
+        #                     "display_name": "BTCUSD-230630-CW30000",
+        #                     "base_ccy": "BTC",
+        #                     "quote_ccy": "USD",
+        #                     "quote_decimals": 3,
+        #                     "quantity_decimals": 0,
+        #                     "price_tick_size": "0.001",
+        #                     "qty_tick_size": "10",
+        #                     "max_leverage": "50",
+        #                     "tradable": True,
+        #                     "expiry_timestamp_ms": 1688112000000,
+        #                     "beta_product": False,
+        #                     "underlying_symbol": "BTCUSD-INDEX",
+        #                     "put_call": "CALL",
+        #                     "strike": "30000",
+        #                     "contract_size": "0.0001",
+        #                     "margin_buy_enabled": False,
+        #                     "margin_sell_enabled": False
+        #                 },
+        #             ]
+        #         }
         #     }
         #
-        futuresResult = self.safe_value(futuresResponse, 'result', {})
-        data = self.safe_value(futuresResult, 'data', [])
+        resultResponse = self.safe_value(response, 'result', {})
+        data = self.safe_value(resultResponse, 'data', [])
+        result = []
         for i in range(0, len(data)):
             market = data[i]
             inst_type = self.safe_string(market, 'inst_type')
+            spot = inst_type == 'CCY_PAIR'
             swap = inst_type == 'PERPETUAL_SWAP'
             future = inst_type == 'FUTURE'
-            if inst_type == 'CCY_PAIR':
-                continue  # Found some inconsistencies between spot and derivatives api so use spot api for currency pairs.
+            option = inst_type == 'WARRANT'
             baseId = self.safe_string(market, 'base_ccy')
             quoteId = self.safe_string(market, 'quote_ccy')
+            settleId = None if spot else quoteId
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote + ':' + quote
-            expiry = self.safe_integer(market, 'expiry_timestamp_ms')
-            if expiry == 0:
-                expiry = None
-            type = 'swap'
-            if future:
+            settle = None if spot else self.safe_currency_code(settleId)
+            optionType = self.safe_string_lower(market, 'put_call')
+            strike = self.safe_string(market, 'strike')
+            marginBuyEnabled = self.safe_value(market, 'margin_buy_enabled')
+            marginSellEnabled = self.safe_value(market, 'margin_sell_enabled')
+            expiry = self.omit_zero(self.safe_integer(market, 'expiry_timestamp_ms'))
+            symbol = base + '/' + quote
+            type = None
+            contract = None
+            if inst_type == 'CCY_PAIR':
+                type = 'spot'
+                contract = False
+            elif inst_type == 'PERPETUAL_SWAP':
+                type = 'swap'
+                symbol = symbol + ':' + quote
+                contract = True
+            elif inst_type == 'FUTURE':
                 type = 'future'
-                symbol = symbol + '-' + self.yymmdd(expiry)
-            contractSize = self.safe_number(market, 'contract_size')
+                symbol = symbol + ':' + quote + '-' + self.yymmdd(expiry)
+                contract = True
+            elif inst_type == 'WARRANT':
+                type = 'option'
+                symbolOptionType = 'C' if (optionType == 'call') else 'P'
+                symbol = symbol + ':' + quote + '-' + self.yymmdd(expiry) + '-' + strike + '-' + symbolOptionType
+                contract = True
             result.append({
                 'id': self.safe_string(market, 'symbol'),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': quoteId,
+                'settleId': settleId,
                 'type': type,
-                'spot': False,
-                'margin': False,
+                'spot': spot,
+                'margin': ((marginBuyEnabled) or (marginSellEnabled)),
                 'swap': swap,
                 'future': future,
-                'option': False,
+                'option': option,
                 'active': self.safe_value(market, 'tradable'),
-                'contract': True,
-                'linear': True,
-                'inverse': False,
-                'contractSize': contractSize,
+                'contract': contract,
+                'linear': True if (contract) else None,
+                'inverse': False if (contract) else None,
+                'contractSize': self.safe_number(market, 'contract_size'),
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
-                'strike': None,
-                'optionType': None,
+                'strike': self.parse_number(strike),
+                'optionType': optionType,
                 'precision': {
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quote_decimals'))),
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantity_decimals'))),
+                    'price': self.parse_number(self.safe_string(market, 'price_tick_size')),
+                    'amount': self.parse_number(self.safe_string(market, 'qty_tick_size')),
                 },
                 'limits': {
                     'leverage': {
@@ -583,7 +547,7 @@ class cryptocom(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'max_leverage'),
                     },
                     'amount': {
-                        'min': self.parse_number(contractSize),
+                        'min': None,
                         'max': None,
                     },
                     'price': {

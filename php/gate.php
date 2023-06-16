@@ -2618,6 +2618,9 @@ class gate extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
+        if ($market['option']) {
+            return $this->fetch_option_ohlcv($symbol, $timeframe, $since, $limit, $params);
+        }
         $price = $this->safe_string($params, 'price');
         $request = array();
         list($request, $params) = $this->prepare_request($market, null, $params);
@@ -2626,7 +2629,6 @@ class gate extends Exchange {
         $maxLimit = 1000;
         if ($market['contract']) {
             $maxLimit = 1999;
-            $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
             if ($market['future']) {
                 $method = 'publicDeliveryGetSettleCandlesticks';
             } elseif ($market['swap']) {
@@ -2664,6 +2666,17 @@ class gate extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->$method (array_merge($request, $params));
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_option_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+        // separated option logic because the from, to and $limit parameters weren't functioning
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array();
+        list($request, $params) = $this->prepare_request($market, null, $params);
+        $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $response = $this->publicOptionsGetCandlesticks (array_merge($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
@@ -2727,7 +2740,7 @@ class gate extends Exchange {
         //    )
         //
         //
-        // Mark and Index price candles
+        // Swap, Future, Option, Mark and Index price candles
         //
         //     {
         //          "t":1632873600,         // Unix timestamp in seconds
@@ -2747,7 +2760,7 @@ class gate extends Exchange {
                 $this->safe_number($ohlcv, 6),      // trading volume
             );
         } else {
-            // Mark and Index price candles
+            // Swap, Future, Option, Mark and Index price candles
             return array(
                 $this->safe_timestamp($ohlcv, 't'), // unix timestamp in seconds
                 $this->safe_number($ohlcv, 'o'),    // open price
