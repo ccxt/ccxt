@@ -704,8 +704,8 @@ export default class xt extends Exchange {
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const [ chainsRequest, currenciesRequest ] = [ this.publicSpotGetWalletSupportCurrency (params), this.publicSpotGetCurrencies (params) ];
-        const [ chainsResponse, currenciesResponse ] = await Promise.all ([ chainsRequest, currenciesRequest ]);
+        const promisesRaw = [ this.publicSpotGetWalletSupportCurrency (params), this.publicSpotGetCurrencies (params) ];
+        const [ chainsResponse, currenciesResponse ] = await Promise.all (promisesRaw);
         //
         // currencies
         //
