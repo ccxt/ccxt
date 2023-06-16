@@ -615,7 +615,7 @@ export default class wazirx extends wazirxRest {
         client.resolve (this.orders, messageHash);
     }
 
-    parseWsOrder (order) {
+    parseWsOrder (order, market = undefined) {
         //
         //     {
         //         "E": 1631683058904,
@@ -635,7 +635,7 @@ export default class wazirx extends wazirxRest {
         const timestamp = this.safeInteger (order, 'O');
         const marketId = this.safeString (order, 's');
         const status = this.safeString (order, 'X');
-        const market = this.safeMarket (marketId);
+        market = this.safeMarket (marketId);
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'i'),
