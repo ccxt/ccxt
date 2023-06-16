@@ -251,6 +251,10 @@ export default class gemini extends Exchange {
                     'fetchDetailsForAllSymbols': false,
                     'fetchDetailsForMarketIds': [],
                 },
+                'fetchCurrencies': {
+                    'enabled': true, // fetches from WEB
+                    'retries': 5,
+                },
                 'fetchUsdtMarkets': [ 'btcusdt', 'ethusdt' ], // keep this list updated (not available trough web api)
                 'fetchTickerMethod': 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
                 'networkIds': {
@@ -286,7 +290,11 @@ export default class gemini extends Exchange {
          * @param {object} params extra parameters specific to the endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        return await this.fetchCurrenciesFromWeb (params);
+        const options = this.safeValue (this.options, 'fetchCurrencies', {});
+        if (this.safeValue (options, 'enabled', true) === true) {
+            return await this.fetchCurrenciesFromWeb (params);
+        }
+        return undefined;
     }
 
     async fetchCurrenciesFromWeb (params = {}) {
@@ -297,87 +305,104 @@ export default class gemini extends Exchange {
          * @param {object} params extra parameters specific to the endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.webExchangeGet (params);
-        const innerData = this.getJsonFromContent (response, '"application/json" id="currencyData">', '</script>');
-        //
-        //    {
-        //        "tradingPairs": [
-        //            [ "BTCAUD", 2, 8, "0.00001", 10, true ],
-        //            ...
-        //        ],
-        //        "currencies": [
-        //            [ "ORCA", "Orca", 204, 6, 0, 6, 8, false, null, "solana" ],
-        //            [ "ATOM", "Cosmos", 44, 6, 0, 6, 8, false, null, "cosmos" ],
-        //            [ "ETH", "Ether", 2, 6, 0, 18, 8, false, null, "ethereum" ],
-        //            [ "GBP", "Pound Sterling", 22, 2, 2, 2, 2, true, '£', null ],
-        //            ...
-        //        ],
-        //        "networks": [
-        //            [ "solana", "SOL", "Solana" ],
-        //            [ "zcash", "ZEC", "Zcash" ],
-        //            [ "tezos", "XTZ", "Tezos" ],
-        //            [ "cosmos", "ATOM", "Cosmos" ],
-        //            [ "ethereum", "ETH", "Ethereum" ],
-        //            ...
-        //        ]
-        //    }
-        //
-        const result = {};
-        const currenciesArray = this.safeValue (innerData, 'currencies', []);
-        for (let i = 0; i < currenciesArray.length; i++) {
-            const currency = currenciesArray[i];
-            const id = this.safeString (currency, 0);
-            const code = this.safeCurrencyCode (id);
-            const type = this.safeString (currency, 7) ? 'fiat' : 'crypto';
-            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 3)));
-            const networks = {};
-            const networkId = this.safeString (currency, 9);
-            const networkCode = this.networkIdToCode (networkId);
-            networks[networkCode] = {
-                'info': currency,
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': precision,
-                'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
+        try {
+            const maxRetries = this.safeInteger (this.options, 'fetchMarketFromWebRetries', 10);
+            let response = undefined;
+            let retry = 0;
+            while (retry < maxRetries) {
+                try {
+                    response = await this.webExchangeGet (params);
+                    break;
+                } catch (e) {
+                    retry = retry + 1;
+                    if (retry === maxRetries) {
+                        throw e;
+                    }
+                }
+            }
+            const innerData = this.getJsonFromContent (response, '"application/json" id="currencyData">', '</script>');
+            //
+            //    {
+            //        "tradingPairs": [
+            //            [ "BTCAUD", 2, 8, "0.00001", 10, true ],
+            //            ...
+            //        ],
+            //        "currencies": [
+            //            [ "ORCA", "Orca", 204, 6, 0, 6, 8, false, null, "solana" ],
+            //            [ "ATOM", "Cosmos", 44, 6, 0, 6, 8, false, null, "cosmos" ],
+            //            [ "ETH", "Ether", 2, 6, 0, 18, 8, false, null, "ethereum" ],
+            //            [ "GBP", "Pound Sterling", 22, 2, 2, 2, 2, true, '£', null ],
+            //            ...
+            //        ],
+            //        "networks": [
+            //            [ "solana", "SOL", "Solana" ],
+            //            [ "zcash", "ZEC", "Zcash" ],
+            //            [ "tezos", "XTZ", "Tezos" ],
+            //            [ "cosmos", "ATOM", "Cosmos" ],
+            //            [ "ethereum", "ETH", "Ethereum" ],
+            //            ...
+            //        ]
+            //    }
+            //
+            const result = {};
+            const currenciesArray = this.safeValue (innerData, 'currencies', []);
+            for (let i = 0; i < currenciesArray.length; i++) {
+                const currency = currenciesArray[i];
+                const id = this.safeString (currency, 0);
+                const code = this.safeCurrencyCode (id);
+                const type = this.safeString (currency, 7) ? 'fiat' : 'crypto';
+                const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 3)));
+                const networks = {};
+                const networkId = this.safeString (currency, 9);
+                const networkCode = this.networkIdToCode (networkId);
+                networks[networkCode] = {
+                    'info': currency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': precision,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+                };
+                result[code] = {
+                    'info': currency,
+                    'id': id,
+                    'code': code,
+                    'name': this.safeString (currency, 1),
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'type': type,
+                    'precision': precision,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                },
-            };
-            result[code] = {
-                'info': currency,
-                'id': id,
-                'code': code,
-                'name': this.safeString (currency, 1),
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'type': type,
-                'precision': precision,
-                'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': networks,
-            };
+                    'networks': networks,
+                };
+            }
+            return result;
+        } catch (e) {
+            throw new ExchangeError (this.id + ' fetchCurrenciesFromWeb failed, if it repeats frequently you can disable it by setting `.options["fetchCurrencies"]["enabled"] = false`');
         }
-        return result;
     }
 
     getJsonFromContent (content, startSpliter, endSpliter) {
