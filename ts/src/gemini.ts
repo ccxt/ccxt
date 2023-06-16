@@ -305,7 +305,7 @@ export default class gemini extends Exchange {
          * @param {object} params extra parameters specific to the endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const data = await this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGet', true, '"application/json" id="currencyData">', '</script>');
+        const data = await this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGet', true, '="currencyData">', '</script>');
         if (data === undefined) {
             return undefined;
         }
