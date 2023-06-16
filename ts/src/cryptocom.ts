@@ -1184,34 +1184,19 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#cancelAllOrders
          * @description cancel all open orders
-         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
+         * @param {string|undefined} symbol unified market symbol of the orders to cancel
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
+        const request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
-        }
-        const request = {};
-        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('cancelAllOrders', marketTypeQuery);
-        if ((marketType === 'spot') || (marketType === 'margin') || (marginMode !== undefined)) {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for ' + marketType + ' orders');
-            }
             request['instrument_name'] = market['id'];
         }
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'v2PrivatePostPrivateCancelAllOrders',
-            'margin': 'v2PrivatePostPrivateMarginCancelAllOrders',
-            'future': 'derivativesPrivatePostPrivateCancelAllOrders',
-            'swap': 'derivativesPrivatePostPrivateCancelAllOrders',
-        });
-        if (marginMode !== undefined) {
-            method = 'v2PrivatePostPrivateMarginCancelAllOrders';
-        }
-        return await this[method] (this.extend (request, query));
+        return await this.v1PrivatePostPrivateCancelAllOrders (this.extend (request, params));
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
