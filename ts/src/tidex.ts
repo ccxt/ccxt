@@ -3,7 +3,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 export default class tidex extends Exchange {
     describe () {
@@ -643,7 +643,7 @@ export default class tidex extends Exchange {
         return this.parseTrades (response[market['id']], market, since, limit);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name tidex#createOrder
@@ -1019,7 +1019,7 @@ export default class tidex extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('success' in response) {
             //
@@ -1066,5 +1066,6 @@ export default class tidex extends Exchange {
                 throw new ExchangeError (feedback); // unknown message
             }
         }
+        return undefined;
     }
 }

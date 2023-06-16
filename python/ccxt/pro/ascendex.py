@@ -475,7 +475,7 @@ class ascendex(ccxt.async_support.ascendex):
         orders = await self.watch_private(channel, messageHash, query)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_order(self, client: Client, message):
         #

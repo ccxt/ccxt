@@ -956,8 +956,8 @@ class btcex extends Exchange {
             if (($assetType === 'WALLET') || ($assetType === 'SPOT')) {
                 $details = $this->safe_value($currency, 'details');
                 if ($details !== null) {
-                    for ($i = 0; $i < count($details); $i++) {
-                        $detail = $details[$i];
+                    for ($j = 0; $j < count($details); $j++) {
+                        $detail = $details[$j];
                         $coinType = $this->safe_string($detail, 'coin_type');
                         $code = $this->safe_currency_code($coinType);
                         $account = $this->safe_value($result, $code, $this->account());
@@ -1274,7 +1274,7 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -2678,16 +2678,17 @@ class btcex extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to the default $error handler
+            return null; // fallback to the default $error handler
         }
         $error = $this->safe_value($response, 'error');
         if ($error) {
             $feedback = $this->id . ' ' . $body;
-            $code = $this->safe_string($error, 'code');
+            $codeInner = $this->safe_string($error, 'code');
             $message = $this->safe_string($error, 'message');
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeInner, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

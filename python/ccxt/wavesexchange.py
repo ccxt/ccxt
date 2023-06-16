@@ -4,8 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.wavesexchange import ImplicitAPI
 import math
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -19,10 +21,11 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
 
 
-class wavesexchange(Exchange):
+class wavesexchange(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(wavesexchange, self).describe(), {
@@ -308,8 +311,9 @@ class wavesexchange(Exchange):
                 },
             },
             'currencies': {
-                'WX': {'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': None, 'code': 'WX', 'precision': 8},
+                'WX': self.safe_currency_structure({'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': None, 'code': 'WX', 'precision': self.parse_number('8')}),
             },
+            'precisionMode': DECIMAL_PLACES,
             'options': {
                 'allowedCandles': 1440,
                 'accessToken': None,
@@ -366,7 +370,7 @@ class wavesexchange(Exchange):
 
     def set_sandbox_mode(self, enabled):
         self.options['messagePrefix'] = 'T' if enabled else 'W'
-        return super(wavesexchange, self).set_sandbox_mode(enabled)
+        super(wavesexchange, self).set_sandbox_mode(enabled)
 
     def get_fees_for_asset(self, symbol: str, side, amount, price, params={}):
         self.load_markets()
@@ -720,6 +724,7 @@ class wavesexchange(Exchange):
             #   scope: 'general'}
             self.options['accessToken'] = self.safe_string(response, 'access_token')
             return self.options['accessToken']
+        return None
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -1063,15 +1068,15 @@ class wavesexchange(Exchange):
                 request = {
                     'publicKey': self.apiKey,
                 }
-                response = self.nodeGetAddressesPublicKeyPublicKey(self.extend(request, request))
-                address = self.safe_string(response, 'address')
+                responseInner = self.nodeGetAddressesPublicKeyPublicKey(self.extend(request, request))
+                addressInner = self.safe_string(response, 'address')
                 return {
-                    'address': address,
+                    'address': addressInner,
                     'code': code,  # kept here for backward-compatibility, but will be removed soon
                     'currency': code,
                     'network': network,
                     'tag': None,
-                    'info': response,
+                    'info': responseInner,
                 }
             else:
                 request = {
@@ -1189,7 +1194,7 @@ class wavesexchange(Exchange):
             return {'WAVES': 1}
         return rates
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1741,10 +1746,10 @@ class wavesexchange(Exchange):
                 result[code]['total'] = self.from_precision(balance, decimals)
         nonStandardAssets = len(assetIds)
         if nonStandardAssets:
-            request = {
+            requestInner = {
                 'ids': assetIds,
             }
-            response = self.publicGetAssets(request)
+            response = self.publicGetAssets(requestInner)
             data = self.safe_value(response, 'data', [])
             for i in range(0, len(data)):
                 entry = data[i]
@@ -2073,13 +2078,14 @@ class wavesexchange(Exchange):
         success = self.safe_value(response, 'success', True)
         Exception = self.safe_value(self.exceptions, errorCode)
         if Exception is not None:
-            message = self.safe_string(response, 'message')
-            raise Exception(self.id + ' ' + message)
+            messageInner = self.safe_string(response, 'message')
+            raise Exception(self.id + ' ' + messageInner)
         message = self.safe_string(response, 'message')
         if message == 'Validation Error':
             raise BadRequest(self.id + ' ' + body)
         if not success:
             raise ExchangeError(self.id + ' ' + body)
+        return None
 
     def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
@@ -2128,8 +2134,8 @@ class wavesexchange(Exchange):
                 'currency': code,
             }
             withdrawAddress = self.privateGetWithdrawAddressesCurrencyAddress(withdrawAddressRequest)
-            currency = self.safe_value(withdrawAddress, 'currency')
-            allowedAmount = self.safe_value(currency, 'allowed_amount')
+            currencyInner = self.safe_value(withdrawAddress, 'currency')
+            allowedAmount = self.safe_value(currencyInner, 'allowed_amount')
             minimum = self.safe_number(allowedAmount, 'min')
             if amount <= minimum:
                 raise BadRequest(self.id + ' ' + code + ' withdraw failed, amount ' + str(amount) + ' must be greater than the minimum allowed amount of ' + str(minimum))

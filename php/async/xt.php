@@ -29,6 +29,7 @@ class xt extends Exchange {
             // futures 1000 times per minute for each single IP -> Otherwise account locked for 10min
             'rateLimit' => 100,
             'version' => 'v4',
+            'certified' => true,
             'pro' => false,
             'has' => array(
                 'CORS' => false,
@@ -115,16 +116,17 @@ class xt extends Exchange {
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'signIn' => false,
-                'transfer' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg',
                 'api' => array(
                     'spot' => 'https://sapi.xt.com',
                     'linear' => 'https://fapi.xt.com',
                     'inverse' => 'https://dapi.xt.com',
+                    'user' => 'https://api.xt.com',
                 ),
                 'www' => 'https://xt.com',
                 'referral' => 'https://www.xt.com/en/accounts/register?ref=9PTM9VW',
@@ -219,6 +221,8 @@ class xt extends Exchange {
                         'post' => array(
                             'order' => 0.2,
                             'withdraw' => 1,
+                            'balance/transfer' => 1,
+                            'balance/account/transfer' => 1,
                         ),
                         'delete' => array(
                             'batch-order' => 1,
@@ -310,6 +314,22 @@ class xt extends Exchange {
                             'future/user/v1/user/collection/cancel' => 1,
                         ),
                     ),
+                    'user' => array(
+                        'get' => array(
+                            'user/account' => 1,
+                            'user/account/api-key' => 1,
+                        ),
+                        'post' => array(
+                            'user/account' => 1,
+                            'user/account/api-key' => 1,
+                        ),
+                        'put' => array(
+                            'user/account/api-key' => 1,
+                        ),
+                        'delete' => array(
+                            'user/account/{apikeyId}' => 1,
+                        ),
+                    ),
                 ),
             ),
             'fees' => array(
@@ -388,6 +408,7 @@ class xt extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    '400' => '\\ccxt\\NetworkError', // array("returnCode":1,"msgInfo":"failure","error":array("code":"400","msg":"Connection refused => /10.0.26.71:8080"),"result":null)
                     '404' => '\\ccxt\\ExchangeError', // interface does not exist
                     '429' => '\\ccxt\\RateLimitExceeded', // The request is too frequent, please control the request rate according to the speed limit requirement
                     '500' => '\\ccxt\\ExchangeError', // Service exception
@@ -417,6 +438,7 @@ class xt extends Exchange {
                     'ORDER_004' => '\\ccxt\\InvalidOrder', // no transaction
                     'ORDER_005' => '\\ccxt\\InvalidOrder', // Order not exist
                     'ORDER_006' => '\\ccxt\\InvalidOrder', // Too many open orders
+                    'ORDER_007' => '\\ccxt\\PermissionDenied', // The sub-account has no transaction authority
                     'ORDER_F0101' => '\\ccxt\\InvalidOrder', // Trigger Price Filter - Min
                     'ORDER_F0102' => '\\ccxt\\InvalidOrder', // Trigger Price Filter - Max
                     'ORDER_F0103' => '\\ccxt\\InvalidOrder', // Trigger Price Filter - Step Value
@@ -464,6 +486,33 @@ class xt extends Exchange {
                     'WITHDRAW_023' => '\\ccxt\\BadRequest', // Withdrawal amount must be less than {0}
                     'WITHDRAW_024' => '\\ccxt\\BadRequest', // Withdraw is not supported
                     'WITHDRAW_025' => '\\ccxt\\BadRequest', // Please create a FIO address in the deposit page
+                    'FUND_001' => '\\ccxt\\BadRequest', // Duplicate request (a bizId can only be requested once)
+                    'FUND_002' => '\\ccxt\\InsufficientFunds', // Insufficient account balance
+                    'FUND_003' => '\\ccxt\\BadRequest', // Transfer operations are not supported (for example, sub-accounts do not support financial transfers)
+                    'FUND_004' => '\\ccxt\\ExchangeError', // Unfreeze failed
+                    'FUND_005' => '\\ccxt\\PermissionDenied', // Transfer prohibited
+                    'FUND_014' => '\\ccxt\\BadRequest', // The transfer-in account id and transfer-out account ID cannot be the same
+                    'FUND_015' => '\\ccxt\\BadRequest', // From and to business types cannot be the same
+                    'FUND_016' => '\\ccxt\\BadRequest', // Leverage transfer, symbol cannot be empty
+                    'FUND_017' => '\\ccxt\\BadRequest', // Parameter error
+                    'FUND_018' => '\\ccxt\\BadRequest', // Invalid freeze record
+                    'FUND_019' => '\\ccxt\\BadRequest', // Freeze users not equal
+                    'FUND_020' => '\\ccxt\\BadRequest', // Freeze currency are not equal
+                    'FUND_021' => '\\ccxt\\BadRequest', // Operation not supported
+                    'FUND_022' => '\\ccxt\\BadRequest', // Freeze record does not exist
+                    'FUND_044' => '\\ccxt\\BadRequest', // The maximum length of the amount is 113 and cannot exceed the limit
+                    'TRANSFER_001' => '\\ccxt\\BadRequest', // Duplicate request (a bizId can only be requested once)
+                    'TRANSFER_002' => '\\ccxt\\InsufficientFunds', // Insufficient account balance
+                    'TRANSFER_003' => '\\ccxt\\BadRequest', // User not registered
+                    'TRANSFER_004' => '\\ccxt\\PermissionDenied', // The currency is not allowed to be transferred
+                    'TRANSFER_005' => '\\ccxt\\PermissionDenied', // The user’s currency is not allowed to be transferred
+                    'TRANSFER_006' => '\\ccxt\\PermissionDenied', // Transfer prohibited
+                    'TRANSFER_007' => '\\ccxt\\RequestTimeout', // Request timed out
+                    'TRANSFER_008' => '\\ccxt\\BadRequest', // Transferring to a leveraged account is abnormal
+                    'TRANSFER_009' => '\\ccxt\\BadRequest', // Departing from a leveraged account is abnormal
+                    'TRANSFER_010' => '\\ccxt\\PermissionDenied', // Leverage cleared, transfer prohibited
+                    'TRANSFER_011' => '\\ccxt\\PermissionDenied', // Leverage with borrowing, transfer prohibited
+                    'TRANSFER_012' => '\\ccxt\\PermissionDenied', // Currency transfer prohibited
                     'symbol_not_support_trading_via_api' => '\\ccxt\\BadSymbol', // array("returnCode":1,"msgInfo":"failure","error":array("code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"),"result":null)
                     'open_order_min_nominal_value_limit' => '\\ccxt\\InvalidOrder', // array("returnCode":1,"msgInfo":"failure","error":array("code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"),"result":null)
                 ),
@@ -489,6 +538,17 @@ class xt extends Exchange {
             ),
             'commonCurrencies' => array(),
             'options' => array(
+                'adjustForTimeDifference' => false,
+                'timeDifference' => 0,
+                'accountsById' => array(
+                    'spot' => 'SPOT',
+                    'leverage' => 'LEVER',
+                    'finance' => 'FINANCE',
+                    'swap' => 'FUTURES_U',
+                    'future' => 'FUTURES_U',
+                    'linear' => 'FUTURES_U',
+                    'inverse' => 'FUTURES_C',
+                ),
                 'networks' => array(
                     'ERC20' => 'Ethereum',
                     'TRC20' => 'Tron',
@@ -615,7 +675,7 @@ class xt extends Exchange {
     }
 
     public function nonce() {
-        return $this->milliseconds();
+        return $this->milliseconds() - $this->options['timeDifference'];
     }
 
     public function fetch_time($params = array ()) {
@@ -650,7 +710,35 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array} an associative dictionary of currencies
              */
-            $response = Async\await($this->publicSpotGetWalletSupportCurrency ($params));
+            $promisesRaw = array( $this->publicSpotGetWalletSupportCurrency ($params), $this->publicSpotGetCurrencies ($params) );
+            list($chainsResponse, $currenciesResponse) = Async\await(Promise\all($promisesRaw));
+            //
+            // currencies
+            //
+            //    {
+            //        "time" => "1686626116145",
+            //        "version" => "5dbbb2f2527c22b2b2e3b47187ef13d1",
+            //        "currencies" => [
+            //            array(
+            //                "id" => "2",
+            //                "currency" => "btc",
+            //                "fullName" => "Bitcoin",
+            //                "logo" => "https://a.static-global.com/1/currency/btc.png",
+            //                "cmcLink" => "https://coinmarketcap.com/currencies/bitcoin/",
+            //                "weight" => "99999",
+            //                "maxPrecision" => "10",
+            //                "depositStatus" => "1",
+            //                "withdrawStatus" => "1",
+            //                "convertEnabled" => "1",
+            //                "transferEnabled" => "1",
+            //                "isChainExist" => "1",
+            //                "plates" => [152]
+            //            ),
+            //        ],
+            //    }
+            //
+            //
+            // chains
             //
             //     {
             //         "rc" => 0,
@@ -663,37 +751,62 @@ class xt extends Exchange {
             //                     array(
             //                         "chain" => "Bitcoin",
             //                         "depositEnabled" => true,
-            //                         "withdrawEnabled" => true
+            //                         "withdrawEnabled" => true,
+            //                         "withdrawFeeAmount" => 0.0009,
+            //                         "withdrawMinAmount" => 0.0005,
+            //                         "depositFeeRate" => 0
             //                     ),
             //                 )
             //             ),
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'result', array());
+            // note => individual network's full data is available on per-currency endpoint => https://www.xt.com/sapi/v4/balance/public/currency/11
+            //
+            $chainsData = $this->safe_value($chainsResponse, 'result', array());
+            $currenciesResult = $this->safe_value($currenciesResponse, 'result', array());
+            $currenciesData = $this->safe_value($currenciesResult, 'currencies', array());
+            $chainsDataIndexed = $this->index_by($chainsData, 'currency');
             $result = array();
-            for ($i = 0; $i < count($data); $i++) {
-                $entry = $data[$i];
+            for ($i = 0; $i < count($currenciesData); $i++) {
+                $entry = $currenciesData[$i];
                 $currencyId = $this->safe_string($entry, 'currency');
                 $code = $this->safe_currency_code($currencyId);
-                $rawNetworks = $this->safe_value($entry, 'supportChains', array());
+                $minPrecision = $this->parse_number($this->parse_precision($this->safe_string($entry, 'maxPrecision')));
+                $networkEntry = $this->safe_value($chainsDataIndexed, $currencyId, array());
+                $rawNetworks = $this->safe_value($networkEntry, 'supportChains', array());
                 $networks = array();
-                $depositEnabled = null;
-                $withdrawEnabled = null;
+                $minWithdrawString = null;
+                $minWithdrawFeeString = null;
+                $active = false;
+                $deposit = false;
+                $withdraw = false;
                 for ($j = 0; $j < count($rawNetworks); $j++) {
                     $rawNetwork = $rawNetworks[$j];
                     $networkId = $this->safe_string($rawNetwork, 'chain');
                     $network = $this->network_id_to_code($networkId);
                     $depositEnabled = $this->safe_value($rawNetwork, 'depositEnabled');
+                    $deposit = ($depositEnabled) ? $depositEnabled : $deposit;
                     $withdrawEnabled = $this->safe_value($rawNetwork, 'withdrawEnabled');
+                    $withdraw = ($withdrawEnabled) ? $withdrawEnabled : $withdraw;
+                    $networkActive = $depositEnabled && $withdrawEnabled;
+                    $active = ($networkActive) ? $networkActive : $active;
+                    $withdrawFeeString = $this->safe_string($rawNetwork, 'withdrawFeeAmount');
+                    if ($withdrawFeeString !== null) {
+                        $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $withdrawFeeString : Precise::string_min($withdrawFeeString, $minWithdrawFeeString);
+                    }
+                    $minNetworkWithdrawString = $this->safe_string($rawNetwork, 'withdrawMinAmount');
+                    if ($minNetworkWithdrawString !== null) {
+                        $minWithdrawString = ($minWithdrawString === null) ? $minNetworkWithdrawString : Precise::string_min($minNetworkWithdrawString, $minWithdrawString);
+                    }
                     $networks[$network] = array(
                         'info' => $rawNetwork,
                         'id' => $networkId,
                         'network' => $network,
                         'name' => null,
-                        'active' => null,
-                        'fee' => null,
-                        'precision' => null,
+                        'active' => $networkActive,
+                        'fee' => $this->parse_number($withdrawFeeString),
+                        'precision' => $minPrecision,
                         'deposit' => $depositEnabled,
                         'withdraw' => $withdrawEnabled,
                         'limits' => array(
@@ -702,7 +815,7 @@ class xt extends Exchange {
                                 'max' => null,
                             ),
                             'withdraw' => array(
-                                'min' => null,
+                                'min' => $this->parse_number($minNetworkWithdrawString),
                                 'max' => null,
                             ),
                             'deposit' => array(
@@ -716,12 +829,12 @@ class xt extends Exchange {
                     'info' => $entry,
                     'id' => $currencyId,
                     'code' => $code,
-                    'name' => null,
-                    'active' => true,
-                    'fee' => null,
+                    'name' => $this->safe_string($entry, 'fullName'),
+                    'active' => $active,
+                    'fee' => $this->parse_number($minWithdrawFeeString),
                     'precision' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
                     'networks' => $networks,
                     'limits' => array(
                         'amount' => array(
@@ -729,7 +842,7 @@ class xt extends Exchange {
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => null,
+                            'min' => $this->parse_number($minWithdrawString),
                             'max' => null,
                         ),
                         'deposit' => array(
@@ -752,6 +865,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {[array]} an array of objects representing market data
              */
+            if ($this->options['adjustForTimeDifference']) {
+                Async\await($this->load_time_difference());
+            }
             $promisesUnresolved = array(
                 $this->fetch_spot_markets($params),
                 $this->fetch_swap_and_future_markets($params),
@@ -935,14 +1051,31 @@ class xt extends Exchange {
         //                 "min" => "1"
         //             ),
         //             array(
+        //                 "filter" => "PRICE",
+        //                 "min" => null,
+        //                 "max" => null,
+        //                 "tickSize" => null
+        //             ),
+        //             array(
+        //                 "filter" => "QUANTITY",
+        //                 "min" => null,
+        //                 "max" => null,
+        //                 "tickSize" => null
+        //             ),
+        //             array(
         //                 "filter" => "PROTECTION_LIMIT",
         //                 "buyMaxDeviation" => "0.8",
         //                 "sellMaxDeviation" => "4"
         //             ),
-        //             {
+        //             array(
         //                 "filter" => "PROTECTION_MARKET",
         //                 "maxDeviation" => "0.02"
-        //             }
+        //             ),
+        //             array(
+        //                  "filter" => "PROTECTION_ONLINE",
+        //                  "durationSeconds" => "300",
+        //                  "maxPriceMultiple" => "5"
+        //             ),
         //         )
         //     }
         //
@@ -1011,11 +1144,24 @@ class xt extends Exchange {
         $symbol = $base . '/' . $quote;
         $filters = $this->safe_value($market, 'filters', array());
         $minAmount = null;
+        $maxAmount = null;
+        $minCost = null;
+        $maxCost = null;
+        $minPrice = null;
+        $maxPrice = null;
         for ($i = 0; $i < count($filters); $i++) {
             $entry = $filters[$i];
             $filter = $this->safe_string($entry, 'filter');
-            if ($filter === 'QUOTE_QTY') {
+            if ($filter === 'QUANTITY') {
                 $minAmount = $this->safe_number($entry, 'min');
+                $maxAmount = $this->safe_number($entry, 'max');
+            }
+            if ($filter === 'QUOTE_QTY') {
+                $minCost = $this->safe_number($entry, 'min');
+            }
+            if ($filter === 'PRICE') {
+                $minPrice = $this->safe_number($entry, 'min');
+                $maxPrice = $this->safe_number($entry, 'max');
             }
         }
         $underlyingType = $this->safe_string($market, 'underlyingType');
@@ -1054,10 +1200,21 @@ class xt extends Exchange {
                 $swap = true;
             }
             $minAmount = $this->safe_number($market, 'minQty');
+            $minCost = $this->safe_number($market, 'minNotional');
+            $maxCost = $this->safe_number($market, 'maxNotional');
+            $minPrice = $this->safe_number($market, 'minPrice');
+            $maxPrice = $this->safe_number($market, 'maxPrice');
             $contract = true;
             $spot = false;
         }
-        $isActive = ($state === 'ONLINE') || ($state === '0');
+        $isActive = false;
+        if ($contract) {
+            $isActive = $this->safe_value($market, 'isOpenApi', false);
+        } else {
+            if (($state === 'ONLINE') && ($this->safe_value($market, 'tradingEnabled')) && ($this->safe_value($market, 'openapiEnabled'))) {
+                $isActive = true;
+            }
+        }
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -1085,8 +1242,10 @@ class xt extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'price' => $this->safe_integer($market, 'pricePrecision'),
-                'amount' => $this->safe_integer($market, 'quantityPrecision'),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision'))),
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityPrecision'))),
+                'base' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseCoinPrecision'))),
+                'quote' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quoteCoinPrecision'))),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -1095,15 +1254,15 @@ class xt extends Exchange {
                 ),
                 'amount' => array(
                     'min' => $minAmount,
-                    'max' => null,
+                    'max' => $maxAmount,
                 ),
                 'price' => array(
-                    'min' => $this->safe_number($market, 'minPrice'),
-                    'max' => $this->safe_number($market, 'maxPrice'),
+                    'min' => $minPrice,
+                    'max' => $maxPrice,
                 ),
                 'cost' => array(
-                    'min' => $this->safe_number($market, 'minNotional'),
-                    'max' => $this->safe_number($market, 'maxNotional'),
+                    'min' => $minCost,
+                    'max' => $maxCost,
                 ),
             ),
             'info' => $market,
@@ -1246,6 +1405,9 @@ class xt extends Exchange {
             );
             $response = null;
             if ($market['spot']) {
+                if ($limit !== null) {
+                    $request['limit'] = min ($limit, 500);
+                }
                 $response = Async\await($this->publicSpotGetDepth (array_merge($request, $params)));
             } else {
                 if ($limit !== null) {
@@ -2109,10 +2271,9 @@ class xt extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $convertContractsToAmount = Precise::string_div($this->number_to_string($amount), $this->number_to_string($market['contractSize']));
             $request = array(
                 'symbol' => $market['id'],
-                'origQty' => $this->amount_to_precision($symbol, $this->parse_number($convertContractsToAmount)),
+                'origQty' => $this->amount_to_precision($symbol, $amount),
             );
             $timeInForce = $this->safe_string_upper($params, 'timeInForce');
             if ($timeInForce !== null) {
@@ -2213,11 +2374,11 @@ class xt extends Exchange {
             $stop = $this->safe_value($params, 'stop');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
             if ($stop) {
-                $request['entrustId'] = $this->convert_to_big_int($id);
+                $request['entrustId'] = $id;
             } elseif ($stopLossTakeProfit) {
-                $request['profitId'] = $this->convert_to_big_int($id);
+                $request['profitId'] = $id;
             } else {
-                $request['orderId'] = $this->convert_to_big_int($id);
+                $request['orderId'] = $id;
             }
             if ($stop) {
                 $params = $this->omit($params, 'stop');
@@ -2885,11 +3046,11 @@ class xt extends Exchange {
             $stop = $this->safe_value($params, 'stop');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
             if ($stop) {
-                $request['entrustId'] = $this->convert_to_big_int($id);
+                $request['entrustId'] = $id;
             } elseif ($stopLossTakeProfit) {
-                $request['profitId'] = $this->convert_to_big_int($id);
+                $request['profitId'] = $id;
             } else {
-                $request['orderId'] = $this->convert_to_big_int($id);
+                $request['orderId'] = $id;
             }
             if ($stop) {
                 $params = $this->omit($params, 'stop');
@@ -3601,12 +3762,14 @@ class xt extends Exchange {
         //         "id" => 950898
         //     }
         //
+        $type = (is_array($transaction) && array_key_exists('fromAddr', $transaction)) ? 'deposit' : 'withdraw';
         $timestamp = $this->safe_integer($transaction, 'createdTime');
         $address = $this->safe_string($transaction, 'address');
         $memo = $this->safe_string($transaction, 'memo');
         $currencyCode = $this->safe_currency_code($this->safe_string($transaction, 'currency'), $currency);
         $fee = $this->safe_number($transaction, 'fee');
         $feeCurrency = ($fee !== null) ? $currencyCode : null;
+        $networkId = $this->safe_string($transaction, 'chain');
         return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'id'),
@@ -3620,10 +3783,10 @@ class xt extends Exchange {
             'tagFrom' => null,
             'tagTo' => null,
             'tag' => $memo,
-            'type' => null,
+            'type' => $type,
             'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $currencyCode,
-            'network' => $this->safe_string($transaction, 'chain'),
+            'network' => $this->network_id_to_code($networkId, $currencyCode),
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'comment' => $memo,
             'fee' => array(
@@ -3993,11 +4156,11 @@ class xt extends Exchange {
             for ($i = 0; $i < count($items); $i++) {
                 $entry = $items[$i];
                 $marketId = $this->safe_string($entry, 'symbol');
-                $symbol = $this->safe_symbol($marketId, $market);
+                $symbolInner = $this->safe_symbol($marketId, $market);
                 $timestamp = $this->safe_integer($entry, 'createdTime');
                 $rates[] = array(
                     'info' => $entry,
-                    'symbol' => $symbol,
+                    'symbol' => $symbolInner,
                     'fundingRate' => $this->safe_number($entry, 'fundingRate'),
                     'timestamp' => $timestamp,
                     'datetime' => $this->iso8601($timestamp),
@@ -4228,12 +4391,13 @@ class xt extends Exchange {
             for ($i = 0; $i < count($positions); $i++) {
                 $entry = $positions[$i];
                 $marketId = $this->safe_string($entry, 'symbol');
-                $market = $this->safe_market($marketId, null, null, 'contract');
+                $marketInner = $this->safe_market($marketId, null, null, 'contract');
                 $positionSize = $this->safe_string($entry, 'positionSize');
                 if ($positionSize !== '0') {
-                    return $this->parse_position($entry, $market);
+                    return $this->parse_position($entry, $marketInner);
                 }
             }
+            return null;
         }) ();
     }
 
@@ -4242,7 +4406,7 @@ class xt extends Exchange {
             /**
              * fetch all open $positions
              * @see https://doc.xt.com/#futures_usergetPosition
-             * @param {[string]|null} $symbols list of unified $market $symbols, not supported with xt
+             * @param {[string]|null} $symbols list of unified market $symbols, not supported with xt
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
@@ -4288,8 +4452,8 @@ class xt extends Exchange {
             for ($i = 0; $i < count($positions); $i++) {
                 $entry = $positions[$i];
                 $marketId = $this->safe_string($entry, 'symbol');
-                $market = $this->safe_market($marketId, null, null, 'contract');
-                $result[] = $this->parse_position($entry, $market);
+                $marketInner = $this->safe_market($marketId, null, null, 'contract');
+                $result[] = $this->parse_position($entry, $marketInner);
             }
             return $this->filter_by_array($result, 'symbol', null, false);
         }) ();
@@ -4347,6 +4511,63 @@ class xt extends Exchange {
         ));
     }
 
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
+            /**
+             * transfer $currency internally between wallets on the same account
+             * @see https://doc.xt.com/#transfersubTransferPost
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount amount to transfer
+             * @param {string} $fromAccount account to transfer from -  spot, swap, leverage, finance
+             * @param {string} $toAccount account to transfer to - spot, swap, leverage, finance
+             * @param {array} $params extra parameters specific to the whitebit api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $accountsByType = $this->safe_value($this->options, 'accountsById');
+            $fromAccountId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+            $toAccountId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+            $amountString = $this->currency_to_precision($code, $amount);
+            $request = array(
+                'bizId' => $this->uuid(),
+                'currency' => $currency['id'],
+                'amount' => $amountString,
+                'from' => $fromAccountId,
+                'to' => $toAccountId,
+            );
+            $response = Async\await($this->privateSpotPostBalanceTransfer (array_merge($request, $params)));
+            //
+            //   {
+            //       info => array( rc => '0', mc => 'SUCCESS', ma => array(), result => '226971333791398656' ),
+            //       id => '226971333791398656',
+            //       timestamp => null,
+            //       datetime => null,
+            //       $currency => null,
+            //       $amount => null,
+            //       $fromAccount => null,
+            //       $toAccount => null,
+            //       status => null
+            //   }
+            //
+            return $this->parse_transfer($response, $currency);
+        }) ();
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'result'),
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => null,
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => null,
+        );
+    }
+
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         //
         // spot => $error
@@ -4398,7 +4619,7 @@ class xt extends Exchange {
         //     }
         //
         $status = $this->safe_string_upper_2($response, 'msgInfo', 'mc');
-        if ($status !== 'SUCCESS') {
+        if ($status !== null && $status !== 'SUCCESS') {
             $feedback = $this->id . ' ' . $body;
             $error = $this->safe_value($response, 'error', array());
             $spotErrorCode = $this->safe_string($response, 'mc');
@@ -4409,6 +4630,7 @@ class xt extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -4416,7 +4638,7 @@ class xt extends Exchange {
         $endpoint = $api[1];
         $request = '/' . $this->implode_params($path, $params);
         $payload = null;
-        if ($endpoint === 'spot') {
+        if (($endpoint === 'spot') || ($endpoint === 'user')) {
             if ($signed) {
                 $payload = '/' . $this->version . $request;
             } else {
@@ -4434,17 +4656,22 @@ class xt extends Exchange {
         if ($signed) {
             $this->check_required_credentials();
             $defaultRecvWindow = $this->safe_string($this->options, 'recvWindow');
-            $recvWindow = $this->safe_string($params, 'recvWindow', $defaultRecvWindow);
+            $recvWindow = $this->safe_string($query, 'recvWindow', $defaultRecvWindow);
             $timestamp = $this->number_to_string($this->nonce());
-            $body = $params;
+            $body = $query;
             if (($payload === '/v4/order') || ($payload === '/future/trade/v1/order/create') || ($payload === '/future/trade/v1/entrust/create-plan') || ($payload === '/future/trade/v1/entrust/create-profit') || ($payload === '/future/trade/v1/order/create-batch')) {
-                $body['clientMedia'] = 'CCXT';
+                $id = 'CCXT';
+                if (mb_strpos($payload, 'future') > -1) {
+                    $body['clientMedia'] = $id;
+                } else {
+                    $body['media'] = $id;
+                }
             }
             $isUndefinedBody = (($method === 'GET') || ($path === 'order/{orderId}'));
             $body = $isUndefinedBody ? null : $this->json($body);
             $payloadString = null;
-            if ($endpoint === 'spot') {
-                $payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' . $this->apiKey . '&xt-validate-recvwindow=' . $recvWindow . '&xt-validate-$timestamp=' . $timestamp;
+            if (($endpoint === 'spot') || ($endpoint === 'user')) {
+                $payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' . $this->apiKey . '&xt-validate-recvwindow=' . $recvWindow . '&xt-validate-t' . 'imestamp=' . $timestamp;
                 if ($isUndefinedBody) {
                     if ($urlencoded) {
                         $url .= '?' . $urlencoded;
@@ -4458,7 +4685,7 @@ class xt extends Exchange {
                 $headers['xt-validate-algorithms'] = 'HmacSHA256';
                 $headers['xt-validate-recvwindow'] = $recvWindow;
             } else {
-                $payloadString = 'xt-validate-appkey=' . $this->apiKey . '&xt-validate-$timestamp=' . $timestamp;
+                $payloadString = 'xt-validate-appkey=' . $this->apiKey . '&xt-validate-t' . 'imestamp=' . $timestamp; // we can't glue $timestamp, breaks in php
                 if ($method === 'GET') {
                     if ($urlencoded) {
                         $url .= '?' . $urlencoded;

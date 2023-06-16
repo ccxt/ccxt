@@ -279,6 +279,7 @@ export default class lbank2 extends Exchange {
          * @method
          * @name lbank2#fetchMarkets
          * @description retrieves data on all markets for lbank2
+         * @see https://www.lbank.com/en-US/docs/index.html#trading-pairs
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
@@ -302,22 +303,8 @@ export default class lbank2 extends Exchange {
             const quoteId = parts[1];
             const base = baseId.toUpperCase();
             const quote = quoteId.toUpperCase();
-            let symbol = base + '/' + quote;
-            const productTypes = {
-                '3l': true,
-                '5l': true,
-                '3s': true,
-                '5s': true,
-            };
-            const ending = baseId.slice(-2);
-            const isLeveragedProduct = this.safeValue(productTypes, ending, false);
-            if (isLeveragedProduct) {
-                symbol += ':' + quote;
-            }
-            let linear = undefined;
-            if (isLeveragedProduct === true) {
-                linear = true;
-            }
+            const symbol = base + '/' + quote;
+            const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityAccuracy')));
             result.push({
                 'id': marketId,
                 'symbol': symbol,
@@ -330,12 +317,12 @@ export default class lbank2 extends Exchange {
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
-                'swap': isLeveragedProduct,
+                'swap': false,
                 'future': false,
                 'option': false,
                 'active': true,
-                'contract': isLeveragedProduct,
-                'linear': linear,
+                'contract': undefined,
+                'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
                 'expiry': undefined,
@@ -343,7 +330,7 @@ export default class lbank2 extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityAccuracy'))),
+                    'amount': amountPrecision,
                     'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'priceAccuracy'))),
                 },
                 'limits': {
@@ -824,11 +811,11 @@ export default class lbank2 extends Exchange {
             for (let i = 0; i < balances.length; i++) {
                 const item = balances[i];
                 const currencyId = this.safeString(item, 'asset');
-                const code = this.safeCurrencyCode(currencyId);
+                const codeInner = this.safeCurrencyCode(currencyId);
                 const account = this.account();
                 account['free'] = this.safeString(item, 'free');
                 account['used'] = this.safeString(item, 'locked');
-                result[code] = account;
+                result[codeInner] = account;
             }
             return this.safeBalance(result);
         }
@@ -838,14 +825,15 @@ export default class lbank2 extends Exchange {
             for (let i = 0; i < data.length; i++) {
                 const item = data[i];
                 const currencyId = this.safeString(item, 'coin');
-                const code = this.safeCurrencyCode(currencyId);
+                const codeInner = this.safeCurrencyCode(currencyId);
                 const account = this.account();
                 account['free'] = this.safeString(item, 'usableAmt');
                 account['used'] = this.safeString(item, 'freezeAmt');
-                result[code] = account;
+                result[codeInner] = account;
             }
             return this.safeBalance(result);
         }
+        return undefined;
     }
     async fetchBalance(params = {}) {
         /**
@@ -2029,17 +2017,17 @@ export default class lbank2 extends Exchange {
             const canWithdraw = this.safeValue(item, 'canWithDraw');
             if (canWithdraw === 'true') {
                 const currencyId = this.safeString(item, 'assetCode');
-                const code = this.safeCurrencyCode(currencyId);
+                const codeInner = this.safeCurrencyCode(currencyId);
                 const chain = this.safeString(item, 'chain');
                 let network = this.safeString(this.options['inverse-networks'], chain, chain);
                 if (network === undefined) {
-                    network = code;
+                    network = codeInner;
                 }
                 const fee = this.safeString(item, 'fee');
-                if (withdrawFees[code] === undefined) {
-                    withdrawFees[code] = {};
+                if (withdrawFees[codeInner] === undefined) {
+                    withdrawFees[codeInner] = {};
                 }
-                withdrawFees[code][network] = this.parseNumber(fee);
+                withdrawFees[codeInner][network] = this.parseNumber(fee);
             }
         }
         return {
@@ -2334,7 +2322,7 @@ export default class lbank2 extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const success = this.safeString(response, 'result');
         if (success === 'false') {
@@ -2446,5 +2434,6 @@ export default class lbank2 extends Exchange {
             }, errorCode, ExchangeError);
             throw new ErrorClass(message);
         }
+        return undefined;
     }
 }

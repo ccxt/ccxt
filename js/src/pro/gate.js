@@ -36,7 +36,10 @@ export default class gate extends gateRest {
                         'usdt': 'wss://fx-ws.gateio.ws/v4/ws/delivery/usdt',
                         'btc': 'wss://fx-ws.gateio.ws/v4/ws/delivery/btc',
                     },
-                    'option': 'wss://op-ws.gateio.live/v4/ws',
+                    'option': {
+                        'usdt': 'wss://op-ws.gateio.live/v4/ws/usdt',
+                        'btc': 'wss://op-ws.gateio.live/v4/ws/btc',
+                    },
                 },
                 'test': {
                     'swap': {
@@ -47,7 +50,10 @@ export default class gate extends gateRest {
                         'usdt': 'wss://fx-ws-testnet.gateio.ws/v4/ws/usdt',
                         'btc': 'wss://fx-ws-testnet.gateio.ws/v4/ws/btc',
                     },
-                    'option': 'wss://op-ws-testnet.gateio.live/v4/ws',
+                    'option': {
+                        'usdt': 'wss://op-ws-testnet.gateio.live/v4/ws/usdt',
+                        'btc': 'wss://op-ws-testnet.gateio.live/v4/ws/btc',
+                    },
                 },
             },
             'options': {
@@ -813,11 +819,12 @@ export default class gate extends gateRest {
             // inject order status
             const info = this.safeValue(parsed, 'info');
             const event = this.safeString(info, 'event');
-            if (event === 'put') {
+            if (event === 'put' || event === 'update') {
                 parsed['status'] = 'open';
             }
             else if (event === 'finish') {
-                parsed['status'] = 'closed';
+                const left = this.safeNumber(info, 'left');
+                parsed['status'] = (left === 0) ? 'closed' : 'canceled';
             }
             stored.append(parsed);
             const symbol = parsed['symbol'];

@@ -251,6 +251,9 @@ class deribit extends \ccxt\async\deribit {
             );
             $request = $this->deep_extend($message, $params);
             $trades = Async\await($this->watch($url, $channel, $request, $channel, $request));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
@@ -555,7 +558,7 @@ class deribit extends \ccxt\async\deribit {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
         }) ();
     }
 

@@ -433,9 +433,9 @@ export default class bitflyer extends Exchange {
         }
         let order = undefined;
         if (side !== undefined) {
-            const id = side + '_child_order_acceptance_id';
-            if (id in trade) {
-                order = trade[id];
+            const idInner = side + '_child_order_acceptance_id';
+            if (idInner in trade) {
+                order = trade[idInner];
             }
         }
         if (order === undefined) {

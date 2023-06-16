@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 import { rsa } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -597,7 +597,7 @@ export default class lbank extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name lbank#createOrder
@@ -823,10 +823,10 @@ export default class lbank extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const query = this.keysort (this.extend ({
+            const queryInner = this.keysort (this.extend ({
                 'api_key': this.apiKey,
             }, params));
-            const queryString = this.rawencode (query);
+            const queryString = this.rawencode (queryInner);
             const message = this.hash (this.encode (queryString), md5).toUpperCase ();
             const cacheSecretAsPem = this.safeValue (this.options, 'cacheSecretAsPem', true);
             let pem = undefined;
@@ -848,7 +848,7 @@ export default class lbank extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const success = this.safeString (response, 'result');
         if (success === 'false') {
@@ -895,5 +895,6 @@ export default class lbank extends Exchange {
             }, errorCode, ExchangeError);
             throw new ErrorClass (message);
         }
+        return undefined;
     }
 }

@@ -1,5 +1,5 @@
 import Exchange from './abstract/exmo.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 export default class exmo extends Exchange {
     describe(): any;
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<{
@@ -59,7 +59,7 @@ export default class exmo extends Exchange {
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<{
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<{
         id: string;
         info: any;
         timestamp: number;
@@ -67,8 +67,8 @@ export default class exmo extends Exchange {
         lastTradeTimestamp: any;
         status: string;
         symbol: any;
-        type: any;
-        side: OrderSide;
+        type: string;
+        side: string;
         price: any;
         cost: any;
         amount: any;
@@ -83,7 +83,7 @@ export default class exmo extends Exchange {
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseOrder(order: any, market?: any): any;
+    parseOrder(order: any, market?: any): import("./base/types.js").Order;
     fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
@@ -204,5 +204,5 @@ export default class exmo extends Exchange {
         headers: any;
     };
     nonce(): number;
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
+    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

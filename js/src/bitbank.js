@@ -96,6 +96,8 @@ export default class bitbank extends Exchange {
                 'public': {
                     'get': [
                         '{pair}/ticker',
+                        'tickers',
+                        'tickers_jpy',
                         '{pair}/depth',
                         '{pair}/transactions',
                         '{pair}/transactions/{yyyymmdd}',
@@ -108,7 +110,11 @@ export default class bitbank extends Exchange {
                         'user/spot/order',
                         'user/spot/active_orders',
                         'user/spot/trade_history',
+                        'user/deposit_history',
                         'user/withdrawal_account',
+                        'user/withdrawal_history',
+                        'spot/status',
+                        'spot/pairs',
                     ],
                     'post': [
                         'user/spot/order',
@@ -879,7 +885,7 @@ export default class bitbank extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const success = this.safeInteger(response, 'success');
         const data = this.safeValue(response, 'data');
@@ -951,11 +957,12 @@ export default class bitbank extends Exchange {
             const message = this.safeString(errorMessages, code, 'Error');
             const ErrorClass = this.safeValue(errorClasses, code);
             if (ErrorClass !== undefined) {
-                throw new ErrorClass(message);
+                throw new errorClasses[code](message);
             }
             else {
                 throw new ExchangeError(this.id + ' ' + this.json(response));
             }
         }
+        return undefined;
     }
 }

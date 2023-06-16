@@ -538,7 +538,7 @@ class kucoin extends \ccxt\async\kucoin {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
         }) ();
     }
 
@@ -665,7 +665,7 @@ class kucoin extends \ccxt\async\kucoin {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
         }) ();
     }
 

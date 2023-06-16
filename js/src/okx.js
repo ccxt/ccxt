@@ -27,7 +27,7 @@ export default class okx extends Exchange {
                 'margin': true,
                 'swap': true,
                 'future': true,
-                'option': undefined,
+                'option': true,
                 'addMargin': true,
                 'borrowMargin': true,
                 'cancelAllOrders': false,
@@ -90,6 +90,7 @@ export default class okx extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -102,7 +103,7 @@ export default class okx extends Exchange {
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfer': true,
-                'fetchTransfers': false,
+                'fetchTransfers': true,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
@@ -231,6 +232,7 @@ export default class okx extends Exchange {
                         'asset/deposit-address': 5 / 3,
                         'asset/balances': 5 / 3,
                         'asset/transfer-state': 10,
+                        'asset/transfer-record': 10,
                         'asset/deposit-history': 5 / 3,
                         'asset/withdrawal-history': 5 / 3,
                         'asset/deposit-withdraw-status': 20,
@@ -249,6 +251,7 @@ export default class okx extends Exchange {
                         'trade/orders-algo-history': 1,
                         'trade/order-algo': 1,
                         'account/subaccount/balances': 10,
+                        'account/subaccount/interest-limits': 4,
                         'asset/subaccount/bills': 5 / 3,
                         'users/subaccount/list': 10,
                         'users/subaccount/apikey': 10,
@@ -309,6 +312,7 @@ export default class okx extends Exchange {
                         'account/quick-margin-borrow-repay': 4,
                         'account/activate-option': 4,
                         'account/set-auto-loan': 4,
+                        'account/subaccount/set-loan-allocation': 4,
                         'asset/transfer': 10,
                         'asset/withdrawal': 5 / 3,
                         'asset/withdrawal-lightning': 5,
@@ -320,6 +324,7 @@ export default class okx extends Exchange {
                         'trade/cancel-batch-orders': 1 / 15,
                         'trade/amend-order': 1 / 3,
                         'trade/amend-batch-orders': 1 / 3,
+                        'trade/amend-algos': 1,
                         'trade/close-position': 1,
                         'trade/order-algo': 1,
                         'trade/cancel-algos': 1,
@@ -741,9 +746,11 @@ export default class okx extends Exchange {
                     'timeframes': {
                         '5m': '5m',
                         '1h': '1H',
+                        '8h': '8H',
                         '1d': '1D',
                         '5M': '5m',
                         '1H': '1H',
+                        '8H': '8H',
                         '1D': '1D',
                     },
                 },
@@ -762,7 +769,7 @@ export default class okx extends Exchange {
                 //     'type': 'spot', // 'funding', 'trading', 'spot'
                 // },
                 'fetchLedger': {
-                    'method': 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
+                    'method': 'privateGetAccountBills', // privateGetAccountBills, privateGetAccountBillsArchive, privateGetAssetBills
                 },
                 // 6: Funding account, 18: Trading account
                 'fetchOrder': {
@@ -779,6 +786,12 @@ export default class okx extends Exchange {
                 },
                 'fetchClosedOrders': {
                     'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersAlgoHistory
+                },
+                'withdraw': {
+                    // a funding password credential is required by the exchange for the
+                    // withdraw call (not to be confused with the api password credential)
+                    'password': undefined,
+                    'pwd': undefined, // password or pwd both work
                 },
                 'algoOrderTypes': {
                     'conditional': true,
@@ -843,6 +856,103 @@ export default class okx extends Exchange {
     convertToInstrumentType(type) {
         const exchangeTypes = this.safeValue(this.options, 'exchangeType', {});
         return this.safeString(exchangeTypes, type, type);
+    }
+    convertExpireDate(date) {
+        // parse YYMMDD to timestamp
+        const year = date.slice(0, 2);
+        const month = date.slice(2, 4);
+        const day = date.slice(4, 6);
+        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
+        return reconstructedDate;
+    }
+    createExpiredOptionMarket(symbol) {
+        // support expired option contracts
+        const quote = 'USD';
+        const optionParts = symbol.split('-');
+        const symbolBase = symbol.split('/');
+        let base = undefined;
+        if (symbol.indexOf('/') > -1) {
+            base = this.safeString(symbolBase, 0);
+        }
+        else {
+            base = this.safeString(optionParts, 0);
+        }
+        const settle = base;
+        const expiry = this.safeString(optionParts, 2);
+        const strike = this.safeString(optionParts, 3);
+        const optionType = this.safeString(optionParts, 4);
+        const datetime = this.convertExpireDate(expiry);
+        const timestamp = this.parse8601(datetime);
+        return {
+            'id': base + '-' + quote + '-' + expiry + '-' + strike + '-' + optionType,
+            'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': base,
+            'quoteId': quote,
+            'settleId': settle,
+            'active': false,
+            'type': 'option',
+            'linear': undefined,
+            'inverse': undefined,
+            'spot': false,
+            'swap': false,
+            'future': false,
+            'option': true,
+            'margin': false,
+            'contract': true,
+            'contractSize': this.parseNumber('1'),
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
+            'optionType': (optionType === 'C') ? 'call' : 'put',
+            'strike': this.parseNumber(strike),
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': undefined,
+        };
+    }
+    market(symbol) {
+        if (this.markets === undefined) {
+            throw new ExchangeError(this.id + ' markets not loaded');
+        }
+        if (typeof symbol === 'string') {
+            if (symbol in this.markets) {
+                return this.markets[symbol];
+            }
+            else if (symbol in this.markets_by_id) {
+                const markets = this.markets_by_id[symbol];
+                return markets[0];
+            }
+            else if ((symbol.indexOf('-C') > -1) || (symbol.indexOf('-P') > -1)) {
+                return this.createExpiredOptionMarket(symbol);
+            }
+        }
+        throw new BadSymbol(this.id + ' does not have market symbol ' + symbol);
+    }
+    safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+        const isOption = (marketId !== undefined) && ((marketId.indexOf('-C') > -1) || (marketId.indexOf('-P') > -1));
+        if (isOption && !(marketId in this.markets_by_id)) {
+            // handle expired option contracts
+            return this.createExpiredOptionMarket(marketId);
+        }
+        return super.safeMarket(marketId, market, delimiter, marketType);
     }
     async fetchStatus(params = {}) {
         /**
@@ -1268,29 +1378,19 @@ export default class okx extends Exchange {
             const chains = dataByCurrencyId[currencyId];
             const networks = {};
             let currencyActive = false;
-            let depositEnabled = undefined;
-            let withdrawEnabled = undefined;
+            let depositEnabled = false;
+            let withdrawEnabled = false;
             let maxPrecision = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const canDeposit = this.safeValue(chain, 'canDep');
+                depositEnabled = (canDeposit) ? canDeposit : depositEnabled;
                 const canWithdraw = this.safeValue(chain, 'canWd');
+                withdrawEnabled = (canWithdraw) ? canWithdraw : withdrawEnabled;
                 const canInternal = this.safeValue(chain, 'canInternal');
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
                 currencyActive = (active) ? active : currencyActive;
                 const networkId = this.safeString(chain, 'chain');
-                if (canDeposit && !depositEnabled) {
-                    depositEnabled = true;
-                }
-                else if (!canDeposit) {
-                    depositEnabled = false;
-                }
-                if (canWithdraw && !withdrawEnabled) {
-                    withdrawEnabled = true;
-                }
-                else if (!canWithdraw) {
-                    withdrawEnabled = false;
-                }
                 if ((networkId !== undefined) && (networkId.indexOf('-') >= 0)) {
                     const parts = networkId.split('-');
                     const chainPart = this.safeString(parts, 1, networkId);
@@ -1565,6 +1665,23 @@ export default class okx extends Exchange {
         //         "ts": "1621446178316"
         //     }
         //
+        // option: fetchTrades
+        //
+        //     {
+        //         "fillVol": "0.46387625976562497",
+        //         "fwdPx": "26299.754935451125",
+        //         "indexPx": "26309.7",
+        //         "instFamily": "BTC-USD",
+        //         "instId": "BTC-USD-230526-26000-C",
+        //         "markPx": "0.042386283557554236",
+        //         "optType": "C",
+        //         "px": "0.0415",
+        //         "side": "sell",
+        //         "sz": "90",
+        //         "tradeId": "112",
+        //         "ts": "1683907480154"
+        //     }
+        //
         // private fetchMyTrades
         //
         //     {
@@ -1633,6 +1750,8 @@ export default class okx extends Exchange {
          * @method
          * @name okx#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades
+         * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-option-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
@@ -1644,10 +1763,16 @@ export default class okx extends Exchange {
         const request = {
             'instId': market['id'],
         };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 100
+        let response = undefined;
+        if (market['option']) {
+            response = await this.publicGetPublicOptionTrades(this.extend(request, params));
         }
-        const response = await this.publicGetMarketTrades(this.extend(request, params));
+        else {
+            if (limit !== undefined) {
+                request['limit'] = limit; // default 100
+            }
+            response = await this.publicGetMarketTrades(this.extend(request, params));
+        }
         //
         //     {
         //         "code": "0",
@@ -1657,6 +1782,29 @@ export default class okx extends Exchange {
         //             {"instId":"ETH-BTC","side":"sell","sz":"0.03","px":"0.07068","tradeId":"15826756","ts":"1621446178066"},
         //             {"instId":"ETH-BTC","side":"buy","sz":"0.507","px":"0.07069","tradeId":"15826755","ts":"1621446175085"},
         //         ]
+        //     }
+        //
+        // option
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "fillVol": "0.46387625976562497",
+        //                 "fwdPx": "26299.754935451125",
+        //                 "indexPx": "26309.7",
+        //                 "instFamily": "BTC-USD",
+        //                 "instId": "BTC-USD-230526-26000-C",
+        //                 "markPx": "0.042386283557554236",
+        //                 "optType": "C",
+        //                 "px": "0.0415",
+        //                 "side": "sell",
+        //                 "sz": "90",
+        //                 "tradeId": "112",
+        //                 "ts": "1683907480154"
+        //             },
+        //         ],
+        //         "msg": ""
         //     }
         //
         const data = this.safeValue(response, 'data', []);
@@ -1823,7 +1971,7 @@ export default class okx extends Exchange {
         const data = this.safeValue(response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const rate = data[i];
-            const timestamp = this.safeNumber(rate, 'fundingTime');
+            const timestamp = this.safeInteger(rate, 'fundingTime');
             rates.push({
                 'info': rate,
                 'symbol': this.safeSymbol(this.safeString(rate, 'instId')),
@@ -2287,7 +2435,7 @@ export default class okx extends Exchange {
             'side': side,
         });
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name okx#editOrder
@@ -2363,8 +2511,8 @@ export default class okx extends Exchange {
          */
         const stop = this.safeValue(params, 'stop');
         if (stop) {
-            const order = await this.cancelOrders([id], symbol, params);
-            return this.safeValue(order, 0);
+            const orderInner = await this.cancelOrders([id], symbol, params);
+            return this.safeValue(orderInner, 0);
         }
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
@@ -2633,6 +2781,7 @@ export default class okx extends Exchange {
             type = 'limit';
         }
         const marketId = this.safeString(order, 'instId');
+        market = this.safeMarket(marketId, market);
         const symbol = this.safeSymbol(marketId, market, '-');
         const filled = this.safeString(order, 'accFillSz');
         const price = this.safeString2(order, 'px', 'ordPx');
@@ -3443,58 +3592,10 @@ export default class okx extends Exchange {
         // 'ccy': undefined, // currency['id'],
         // 'mgnMode': undefined, // 'isolated', 'cross'
         // 'ctType': undefined, // 'linear', 'inverse', only applicable to FUTURES/SWAP
-        // 'type': undefined,
-        //     1 Transfer,
-        //     2 Trade,
-        //     3 Delivery,
-        //     4 Auto token conversion,
-        //     5 Liquidation,
-        //     6 Margin transfer,
-        //     7 Interest deduction,
-        //     8 Funding rate,
-        //     9 ADL,
-        //     10 Clawback,
-        //     11 System token conversion
-        // 'subType': undefined,
-        //     1 Buy
-        //     2 Sell
-        //     3 Open long
-        //     4 Open short
-        //     5 Close long
-        //     6 Close short
-        //     9 Interest deduction
-        //     11 Transfer in
-        //     12 Transfer out
-        //     160 Manual margin increase
-        //     161 Manual margin decrease
-        //     162 Auto margin increase
-        //     110 Auto buy
-        //     111 Auto sell
-        //     118 System token conversion transfer in
-        //     119 System token conversion transfer out
-        //     100 Partial liquidation close long
-        //     101 Partial liquidation close short
-        //     102 Partial liquidation buy
-        //     103 Partial liquidation sell
-        //     104 Liquidation long
-        //     105 Liquidation short
-        //     106 Liquidation buy
-        //     107 Liquidation sell
-        //     110 Liquidation transfer in
-        //     111 Liquidation transfer out
-        //     125 ADL close long
-        //     126 ADL close short
-        //     127 ADL buy
-        //     128 ADL sell
-        //     170 Exercised
-        //     171 Counterparty exercised
-        //     172 Expired OTM
-        //     112 Delivery long
-        //     113 Delivery short
-        //     117 Delivery/Exercise clawback
-        //     173 Funding fee expense
-        //     174 Funding fee income
-        //
+        // 'type': varies depending the 'method' endpoint :
+        //     - https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+        //     - https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
+        //     - https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
         // 'after': 'id', // return records earlier than the requested bill id
         // 'before': 'id', // return records newer than the requested bill id
         // 'limit': 100, // default 100, max 100
@@ -3888,6 +3989,13 @@ export default class okx extends Exchange {
         }
         else if ('pwd' in params) {
             request['pwd'] = params['pwd'];
+        }
+        else {
+            const options = this.safeValue(this.options, 'withdraw', {});
+            const password = this.safeString2(options, 'password', 'pwd');
+            if (password !== undefined) {
+                request['pwd'] = password;
+            }
         }
         const query = this.omit(params, ['fee', 'password', 'pwd']);
         if (!('pwd' in request)) {
@@ -4688,17 +4796,44 @@ export default class okx extends Exchange {
         //         "type": "0"
         //     }
         //
-        const id = this.safeString(transfer, 'transId');
+        // fetchTransfers
+        //
+        //     {
+        //         "bal": "70.6874353780312913",
+        //         "balChg": "-4.0000000000000000", // negative means "to funding", positive meand "from funding"
+        //         "billId": "588900695232225299",
+        //         "ccy": "USDT",
+        //         "execType": "",
+        //         "fee": "",
+        //         "from": "18",
+        //         "instId": "",
+        //         "instType": "",
+        //         "mgnMode": "",
+        //         "notes": "To Funding Account",
+        //         "ordId": "",
+        //         "pnl": "",
+        //         "posBal": "",
+        //         "posBalChg": "",
+        //         "price": "0",
+        //         "subType": "12",
+        //         "sz": "-4",
+        //         "to": "6",
+        //         "ts": "1686676866989",
+        //         "type": "1"
+        //     }
+        //
+        const id = this.safeString2(transfer, 'transId', 'billId');
         const currencyId = this.safeString(transfer, 'ccy');
         const code = this.safeCurrencyCode(currencyId, currency);
-        const amount = this.safeNumber(transfer, 'amt');
+        let amount = this.safeNumber(transfer, 'amt');
         const fromAccountId = this.safeString(transfer, 'from');
         const toAccountId = this.safeString(transfer, 'to');
         const accountsById = this.safeValue(this.options, 'accountsById', {});
-        const fromAccount = this.safeString(accountsById, fromAccountId);
-        const toAccount = this.safeString(accountsById, toAccountId);
-        const timestamp = this.milliseconds();
-        const status = this.safeString(transfer, 'state');
+        const timestamp = this.safeInteger(transfer, 'ts', this.milliseconds());
+        const balanceChange = this.safeString(transfer, 'sz');
+        if (balanceChange !== undefined) {
+            amount = this.parseNumber(Precise.stringAbs(balanceChange));
+        }
         return {
             'info': transfer,
             'id': id,
@@ -4706,10 +4841,16 @@ export default class okx extends Exchange {
             'datetime': this.iso8601(timestamp),
             'currency': code,
             'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'status': status,
+            'fromAccount': this.safeString(accountsById, fromAccountId),
+            'toAccount': this.safeString(accountsById, toAccountId),
+            'status': this.parseTransferStatus(this.safeString(transfer, 'state')),
         };
+    }
+    parseTransferStatus(status) {
+        const statuses = {
+            'success': 'ok',
+        };
+        return this.safeString(statuses, status, status);
     }
     async fetchTransfer(id, code = undefined, params = {}) {
         await this.loadMarkets();
@@ -4741,6 +4882,68 @@ export default class okx extends Exchange {
         const data = this.safeValue(response, 'data', []);
         const transfer = this.safeValue(data, 0);
         return this.parseTransfer(transfer);
+    }
+    async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchTransfers
+         * @description fetch a history of internal transfers made on an account
+         * @param {string|undefined} code unified currency code of the currency transferred
+         * @param {int|undefined} since the earliest time in ms to fetch transfers for
+         * @param {int|undefined} limit the maximum number of transfers structures to retrieve
+         * @param {object} params extra parameters specific to the okx api endpoint
+         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        await this.loadMarkets();
+        let currency = undefined;
+        const request = {
+            'type': '1', // https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+        };
+        if (code !== undefined) {
+            currency = this.currency(code);
+            request['ccy'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetAccountBillsArchive(this.extend(request, params));
+        //
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "bal": "70.6874353780312913",
+        //                "balChg": "-4.0000000000000000",
+        //                "billId": "588900695232225299",
+        //                "ccy": "USDT",
+        //                "execType": "",
+        //                "fee": "",
+        //                "from": "18",
+        //                "instId": "",
+        //                "instType": "",
+        //                "mgnMode": "",
+        //                "notes": "To Funding Account",
+        //                "ordId": "",
+        //                "pnl": "",
+        //                "posBal": "",
+        //                "posBalChg": "",
+        //                "price": "0",
+        //                "subType": "12",
+        //                "sz": "-4",
+        //                "to": "6",
+        //                "ts": "1686676866989",
+        //                "type": "1"
+        //            },
+        //            ...
+        //        ],
+        //        "msg": ""
+        //    }
+        //
+        const transfers = this.safeValue(response, 'data', []);
+        return this.parseTransfers(transfers, currency, since, limit, params);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const isArray = Array.isArray(params);
@@ -5004,12 +5207,12 @@ export default class okx extends Exchange {
             const entry = data[i];
             const timestamp = this.safeInteger(entry, 'ts');
             const instId = this.safeString(entry, 'instId');
-            const market = this.safeMarket(instId);
+            const marketInner = this.safeMarket(instId);
             const currencyId = this.safeString(entry, 'ccy');
             const code = this.safeCurrencyCode(currencyId);
             result.push({
                 'info': entry,
-                'symbol': market['symbol'],
+                'symbol': marketInner['symbol'],
                 'code': code,
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
@@ -5784,13 +5987,15 @@ export default class okx extends Exchange {
         const data = this.safeValue(response, 'data', []);
         return this.parseOpenInterest(data[0], market);
     }
-    async fetchOpenInterestHistory(symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+    async fetchOpenInterestHistory(symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchOpenInterestHistory
          * @description Retrieves the open interest history of a currency
-         * @param {string} symbol Unified CCXT currency code instead of a unified symbol
-         * @param {string} timeframe "5m", "1h", or "1d"
+         * @see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-contracts-open-interest-and-volume
+         * @see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-options-open-interest-and-volume
+         * @param {string} symbol Unified CCXT currency code or unified symbol
+         * @param {string} timeframe "5m", "1h", or "1d" for option only "1d" or "8h"
          * @param {int|undefined} since The time in ms of the earliest record to retrieve as a unix timestamp
          * @param {int|undefined} limit Not used by okx, but parsed internally by CCXT
          * @param {object} params Exchange specific parameters
@@ -5804,20 +6009,38 @@ export default class okx extends Exchange {
             throw new BadRequest(this.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe');
         }
         await this.loadMarkets();
-        const currency = this.currency(symbol);
+        // handle unified currency code or symbol
+        let currencyId = undefined;
+        let market = undefined;
+        if ((symbol in this.markets) || (symbol in this.markets_by_id)) {
+            market = this.market(symbol);
+            currencyId = market['baseId'];
+        }
+        else {
+            const currency = this.currency(symbol);
+            currencyId = currency['id'];
+        }
         const request = {
-            'ccy': currency['id'],
+            'ccy': currencyId,
             'period': timeframe,
         };
-        if (since !== undefined) {
-            request['begin'] = since;
+        let type = undefined;
+        let response = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchOpenInterestHistory', market, params);
+        if (type === 'option') {
+            response = await this.publicGetRubikStatOptionOpenInterestVolume(this.extend(request, params));
         }
-        const until = this.safeInteger2(params, 'till', 'until');
-        if (until !== undefined) {
-            request['end'] = until;
-            params = this.omit(params, ['until', 'till']);
+        else {
+            if (since !== undefined) {
+                request['begin'] = since;
+            }
+            const until = this.safeInteger2(params, 'till', 'until');
+            if (until !== undefined) {
+                request['end'] = until;
+                params = this.omit(params, ['until', 'till']);
+            }
+            response = await this.publicGetRubikStatContractsOpenInterestVolume(this.extend(request, params));
         }
-        const response = await this.publicGetRubikStatContractsOpenInterestVolume(this.extend(request, params));
         //
         //    {
         //        code: '0',
@@ -5832,7 +6055,7 @@ export default class okx extends Exchange {
         //        msg: ''
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeValue(response, 'data', []);
         return this.parseOpenInterests(data, undefined, since, limit);
     }
     parseOpenInterest(interest, market = undefined) {
@@ -5841,33 +6064,50 @@ export default class okx extends Exchange {
         //
         //    [
         //        '1648221300000',  // timestamp
-        //        '2183354317.945',  // open interest (USD)
-        //        '74285877.617',  // volume (USD)
+        //        '2183354317.945',  // open interest (USD) - (coin) for options
+        //        '74285877.617',  // volume (USD) - (coin) for options
         //    ]
         //
         // fetchOpenInterest
         //
         //     {
-        //         "instId": "BTC-USDT-SWAP",
-        //         "instType": "SWAP",
-        //         "oi": "2125419",
-        //         "oiCcy": "21254.19",
-        //         "ts": "1664005108969"
+        //         "instId": "BTC-USD-230520-25500-P",
+        //         "instType": "OPTION",
+        //         "oi": "300",
+        //         "oiCcy": "3",
+        //         "ts": "1684551166251"
         //     }
         //
         const id = this.safeString(interest, 'instId');
         market = this.safeMarket(id, market);
         const time = this.safeInteger(interest, 'ts');
         const timestamp = this.safeNumber(interest, 0, time);
-        const numContracts = this.safeNumber(interest, 'oi');
-        const inCurrency = this.safeNumber(interest, 'oiCcy');
-        const openInterest = this.safeNumber(interest, 1, inCurrency);
+        let baseVolume = undefined;
+        let quoteVolume = undefined;
+        let openInterestAmount = undefined;
+        let openInterestValue = undefined;
+        const type = this.safeString(this.options, 'defaultType');
+        if (Array.isArray(interest)) {
+            if (type === 'option') {
+                openInterestAmount = this.safeNumber(interest, 1);
+                baseVolume = this.safeNumber(interest, 2);
+            }
+            else {
+                openInterestValue = this.safeNumber(interest, 1);
+                quoteVolume = this.safeNumber(interest, 2);
+            }
+        }
+        else {
+            baseVolume = this.safeNumber(interest, 'oiCcy');
+            openInterestAmount = this.safeNumber(interest, 'oi');
+            openInterestValue = this.safeNumber(interest, 'oiCcy');
+        }
         return {
             'symbol': this.safeSymbol(id),
-            'baseVolume': undefined,
-            'quoteVolume': openInterest,
-            'openInterestAmount': numContracts,
-            'openInterestValue': openInterest,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'openInterestAmount': openInterestAmount,
+            'openInterestValue': openInterestValue,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
@@ -6002,9 +6242,108 @@ export default class okx extends Exchange {
         }
         return depositWithdrawFees;
     }
+    async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchSettlementHistory
+         * @description fetches historical settlement records
+         * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-delivery-exercise-history
+         * @param {string} symbol unified market symbol to fetch the settlement history for
+         * @param {int} since timestamp in ms
+         * @param {int} limit number of records
+         * @param {object} params exchange specific params
+         * @returns {[object]} a list of [settlement history objects]
+         */
+        this.checkRequiredSymbol('fetchSettlementHistory', symbol);
+        await this.loadMarkets();
+        const market = (symbol === undefined) ? undefined : this.market(symbol);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchSettlementHistory', market, params);
+        if (type !== 'future' && type !== 'option') {
+            throw new NotSupported(this.id + ' fetchSettlementHistory() supports futures and options markets only');
+        }
+        const request = {
+            'instType': this.convertToInstrumentType(type),
+            'uly': market['baseId'] + '-' + market['quoteId'],
+        };
+        if (since !== undefined) {
+            request['before'] = since - 1;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetPublicDeliveryExerciseHistory(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "details": [
+        //                     {
+        //                         "insId": "BTC-USD-230523-25750-C",
+        //                         "px": "27290.1486867000556483",
+        //                         "type": "exercised"
+        //                     },
+        //                 ],
+        //                 "ts":"1684656000000"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeValue(response, 'data', []);
+        const settlements = this.parseSettlements(data, market);
+        const sorted = this.sortBy(settlements, 'timestamp');
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+    parseSettlement(settlement, market) {
+        //
+        //     {
+        //         "insId": "BTC-USD-230521-28500-P",
+        //         "px": "27081.2007345984751516",
+        //         "type": "exercised"
+        //     }
+        //
+        const marketId = this.safeString(settlement, 'insId');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol(marketId, market),
+            'price': this.safeNumber(settlement, 'px'),
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+    }
+    parseSettlements(settlements, market) {
+        //
+        //     {
+        //         "details": [
+        //             {
+        //                 "insId": "BTC-USD-230523-25750-C",
+        //                 "px": "27290.1486867000556483",
+        //                 "type": "exercised"
+        //             },
+        //         ],
+        //         "ts":"1684656000000"
+        //     }
+        //
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            const entry = settlements[i];
+            const timestamp = this.safeInteger(entry, 'ts');
+            const details = this.safeValue(entry, 'details', []);
+            for (let i = 0; i < details.length; i++) {
+                const settlement = this.parseSettlement(details[i], market);
+                result.push(this.extend(settlement, {
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601(timestamp),
+                }));
+            }
+        }
+        return result;
+    }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //    {
@@ -6040,5 +6379,6 @@ export default class okx extends Exchange {
             this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }

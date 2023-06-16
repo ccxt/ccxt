@@ -600,7 +600,7 @@ class oceanex extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -648,7 +648,8 @@ class oceanex extends Exchange {
             throw new OrderNotFound($this->id . ' could not found matching order');
         }
         if (gettype($id) === 'array' && array_keys($id) === array_keys(array_keys($id))) {
-            return $this->parse_orders($data, $market);
+            $orders = $this->parse_orders($data, $market);
+            return $orders[0];
         }
         if ($dataLength === 0) {
             throw new OrderNotFound($this->id . ' could not found matching order');
@@ -926,7 +927,7 @@ class oceanex extends Exchange {
         //     array("code":1011,"message":"This IP 'x.x.x.x' is not allowed","data":array())
         //
         if ($response === null) {
-            return;
+            return null;
         }
         $errorCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'message');
@@ -936,5 +937,6 @@ class oceanex extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

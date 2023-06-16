@@ -6,7 +6,7 @@ import { ExchangeError, InsufficientFunds, InvalidOrder, AuthenticationError, Pe
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -287,7 +287,7 @@ export default class btcbox extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name btcbox#createOrder
@@ -544,15 +544,15 @@ export default class btcbox extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // resort to defaultErrorHandler
+            return undefined; // resort to defaultErrorHandler
         }
         // typical error response: {"result":false,"code":"401"}
         if (httpCode >= 400) {
-            return; // resort to defaultErrorHandler
+            return undefined; // resort to defaultErrorHandler
         }
         const result = this.safeValue (response, 'result');
         if (result === undefined || result === true) {
-            return; // either public API (no error codes expected) or success
+            return undefined; // either public API (no error codes expected) or success
         }
         const code = this.safeValue (response, 'code');
         const feedback = this.id + ' ' + body;
@@ -560,8 +560,8 @@ export default class btcbox extends Exchange {
         throw new ExchangeError (feedback); // unknown message
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        let response = await this.fetch2 (path, api, method, params, headers, body, config, context);
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
+        let response = await this.fetch2 (path, api, method, params, headers, body, config);
         if (typeof response === 'string') {
             // sometimes the exchange returns whitespace prepended to json
             response = this.strip (response);

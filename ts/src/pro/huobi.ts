@@ -347,6 +347,7 @@ export default class huobi extends huobiRest {
         const url = this.getUrlByMarketType (market['type'], market['linear']);
         let method = this.handleOrderBookSubscription;
         if (!market['spot']) {
+            params = this.extend (params);
             params['data_type'] = 'incremental';
             method = undefined;
         }

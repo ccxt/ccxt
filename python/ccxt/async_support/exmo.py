@@ -4,8 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.exmo import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -23,7 +25,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class exmo(Exchange):
+class exmo(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(exmo, self).describe(), {
@@ -471,10 +473,10 @@ class exmo(Exchange):
             providers = self.safe_value(cryptoList, currencyId, [])
             for j in range(0, len(providers)):
                 provider = providers[j]
-                type = self.safe_string(provider, 'type')
+                typeInner = self.safe_string(provider, 'type')
                 commissionDesc = self.safe_string(provider, 'commission_desc')
                 fee = self.parse_fixed_float_value(commissionDesc)
-                result[code][type] = fee
+                result[code][typeInner] = fee
             result[code]['info'] = providers
         # cache them for later use
         self.options['transactionFees'] = result
@@ -630,28 +632,28 @@ class exmo(Exchange):
             else:
                 for j in range(0, len(providers)):
                     provider = providers[j]
-                    type = self.safe_string(provider, 'type')
+                    typeInner = self.safe_string(provider, 'type')
                     minValue = self.safe_number(provider, 'min')
                     maxValue = self.safe_number(provider, 'max')
                     if maxValue == 0.0:
                         maxValue = None
                     activeProvider = self.safe_value(provider, 'enabled')
-                    if type == 'deposit':
+                    if typeInner == 'deposit':
                         if activeProvider and not depositEnabled:
                             depositEnabled = True
                         elif not activeProvider:
                             depositEnabled = False
-                    elif type == 'withdraw':
+                    elif typeInner == 'withdraw':
                         if activeProvider and not withdrawEnabled:
                             withdrawEnabled = True
                         elif not activeProvider:
                             withdrawEnabled = False
                     if activeProvider:
                         active = True
-                        if (limits[type]['min'] is None) or (minValue < limits[type]['min']):
-                            limits[type]['min'] = minValue
-                            limits[type]['max'] = maxValue
-                            if type == 'withdraw':
+                        if (limits[typeInner]['min'] is None) or (minValue < limits[typeInner]['min']):
+                            limits[typeInner]['min'] = minValue
+                            limits[typeInner]['max'] = maxValue
+                            if typeInner == 'withdraw':
                                 commissionDesc = self.safe_string(provider, 'commission_desc')
                                 fee = self.parse_fixed_float_value(commissionDesc)
             code = self.safe_currency_code(currencyId)
@@ -667,6 +669,7 @@ class exmo(Exchange):
                 'precision': self.parse_number('1e-8'),
                 'limits': limits,
                 'info': providers,
+                'networks': {},
             }
         return result
 
@@ -1143,16 +1146,16 @@ class exmo(Exchange):
             request['limit'] = limit
         response = await self.privatePostUserTrades(self.extend(request, params))
         result = []
-        marketIds = list(response.keys())
-        for i in range(0, len(marketIds)):
-            marketId = marketIds[i]
+        marketIdsInner = list(response.keys())
+        for i in range(0, len(marketIdsInner)):
+            marketId = marketIdsInner[i]
             resultMarket = self.safe_market(marketId, None, '_')
             items = response[marketId]
             trades = self.parse_trades(items, resultMarket, since, limit)
             result = self.array_concat(result, trades)
         return self.filter_by_since_limit(result, since, limit)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1935,7 +1938,7 @@ class exmo(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if ('result' in response) or ('errmsg' in response):
             #
             #     {"result":false,"error":"Error 50052: Insufficient funds"}
@@ -1960,3 +1963,4 @@ class exmo(Exchange):
                 self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(feedback)
+        return None

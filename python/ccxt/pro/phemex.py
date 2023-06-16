@@ -40,7 +40,7 @@ class phemex(ccxt.async_support.phemex):
                 'OHLCVLimit': 1000,
             },
             'streaming': {
-                'keepAlive': 20000,
+                'keepAlive': 10000,
             },
         })
 
@@ -603,7 +603,7 @@ class phemex(ccxt.async_support.phemex):
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_delta(self, bookside, delta, market=None):
-        bidAsk = self.parse_bid_ask(delta, 0, 1, market)
+        bidAsk = self.customParseBidAsk(delta, 0, 1, market)
         bookside.storeArray(bidAsk)
 
     def handle_deltas(self, bookside, deltas, market=None):
@@ -702,6 +702,7 @@ class phemex(ccxt.async_support.phemex):
             symbol = market['symbol']
             messageHash = messageHash + market['symbol']
             if market['settle'] == 'USDT':
+                params = self.extend(params)
                 params['settle'] = 'USDT'
         type, params = self.handle_market_type_and_params('watchMyTrades', market, params)
         if symbol is None:
@@ -853,14 +854,16 @@ class phemex(ccxt.async_support.phemex):
             symbol = market['symbol']
             messageHash = messageHash + market['symbol']
             if market['settle'] == 'USDT':
+                params = self.extend(params)
                 params['settle'] = 'USDT'
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
+        isUSDTSettled = self.safe_string(params, 'settle') == 'USDT'
         if symbol is None:
-            messageHash = (messageHash + 'perpetual') if (params['settle'] == 'USDT') else (messageHash + type)
+            messageHash = (messageHash + 'perpetual') if (isUSDTSettled) else (messageHash + type)
         orders = await self.subscribe_private(type, messageHash, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_orders(self, client: Client, message):
         # spot update
@@ -1338,7 +1341,8 @@ class phemex(ccxt.async_support.phemex):
         if id in client.subscriptions:
             method = client.subscriptions[id]
             del client.subscriptions[id]
-            return method(client, message)
+            if method is not True:
+                return method(client, message)
         method = self.safe_string(message, 'method', '')
         if ('market24h' in message) or ('spot_market24h' in message) or (method.find('perp_market24h_pack_p') >= 0):
             return self.handle_ticker(client, message)
@@ -1423,4 +1427,4 @@ class phemex(ccxt.async_support.phemex):
                 client.subscriptions[subscriptionHash] = self.handle_authenticate
             future = self.watch(url, messageHash, message)
             client.subscriptions[messageHash] = future
-        return future
+        return await future

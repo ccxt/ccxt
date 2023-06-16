@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import totp from './base/functions/totp.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1637,7 +1637,7 @@ export default class deribit extends Exchange {
         return this.parseOrder (result);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name deribit#createOrder
@@ -2665,7 +2665,7 @@ export default class deribit extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {
@@ -2688,5 +2688,6 @@ export default class deribit extends Exchange {
             this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

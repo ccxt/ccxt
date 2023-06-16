@@ -21,14 +21,16 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 
 const [,, ...args] = process.argv
 
-const keys = {
-
+const langKeys = {
     '--ts': false,      // run TypeScript tests only
     '--js': false,      // run JavaScript tests only
     '--php': false,     // run PHP tests only
     '--python': false,  // run Python 3 tests only
     '--python-async': false, // run Python 3 async tests only
     '--php-async': false,    // run php async tests only,
+}
+
+const optionKeys = {
     '--warnings': false,
     '--info': false,
 }
@@ -50,7 +52,15 @@ let maxConcurrency = 5 // Number.MAX_VALUE // no limit
 
 for (const arg of args) {
     if (arg in exchangeSpecificFlags)        { exchangeSpecificFlags[arg] = true }
-    else if (arg.startsWith ('--'))          { keys[arg] = true }
+    else if (arg.startsWith ('--'))          {
+        if (arg in langKeys) {
+            langKeys[arg] = true
+        } else if (arg in optionKeys) {
+            optionKeys[arg] = true
+        } else {
+            log.bright.red ('\nUnknown option', arg.white, '\n');
+        }
+    }
     else if (arg.includes ('/'))             { symbol = arg }
     else if (Number.isFinite (Number (arg))) { maxConcurrency = Number (arg) }
     else                                     { exchanges.push (arg) }
@@ -103,9 +113,10 @@ const exec = (bin, ...args) =>
         psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); hasWarnings = true })
 
         psSpawn.on ('exit', code => {
-            // keep this commented code for a while (just in case), as the below avoids vscode false positive: https://github.com/nodejs/node/issues/34799 during debugging
-            // stderr = stderr.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '');
-            // output = output.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '');
+            // keep this commented code for a while (just in case), as the below avoids vscode false positive warnings from output: https://github.com/nodejs/node/issues/34799 during debugging
+            // const removeDebuger = (str) => str.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '').replace(/\(node:\d+\) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
+            // stderr = removeDebuger(stderr);
+            // output = removeDebuger(output);
             // if (stderr === '') { hasWarnings = false; }
 
             output = ansi.strip (output.trim ())
@@ -125,7 +136,18 @@ const exec = (bin, ...args) =>
 
             // detect error
             let hasFailed = false;
-            if (output.indexOf('ERROR:') > -1) {
+            if (
+                // exception caught in "test -> testMethod"
+                output.indexOf('[TEST_FAILURE]') > -1 ||
+                // 1) thrown from JS assert module
+                output.indexOf('AssertionError:') > -1 ||
+                // 2) thrown from PYTHON (i.e. [AssertionError], [KeyError], [ValueError], etc)
+                output.indexOf('Error]') > -1 ||
+                // 3) thrown from PHP assert hook
+                output.indexOf('[ASSERT_ERROR]') > -1 ||
+                // 4) thrown from PHP async library
+                output.indexOf('Fatal error:') > -1
+            ) {
                 hasFailed = true;
             }
 
@@ -215,22 +237,23 @@ const testExchange = async (exchange) => {
             { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },
             { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py', ...args] },
             { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
+            { language: 'PHP Async', key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] }
         ]
-
-        if (!skipSettings[exchange] || !!!skipSettings[exchange].skipPhpAsync) {
-            // some exchanges are failing in php async tests with this error:
-            // An error occured on the underlying stream while buffering: Unexpected end of response body after 212743/262800 bytes
-            allTestsWithoutTs.push(
-                { language: 'PHP Async', key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] }
-            )
-        }
 
         const allTests = allTestsWithoutTs.concat([
             { language: 'TypeScript',     key: '--ts',           exec: ['node',  '--loader', 'ts-node/esm',  'ts/src/test/test.ts',           ...args] },
-        ])
-        , selectedTests  = allTests.filter (t => keys[t.key])
-        , scheduledTests = selectedTests.length ? selectedTests : allTestsWithoutTs
-        , completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await exec (...test.exec)))
+        ]);
+
+        const selectedTests  = allTests.filter (t => langKeys[t.key]);
+        let scheduledTests = selectedTests.length ? selectedTests : allTestsWithoutTs
+        // when bulk tests are run, we skip php-async, however, if your specifically run php-async (as a single language from run-tests), lets allow it
+        const specificLangSet = (Object.values (langKeys).filter (x => x)).length === 1;
+        if (skipSettings[exchange] && skipSettings[exchange].skipPhpAsync && !specificLangSet) {
+            // some exchanges are failing in php async tests with this error:
+            // An error occured on the underlying stream while buffering: Unexpected end of response body after 212743/262800 bytes
+            scheduledTests = scheduledTests.filter (x => x.key !== '--php-async');
+        }
+        const completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await exec (...test.exec)))
         , failed         = completeTests.find (test => test.failed)
         , hasWarnings    = completeTests.find (test => test.hasWarnings)
         , hasInfo        = completeTests.find (test => test.hasInfo)
@@ -351,8 +374,9 @@ async function testAllExchanges () {
 
 (async function () {
 
+    const allKeys = Object.assign (optionKeys, langKeys)
     log.bright.magenta.noPretty ('Testing'.white, Object.assign (
-                                                            { exchanges, symbol, keys, exchangeSpecificFlags },
+                                                            { exchanges, symbol, allKeys, exchangeSpecificFlags },
                                                             maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency }))
 
     const tested    = await testAllExchanges ()

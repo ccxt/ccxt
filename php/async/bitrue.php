@@ -527,45 +527,66 @@ class bitrue extends Exchange {
                 $id = $this->safe_string($currency, 'coin');
                 $name = $this->safe_string($currency, 'coinFulName');
                 $code = $this->safe_currency_code($id);
-                $enableDeposit = $this->safe_value($currency, 'enableDeposit');
-                $enableWithdraw = $this->safe_value($currency, 'enableWithdraw');
-                $networkIds = $this->safe_value($currency, 'chains', array());
+                $deposit = null;
+                $withdraw = null;
+                $minWithdrawString = null;
+                $maxWithdrawString = null;
+                $minWithdrawFeeString = null;
+                $networkDetails = $this->safe_value($currency, 'chainDetail', array());
                 $networks = array();
-                for ($j = 0; $j < count($networkIds); $j++) {
-                    $networkId = $networkIds[$j];
-                    $network = $this->safe_network($networkId);
+                for ($j = 0; $j < count($networkDetails); $j++) {
+                    $entry = $networkDetails[$j];
+                    $networkId = $this->safe_string($entry, 'chain');
+                    $network = $this->network_id_to_code($networkId, $code);
+                    $enableDeposit = $this->safe_value($entry, 'enableDeposit');
+                    $deposit = ($enableDeposit) ? $enableDeposit : $deposit;
+                    $enableWithdraw = $this->safe_value($entry, 'enableWithdraw');
+                    $withdraw = ($enableWithdraw) ? $enableWithdraw : $withdraw;
+                    $networkWithdrawFeeString = $this->safe_string($entry, 'withdrawFee');
+                    if ($networkWithdrawFeeString !== null) {
+                        $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $networkWithdrawFeeString : Precise::string_min($networkWithdrawFeeString, $minWithdrawFeeString);
+                    }
+                    $networkMinWithdrawString = $this->safe_string($entry, 'minWithdraw');
+                    if ($networkMinWithdrawString !== null) {
+                        $minWithdrawString = ($minWithdrawString === null) ? $networkMinWithdrawString : Precise::string_min($networkMinWithdrawString, $minWithdrawString);
+                    }
+                    $networkMaxWithdrawString = $this->safe_string($entry, 'maxWithdraw');
+                    if ($networkMaxWithdrawString !== null) {
+                        $maxWithdrawString = ($maxWithdrawString === null) ? $networkMaxWithdrawString : Precise::string_max($networkMaxWithdrawString, $maxWithdrawString);
+                    }
                     $networks[$network] = array(
-                        'info' => $networkId,
+                        'info' => $entry,
                         'id' => $networkId,
                         'network' => $network,
-                        'active' => null,
-                        'fee' => null,
+                        'deposit' => $enableDeposit,
+                        'withdraw' => $enableWithdraw,
+                        'active' => $enableDeposit && $enableWithdraw,
+                        'fee' => $this->parse_number($networkWithdrawFeeString),
                         'precision' => null,
                         'limits' => array(
                             'withdraw' => array(
-                                'min' => null,
-                                'max' => null,
+                                'min' => $this->parse_number($networkMinWithdrawString),
+                                'max' => $this->parse_number($networkMaxWithdrawString),
                             ),
                         ),
                     );
                 }
-                $active = ($enableWithdraw && $enableDeposit);
                 $result[$code] = array(
                     'id' => $id,
                     'name' => $name,
                     'code' => $code,
                     'precision' => null,
                     'info' => $currency,
-                    'active' => $active,
-                    'deposit' => $enableDeposit,
-                    'withdraw' => $enableWithdraw,
+                    'active' => $deposit && $withdraw,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
                     'networks' => $networks,
-                    'fee' => $this->safe_number($currency, 'withdrawFee'),
+                    'fee' => $this->parse_number($minWithdrawFeeString),
                     // 'fees' => fees,
                     'limits' => array(
                         'withdraw' => array(
-                            'min' => $this->safe_number($currency, 'minWithdraw'),
-                            'max' => $this->safe_number($currency, 'maxWithdraw'),
+                            'min' => $this->parse_number($minWithdrawString),
+                            'max' => $this->parse_number($maxWithdrawString),
                         ),
                     ),
                 );
@@ -1281,7 +1302,7 @@ class bitrue extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1948,7 +1969,8 @@ class bitrue extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        list($version, $access) = $api;
+        $version = $this->safe_string($api, 0);
+        $access = $this->safe_string($api, 1);
         $url = $this->urls['api'][$version] . '/' . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         if ($access === 'private') {
@@ -1996,17 +2018,17 @@ class bitrue extends Exchange {
             }
         }
         if ($response === null) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         // check $success value for wapi endpoints
         // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
         $success = $this->safe_value($response, 'success', true);
         if (!$success) {
-            $message = $this->safe_string($response, 'msg');
+            $messageInner = $this->safe_string($response, 'msg');
             $parsedMessage = null;
-            if ($message !== null) {
+            if ($messageInner !== null) {
                 try {
-                    $parsedMessage = json_decode($message, $as_associative_array = true);
+                    $parsedMessage = json_decode($messageInner, $as_associative_array = true);
                 } catch (Exception $e) {
                     // do nothing
                     $parsedMessage = null;
@@ -2027,7 +2049,7 @@ class bitrue extends Exchange {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
             if (($error === '200') || Precise::string_equals($error, '0')) {
-                return;
+                return null;
             }
             // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
             // despite that their $message is very confusing, it is raised by Binance
@@ -2042,9 +2064,10 @@ class bitrue extends Exchange {
         if (!$success) {
             throw new ExchangeError($this->id . ' ' . $body);
         }
+        return null;
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         if ((is_array($config) && array_key_exists('noSymbol', $config)) && !(is_array($params) && array_key_exists('symbol', $params))) {
             return $config['noSymbol'];
         } elseif ((is_array($config) && array_key_exists('byLimit', $config)) && (is_array($params) && array_key_exists('limit', $params))) {

@@ -578,7 +578,7 @@ class ace extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---new-order
@@ -1036,7 +1036,7 @@ class ace extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to the default error handler
+            return null; // fallback to the default error handler
         }
         $feedback = $this->id . ' ' . $body;
         $status = $this->safe_number($response, 'status', 200);
@@ -1044,5 +1044,6 @@ class ace extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $status, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $status, $feedback);
         }
+        return null;
     }
 }

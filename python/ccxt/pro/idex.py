@@ -612,7 +612,7 @@ class idex(ccxt.async_support.idex):
         transactions = await self.subscribe_private(subscribeObject, messageHash)
         if self.newUpdates:
             limit = transactions.getLimit(code, limit)
-        return self.filter_by_since_limit(transactions, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(transactions, since, limit, 'timestamp')
 
     def handle_transaction(self, client: Client, message):
         # Update Speed: Real time, updates on any deposit or withdrawal of the wallet

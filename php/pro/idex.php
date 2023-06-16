@@ -679,7 +679,7 @@ class idex extends \ccxt\async\idex {
             if ($this->newUpdates) {
                 $limit = $transactions->getLimit ($code, $limit);
             }
-            return $this->filter_by_since_limit($transactions, $since, $limit, 'timestamp', true);
+            return $this->filter_by_since_limit($transactions, $since, $limit, 'timestamp');
         }) ();
     }
 

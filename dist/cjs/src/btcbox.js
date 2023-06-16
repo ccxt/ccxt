@@ -525,23 +525,23 @@ class btcbox extends btcbox$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // resort to defaultErrorHandler
+            return undefined; // resort to defaultErrorHandler
         }
         // typical error response: {"result":false,"code":"401"}
         if (httpCode >= 400) {
-            return; // resort to defaultErrorHandler
+            return undefined; // resort to defaultErrorHandler
         }
         const result = this.safeValue(response, 'result');
         if (result === undefined || result === true) {
-            return; // either public API (no error codes expected) or success
+            return undefined; // either public API (no error codes expected) or success
         }
         const code = this.safeValue(response, 'code');
         const feedback = this.id + ' ' + body;
         this.throwExactlyMatchedException(this.exceptions, code, feedback);
         throw new errors.ExchangeError(feedback); // unknown message
     }
-    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        let response = await this.fetch2(path, api, method, params, headers, body, config, context);
+    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
+        let response = await this.fetch2(path, api, method, params, headers, body, config);
         if (typeof response === 'string') {
             // sometimes the exchange returns whitespace prepended to json
             response = this.strip(response);

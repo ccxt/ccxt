@@ -959,7 +959,7 @@ class bitopro extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1573,7 +1573,7 @@ class bitopro extends Exchange {
             if ($method === 'POST' || $method === 'PUT') {
                 $body = $this->json($params);
                 $payload = base64_encode($body);
-                $signature = $this->hmac($payload, $this->encode($this->secret), 'sha384');
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384');
                 $headers['X-BITOPRO-APIKEY'] = $this->apiKey;
                 $headers['X-BITOPRO-PAYLOAD'] = $payload;
                 $headers['X-BITOPRO-SIGNATURE'] = $signature;
@@ -1603,10 +1603,10 @@ class bitopro extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to the default $error handler
+            return null; // fallback to the default $error handler
         }
         if ($code >= 200 && $code < 300) {
-            return;
+            return null;
         }
         $feedback = $this->id . ' ' . $body;
         $error = $this->safe_string($response, 'error');

@@ -279,6 +279,7 @@ class lbank2 extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for lbank2
+             * @see https://www.lbank.com/en-US/docs/index.html#trading-pairs
              * @param {array} $params extra parameters specific to the exchange api endpoint
              * @return {[array]} an array of objects representing $market $data
              */
@@ -303,21 +304,7 @@ class lbank2 extends Exchange {
                 $base = strtoupper($baseId);
                 $quote = strtoupper($quoteId);
                 $symbol = $base . '/' . $quote;
-                $productTypes = array(
-                    '3l' => true,
-                    '5l' => true,
-                    '3s' => true,
-                    '5s' => true,
-                );
-                $ending = mb_substr($baseId, -2);
-                $isLeveragedProduct = $this->safe_value($productTypes, $ending, false);
-                if ($isLeveragedProduct) {
-                    $symbol .= ':' . $quote;
-                }
-                $linear = null;
-                if ($isLeveragedProduct === true) {
-                    $linear = true;
-                }
+                $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityAccuracy')));
                 $result[] = array(
                     'id' => $marketId,
                     'symbol' => $symbol,
@@ -330,12 +317,12 @@ class lbank2 extends Exchange {
                     'type' => 'spot',
                     'spot' => true,
                     'margin' => false,
-                    'swap' => $isLeveragedProduct,
+                    'swap' => false,
                     'future' => false,
                     'option' => false,
                     'active' => true,
-                    'contract' => $isLeveragedProduct,
-                    'linear' => $linear, // all leveraged ETF products are in USDT
+                    'contract' => null,
+                    'linear' => null,
                     'inverse' => null,
                     'contractSize' => null,
                     'expiry' => null,
@@ -343,7 +330,7 @@ class lbank2 extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityAccuracy'))),
+                        'amount' => $amountPrecision,
                         'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'priceAccuracy'))),
                     ),
                     'limits' => array(
@@ -832,11 +819,11 @@ class lbank2 extends Exchange {
             for ($i = 0; $i < count($balances); $i++) {
                 $item = $balances[$i];
                 $currencyId = $this->safe_string($item, 'asset');
-                $code = $this->safe_currency_code($currencyId);
+                $codeInner = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['free'] = $this->safe_string($item, 'free');
                 $account['used'] = $this->safe_string($item, 'locked');
-                $result[$code] = $account;
+                $result[$codeInner] = $account;
             }
             return $this->safe_balance($result);
         }
@@ -846,14 +833,15 @@ class lbank2 extends Exchange {
             for ($i = 0; $i < count($data); $i++) {
                 $item = $data[$i];
                 $currencyId = $this->safe_string($item, 'coin');
-                $code = $this->safe_currency_code($currencyId);
+                $codeInner = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['free'] = $this->safe_string($item, 'usableAmt');
                 $account['used'] = $this->safe_string($item, 'freezeAmt');
-                $result[$code] = $account;
+                $result[$codeInner] = $account;
             }
             return $this->safe_balance($result);
         }
+        return null;
     }
 
     public function fetch_balance($params = array ()) {
@@ -957,7 +945,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -2065,17 +2053,17 @@ class lbank2 extends Exchange {
                 $canWithdraw = $this->safe_value($item, 'canWithDraw');
                 if ($canWithdraw === 'true') {
                     $currencyId = $this->safe_string($item, 'assetCode');
-                    $code = $this->safe_currency_code($currencyId);
+                    $codeInner = $this->safe_currency_code($currencyId);
                     $chain = $this->safe_string($item, 'chain');
                     $network = $this->safe_string($this->options['inverse-networks'], $chain, $chain);
                     if ($network === null) {
-                        $network = $code;
+                        $network = $codeInner;
                     }
                     $fee = $this->safe_string($item, 'fee');
-                    if ($withdrawFees[$code] === null) {
-                        $withdrawFees[$code] = array();
+                    if ($withdrawFees[$codeInner] === null) {
+                        $withdrawFees[$codeInner] = array();
                     }
-                    $withdrawFees[$code][$network] = $this->parse_number($fee);
+                    $withdrawFees[$codeInner][$network] = $this->parse_number($fee);
                 }
             }
             return array(
@@ -2376,7 +2364,7 @@ class lbank2 extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         $success = $this->safe_string($response, 'result');
         if ($success === 'false') {
@@ -2488,5 +2476,6 @@ class lbank2 extends Exchange {
             ), $errorCode, '\\ccxt\\ExchangeError');
             throw new $ErrorClass($message);
         }
+        return null;
     }
 }

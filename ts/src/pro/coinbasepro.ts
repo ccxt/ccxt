@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import coinbaseproRest from '../coinbasepro.js';
-import { BadSymbol } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, BadSymbol } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int } from '../base/types.js';
@@ -732,6 +732,36 @@ export default class coinbasepro extends coinbaseproRest {
         return message;
     }
 
+    handleErrorMessage (client: Client, message) {
+        //
+        //     {
+        //         "type": "error",
+        //         "message": "error message",
+        //         /* ... */
+        //     }
+        //
+        // auth error
+        //
+        //     {
+        //         type: 'error',
+        //         message: 'Authentication Failed',
+        //         reason: '{"message":"Invalid API Key"}'
+        //     }
+        //
+        const errMsg = this.safeString (message, 'message');
+        const reason = this.safeString (message, 'reason');
+        try {
+            if (errMsg === 'Authentication Failed') {
+                throw new AuthenticationError ('Authentication failed: ' + reason);
+            } else {
+                throw new ExchangeError (this.id + ' ' + reason);
+            }
+        } catch (error) {
+            client.reject (error);
+            return true;
+        }
+    }
+
     handleMessage (client: Client, message) {
         const type = this.safeString (message, 'type');
         const methods = {
@@ -743,6 +773,7 @@ export default class coinbasepro extends coinbaseproRest {
             'open': this.handleOrder,
             'change': this.handleOrder,
             'done': this.handleOrder,
+            'error': this.handleErrorMessage,
         };
         const length = client.url.length - 0;
         const authenticated = client.url[length - 1] === '?';

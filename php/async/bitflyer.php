@@ -442,9 +442,9 @@ class bitflyer extends Exchange {
         }
         $order = null;
         if ($side !== null) {
-            $id = $side . '_child_order_acceptance_id';
-            if (is_array($trade) && array_key_exists($id, $trade)) {
-                $order = $trade[$id];
+            $idInner = $side . '_child_order_acceptance_id';
+            if (is_array($trade) && array_key_exists($idInner, $trade)) {
+                $order = $trade[$idInner];
             }
         }
         if ($order === null) {
@@ -524,7 +524,7 @@ class bitflyer extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order

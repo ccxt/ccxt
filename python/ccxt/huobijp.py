@@ -4,8 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.huobijp import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -26,7 +28,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class huobijp(Exchange):
+class huobijp(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(huobijp, self).describe(), {
@@ -1303,7 +1305,7 @@ class huobijp(Exchange):
             'trades': None,
         }, market)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1759,7 +1761,7 @@ class huobijp(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if 'status' in response:
             #
             #     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
@@ -1773,3 +1775,4 @@ class huobijp(Exchange):
                 message = self.safe_string(response, 'err-msg')
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 raise ExchangeError(feedback)
+        return None

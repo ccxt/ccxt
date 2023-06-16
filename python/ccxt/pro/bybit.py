@@ -110,12 +110,6 @@ class bybit(ccxt.async_support.bybit):
                 'ping': self.ping,
                 'keepAlive': 20000,
             },
-            'exceptions': {
-                'ws': {
-                    'exact': {
-                    },
-                },
-            },
         })
 
     def request_id(self):
@@ -170,7 +164,8 @@ class bybit(ccxt.async_support.bybit):
         """
         await self.load_markets()
         market = self.market(symbol)
-        messageHash = 'ticker:' + market['symbol']
+        symbol = market['symbol']
+        messageHash = 'ticker:' + symbol
         url = self.get_url_by_market_type(symbol, False, params)
         params = self.clean_params(params)
         options = self.safe_value(self.options, 'watchTicker', {})
@@ -399,7 +394,7 @@ class bybit(ccxt.async_support.bybit):
         #     }
         #
         return [
-            self.safe_integer(ohlcv, 'timestamp'),
+            self.safe_integer(ohlcv, 'start'),
             self.safe_number(ohlcv, 'open'),
             self.safe_number(ohlcv, 'high'),
             self.safe_number(ohlcv, 'low'),
@@ -787,7 +782,7 @@ class bybit(ccxt.async_support.bybit):
         orders = await self.watch_topics(url, messageHash, topics, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_order(self, client: Client, message, subscription=None):
         #

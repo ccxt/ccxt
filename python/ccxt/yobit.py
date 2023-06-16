@@ -4,8 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.yobit import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -22,7 +24,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class yobit(Exchange):
+class yobit(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(yobit, self).describe(), {
@@ -243,9 +245,8 @@ class yobit(Exchange):
                 'XRA': 'Ratecoin',
             },
             'options': {
-                # 'fetchTickersMaxLength': 2048,
+                'maxUrlLength': 2048,
                 'fetchOrdersRequiresSymbol': True,
-                'fetchTickersMaxLength': 512,
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
@@ -310,6 +311,7 @@ class yobit(Exchange):
 
     def fetch_balance(self, params={}):
         """
+        see https://yobit.net/en/api
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict params: extra parameters specific to the yobit api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
@@ -345,6 +347,7 @@ class yobit(Exchange):
 
     def fetch_markets(self, params={}):
         """
+        see https://yobit.net/en/api
         retrieves data on all markets for yobit
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
@@ -437,6 +440,7 @@ class yobit(Exchange):
 
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
+        see https://yobit.net/en/api
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
@@ -459,6 +463,7 @@ class yobit(Exchange):
 
     def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
         """
+        see https://yobit.net/en/api
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
         :param [str]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
         :param int|None limit: max number of entries per orderbook to return, default is None
@@ -532,26 +537,31 @@ class yobit(Exchange):
 
     def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
+        see https://yobit.net/en/api
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the yobit api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires "symbols" argument')
         self.load_markets()
         symbols = self.market_symbols(symbols)
         ids = None
         if symbols is None:
-            numIds = len(self.ids)
-            ids = '-'.join(ids)
-            maxLength = self.safe_integer(self.options, 'fetchTickersMaxLength', 2048)
-            # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
-            if len(ids) > self.options['fetchTickersMaxLength']:
-                raise ArgumentsRequired(self.id + ' fetchTickers() has ' + str(numIds) + ' markets exceeding max URL length for self endpoint(' + str(maxLength) + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers')
+            ids = self.ids
         else:
-            newIds = self.market_ids(symbols)
-            ids = '-'.join(newIds)
+            ids = self.market_ids(symbols)
+        idsLength = len(ids)
+        idsString = '-'.join(ids)
+        maxLength = self.safe_integer(self.options, 'maxUrlLength', 2048)
+        # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
+        lenghtOfBaseUrl = 30  # the url including api-base and endpoint dir is 30 chars
+        actualLength = len(idsString) + lenghtOfBaseUrl
+        if actualLength > maxLength:
+            raise ArgumentsRequired(self.id + ' fetchTickers() is being requested for ' + str(idsLength) + ' markets(which has an URL length of ' + str(actualLength) + ' characters), but it exceedes max URL length(' + str(maxLength) + '), please pass limisted symbols array to fetchTickers to fit in one request')
         request = {
-            'pair': ids,
+            'pair': idsString,
         }
         tickers = self.publicGetTickerPair(self.extend(request, params))
         result = {}
@@ -566,6 +576,7 @@ class yobit(Exchange):
 
     def fetch_ticker(self, symbol: str, params={}):
         """
+        see https://yobit.net/en/api
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the yobit api endpoint
@@ -650,6 +661,7 @@ class yobit(Exchange):
 
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://yobit.net/en/api
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int|None since: timestamp in ms of the earliest trade to fetch
@@ -687,6 +699,7 @@ class yobit(Exchange):
 
     def fetch_trading_fees(self, params={}):
         """
+        see https://yobit.net/en/api
         fetch the trading fees for multiple markets
         :param dict params: extra parameters specific to the yobit api endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
@@ -733,8 +746,9 @@ class yobit(Exchange):
             }
         return result
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
+        see https://yobit.net/en/api
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: must be 'limit'
@@ -781,6 +795,7 @@ class yobit(Exchange):
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
+        see https://yobit.net/en/api
         cancels an open order
         :param str id: order id
         :param str|None symbol: not used by yobit cancelOrder()
@@ -927,6 +942,7 @@ class yobit(Exchange):
 
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
+        see https://yobit.net/en/api
         fetches information on an order made by the user
         :param str|None symbol: not used by yobit fetchOrder
         :param dict params: extra parameters specific to the yobit api endpoint
@@ -959,6 +975,7 @@ class yobit(Exchange):
 
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://yobit.net/en/api
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch open orders for
@@ -972,8 +989,8 @@ class yobit(Exchange):
         request = {}
         market = None
         if symbol is not None:
-            market = self.market(symbol)
-            request['pair'] = market['id']
+            marketInner = self.market(symbol)
+            request['pair'] = marketInner['id']
         response = self.privatePostActiveOrders(self.extend(request, params))
         #
         #      {
@@ -1003,6 +1020,7 @@ class yobit(Exchange):
 
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://yobit.net/en/api
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch trades for
@@ -1059,6 +1077,7 @@ class yobit(Exchange):
 
     def create_deposit_address(self, code: str, params={}):
         """
+        see https://yobit.net/en/api
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
         :param dict params: extra parameters specific to the yobit api endpoint
@@ -1079,6 +1098,7 @@ class yobit(Exchange):
 
     def fetch_deposit_address(self, code: str, params={}):
         """
+        see https://yobit.net/en/api
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict params: extra parameters specific to the yobit api endpoint
@@ -1111,6 +1131,7 @@ class yobit(Exchange):
 
     def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
+        see https://yobit.net/en/api
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -1172,7 +1193,7 @@ class yobit(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if 'success' in response:
             #
             # 1 - Liqui only returns the integer 'success' key from their private API
@@ -1214,3 +1235,4 @@ class yobit(Exchange):
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(feedback)  # unknown message
+        return None

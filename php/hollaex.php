@@ -390,6 +390,7 @@ class hollaex extends Exchange {
                         'max' => $this->safe_value($withdrawalLimits, 0),
                     ),
                 ),
+                'networks' => array(),
             );
         }
         return $result;
@@ -491,7 +492,7 @@ class hollaex extends Exchange {
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        $response = $this->publicGetTickers (array_merge($params));
+        $response = $this->publicGetTickers ($params);
         //
         //     {
         //         "bch-usdt" => array(
@@ -778,7 +779,7 @@ class hollaex extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($response, $market = null, $timeframe = '1h', ?int $since = null, ?int $limit = null) {
+    public function parse_ohlcv($response, $market = null) {
         //
         //     {
         //         "time":"2020-03-02T20:00:00.000Z",
@@ -1098,7 +1099,7 @@ class hollaex extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1712,7 +1713,7 @@ class hollaex extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         if (($code >= 400) && ($code <= 503)) {
             //
@@ -1730,5 +1731,6 @@ class hollaex extends Exchange {
             $status = (string) $code;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $status, $feedback);
         }
+        return null;
     }
 }

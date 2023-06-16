@@ -654,7 +654,7 @@ export default class idex extends idexRest {
         if (this.newUpdates) {
             limit = transactions.getLimit(code, limit);
         }
-        return this.filterBySinceLimit(transactions, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(transactions, since, limit, 'timestamp');
     }
     handleTransaction(client, message) {
         // Update Speed: Real time, updates on any deposit or withdrawal of the wallet

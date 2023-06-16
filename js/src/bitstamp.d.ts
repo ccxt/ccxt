@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitstamp.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 export default class bitstamp extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -32,12 +32,14 @@ export default class bitstamp extends Exchange {
                 max: any;
             };
         };
+        networks: {};
     };
     fetchMarketsFromCache(params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     getCurrencyIdFromTransaction(transaction: any): string;
     getMarketFromTrade(trade: any): any;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
@@ -68,12 +70,12 @@ export default class bitstamp extends Exchange {
     parseTransactionFees(response: any, codes?: any): {};
     fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
-    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     fetchOrderStatus(id: string, symbol?: string, params?: {}): Promise<string>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -103,7 +105,7 @@ export default class bitstamp extends Exchange {
         };
     };
     parseTransactionStatus(status: any): string;
-    parseOrder(order: any, market?: any): any;
+    parseOrder(order: any, market?: any): import("./base/types.js").Order;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: any, currency?: any): {
         id: string;
@@ -185,5 +187,5 @@ export default class bitstamp extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
+    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

@@ -4,7 +4,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex2.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -510,14 +510,16 @@ export default class bitfinex2 extends Exchange {
             baseId = this.getCurrencyId (baseId);
             quoteId = this.getCurrencyId (quoteId);
             let settle = undefined;
+            let settleId = undefined;
             if (swap) {
                 settle = quote;
+                settleId = quote;
                 symbol = symbol + ':' + settle;
             }
             const minOrderSizeString = this.safeString (market, 3);
             const maxOrderSizeString = this.safeString (market, 4);
             let margin = false;
-            if (this.inArray (id, marginIds)) {
+            if (spot && this.inArray (id, marginIds)) {
                 margin = true;
             }
             result.push ({
@@ -528,7 +530,7 @@ export default class bitfinex2 extends Exchange {
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': quoteId,
+                'settleId': settleId,
                 'type': spot ? 'spot' : 'swap',
                 'spot': spot,
                 'margin': margin,
@@ -724,6 +726,7 @@ export default class bitfinex2 extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
             const networks = {};
             const currencyNetworks = this.safeValue (response, 8, []);
@@ -1466,7 +1469,7 @@ export default class bitfinex2 extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#createOrder

@@ -35,7 +35,7 @@ class phemex extends phemex$1 {
                 'OHLCVLimit': 1000,
             },
             'streaming': {
-                'keepAlive': 20000,
+                'keepAlive': 10000,
             },
         });
     }
@@ -631,7 +631,7 @@ class phemex extends phemex$1 {
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleDelta(bookside, delta, market = undefined) {
-        const bidAsk = this.parseBidAsk(delta, 0, 1, market);
+        const bidAsk = this.customParseBidAsk(delta, 0, 1, market);
         bookside.storeArray(bidAsk);
     }
     handleDeltas(bookside, deltas, market = undefined) {
@@ -736,6 +736,7 @@ class phemex extends phemex$1 {
             symbol = market['symbol'];
             messageHash = messageHash + market['symbol'];
             if (market['settle'] === 'USDT') {
+                params = this.extend(params);
                 params['settle'] = 'USDT';
             }
         }
@@ -898,18 +899,20 @@ class phemex extends phemex$1 {
             symbol = market['symbol'];
             messageHash = messageHash + market['symbol'];
             if (market['settle'] === 'USDT') {
+                params = this.extend(params);
                 params['settle'] = 'USDT';
             }
         }
         [type, params] = this.handleMarketTypeAndParams('watchOrders', market, params);
+        const isUSDTSettled = this.safeString(params, 'settle') === 'USDT';
         if (symbol === undefined) {
-            messageHash = (params['settle'] === 'USDT') ? (messageHash + 'perpetual') : (messageHash + type);
+            messageHash = (isUSDTSettled) ? (messageHash + 'perpetual') : (messageHash + type);
         }
         const orders = await this.subscribePrivate(type, messageHash, params);
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleOrders(client, message) {
         // spot update
@@ -1399,7 +1402,9 @@ class phemex extends phemex$1 {
         if (id in client.subscriptions) {
             const method = client.subscriptions[id];
             delete client.subscriptions[id];
-            return method.call(this, client, message);
+            if (method !== true) {
+                return method.call(this, client, message);
+            }
         }
         const method = this.safeString(message, 'method', '');
         if (('market24h' in message) || ('spot_market24h' in message) || (method.indexOf('perp_market24h_pack_p') >= 0)) {
@@ -1499,7 +1504,7 @@ class phemex extends phemex$1 {
             future = this.watch(url, messageHash, message);
             client.subscriptions[messageHash] = future;
         }
-        return future;
+        return await future;
     }
 }
 

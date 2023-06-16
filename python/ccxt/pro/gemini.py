@@ -380,7 +380,7 @@ class gemini(ccxt.async_support.gemini):
         orders = await self.watch(url, messageHash, None, messageHash)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_heartbeat(self, client: Client, message):
         #

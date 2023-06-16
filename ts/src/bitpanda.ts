@@ -5,7 +5,7 @@ import Exchange from './abstract/bitpanda.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -17,6 +17,7 @@ export default class bitpanda extends Exchange {
             'countries': [ 'AT' ], // Austria
             'rateLimit': 300,
             'version': 'v1',
+            'pro': true,
             // new metainfo interface
             'has': {
                 'CORS': undefined,
@@ -343,6 +344,7 @@ export default class bitpanda extends Exchange {
                     'amount': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -1503,7 +1505,7 @@ export default class bitpanda extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#createOrder
@@ -1997,7 +1999,7 @@ export default class bitpanda extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //     {"error":"MISSING_FROM_PARAM"}
@@ -2011,5 +2013,6 @@ export default class bitpanda extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

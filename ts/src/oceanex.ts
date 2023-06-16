@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, Inva
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -619,7 +619,7 @@ export default class oceanex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#createOrder
@@ -671,7 +671,8 @@ export default class oceanex extends Exchange {
             throw new OrderNotFound (this.id + ' could not found matching order');
         }
         if (Array.isArray (id)) {
-            return this.parseOrders (data, market);
+            const orders = this.parseOrders (data, market);
+            return orders[0];
         }
         if (dataLength === 0) {
             throw new OrderNotFound (this.id + ' could not found matching order');
@@ -963,7 +964,7 @@ export default class oceanex extends Exchange {
         //     {"code":1011,"message":"This IP 'x.x.x.x' is not allowed","data":{}}
         //
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'message');
@@ -973,5 +974,6 @@ export default class oceanex extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 }

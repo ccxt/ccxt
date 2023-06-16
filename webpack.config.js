@@ -1,5 +1,6 @@
 import path from 'path';
 import url from 'url';
+import TerserPlugin from "terser-webpack-plugin";
 
 const cwd = url.fileURLToPath (import.meta.url);
 const outputDirectory = path.normalize (path.join (path.dirname (cwd), 'dist'))
@@ -10,7 +11,7 @@ export default {
     path: outputDirectory,
     filename: 'ccxt.browser.js',
     library: {
-      type: 'window', // we are targeting the browser
+      type: 'self', // we are targeting the browser (including webworkers)
       name: 'ccxt',
     },
     chunkFormat: 'array-push',
@@ -38,6 +39,7 @@ export default {
   target: 'web',
   optimization: {
     minimize: false,
+    minimizer: [new TerserPlugin ({ extractComments: false })],
     usedExports: true, // these two lines line turns on tree shaking
     concatenateModules: false,
   },

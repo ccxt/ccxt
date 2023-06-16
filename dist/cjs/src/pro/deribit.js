@@ -240,6 +240,9 @@ class deribit extends deribit$1 {
         };
         const request = this.deepExtend(message, params);
         const trades = await this.watch(url, channel, request, channel, request);
+        if (this.newUpdates) {
+            limit = trades.getLimit(symbol, limit);
+        }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
@@ -534,7 +537,7 @@ class deribit extends deribit$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleOrders(client, message) {
         // Does not return a snapshot of current orders

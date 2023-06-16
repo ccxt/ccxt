@@ -301,7 +301,7 @@ class ndax extends Exchange {
                 $request = array(
                     'Code' => $this->totp($this->twofa),
                 );
-                $response = Async\await($this->publicGetAuthenticate2FA (array_merge($request, $params)));
+                $responseInner = Async\await($this->publicGetAuthenticate2FA (array_merge($request, $params)));
                 //
                 //     {
                 //         "Authenticated" => true,
@@ -309,9 +309,9 @@ class ndax extends Exchange {
                 //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
                 //     }
                 //
-                $sessionToken = $this->safe_string($response, 'SessionToken');
+                $sessionToken = $this->safe_string($responseInner, 'SessionToken');
                 $this->options['sessionToken'] = $sessionToken;
-                return $response;
+                return $responseInner;
             }
             return $response;
         }) ();
@@ -375,6 +375,7 @@ class ndax extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'networks' => array(),
                 );
             }
             return $result;
@@ -1313,7 +1314,7 @@ class ndax extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1371,7 +1372,7 @@ class ndax extends Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
@@ -2423,7 +2424,7 @@ class ndax extends Exchange {
             throw new AuthenticationError($this->id . ' ' . $body);
         }
         if ($response === null) {
-            return;
+            return null;
         }
         //
         //     array("status":"Rejected","errormsg":"Not_Enough_Funds","errorcode":101)
@@ -2436,5 +2437,6 @@ class ndax extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

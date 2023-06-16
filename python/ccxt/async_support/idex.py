@@ -4,8 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.idex import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -25,7 +27,7 @@ from ccxt.base.decimal_to_precision import PAD_WITH_ZERO
 from ccxt.base.precise import Precise
 
 
-class idex(Exchange):
+class idex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(idex, self).describe(), {
@@ -1080,7 +1082,7 @@ class idex(Exchange):
         result = await self.privatePostWallets(request)
         return result
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order, https://docs.idex.io/#create-order
         :param str symbol: unified symbol of the market to create an order in
@@ -1385,6 +1387,7 @@ class idex(Exchange):
             raise Exception(self.id + ' ' + message)
         if errorCode is not None:
             raise ExchangeError(self.id + ' ' + message)
+        return None
 
     async def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
         """
@@ -1416,7 +1419,7 @@ class idex(Exchange):
         params = self.extend({
             'method': 'privateGetDeposits',
         }, params)
-        return self.fetch_transactions_helper(code, since, limit, params)
+        return await self.fetch_transactions_helper(code, since, limit, params)
 
     async def fetch_time(self, params={}):
         """
@@ -1460,7 +1463,7 @@ class idex(Exchange):
         params = self.extend({
             'method': 'privateGetWithdrawals',
         }, params)
-        return self.fetch_transactions_helper(code, since, limit, params)
+        return await self.fetch_transactions_helper(code, since, limit, params)
 
     async def fetch_transactions_helper(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
@@ -1578,7 +1581,7 @@ class idex(Exchange):
             'fee': fee,
         }
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         hasApiKey = (self.apiKey is not None)
         hasSecret = (self.secret is not None)
         hasWalletAddress = (self.walletAddress is not None)

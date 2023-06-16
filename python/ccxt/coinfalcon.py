@@ -4,8 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.coinfalcon import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -16,7 +18,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class coinfalcon(Exchange):
+class coinfalcon(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(coinfalcon, self).describe(), {
@@ -629,7 +631,7 @@ class coinfalcon(Exchange):
             'average': None,
         }, market)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -946,7 +948,7 @@ class coinfalcon(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if code < 400:
-            return
+            return None
         ErrorClass = self.safe_value({
             '401': AuthenticationError,
             '429': RateLimitExceeded,

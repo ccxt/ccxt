@@ -4,8 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.lbank2 import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -24,7 +26,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class lbank2(Exchange):
+class lbank2(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(lbank2, self).describe(), {
@@ -289,6 +291,7 @@ class lbank2(Exchange):
     async def fetch_markets(self, params={}):
         """
         retrieves data on all markets for lbank2
+        see https://www.lbank.com/en-US/docs/index.html#trading-pairs
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
@@ -313,19 +316,7 @@ class lbank2(Exchange):
             base = baseId.upper()
             quote = quoteId.upper()
             symbol = base + '/' + quote
-            productTypes = {
-                '3l': True,
-                '5l': True,
-                '3s': True,
-                '5s': True,
-            }
-            ending = baseId[-2:]
-            isLeveragedProduct = self.safe_value(productTypes, ending, False)
-            if isLeveragedProduct:
-                symbol += ':' + quote
-            linear = None
-            if isLeveragedProduct is True:
-                linear = True
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityAccuracy')))
             result.append({
                 'id': marketId,
                 'symbol': symbol,
@@ -338,12 +329,12 @@ class lbank2(Exchange):
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
-                'swap': isLeveragedProduct,
+                'swap': False,
                 'future': False,
                 'option': False,
                 'active': True,
-                'contract': isLeveragedProduct,
-                'linear': linear,  # all leveraged ETF products are in USDT
+                'contract': None,
+                'linear': None,
                 'inverse': None,
                 'contractSize': None,
                 'expiry': None,
@@ -351,7 +342,7 @@ class lbank2(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityAccuracy'))),
+                    'amount': amountPrecision,
                     'price': self.parse_number(self.parse_precision(self.safe_string(market, 'priceAccuracy'))),
                 },
                 'limits': {
@@ -802,11 +793,11 @@ class lbank2(Exchange):
             for i in range(0, len(balances)):
                 item = balances[i]
                 currencyId = self.safe_string(item, 'asset')
-                code = self.safe_currency_code(currencyId)
+                codeInner = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['free'] = self.safe_string(item, 'free')
                 account['used'] = self.safe_string(item, 'locked')
-                result[code] = account
+                result[codeInner] = account
             return self.safe_balance(result)
         # from privatePostSupplementUserInfo
         isArray = isinstance(data, list)
@@ -814,12 +805,13 @@ class lbank2(Exchange):
             for i in range(0, len(data)):
                 item = data[i]
                 currencyId = self.safe_string(item, 'coin')
-                code = self.safe_currency_code(currencyId)
+                codeInner = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['free'] = self.safe_string(item, 'usableAmt')
                 account['used'] = self.safe_string(item, 'freezeAmt')
-                result[code] = account
+                result[codeInner] = account
             return self.safe_balance(result)
+        return None
 
     async def fetch_balance(self, params={}):
         """
@@ -910,7 +902,7 @@ class lbank2(Exchange):
             result[symbol] = fee
         return result
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1914,15 +1906,15 @@ class lbank2(Exchange):
             canWithdraw = self.safe_value(item, 'canWithDraw')
             if canWithdraw == 'true':
                 currencyId = self.safe_string(item, 'assetCode')
-                code = self.safe_currency_code(currencyId)
+                codeInner = self.safe_currency_code(currencyId)
                 chain = self.safe_string(item, 'chain')
                 network = self.safe_string(self.options['inverse-networks'], chain, chain)
                 if network is None:
-                    network = code
+                    network = codeInner
                 fee = self.safe_string(item, 'fee')
-                if withdrawFees[code] is None:
-                    withdrawFees[code] = {}
-                withdrawFees[code][network] = self.parse_number(fee)
+                if withdrawFees[codeInner] is None:
+                    withdrawFees[codeInner] = {}
+                withdrawFees[codeInner][network] = self.parse_number(fee)
         return {
             'withdraw': withdrawFees,
             'deposit': {},
@@ -2188,7 +2180,7 @@ class lbank2(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         success = self.safe_string(response, 'result')
         if success == 'false':
             errorCode = self.safe_string(response, 'error_code')
@@ -2298,3 +2290,4 @@ class lbank2(Exchange):
                 '10702': PermissionDenied,  # 'not allowed deposit',
             }, errorCode, ExchangeError)
             raise ErrorClass(message)
+        return None

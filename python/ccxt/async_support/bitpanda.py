@@ -4,7 +4,9 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.bitpanda import ImplicitAPI
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -22,7 +24,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bitpanda(Exchange):
+class bitpanda(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitpanda, self).describe(), {
@@ -31,6 +33,7 @@ class bitpanda(Exchange):
             'countries': ['AT'],  # Austria
             'rateLimit': 300,
             'version': 'v1',
+            'pro': True,
             # new metainfo interface
             'has': {
                 'CORS': None,
@@ -351,6 +354,7 @@ class bitpanda(Exchange):
                     'amount': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
                 },
+                'networks': {},
             }
         return result
 
@@ -1432,7 +1436,7 @@ class bitpanda(Exchange):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1877,7 +1881,7 @@ class bitpanda(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         #     {"error":"MISSING_FROM_PARAM"}
         #     {"error":"MISSING_TO_PARAM"}
@@ -1889,3 +1893,4 @@ class bitpanda(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

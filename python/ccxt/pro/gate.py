@@ -42,7 +42,10 @@ class gate(ccxt.async_support.gate):
                         'usdt': 'wss://fx-ws.gateio.ws/v4/ws/delivery/usdt',
                         'btc': 'wss://fx-ws.gateio.ws/v4/ws/delivery/btc',
                     },
-                    'option': 'wss://op-ws.gateio.live/v4/ws',
+                    'option': {
+                        'usdt': 'wss://op-ws.gateio.live/v4/ws/usdt',
+                        'btc': 'wss://op-ws.gateio.live/v4/ws/btc',
+                    },
                 },
                 'test': {
                     'swap': {
@@ -53,7 +56,10 @@ class gate(ccxt.async_support.gate):
                         'usdt': 'wss://fx-ws-testnet.gateio.ws/v4/ws/usdt',
                         'btc': 'wss://fx-ws-testnet.gateio.ws/v4/ws/btc',
                     },
-                    'option': 'wss://op-ws-testnet.gateio.live/v4/ws',
+                    'option': {
+                        'usdt': 'wss://op-ws-testnet.gateio.live/v4/ws/usdt',
+                        'btc': 'wss://op-ws-testnet.gateio.live/v4/ws/btc',
+                    },
                 },
             },
             'options': {
@@ -763,10 +769,11 @@ class gate(ccxt.async_support.gate):
             # inject order status
             info = self.safe_value(parsed, 'info')
             event = self.safe_string(info, 'event')
-            if event == 'put':
+            if event == 'put' or event == 'update':
                 parsed['status'] = 'open'
             elif event == 'finish':
-                parsed['status'] = 'closed'
+                left = self.safe_number(info, 'left')
+                parsed['status'] = 'closed' if (left == 0) else 'canceled'
             stored.append(parsed)
             symbol = parsed['symbol']
             market = self.market(symbol)

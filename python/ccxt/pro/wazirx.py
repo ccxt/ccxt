@@ -538,7 +538,7 @@ class wazirx(ccxt.async_support.wazirx):
         orders = await self.watch(url, messageHash, request, messageHash, request)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_order(self, client: Client, message):
         #

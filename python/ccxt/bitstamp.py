@@ -4,9 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitstamp import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadRequest
@@ -23,7 +26,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bitstamp(Exchange):
+class bitstamp(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitstamp, self).describe(), {
@@ -82,6 +85,7 @@ class bitstamp(Exchange):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
@@ -126,20 +130,26 @@ class bitstamp(Exchange):
                     'get': {
                         'ohlc/{pair}/': 1,
                         'order_book/{pair}/': 1,
+                        'ticker/': 1,
                         'ticker_hour/{pair}/': 1,
                         'ticker/{pair}/': 1,
                         'transactions/{pair}/': 1,
                         'trading-pairs-info/': 1,
+                        'currencies/': 1,
+                        'eur_usd/': 1,
                     },
                 },
                 'private': {
                     'post': {
+                        'account_balances/': 1,
+                        'account_balances/{currency}/': 1,
                         'balance/': 1,
                         'balance/{pair}/': 1,
                         'bch_withdrawal/': 1,
                         'bch_address/': 1,
                         'user_transactions/': 1,
                         'user_transactions/{pair}/': 1,
+                        'crypto-transactions/': 1,
                         'open_orders/all/': 1,
                         'open_orders/{pair}/': 1,
                         'order_status/': 1,
@@ -154,6 +164,10 @@ class bitstamp(Exchange):
                         'sell/instant/{pair}/': 1,
                         'transfer-to-main/': 1,
                         'transfer-from-main/': 1,
+                        'my_trading_pairs/': 1,
+                        'fees/trading/': 1,
+                        'fees/withdrawal/': 1,
+                        'fees/withdrawal/{currency}/': 1,
                         'withdrawal-requests/': 1,
                         'withdrawal/open/': 1,
                         'withdrawal/status/': 1,
@@ -321,6 +335,10 @@ class bitstamp(Exchange):
                         'doge_address/': 1,
                         'flr_withdrawal/': 1,
                         'flr_address/': 1,
+                        'dgld_withdrawal/': 1,
+                        'dgld_address/': 1,
+                        'ldo_withdrawal/': 1,
+                        'ldo_address/': 1,
                     },
                 },
             },
@@ -538,6 +556,7 @@ class bitstamp(Exchange):
                     'max': None,
                 },
             },
+            'networks': {},
         }
 
     def fetch_markets_from_cache(self, params={}):
@@ -637,19 +656,22 @@ class bitstamp(Exchange):
     def parse_ticker(self, ticker, market=None):
         #
         # {
-        #     "high": "37534.15",
-        #     "last": "36487.44",
-        #     "timestamp":
-        #     "1643370585",
-        #     "bid": "36475.15",
-        #     "vwap": "36595.67",
-        #     "volume": "2848.49168527",
-        #     "low": "35511.32",
-        #     "ask": "36487.44",
-        #     "open": "37179.62"
+        #     "timestamp": "1686068944",
+        #     "high": "26252",
+        #     "last": "26216",
+        #     "bid": "26208",
+        #     "vwap": "25681",
+        #     "volume": "3563.13819902",
+        #     "low": "25350",
+        #     "ask": "26211",
+        #     "open": "25730",
+        #     "open_24": "25895",
+        #     "percent_change_24": "1.24",
+        #     "pair": "BTC/USD"
         # }
         #
-        symbol = self.safe_symbol(None, market)
+        marketId = self.safe_string(ticker, 'pair')
+        symbol = self.safe_symbol(marketId, market, None)
         timestamp = self.safe_timestamp(ticker, 'timestamp')
         vwap = self.safe_string(ticker, 'vwap')
         baseVolume = self.safe_string(ticker, 'volume')
@@ -693,19 +715,48 @@ class bitstamp(Exchange):
         ticker = self.publicGetTickerPair(self.extend(request, params))
         #
         # {
-        #     "high": "37534.15",
-        #     "last": "36487.44",
-        #     "timestamp":
-        #     "1643370585",
-        #     "bid": "36475.15",
-        #     "vwap": "36595.67",
-        #     "volume": "2848.49168527",
-        #     "low": "35511.32",
-        #     "ask": "36487.44",
-        #     "open": "37179.62"
+        #     "timestamp": "1686068944",
+        #     "high": "26252",
+        #     "last": "26216",
+        #     "bid": "26208",
+        #     "vwap": "25681",
+        #     "volume": "3563.13819902",
+        #     "low": "25350",
+        #     "ask": "26211",
+        #     "open": "25730",
+        #     "open_24": "25895",
+        #     "percent_change_24": "1.24"
         # }
         #
         return self.parse_ticker(ticker, market)
+
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://www.bitstamp.net/api/#all-tickers
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        self.load_markets()
+        response = self.publicGetTicker(params)
+        #
+        # {
+        #     "timestamp": "1686068944",
+        #     "high": "26252",
+        #     "last": "26216",
+        #     "bid": "26208",
+        #     "vwap": "25681",
+        #     "volume": "3563.13819902",
+        #     "low": "25350",
+        #     "ask": "26211",
+        #     "open": "25730",
+        #     "open_24": "25895",
+        #     "percent_change_24": "1.24",
+        #     "pair": "BTC/USD"
+        # }
+        #
+        return self.parse_tickers(response, symbols)
 
     def get_currency_id_from_transaction(self, transaction):
         #
@@ -1199,7 +1250,7 @@ class bitstamp(Exchange):
                 result[code]['info'][id] = dictValue
         return result
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1905,7 +1956,7 @@ class bitstamp(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         #     {"error": "No permission found"}  # fetchDepositAddress returns self on apiKeys that don't have the permission required
         #     {"status": "error", "reason": {"__all__": ["Minimum order size is 5.0 EUR."]}}
@@ -1926,11 +1977,11 @@ class bitstamp(Exchange):
                         errors = self.array_concat(errors, value)
                     else:
                         errors.append(value)
-            reason = self.safe_value(response, 'reason', {})
-            if isinstance(reason, str):
-                errors.append(reason)
+            reasonInner = self.safe_value(response, 'reason', {})
+            if isinstance(reasonInner, str):
+                errors.append(reasonInner)
             else:
-                all = self.safe_value(reason, '__all__', [])
+                all = self.safe_value(reasonInner, '__all__', [])
                 for i in range(0, len(all)):
                     errors.append(all[i])
             code = self.safe_string(response, 'code')
@@ -1942,3 +1993,4 @@ class bitstamp(Exchange):
                 self.throw_exactly_matched_exception(self.exceptions['exact'], value, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], value, feedback)
             raise ExchangeError(feedback)
+        return None

@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, RateLimitExceeded, BadRequest, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -168,6 +168,7 @@ export default class woo extends Exchange {
                             'funding_fee/history': 30,
                             'positions': 3.33, // 30 requests per 10 seconds
                             'position/{symbol}': 3.33,
+                            'client/transaction_history': 60,
                         },
                         'post': {
                             'order': 5, // 2 requests per 1 second per symbol
@@ -251,6 +252,7 @@ export default class woo extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'brokerId': 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -332,7 +334,10 @@ export default class woo extends Exchange {
             let symbol = base + '/' + quote;
             let contractSize = undefined;
             let linear = undefined;
-            if (isSwap) {
+            let margin = true;
+            const contract = isSwap;
+            if (contract) {
+                margin = false;
                 settleId = this.safeString (parts, 2);
                 settle = this.safeCurrencyCode (settleId);
                 symbol = base + '/' + quote + ':' + settle;
@@ -351,12 +356,12 @@ export default class woo extends Exchange {
                 'settleId': settleId,
                 'type': marketType,
                 'spot': isSpot,
-                'margin': true,
+                'margin': margin,
                 'swap': isSwap,
                 'future': false,
                 'option': false,
                 'active': undefined,
-                'contract': isSwap,
+                'contract': contract,
                 'linear': linear,
                 'inverse': undefined,
                 'contractSize': contractSize,
@@ -718,7 +723,7 @@ export default class woo extends Exchange {
         return result;
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name woo#createOrder
@@ -792,6 +797,11 @@ export default class woo extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
+        const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+        const brokerId = this.safeString (this.options, 'brokerId', applicationId);
+        if (brokerId !== undefined) {
+            request['broker_id'] = brokerId;
+        }
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ]);
         const response = await this.v1PrivatePostOrder (this.extend (request, params));
         // {
@@ -810,7 +820,7 @@ export default class woo extends Exchange {
         );
     }
 
-    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name woo#editOrder
@@ -1990,7 +2000,7 @@ export default class woo extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
@@ -2002,6 +2012,7 @@ export default class woo extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         }
+        return undefined;
     }
 
     parseIncome (income, market = undefined) {

@@ -555,6 +555,7 @@ class cex extends Exchange {
                 return array();
             }
         }
+        return null;
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -726,7 +727,7 @@ class cex extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -865,7 +866,7 @@ class cex extends Exchange {
                 $feeRate = $this->safe_number($order, 'tradingFeeTaker', $feeRate);
             }
             if ($feeRate) {
-                $feeRate /= 100.0; // convert to mathematically-correct percentage coefficients => 1.0 = 100%
+                $feeRate = $feeRate / 100.0; // convert to mathematically-correct percentage coefficients => 1.0 = 100%
             }
             if ((is_array($order) && array_key_exists($baseFee, $order)) || (is_array($order) && array_key_exists($baseTakerFee, $order))) {
                 $baseFeeCost = $this->safe_number_2($order, $baseFee, $baseTakerFee);
@@ -1394,7 +1395,7 @@ class cex extends Exchange {
             $quoteId = $this->safe_string($order, 'symbol2');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
+            $symbolInner = $base . '/' . $quote;
             $side = $this->safe_string($order, 'type');
             $baseAmount = $this->safe_number($order, 'a:' . $baseId . ':cds');
             $quoteAmount = $this->safe_number($order, 'a:' . $quoteId . ':cds');
@@ -1435,7 +1436,7 @@ class cex extends Exchange {
                 'datetime' => $this->iso8601($timestamp),
                 'lastUpdated' => $this->parse8601($lastTxTime),
                 'status' => $status,
-                'symbol' => $symbol,
+                'symbol' => $symbolInner,
                 'side' => $side,
                 'price' => $price,
                 'amount' => $orderAmount,
@@ -1563,7 +1564,7 @@ class cex extends Exchange {
             return $response; // public endpoints may return array()-arrays
         }
         if ($body === 'true') {
-            return;
+            return null;
         }
         if ($response === null) {
             throw new NullResponse($this->id . ' returned ' . $this->json($response));
@@ -1571,7 +1572,7 @@ class cex extends Exchange {
         if (is_array($response) && array_key_exists('e', $response)) {
             if (is_array($response) && array_key_exists('ok', $response)) {
                 if ($response['ok'] === 'ok') {
-                    return;
+                    return null;
                 }
             }
         }
@@ -1582,5 +1583,6 @@ class cex extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

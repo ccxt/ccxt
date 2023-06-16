@@ -409,7 +409,7 @@ class bit2c extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -890,7 +890,7 @@ class bit2c extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         //
         //     array( "error" : "please approve new terms of use on site." )
@@ -907,5 +907,6 @@ class bit2c extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
+        return null;
     }
 }

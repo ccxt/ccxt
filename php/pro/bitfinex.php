@@ -494,7 +494,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
         }) ();
     }
 

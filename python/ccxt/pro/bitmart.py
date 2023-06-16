@@ -129,7 +129,7 @@ class bitmart(ccxt.async_support.bitmart):
         orders = await self.subscribe_private(channel, symbol, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_orders(self, client: Client, message):
         #

@@ -97,6 +97,9 @@ interface Exchange {
     publicGetV5SpotLeverTokenInfo(params?: {}): Promise<implicitReturnType>;
     publicGetV5SpotLeverTokenReference(params?: {}): Promise<implicitReturnType>;
     publicGetV5AnnouncementsIndex(params?: {}): Promise<implicitReturnType>;
+    publicGetV5SpotCrossMarginTradePledgeToken(params?: {}): Promise<implicitReturnType>;
+    publicGetV5SpotCrossMarginTradeBorrowToken(params?: {}): Promise<implicitReturnType>;
+    publicGetV5InsLoanEnsureTokensConvert(params?: {}): Promise<implicitReturnType>;
     privateGetV2PrivateOrderList(params?: {}): Promise<implicitReturnType>;
     privateGetV2PrivateOrder(params?: {}): Promise<implicitReturnType>;
     privateGetV2PrivateStopOrderList(params?: {}): Promise<implicitReturnType>;
@@ -208,6 +211,7 @@ interface Exchange {
     privateGetV5OrderSpotBorrowCheck(params?: {}): Promise<implicitReturnType>;
     privateGetV5OrderRealtime(params?: {}): Promise<implicitReturnType>;
     privateGetV5PositionList(params?: {}): Promise<implicitReturnType>;
+    privateGetV5PositionSwitchMode(params?: {}): Promise<implicitReturnType>;
     privateGetV5ExecutionList(params?: {}): Promise<implicitReturnType>;
     privateGetV5PositionClosedPnl(params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountWalletBalance(params?: {}): Promise<implicitReturnType>;
@@ -239,6 +243,14 @@ interface Exchange {
     privateGetV5AssetTransferQueryAccountCoinsBalance(params?: {}): Promise<implicitReturnType>;
     privateGetV5UserQuerySubMembers(params?: {}): Promise<implicitReturnType>;
     privateGetV5UserQueryApi(params?: {}): Promise<implicitReturnType>;
+    privateGetV5UserAffCustomerInfo(params?: {}): Promise<implicitReturnType>;
+    privateGetV5CustomerInfo(params?: {}): Promise<implicitReturnType>;
+    privateGetV5SpotCrossMarginTradeLoanInfo(params?: {}): Promise<implicitReturnType>;
+    privateGetV5SpotCrossMarginTradeAccount(params?: {}): Promise<implicitReturnType>;
+    privateGetV5SpotCrossMarginTradeOrders(params?: {}): Promise<implicitReturnType>;
+    privateGetV5SpotCrossMarginTradeRepayHistory(params?: {}): Promise<implicitReturnType>;
+    privateGetV5InsLoanLtvConvert(params?: {}): Promise<implicitReturnType>;
+    privateGetV5BrokerEarningRecord(params?: {}): Promise<implicitReturnType>;
     privatePostV2PrivateOrderCreate(params?: {}): Promise<implicitReturnType>;
     privatePostV2PrivateOrderCancel(params?: {}): Promise<implicitReturnType>;
     privatePostV2PrivateOrderCancelAll(params?: {}): Promise<implicitReturnType>;
@@ -391,6 +403,9 @@ interface Exchange {
     privatePostV5PositionSetTpslMode(params?: {}): Promise<implicitReturnType>;
     privatePostV5PositionSetRiskLimit(params?: {}): Promise<implicitReturnType>;
     privatePostV5PositionTradingStop(params?: {}): Promise<implicitReturnType>;
+    privatePostV5PositionSwitchIsolated(params?: {}): Promise<implicitReturnType>;
+    privatePostV5PositionSwitchMode(params?: {}): Promise<implicitReturnType>;
+    privatePostV5PositionSetAutoAddMargin(params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountUpgradeToUta(params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountSetMarginMode(params?: {}): Promise<implicitReturnType>;
     privatePostV5AssetTransferInterTransfer(params?: {}): Promise<implicitReturnType>;
@@ -411,6 +426,9 @@ interface Exchange {
     privatePostV5UserUpdateSubApi(params?: {}): Promise<implicitReturnType>;
     privatePostV5UserDeleteApi(params?: {}): Promise<implicitReturnType>;
     privatePostV5UserDeleteSubApi(params?: {}): Promise<implicitReturnType>;
+    privatePostV5SpotCrossMarginTradeLoan(params?: {}): Promise<implicitReturnType>;
+    privatePostV5SpotCrossMarginTradeRepay(params?: {}): Promise<implicitReturnType>;
+    privatePostV5SpotCrossMarginTradeSwitch(params?: {}): Promise<implicitReturnType>;
     privateDeleteSpotV1Order(params?: {}): Promise<implicitReturnType>;
     privateDeleteSpotV1OrderFast(params?: {}): Promise<implicitReturnType>;
     privateDeleteSpotOrderBatchCancel(params?: {}): Promise<implicitReturnType>;

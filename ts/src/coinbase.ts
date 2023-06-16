@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1938,7 +1938,7 @@ export default class coinbase extends Exchange {
         return request;
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#createOrder
@@ -2404,7 +2404,7 @@ export default class coinbase extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['start_date'] = this.parse8601 (since);
+            request['start_date'] = this.iso8601 (since);
         }
         const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, params));
         //
@@ -2470,7 +2470,7 @@ export default class coinbase extends Exchange {
         }
         request['limit'] = limit;
         if (since !== undefined) {
-            request['start_date'] = this.parse8601 (since);
+            request['start_date'] = this.iso8601 (since);
         }
         const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, params));
         //
@@ -2785,7 +2785,7 @@ export default class coinbase extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         const feedback = this.id + ' ' + body;
         //
@@ -2829,5 +2829,6 @@ export default class coinbase extends Exchange {
         if ((data === undefined) && (!advancedTrade)) {
             throw new ExchangeError (this.id + ' failed due to a malformed response ' + this.json (response));
         }
+        return undefined;
     }
 }

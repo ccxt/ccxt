@@ -213,8 +213,8 @@ class hitbtc extends Exchange {
                 'networks' => array(
                     'ETH' => 'T20',
                     'ERC20' => 'T20',
-                    'TRX' => 'TTRX',
-                    'TRC20' => 'TTRX',
+                    'TRX' => 'TRX',
+                    'TRC20' => 'TRX',
                     'OMNI' => '',
                 ),
                 'defaultTimeInForce' => 'FOK',
@@ -508,6 +508,7 @@ class hitbtc extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'networks' => array(),
                 );
             }
             return $result;
@@ -984,7 +985,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -1390,7 +1391,7 @@ class hitbtc extends Exchange {
             $this->check_address($address);
             $tag = $this->safe_string($response, 'paymentId');
             return array(
-                'currency' => $currency,
+                'currency' => $code,
                 'address' => $address,
                 'tag' => $tag,
                 'info' => $response,
@@ -1534,7 +1535,7 @@ class hitbtc extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         if ($code >= 400) {
             $feedback = $this->id . ' ' . $body;
@@ -1545,7 +1546,7 @@ class hitbtc extends Exchange {
             // fallback to default error handler on rate limit errors
             // array("code":429,"message":"Too many requests","description":"Too many requests")
             if ($code === 429) {
-                return;
+                return null;
             }
             // array("error":array("code":20002,"message":"Order not found","description":""))
             if ($body[0] === '{') {
@@ -1560,5 +1561,6 @@ class hitbtc extends Exchange {
             }
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

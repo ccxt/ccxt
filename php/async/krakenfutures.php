@@ -24,6 +24,7 @@ class krakenfutures extends Exchange {
             'version' => 'v3',
             'userAgent' => null,
             'rateLimit' => 600,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => false,
@@ -44,9 +45,9 @@ class krakenfutures extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => null, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchFundingHistory' => null,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => 'emulated',
                 'fetchFundingRateHistory' => true,
-                'fetchFundingRates' => false,
+                'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedPositions' => false,
                 'fetchLeverageTiers' => true,
@@ -69,8 +70,8 @@ class krakenfutures extends Exchange {
             ),
             'urls' => array(
                 'test' => array(
-                    'public' => 'https://demo-futures.kraken.com/derivatives',
-                    'private' => 'https://demo-futures.kraken.com/derivatives',
+                    'public' => 'https://demo-futures.kraken.com/derivatives/api/',
+                    'private' => 'https://demo-futures.kraken.com/derivatives/api/',
                     'www' => 'https://demo-futures.kraken.com',
                 ),
                 'logo' => 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -309,8 +310,9 @@ class krakenfutures extends Exchange {
                 $settleId = null;
                 $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'contractValueTradePrecision', '0')));
                 $pricePrecision = $this->safe_number($market, 'tickSize');
-                $contract = ($swap || $future);
-                if ($contract) {
+                $contract = ($swap || $future || $index);
+                $swapOrFutures = ($swap || $future);
+                if ($swapOrFutures) {
                     $exchangeType = $this->safe_string($market, 'type');
                     if ($exchangeType === 'futures_inverse') {
                         $settle = $base;
@@ -795,7 +797,7 @@ class krakenfutures extends Exchange {
         ));
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * Create an order on the exchange
@@ -815,7 +817,8 @@ class krakenfutures extends Exchange {
             $type = $this->safe_string($params, 'orderType', $type);
             $timeInForce = $this->safe_string($params, 'timeInForce');
             $stopPrice = $this->safe_string($params, 'stopPrice');
-            $postOnly = $this->safe_string($params, 'postOnly');
+            $postOnly = false;
+            list($postOnly, $params) = $this->handle_post_only($type === 'market', $type === 'post', $params);
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'cliOrdId');
             $params = $this->omit($params, array( 'clientOrderId', 'cliOrdId' ));
             if (($type === 'stp' || $type === 'take_profit') && $stopPrice === null) {
@@ -824,7 +827,7 @@ class krakenfutures extends Exchange {
             if ($stopPrice !== null && $type !== 'take_profit') {
                 $type = 'stp';
             } elseif ($postOnly) {
-                $type = 'postOnly';
+                $type = 'post';
             } elseif ($timeInForce === 'ioc') {
                 $type = 'ioc';
             } elseif ($type === 'limit') {
@@ -1601,6 +1604,93 @@ class krakenfutures extends Exchange {
         return $this->safe_balance($result);
     }
 
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$market-data-get-$tickers
+             * fetch the current funding rates
+             * @param {[string]} $symbols unified $market $symbols
+             * @param {array} $params extra parameters specific to the krakenfutures api endpoint
+             * @return {[array]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+             */
+            Async\await($this->load_markets());
+            $marketIds = $this->market_ids($symbols);
+            $response = Async\await($this->publicGetTickers ($params));
+            $tickers = $this->safe_value($response, 'tickers');
+            $fundingRates = array();
+            for ($i = 0; $i < count($tickers); $i++) {
+                $entry = $tickers[$i];
+                $entry_symbol = $this->safe_value($entry, 'symbol');
+                if ($marketIds !== null) {
+                    if (!$this->in_array($entry_symbol, $marketIds)) {
+                        continue;
+                    }
+                }
+                $market = $this->safe_market($entry_symbol);
+                $parsed = $this->parse_funding_rate($entry, $market);
+                $fundingRates[] = $parsed;
+            }
+            return $this->index_by($fundingRates, 'symbol');
+        }) ();
+    }
+
+    public function parse_funding_rate($ticker, $market = null) {
+        //
+        // {'ask' => 26.283,
+        //  'askSize' => 4.6,
+        //  'bid' => 26.201,
+        //  'bidSize' => 190,
+        //  'fundingRate' => -0.000944642727438883,
+        //  'fundingRatePrediction' => -0.000872671532340275,
+        //  'indexPrice' => 26.253,
+        //  'last' => 26.3,
+        //  'lastSize' => 0.1,
+        //  'lastTime' => '2023-06-11T18:55:28.958Z',
+        //  'markPrice' => 26.239,
+        //  'open24h' => 26.3,
+        //  'openInterest' => 641.1,
+        //  'pair' => 'COMP:USD',
+        //  'postOnly' => False,
+        //  'suspended' => False,
+        //  'symbol' => 'pf_compusd',
+        //  'tag' => 'perpetual',
+        //  'vol24h' => 0.1,
+        //  'volumeQuote' => 2.63}
+        //
+        $fundingRateMultiplier = '8';  // https://support.kraken.com/hc/en-us/articles/9618146737172-Perpetual-Contracts-Funding-Rate-Method-Prior-to-September-29-2022
+        $marketId = $this->safe_string($ticker, 'symbol');
+        $symbol = $this->symbol($marketId);
+        $timestamp = $this->parse8601($this->safe_string($ticker, 'lastTime'));
+        $indexPrice = $this->safe_number($ticker, 'indexPrice');
+        $markPriceString = $this->safe_string($ticker, 'markPrice');
+        $markPrice = $this->parse_number($markPriceString);
+        $fundingRateString = $this->safe_string($ticker, 'fundingRate');
+        $fundingRateResult = Precise::string_div(Precise::string_mul($fundingRateString, $fundingRateMultiplier), $markPriceString);
+        $fundingRate = $this->parse_number($fundingRateResult);
+        $nextFundingRateString = $this->safe_string($ticker, 'fundingRatePrediction');
+        $nextFundingRateResult = Precise::string_div(Precise::string_mul($nextFundingRateString, $fundingRateMultiplier), $markPriceString);
+        $nextFundingRate = $this->parse_number($nextFundingRateResult);
+        return array(
+            'info' => $ticker,
+            'symbol' => $symbol,
+            'markPrice' => $markPrice,
+            'indexPrice' => $indexPrice,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fundingRate' => $fundingRate,
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => $nextFundingRate,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+        );
+    }
+
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             $this->check_required_symbol('fetchFundingRateHistory', $symbol);
@@ -1937,7 +2027,7 @@ class krakenfutures extends Exchange {
             $currency = $this->currency($code);
             $method = 'privatePostTransfer';
             $request = array(
-                'amount' => $this->currency_to_precision($code, $amount),
+                'amount' => $amount,
             );
             if ($fromAccount === 'spot') {
                 throw new BadRequest($this->id . ' $transfer does not yet support transfers from spot');
@@ -1971,14 +2061,14 @@ class krakenfutures extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         if ($code === 429) {
             throw new DDoSProtection($this->id . ' ' . $body);
         }
         $message = $this->safe_string($response, 'error');
         if ($message === null) {
-            return;
+            return null;
         }
         $feedback = $this->id . ' ' . $body;
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);

@@ -631,7 +631,7 @@ class tidex extends Exchange {
         return $this->parse_trades($response[$market['id']], $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -995,7 +995,7 @@ class tidex extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         if (is_array($response) && array_key_exists('success', $response)) {
             //
@@ -1042,5 +1042,6 @@ class tidex extends Exchange {
                 throw new ExchangeError($feedback); // unknown $message
             }
         }
+        return null;
     }
 }

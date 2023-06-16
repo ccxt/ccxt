@@ -4,7 +4,9 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.hitbtc import ImplicitAPI
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -21,7 +23,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class hitbtc(Exchange):
+class hitbtc(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(hitbtc, self).describe(), {
@@ -220,8 +222,8 @@ class hitbtc(Exchange):
                 'networks': {
                     'ETH': 'T20',
                     'ERC20': 'T20',
-                    'TRX': 'TTRX',
-                    'TRC20': 'TTRX',
+                    'TRX': 'TRX',
+                    'TRC20': 'TRX',
                     'OMNI': '',
                 },
                 'defaultTimeInForce': 'FOK',
@@ -498,6 +500,7 @@ class hitbtc(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 
@@ -926,7 +929,7 @@ class hitbtc(Exchange):
         response = await self.publicGetTradesSymbol(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1286,7 +1289,7 @@ class hitbtc(Exchange):
         self.check_address(address)
         tag = self.safe_string(response, 'paymentId')
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': tag,
             'info': response,
@@ -1408,7 +1411,7 @@ class hitbtc(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         if code >= 400:
             feedback = self.id + ' ' + body
             # {"code":504,"message":"Gateway Timeout","description":""}
@@ -1417,7 +1420,7 @@ class hitbtc(Exchange):
             # fallback to default error handler on rate limit errors
             # {"code":429,"message":"Too many requests","description":"Too many requests"}
             if code == 429:
-                return
+                return None
             # {"error":{"code":20002,"message":"Order not found","description":""}}
             if body[0] == '{':
                 if 'error' in response:
@@ -1427,3 +1430,4 @@ class hitbtc(Exchange):
                     if message == 'Duplicate clientOrderId':
                         raise InvalidOrder(feedback)
             raise ExchangeError(feedback)
+        return None

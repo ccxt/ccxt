@@ -749,7 +749,7 @@ class itbit(Exchange):
             timestamp = nonce
             authBody = body if (method == 'POST') else ''
             auth = [method, url, authBody, nonce, timestamp]
-            message = nonce + self.json(auth).replace('\\/', '/')
+            message = nonce + self.json(auth)  # .replace('\\/', '/')
             hash = self.hash(self.encode(message), 'sha256', 'binary')
             binaryUrl = self.encode(url)
             binhash = self.binary_concat(binaryUrl, hash)
@@ -764,7 +764,8 @@ class itbit(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         code = self.safe_string(response, 'code')
         if code is not None:
             raise ExchangeError(self.id + ' ' + self.json(response))
+        return None

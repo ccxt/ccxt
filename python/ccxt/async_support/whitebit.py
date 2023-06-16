@@ -4,8 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.whitebit import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -24,7 +26,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class whitebit(Exchange):
+class whitebit(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(whitebit, self).describe(), {
@@ -33,6 +35,7 @@ class whitebit(Exchange):
             'version': 'v4',
             'countries': ['EE'],
             'rateLimit': 500,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -321,11 +324,19 @@ class whitebit(Exchange):
             symbol = base + '/' + quote
             swap = typeId == 'futures'
             margin = isCollateral and not swap
+            contract = False
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'stockPrec')))
+            contractSize = amountPrecision
+            linear = None
+            inverse = None
             if swap:
                 settleId = quoteId
                 settle = self.safe_currency_code(settleId)
                 symbol = symbol + ':' + settle
                 type = 'swap'
+                contract = True
+                linear = True
+                inverse = False
             else:
                 type = 'spot'
             entry = {
@@ -344,18 +355,18 @@ class whitebit(Exchange):
                 'future': False,
                 'option': False,
                 'active': active,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
+                'contract': contract,
+                'linear': linear,
+                'inverse': inverse,
                 'taker': self.safe_number(market, 'makerFee'),
                 'maker': self.safe_number(market, 'takerFee'),
-                'contractSize': None,
+                'contractSize': contractSize,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'stockPrec'))),
+                    'amount': amountPrecision,
                     'price': self.parse_number(self.parse_precision(self.safe_string(market, 'moneyPrec'))),
                 },
                 'limits': {
@@ -915,13 +926,12 @@ class whitebit(Exchange):
             keys = list(response.keys())
             for i in range(0, len(keys)):
                 marketId = keys[i]
-                market = self.safe_market(marketId, None, '_')
+                marketNew = self.safe_market(marketId, None, '_')
                 rawTrades = self.safe_value(response, marketId, [])
-                parsed = self.parse_trades(rawTrades, market, since, limit)
+                parsed = self.parse_trades(rawTrades, marketNew, since, limit)
                 results = self.array_concat(results, parsed)
             results = self.sort_by_2(results, 'timestamp', 'id')
-            tail = (since is None)
-            return self.filter_by_since_limit(results, since, limit, 'timestamp', tail)
+            return self.filter_by_since_limit(results, since, limit, 'timestamp')
 
     def parse_trade(self, trade, market=None):
         #
@@ -1100,7 +1110,7 @@ class whitebit(Exchange):
         #
         return self.safe_integer(response, 'time')
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1329,10 +1339,10 @@ class whitebit(Exchange):
         results = []
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            market = self.safe_market(marketId, None, '_')
+            marketNew = self.safe_market(marketId, None, '_')
             orders = response[marketId]
             for j in range(0, len(orders)):
-                order = self.parse_order(orders[j], market)
+                order = self.parse_order(orders[j], marketNew)
                 results.append(self.extend(order, {'status': 'closed'}))
         results = self.sort_by(results, 'timestamp')
         results = self.filter_by_symbol_since_limit(results, symbol, since, limit)
@@ -1938,6 +1948,9 @@ class whitebit(Exchange):
         fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])
         return self.in_array(currency, fiatCurrencies)
 
+    def nonce(self):
+        return self.milliseconds()
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
         version = self.safe_value(api, 0)
@@ -1954,7 +1967,7 @@ class whitebit(Exchange):
             request = '/' + 'api' + '/' + version + pathWithParams
             body = self.json(self.extend({'request': request, 'nonce': nonce}, params))
             payload = self.string_to_base64(body)
-            signature = self.hmac(payload, secret, hashlib.sha512)
+            signature = self.hmac(self.encode(payload), secret, hashlib.sha512)
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': self.apiKey,
@@ -1976,9 +1989,9 @@ class whitebit(Exchange):
             message = self.safe_string(response, 'message')
             # For these cases where we have a generic code variable error key
             # {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
-            code = self.safe_integer(response, 'code')
+            codeNew = self.safe_integer(response, 'code')
             hasErrorStatus = status is not None and status != '200'
-            if hasErrorStatus or code is not None:
+            if hasErrorStatus or codeNew is not None:
                 feedback = self.id + ' ' + body
                 errorInfo = message
                 if hasErrorStatus:
@@ -1993,3 +2006,4 @@ class whitebit(Exchange):
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorInfo, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
                 raise ExchangeError(feedback)
+        return None

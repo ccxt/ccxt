@@ -17,11 +17,11 @@ from ccxt.test.base import test_shared_methods  # noqa E402
 from ccxt.test.base import test_transaction  # noqa E402
 
 
-def test_fetch_withdrawals(exchange, code):
+def test_fetch_withdrawals(exchange, skipped_properties, code):
     method = 'fetchWithdrawals'
     transactions = exchange.fetch_withdrawals(code)
     assert isinstance(transactions, list), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json(transactions)
     now = exchange.milliseconds()
     for i in range(0, len(transactions)):
-        test_transaction(exchange, method, transactions[i], code, now)
+        test_transaction(exchange, skipped_properties, method, transactions[i], code, now)
     test_shared_methods.assert_timestamp_order(exchange, method, code, transactions)

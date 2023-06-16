@@ -296,7 +296,7 @@ class bitstamp1 extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -410,11 +410,12 @@ class bitstamp1 extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         $status = $this->safe_string($response, 'status');
         if ($status === 'error') {
             throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
+        return null;
     }
 }

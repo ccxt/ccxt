@@ -579,22 +579,28 @@ export default class bitget extends bitgetRest {
         let market = undefined;
         let marketId = undefined;
         let messageHash = 'order';
-        const subscriptionHash = 'order:trades';
+        let subscriptionHash = 'order:trades';
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbol = market['symbol'];
             marketId = market['id'];
             messageHash = messageHash + ':' + symbol;
         }
+        const isStop = this.safeValue(params, 'stop', false);
+        params = this.omit(params, 'stop');
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchOrders', market, params);
         if ((type === 'spot') && (symbol === undefined)) {
             throw new ArgumentsRequired(this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
         }
+        if (isStop && type === 'spot') {
+            throw new NotSupported(this.id + ' watchOrders does not support stop orders for ' + type + ' markets.');
+        }
         const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
         let instType = undefined;
         if (type === 'spot') {
             instType = 'spbl';
+            subscriptionHash = subscriptionHash + ':' + symbol;
         }
         else {
             if (!sandboxMode) {
@@ -605,16 +611,17 @@ export default class bitget extends bitgetRest {
             }
         }
         const instId = (type === 'spot') ? marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+        const channel = isStop ? 'ordersAlgo' : 'orders';
         const args = {
             'instType': instType,
-            'channel': 'orders',
+            'channel': channel,
             'instId': instId,
         };
         const orders = await this.watchPrivate(messageHash, subscriptionHash, args, params);
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleOrder(client, message, subscription = undefined) {
         //
@@ -743,12 +750,38 @@ export default class bitget extends bitgetRest {
         //        tgtCcy: 'USDT',
         //        uTime: 1656510642518
         //    }
+        // algo order
+        //    {
+        //        "actualPx":"50.000000000",
+        //        "actualSz":"0.000000000",
+        //        "cOid":"1041588152132243456",
+        //        "cTime":"1684059887917",
+        //        "eps":"api",
+        //        "hM":"double_hold",
+        //        "id":"1041588152132243457",
+        //        "instId":"LTCUSDT_UMCBL",
+        //        "key":"1041588152132243457",
+        //        "ordPx":"55.000000000",
+        //        "ordType":"limit",
+        //        "planType":"pl",
+        //        "posSide":"long",
+        //        "side":"buy",
+        //        "state":"not_trigger",
+        //        "sz":"0.100000000",
+        //        "tS":"open_long",
+        //        "tgtCcy":"USDT",
+        //        "triggerPx":"55.000000000",
+        //        "triggerPxType":"mark",
+        //        "triggerTime":"1684059887917",
+        //        "userId":"3704614084",
+        //        "version":1041588152090300400
+        //    }
         //
         const marketId = this.safeString(order, 'instId');
         market = this.safeMarket(marketId, market);
-        const id = this.safeString(order, 'ordId');
-        const clientOrderId = this.safeString(order, 'clOrdId');
-        const price = this.safeString(order, 'px');
+        const id = this.safeString2(order, 'ordId', 'id');
+        const clientOrderId = this.safeString2(order, 'clOrdId', 'cOid');
+        const price = this.safeString2(order, 'px', 'actualPx');
         const filled = this.safeString(order, 'fillSz');
         const amount = this.safeString(order, 'sz');
         const cost = this.safeString2(order, 'notional', 'notionalUsd');
@@ -763,7 +796,7 @@ export default class bitget extends bitgetRest {
         else if ((side === 'close_long') || (side === 'open_short')) {
             side = 'sell';
         }
-        const rawStatus = this.safeString(order, 'status', 'state');
+        const rawStatus = this.safeString2(order, 'status', 'state');
         const timeInForce = this.safeString(order, 'force');
         const status = this.parseWsOrderStatus(rawStatus);
         const orderFee = this.safeValue(order, 'orderFee', []);
@@ -777,6 +810,7 @@ export default class bitget extends bitgetRest {
                 'currency': this.safeCurrencyCode(feeCurrency),
             };
         }
+        const stopPrice = this.safeString(order, 'triggerPx');
         return this.safeOrder({
             'info': order,
             'symbol': symbol,
@@ -790,8 +824,8 @@ export default class bitget extends bitgetRest {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -809,6 +843,7 @@ export default class bitget extends bitgetRest {
             'full-fill': 'closed',
             'filled': 'closed',
             'cancelled': 'canceled',
+            'not_trigger': 'open',
         };
         return this.safeString(statuses, status, status);
     }
@@ -1034,6 +1069,7 @@ export default class bitget extends bitgetRest {
             const account = (code in this.balance) ? this.balance[code] : this.account();
             account['free'] = this.safeString(rawBalance, 'available');
             account['total'] = this.safeString(rawBalance, 'equity');
+            account['used'] = this.safeString(rawBalance, 'frozen');
             this.balance[code] = account;
         }
         this.balance = this.safeBalance(this.balance);
@@ -1180,6 +1216,7 @@ export default class bitget extends bitgetRest {
             'ticker': this.handleTicker,
             'trade': this.handleTrades,
             'orders': this.handleOrder,
+            'ordersAlgo': this.handleOrder,
             'account': this.handleBalance,
         };
         const arg = this.safeValue(message, 'arg', {});

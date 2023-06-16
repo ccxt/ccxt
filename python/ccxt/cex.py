@@ -4,9 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.cex import ImplicitAPI
 import hashlib
 import json
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -24,7 +26,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class cex(Exchange):
+class cex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(cex, self).describe(), {
@@ -552,6 +554,7 @@ class cex(Exchange):
         except Exception as e:
             if isinstance(e, NullResponse):
                 return []
+        return None
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'timestamp')
@@ -714,7 +717,7 @@ class cex(Exchange):
             }
         return result
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -841,7 +844,7 @@ class cex(Exchange):
             if not feeRate:
                 feeRate = self.safe_number(order, 'tradingFeeTaker', feeRate)
             if feeRate:
-                feeRate /= 100.0  # convert to mathematically-correct percentage coefficients: 1.0 = 100%
+                feeRate = feeRate / 100.0  # convert to mathematically-correct percentage coefficients: 1.0 = 100%
             if (baseFee in order) or (baseTakerFee in order):
                 baseFeeCost = self.safe_number_2(order, baseFee, baseTakerFee)
                 fee = {
@@ -1353,7 +1356,7 @@ class cex(Exchange):
             quoteId = self.safe_string(order, 'symbol2')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
+            symbolInner = base + '/' + quote
             side = self.safe_string(order, 'type')
             baseAmount = self.safe_number(order, 'a:' + baseId + ':cds')
             quoteAmount = self.safe_number(order, 'a:' + quoteId + ':cds')
@@ -1392,7 +1395,7 @@ class cex(Exchange):
                 'datetime': self.iso8601(timestamp),
                 'lastUpdated': self.parse8601(lastTxTime),
                 'status': status,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'side': side,
                 'price': price,
                 'amount': orderAmount,
@@ -1508,16 +1511,17 @@ class cex(Exchange):
         if isinstance(response, list):
             return response  # public endpoints may return []-arrays
         if body == 'true':
-            return
+            return None
         if response is None:
             raise NullResponse(self.id + ' returned ' + self.json(response))
         if 'e' in response:
             if 'ok' in response:
                 if response['ok'] == 'ok':
-                    return
+                    return None
         if 'error' in response:
             message = self.safe_string(response, 'error')
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)
+        return None

@@ -583,6 +583,7 @@ export default class kraken extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -1519,7 +1520,7 @@ export default class kraken extends Exchange {
         params = this.omit(params, ['price', 'stopPrice', 'price2', 'close']);
         return [request, params];
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name kraken#editOrder
@@ -2480,7 +2481,7 @@ export default class kraken extends Exchange {
             throw new RateLimitExceeded(this.id + ' ' + body);
         }
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (body[0] === '{') {
             if (typeof response !== 'string') {
@@ -2497,5 +2498,6 @@ export default class kraken extends Exchange {
                 }
             }
         }
+        return undefined;
     }
 }

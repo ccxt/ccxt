@@ -166,6 +166,7 @@ class woo extends woo$1 {
                             'funding_fee/history': 30,
                             'positions': 3.33,
                             'position/{symbol}': 3.33,
+                            'client/transaction_history': 60,
                         },
                         'post': {
                             'order': 5,
@@ -249,6 +250,7 @@ class woo extends woo$1 {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'brokerId': 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -329,7 +331,10 @@ class woo extends woo$1 {
             let symbol = base + '/' + quote;
             let contractSize = undefined;
             let linear = undefined;
-            if (isSwap) {
+            let margin = true;
+            const contract = isSwap;
+            if (contract) {
+                margin = false;
                 settleId = this.safeString(parts, 2);
                 settle = this.safeCurrencyCode(settleId);
                 symbol = base + '/' + quote + ':' + settle;
@@ -348,12 +353,12 @@ class woo extends woo$1 {
                 'settleId': settleId,
                 'type': marketType,
                 'spot': isSpot,
-                'margin': true,
+                'margin': margin,
                 'swap': isSwap,
                 'future': false,
                 'option': false,
                 'active': undefined,
-                'contract': isSwap,
+                'contract': contract,
                 'linear': linear,
                 'inverse': undefined,
                 'contractSize': contractSize,
@@ -790,6 +795,11 @@ class woo extends woo$1 {
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
+        const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+        const brokerId = this.safeString(this.options, 'brokerId', applicationId);
+        if (brokerId !== undefined) {
+            request['broker_id'] = brokerId;
+        }
         params = this.omit(params, ['clOrdID', 'clientOrderId', 'postOnly', 'timeInForce']);
         const response = await this.v1PrivatePostOrder(this.extend(request, params));
         // {
@@ -804,7 +814,7 @@ class woo extends woo$1 {
         // }
         return this.extend(this.parseOrder(response, market), { 'type': type });
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name woo#editOrder
@@ -1957,7 +1967,7 @@ class woo extends woo$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
@@ -1969,6 +1979,7 @@ class woo extends woo$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         }
+        return undefined;
     }
     parseIncome(income, market = undefined) {
         //

@@ -4,8 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.okcoin import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -31,7 +33,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class okcoin(Exchange):
+class okcoin(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(okcoin, self).describe(), {
@@ -1715,8 +1717,8 @@ class okcoin(Exchange):
             if self.safe_string(balance, 'margin_mode') == 'fixed':
                 contracts = self.safe_value(balance, 'contracts', [])
                 free = totalAvailBalance
-                for i in range(0, len(contracts)):
-                    contract = contracts[i]
+                for j in range(0, len(contracts)):
+                    contract = contracts[j]
                     fixedBalance = self.safe_string(contract, 'fixed_balance')
                     realizedPnl = self.safe_string(contract, 'realized_pnl')
                     marginFrozen = self.safe_string(contract, 'margin_frozen')
@@ -1896,7 +1898,7 @@ class okcoin(Exchange):
             return self.parse_swap_balance(response)
         raise NotSupported(self.id + " fetchBalance does not support the '" + type + "' type(the type must be one of 'account', 'spot', 'futures', 'swap')")
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -3643,7 +3645,7 @@ class okcoin(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         feedback = self.id + ' ' + body
         if code == 503:
             # {"message":"name resolution failed"}
@@ -3662,3 +3664,4 @@ class okcoin(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         if nonZeroErrorCode or nonEmptyMessage:
             raise ExchangeError(feedback)  # unknown message
+        return None

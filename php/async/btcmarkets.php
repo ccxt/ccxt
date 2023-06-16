@@ -781,7 +781,7 @@ class btcmarkets extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1236,7 +1236,7 @@ class btcmarkets extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         if (is_array($response) && array_key_exists('success', $response)) {
             if (!$response['success']) {
@@ -1255,5 +1255,6 @@ class btcmarkets extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

@@ -5,7 +5,7 @@ import Exchange from './abstract/bkex.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1293,7 +1293,7 @@ export default class bkex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bkex#createOrder
@@ -1831,11 +1831,11 @@ export default class bkex extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = this.safeString (entry, 'symbol');
-            const symbol = this.safeSymbol (marketId);
+            const symbolInner = this.safeSymbol (marketId);
             const timestamp = this.safeInteger (entry, 'time');
             rates.push ({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': this.safeNumber (entry, 'rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
@@ -1944,7 +1944,7 @@ export default class bkex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         // success
@@ -1978,7 +1978,7 @@ export default class bkex extends Exchange {
         //
         const message = this.safeValue (response, 'msg');
         if (message === 'success') {
-            return;
+            return undefined;
         }
         const responseCode = this.safeString (response, 'code');
         if (responseCode !== '0') {
@@ -1987,5 +1987,6 @@ export default class bkex extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 }

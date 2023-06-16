@@ -4,8 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitvavo import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -29,7 +31,7 @@ from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 from ccxt.base.precise import Precise
 
 
-class bitvavo(Exchange):
+class bitvavo(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitvavo, self).describe(), {
@@ -904,7 +906,7 @@ class bitvavo(Exchange):
             'info': response,
         }
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
@@ -1659,7 +1661,7 @@ class bitvavo(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {"errorCode":308,"error":"The signature length is invalid(HMAC-SHA256 should return a 64 length hexadecimal string)."}
         #     {"errorCode":203,"error":"symbol parameter is required."}
@@ -1672,8 +1674,9 @@ class bitvavo(Exchange):
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         if ('noMarket' in config) and not ('market' in params):
             return config['noMarket']
         return self.safe_value(config, 'cost', 1)

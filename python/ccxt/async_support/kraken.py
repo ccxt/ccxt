@@ -4,8 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.kraken import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -31,7 +33,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class kraken(Exchange):
+class kraken(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(kraken, self).describe(), {
@@ -590,6 +592,7 @@ class kraken(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 
@@ -1180,7 +1183,7 @@ class kraken(Exchange):
         #
         return self.parse_balance(response)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1443,7 +1446,7 @@ class kraken(Exchange):
         params = self.omit(params, ['price', 'stopPrice', 'price2', 'close'])
         return [request, params]
 
-    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         edit a trade order
         see https://docs.kraken.com/rest/#tag/User-Trading/operation/editOrder
@@ -2314,7 +2317,7 @@ class kraken(Exchange):
         if body.find('Rate limit exceeded') >= 0:
             raise RateLimitExceeded(self.id + ' ' + body)
         if response is None:
-            return
+            return None
         if body[0] == '{':
             if not isinstance(response, str):
                 if 'error' in response:
@@ -2325,3 +2328,4 @@ class kraken(Exchange):
                             error = response['error'][i]
                             self.throw_exactly_matched_exception(self.exceptions, error, message)
                         raise ExchangeError(message)
+        return None

@@ -4,10 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.digifinex import ImplicitAPI
 import asyncio
 import hashlib
 import json
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -30,7 +32,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class digifinex(Exchange):
+class digifinex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(digifinex, self).describe(), {
@@ -536,7 +538,9 @@ class digifinex(Exchange):
         """
         options = self.safe_value(self.options, 'fetchMarkets', {})
         method = self.safe_string(options, 'method', 'fetch_markets_v2')
-        return await getattr(self, method)(params)
+        if method == 'fetch_markets_v2':
+            return await self.fetch_markets_v2(params)
+        return await self.fetch_markets_v1(params)
 
     async def fetch_markets_v2(self, params={}):
         defaultType = self.safe_string(self.options, 'defaultType')
@@ -1496,7 +1500,7 @@ class digifinex(Exchange):
             candles = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-order
@@ -2833,7 +2837,7 @@ class digifinex(Exchange):
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'fundingRate': self.safe_string(contract, 'funding_rate'),
+            'fundingRate': self.safe_number(contract, 'funding_rate'),
             'fundingTimestamp': timestamp,
             'fundingDatetime': self.iso8601(timestamp),
             'nextFundingRate': self.safe_string(contract, 'next_funding_rate'),
@@ -2887,12 +2891,12 @@ class digifinex(Exchange):
         for i in range(0, len(result)):
             entry = result[i]
             marketId = self.safe_string(data, 'instrument_id')
-            symbol = self.safe_symbol(marketId)
+            symbolInner = self.safe_symbol(marketId)
             timestamp = self.safe_integer(entry, 'time')
             rates.append({
                 'info': entry,
-                'symbol': symbol,
-                'fundingRate': self.safe_string(entry, 'rate'),
+                'symbol': symbolInner,
+                'fundingRate': self.safe_number(entry, 'rate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             })
@@ -3643,10 +3647,10 @@ class digifinex(Exchange):
 
     def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):
         if not response:
-            return  # fall back to default error handler
+            return None  # fall back to default error handler
         code = self.safe_string(response, 'code')
         if (code == '0') or (code == '200'):
-            return  # no error
+            return None  # no error
         feedback = self.id + ' ' + responseBody
         if code is None:
             raise BadResponse(feedback)

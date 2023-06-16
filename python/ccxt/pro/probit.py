@@ -314,7 +314,7 @@ class probit(ccxt.async_support.probit):
         orders = await self.watch(url, messageHash, request, channel)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_orders(self, client: Client, message):
         #

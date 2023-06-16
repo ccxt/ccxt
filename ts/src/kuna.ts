@@ -5,7 +5,7 @@ import Exchange from './abstract/kuna.js';
 import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -344,8 +344,8 @@ export default class kuna extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/9868
                 const slicedId = id.slice (1);
                 const index = slicedId.indexOf (quoteId);
-                const slice = slicedId.slice (index);
-                if ((index > 0) && (slice === quoteId)) {
+                const slicePart = slicedId.slice (index);
+                if ((index > 0) && (slicePart === quoteId)) {
                     // usd gets matched before usdt in usdtusd USDT/USD
                     // https://github.com/ccxt/ccxt/issues/9868
                     const baseId = id[0] + slicedId.replace (quoteId, '');
@@ -667,7 +667,7 @@ export default class kuna extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name kuna#createOrder
@@ -895,11 +895,11 @@ export default class kuna extends Exchange {
             } else {
                 this.checkRequiredCredentials ();
                 const nonce = this.nonce ().toString ();
-                const query = this.encodeParams (this.extend ({
+                const queryInner = this.encodeParams (this.extend ({
                     'access_key': this.apiKey,
                     'tonce': nonce,
                 }, params));
-                const auth = method + '|' + request + '|' + query;
+                const auth = method + '|' + request + '|' + queryInner;
                 const signed = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                 const suffix = query + '&signature=' + signed;
                 if (method === 'GET') {
@@ -915,7 +915,7 @@ export default class kuna extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (code === 400) {
             const error = this.safeValue (response, 'error');
@@ -924,5 +924,6 @@ export default class kuna extends Exchange {
             this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
             // fallback to default error handler
         }
+        return undefined;
     }
 }

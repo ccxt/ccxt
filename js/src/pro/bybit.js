@@ -106,11 +106,6 @@ export default class bybit extends bybitRest {
                 'ping': this.ping,
                 'keepAlive': 20000,
             },
-            'exceptions': {
-                'ws': {
-                    'exact': {},
-                },
-            },
         });
     }
     requestId() {
@@ -174,7 +169,8 @@ export default class bybit extends bybitRest {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const messageHash = 'ticker:' + market['symbol'];
+        symbol = market['symbol'];
+        const messageHash = 'ticker:' + symbol;
         const url = this.getUrlByMarketType(symbol, false, params);
         params = this.cleanParams(params);
         const options = this.safeValue(this.options, 'watchTicker', {});
@@ -412,7 +408,7 @@ export default class bybit extends bybitRest {
         //     }
         //
         return [
-            this.safeInteger(ohlcv, 'timestamp'),
+            this.safeInteger(ohlcv, 'start'),
             this.safeNumber(ohlcv, 'open'),
             this.safeNumber(ohlcv, 'high'),
             this.safeNumber(ohlcv, 'low'),
@@ -835,7 +831,7 @@ export default class bybit extends bybitRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleOrder(client, message, subscription = undefined) {
         //

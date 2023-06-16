@@ -345,7 +345,7 @@ export default class probit extends probitRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     handleOrders (client: Client, message) {

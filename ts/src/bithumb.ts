@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, P
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -667,7 +667,7 @@ export default class bithumb extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bithumb#createOrder
@@ -975,7 +975,7 @@ export default class bithumb extends Exchange {
             'address': address,
             'currency': currency['id'],
         };
-        if (currency === 'XRP' || currency === 'XMR' || currency === 'EOS' || currency === 'STEEM') {
+        if (code === 'XRP' || code === 'XMR' || code === 'EOS' || code === 'STEEM') {
             const destination = this.safeString (params, 'destination');
             if ((tag === undefined) && (destination === undefined)) {
                 throw new ArgumentsRequired (this.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param');
@@ -1066,7 +1066,7 @@ export default class bithumb extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('status' in response) {
             //
@@ -1076,10 +1076,10 @@ export default class bithumb extends Exchange {
             const message = this.safeString (response, 'message');
             if (status !== undefined) {
                 if (status === '0000') {
-                    return; // no error
+                    return undefined; // no error
                 } else if (message === '거래 진행중인 내역이 존재하지 않습니다') {
                     // https://github.com/ccxt/ccxt/issues/9017
-                    return; // no error
+                    return undefined; // no error
                 }
                 const feedback = this.id + ' ' + body;
                 this.throwExactlyMatchedException (this.exceptions, status, feedback);
@@ -1087,5 +1087,6 @@ export default class bithumb extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
+        return undefined;
     }
 }

@@ -4,8 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.delta import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -21,7 +23,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class delta(Exchange):
+class delta(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(delta, self).describe(), {
@@ -368,6 +370,7 @@ class delta(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 
@@ -1296,7 +1299,7 @@ class delta(Exchange):
             'trades': None,
         }, market)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1367,7 +1370,7 @@ class delta(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1840,7 +1843,7 @@ class delta(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         # {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
         #
@@ -1851,3 +1854,4 @@ class delta(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

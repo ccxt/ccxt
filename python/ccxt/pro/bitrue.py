@@ -189,7 +189,7 @@ class bitrue(ccxt.async_support.bitrue):
         orders = await self.watch(url, messageHash, request, messageHash)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_order(self, client: Client, message):
         #

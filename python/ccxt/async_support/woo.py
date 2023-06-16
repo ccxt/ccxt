@@ -4,8 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.woo import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -18,7 +20,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class woo(Exchange):
+class woo(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(woo, self).describe(), {
@@ -177,6 +179,7 @@ class woo(Exchange):
                             'funding_fee/history': 30,
                             'positions': 3.33,  # 30 requests per 10 seconds
                             'position/{symbol}': 3.33,
+                            'client/transaction_history': 60,
                         },
                         'post': {
                             'order': 5,  # 2 requests per 1 second per symbol
@@ -260,6 +263,7 @@ class woo(Exchange):
                 'transfer': {
                     'fillResponseFromRequest': True,
                 },
+                'brokerId': 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -338,7 +342,10 @@ class woo(Exchange):
             symbol = base + '/' + quote
             contractSize = None
             linear = None
-            if isSwap:
+            margin = True
+            contract = isSwap
+            if contract:
+                margin = False
                 settleId = self.safe_string(parts, 2)
                 settle = self.safe_currency_code(settleId)
                 symbol = base + '/' + quote + ':' + settle
@@ -356,12 +363,12 @@ class woo(Exchange):
                 'settleId': settleId,
                 'type': marketType,
                 'spot': isSpot,
-                'margin': True,
+                'margin': margin,
                 'swap': isSwap,
                 'future': False,
                 'option': False,
                 'active': None,
-                'contract': isSwap,
+                'contract': contract,
                 'linear': linear,
                 'inverse': None,
                 'contractSize': contractSize,
@@ -702,7 +709,7 @@ class woo(Exchange):
             }
         return result
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -763,6 +770,10 @@ class woo(Exchange):
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
+        applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
+        brokerId = self.safe_string(self.options, 'brokerId', applicationId)
+        if brokerId is not None:
+            request['broker_id'] = brokerId
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'postOnly', 'timeInForce'])
         response = await self.v1PrivatePostOrder(self.extend(request, params))
         # {
@@ -780,7 +791,7 @@ class woo(Exchange):
             {'type': type}
         )
 
-    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         edit a trade order
         :param str id: order id
@@ -1845,7 +1856,7 @@ class woo(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         #
@@ -1855,6 +1866,7 @@ class woo(Exchange):
             feedback = self.id + ' ' + self.json(response)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+        return None
 
     def parse_income(self, income, market=None):
         #

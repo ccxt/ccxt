@@ -699,7 +699,7 @@ class novadax extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1476,7 +1476,7 @@ class novadax extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         //
         //     array("code":"A10003","data":array(),"message":"Authentication failed, Invalid accessKey.")
@@ -1489,5 +1489,6 @@ class novadax extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

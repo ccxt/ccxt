@@ -1113,7 +1113,7 @@ class idex extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order, https://docs.idex.io/#create-order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1442,6 +1442,7 @@ class idex extends Exchange {
         if ($errorCode !== null) {
             throw new ExchangeError($this->id . ' ' . $message);
         }
+        return null;
     }
 
     public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
@@ -1649,7 +1650,7 @@ class idex extends Exchange {
         );
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         $hasApiKey = ($this->apiKey !== null);
         $hasSecret = ($this->secret !== null);
         $hasWalletAddress = ($this->walletAddress !== null);

@@ -239,6 +239,8 @@ class deribit(ccxt.async_support.deribit):
         }
         request = self.deep_extend(message, params)
         trades = await self.watch(url, channel, request, channel, request)
+        if self.newUpdates:
+            limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
@@ -515,7 +517,7 @@ class deribit(ccxt.async_support.deribit):
         orders = await self.watch(url, channel, request, channel, request)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_orders(self, client: Client, message):
         # Does not return a snapshot of current orders

@@ -3,7 +3,7 @@ import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -16,6 +16,7 @@ export default class blockchaincom extends Exchange {
             'countries': [ 'LX' ],
             'rateLimit': 500, // prev 1000
             'version': 'v3',
+            'pro': true,
             'has': {
                 'CORS': false,
                 'spot': true,
@@ -489,7 +490,7 @@ export default class blockchaincom extends Exchange {
         return result;
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name blockchaincom#createOrder
@@ -1157,7 +1158,7 @@ export default class blockchaincom extends Exchange {
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const text = this.safeString (response, 'text');
         if (text !== undefined) { // if trade currency account is empty returns 200 with rejected order
@@ -1172,5 +1173,6 @@ export default class blockchaincom extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
         }
+        return undefined;
     }
 }

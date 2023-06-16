@@ -4,8 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -25,7 +27,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class deribit(Exchange):
+class deribit(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(deribit, self).describe(), {
@@ -641,6 +643,8 @@ class deribit(Exchange):
             instrumentsResult = self.safe_value(instrumentsResponse, 'result', [])
             for k in range(0, len(instrumentsResult)):
                 market = instrumentsResult[k]
+                kind = self.safe_string(market, 'kind')
+                isSpot = (kind == 'spot')
                 id = self.safe_string(market, 'instrument_name')
                 baseId = self.safe_string(market, 'base_currency')
                 quoteId = self.safe_string(market, 'counter_currency')
@@ -648,7 +652,6 @@ class deribit(Exchange):
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
                 settle = self.safe_currency_code(settleId)
-                kind = self.safe_string(market, 'kind')
                 settlementPeriod = self.safe_value(market, 'settlement_period')
                 swap = (settlementPeriod == 'perpetual')
                 future = not swap and (kind.find('future') >= 0)
@@ -663,7 +666,11 @@ class deribit(Exchange):
                     type = 'future'
                 elif option:
                     type = 'option'
-                if not isComboMarket:
+                elif isSpot:
+                    type = 'spot'
+                if isSpot:
+                    symbol = base + '/' + quote
+                elif not isComboMarket:
                     symbol = base + '/' + quote + ':' + settle
                     if option or future:
                         symbol = symbol + '-' + self.yymmdd(expiry, '')
@@ -684,13 +691,13 @@ class deribit(Exchange):
                     'quoteId': quoteId,
                     'settleId': settleId,
                     'type': type,
-                    'spot': False,
+                    'spot': isSpot,
                     'margin': False,
                     'swap': swap,
                     'future': future,
                     'option': option,
                     'active': self.safe_value(market, 'is_active'),
-                    'contract': True,
+                    'contract': not isSpot,
                     'linear': (settle == quote),
                     'inverse': (settle != quote),
                     'taker': self.safe_number(market, 'taker_commission'),
@@ -1569,7 +1576,7 @@ class deribit(Exchange):
         result = self.safe_value(response, 'result')
         return self.parse_order(result)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://docs.deribit.com/#private-buy
@@ -2507,7 +2514,7 @@ class deribit(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {
         #         jsonrpc: '2.0',
@@ -2528,3 +2535,4 @@ class deribit(Exchange):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

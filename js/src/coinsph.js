@@ -367,7 +367,7 @@ export default class coinsph extends Exchange {
             },
         });
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         }
@@ -1762,7 +1762,7 @@ export default class coinsph extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const responseCode = this.safeString(response, 'code', undefined);
         if ((responseCode !== undefined) && (responseCode !== '200') && (responseCode !== '0')) {
@@ -1771,5 +1771,6 @@ export default class coinsph extends Exchange {
             this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);
             throw new ExchangeError(feedback);
         }
+        return undefined;
     }
 }

@@ -1,4 +1,7 @@
 import { SecureRandom } from "./rng.js";
+/**
+ * @type Class
+ */
 export declare class BigInteger {
     constructor(a: number | number[] | string, b?: number | SecureRandom, c?: number | SecureRandom);
     toString(b: number): string;

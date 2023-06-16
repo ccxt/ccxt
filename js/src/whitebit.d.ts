@@ -1,5 +1,5 @@
 import Exchange from './abstract/whitebit.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 export default class whitebit extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -29,14 +29,14 @@ export default class whitebit extends Exchange {
         info: any;
     }>;
     fetchTime(params?: {}): Promise<number>;
-    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
     parseOrderType(type: any): string;
-    parseOrder(order: any, market?: any): any;
+    parseOrder(order: any, market?: any): import("./base/types.js").Order;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
@@ -132,11 +132,12 @@ export default class whitebit extends Exchange {
         info: any;
     };
     isFiat(currency: any): any;
+    nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;
         headers: any;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

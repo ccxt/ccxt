@@ -1149,7 +1149,7 @@ class idex extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order, https://docs.idex.io/#create-order
@@ -1486,6 +1486,7 @@ class idex extends Exchange {
         if ($errorCode !== null) {
             throw new ExchangeError($this->id . ' ' . $message);
         }
+        return null;
     }
 
     public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
@@ -1510,18 +1511,20 @@ class idex extends Exchange {
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
-        /**
-         * fetch all deposits made to an account
-         * @param {string|null} $code unified currency $code
-         * @param {int|null} $since the earliest time in ms to fetch deposits for
-         * @param {int|null} $limit the maximum number of deposits structures to retrieve
-         * @param {array} $params extra parameters specific to the idex api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
-         */
-        $params = array_merge(array(
-            'method' => 'privateGetDeposits',
-        ), $params);
-        return $this->fetch_transactions_helper($code, $since, $limit, $params);
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all deposits made to an account
+             * @param {string|null} $code unified currency $code
+             * @param {int|null} $since the earliest time in ms to fetch deposits for
+             * @param {int|null} $limit the maximum number of deposits structures to retrieve
+             * @param {array} $params extra parameters specific to the idex api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             */
+            $params = array_merge(array(
+                'method' => 'privateGetDeposits',
+            ), $params);
+            return Async\await($this->fetch_transactions_helper($code, $since, $limit, $params));
+        }) ();
     }
 
     public function fetch_time($params = array ()) {
@@ -1561,18 +1564,20 @@ class idex extends Exchange {
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
-        /**
-         * fetch all withdrawals made from an account
-         * @param {string|null} $code unified currency $code
-         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
-         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
-         * @param {array} $params extra parameters specific to the idex api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
-         */
-        $params = array_merge(array(
-            'method' => 'privateGetWithdrawals',
-        ), $params);
-        return $this->fetch_transactions_helper($code, $since, $limit, $params);
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all withdrawals made from an account
+             * @param {string|null} $code unified currency $code
+             * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+             * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+             * @param {array} $params extra parameters specific to the idex api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             */
+            $params = array_merge(array(
+                'method' => 'privateGetWithdrawals',
+            ), $params);
+            return Async\await($this->fetch_transactions_helper($code, $since, $limit, $params));
+        }) ();
     }
 
     public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -1701,7 +1706,7 @@ class idex extends Exchange {
         );
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         $hasApiKey = ($this->apiKey !== null);
         $hasSecret = ($this->secret !== null);
         $hasWalletAddress = ($this->walletAddress !== null);

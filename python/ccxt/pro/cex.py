@@ -389,7 +389,7 @@ class cex(ccxt.async_support.cex):
         orders = await self.watch(url, messageHash, request, messageHash, request)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -421,7 +421,7 @@ class cex(ccxt.async_support.cex):
         }
         request = self.deep_extend(message, params)
         orders = await self.watch(url, messageHash, request, subscriptionHash, request)
-        return self.filter_by_symbol_since_limit(orders, market['symbol'], since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, market['symbol'], since, limit)
 
     def handle_transaction(self, client: Client, message):
         data = self.safe_value(message, 'data')

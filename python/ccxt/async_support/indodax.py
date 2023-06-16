@@ -4,8 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.indodax import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -18,7 +20,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class indodax(Exchange):
+class indodax(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(indodax, self).describe(), {
@@ -655,7 +657,7 @@ class indodax(Exchange):
         orders = self.filter_by(orders, 'status', 'closed')
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -984,21 +986,21 @@ class indodax(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         # {success: 0, error: "invalid order."}
         # or
         # [{data, ...}, {...}, ...]
         if isinstance(response, list):
-            return  # public endpoints may return []-arrays
+            return None  # public endpoints may return []-arrays
         error = self.safe_value(response, 'error', '')
         if not ('success' in response) and error == '':
-            return  # no 'success' property on public responses
+            return None  # no 'success' property on public responses
         if self.safe_integer(response, 'success', 0) == 1:
             # {success: 1, return: {orders: []}}
             if not ('return' in response):
                 raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
             else:
-                return
+                return None
         feedback = self.id + ' ' + body
         self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
         self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)

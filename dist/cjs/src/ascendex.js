@@ -198,6 +198,11 @@ class ascendex extends ascendex$1 {
                         },
                     },
                     'private': {
+                        'data': {
+                            'get': {
+                                'order/hist': 1,
+                            },
+                        },
                         'get': {
                             'account/info': 1,
                         },
@@ -245,7 +250,7 @@ class ascendex extends ascendex$1 {
                 'account-category': 'cash',
                 'account-group': undefined,
                 'fetchClosedOrders': {
-                    'method': 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
+                    'method': 'v2PrivateDataGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 },
                 'defaultType': 'spot',
                 'accountsByType': {
@@ -420,13 +425,13 @@ class ascendex extends ascendex$1 {
             const fee = this.safeNumber2(currency, 'withdrawFee', 'withdrawalFee');
             const status = this.safeString2(currency, 'status', 'statusCode');
             const active = (status === 'Normal');
-            const margin = ('borrowAssetCode' in currency);
+            const marginInside = ('borrowAssetCode' in currency);
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'type': undefined,
-                'margin': margin,
+                'margin': marginInside,
                 'name': this.safeString(currency, 'assetName'),
                 'active': active,
                 'deposit': undefined,
@@ -443,6 +448,7 @@ class ascendex extends ascendex$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -1266,6 +1272,25 @@ class ascendex extends ascendex$1 {
         //     }
         //
         //     {
+        //         "orderId": "a173ad938fc3U22666567717788c3b66",   // orderId
+        //         "seqNum": 18777366360,                           // sequence number
+        //         "accountId": "cshwSjbpPjSwHmxPdz2CPQVU9mnbzPpt", // accountId
+        //         "symbol": "BTC/USDT",                            // symbol
+        //         "orderType": "Limit",                            // order type (Limit/Market/StopMarket/StopLimit)
+        //         "side": "Sell",                                  // order side (Buy/Sell)
+        //         "price": "11346.77",                             // order price
+        //         "stopPrice": "0",                                // stop price (0 by default)
+        //         "orderQty": "0.01",                              // order quantity (in base asset)
+        //         "status": "Canceled",                            // order status (Filled/Canceled/Rejected)
+        //         "createTime": 1596344995793,                     // order creation time
+        //         "lastExecTime": 1596344996053,                   // last execution time
+        //         "avgFillPrice": "11346.77",                      // average filled price
+        //         "fillQty": "0.01",                               // filled quantity (in base asset)
+        //         "fee": "-0.004992579",                           // cummulative fee. if negative, this value is the commission charged; if possitive, this value is the rebate received.
+        //         "feeAsset": "USDT"                               // fee asset
+        //     }
+        //
+        //     {
         //         "ac": "FUTURES",
         //         "accountId": "testabcdefg",
         //         "avgPx": "0",
@@ -1298,7 +1323,7 @@ class ascendex extends ascendex$1 {
         const price = this.safeString(order, 'price');
         const amount = this.safeString(order, 'orderQty');
         const average = this.safeString(order, 'avgPx');
-        const filled = this.safeString2(order, 'cumFilledQty', 'cumQty');
+        const filled = this.safeStringN(order, ['cumFilledQty', 'cumQty', 'fillQty']);
         const id = this.safeString(order, 'orderId');
         let clientOrderId = this.safeString(order, 'id');
         if (clientOrderId !== undefined) {
@@ -1317,7 +1342,7 @@ class ascendex extends ascendex$1 {
             }
         }
         const side = this.safeStringLower(order, 'side');
-        const feeCost = this.safeNumber(order, 'cumFee');
+        const feeCost = this.safeNumber2(order, 'cumFee', 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString(order, 'feeAsset');
@@ -1808,10 +1833,12 @@ class ascendex extends ascendex$1 {
          * @method
          * @name ascendex#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the ascendex api endpoint
+         * @param {int|undefined} params.until the latest time in ms to fetch orders for
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1837,27 +1864,32 @@ class ascendex extends ascendex$1 {
         }
         const [type, query] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
         const options = this.safeValue(this.options, 'fetchClosedOrders', {});
-        const defaultMethod = this.safeString(options, 'method', 'v1PrivateAccountGroupGetOrderHist');
+        const defaultMethod = this.safeString(options, 'method', 'v2PrivateDataGetOrderHist');
         const method = this.getSupportedMapping(type, {
             'spot': defaultMethod,
             'margin': defaultMethod,
             'swap': 'v2PrivateAccountGroupGetFuturesOrderHistCurrent',
         });
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
-        const accountCategory = this.safeString(accountsByType, type, 'cash');
-        if (method === 'v1PrivateAccountGroupGetOrderHist') {
-            if (accountCategory !== undefined) {
-                request['category'] = accountCategory;
+        const accountCategory = this.safeString(accountsByType, type, 'cash'); // margin, futures
+        if (method === 'v2PrivateDataGetOrderHist') {
+            request['account'] = accountCategory;
+            if (limit !== undefined) {
+                request['limit'] = limit;
             }
         }
         else {
             request['account-category'] = accountCategory;
+            if (limit !== undefined) {
+                request['pageSize'] = limit;
+            }
         }
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        if (limit !== undefined) {
-            request['pageSize'] = limit;
+        const until = this.safeString(params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
         }
         const response = await this[method](this.extend(request, query));
         //
@@ -1889,40 +1921,29 @@ class ascendex extends ascendex$1 {
         //         ]
         //     }
         //
-        // accountGroupGetOrderHist
-        //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "data": [
-        //                 {
-        //                     "ac": "FUTURES",
-        //                     "accountId": "testabcdefg",
-        //                     "avgPx": "0",
-        //                     "cumFee": "0",
-        //                     "cumQty": "0",
-        //                     "errorCode": "NULL_VAL",
-        //                     "execInst": "NULL_VAL",
-        //                     "feeAsset": "USDT",
-        //                     "lastExecTime": 1584072844085,
-        //                     "orderId": "r170d21956dd5450276356bbtcpKa74",
-        //                     "orderQty": "1.1499",
-        //                     "orderType": "Limit",
-        //                     "price": "4000",
-        //                     "sendingTime": 1584072841033,
-        //                     "seqNum": 24105338,
-        //                     "side": "Buy",
-        //                     "status": "Canceled",
-        //                     "stopPrice": "",
-        //                     "symbol": "BTC-PERP"
-        //                 },
-        //             ],
-        //             "hasNext": False,
-        //             "limit": 500,
-        //             "page": 1,
-        //             "pageSize": 20
-        //         }
-        //     }
+        //    {
+        //        "code": 0,
+        //        "data": [
+        //            {
+        //                "orderId"     :  "a173ad938fc3U22666567717788c3b66", // orderId
+        //                "seqNum"      :  18777366360,                        // sequence number
+        //                "accountId"   :  "cshwSjbpPjSwHmxPdz2CPQVU9mnbzPpt", // accountId
+        //                "symbol"      :  "BTC/USDT",                         // symbol
+        //                "orderType"   :  "Limit",                            // order type (Limit/Market/StopMarket/StopLimit)
+        //                "side"        :  "Sell",                             // order side (Buy/Sell)
+        //                "price"       :  "11346.77",                         // order price
+        //                "stopPrice"   :  "0",                                // stop price (0 by default)
+        //                "orderQty"    :  "0.01",                             // order quantity (in base asset)
+        //                "status"      :  "Canceled",                         // order status (Filled/Canceled/Rejected)
+        //                "createTime"  :  1596344995793,                      // order creation time
+        //                "lastExecTime":  1596344996053,                      // last execution time
+        //                "avgFillPrice":  "11346.77",                         // average filled price
+        //                "fillQty"     :  "0.01",                             // filled quantity (in base asset)
+        //                "fee"         :  "-0.004992579",                     // cummulative fee. if negative, this value is the commission charged; if possitive, this value is the rebate received.
+        //                "feeAsset"    :  "USDT"                              // fee asset
+        //            }
+        //        ]
+        //    }
         //
         // accountGroupGetFuturesOrderHistCurrent
         //
@@ -2948,7 +2969,12 @@ class ascendex extends ascendex$1 {
         let request = this.implodeParams(path, params);
         url += '/api/pro/';
         if (version === 'v2') {
-            request = version + '/' + request;
+            if (type === 'data') {
+                request = 'data/' + version + '/' + request;
+            }
+            else {
+                request = version + '/' + request;
+            }
         }
         else {
             url += version + '/';
@@ -2999,7 +3025,7 @@ class ascendex extends ascendex$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {'code': 6010, 'message': 'Not enough balance.'}
@@ -3017,6 +3043,7 @@ class ascendex extends ascendex$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }
 

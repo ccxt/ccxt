@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -586,6 +586,7 @@ export default class kraken extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -1239,7 +1240,7 @@ export default class kraken extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name kraken#createOrder
@@ -1531,7 +1532,7 @@ export default class kraken extends Exchange {
         return [ request, params ];
     }
 
-    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name kraken#editOrder
@@ -2508,7 +2509,7 @@ export default class kraken extends Exchange {
             throw new RateLimitExceeded (this.id + ' ' + body);
         }
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (body[0] === '{') {
             if (typeof response !== 'string') {
@@ -2525,5 +2526,6 @@ export default class kraken extends Exchange {
                 }
             }
         }
+        return undefined;
     }
 }

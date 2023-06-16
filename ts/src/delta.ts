@@ -6,7 +6,7 @@ import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, 
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -365,6 +365,7 @@ export default class delta extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -1350,7 +1351,7 @@ export default class delta extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name delta#createOrder
@@ -1426,7 +1427,7 @@ export default class delta extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1944,7 +1945,7 @@ export default class delta extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         // {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
@@ -1957,5 +1958,6 @@ export default class delta extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

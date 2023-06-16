@@ -126,6 +126,7 @@ class bitmart extends Exchange {
                         'contract/public/open-interest' => 30,
                         'contract/public/funding-rate' => 30,
                         'contract/public/kline' => 5,
+                        'account/v1/currencies' => 30,
                     ),
                 ),
                 'private' => array(
@@ -613,10 +614,16 @@ class bitmart extends Exchange {
             $quoteId = $this->safe_string($market, 'quote_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $settle = 'USDT';
+            $settleId = 'USDT'; // this is bitmart's ID for usdt
+            $settle = $this->safe_currency_code($settleId);
             $symbol = $base . '/' . $quote . ':' . $settle;
-            $productType = $this->safe_number($market, 'product_type');
+            $productType = $this->safe_integer($market, 'product_type');
+            $isSwap = ($productType === 1);
+            $isFutures = ($productType === 2);
             $expiry = $this->safe_integer($market, 'expire_timestamp');
+            if (!$isFutures && ($expiry === 0)) {
+                $expiry = null;
+            }
             $result[] = array(
                 'id' => $id,
                 'numericId' => null,
@@ -626,12 +633,12 @@ class bitmart extends Exchange {
                 'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'swap',
+                'settleId' => $settleId,
+                'type' => $isSwap ? 'swap' : 'future',
                 'spot' => false,
                 'margin' => false,
-                'swap' => ($productType === 1),
-                'future' => ($productType === 2),
+                'swap' => $isSwap,
+                'future' => $isFutures,
                 'option' => false,
                 'active' => true,
                 'contract' => true,
@@ -1452,7 +1459,7 @@ class bitmart extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_balance($response, $marketType) {
+    public function custom_parse_balance($response, $marketType) {
         $data = $this->safe_value($response, 'data', array());
         $wallet = null;
         if ($marketType === 'swap') {
@@ -1625,7 +1632,7 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        return $this->parse_balance($response, $marketType);
+        return $this->custom_parse_balance($response, $marketType);
     }
 
     public function parse_trading_fee($fee, $market = null) {
@@ -1785,7 +1792,7 @@ class bitmart extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @see https://developer-pro.bitmart.com/en/spot/#place-spot-$order
@@ -2137,10 +2144,10 @@ class bitmart extends Exchange {
             $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks');
             $defaultNetwork = $this->safe_string_upper($defaultNetworks, $code);
             $networks = $this->safe_value($this->options, 'networks', array());
-            $network = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-            $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
-            if ($network !== null) {
-                $request['currency'] .= '-' . $network; // when $network the $currency need to be changed to $currency . '-' . $network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+            $networkInner = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
+            $networkInner = $this->safe_string($networks, $networkInner, $networkInner); // handle ERC20>ETH alias
+            if ($networkInner !== null) {
+                $request['currency'] = $request['currency'] . '-' . $networkInner; // when $network the $currency need to be changed to $currency . '-' . $network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                 $params = $this->omit($params, 'network');
             }
         }
@@ -2213,7 +2220,7 @@ class bitmart extends Exchange {
             $network = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
             $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
             if ($network !== null) {
-                $request['currency'] .= '-' . $network; // when $network the $currency need to be changed to $currency . '-' . $network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                $request['currency'] = $request['currency'] . '-' . $network; // when $network the $currency need to be changed to $currency . '-' . $network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                 $params = $this->omit($params, 'network');
             }
         }
@@ -2993,7 +3000,7 @@ class bitmart extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         //
         // spot
@@ -3017,5 +3024,6 @@ class bitmart extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

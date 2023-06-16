@@ -10,7 +10,7 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/test_shared_methods.php';
 
-function test_funding_rate_history($exchange, $method, $entry, $symbol) {
+function test_funding_rate_history($exchange, $skipped_properties, $method, $entry, $symbol) {
     $format = array(
         'info' => array(),
         'symbol' => 'BTC/USDT:USDT',
@@ -18,8 +18,9 @@ function test_funding_rate_history($exchange, $method, $entry, $symbol) {
         'datetime' => '2021-11-30T00:00:00.000Z',
         'fundingRate' => $exchange->parse_number('0.0006'),
     );
-    $empty_not_allowed_for = ['symbol', 'timestamp', 'fundingRate'];
-    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
-    assert_symbol($exchange, $method, $entry, 'symbol', $symbol);
-    assert_timestamp($exchange, $method, $entry);
+    assert_structure($exchange, $skipped_properties, $method, $entry, $format);
+    assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
+    assert_timestamp($exchange, $skipped_properties, $method, $entry);
+    assert_greater($exchange, $skipped_properties, $method, $entry, 'fundingRate', '-100');
+    assert_less($exchange, $skipped_properties, $method, $entry, 'fundingRate', '100');
 }

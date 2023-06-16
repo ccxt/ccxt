@@ -37,7 +37,10 @@ class gate extends \ccxt\async\gate {
                         'usdt' => 'wss://fx-ws.gateio.ws/v4/ws/delivery/usdt',
                         'btc' => 'wss://fx-ws.gateio.ws/v4/ws/delivery/btc',
                     ),
-                    'option' => 'wss://op-ws.gateio.live/v4/ws',
+                    'option' => array(
+                        'usdt' => 'wss://op-ws.gateio.live/v4/ws/usdt',
+                        'btc' => 'wss://op-ws.gateio.live/v4/ws/btc',
+                    ),
                 ),
                 'test' => array(
                     'swap' => array(
@@ -48,7 +51,10 @@ class gate extends \ccxt\async\gate {
                         'usdt' => 'wss://fx-ws-testnet.gateio.ws/v4/ws/usdt',
                         'btc' => 'wss://fx-ws-testnet.gateio.ws/v4/ws/btc',
                     ),
-                    'option' => 'wss://op-ws-testnet.gateio.live/v4/ws',
+                    'option' => array(
+                        'usdt' => 'wss://op-ws-testnet.gateio.live/v4/ws/usdt',
+                        'btc' => 'wss://op-ws-testnet.gateio.live/v4/ws/btc',
+                    ),
                 ),
             ),
             'options' => array(
@@ -828,10 +834,11 @@ class gate extends \ccxt\async\gate {
             // inject order status
             $info = $this->safe_value($parsed, 'info');
             $event = $this->safe_string($info, 'event');
-            if ($event === 'put') {
+            if ($event === 'put' || $event === 'update') {
                 $parsed['status'] = 'open';
             } elseif ($event === 'finish') {
-                $parsed['status'] = 'closed';
+                $left = $this->safe_number($info, 'left');
+                $parsed['status'] = ($left === 0) ? 'closed' : 'canceled';
             }
             $stored->append ($parsed);
             $symbol = $parsed['symbol'];

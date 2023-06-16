@@ -549,7 +549,7 @@ class kraken(ccxt.async_support.kraken):
         result = await self.watch(url, messageHash, request, subscriptionHash)
         if self.newUpdates:
             limit = result.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

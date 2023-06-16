@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvaila
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1385,7 +1385,7 @@ export default class huobijp extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#createOrder
@@ -1894,7 +1894,7 @@ export default class huobijp extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('status' in response) {
             //
@@ -1911,5 +1911,6 @@ export default class huobijp extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
+        return undefined;
     }
 }

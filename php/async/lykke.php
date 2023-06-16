@@ -250,6 +250,7 @@ class lykke extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'networks' => array(),
                 );
             }
             return $result;
@@ -772,7 +773,7 @@ class lykke extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1292,7 +1293,7 @@ class lykke extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         $error = $this->safe_value($response, 'error', array());
         $errorCode = $this->safe_string($error, 'code');
@@ -1303,5 +1304,6 @@ class lykke extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFund
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -846,7 +846,7 @@ export default class bigone extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bigone#createOrder
@@ -1555,7 +1555,7 @@ export default class bigone extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //      {"code":10013,"message":"Resource not found"}
@@ -1570,5 +1570,6 @@ export default class bigone extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

@@ -278,7 +278,7 @@ class btcbox extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -525,15 +525,15 @@ class btcbox extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // resort to defaultErrorHandler
+            return null; // resort to defaultErrorHandler
         }
         // typical error $response => array("result":false,"code":"401")
         if ($httpCode >= 400) {
-            return; // resort to defaultErrorHandler
+            return null; // resort to defaultErrorHandler
         }
         $result = $this->safe_value($response, 'result');
         if ($result === null || $result === true) {
-            return; // either public API (no error codes expected) or success
+            return null; // either public API (no error codes expected) or success
         }
         $code = $this->safe_value($response, 'code');
         $feedback = $this->id . ' ' . $body;
@@ -541,8 +541,8 @@ class btcbox extends Exchange {
         throw new ExchangeError($feedback); // unknown message
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
-        $response = $this->fetch2($path, $api, $method, $params, $headers, $body, $config, $context);
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array ()) {
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body, $config);
         if (gettype($response) === 'string') {
             // sometimes the exchange returns whitespace prepended to json
             $response = $this->strip($response);

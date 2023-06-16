@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, RateLimitExceeded, ArgumentsRequire
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -666,7 +666,7 @@ export default class coinfalcon extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name coinfalcon#createOrder
@@ -1023,7 +1023,7 @@ export default class coinfalcon extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (code < 400) {
-            return;
+            return undefined;
         }
         const ErrorClass = this.safeValue ({
             '401': AuthenticationError,

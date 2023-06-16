@@ -1008,7 +1008,7 @@ export default class tidex extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('success' in response) {
             //
@@ -1056,5 +1056,6 @@ export default class tidex extends Exchange {
                 throw new ExchangeError(feedback); // unknown message
             }
         }
+        return undefined;
     }
 }

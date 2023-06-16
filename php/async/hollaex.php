@@ -397,6 +397,7 @@ class hollaex extends Exchange {
                             'max' => $this->safe_value($withdrawalLimits, 0),
                         ),
                     ),
+                    'networks' => array(),
                 );
             }
             return $result;
@@ -506,7 +507,7 @@ class hollaex extends Exchange {
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->publicGetTickers (array_merge($params)));
+            $response = Async\await($this->publicGetTickers ($params));
             //
             //     {
             //         "bch-usdt" => array(
@@ -800,7 +801,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($response, $market = null, $timeframe = '1h', ?int $since = null, ?int $limit = null) {
+    public function parse_ohlcv($response, $market = null) {
         //
         //     {
         //         "time":"2020-03-02T20:00:00.000Z",
@@ -1132,7 +1133,7 @@ class hollaex extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1764,7 +1765,7 @@ class hollaex extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         if (($code >= 400) && ($code <= 503)) {
             //
@@ -1782,5 +1783,6 @@ class hollaex extends Exchange {
             $status = (string) $code;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $status, $feedback);
         }
+        return null;
     }
 }

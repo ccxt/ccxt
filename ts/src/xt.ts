@@ -4,8 +4,8 @@
 import Exchange from './abstract/xt.js';
 import { Int } from './base/types.js';
 import { Precise } from './base/Precise.js';
-import { DECIMAL_PLACES } from './base/functions/number.js';
-import { AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import { AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
@@ -22,6 +22,7 @@ export default class xt extends Exchange {
             // futures 1000 times per minute for each single IP -> Otherwise account locked for 10min
             'rateLimit': 100,
             'version': 'v4',
+            'certified': true,
             'pro': false,
             'has': {
                 'CORS': false,
@@ -108,16 +109,17 @@ export default class xt extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'signIn': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': true,
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg',
                 'api': {
                     'spot': 'https://sapi.xt.com',
                     'linear': 'https://fapi.xt.com',
                     'inverse': 'https://dapi.xt.com',
+                    'user': 'https://api.xt.com',
                 },
                 'www': 'https://xt.com',
                 'referral': 'https://www.xt.com/en/accounts/register?ref=9PTM9VW',
@@ -212,6 +214,8 @@ export default class xt extends Exchange {
                         'post': {
                             'order': 0.2,
                             'withdraw': 1,
+                            'balance/transfer': 1,
+                            'balance/account/transfer': 1,
                         },
                         'delete': {
                             'batch-order': 1,
@@ -303,6 +307,22 @@ export default class xt extends Exchange {
                             'future/user/v1/user/collection/cancel': 1,
                         },
                     },
+                    'user': {
+                        'get': {
+                            'user/account': 1,
+                            'user/account/api-key': 1,
+                        },
+                        'post': {
+                            'user/account': 1,
+                            'user/account/api-key': 1,
+                        },
+                        'put': {
+                            'user/account/api-key': 1,
+                        },
+                        'delete': {
+                            'user/account/{apikeyId}': 1,
+                        },
+                    },
                 },
             },
             'fees': {
@@ -381,6 +401,7 @@ export default class xt extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '400': NetworkError, // {"returnCode":1,"msgInfo":"failure","error":{"code":"400","msg":"Connection refused: /10.0.26.71:8080"},"result":null}
                     '404': ExchangeError, // interface does not exist
                     '429': RateLimitExceeded, // The request is too frequent, please control the request rate according to the speed limit requirement
                     '500': ExchangeError, // Service exception
@@ -410,6 +431,7 @@ export default class xt extends Exchange {
                     'ORDER_004': InvalidOrder, // no transaction
                     'ORDER_005': InvalidOrder, // Order not exist
                     'ORDER_006': InvalidOrder, // Too many open orders
+                    'ORDER_007': PermissionDenied, // The sub-account has no transaction authority
                     'ORDER_F0101': InvalidOrder, // Trigger Price Filter - Min
                     'ORDER_F0102': InvalidOrder, // Trigger Price Filter - Max
                     'ORDER_F0103': InvalidOrder, // Trigger Price Filter - Step Value
@@ -457,6 +479,33 @@ export default class xt extends Exchange {
                     'WITHDRAW_023': BadRequest, // Withdrawal amount must be less than {0}
                     'WITHDRAW_024': BadRequest, // Withdraw is not supported
                     'WITHDRAW_025': BadRequest, // Please create a FIO address in the deposit page
+                    'FUND_001': BadRequest, // Duplicate request (a bizId can only be requested once)
+                    'FUND_002': InsufficientFunds, // Insufficient account balance
+                    'FUND_003': BadRequest, // Transfer operations are not supported (for example, sub-accounts do not support financial transfers)
+                    'FUND_004': ExchangeError, // Unfreeze failed
+                    'FUND_005': PermissionDenied, // Transfer prohibited
+                    'FUND_014': BadRequest, // The transfer-in account id and transfer-out account ID cannot be the same
+                    'FUND_015': BadRequest, // From and to business types cannot be the same
+                    'FUND_016': BadRequest, // Leverage transfer, symbol cannot be empty
+                    'FUND_017': BadRequest, // Parameter error
+                    'FUND_018': BadRequest, // Invalid freeze record
+                    'FUND_019': BadRequest, // Freeze users not equal
+                    'FUND_020': BadRequest, // Freeze currency are not equal
+                    'FUND_021': BadRequest, // Operation not supported
+                    'FUND_022': BadRequest, // Freeze record does not exist
+                    'FUND_044': BadRequest, // The maximum length of the amount is 113 and cannot exceed the limit
+                    'TRANSFER_001': BadRequest, // Duplicate request (a bizId can only be requested once)
+                    'TRANSFER_002': InsufficientFunds, // Insufficient account balance
+                    'TRANSFER_003': BadRequest, // User not registered
+                    'TRANSFER_004': PermissionDenied, // The currency is not allowed to be transferred
+                    'TRANSFER_005': PermissionDenied, // The user’s currency is not allowed to be transferred
+                    'TRANSFER_006': PermissionDenied, // Transfer prohibited
+                    'TRANSFER_007': RequestTimeout, // Request timed out
+                    'TRANSFER_008': BadRequest, // Transferring to a leveraged account is abnormal
+                    'TRANSFER_009': BadRequest, // Departing from a leveraged account is abnormal
+                    'TRANSFER_010': PermissionDenied, // Leverage cleared, transfer prohibited
+                    'TRANSFER_011': PermissionDenied, // Leverage with borrowing, transfer prohibited
+                    'TRANSFER_012': PermissionDenied, // Currency transfer prohibited
                     'symbol_not_support_trading_via_api': BadSymbol, // {"returnCode":1,"msgInfo":"failure","error":{"code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"},"result":null}
                     'open_order_min_nominal_value_limit': InvalidOrder, // {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
                 },
@@ -482,6 +531,17 @@ export default class xt extends Exchange {
             },
             'commonCurrencies': {},
             'options': {
+                'adjustForTimeDifference': false,
+                'timeDifference': 0,
+                'accountsById': {
+                    'spot': 'SPOT',
+                    'leverage': 'LEVER',
+                    'finance': 'FINANCE',
+                    'swap': 'FUTURES_U',
+                    'future': 'FUTURES_U',
+                    'linear': 'FUTURES_U',
+                    'inverse': 'FUTURES_C',
+                },
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
@@ -608,7 +668,7 @@ export default class xt extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds ();
+        return this.milliseconds () - this.options['timeDifference'];
     }
 
     async fetchTime (params = {}) {
@@ -644,7 +704,35 @@ export default class xt extends Exchange {
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicSpotGetWalletSupportCurrency (params);
+        const promisesRaw = [ this.publicSpotGetWalletSupportCurrency (params), this.publicSpotGetCurrencies (params) ];
+        const [ chainsResponse, currenciesResponse ] = await Promise.all (promisesRaw);
+        //
+        // currencies
+        //
+        //    {
+        //        "time": "1686626116145",
+        //        "version": "5dbbb2f2527c22b2b2e3b47187ef13d1",
+        //        "currencies": [
+        //            {
+        //                "id": "2",
+        //                "currency": "btc",
+        //                "fullName": "Bitcoin",
+        //                "logo": "https://a.static-global.com/1/currency/btc.png",
+        //                "cmcLink": "https://coinmarketcap.com/currencies/bitcoin/",
+        //                "weight": "99999",
+        //                "maxPrecision": "10",
+        //                "depositStatus": "1",
+        //                "withdrawStatus": "1",
+        //                "convertEnabled": "1",
+        //                "transferEnabled": "1",
+        //                "isChainExist": "1",
+        //                "plates": [152]
+        //            },
+        //        ],
+        //    }
+        //
+        //
+        // chains
         //
         //     {
         //         "rc": 0,
@@ -657,37 +745,62 @@ export default class xt extends Exchange {
         //                     {
         //                         "chain": "Bitcoin",
         //                         "depositEnabled": true,
-        //                         "withdrawEnabled": true
+        //                         "withdrawEnabled": true,
+        //                         "withdrawFeeAmount": 0.0009,
+        //                         "withdrawMinAmount": 0.0005,
+        //                         "depositFeeRate": 0
         //                     },
         //                 ]
         //             },
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'result', []);
+        // note: individual network's full data is available on per-currency endpoint: https://www.xt.com/sapi/v4/balance/public/currency/11
+        //
+        const chainsData = this.safeValue (chainsResponse, 'result', []);
+        const currenciesResult = this.safeValue (currenciesResponse, 'result', []);
+        const currenciesData = this.safeValue (currenciesResult, 'currencies', []);
+        const chainsDataIndexed = this.indexBy (chainsData, 'currency');
         const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
+        for (let i = 0; i < currenciesData.length; i++) {
+            const entry = currenciesData[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            const rawNetworks = this.safeValue (entry, 'supportChains', []);
+            const minPrecision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'maxPrecision')));
+            const networkEntry = this.safeValue (chainsDataIndexed, currencyId, {});
+            const rawNetworks = this.safeValue (networkEntry, 'supportChains', []);
             const networks = {};
-            let depositEnabled = undefined;
-            let withdrawEnabled = undefined;
+            let minWithdrawString = undefined;
+            let minWithdrawFeeString = undefined;
+            let active = false;
+            let deposit = false;
+            let withdraw = false;
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
                 const networkId = this.safeString (rawNetwork, 'chain');
                 const network = this.networkIdToCode (networkId);
-                depositEnabled = this.safeValue (rawNetwork, 'depositEnabled');
-                withdrawEnabled = this.safeValue (rawNetwork, 'withdrawEnabled');
+                const depositEnabled = this.safeValue (rawNetwork, 'depositEnabled');
+                deposit = (depositEnabled) ? depositEnabled : deposit;
+                const withdrawEnabled = this.safeValue (rawNetwork, 'withdrawEnabled');
+                withdraw = (withdrawEnabled) ? withdrawEnabled : withdraw;
+                const networkActive = depositEnabled && withdrawEnabled;
+                active = (networkActive) ? networkActive : active;
+                const withdrawFeeString = this.safeString (rawNetwork, 'withdrawFeeAmount');
+                if (withdrawFeeString !== undefined) {
+                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? withdrawFeeString : Precise.stringMin (withdrawFeeString, minWithdrawFeeString);
+                }
+                const minNetworkWithdrawString = this.safeString (rawNetwork, 'withdrawMinAmount');
+                if (minNetworkWithdrawString !== undefined) {
+                    minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise.stringMin (minNetworkWithdrawString, minWithdrawString);
+                }
                 networks[network] = {
                     'info': rawNetwork,
                     'id': networkId,
                     'network': network,
                     'name': undefined,
-                    'active': undefined,
-                    'fee': undefined,
-                    'precision': undefined,
+                    'active': networkActive,
+                    'fee': this.parseNumber (withdrawFeeString),
+                    'precision': minPrecision,
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'limits': {
@@ -696,7 +809,7 @@ export default class xt extends Exchange {
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': undefined,
+                            'min': this.parseNumber (minNetworkWithdrawString),
                             'max': undefined,
                         },
                         'deposit': {
@@ -710,12 +823,12 @@ export default class xt extends Exchange {
                 'info': entry,
                 'id': currencyId,
                 'code': code,
-                'name': undefined,
-                'active': true,
-                'fee': undefined,
+                'name': this.safeString (entry, 'fullName'),
+                'active': active,
+                'fee': this.parseNumber (minWithdrawFeeString),
                 'precision': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'networks': networks,
                 'limits': {
                     'amount': {
@@ -723,7 +836,7 @@ export default class xt extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.parseNumber (minWithdrawString),
                         'max': undefined,
                     },
                     'deposit': {
@@ -746,6 +859,9 @@ export default class xt extends Exchange {
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {[object]} an array of objects representing market data
          */
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
         const promisesUnresolved = [
             this.fetchSpotMarkets (params),
             this.fetchSwapAndFutureMarkets (params),
@@ -924,6 +1040,18 @@ export default class xt extends Exchange {
         //                 "min": "1"
         //             },
         //             {
+        //                 "filter": "PRICE",
+        //                 "min": null,
+        //                 "max": null,
+        //                 "tickSize": null
+        //             },
+        //             {
+        //                 "filter": "QUANTITY",
+        //                 "min": null,
+        //                 "max": null,
+        //                 "tickSize": null
+        //             },
+        //             {
         //                 "filter": "PROTECTION_LIMIT",
         //                 "buyMaxDeviation": "0.8",
         //                 "sellMaxDeviation": "4"
@@ -931,7 +1059,12 @@ export default class xt extends Exchange {
         //             {
         //                 "filter": "PROTECTION_MARKET",
         //                 "maxDeviation": "0.02"
-        //             }
+        //             },
+        //             {
+        //                  "filter": "PROTECTION_ONLINE",
+        //                  "durationSeconds": "300",
+        //                  "maxPriceMultiple": "5"
+        //             },
         //         ]
         //     }
         //
@@ -1000,11 +1133,24 @@ export default class xt extends Exchange {
         let symbol = base + '/' + quote;
         const filters = this.safeValue (market, 'filters', []);
         let minAmount = undefined;
+        let maxAmount = undefined;
+        let minCost = undefined;
+        let maxCost = undefined;
+        let minPrice = undefined;
+        let maxPrice = undefined;
         for (let i = 0; i < filters.length; i++) {
             const entry = filters[i];
             const filter = this.safeString (entry, 'filter');
-            if (filter === 'QUOTE_QTY') {
+            if (filter === 'QUANTITY') {
                 minAmount = this.safeNumber (entry, 'min');
+                maxAmount = this.safeNumber (entry, 'max');
+            }
+            if (filter === 'QUOTE_QTY') {
+                minCost = this.safeNumber (entry, 'min');
+            }
+            if (filter === 'PRICE') {
+                minPrice = this.safeNumber (entry, 'min');
+                maxPrice = this.safeNumber (entry, 'max');
             }
         }
         const underlyingType = this.safeString (market, 'underlyingType');
@@ -1043,10 +1189,21 @@ export default class xt extends Exchange {
                 swap = true;
             }
             minAmount = this.safeNumber (market, 'minQty');
+            minCost = this.safeNumber (market, 'minNotional');
+            maxCost = this.safeNumber (market, 'maxNotional');
+            minPrice = this.safeNumber (market, 'minPrice');
+            maxPrice = this.safeNumber (market, 'maxPrice');
             contract = true;
             spot = false;
         }
-        const isActive = (state === 'ONLINE') || (state === '0');
+        let isActive = false;
+        if (contract) {
+            isActive = this.safeValue (market, 'isOpenApi', false);
+        } else {
+            if ((state === 'ONLINE') && (this.safeValue (market, 'tradingEnabled')) && (this.safeValue (market, 'openapiEnabled'))) {
+                isActive = true;
+            }
+        }
         return {
             'id': id,
             'symbol': symbol,
@@ -1074,8 +1231,10 @@ export default class xt extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'price': this.safeInteger (market, 'pricePrecision'),
-                'amount': this.safeInteger (market, 'quantityPrecision'),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision'))),
+                'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseCoinPrecision'))),
+                'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quoteCoinPrecision'))),
             },
             'limits': {
                 'leverage': {
@@ -1084,15 +1243,15 @@ export default class xt extends Exchange {
                 },
                 'amount': {
                     'min': minAmount,
-                    'max': undefined,
+                    'max': maxAmount,
                 },
                 'price': {
-                    'min': this.safeNumber (market, 'minPrice'),
-                    'max': this.safeNumber (market, 'maxPrice'),
+                    'min': minPrice,
+                    'max': maxPrice,
                 },
                 'cost': {
-                    'min': this.safeNumber (market, 'minNotional'),
-                    'max': this.safeNumber (market, 'maxNotional'),
+                    'min': minCost,
+                    'max': maxCost,
                 },
             },
             'info': market,
@@ -1236,6 +1395,9 @@ export default class xt extends Exchange {
         };
         let response = undefined;
         if (market['spot']) {
+            if (limit !== undefined) {
+                request['limit'] = Math.min (limit, 500);
+            }
             response = await this.publicSpotGetDepth (this.extend (request, params));
         } else {
             if (limit !== undefined) {
@@ -2095,10 +2257,9 @@ export default class xt extends Exchange {
     async createContractOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const convertContractsToAmount = Precise.stringDiv (this.numberToString (amount), this.numberToString (market['contractSize']));
         const request = {
             'symbol': market['id'],
-            'origQty': this.amountToPrecision (symbol, this.parseNumber (convertContractsToAmount)),
+            'origQty': this.amountToPrecision (symbol, amount),
         };
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         if (timeInForce !== undefined) {
@@ -2199,11 +2360,11 @@ export default class xt extends Exchange {
         const stop = this.safeValue (params, 'stop');
         const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
         if (stop) {
-            request['entrustId'] = this.convertToBigInt (id);
+            request['entrustId'] = id;
         } else if (stopLossTakeProfit) {
-            request['profitId'] = this.convertToBigInt (id);
+            request['profitId'] = id;
         } else {
-            request['orderId'] = this.convertToBigInt (id);
+            request['orderId'] = id;
         }
         if (stop) {
             params = this.omit (params, 'stop');
@@ -2869,11 +3030,11 @@ export default class xt extends Exchange {
         const stop = this.safeValue (params, 'stop');
         const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
         if (stop) {
-            request['entrustId'] = this.convertToBigInt (id);
+            request['entrustId'] = id;
         } else if (stopLossTakeProfit) {
-            request['profitId'] = this.convertToBigInt (id);
+            request['profitId'] = id;
         } else {
-            request['orderId'] = this.convertToBigInt (id);
+            request['orderId'] = id;
         }
         if (stop) {
             params = this.omit (params, 'stop');
@@ -3584,12 +3745,14 @@ export default class xt extends Exchange {
         //         "id": 950898
         //     }
         //
+        const type = ('fromAddr' in transaction) ? 'deposit' : 'withdraw';
         const timestamp = this.safeInteger (transaction, 'createdTime');
         const address = this.safeString (transaction, 'address');
         const memo = this.safeString (transaction, 'memo');
         const currencyCode = this.safeCurrencyCode (this.safeString (transaction, 'currency'), currency);
         const fee = this.safeNumber (transaction, 'fee');
         const feeCurrency = (fee !== undefined) ? currencyCode : undefined;
+        const networkId = this.safeString (transaction, 'chain');
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'id'),
@@ -3603,10 +3766,10 @@ export default class xt extends Exchange {
             'tagFrom': undefined,
             'tagTo': undefined,
             'tag': memo,
-            'type': undefined,
+            'type': type,
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': currencyCode,
-            'network': this.safeString (transaction, 'chain'),
+            'network': this.networkIdToCode (networkId, currencyCode),
             'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'comment': memo,
             'fee': {
@@ -3975,11 +4138,11 @@ export default class xt extends Exchange {
         for (let i = 0; i < items.length; i++) {
             const entry = items[i];
             const marketId = this.safeString (entry, 'symbol');
-            const symbol = this.safeSymbol (marketId, market);
+            const symbolInner = this.safeSymbol (marketId, market);
             const timestamp = this.safeInteger (entry, 'createdTime');
             rates.push ({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': this.safeNumber (entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
@@ -4210,12 +4373,13 @@ export default class xt extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             const marketId = this.safeString (entry, 'symbol');
-            const market = this.safeMarket (marketId, undefined, undefined, 'contract');
+            const marketInner = this.safeMarket (marketId, undefined, undefined, 'contract');
             const positionSize = this.safeString (entry, 'positionSize');
             if (positionSize !== '0') {
-                return this.parsePosition (entry, market);
+                return this.parsePosition (entry, marketInner);
             }
         }
+        return undefined;
     }
 
     async fetchPositions (symbols: string[] = undefined, params = {}) {
@@ -4270,8 +4434,8 @@ export default class xt extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             const marketId = this.safeString (entry, 'symbol');
-            const market = this.safeMarket (marketId, undefined, undefined, 'contract');
-            result.push (this.parsePosition (entry, market));
+            const marketInner = this.safeMarket (marketId, undefined, undefined, 'contract');
+            result.push (this.parsePosition (entry, marketInner));
         }
         return this.filterByArray (result, 'symbol', undefined, false);
     }
@@ -4328,6 +4492,63 @@ export default class xt extends Exchange {
         });
     }
 
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name xt#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @see https://doc.xt.com/#transfersubTransferPost
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount account to transfer from -  spot, swap, leverage, finance
+         * @param {string} toAccount account to transfer to - spot, swap, leverage, finance
+         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsById');
+        const fromAccountId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toAccountId = this.safeString (accountsByType, toAccount, toAccount);
+        const amountString = this.currencyToPrecision (code, amount);
+        const request = {
+            'bizId': this.uuid (),
+            'currency': currency['id'],
+            'amount': amountString,
+            'from': fromAccountId,
+            'to': toAccountId,
+        };
+        const response = await this.privateSpotPostBalanceTransfer (this.extend (request, params));
+        //
+        //   {
+        //       info: { rc: '0', mc: 'SUCCESS', ma: [], result: '226971333791398656' },
+        //       id: '226971333791398656',
+        //       timestamp: undefined,
+        //       datetime: undefined,
+        //       currency: undefined,
+        //       amount: undefined,
+        //       fromAccount: undefined,
+        //       toAccount: undefined,
+        //       status: undefined
+        //   }
+        //
+        return this.parseTransfer (response, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'result'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': undefined,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
+        };
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //
         // spot: error
@@ -4379,7 +4600,7 @@ export default class xt extends Exchange {
         //     }
         //
         const status = this.safeStringUpper2 (response, 'msgInfo', 'mc');
-        if (status !== 'SUCCESS') {
+        if (status !== undefined && status !== 'SUCCESS') {
             const feedback = this.id + ' ' + body;
             const error = this.safeValue (response, 'error', {});
             const spotErrorCode = this.safeString (response, 'mc');
@@ -4390,6 +4611,7 @@ export default class xt extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -4397,7 +4619,7 @@ export default class xt extends Exchange {
         const endpoint = api[1];
         const request = '/' + this.implodeParams (path, params);
         let payload = undefined;
-        if (endpoint === 'spot') {
+        if ((endpoint === 'spot') || (endpoint === 'user')) {
             if (signed) {
                 payload = '/' + this.version + request;
             } else {
@@ -4415,17 +4637,22 @@ export default class xt extends Exchange {
         if (signed) {
             this.checkRequiredCredentials ();
             const defaultRecvWindow = this.safeString (this.options, 'recvWindow');
-            const recvWindow = this.safeString (params, 'recvWindow', defaultRecvWindow);
+            const recvWindow = this.safeString (query, 'recvWindow', defaultRecvWindow);
             const timestamp = this.numberToString (this.nonce ());
-            body = params;
+            body = query;
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
-                body['clientMedia'] = 'CCXT';
+                const id = 'CCXT';
+                if (payload.indexOf ('future') > -1) {
+                    body['clientMedia'] = id;
+                } else {
+                    body['media'] = id;
+                }
             }
             const isUndefinedBody = ((method === 'GET') || (path === 'order/{orderId}'));
             body = isUndefinedBody ? undefined : this.json (body);
             let payloadString = undefined;
-            if (endpoint === 'spot') {
-                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-timestamp=' + timestamp;
+            if ((endpoint === 'spot') || (endpoint === 'user')) {
+                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
                 if (isUndefinedBody) {
                     if (urlencoded) {
                         url += '?' + urlencoded;
@@ -4439,7 +4666,7 @@ export default class xt extends Exchange {
                 headers['xt-validate-algorithms'] = 'HmacSHA256';
                 headers['xt-validate-recvwindow'] = recvWindow;
             } else {
-                payloadString = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-timestamp=' + timestamp;
+                payloadString = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp; // we can't glue timestamp, breaks in php
                 if (method === 'GET') {
                     if (urlencoded) {
                         url += '?' + urlencoded;

@@ -810,7 +810,7 @@ class luno extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -868,9 +868,15 @@ class luno extends Exchange {
         }) ();
     }
 
-    public function fetch_ledger_by_entries(?string $code = null, $entry = -1, $limit = 1, $params = array ()) {
+    public function fetch_ledger_by_entries(?string $code = null, $entry = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $entry, $limit, $params) {
             // by default without $entry number or $limit number, return most recent $entry
+            if ($entry === null) {
+                $entry = -1;
+            }
+            if ($limit === null) {
+                $limit = 1;
+            }
             $since = null;
             $request = array(
                 'min_row' => $entry,
@@ -1038,11 +1044,12 @@ class luno extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         $error = $this->safe_value($response, 'error');
         if ($error !== null) {
             throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
+        return null;
     }
 }

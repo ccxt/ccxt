@@ -4,7 +4,9 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.alpaca import ImplicitAPI
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -16,7 +18,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class alpaca(Exchange):
+class alpaca(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(alpaca, self).describe(), {
@@ -487,7 +489,7 @@ class alpaca(Exchange):
             self.safe_number(ohlcv, 'v'),  # volume
         ]
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -781,7 +783,7 @@ class alpaca(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # default error handler
+            return None  # default error handler
         # {
         #     "code": 40110000,
         #     "message": "request is not authorized"
@@ -795,3 +797,4 @@ class alpaca(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)
+        return None

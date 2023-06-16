@@ -417,7 +417,7 @@ class mercado extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -863,7 +863,7 @@ class mercado extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         //
         // todo add a unified standard handleErrors with $this->exceptions in describe()
@@ -874,5 +874,6 @@ class mercado extends Exchange {
         if ($errorMessage !== null) {
             throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
+        return null;
     }
 }

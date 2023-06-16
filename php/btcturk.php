@@ -632,11 +632,10 @@ class btcturk extends Exchange {
             $results[] = $this->parse_ohlcv($ohlcv, $market);
         }
         $sorted = $this->sort_by($results, 0);
-        $tail = ($since === null);
-        return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
+        return $this->filter_by_since_limit($sorted, $since, $limit, 0);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -907,5 +906,6 @@ class btcturk extends Exchange {
         if (($errorCode !== '0') && ($errorCode !== 'SUCCESS')) {
             throw new ExchangeError($this->id . ' ' . $output);
         }
+        return null;
     }
 }

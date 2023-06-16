@@ -351,6 +351,7 @@ class huobi extends \ccxt\async\huobi {
             $url = $this->get_url_by_market_type($market['type'], $market['linear']);
             $method = array($this, 'handle_order_book_subscription');
             if (!$market['spot']) {
+                $params = array_merge($params);
                 $params['data_type'] = 'incremental';
                 $method = null;
             }

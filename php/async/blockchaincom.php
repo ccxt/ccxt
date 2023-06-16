@@ -23,6 +23,7 @@ class blockchaincom extends Exchange {
             'countries' => array( 'LX' ),
             'rateLimit' => 500, // prev 1000
             'version' => 'v3',
+            'pro' => true,
             'has' => array(
                 'CORS' => false,
                 'spot' => true,
@@ -498,7 +499,7 @@ class blockchaincom extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1170,7 +1171,7 @@ class blockchaincom extends Exchange {
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if ($response === null) {
-            return;
+            return null;
         }
         $text = $this->safe_string($response, 'text');
         if ($text !== null) { // if trade currency account is empty returns 200 with rejected order
@@ -1185,5 +1186,6 @@ class blockchaincom extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
         }
+        return null;
     }
 }

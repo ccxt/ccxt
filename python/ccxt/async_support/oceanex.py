@@ -4,7 +4,9 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.oceanex import ImplicitAPI
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -18,7 +20,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class oceanex(Exchange):
+class oceanex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(oceanex, self).describe(), {
@@ -584,7 +586,7 @@ class oceanex(Exchange):
         response = await self.privateGetMembersMe(params)
         return self.parse_balance(response)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -628,7 +630,8 @@ class oceanex(Exchange):
         if data is None:
             raise OrderNotFound(self.id + ' could not found matching order')
         if isinstance(id, list):
-            return self.parse_orders(data, market)
+            orders = self.parse_orders(data, market)
+            return orders[0]
         if dataLength == 0:
             raise OrderNotFound(self.id + ' could not found matching order')
         return self.parse_order(data[0], market)
@@ -881,7 +884,7 @@ class oceanex(Exchange):
         #     {"code":1011,"message":"This IP 'x.x.x.x' is not allowed","data":{}}
         #
         if response is None:
-            return
+            return None
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'message')
         if (errorCode is not None) and (errorCode != '0'):
@@ -889,3 +892,4 @@ class oceanex(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['codes'], errorCode, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             raise ExchangeError(feedback)
+        return None

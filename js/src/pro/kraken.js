@@ -586,7 +586,7 @@ export default class kraken extends krakenRest {
         if (this.newUpdates) {
             limit = result.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(result, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

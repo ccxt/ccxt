@@ -552,7 +552,7 @@ class coincheck extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -809,7 +809,7 @@ class coincheck extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         //
         //     array("success":false,"error":"disabled API Key")'
@@ -823,5 +823,6 @@ class coincheck extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
+        return null;
     }
 }

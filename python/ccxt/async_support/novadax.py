@@ -4,8 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.novadax import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -25,7 +27,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class novadax(Exchange):
+class novadax(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(novadax, self).describe(), {
@@ -695,7 +697,7 @@ class novadax(Exchange):
         #
         return self.parse_balance(response)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1424,7 +1426,7 @@ class novadax(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         #     {"code":"A10003","data":[],"message":"Authentication failed, Invalid accessKey."}
         #
@@ -1435,3 +1437,4 @@ class novadax(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

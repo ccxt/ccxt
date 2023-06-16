@@ -4,8 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.bitbank import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -17,7 +19,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class bitbank(Exchange):
+class bitbank(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitbank, self).describe(), {
@@ -104,6 +106,8 @@ class bitbank(Exchange):
                 'public': {
                     'get': [
                         '{pair}/ticker',
+                        'tickers',
+                        'tickers_jpy',
                         '{pair}/depth',
                         '{pair}/transactions',
                         '{pair}/transactions/{yyyymmdd}',
@@ -116,7 +120,11 @@ class bitbank(Exchange):
                         'user/spot/order',
                         'user/spot/active_orders',
                         'user/spot/trade_history',
+                        'user/deposit_history',
                         'user/withdrawal_account',
+                        'user/withdrawal_history',
+                        'spot/status',
+                        'spot/pairs',
                     ],
                     'post': [
                         'user/spot/order',
@@ -592,7 +600,7 @@ class bitbank(Exchange):
             'info': order,
         }, market)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -840,7 +848,7 @@ class bitbank(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         success = self.safe_integer(response, 'success')
         data = self.safe_value(response, 'data')
         if not success or not data:
@@ -911,6 +919,7 @@ class bitbank(Exchange):
             message = self.safe_string(errorMessages, code, 'Error')
             ErrorClass = self.safe_value(errorClasses, code)
             if ErrorClass is not None:
-                raise ErrorClass(message)
+                raise errorClasses[code](message)
             else:
                 raise ExchangeError(self.id + ' ' + self.json(response))
+        return None

@@ -13,7 +13,7 @@ export default class bitstamp extends bitstampRest {
     handleTrade(client: Client, message: any): void;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): any;
+    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleOrderBookSubscription(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): void;
     handleSubject(client: Client, message: any): void;

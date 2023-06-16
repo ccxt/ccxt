@@ -4,9 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitrue import ImplicitAPI
 import hashlib
 import json
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -30,7 +32,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bitrue(Exchange):
+class bitrue(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitrue, self).describe(), {
@@ -530,44 +532,62 @@ class bitrue(Exchange):
             id = self.safe_string(currency, 'coin')
             name = self.safe_string(currency, 'coinFulName')
             code = self.safe_currency_code(id)
-            enableDeposit = self.safe_value(currency, 'enableDeposit')
-            enableWithdraw = self.safe_value(currency, 'enableWithdraw')
-            networkIds = self.safe_value(currency, 'chains', [])
+            deposit = None
+            withdraw = None
+            minWithdrawString = None
+            maxWithdrawString = None
+            minWithdrawFeeString = None
+            networkDetails = self.safe_value(currency, 'chainDetail', [])
             networks = {}
-            for j in range(0, len(networkIds)):
-                networkId = networkIds[j]
-                network = self.safe_network(networkId)
+            for j in range(0, len(networkDetails)):
+                entry = networkDetails[j]
+                networkId = self.safe_string(entry, 'chain')
+                network = self.network_id_to_code(networkId, code)
+                enableDeposit = self.safe_value(entry, 'enableDeposit')
+                deposit = enableDeposit if (enableDeposit) else deposit
+                enableWithdraw = self.safe_value(entry, 'enableWithdraw')
+                withdraw = enableWithdraw if (enableWithdraw) else withdraw
+                networkWithdrawFeeString = self.safe_string(entry, 'withdrawFee')
+                if networkWithdrawFeeString is not None:
+                    minWithdrawFeeString = networkWithdrawFeeString if (minWithdrawFeeString is None) else Precise.string_min(networkWithdrawFeeString, minWithdrawFeeString)
+                networkMinWithdrawString = self.safe_string(entry, 'minWithdraw')
+                if networkMinWithdrawString is not None:
+                    minWithdrawString = networkMinWithdrawString if (minWithdrawString is None) else Precise.string_min(networkMinWithdrawString, minWithdrawString)
+                networkMaxWithdrawString = self.safe_string(entry, 'maxWithdraw')
+                if networkMaxWithdrawString is not None:
+                    maxWithdrawString = networkMaxWithdrawString if (maxWithdrawString is None) else Precise.string_max(networkMaxWithdrawString, maxWithdrawString)
                 networks[network] = {
-                    'info': networkId,
+                    'info': entry,
                     'id': networkId,
                     'network': network,
-                    'active': None,
-                    'fee': None,
+                    'deposit': enableDeposit,
+                    'withdraw': enableWithdraw,
+                    'active': enableDeposit and enableWithdraw,
+                    'fee': self.parse_number(networkWithdrawFeeString),
                     'precision': None,
                     'limits': {
                         'withdraw': {
-                            'min': None,
-                            'max': None,
+                            'min': self.parse_number(networkMinWithdrawString),
+                            'max': self.parse_number(networkMaxWithdrawString),
                         },
                     },
                 }
-            active = (enableWithdraw and enableDeposit)
             result[code] = {
                 'id': id,
                 'name': name,
                 'code': code,
                 'precision': None,
                 'info': currency,
-                'active': active,
-                'deposit': enableDeposit,
-                'withdraw': enableWithdraw,
+                'active': deposit and withdraw,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'networks': networks,
-                'fee': self.safe_number(currency, 'withdrawFee'),
+                'fee': self.parse_number(minWithdrawFeeString),
                 # 'fees': fees,
                 'limits': {
                     'withdraw': {
-                        'min': self.safe_number(currency, 'minWithdraw'),
-                        'max': self.safe_number(currency, 'maxWithdraw'),
+                        'min': self.parse_number(minWithdrawString),
+                        'max': self.parse_number(maxWithdrawString),
                     },
                 },
             }
@@ -1233,7 +1253,7 @@ class bitrue(Exchange):
             'trades': fills,
         }, market)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1832,7 +1852,8 @@ class bitrue(Exchange):
         return self.parse_deposit_withdraw_fees(coins, codes, 'coin')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        version, access = api
+        version = self.safe_string(api, 0)
+        access = self.safe_string(api, 1)
         url = self.urls['api'][version] + '/' + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
         if access == 'private':
@@ -1871,16 +1892,16 @@ class bitrue(Exchange):
             if body.find('PRICE_FILTER') >= 0:
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         # check success value for wapi endpoints
         # response in format {'msg': 'The coin does not exist.', 'success': True/false}
         success = self.safe_value(response, 'success', True)
         if not success:
-            message = self.safe_string(response, 'msg')
+            messageInner = self.safe_string(response, 'msg')
             parsedMessage = None
-            if message is not None:
+            if messageInner is not None:
                 try:
-                    parsedMessage = json.loads(message)
+                    parsedMessage = json.loads(messageInner)
                 except Exception as e:
                     # do nothing
                     parsedMessage = None
@@ -1896,7 +1917,7 @@ class bitrue(Exchange):
             # https://github.com/ccxt/ccxt/issues/6501
             # https://github.com/ccxt/ccxt/issues/7742
             if (error == '200') or Precise.string_equals(error, '0'):
-                return
+                return None
             # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             # despite that their message is very confusing, it is raised by Binance
             # on a temporary ban, the API key is valid, but disabled for a while
@@ -1907,8 +1928,9 @@ class bitrue(Exchange):
             raise ExchangeError(feedback)
         if not success:
             raise ExchangeError(self.id + ' ' + body)
+        return None
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         if ('noSymbol' in config) and not ('symbol' in params):
             return config['noSymbol']
         elif ('byLimit' in config) and ('limit' in params):

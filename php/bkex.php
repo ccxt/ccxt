@@ -1267,7 +1267,7 @@ class bkex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1787,11 +1787,11 @@ class bkex extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             $marketId = $this->safe_string($entry, 'symbol');
-            $symbol = $this->safe_symbol($marketId);
+            $symbolInner = $this->safe_symbol($marketId);
             $timestamp = $this->safe_integer($entry, 'time');
             $rates[] = array(
                 'info' => $entry,
-                'symbol' => $symbol,
+                'symbol' => $symbolInner,
                 'fundingRate' => $this->safe_number($entry, 'rate'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
@@ -1898,7 +1898,7 @@ class bkex extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         //
         // success
@@ -1932,7 +1932,7 @@ class bkex extends Exchange {
         //
         $message = $this->safe_value($response, 'msg');
         if ($message === 'success') {
-            return;
+            return null;
         }
         $responseCode = $this->safe_string($response, 'code');
         if ($responseCode !== '0') {
@@ -1941,5 +1941,6 @@ class bkex extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

@@ -284,7 +284,7 @@ class bitstamp1 extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -390,11 +390,12 @@ class bitstamp1 extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         $status = $this->safe_string($response, 'status');
         if ($status === 'error') {
             throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
+        return null;
     }
 }

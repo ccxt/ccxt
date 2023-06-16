@@ -1064,7 +1064,7 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -2153,7 +2153,7 @@ class bittrex extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         //
         //     array( $success => false, $message => "message" )
@@ -2162,16 +2162,16 @@ class bittrex extends Exchange {
             $feedback = $this->id . ' ' . $body;
             $success = $this->safe_value($response, 'success');
             if ($success === null) {
-                $code = $this->safe_string($response, 'code');
-                if (($code === 'NOT_FOUND') && (mb_strpos($url, 'addresses') !== false)) {
+                $codeInner = $this->safe_string($response, 'code');
+                if (($codeInner === 'NOT_FOUND') && (mb_strpos($url, 'addresses') !== false)) {
                     throw new InvalidAddress($feedback);
                 }
-                if ($code !== null) {
-                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
-                    $this->throw_broadly_matched_exception($this->exceptions['broad'], $code, $feedback);
+                if ($codeInner !== null) {
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeInner, $feedback);
+                    $this->throw_broadly_matched_exception($this->exceptions['broad'], $codeInner, $feedback);
                 }
                 // throw new ExchangeError($this->id . ' malformed $response ' . $this->json($response));
-                return;
+                return null;
             }
             if (gettype($success) === 'string') {
                 // bleutrade uses string instead of boolean
@@ -2230,5 +2230,6 @@ class bittrex extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+        return null;
     }
 }

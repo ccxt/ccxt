@@ -384,7 +384,7 @@ export default class alpaca extends alpacaRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     handleTradeUpdate (client: Client, message) {

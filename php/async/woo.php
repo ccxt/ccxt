@@ -172,6 +172,7 @@ class woo extends Exchange {
                             'funding_fee/history' => 30,
                             'positions' => 3.33, // 30 requests per 10 seconds
                             'position/{symbol}' => 3.33,
+                            'client/transaction_history' => 60,
                         ),
                         'post' => array(
                             'order' => 5, // 2 requests per 1 second per symbol
@@ -255,6 +256,7 @@ class woo extends Exchange {
                 'transfer' => array(
                     'fillResponseFromRequest' => true,
                 ),
+                'brokerId' => 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
             ),
             'commonCurrencies' => array(),
             'exceptions' => array(
@@ -335,7 +337,10 @@ class woo extends Exchange {
                 $symbol = $base . '/' . $quote;
                 $contractSize = null;
                 $linear = null;
-                if ($isSwap) {
+                $margin = true;
+                $contract = $isSwap;
+                if ($contract) {
+                    $margin = false;
                     $settleId = $this->safe_string($parts, 2);
                     $settle = $this->safe_currency_code($settleId);
                     $symbol = $base . '/' . $quote . ':' . $settle;
@@ -354,12 +359,12 @@ class woo extends Exchange {
                     'settleId' => $settleId,
                     'type' => $marketType,
                     'spot' => $isSpot,
-                    'margin' => true,
+                    'margin' => $margin,
                     'swap' => $isSwap,
                     'future' => false,
                     'option' => false,
                     'active' => null,
-                    'contract' => $isSwap,
+                    'contract' => $contract,
                     'linear' => $linear,
                     'inverse' => null,
                     'contractSize' => $contractSize,
@@ -722,7 +727,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -795,6 +800,11 @@ class woo extends Exchange {
             if ($clientOrderId !== null) {
                 $request['client_order_id'] = $clientOrderId;
             }
+            $applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+            $brokerId = $this->safe_string($this->options, 'brokerId', $applicationId);
+            if ($brokerId !== null) {
+                $request['broker_id'] = $brokerId;
+            }
             $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ));
             $response = Async\await($this->v1PrivatePostOrder (array_merge($request, $params)));
             // {
@@ -814,7 +824,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -1996,7 +2006,7 @@ class woo extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         //
         //     400 Bad Request array("success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled.")
@@ -2008,6 +2018,7 @@ class woo extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         }
+        return null;
     }
 
     public function parse_income($income, $market = null) {

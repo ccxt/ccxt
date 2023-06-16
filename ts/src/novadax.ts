@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, Cance
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -716,7 +716,7 @@ export default class novadax extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name novadax#createOrder
@@ -1521,7 +1521,7 @@ export default class novadax extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //     {"code":"A10003","data":[],"message":"Authentication failed, Invalid accessKey."}
@@ -1534,5 +1534,6 @@ export default class novadax extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

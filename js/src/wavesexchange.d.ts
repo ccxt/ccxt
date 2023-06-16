@@ -1,5 +1,5 @@
 import Exchange from './abstract/wavesexchange.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 export default class wavesexchange extends Exchange {
     describe(): any;
     setSandboxMode(enabled: any): void;
@@ -48,7 +48,7 @@ export default class wavesexchange extends Exchange {
     priceFromPrecision(symbol: any, price: any): string;
     safeGetDynamic(settings: any): any;
     safeGetRates(dynamic: any): any;
-    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<{
         info: any;
         id: string;
@@ -69,19 +69,19 @@ export default class wavesexchange extends Exchange {
         fee: any;
         trades: any;
     }>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     parseOrderStatus(status: any): string;
     getSymbolFromAssetPair(assetPair: any): string;
-    parseOrder(order: any, market?: any): any;
+    parseOrder(order: any, market?: any): import("./base/types.js").Order;
     getWavesAddress(): Promise<any>;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         id: any;
         txid: any;
