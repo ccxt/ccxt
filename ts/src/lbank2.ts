@@ -303,7 +303,7 @@ export default class lbank2 extends Exchange {
             const quoteId = parts[1];
             const base = baseId.toUpperCase ();
             const quote = quoteId.toUpperCase ();
-            let symbol = base + '/' + quote;
+            const symbol = base + '/' + quote;
             const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityAccuracy')));
             result.push ({
                 'id': marketId,
