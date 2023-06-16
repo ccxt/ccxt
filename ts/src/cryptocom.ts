@@ -1342,10 +1342,12 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-trades
          * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch trades for, maximum date range is one day
+         * @param {int|undefined} limit the maximum number of trade structures to retrieve
          * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
@@ -1356,49 +1358,49 @@ export default class cryptocom extends Exchange {
             request['instrument_name'] = market['id'];
         }
         if (since !== undefined) {
-            // maximum date range is one day
-            request['start_ts'] = since;
-            const endTimestamp = this.sum (since, 24 * 60 * 60 * 1000);
-            request['end_ts'] = endTimestamp;
+            request['start_time'] = since;
         }
         if (limit !== undefined) {
-            request['page_size'] = limit;
+            request['limit'] = limit;
         }
-        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'v2PrivatePostPrivateGetTrades',
-            'margin': 'v2PrivatePostPrivateMarginGetTrades',
-            'future': 'derivativesPrivatePostPrivateGetTrades',
-            'swap': 'derivativesPrivatePostPrivateGetTrades',
-        });
-        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchMyTrades', marketTypeQuery);
-        if (marginMode !== undefined) {
-            method = 'v2PrivatePostPrivateMarginGetTrades';
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
+        if (until !== undefined) {
+            request['end_time'] = until;
         }
-        const response = await this[method] (this.extend (request, query));
-        // {
-        //     "id": 11,
-        //     "method": "private/get-trades",
-        //     "code": 0,
-        //     "result": {
-        //       "trade_list": [
-        //         {
-        //           "side": "SELL",
-        //           "instrument_name": "ETH_CRO",
-        //           "fee": 0.014,
-        //           "trade_id": "367107655537806900",
-        //           "create_time": 1588777459755,
-        //           "traded_price": 7,
-        //           "traded_quantity": 1,
-        //           "fee_currency": "CRO",
-        //           "order_id": "367107623521528450"
+        const response = await this.v1PrivatePostPrivateGetTrades (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1686942003520,
+        //         "method": "private/get-trades",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "account_id": "ds075abc-1234-4321-bd6g-ff9007252r63",
+        //                     "event_date": "2023-06-16",
+        //                     "journal_type": "TRADING",
+        //                     "side": "BUY",
+        //                     "instrument_name": "BTC_USD",
+        //                     "fees": "-0.0000000525",
+        //                     "trade_id": "6142909898247428343",
+        //                     "trade_match_id": "4611686018455978480",
+        //                     "create_time": 1686941992887,
+        //                     "traded_price": "26347.16",
+        //                     "traded_quantity": "0.00021",
+        //                     "fee_instrument_name": "BTC",
+        //                     "client_oid": "d1c70a60-810e-4c92-b2a0-72b931cb31e0",
+        //                     "taker_side": "TAKER",
+        //                     "order_id": "6142909895036331486",
+        //                     "create_time_ns": "1686941992887207066"
+        //                 }
+        //             ]
         //         }
-        //       ]
         //     }
-        // }
-        const data = this.safeValue (response, 'result', {});
-        const resultList = this.safeValue2 (data, 'trade_list', 'data', []);
-        return this.parseTrades (resultList, market, since, limit);
+        //
+        const result = this.safeValue (response, 'result', {});
+        const trades = this.safeValue (result, 'data', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseAddress (addressString) {
@@ -1895,64 +1897,47 @@ export default class cryptocom extends Exchange {
         //
         // {"dataTime":1591710781947,"d":465533583799589409,"s":"BUY","p":2.96,"q":16.0,"t":1591710781946,"i":"ICX_CRO"},
         //
-        // private/get-trades
+        // fetchMyTrades
         //
-        // {
-        //     "side": "SELL",
-        //     "instrument_name": "ETH_CRO",
-        //     "fee": 0.014,
-        //     "trade_id": "367107655537806900",
-        //     "create_time": 1588777459755,
-        //     "traded_price": 7,
-        //     "traded_quantity": 1,
-        //     "fee_currency": "CRO",
-        //     "order_id": "367107623521528450"
-        // }
+        //     {
+        //         "account_id": "ds075abc-1234-4321-bd6g-ff9007252r63",
+        //         "event_date": "2023-06-16",
+        //         "journal_type": "TRADING",
+        //         "side": "BUY",
+        //         "instrument_name": "BTC_USD",
+        //         "fees": "-0.0000000525",
+        //         "trade_id": "6142909898247428343",
+        //         "trade_match_id": "4611686018455978480",
+        //         "create_time": 1686941992887,
+        //         "traded_price": "26347.16",
+        //         "traded_quantity": "0.00021",
+        //         "fee_instrument_name": "BTC",
+        //         "client_oid": "d1c70a60-1234-4c92-b2a0-72b931cb31e0",
+        //         "taker_side": "TAKER",
+        //         "order_id": "6142909895036331486",
+        //         "create_time_ns": "1686941992887207066"
+        //     }
+        //
         const timestamp = this.safeInteger2 (trade, 't', 'create_time');
         const marketId = this.safeString2 (trade, 'i', 'instrument_name');
         market = this.safeMarket (marketId, market, '_');
-        const symbol = market['symbol'];
-        const price = this.safeString2 (trade, 'p', 'traded_price');
-        const amount = this.safeString2 (trade, 'q', 'traded_quantity');
-        let side = this.safeString2 (trade, 's', 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
-        const id = this.safeString2 (trade, 'd', 'trade_id');
-        const takerOrMaker = this.safeStringLower2 (trade, 'liquidity_indicator', 'taker_side');
-        const order = this.safeString (trade, 'order_id');
-        let fee = undefined;
-        let feeCost = this.safeString2 (trade, 'fee', 'fees');
-        if (feeCost !== undefined) {
-            const contract = this.safeValue (market, 'contract', false);
-            if (contract) {
-                feeCost = Precise.stringNeg (feeCost);
-            }
-            let feeCurrency = undefined;
-            if (market['spot']) {
-                feeCurrency = this.safeString (trade, 'fee_currency');
-            } else if (market['linear']) {
-                feeCurrency = market['quote'];
-            }
-            fee = {
-                'currency': feeCurrency,
-                'cost': feeCost,
-            };
-        }
         return this.safeTrade ({
             'info': trade,
-            'id': id,
+            'id': this.safeString2 (trade, 'd', 'trade_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'side': side,
-            'price': price,
-            'amount': amount,
+            'symbol': market['symbol'],
+            'order': this.safeString (trade, 'order_id'),
+            'side': this.safeStringLower2 (trade, 's', 'side'),
+            'takerOrMaker': this.safeStringLower2 (trade, 'liquidity_indicator', 'taker_side'),
+            'price': this.safeNumber2 (trade, 'p', 'traded_price'),
+            'amount': this.safeNumber2 (trade, 'q', 'traded_quantity'),
             'cost': undefined,
-            'order': order,
-            'takerOrMaker': takerOrMaker,
             'type': undefined,
-            'fee': fee,
+            'fee': {
+                'currency': this.safeString (trade, 'fee_instrument_name'),
+                'cost': this.safeNumber (trade, 'fees'),
+            },
         }, market);
     }
 
