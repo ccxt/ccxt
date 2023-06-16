@@ -282,71 +282,92 @@ class Precise {
         return (new Precise (string1)).le (new Precise (string2));
     }
 
-    static stringArithFromNumbers (number1: number, number2: number, methodTail: string) {
+    static stringMulFromNumbers (number1: number, number2: number) {
         const string1 = numberToString (number1);
         const string2 = numberToString (number2);
-        const method = 'string' + methodTail;
-        return this[method] (string1, string2);
-    }
-
-    static stringMulFromNumbers (number1: number, number2: number) {
-        return this.stringArithFromNumbers (number1, number2, 'Mul');
+        return this.stringMul (string1, string2);
     }
 
     static stringDivFromNumbers (number1: number, number2: number) {
-        return this.stringArithFromNumbers (number1, number2, 'Div');
+        const string1 = numberToString (number1);
+        const string2 = numberToString (number2);
+        return this.stringDiv (string1, string2);
     }
 
     static stringAddFromNumbers (number1: number, number2: number) {
-        return this.stringArithFromNumbers (number1, number2, 'Add');
+        const string1 = numberToString (number1);
+        const string2 = numberToString (number2);
+        return this.stringAdd (string1, string2);
     }
 
     static stringSubFromNumbers (number1: number, number2: number) {
-        return this.stringArithFromNumbers (number1, number2, 'Sub');
+        const string1 = numberToString (number1);
+        const string2 = numberToString (number2);
+        return this.stringSub (string1, string2);
     }
 
-    static stringAbsFromNumbers (number1: number, number2: number) {
-        return this.stringArithFromNumbers (number1, number2, 'Abs');
+    static stringAbsFromNumbers (number1: number) {
+        const string1 = numberToString (number1);
+        return this.stringAbs (string1);
     }
 
-    static stringNegFromNumbers (number1: number, number2: number) {
-        return this.stringArithFromNumbers (number1, number2, 'Neg');
+    static stringNegFromNumbers (number1: number) {
+        const string1 = numberToString (number1);
+        return this.stringNeg (string1);
     }
 
     static stringModFromNumbers (number1: number, number2: number) {
-        return this.stringArithFromNumbers (number1, number2, 'Mod');
+        const string1 = numberToString (number1);
+        const string2 = numberToString (number2);
+        return this.stringMod (string1, string2);
     }
 
     static stringEqualsFromNumbers (number1: number, number2: number) {
-        return this.stringArithFromNumbers (number1, number2, 'Equals');
+        const string1 = numberToString (number1);
+        const string2 = numberToString (number2);
+        return this.stringEquals (string1, string2);
     }
 
     static stringEqFromNumbers (number1: number, number2: number) {
-        return this.stringArithFromNumbers (number1, number2, 'Eq');
+        const string1 = numberToString (number1);
+        const string2 = numberToString (number2);
+        return this.stringEq (string1, string2);
     }
 
     static stringMinFromNumbers (number1: number, number2: number) {
-        return this.stringArithFromNumbers (number1, number2, 'Min');
+        const string1 = numberToString (number1);
+        const string2 = numberToString (number2);
+        return this.stringMin (string1, string2);
     }
 
     static stringMaxFromNumbers (number1: number, number2: number) {
-        return this.stringArithFromNumbers (number1, number2, 'Max');
+        const string1 = numberToString (number1);
+        const string2 = numberToString (number2);
+        return this.stringMax (string1, string2);
     }
 
     static stringGtFromNumbers (number1: number, number2: number) {
-        return this.stringArithFromNumbers (number1, number2, 'Gt');
+        const string1 = numberToString (number1);
+        const string2 = numberToString (number2);
+        return this.stringGt (string1, string2);
     }
 
     static stringGeFromNumbers (number1: number, number2: number) {
-        return this.stringArithFromNumbers (number1, number2, 'Ge');
+        const string1 = numberToString (number1);
+        const string2 = numberToString (number2);
+        return this.stringGe (string1, string2);
     }
 
     static stringLtFromNumbers (number1: number, number2: number) {
-        return this.stringArithFromNumbers (number1, number2, 'Lt');
+        const string1 = numberToString (number1);
+        const string2 = numberToString (number2);
+        return this.stringLt (string1, string2);
     }
 
     static stringLeFromNumbers (number1: number, number2: number) {
-        return this.stringArithFromNumbers (number1, number2, 'Le');
+        const string1 = numberToString (number1);
+        const string2 = numberToString (number2);
+        return this.stringLe (string1, string2);
     }
 }
 
