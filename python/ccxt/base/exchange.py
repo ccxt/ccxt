@@ -106,7 +106,6 @@ class Exchange(object):
     # rate limiter settings
     enableRateLimit = True
     rateLimit = 2000  # milliseconds = seconds * 1000
-    sandboxFlag = False
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_proxy = None

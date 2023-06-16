@@ -181,7 +181,6 @@ export default class Exchange {
     validateServerSsl = true
     validateClientSsl = false
 
-    sandboxFlag   = false
     timeout       = 10000 // milliseconds
     verbose       = false
     debug         = false
@@ -1428,7 +1427,6 @@ export default class Exchange {
                     this.urls['apiBackup'] = this.clone (this.urls['api']);
                     this.urls['api'] = this.clone (this.urls['test']);
                 }
-                this.sandboxFlag = true;
             } else {
                 throw new NotSupported (this.id + ' does not have a sandbox URL');
             }
@@ -1439,7 +1437,6 @@ export default class Exchange {
                 this.urls['api'] = this.clone (this.urls['apiBackup']);
             }
             this.removeSubKeyFromInstance ('urls', 'apiBackup');
-            this.sandboxFlag = false;
         }
     }
 
@@ -3229,20 +3226,16 @@ export default class Exchange {
         return this.handleOptionAndParams (params, methodName, 'marginMode', defaultValue);
     }
 
-    addSandboxPrefix () {
-        return (this.sandboxFlag ? ' (SANDBOX_MODE)' : '');
-    }
-
     throwExactlyMatchedException (exact, string, message) {
         if (string in exact) {
-            throw new exact[string] (message + this.addSandboxPrefix ());
+            throw new exact[string] (message);
         }
     }
 
     throwBroadlyMatchedException (broad, string, message) {
         const broadKey = this.findBroadlyMatchedKey (broad, string);
         if (broadKey !== undefined) {
-            throw new broad[broadKey] (message + this.addSandboxPrefix ());
+            throw new broad[broadKey] (message);
         }
     }
 
