@@ -2342,7 +2342,7 @@ export default class Exchange {
     async fetchWebEndpoint (method, endpointMethod, returnAsJson, startRegex = undefined, endRegex = undefined) {
         try {
             const options = this.safeValue (this.options, method, {});
-            // if it was not explicitly disabled, then don't fetch
+            // if it was not explicitly enabled, then don't fetch
             if (this.safeValue (options, 'webApiEnable', true) !== true) {
                 return undefined;
             }
