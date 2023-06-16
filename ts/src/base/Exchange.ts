@@ -1413,7 +1413,7 @@ export default class Exchange {
         return this.filterByLimit (result, limit, key);
     }
 
-    setSandboxMode (enabled: boolean) {
+    setSandboxMode (enabled) {
         if (enabled) {
             if ('test' in this.urls) {
                 if (typeof this.urls['api'] === 'string') {
