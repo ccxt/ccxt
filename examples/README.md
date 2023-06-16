@@ -251,6 +251,8 @@ https://www.youtube.com/watch?v=K-EZ9QXezZM
 
 [ربات آربیتراژ با CCXT و پایتون - آموزش ساخت ربات آربیتراژ ارز دیجیتال - ویژه مبتدیان](https://www.youtube.com/watch?v=GmIrL0btU-4) – A CCXT Tutorial On Quick Arbs In Persian language
 
+[برمجة روبوت تداول الجزء الاول "ccxt"](https://www.youtube.com/watch?v=8y41lRidGzY) – A video tutorial on trading bot programming with CCXT in Arabic.
+
 [Simple trading bot in JavaScript using ~40 lines of code](https://www.tuicool.com/articles/vqymAj3) – A demo of how to make a trading bot with CCXT.
 
 [Using ccxt and technicalindicators to calculate MACD for BTC/USDT with Node.js](https://runkit.com/dhilipb/macd-for-btc-usdt) – A runkit sample showing how to fetch data and run statistical calculations.
