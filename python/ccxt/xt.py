@@ -4303,7 +4303,7 @@ class xt(Exchange, ImplicitAPI):
         #     }
         #
         status = self.safe_string_upper_2(response, 'msgInfo', 'mc')
-        if status != 'SUCCESS':
+        if status is not None and status != 'SUCCESS':
             feedback = self.id + ' ' + body
             error = self.safe_value(response, 'error', {})
             spotErrorCode = self.safe_string(response, 'mc')

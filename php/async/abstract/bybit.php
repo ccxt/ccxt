@@ -754,6 +754,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function private_get_v5_ins_loan_ltv_convert($params = array()) {
         return $this->request('v5/ins-loan/ltv-convert', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_v5_broker_earning_record($params = array()) {
+        return $this->request('v5/broker/earning-record', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_post_v2_private_order_create($params = array()) {
         return $this->request('v2/private/order/create', 'private', 'POST', $params, null, null, array("cost" => 30));
     }
@@ -2049,6 +2052,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function privateGetV5InsLoanLtvConvert($params = array()) {
         return $this->request('v5/ins-loan/ltv-convert', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetV5BrokerEarningRecord($params = array()) {
+        return $this->request('v5/broker/earning-record', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privatePostV2PrivateOrderCreate($params = array()) {
         return $this->request('v2/private/order/create', 'private', 'POST', $params, null, null, array("cost" => 30));

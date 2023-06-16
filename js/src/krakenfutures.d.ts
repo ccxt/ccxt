@@ -26,8 +26,8 @@ export default class krakenfutures extends Exchange {
     parseFundingRate(ticker: any, market?: any): {
         info: any;
         symbol: string;
-        markPrice: any;
-        indexPrice: any;
+        markPrice: number;
+        indexPrice: number;
         interestRate: any;
         estimatedSettlePrice: any;
         timestamp: number;

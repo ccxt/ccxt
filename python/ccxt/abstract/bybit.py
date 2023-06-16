@@ -251,6 +251,7 @@ class ImplicitAPI:
     private_get_v5_spot_cross_margin_trade_orders = privateGetV5SpotCrossMarginTradeOrders = Entry('v5/spot-cross-margin-trade/orders', 'private', 'GET', {'cost': 1})
     private_get_v5_spot_cross_margin_trade_repay_history = privateGetV5SpotCrossMarginTradeRepayHistory = Entry('v5/spot-cross-margin-trade/repay-history', 'private', 'GET', {'cost': 1})
     private_get_v5_ins_loan_ltv_convert = privateGetV5InsLoanLtvConvert = Entry('v5/ins-loan/ltv-convert', 'private', 'GET', {'cost': 1})
+    private_get_v5_broker_earning_record = privateGetV5BrokerEarningRecord = Entry('v5/broker/earning-record', 'private', 'GET', {'cost': 1})
     private_post_v2_private_order_create = privatePostV2PrivateOrderCreate = Entry('v2/private/order/create', 'private', 'POST', {'cost': 30})
     private_post_v2_private_order_cancel = privatePostV2PrivateOrderCancel = Entry('v2/private/order/cancel', 'private', 'POST', {'cost': 30})
     private_post_v2_private_order_cancelall = privatePostV2PrivateOrderCancelAll = Entry('v2/private/order/cancelAll', 'private', 'POST', {'cost': 300})
