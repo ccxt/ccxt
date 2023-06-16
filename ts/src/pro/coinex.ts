@@ -317,14 +317,14 @@ export default class coinex extends coinexRest {
         }
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
-            const parsed = this.parseWSTrade (trade, market);
+            const parsed = this.parseWsTrade (trade, market);
             stored.append (parsed);
         }
         this.trades[symbol] = stored;
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    parseWSTrade (trade, market = undefined) {
+    parseWsTrade (trade, market = undefined) {
         //
         //     {
         //         "type": "sell",
@@ -748,7 +748,7 @@ export default class coinex extends coinexRest {
         //
         const params = this.safeValue (message, 'params', []);
         const order = this.safeValue (params, 1, {});
-        const parsedOrder = this.parseWSOrder (order);
+        const parsedOrder = this.parseWsOrder (order);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -760,7 +760,7 @@ export default class coinex extends coinexRest {
         client.resolve (this.orders, messageHash);
     }
 
-    parseWSOrder (order, market = undefined) {
+    parseWsOrder (order, market = undefined) {
         //
         //  spot
         //
@@ -913,13 +913,13 @@ export default class coinex extends coinexRest {
             'remaining': remaining,
             'cost': cost,
             'average': average,
-            'status': this.parseWSOrderStatus (status),
+            'status': this.parseWsOrderStatus (status),
             'fee': fee,
             'trades': undefined,
         }, market);
     }
 
-    parseWSOrderStatus (status) {
+    parseWsOrderStatus (status) {
         const statuses = {
             '0': 'pending',
             '1': 'ok',
