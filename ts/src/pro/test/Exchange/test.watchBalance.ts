@@ -12,6 +12,7 @@ import errors from '../../../base/errors.js';
 export default async (exchange) => {
 
     const method = 'watchBalance';
+    const skippedProperties = {};
 
     if (!exchange.has[method]) {
         console.log (exchange.id, 'does not support', method, '() method');
@@ -31,7 +32,7 @@ export default async (exchange) => {
 
             console.log (exchange.iso8601 (now), exchange.id, method, balance);
 
-            testBalance (exchange, method, balance);
+            testBalance (exchange, skippedProperties, method, balance);
 
         } catch (e) {
 

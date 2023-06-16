@@ -1,7 +1,7 @@
 
 
 import log from 'ololog';
-import ccxt from '../../ccxt.js';
+import ccxt from '../../js/ccxt.js';
 
 const exchange = new ccxt.coinone ({
     'verbose': process.argv.includes ('--verbose'),

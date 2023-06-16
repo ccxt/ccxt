@@ -132,6 +132,7 @@ class bitmart extends Exchange {
                         'contract/public/open-interest' => 30,
                         'contract/public/funding-rate' => 30,
                         'contract/public/kline' => 5,
+                        'account/v1/currencies' => 30,
                     ),
                 ),
                 'private' => array(
@@ -1494,7 +1495,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response, $marketType) {
+    public function custom_parse_balance($response, $marketType) {
         $data = $this->safe_value($response, 'data', array());
         $wallet = null;
         if ($marketType === 'swap') {
@@ -1668,7 +1669,7 @@ class bitmart extends Exchange {
             //         }
             //     }
             //
-            return $this->parse_balance($response, $marketType);
+            return $this->custom_parse_balance($response, $marketType);
         }) ();
     }
 
@@ -1831,7 +1832,7 @@ class bitmart extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order

@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitfinex import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -857,7 +858,7 @@ class bitfinex(Exchange, ImplicitAPI):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        marketId = self.safe_string(market, 'pair')
+        marketId = self.safe_string(ticker, 'pair')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         last = self.safe_string(ticker, 'last_price')
@@ -1004,7 +1005,7 @@ class bitfinex(Exchange, ImplicitAPI):
         response = self.privatePostMytrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

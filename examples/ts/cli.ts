@@ -34,6 +34,7 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , isSpot = process.argv.includes ('--spot')
     , isSwap = process.argv.includes ('--swap')
     , isFuture = process.argv.includes ('--future')
+    , isOption = process.argv.includes ('--option')
 
 //-----------------------------------------------------------------------------
 
@@ -98,6 +99,8 @@ try {
         exchange.options['defaultType'] = 'swap';
     } else if (isFuture) {
         exchange.options['defaultType'] = 'future';
+    } else if (isOption) {
+        exchange.options['defaultType'] = 'option';
     }
 
     // check auth keys in env var

@@ -16,7 +16,7 @@ sys.path.append(root)
 from ccxt.test.base import test_shared_methods  # noqa E402
 
 
-def test_open_interest(exchange, method, entry):
+def test_open_interest(exchange, skipped_properties, method, entry):
     format = {
         'symbol': 'BTC/USDT',
         'baseVolume': exchange.parse_number('81094.084'),
@@ -25,10 +25,10 @@ def test_open_interest(exchange, method, entry):
         'datetime': '2022-04-07T23:20:00.000Z',
         'info': {},
     }
-    empty_not_allowed_for = ['baseVolume']
-    test_shared_methods.assert_structure(exchange, method, entry, format, empty_not_allowed_for)
-    test_shared_methods.assert_symbol(exchange, method, entry, 'symbol')
-    test_shared_methods.assert_timestamp(exchange, method, entry)
+    empty_allowed_for = ['quoteVolume', 'symbol', 'timestamp']
+    test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
+    test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, 'symbol')
+    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry)
     #
-    test_shared_methods.assert_greater(exchange, method, entry, 'quoteVolume', '0')
-    test_shared_methods.assert_greater(exchange, method, entry, 'baseVolume', '0')
+    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'quoteVolume', '0')
+    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'baseVolume', '0')

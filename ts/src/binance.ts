@@ -4,7 +4,7 @@
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { Market, Int, OrderSide } from './base/types.js';
+import { Market, Int, OrderSide, Balances, OrderType } from './base/types.js';
 import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -165,6 +165,7 @@ export default class binance extends Exchange {
                     'public': 'https://api.binance.com/api/v3',
                     'private': 'https://api.binance.com/api/v3',
                     'v1': 'https://api.binance.com/api/v1',
+                    'papi': 'https://papi.binance.com/papi/v1',
                 },
                 'www': 'https://www.binance.com',
                 'referral': {
@@ -262,7 +263,7 @@ export default class binance extends Exchange {
                         'capital/deposit/subHisrec': 0.1,
                         'capital/withdraw/history': 0.1,
                         'capital/contract/convertible-coins': 4.0002,
-                        'convert/tradeFlow': 0.6667, // Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'convert/tradeFlow': 20.0001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.0001
                         'convert/exchangeInfo': 50,
                         'convert/assetInfo': 10,
                         'convert/orderStatus': 0.6667,
@@ -396,6 +397,7 @@ export default class binance extends Exchange {
                         // 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
                         'capital/withdraw/apply': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'capital/contract/convertible-coins': 4.0002,
+                        'capital/deposit/credit-apply': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'margin/transfer': 1, // Weight(IP): 600 => cost = 0.1 * 600 = 60
                         'margin/loan': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay': 20.001,
@@ -476,6 +478,8 @@ export default class binance extends Exchange {
                         'loan/vip/repay': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'convert/getQuote': 20.001,
                         'convert/acceptQuote': 3.3335,
+                        'portfolio/auto-collection': 0.6667, // Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'portfolio/bnb-transfer': 0.6667, // Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -554,7 +558,6 @@ export default class binance extends Exchange {
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 },
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
                         'openInterest': 1,
-                        'pmExchangeInfo': 1,
                     },
                 },
                 'dapiData': {
@@ -635,7 +638,6 @@ export default class binance extends Exchange {
                         'indexInfo': 1,
                         'apiTradingStatus': { 'cost': 1, 'noSymbol': 10 },
                         'lvtKlines': 1,
-                        'pmExchangeInfo': 1,
                     },
                 },
                 'fapiData': {
@@ -808,6 +810,72 @@ export default class binance extends Exchange {
                         'openOrders': 1, // added on 2020-04-25 for canceling all open orders per symbol
                         'orderList': 1, // oco
                         'order': 1,
+                    },
+                },
+                'papi': {
+                    'get': {
+                        'um/order': 1, // 1
+                        'um/openOrder': 1, // 1
+                        'um/openOrders': 1, // 1
+                        'um/allOrders': 5, // 5
+                        'cm/order': 1, // 1
+                        'cm/openOrder': 1, // 1
+                        'cm/openOrders': 1, // 1
+                        'cm/allOrders': 20, // 20
+                        'balance': 20, // 20
+                        'account': 20, // 20
+                        'margin/maxBorrowable': 5, // 5
+                        'margin/maxWithdraw': 5, // 5
+                        'um/positionRisk': 5, // 5
+                        'cm/positionRisk': 1, // 1
+                        'um/positionSide/dual': 30, // 30
+                        'cm/positionSide/dual': 30, // 30
+                        'um/userTrades': 5, // 5
+                        'cm/userTrades': 20, // 20
+                        'um/leverageBracket': 1, // 1
+                        'cm/leverageBracket': 1, // 1
+                        'margin/forceOrders': 1, // 1
+                        'um/forceOrders': 20, // 20
+                        'cm/forceOrders': 20, // 20
+                        'um/apiTradingStatus': 1, // 1
+                        'um/commissionRate': 20, // 20
+                        'cm/commissionRate': 20, // 20
+                        'um/income': 30,
+                        'cm/income ': 30,
+                        'um/account': 5,
+                        'cm/account': 5,
+                        'margin/marginLoan': 0.0667, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
+                        'margin/repayLoan': 0.0667, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
+                        'margin/marginInterestHistory': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'portfolio/interest-history': 50, // 50
+                    },
+                    'post': {
+                        'um/order': 1, // 0
+                        'cm/order': 1, // 0
+                        'margin/order': 0.0133, // Weight(UID): 2 => cost = 0.006667 * 2 = 0.013334
+                        'marginLoan': 0.1333, // Weight(UID): 20 => cost = 0.006667 * 20 = 0.13334
+                        'repayLoan': 0.1333, // Weight(UID): 20 => cost = 0.006667 * 20 = 0.13334
+                        'margin/order/oco': 0.0400, // Weight(UID): 6 => cost = 0.006667 * 6 = 0.040002
+                        'um/leverage': 1, // 1
+                        'cm/leverage': 1, // 1
+                        'um/positionSide/dual': 1, // 1
+                        'cm/positionSide/dual': 1, // 1
+                        'auto-collection': 0.6667, // Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'bnb-transfer': 0.6667, // Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'listenKey': 1, // 1
+                    },
+                    'put': {
+                        'listenKey': 1, // 1
+                    },
+                    'delete': {
+                        'um/order': 1, // 1
+                        'um/allOpenOrders': 1, // 1
+                        'cm/order': 1, // 1
+                        'cm/allOpenOrders': 1, // 1
+                        'margin/order': 1, // Weight(IP): 10 => cost = 0.1 * 10 = 1
+                        'margin/allOpenOrders': 5, // 5
+                        'margin/orderList': 2, // 2
+                        'listenKey': 1, // 1
                     },
                 },
             },
@@ -2231,7 +2299,7 @@ export default class binance extends Exchange {
         return account;
     }
 
-    parseBalance (response, type = undefined, marginMode = undefined) {
+    parseBalance (response, type = undefined, marginMode = undefined): Balances {
         const result = {
             'info': response,
         };
@@ -2938,10 +3006,14 @@ export default class binance extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const market = this.getMarketFromSymbols (symbols);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
+        let type = undefined;
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchLastPrices', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
         let method = undefined;
-        if (marketType === 'future') {
+        if (this.isLinear (type, subType)) {
             method = 'fapiPublicGetTickerPrice';
             //
             //     [
@@ -2953,7 +3025,7 @@ export default class binance extends Exchange {
             //         ...
             //     ]
             //
-        } else if (marketType === 'delivery') {
+        } else if (this.isInverse (type, subType)) {
             method = 'dapiPublicGetTickerPrice';
             //
             //     [
@@ -2965,7 +3037,7 @@ export default class binance extends Exchange {
             //         }
             //     ]
             //
-        } else if (marketType === 'spot') {
+        } else if (type === 'spot') {
             method = 'publicGetTickerPrice';
             //
             //     [
@@ -2977,9 +3049,9 @@ export default class binance extends Exchange {
             //     ]
             //
         } else {
-            throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + marketType + ' markets yet');
+            throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
         }
-        const response = await this[method] (query);
+        const response = await this[method] (params);
         return this.parseLastPrices (response, symbols);
     }
 
@@ -3010,10 +3082,10 @@ export default class binance extends Exchange {
         //         "time": 1591257246176
         //     }
         //
-        const marketId = this.safeString (info, 'symbol');
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        market = this.safeMarket (marketId, market, undefined, defaultType);
         const timestamp = this.safeInteger (info, 'time');
+        const type = (timestamp === undefined) ? 'spot' : 'swap';
+        const marketId = this.safeString (info, 'symbol');
+        market = this.safeMarket (marketId, market, undefined, type);
         const price = this.safeNumber (info, 'price');
         return {
             'symbol': market['symbol'],
@@ -3021,8 +3093,6 @@ export default class binance extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'price': price,
             'side': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': undefined,
             'info': info,
         };
     }
@@ -3558,10 +3628,10 @@ export default class binance extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    async editSpotOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
-         * @name binance#editOrder
+         * @name binance#editSpotOrder
          * @description edit a trade order
          * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
          * @param {string} id cancel order id
@@ -3576,118 +3646,136 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['spot']) {
-            throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
+            throw new NotSupported (this.id + ' editSpotOrder() does not support ' + market['type'] + ' orders');
         }
         const request = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
-            'cancelReplaceMode': 'STOP_ON_FAILURE',
-            // STOP_ON_FAILURE - If the cancel request fails, the new order placement will not be attempted.
-            // ALLOW_FAILURE - new order placement will be attempted even if cancel request fails.
         };
-        const cancelId = this.safeString2 (params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId');
-        if (cancelId === undefined) {
-            request['cancelOrderId'] = id; // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
-        }
-        const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
-        const initialUppercaseType = type.toUpperCase ();
-        let uppercaseType = initialUppercaseType;
-        const postOnly = this.isPostOnly (initialUppercaseType === 'MARKET', initialUppercaseType === 'LIMIT_MAKER', params);
-        if (postOnly) {
-            uppercaseType = 'LIMIT_MAKER';
-        }
-        request['type'] = uppercaseType;
-        const stopPrice = this.safeNumber (params, 'stopPrice');
-        if (stopPrice !== undefined) {
-            if (uppercaseType === 'MARKET') {
-                uppercaseType = 'STOP_LOSS';
-            } else if (uppercaseType === 'LIMIT') {
-                uppercaseType = 'STOP_LOSS_LIMIT';
+        const clientOrderId = this.safeStringN (params, [ 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ]);
+        let response = undefined;
+        if (market['spot']) {
+            const initialUppercaseType = type.toUpperCase ();
+            let uppercaseType = initialUppercaseType;
+            const postOnly = this.isPostOnly (initialUppercaseType === 'MARKET', initialUppercaseType === 'LIMIT_MAKER', params);
+            if (postOnly) {
+                uppercaseType = 'LIMIT_MAKER';
             }
-        }
-        const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
-        if (!this.inArray (uppercaseType, validOrderTypes)) {
-            if (initialUppercaseType !== uppercaseType) {
-                throw new InvalidOrder (this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
-            } else {
-                throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
-            }
-        }
-        if (clientOrderId === undefined) {
-            const broker = this.safeValue (this.options, 'broker');
-            if (broker !== undefined) {
-                const brokerId = this.safeString (broker, 'spot');
-                if (brokerId !== undefined) {
-                    request['newClientOrderId'] = brokerId + this.uuid22 ();
+            request['type'] = uppercaseType;
+            const stopPrice = this.safeNumber (params, 'stopPrice');
+            if (stopPrice !== undefined) {
+                if (uppercaseType === 'MARKET') {
+                    uppercaseType = 'STOP_LOSS';
+                } else if (uppercaseType === 'LIMIT') {
+                    uppercaseType = 'STOP_LOSS_LIMIT';
                 }
             }
-        } else {
-            request['newClientOrderId'] = clientOrderId;
-        }
-        request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        let timeInForceIsRequired = false;
-        let priceIsRequired = false;
-        let stopPriceIsRequired = false;
-        let quantityIsRequired = false;
-        if (uppercaseType === 'MARKET') {
-            const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', true);
-            if (quoteOrderQty) {
-                const quoteOrderQtyNew = this.safeValue2 (params, 'quoteOrderQty', 'cost');
-                const precision = market['precision']['price'];
-                if (quoteOrderQtyNew !== undefined) {
-                    request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
-                } else if (price !== undefined) {
-                    const amountString = this.numberToString (amount);
-                    const priceString = this.numberToString (price);
-                    const quoteOrderQuantity = Precise.stringMul (amountString, priceString);
-                    request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
+            const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
+            if (!this.inArray (uppercaseType, validOrderTypes)) {
+                if (initialUppercaseType !== uppercaseType) {
+                    throw new InvalidOrder (this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
+                } else {
+                    throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
+                }
+            }
+            if (clientOrderId === undefined) {
+                const broker = this.safeValue (this.options, 'broker');
+                if (broker !== undefined) {
+                    const brokerId = this.safeString (broker, 'spot');
+                    if (brokerId !== undefined) {
+                        request['newClientOrderId'] = brokerId + this.uuid22 ();
+                    }
+                }
+            } else {
+                request['newClientOrderId'] = clientOrderId;
+            }
+            request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+            let timeInForceIsRequired = false;
+            let priceIsRequired = false;
+            let stopPriceIsRequired = false;
+            let quantityIsRequired = false;
+            if (uppercaseType === 'MARKET') {
+                const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', true);
+                if (quoteOrderQty) {
+                    const quoteOrderQtyNew = this.safeValue2 (params, 'quoteOrderQty', 'cost');
+                    const precision = market['precision']['price'];
+                    if (quoteOrderQtyNew !== undefined) {
+                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
+                    } else if (price !== undefined) {
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const quoteOrderQuantity = Precise.stringMul (amountString, priceString);
+                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
+                    } else {
+                        quantityIsRequired = true;
+                    }
                 } else {
                     quantityIsRequired = true;
                 }
-            } else {
+            } else if (uppercaseType === 'LIMIT') {
+                priceIsRequired = true;
+                timeInForceIsRequired = true;
+                quantityIsRequired = true;
+            } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
+                stopPriceIsRequired = true;
+                quantityIsRequired = true;
+            } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                quantityIsRequired = true;
+                stopPriceIsRequired = true;
+                priceIsRequired = true;
+                timeInForceIsRequired = true;
+            } else if (uppercaseType === 'LIMIT_MAKER') {
+                priceIsRequired = true;
                 quantityIsRequired = true;
             }
-        } else if (uppercaseType === 'LIMIT') {
-            priceIsRequired = true;
-            timeInForceIsRequired = true;
-            quantityIsRequired = true;
-        } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
-            stopPriceIsRequired = true;
-            quantityIsRequired = true;
-        } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
-            quantityIsRequired = true;
-            stopPriceIsRequired = true;
-            priceIsRequired = true;
-            timeInForceIsRequired = true;
-        } else if (uppercaseType === 'LIMIT_MAKER') {
-            priceIsRequired = true;
-            quantityIsRequired = true;
-        }
-        if (quantityIsRequired) {
+            if (quantityIsRequired) {
+                request['quantity'] = this.amountToPrecision (symbol, amount);
+            }
+            if (priceIsRequired) {
+                if (price === undefined) {
+                    throw new InvalidOrder (this.id + ' editOrder() requires a price argument for a ' + type + ' order');
+                }
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            if (timeInForceIsRequired) {
+                request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            }
+            if (stopPriceIsRequired) {
+                if (stopPrice === undefined) {
+                    throw new InvalidOrder (this.id + ' editOrder() requires a stopPrice extra param for a ' + type + ' order');
+                } else {
+                    request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+                }
+            }
+            request['cancelReplaceMode'] = 'STOP_ON_FAILURE'; // If the cancel request fails, the new order placement will not be attempted.
+            const cancelId = this.safeString2 (params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId');
+            if (cancelId === undefined) {
+                request['cancelOrderId'] = id; // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
+            }
+            // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
+            if (this.safeString (params, 'timeInForce') === 'PO') {
+                params = this.omit (params, [ 'timeInForce' ]);
+            }
+            params = this.omit (params, [ 'quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
+            response = await this.privatePostOrderCancelReplace (this.extend (request, params));
+        } else {
+            request['orderId'] = id;
             request['quantity'] = this.amountToPrecision (symbol, amount);
-        }
-        if (priceIsRequired) {
-            if (price === undefined) {
-                throw new InvalidOrder (this.id + ' editOrder() requires a price argument for a ' + type + ' order');
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
             }
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
-        if (timeInForceIsRequired) {
-            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-        }
-        if (stopPriceIsRequired) {
-            if (stopPrice === undefined) {
-                throw new InvalidOrder (this.id + ' editOrder() requires a stopPrice extra param for a ' + type + ' order');
-            } else {
-                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            if (clientOrderId !== undefined) {
+                request['origClientOrderId'] = clientOrderId;
+            }
+            params = this.omit (params, [ 'clientOrderId', 'newClientOrderId' ]);
+            if (market['linear']) {
+                response = await this.fapiPrivatePutOrder (this.extend (request, params));
+            } else if (market['inverse']) {
+                response = await this.dapiPrivatePutOrder (this.extend (request, params));
             }
         }
-        // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
-        if (this.safeString (params, 'timeInForce') === 'PO') {
-            params = this.omit (params, [ 'timeInForce' ]);
-        }
-        const requestParams = this.omit (params, [ 'quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
-        const response = await this.privatePostOrderCancelReplace (this.extend (request, requestParams));
+        //
+        // spot
         //
         //     {
         //         "cancelResult": "SUCCESS",
@@ -3727,6 +3815,106 @@ export default class binance extends Exchange {
         //
         const data = this.safeValue (response, 'newOrderResponse');
         return this.parseOrder (data, market);
+    }
+
+    async editContractOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#editOrder
+         * @description edit a trade order
+         * @see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new NotSupported (this.id + ' editContractOrder() does not support ' + market['type'] + ' orders');
+        }
+        const request = {
+            'symbol': market['id'],
+            'side': side.toUpperCase (),
+        };
+        const clientOrderId = this.safeStringN (params, [ 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ]);
+        request['orderId'] = id;
+        request['quantity'] = this.amountToPrecision (symbol, amount);
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (clientOrderId !== undefined) {
+            request['origClientOrderId'] = clientOrderId;
+        }
+        params = this.omit (params, [ 'clientOrderId', 'newClientOrderId' ]);
+        let response = undefined;
+        if (market['linear']) {
+            response = await this.fapiPrivatePutOrder (this.extend (request, params));
+        } else if (market['inverse']) {
+            response = await this.dapiPrivatePutOrder (this.extend (request, params));
+        }
+        //
+        // swap and future
+        //
+        //     {
+        //         "orderId": 151007482392,
+        //         "symbol": "BTCUSDT",
+        //         "status": "NEW",
+        //         "clientOrderId": "web_pCCGp9AIHjziKLlpGpXI",
+        //         "price": "25000",
+        //         "avgPrice": "0.00000",
+        //         "origQty": "0.001",
+        //         "executedQty": "0",
+        //         "cumQty": "0",
+        //         "cumQuote": "0",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "reduceOnly": false,
+        //         "closePosition": false,
+        //         "side": "BUY",
+        //         "positionSide": "BOTH",
+        //         "stopPrice": "0",
+        //         "workingType": "CONTRACT_PRICE",
+        //         "priceProtect": false,
+        //         "origType": "LIMIT",
+        //         "updateTime": 1684300587845
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#editOrder
+         * @description edit a trade order
+         * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
+         * @see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['option']) {
+            throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders');
+        }
+        if (market['spot']) {
+            return await this.editSpotOrder (id, symbol, type, side, amount, price, params);
+        } else {
+            return await this.editContractOrder (id, symbol, type, side, amount, price, params);
+        }
     }
 
     parseOrderStatus (status) {
@@ -3785,6 +3973,32 @@ export default class binance extends Exchange {
         //         "type": "LIMIT",
         //         "side": "BUY",
         //         "fills": []
+        //     }
+        //
+        // swap and future: editOrder
+        //
+        //     {
+        //         "orderId": 151007482392,
+        //         "symbol": "BTCUSDT",
+        //         "status": "NEW",
+        //         "clientOrderId": "web_pCCGp9AIHjziKLlpGpXI",
+        //         "price": "25000",
+        //         "avgPrice": "0.00000",
+        //         "origQty": "0.001",
+        //         "executedQty": "0",
+        //         "cumQty": "0",
+        //         "cumQuote": "0",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "reduceOnly": false,
+        //         "closePosition": false,
+        //         "side": "BUY",
+        //         "positionSide": "BOTH",
+        //         "stopPrice": "0",
+        //         "workingType": "CONTRACT_PRICE",
+        //         "priceProtect": false,
+        //         "origType": "LIMIT",
+        //         "updateTime": 1684300587845
         //     }
         //
         // futures
@@ -3892,28 +4106,19 @@ export default class binance extends Exchange {
         const marketType = ('closePosition' in order) ? 'contract' : 'spot';
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const filled = this.safeString (order, 'executedQty', '0');
-        let timestamp = undefined;
+        const timestamp = this.safeIntegerN (order, [ 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime' ]); // order of the keys matters here
         let lastTradeTimestamp = undefined;
-        if ('time' in order) {
-            timestamp = this.safeInteger (order, 'time');
-        } else if ('workingTime' in order) {
-            lastTradeTimestamp = this.safeInteger (order, 'transactTime');
-            timestamp = this.safeInteger (order, 'workingTime');
-        } else if ('transactTime' in order) {
-            lastTradeTimestamp = this.safeInteger (order, 'transactTime');
-            timestamp = this.safeInteger (order, 'transactTime');
-        } else if ('createTime' in order) {
-            lastTradeTimestamp = this.safeInteger (order, 'updateTime');
-            timestamp = this.safeInteger (order, 'createTime');
-        } else if ('updateTime' in order) {
+        if (('transactTime' in order) || ('updateTime' in order)) {
+            const timestampValue = this.safeInteger2 (order, 'updateTime', 'transactTime');
             if (status === 'open') {
                 if (Precise.stringGt (filled, '0')) {
-                    lastTradeTimestamp = this.safeInteger (order, 'updateTime');
-                } else {
-                    timestamp = this.safeInteger (order, 'updateTime');
+                    lastTradeTimestamp = timestampValue;
                 }
+            } else if (status === 'closed') {
+                lastTradeTimestamp = timestampValue;
             }
         }
+        const lastUpdateTimestamp = this.safeInteger2 (order, 'transactTime', 'updateTime');
         const average = this.safeString (order, 'avgPrice');
         const price = this.safeString (order, 'price');
         const amount = this.safeString2 (order, 'origQty', 'quantity');
@@ -3945,6 +4150,7 @@ export default class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
@@ -3968,13 +4174,18 @@ export default class binance extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name binance#createOrder
          * @description create a trade order
+         * @see https://binance-docs.github.io/apidocs/spot/en/#new-order-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#test-new-order-trade
+         * @see https://binance-docs.github.io/apidocs/futures/en/#new-order-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#new-order-trade
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#new-order-trade
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -3993,7 +4204,8 @@ export default class binance extends Exchange {
         const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);  // fallback to stopLoss
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
-        const isStopLoss = stopLossPrice !== undefined;
+        const trailingDelta = this.safeValue (params, 'trailingDelta');
+        const isStopLoss = stopLossPrice !== undefined || trailingDelta !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
         params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice' ]);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
@@ -4184,7 +4396,6 @@ export default class binance extends Exchange {
                 }
             } else {
                 // check for delta price as well
-                const trailingDelta = this.safeValue (params, 'trailingDelta');
                 if (trailingDelta === undefined && stopPrice === undefined) {
                     throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice or trailingDelta param for a ' + type + ' order');
                 }
@@ -7762,7 +7973,7 @@ export default class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        amount = this.amountToPrecision (symbol, amount);
+        amount = this.costToPrecision (symbol, amount);
         const request = {
             'type': addOrReduce,
             'symbol': market['id'],
@@ -7811,6 +8022,8 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#reduceMargin
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
+         * @see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
          * @description remove margin from a position
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
@@ -7824,6 +8037,8 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#addMargin
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
+         * @see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
          * @description add margin
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add

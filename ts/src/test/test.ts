@@ -34,6 +34,7 @@ class baseMainTestClass {
     publicTests = {};
 }
 const rootDir = __dirname + '/../../../';
+const rootDirForSkips = __dirname + '/../../../';
 const envVars = process.env;
 const ext = import.meta.url.split ('.')[1];
 const httpsAgent = new Agent ({ 'ecdhCurve': 'auto' });
@@ -59,8 +60,8 @@ function ioFileRead (path, decode = true) {
     return decode ? JSON.parse (content) : content;
 }
 
-async function callMethod (testFiles, methodName, exchange, args) {
-    return await testFiles[methodName] (exchange, ...args);
+async function callMethod (testFiles, methodName, exchange, skippedProperties, args) {
+    return await testFiles[methodName] (exchange, skippedProperties, ...args);
 }
 
 function exceptionMessage (exc) {
@@ -141,7 +142,7 @@ export default class testMainClass extends baseMainTestClass {
             'debug': this.debug,
             'httpsAgent': httpsAgent,
             'enableRateLimit': true,
-            'timeout': 20000,
+            'timeout': 30000,
         };
         const exchange = initExchange (exchangeId, exchangeArgs);
         await this.importFiles (exchange);
@@ -200,11 +201,15 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         // skipped tests
-        const skippedFile = rootDir + 'skip-tests.json';
+        const skippedFile = rootDirForSkips + 'skip-tests.json';
         const skippedSettings = ioFileRead (skippedFile);
         const skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
         // others
         const skipReason = exchange.safeValue (skippedSettingsForExchange, 'skip');
+        const timeout = exchange.safeValue (skippedSettingsForExchange, 'timeout');
+        if (timeout !== undefined) {
+            exchange.timeout = timeout;
+        }
         if (skipReason !== undefined) {
             dump ('[SKIPPED] exchange', exchangeId, skipReason);
             exitScript ();
@@ -235,7 +240,7 @@ export default class testMainClass extends baseMainTestClass {
 
     async testMethod (methodName, exchange, args, isPublic) {
         const methodNameInTest = getTestName (methodName);
-        // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in exchange)
+        // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if (!isPublic && (methodNameInTest in this.checkedPublicTests) && (methodName !== 'fetchCurrencies')) {
             return;
         }
@@ -243,7 +248,7 @@ export default class testMainClass extends baseMainTestClass {
         const isFetchOhlcvEmulated = (methodName === 'fetchOHLCV' && exchange.has['fetchOHLCV'] === 'emulated'); // todo: remove emulation from base
         if ((methodName !== 'loadMarkets') && (!(methodName in exchange.has) || !exchange.has[methodName]) || isFetchOhlcvEmulated) {
             skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
-        } else if (methodName in this.skippedMethods) {
+        } else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
             skipMessage = '[INFO:SKIPPED_TEST]';
         } else if (!(methodNameInTest in this.testFiles)) {
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
@@ -260,14 +265,15 @@ export default class testMainClass extends baseMainTestClass {
         }
         let result = null;
         try {
-            result = await callMethod (this.testFiles, methodNameInTest, exchange, args);
+            const skippedProperties = exchange.safeValue (this.skippedMethods, methodName, {});
+            result = await callMethod (this.testFiles, methodNameInTest, exchange, skippedProperties, args);
             if (isPublic) {
                 this.checkedPublicTests[methodNameInTest] = true;
             }
         } catch (e) {
             const isAuthError = (e instanceof AuthenticationError);
             if (!(isPublic && isAuthError)) {
-                dump ('ERROR:', exceptionMessage (e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
+                dump ('[TEST_FAILURE]', exceptionMessage (e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
                 throw e;
             }
         }
@@ -587,65 +593,65 @@ export default class testMainClass extends baseMainTestClass {
         //     await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
         // }
         const tests = {
-            'signIn': [ exchange ],
-            'fetchBalance': [ exchange ],
-            'fetchAccounts': [ exchange ],
-            'fetchTransactionFees': [ exchange ],
-            'fetchTradingFees': [ exchange ],
-            'fetchStatus': [ exchange ],
-            'fetchOrders': [ exchange, symbol ],
-            'fetchOpenOrders': [ exchange, symbol ],
-            'fetchClosedOrders': [ exchange, symbol ],
-            'fetchMyTrades': [ exchange, symbol ],
-            'fetchLeverageTiers': [ exchange, symbol ],
-            'fetchLedger': [ exchange, code ],
-            'fetchTransactions': [ exchange, code ],
-            'fetchDeposits': [ exchange, code ],
-            'fetchWithdrawals': [ exchange, code ],
-            'fetchBorrowRates': [ exchange, code ],
-            'fetchBorrowRate': [ exchange, code ],
-            'fetchBorrowInterest': [ exchange, code, symbol ],
-            'addMargin': [ exchange, symbol ],
-            'reduceMargin': [ exchange, symbol ],
-            'setMargin': [ exchange, symbol ],
-            'setMarginMode': [ exchange, symbol ],
-            'setLeverage': [ exchange, symbol ],
-            'cancelAllOrders': [ exchange, symbol ],
-            'cancelOrder': [ exchange, symbol ],
-            'cancelOrders': [ exchange, symbol ],
-            'fetchCanceledOrders': [ exchange, symbol ],
-            'fetchClosedOrder': [ exchange, symbol ],
-            'fetchOpenOrder': [ exchange, symbol ],
-            'fetchOrder': [ exchange, symbol ],
-            'fetchOrderTrades': [ exchange, symbol ],
-            'fetchPosition': [ exchange, symbol ],
-            'fetchDeposit': [ exchange, code ],
-            'createDepositAddress': [ exchange, code ],
-            'fetchDepositAddress': [ exchange, code ],
-            'fetchDepositAddresses': [ exchange, code ],
-            'fetchDepositAddressesByNetwork': [ exchange, code ],
-            'editOrder': [ exchange, symbol ],
-            'fetchBorrowRateHistory': [ exchange, symbol ],
-            'fetchBorrowRatesPerSymbol': [ exchange, symbol ],
-            'fetchLedgerEntry': [ exchange, code ],
-            'fetchWithdrawal': [ exchange, code ],
-            'transfer': [ exchange, code ],
-            'withdraw': [ exchange, code ],
+            'signIn': [ ],
+            'fetchBalance': [ ],
+            'fetchAccounts': [ ],
+            'fetchTransactionFees': [ ],
+            'fetchTradingFees': [ ],
+            'fetchStatus': [ ],
+            'fetchOrders': [ symbol ],
+            'fetchOpenOrders': [ symbol ],
+            'fetchClosedOrders': [ symbol ],
+            'fetchMyTrades': [ symbol ],
+            'fetchLeverageTiers': [ symbol ],
+            'fetchLedger': [ code ],
+            'fetchTransactions': [ code ],
+            'fetchDeposits': [ code ],
+            'fetchWithdrawals': [ code ],
+            'fetchBorrowRates': [ code ],
+            'fetchBorrowRate': [ code ],
+            'fetchBorrowInterest': [ code, symbol ],
+            'addMargin': [ symbol ],
+            'reduceMargin': [ symbol ],
+            'setMargin': [ symbol ],
+            'setMarginMode': [ symbol ],
+            'setLeverage': [ symbol ],
+            'cancelAllOrders': [ symbol ],
+            'cancelOrder': [ symbol ],
+            'cancelOrders': [ symbol ],
+            'fetchCanceledOrders': [ symbol ],
+            'fetchClosedOrder': [ symbol ],
+            'fetchOpenOrder': [ symbol ],
+            'fetchOrder': [ symbol ],
+            'fetchOrderTrades': [ symbol ],
+            'fetchPosition': [ symbol ],
+            'fetchDeposit': [ code ],
+            'createDepositAddress': [ code ],
+            'fetchDepositAddress': [ code ],
+            'fetchDepositAddresses': [ code ],
+            'fetchDepositAddressesByNetwork': [ code ],
+            'editOrder': [ symbol ],
+            'fetchBorrowRateHistory': [ symbol ],
+            'fetchBorrowRatesPerSymbol': [ symbol ],
+            'fetchLedgerEntry': [ code ],
+            'fetchWithdrawal': [ code ],
+            'transfer': [ code ],
+            'withdraw': [ code ],
         };
         const market = exchange.market (symbol);
         const isSpot = market['spot'];
         if (isSpot) {
-            tests['fetchCurrencies'] = [ exchange, symbol ];
+            tests['fetchCurrencies'] = [ symbol ];
         } else {
             // derivatives only
-            tests['fetchPositions'] = [ exchange, [ symbol ] ];
-            tests['fetchPosition'] = [ exchange, symbol ];
-            tests['fetchPositionRisk'] = [ exchange, symbol ];
-            tests['setPositionMode'] = [ exchange, symbol ];
-            tests['setMarginMode'] = [ exchange, symbol ];
-            tests['fetchOpenInterestHistory'] = [ exchange, symbol ];
-            tests['fetchFundingRateHistory'] = [ exchange, symbol ];
-            tests['fetchFundingHistory'] = [ exchange, symbol ];
+            tests['fetchPositions'] = [ symbol ]; // this test fetches all positions for 1 symbol
+            tests['fetchPosition'] = [ symbol ];
+            tests['fetchPositionRisk'] = [ symbol ];
+            tests['setPositionMode'] = [ symbol ];
+            tests['setMarginMode'] = [ symbol ];
+            tests['fetchOpenInterestHistory'] = [ symbol ];
+            tests['fetchFundingRateHistory'] = [ symbol ];
+            tests['fetchFundingHistory'] = [ symbol ];
         }
         const combinedPublicPrivateTests = exchange.deepExtend (this.publicTests, tests);
         const testNames = Object.keys (combinedPublicPrivateTests);
@@ -664,7 +670,8 @@ export default class testMainClass extends baseMainTestClass {
                 errors.push (testName);
             }
         }
-        if (errors.length > 0) {
+        const errorsCnt = errors.length; // PHP transpile count($errors)
+        if (errorsCnt > 0) {
             throw new Error ('Failed private tests [' + market['type'] + ']: ' + errors.join (', '));
         } else {
             if (this.info) {

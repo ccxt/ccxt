@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '3.0.100'
+__version__ = '3.1.40'
 
 # ----------------------------------------------------------------------------
 
@@ -26,6 +26,7 @@ from ccxt.pro.bitget import bitget                                        # noqa
 from ccxt.pro.bitmart import bitmart                                      # noqa: F401
 from ccxt.pro.bitmex import bitmex                                        # noqa: F401
 from ccxt.pro.bitopro import bitopro                                      # noqa: F401
+from ccxt.pro.bitpanda import bitpanda                                    # noqa: F401
 from ccxt.pro.bitrue import bitrue                                        # noqa: F401
 from ccxt.pro.bitstamp import bitstamp                                    # noqa: F401
 from ccxt.pro.bittrex import bittrex                                      # noqa: F401
@@ -63,6 +64,8 @@ from ccxt.pro.okcoin import okcoin                                        # noqa
 from ccxt.pro.okex import okex                                            # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
+from ccxt.pro.poloniex import poloniex                                    # noqa: F401
+from ccxt.pro.poloniexfutures import poloniexfutures                      # noqa: F401
 from ccxt.pro.probit import probit                                        # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
 from ccxt.pro.wazirx import wazirx                                        # noqa: F401
@@ -84,6 +87,7 @@ exchanges = [
     'bitmart',
     'bitmex',
     'bitopro',
+    'bitpanda',
     'bitrue',
     'bitstamp',
     'bittrex',
@@ -121,6 +125,8 @@ exchanges = [
     'okex',
     'okx',
     'phemex',
+    'poloniex',
+    'poloniexfutures',
     'probit',
     'upbit',
     'wazirx',

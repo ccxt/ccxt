@@ -17,6 +17,7 @@ class cryptocom extends Exchange {
             'countries' => array( 'MT' ),
             'version' => 'v2',
             'rateLimit' => 10, // 100 requests per second
+            'certified' => true,
             'pro' => true,
             'has' => array(
                 'CORS' => false,
@@ -308,6 +309,7 @@ class cryptocom extends Exchange {
                     'ETH' => 'ERC20',
                     'TRON' => 'TRC20',
                 ),
+                'broker' => 'CCXT_',
             ),
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies' => array(
@@ -360,209 +362,167 @@ class cryptocom extends Exchange {
 
     public function fetch_markets($params = array ()) {
         /**
-         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-instruments
-         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-instruments
-         * retrieves data on all $markets for cryptocom
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments
+         * retrieves $data on all markets for cryptocom
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing market data
+         * @return {[array]} an array of objects representing $market $data
          */
-        $promises = array( $this->fetch_spot_markets($params), $this->fetch_derivatives_markets($params) );
-        // @ts-ignore
-        $promises = $promises;
-        $spotMarkets = $promises[0];
-        $derivativeMarkets = $promises[1];
-        $markets = $this->array_concat($spotMarkets, $derivativeMarkets);
-        return $markets;
-    }
-
-    public function fetch_spot_markets($params = array ()) {
-        $response = $this->v2PublicGetPublicGetInstruments ($params);
-        //
-        //    {
-        //        $id => 11,
-        //        method => 'public/get-instruments',
-        //        code => 0,
-        //        $result => {
-        //            'instruments' => array(
-        //                array(
-        //                    instrument_name => 'NEAR_BTC',
-        //                    quote_currency => 'BTC',
-        //                    base_currency => 'NEAR',
-        //                    price_decimals => '8',
-        //                    quantity_decimals => '2',
-        //                    margin_trading_enabled => true,
-        //                    $margin_trading_enabled_5x => true,
-        //                    $margin_trading_enabled_10x => true,
-        //                    max_quantity => '100000000',
-        //                    min_quantity => '0.01',
-        //                    max_price:'1',
-        //                    min_price:'0.00000001',
-        //                    last_update_date:1667263094857,
-        //                    quantity_tick_size:'0.1',
-        //                    price_tick_size:'0.00000001'
-        //               ),
-        //            )
-        //        }
-        //    }
-        //
-        $resultResponse = $this->safe_value($response, 'result', array());
-        $markets = $this->safe_value($resultResponse, 'instruments', array());
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
-            $id = $this->safe_string($market, 'instrument_name');
-            $baseId = $this->safe_string($market, 'base_currency');
-            $quoteId = $this->safe_string($market, 'quote_currency');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $minPrice = $this->safe_string($market, 'min_price');
-            $minQuantity = $this->safe_string($market, 'min_quantity');
-            $maxLeverage = $this->parse_number('1');
-            $margin_trading_enabled_5x = $this->safe_value($market, 'margin_trading_enabled_5x');
-            if ($margin_trading_enabled_5x) {
-                $maxLeverage = $this->parse_number('5');
-            }
-            $margin_trading_enabled_10x = $this->safe_value($market, 'margin_trading_enabled_10x');
-            if ($margin_trading_enabled_10x) {
-                $maxLeverage = $this->parse_number('10');
-            }
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => $this->safe_value($market, 'margin_trading_enabled'),
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => null,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->safe_number($market, 'quantity_tick_size'),
-                    'price' => $this->safe_number($market, 'price_tick_size'),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => $this->parse_number('1'),
-                        'max' => $maxLeverage,
-                    ),
-                    'amount' => array(
-                        'min' => $this->parse_number($minQuantity),
-                        'max' => $this->safe_number($market, 'max_quantity'),
-                    ),
-                    'price' => array(
-                        'min' => $this->parse_number($minPrice),
-                        'max' => $this->safe_number($market, 'max_price'),
-                    ),
-                    'cost' => array(
-                        'min' => $this->parse_number(Precise::string_mul($minQuantity, $minPrice)),
-                        'max' => null,
-                    ),
-                ),
-                'info' => $market,
-            );
-        }
-        return $result;
-    }
-
-    public function fetch_derivatives_markets($params = array ()) {
-        $result = array();
-        $futuresResponse = $this->derivativesPublicGetPublicGetInstruments ();
+        $response = $this->v1PublicGetPublicGetInstruments ($params);
         //
         //     {
-        //       id => -1,
-        //       method => 'public/get-instruments',
-        //       code => 0,
-        //       $result => {
-        //         $data => array(
-        //           array(
-        //             $symbol => '1INCHUSD-PERP',
-        //             $inst_type => 'PERPETUAL_SWAP',
-        //             display_name => '1INCHUSD Perpetual',
-        //             base_ccy => '1INCH',
-        //             quote_ccy => 'USD_Stable_Coin',
-        //             quote_decimals => 4,
-        //             quantity_decimals => 0,
-        //             price_tick_size => '0.0001',
-        //             qty_tick_size => '1',
-        //             max_leverage => '50',
-        //             tradable => true,
-        //             expiry_timestamp_ms => 0,
-        //             beta_product => false,
-        //             underlying_symbol => '1INCHUSD-INDEX',
-        //             put_call => 'UNDEFINED',
-        //             strike => '0',
-        //             contract_size => '1'
-        //           ),
-        //         )
-        //       }
+        //         "id" => 1,
+        //         "method" => "public/get-instruments",
+        //         "code" => 0,
+        //         "result" => {
+        //             "data" => array(
+        //                 array(
+        //                     "symbol" => "BTC_USDT",
+        //                     "inst_type" => "CCY_PAIR",
+        //                     "display_name" => "BTC/USDT",
+        //                     "base_ccy" => "BTC",
+        //                     "quote_ccy" => "USDT",
+        //                     "quote_decimals" => 2,
+        //                     "quantity_decimals" => 5,
+        //                     "price_tick_size" => "0.01",
+        //                     "qty_tick_size" => "0.00001",
+        //                     "max_leverage" => "50",
+        //                     "tradable" => true,
+        //                     "expiry_timestamp_ms" => 0,
+        //                     "beta_product" => false,
+        //                     "margin_buy_enabled" => false,
+        //                     "margin_sell_enabled" => true
+        //                 ),
+        //                 array(
+        //                     "symbol" => "RUNEUSD-PERP",
+        //                     "inst_type" => "PERPETUAL_SWAP",
+        //                     "display_name" => "RUNEUSD Perpetual",
+        //                     "base_ccy" => "RUNE",
+        //                     "quote_ccy" => "USD",
+        //                     "quote_decimals" => 3,
+        //                     "quantity_decimals" => 1,
+        //                     "price_tick_size" => "0.001",
+        //                     "qty_tick_size" => "0.1",
+        //                     "max_leverage" => "50",
+        //                     "tradable" => true,
+        //                     "expiry_timestamp_ms" => 0,
+        //                     "beta_product" => false,
+        //                     "underlying_symbol" => "RUNEUSD-INDEX",
+        //                     "contract_size" => "1",
+        //                     "margin_buy_enabled" => false,
+        //                     "margin_sell_enabled" => false
+        //                 ),
+        //                 array(
+        //                     "symbol" => "ETHUSD-230825",
+        //                     "inst_type" => "FUTURE",
+        //                     "display_name" => "ETHUSD Futures 20230825",
+        //                     "base_ccy" => "ETH",
+        //                     "quote_ccy" => "USD",
+        //                     "quote_decimals" => 2,
+        //                     "quantity_decimals" => 4,
+        //                     "price_tick_size" => "0.01",
+        //                     "qty_tick_size" => "0.0001",
+        //                     "max_leverage" => "100",
+        //                     "tradable" => true,
+        //                     "expiry_timestamp_ms" => 1692950400000,
+        //                     "beta_product" => false,
+        //                     "underlying_symbol" => "ETHUSD-INDEX",
+        //                     "contract_size" => "1",
+        //                     "margin_buy_enabled" => false,
+        //                     "margin_sell_enabled" => false
+        //                 ),
+        //                 array(
+        //                     "symbol" => "BTCUSD-230630-CW30000",
+        //                     "inst_type" => "WARRANT",
+        //                     "display_name" => "BTCUSD-230630-CW30000",
+        //                     "base_ccy" => "BTC",
+        //                     "quote_ccy" => "USD",
+        //                     "quote_decimals" => 3,
+        //                     "quantity_decimals" => 0,
+        //                     "price_tick_size" => "0.001",
+        //                     "qty_tick_size" => "10",
+        //                     "max_leverage" => "50",
+        //                     "tradable" => true,
+        //                     "expiry_timestamp_ms" => 1688112000000,
+        //                     "beta_product" => false,
+        //                     "underlying_symbol" => "BTCUSD-INDEX",
+        //                     "put_call" => "CALL",
+        //                     "strike" => "30000",
+        //                     "contract_size" => "0.0001",
+        //                     "margin_buy_enabled" => false,
+        //                     "margin_sell_enabled" => false
+        //                 ),
+        //             )
+        //         }
         //     }
         //
-        $futuresResult = $this->safe_value($futuresResponse, 'result', array());
-        $data = $this->safe_value($futuresResult, 'data', array());
+        $resultResponse = $this->safe_value($response, 'result', array());
+        $data = $this->safe_value($resultResponse, 'data', array());
+        $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
             $inst_type = $this->safe_string($market, 'inst_type');
+            $spot = $inst_type === 'CCY_PAIR';
             $swap = $inst_type === 'PERPETUAL_SWAP';
             $future = $inst_type === 'FUTURE';
-            if ($inst_type === 'CCY_PAIR') {
-                continue; // Found some inconsistencies between spot and derivatives api so use spot api for currency pairs.
-            }
+            $option = $inst_type === 'WARRANT';
             $baseId = $this->safe_string($market, 'base_ccy');
             $quoteId = $this->safe_string($market, 'quote_ccy');
+            $settleId = $spot ? null : $quoteId;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote . ':' . $quote;
-            $expiry = $this->safe_integer($market, 'expiry_timestamp_ms');
-            if ($expiry === 0) {
-                $expiry = null;
-            }
-            $type = 'swap';
-            if ($future) {
+            $settle = $spot ? null : $this->safe_currency_code($settleId);
+            $optionType = $this->safe_string_lower($market, 'put_call');
+            $strike = $this->safe_string($market, 'strike');
+            $marginBuyEnabled = $this->safe_value($market, 'margin_buy_enabled');
+            $marginSellEnabled = $this->safe_value($market, 'margin_sell_enabled');
+            $expiry = $this->omit_zero($this->safe_integer($market, 'expiry_timestamp_ms'));
+            $symbol = $base . '/' . $quote;
+            $type = null;
+            $contract = null;
+            if ($inst_type === 'CCY_PAIR') {
+                $type = 'spot';
+                $contract = false;
+            } elseif ($inst_type === 'PERPETUAL_SWAP') {
+                $type = 'swap';
+                $symbol = $symbol . ':' . $quote;
+                $contract = true;
+            } elseif ($inst_type === 'FUTURE') {
                 $type = 'future';
-                $symbol = $symbol . '-' . $this->yymmdd($expiry);
+                $symbol = $symbol . ':' . $quote . '-' . $this->yymmdd($expiry);
+                $contract = true;
+            } elseif ($inst_type === 'WARRANT') {
+                $type = 'option';
+                $symbolOptionType = ($optionType === 'call') ? 'C' : 'P';
+                $symbol = $symbol . ':' . $quote . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $symbolOptionType;
+                $contract = true;
             }
-            $contractSize = $this->safe_number($market, 'contract_size');
             $result[] = array(
                 'id' => $this->safe_string($market, 'symbol'),
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'settle' => $quote,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'settleId' => $quoteId,
+                'settleId' => $settleId,
                 'type' => $type,
-                'spot' => false,
-                'margin' => false,
+                'spot' => $spot,
+                'margin' => (($marginBuyEnabled) || ($marginSellEnabled)),
                 'swap' => $swap,
                 'future' => $future,
-                'option' => false,
+                'option' => $option,
                 'active' => $this->safe_value($market, 'tradable'),
-                'contract' => true,
-                'linear' => true,
-                'inverse' => false,
-                'contractSize' => $contractSize,
+                'contract' => $contract,
+                'linear' => ($contract) ? true : null,
+                'inverse' => ($contract) ? false : null,
+                'contractSize' => $this->safe_number($market, 'contract_size'),
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
-                'strike' => null,
-                'optionType' => null,
+                'strike' => $this->parse_number($strike),
+                'optionType' => $optionType,
                 'precision' => array(
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quote_decimals'))),
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantity_decimals'))),
+                    'price' => $this->parse_number($this->safe_string($market, 'price_tick_size')),
+                    'amount' => $this->parse_number($this->safe_string($market, 'qty_tick_size')),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -570,7 +530,7 @@ class cryptocom extends Exchange {
                         'max' => $this->safe_number($market, 'max_leverage'),
                     ),
                     'amount' => array(
-                        'min' => $this->parse_number($contractSize),
+                        'min' => null,
                         'max' => null,
                     ),
                     'price' => array(
@@ -1142,7 +1102,7 @@ class cryptocom extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1165,16 +1125,17 @@ class cryptocom extends Exchange {
         if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
+        $broker = $this->safe_string($this->options, 'broker', 'CCXT_');
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
-        if ($clientOrderId) {
-            $request['client_oid'] = $clientOrderId;
-            $params = $this->omit($params, array( 'clientOrderId' ));
+        if ($clientOrderId === null) {
+            $clientOrderId = $broker . $this->uuid22();
         }
+        $request['client_oid'] = $clientOrderId;
         $postOnly = $this->safe_value($params, 'postOnly', false);
         if ($postOnly) {
             $request['exec_inst'] = 'POST_ONLY';
-            $params = $this->omit($params, array( 'postOnly' ));
         }
+        $params = $this->omit($params, array( 'postOnly', 'clientOrderId' ));
         list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('createOrder', $market, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'v2PrivatePostPrivateCreateOrder',

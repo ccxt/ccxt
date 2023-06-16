@@ -13,7 +13,7 @@ sys.path.append(root)
 # -*- coding: utf-8 -*-
 
 
-def test_sign_in(exchange):
+def test_sign_in(exchange, skipped_properties):
     method = 'signIn'
     if exchange.has[method]:
         exchange.sign_in()

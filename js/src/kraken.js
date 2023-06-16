@@ -1520,7 +1520,7 @@ export default class kraken extends Exchange {
         params = this.omit(params, ['price', 'stopPrice', 'price2', 'close']);
         return [request, params];
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name kraken#editOrder

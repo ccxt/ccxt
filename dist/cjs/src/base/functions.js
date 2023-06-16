@@ -149,7 +149,6 @@ exports.yymmdd = time.yymmdd;
 exports.yyyymmdd = time.yyyymmdd;
 exports.Throttler = throttle.Throttler;
 exports.aggregate = misc.aggregate;
-exports.buildOHLCVC = misc.buildOHLCVC;
 exports.extractParams = misc.extractParams;
 exports.implodeParams = misc.implodeParams;
 exports.parseTimeframe = misc.parseTimeframe;

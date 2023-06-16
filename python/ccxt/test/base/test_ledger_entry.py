@@ -16,7 +16,7 @@ sys.path.append(root)
 from ccxt.test.base import test_shared_methods  # noqa E402
 
 
-def test_ledger_entry(exchange, method, entry, requested_code, now):
+def test_ledger_entry(exchange, skipped_properties, method, entry, requested_code, now):
     format = {
         'info': {},
         'id': 'x1234',
@@ -34,15 +34,15 @@ def test_ledger_entry(exchange, method, entry, requested_code, now):
         'datetime': '2021-11-30T00:00:00.000Z',
         'type': 'deposit',
     }
-    empty_not_allowed_for = ['id', 'currency', 'account', 'status', 'direction']
-    test_shared_methods.assert_structure(exchange, method, entry, format, empty_not_allowed_for)
-    test_shared_methods.assert_timestamp(exchange, method, entry, now)
-    test_shared_methods.assert_currency_code(exchange, method, entry, entry['currency'], requested_code)
+    empty_allowed_for = ['referenceId', 'referenceAccount', 'id']
+    test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
+    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry, now)
+    test_shared_methods.assert_currency_code(exchange, skipped_properties, method, entry, entry['currency'], requested_code)
     #
-    test_shared_methods.assert_in_array(exchange, method, entry, 'direction', ['in', 'out'])
-    # testSharedMethods.assertInArray (exchange, method, entry, 'type', ['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee',  ]);
-    # testSharedMethods.assertInArray (exchange, method, entry, 'account', ['spot', 'swap', .. ]);
-    test_shared_methods.assert_greater_or_equal(exchange, method, entry, 'amount', '0')
-    test_shared_methods.assert_greater_or_equal(exchange, method, entry, 'before', '0')
-    test_shared_methods.assert_greater_or_equal(exchange, method, entry, 'after', '0')
-    test_shared_methods.assert_fee(exchange, method, entry['fee'])
+    test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'direction', ['in', 'out'])
+    test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'type', ['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee'])
+    # testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'account', ['spot', 'swap', .. ]); # todo
+    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'amount', '0')
+    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'before', '0')
+    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'after', '0')
+    test_shared_methods.assert_fee_structure(exchange, skipped_properties, method, entry, 'fee')

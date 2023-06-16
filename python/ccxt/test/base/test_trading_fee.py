@@ -16,7 +16,7 @@ sys.path.append(root)
 from ccxt.test.base import test_shared_methods  # noqa E402
 
 
-def test_trading_fee(exchange, method, symbol, entry):
+def test_trading_fee(exchange, skipped_properties, method, symbol, entry):
     format = {
         'info': {},
         'symbol': 'ETH/BTC',
@@ -25,6 +25,6 @@ def test_trading_fee(exchange, method, symbol, entry):
         'percentage': False,
         'tierBased': False,
     }
-    empty_not_allowed_for = ['maker', 'taker', 'percentage', 'tierBased']
-    test_shared_methods.assert_structure(exchange, method, entry, format, empty_not_allowed_for)
-    test_shared_methods.assert_symbol(exchange, method, entry, 'symbol', symbol)
+    empty_allowed_for = ['tierBased', 'percentage', 'symbol']
+    test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
+    test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, 'symbol', symbol)

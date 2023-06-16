@@ -38,7 +38,7 @@ export default class phemex extends phemexRest {
                 'OHLCVLimit': 1000,
             },
             'streaming': {
-                'keepAlive': 20000,
+                'keepAlive': 10000,
             },
         });
     }
@@ -557,7 +557,7 @@ export default class phemex extends phemexRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -631,7 +631,7 @@ export default class phemex extends phemexRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleDelta(bookside, delta, market = undefined) {
         const bidAsk = this.customParseBidAsk(delta, 0, 1, market);
@@ -739,6 +739,7 @@ export default class phemex extends phemexRest {
             symbol = market['symbol'];
             messageHash = messageHash + market['symbol'];
             if (market['settle'] === 'USDT') {
+                params = this.extend(params);
                 params['settle'] = 'USDT';
             }
         }
@@ -751,7 +752,7 @@ export default class phemex extends phemexRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleMyTrades(client, message) {
         //
@@ -901,6 +902,7 @@ export default class phemex extends phemexRest {
             symbol = market['symbol'];
             messageHash = messageHash + market['symbol'];
             if (market['settle'] === 'USDT') {
+                params = this.extend(params);
                 params['settle'] = 'USDT';
             }
         }
@@ -1403,7 +1405,9 @@ export default class phemex extends phemexRest {
         if (id in client.subscriptions) {
             const method = client.subscriptions[id];
             delete client.subscriptions[id];
-            return method.call(this, client, message);
+            if (method !== true) {
+                return method.call(this, client, message);
+            }
         }
         const method = this.safeString(message, 'method', '');
         if (('market24h' in message) || ('spot_market24h' in message) || (method.indexOf('perp_market24h_pack_p') >= 0)) {

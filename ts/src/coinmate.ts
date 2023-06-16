@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, RateLimi
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -471,38 +471,32 @@ export default class coinmate extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (transaction, 'timestamp');
-        const amount = this.safeNumber (transaction, 'amount');
-        const fee = this.safeNumber (transaction, 'fee');
-        const txid = this.safeString (transaction, 'txid');
-        const address = this.safeString (transaction, 'destination');
-        const tag = this.safeString (transaction, 'destinationTag');
         const currencyId = this.safeString (transaction, 'amountCurrency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const type = this.safeStringLower (transaction, 'transferType');
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'transferStatus'));
-        const id = this.safeString2 (transaction, 'transactionId', 'id');
-        const network = this.safeString (transaction, 'walletType');
         return {
-            'id': id,
+            'info': transaction,
+            'id': this.safeString2 (transaction, 'transactionId', 'id'),
+            'txid': this.safeString (transaction, 'txid'),
+            'type': this.safeStringLower (transaction, 'transferType'),
+            'currency': code,
+            'network': this.safeString (transaction, 'walletType'),
+            'amount': this.safeNumber (transaction, 'amount'),
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'transferStatus')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'currency': code,
-            'amount': amount,
-            'type': type,
-            'txid': txid,
-            'network': network,
-            'address': address,
-            'addressTo': undefined,
+            'address': this.safeString (transaction, 'destination'),
             'addressFrom': undefined,
-            'tag': tag,
-            'tagTo': undefined,
+            'addressTo': undefined,
+            'tag': this.safeString (transaction, 'destinationTag'),
             'tagFrom': undefined,
-            'status': status,
+            'tagTo': undefined,
+            'updated': undefined,
+            'comment': undefined,
             'fee': {
-                'cost': fee,
+                'cost': this.safeNumber (transaction, 'fee'),
                 'currency': code,
+                'rate': undefined,
             },
-            'info': transaction,
         };
     }
 
@@ -872,7 +866,7 @@ export default class coinmate extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name coinmate#createOrder

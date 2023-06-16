@@ -18,6 +18,7 @@ export default class cryptocom extends Exchange {
             'countries': ['MT'],
             'version': 'v2',
             'rateLimit': 10,
+            'certified': true,
             'pro': true,
             'has': {
                 'CORS': false,
@@ -309,6 +310,7 @@ export default class cryptocom extends Exchange {
                     'ETH': 'ERC20',
                     'TRON': 'TRC20',
                 },
+                'broker': 'CCXT_',
             },
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
@@ -362,207 +364,170 @@ export default class cryptocom extends Exchange {
         /**
          * @method
          * @name cryptocom#fetchMarkets
-         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-instruments
-         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-instruments
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments
          * @description retrieves data on all markets for cryptocom
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        let promises = [this.fetchSpotMarkets(params), this.fetchDerivativesMarkets(params)];
-        // @ts-ignore
-        promises = await Promise.all(promises);
-        const spotMarkets = promises[0];
-        const derivativeMarkets = promises[1];
-        const markets = this.arrayConcat(spotMarkets, derivativeMarkets);
-        return markets;
-    }
-    async fetchSpotMarkets(params = {}) {
-        const response = await this.v2PublicGetPublicGetInstruments(params);
-        //
-        //    {
-        //        id: 11,
-        //        method: 'public/get-instruments',
-        //        code: 0,
-        //        result: {
-        //            'instruments': [
-        //                {
-        //                    instrument_name: 'NEAR_BTC',
-        //                    quote_currency: 'BTC',
-        //                    base_currency: 'NEAR',
-        //                    price_decimals: '8',
-        //                    quantity_decimals: '2',
-        //                    margin_trading_enabled: true,
-        //                    margin_trading_enabled_5x: true,
-        //                    margin_trading_enabled_10x: true,
-        //                    max_quantity: '100000000',
-        //                    min_quantity: '0.01',
-        //                    max_price:'1',
-        //                    min_price:'0.00000001',
-        //                    last_update_date:1667263094857,
-        //                    quantity_tick_size:'0.1',
-        //                    price_tick_size:'0.00000001'
-        //               },
-        //            ]
-        //        }
-        //    }
-        //
-        const resultResponse = this.safeValue(response, 'result', {});
-        const markets = this.safeValue(resultResponse, 'instruments', []);
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString(market, 'instrument_name');
-            const baseId = this.safeString(market, 'base_currency');
-            const quoteId = this.safeString(market, 'quote_currency');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const minPrice = this.safeString(market, 'min_price');
-            const minQuantity = this.safeString(market, 'min_quantity');
-            let maxLeverage = this.parseNumber('1');
-            const margin_trading_enabled_5x = this.safeValue(market, 'margin_trading_enabled_5x');
-            if (margin_trading_enabled_5x) {
-                maxLeverage = this.parseNumber('5');
-            }
-            const margin_trading_enabled_10x = this.safeValue(market, 'margin_trading_enabled_10x');
-            if (margin_trading_enabled_10x) {
-                maxLeverage = this.parseNumber('10');
-            }
-            result.push({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': this.safeValue(market, 'margin_trading_enabled'),
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': undefined,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber(market, 'quantity_tick_size'),
-                    'price': this.safeNumber(market, 'price_tick_size'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': this.parseNumber('1'),
-                        'max': maxLeverage,
-                    },
-                    'amount': {
-                        'min': this.parseNumber(minQuantity),
-                        'max': this.safeNumber(market, 'max_quantity'),
-                    },
-                    'price': {
-                        'min': this.parseNumber(minPrice),
-                        'max': this.safeNumber(market, 'max_price'),
-                    },
-                    'cost': {
-                        'min': this.parseNumber(Precise.stringMul(minQuantity, minPrice)),
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-            });
-        }
-        return result;
-    }
-    async fetchDerivativesMarkets(params = {}) {
-        const result = [];
-        const futuresResponse = await this.derivativesPublicGetPublicGetInstruments();
+        const response = await this.v1PublicGetPublicGetInstruments(params);
         //
         //     {
-        //       id: -1,
-        //       method: 'public/get-instruments',
-        //       code: 0,
-        //       result: {
-        //         data: [
-        //           {
-        //             symbol: '1INCHUSD-PERP',
-        //             inst_type: 'PERPETUAL_SWAP',
-        //             display_name: '1INCHUSD Perpetual',
-        //             base_ccy: '1INCH',
-        //             quote_ccy: 'USD_Stable_Coin',
-        //             quote_decimals: 4,
-        //             quantity_decimals: 0,
-        //             price_tick_size: '0.0001',
-        //             qty_tick_size: '1',
-        //             max_leverage: '50',
-        //             tradable: true,
-        //             expiry_timestamp_ms: 0,
-        //             beta_product: false,
-        //             underlying_symbol: '1INCHUSD-INDEX',
-        //             put_call: 'UNDEFINED',
-        //             strike: '0',
-        //             contract_size: '1'
-        //           },
-        //         ]
-        //       }
+        //         "id": 1,
+        //         "method": "public/get-instruments",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "symbol": "BTC_USDT",
+        //                     "inst_type": "CCY_PAIR",
+        //                     "display_name": "BTC/USDT",
+        //                     "base_ccy": "BTC",
+        //                     "quote_ccy": "USDT",
+        //                     "quote_decimals": 2,
+        //                     "quantity_decimals": 5,
+        //                     "price_tick_size": "0.01",
+        //                     "qty_tick_size": "0.00001",
+        //                     "max_leverage": "50",
+        //                     "tradable": true,
+        //                     "expiry_timestamp_ms": 0,
+        //                     "beta_product": false,
+        //                     "margin_buy_enabled": false,
+        //                     "margin_sell_enabled": true
+        //                 },
+        //                 {
+        //                     "symbol": "RUNEUSD-PERP",
+        //                     "inst_type": "PERPETUAL_SWAP",
+        //                     "display_name": "RUNEUSD Perpetual",
+        //                     "base_ccy": "RUNE",
+        //                     "quote_ccy": "USD",
+        //                     "quote_decimals": 3,
+        //                     "quantity_decimals": 1,
+        //                     "price_tick_size": "0.001",
+        //                     "qty_tick_size": "0.1",
+        //                     "max_leverage": "50",
+        //                     "tradable": true,
+        //                     "expiry_timestamp_ms": 0,
+        //                     "beta_product": false,
+        //                     "underlying_symbol": "RUNEUSD-INDEX",
+        //                     "contract_size": "1",
+        //                     "margin_buy_enabled": false,
+        //                     "margin_sell_enabled": false
+        //                 },
+        //                 {
+        //                     "symbol": "ETHUSD-230825",
+        //                     "inst_type": "FUTURE",
+        //                     "display_name": "ETHUSD Futures 20230825",
+        //                     "base_ccy": "ETH",
+        //                     "quote_ccy": "USD",
+        //                     "quote_decimals": 2,
+        //                     "quantity_decimals": 4,
+        //                     "price_tick_size": "0.01",
+        //                     "qty_tick_size": "0.0001",
+        //                     "max_leverage": "100",
+        //                     "tradable": true,
+        //                     "expiry_timestamp_ms": 1692950400000,
+        //                     "beta_product": false,
+        //                     "underlying_symbol": "ETHUSD-INDEX",
+        //                     "contract_size": "1",
+        //                     "margin_buy_enabled": false,
+        //                     "margin_sell_enabled": false
+        //                 },
+        //                 {
+        //                     "symbol": "BTCUSD-230630-CW30000",
+        //                     "inst_type": "WARRANT",
+        //                     "display_name": "BTCUSD-230630-CW30000",
+        //                     "base_ccy": "BTC",
+        //                     "quote_ccy": "USD",
+        //                     "quote_decimals": 3,
+        //                     "quantity_decimals": 0,
+        //                     "price_tick_size": "0.001",
+        //                     "qty_tick_size": "10",
+        //                     "max_leverage": "50",
+        //                     "tradable": true,
+        //                     "expiry_timestamp_ms": 1688112000000,
+        //                     "beta_product": false,
+        //                     "underlying_symbol": "BTCUSD-INDEX",
+        //                     "put_call": "CALL",
+        //                     "strike": "30000",
+        //                     "contract_size": "0.0001",
+        //                     "margin_buy_enabled": false,
+        //                     "margin_sell_enabled": false
+        //                 },
+        //             ]
+        //         }
         //     }
         //
-        const futuresResult = this.safeValue(futuresResponse, 'result', {});
-        const data = this.safeValue(futuresResult, 'data', []);
+        const resultResponse = this.safeValue(response, 'result', {});
+        const data = this.safeValue(resultResponse, 'data', []);
+        const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const inst_type = this.safeString(market, 'inst_type');
+            const spot = inst_type === 'CCY_PAIR';
             const swap = inst_type === 'PERPETUAL_SWAP';
             const future = inst_type === 'FUTURE';
-            if (inst_type === 'CCY_PAIR') {
-                continue; // Found some inconsistencies between spot and derivatives api so use spot api for currency pairs.
-            }
+            const option = inst_type === 'WARRANT';
             const baseId = this.safeString(market, 'base_ccy');
             const quoteId = this.safeString(market, 'quote_ccy');
+            const settleId = spot ? undefined : quoteId;
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
-            let symbol = base + '/' + quote + ':' + quote;
-            let expiry = this.safeInteger(market, 'expiry_timestamp_ms');
-            if (expiry === 0) {
-                expiry = undefined;
+            const settle = spot ? undefined : this.safeCurrencyCode(settleId);
+            const optionType = this.safeStringLower(market, 'put_call');
+            const strike = this.safeString(market, 'strike');
+            const marginBuyEnabled = this.safeValue(market, 'margin_buy_enabled');
+            const marginSellEnabled = this.safeValue(market, 'margin_sell_enabled');
+            const expiry = this.omitZero(this.safeInteger(market, 'expiry_timestamp_ms'));
+            let symbol = base + '/' + quote;
+            let type = undefined;
+            let contract = undefined;
+            if (inst_type === 'CCY_PAIR') {
+                type = 'spot';
+                contract = false;
             }
-            let type = 'swap';
-            if (future) {
+            else if (inst_type === 'PERPETUAL_SWAP') {
+                type = 'swap';
+                symbol = symbol + ':' + quote;
+                contract = true;
+            }
+            else if (inst_type === 'FUTURE') {
                 type = 'future';
-                symbol = symbol + '-' + this.yymmdd(expiry);
+                symbol = symbol + ':' + quote + '-' + this.yymmdd(expiry);
+                contract = true;
             }
-            const contractSize = this.safeNumber(market, 'contract_size');
+            else if (inst_type === 'WARRANT') {
+                type = 'option';
+                const symbolOptionType = (optionType === 'call') ? 'C' : 'P';
+                symbol = symbol + ':' + quote + '-' + this.yymmdd(expiry) + '-' + strike + '-' + symbolOptionType;
+                contract = true;
+            }
             result.push({
                 'id': this.safeString(market, 'symbol'),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': quoteId,
+                'settleId': settleId,
                 'type': type,
-                'spot': false,
-                'margin': false,
+                'spot': spot,
+                'margin': ((marginBuyEnabled) || (marginSellEnabled)),
                 'swap': swap,
                 'future': future,
-                'option': false,
+                'option': option,
                 'active': this.safeValue(market, 'tradable'),
-                'contract': true,
-                'linear': true,
-                'inverse': false,
-                'contractSize': contractSize,
+                'contract': contract,
+                'linear': (contract) ? true : undefined,
+                'inverse': (contract) ? false : undefined,
+                'contractSize': this.safeNumber(market, 'contract_size'),
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601(expiry),
-                'strike': undefined,
-                'optionType': undefined,
+                'strike': this.parseNumber(strike),
+                'optionType': optionType,
                 'precision': {
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'quote_decimals'))),
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantity_decimals'))),
+                    'price': this.parseNumber(this.safeString(market, 'price_tick_size')),
+                    'amount': this.parseNumber(this.safeString(market, 'qty_tick_size')),
                 },
                 'limits': {
                     'leverage': {
@@ -570,7 +535,7 @@ export default class cryptocom extends Exchange {
                         'max': this.safeNumber(market, 'max_leverage'),
                     },
                     'amount': {
-                        'min': this.parseNumber(contractSize),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
@@ -1174,16 +1139,17 @@ export default class cryptocom extends Exchange {
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const clientOrderId = this.safeString(params, 'clientOrderId');
-        if (clientOrderId) {
-            request['client_oid'] = clientOrderId;
-            params = this.omit(params, ['clientOrderId']);
+        const broker = this.safeString(this.options, 'broker', 'CCXT_');
+        let clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            clientOrderId = broker + this.uuid22();
         }
+        request['client_oid'] = clientOrderId;
         const postOnly = this.safeValue(params, 'postOnly', false);
         if (postOnly) {
             request['exec_inst'] = 'POST_ONLY';
-            params = this.omit(params, ['postOnly']);
         }
+        params = this.omit(params, ['postOnly', 'clientOrderId']);
         const [marketType, marketTypeQuery] = this.handleMarketTypeAndParams('createOrder', market, params);
         let method = this.getSupportedMapping(marketType, {
             'spot': 'v2PrivatePostPrivateCreateOrder',

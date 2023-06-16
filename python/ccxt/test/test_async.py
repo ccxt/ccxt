@@ -86,6 +86,7 @@ class baseMainTestClass():
 is_synchronous = 'async' not in os.path.basename(__file__)
 
 rootDir = current_dir + '/../../../'
+rootDirForSkips = current_dir + '/../../../'
 envVars = os.environ
 ext = 'py'
 httpsAgent = None
@@ -124,8 +125,8 @@ def io_file_read(path, decode=True):
         return content
 
 
-async def call_method(testFiles, methodName, exchange, args):
-    return await getattr(testFiles[methodName], methodName)(exchange, *args)
+async def call_method(testFiles, methodName, exchange, skippedProperties, args):
+    return await getattr(testFiles[methodName], methodName)(exchange, skippedProperties, *args)
 
 
 def exception_message(exc):
@@ -169,7 +170,8 @@ async def set_test_files(holderClass, properties):
 
 
 async def close(exchange):
-    await exchange.close()
+    if (hasattr(exchange, 'close')):
+        await exchange.close()
 
 # *********************************
 # ***** AUTO-TRANSPILER-START *****
@@ -202,7 +204,7 @@ class testMainClass(baseMainTestClass):
             'debug': self.debug,
             'httpsAgent': httpsAgent,
             'enableRateLimit': True,
-            'timeout': 20000,
+            'timeout': 30000,
         }
         exchange = init_exchange(exchangeId, exchangeArgs)
         await self.import_files(exchange)
@@ -252,11 +254,14 @@ class testMainClass(baseMainTestClass):
                 if credentialValue:
                     set_exchange_prop(exchange, credential, credentialValue)
         # skipped tests
-        skippedFile = rootDir + 'skip-tests.json'
+        skippedFile = rootDirForSkips + 'skip-tests.json'
         skippedSettings = io_file_read(skippedFile)
         skippedSettingsForExchange = exchange.safe_value(skippedSettings, exchangeId, {})
         # others
         skipReason = exchange.safe_value(skippedSettingsForExchange, 'skip')
+        timeout = exchange.safe_value(skippedSettingsForExchange, 'timeout')
+        if timeout is not None:
+            exchange.timeout = timeout
         if skipReason is not None:
             dump('[SKIPPED] exchange', exchangeId, skipReason)
             exit_script()
@@ -280,14 +285,14 @@ class testMainClass(baseMainTestClass):
 
     async def test_method(self, methodName, exchange, args, isPublic):
         methodNameInTest = get_test_name(methodName)
-        # if self is a private test, and the implementation was already tested in public, then no need to re-test it in private test(exception is fetchCurrencies, because our approach in exchange)
+        # if self is a private test, and the implementation was already tested in public, then no need to re-test it in private test(exception is fetchCurrencies, because our approach in base exchange)
         if not isPublic and (methodNameInTest in self.checkedPublicTests) and (methodName != 'fetchCurrencies'):
             return
         skipMessage = None
         isFetchOhlcvEmulated = (methodName == 'fetchOHLCV' and exchange.has['fetchOHLCV'] == 'emulated')  # todo: remove emulation from base
         if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]) or isFetchOhlcvEmulated:
             skipMessage = '[INFO:UNSUPPORTED_TEST]'  # keep it aligned with the longest message
-        elif methodName in self.skippedMethods:
+        elif (methodName in self.skippedMethods) and (isinstance(self.skippedMethods[methodName], str)):
             skipMessage = '[INFO:SKIPPED_TEST]'
         elif not (methodNameInTest in self.testFiles):
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]'
@@ -300,13 +305,14 @@ class testMainClass(baseMainTestClass):
             dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified)
         result = None
         try:
-            result = await call_method(self.testFiles, methodNameInTest, exchange, args)
+            skippedProperties = exchange.safe_value(self.skippedMethods, methodName, {})
+            result = await call_method(self.testFiles, methodNameInTest, exchange, skippedProperties, args)
             if isPublic:
                 self.checkedPublicTests[methodNameInTest] = True
         except Exception as e:
             isAuthError = (isinstance(e, AuthenticationError))
             if not (isPublic and isAuthError):
-                dump('ERROR:', exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified)
+                dump('[TEST_FAILURE]', exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified)
                 raise e
         return result
 
@@ -576,65 +582,65 @@ class testMainClass(baseMainTestClass):
         #     await test('InsufficientFunds', exchange, symbol, balance)  # danger zone - won't execute with non-empty balance
         # }
         tests = {
-            'signIn': [exchange],
-            'fetchBalance': [exchange],
-            'fetchAccounts': [exchange],
-            'fetchTransactionFees': [exchange],
-            'fetchTradingFees': [exchange],
-            'fetchStatus': [exchange],
-            'fetchOrders': [exchange, symbol],
-            'fetchOpenOrders': [exchange, symbol],
-            'fetchClosedOrders': [exchange, symbol],
-            'fetchMyTrades': [exchange, symbol],
-            'fetchLeverageTiers': [exchange, symbol],
-            'fetchLedger': [exchange, code],
-            'fetchTransactions': [exchange, code],
-            'fetchDeposits': [exchange, code],
-            'fetchWithdrawals': [exchange, code],
-            'fetchBorrowRates': [exchange, code],
-            'fetchBorrowRate': [exchange, code],
-            'fetchBorrowInterest': [exchange, code, symbol],
-            'addMargin': [exchange, symbol],
-            'reduceMargin': [exchange, symbol],
-            'setMargin': [exchange, symbol],
-            'setMarginMode': [exchange, symbol],
-            'setLeverage': [exchange, symbol],
-            'cancelAllOrders': [exchange, symbol],
-            'cancelOrder': [exchange, symbol],
-            'cancelOrders': [exchange, symbol],
-            'fetchCanceledOrders': [exchange, symbol],
-            'fetchClosedOrder': [exchange, symbol],
-            'fetchOpenOrder': [exchange, symbol],
-            'fetchOrder': [exchange, symbol],
-            'fetchOrderTrades': [exchange, symbol],
-            'fetchPosition': [exchange, symbol],
-            'fetchDeposit': [exchange, code],
-            'createDepositAddress': [exchange, code],
-            'fetchDepositAddress': [exchange, code],
-            'fetchDepositAddresses': [exchange, code],
-            'fetchDepositAddressesByNetwork': [exchange, code],
-            'editOrder': [exchange, symbol],
-            'fetchBorrowRateHistory': [exchange, symbol],
-            'fetchBorrowRatesPerSymbol': [exchange, symbol],
-            'fetchLedgerEntry': [exchange, code],
-            'fetchWithdrawal': [exchange, code],
-            'transfer': [exchange, code],
-            'withdraw': [exchange, code],
+            'signIn': [],
+            'fetchBalance': [],
+            'fetchAccounts': [],
+            'fetchTransactionFees': [],
+            'fetchTradingFees': [],
+            'fetchStatus': [],
+            'fetchOrders': [symbol],
+            'fetchOpenOrders': [symbol],
+            'fetchClosedOrders': [symbol],
+            'fetchMyTrades': [symbol],
+            'fetchLeverageTiers': [symbol],
+            'fetchLedger': [code],
+            'fetchTransactions': [code],
+            'fetchDeposits': [code],
+            'fetchWithdrawals': [code],
+            'fetchBorrowRates': [code],
+            'fetchBorrowRate': [code],
+            'fetchBorrowInterest': [code, symbol],
+            'addMargin': [symbol],
+            'reduceMargin': [symbol],
+            'setMargin': [symbol],
+            'setMarginMode': [symbol],
+            'setLeverage': [symbol],
+            'cancelAllOrders': [symbol],
+            'cancelOrder': [symbol],
+            'cancelOrders': [symbol],
+            'fetchCanceledOrders': [symbol],
+            'fetchClosedOrder': [symbol],
+            'fetchOpenOrder': [symbol],
+            'fetchOrder': [symbol],
+            'fetchOrderTrades': [symbol],
+            'fetchPosition': [symbol],
+            'fetchDeposit': [code],
+            'createDepositAddress': [code],
+            'fetchDepositAddress': [code],
+            'fetchDepositAddresses': [code],
+            'fetchDepositAddressesByNetwork': [code],
+            'editOrder': [symbol],
+            'fetchBorrowRateHistory': [symbol],
+            'fetchBorrowRatesPerSymbol': [symbol],
+            'fetchLedgerEntry': [code],
+            'fetchWithdrawal': [code],
+            'transfer': [code],
+            'withdraw': [code],
         }
         market = exchange.market(symbol)
         isSpot = market['spot']
         if isSpot:
-            tests['fetchCurrencies'] = [exchange, symbol]
+            tests['fetchCurrencies'] = [symbol]
         else:
             # derivatives only
-            tests['fetchPositions'] = [exchange, [symbol]]
-            tests['fetchPosition'] = [exchange, symbol]
-            tests['fetchPositionRisk'] = [exchange, symbol]
-            tests['setPositionMode'] = [exchange, symbol]
-            tests['setMarginMode'] = [exchange, symbol]
-            tests['fetchOpenInterestHistory'] = [exchange, symbol]
-            tests['fetchFundingRateHistory'] = [exchange, symbol]
-            tests['fetchFundingHistory'] = [exchange, symbol]
+            tests['fetchPositions'] = [symbol]  # self test fetches all positions for 1 symbol
+            tests['fetchPosition'] = [symbol]
+            tests['fetchPositionRisk'] = [symbol]
+            tests['setPositionMode'] = [symbol]
+            tests['setMarginMode'] = [symbol]
+            tests['fetchOpenInterestHistory'] = [symbol]
+            tests['fetchFundingRateHistory'] = [symbol]
+            tests['fetchFundingHistory'] = [symbol]
         combinedPublicPrivateTests = exchange.deep_extend(self.publicTests, tests)
         testNames = list(combinedPublicPrivateTests.keys())
         promises = []
@@ -649,7 +655,8 @@ class testMainClass(baseMainTestClass):
             success = results[i]
             if not success:
                 errors.append(testName)
-        if len(errors) > 0:
+        errorsCnt = len(errors)  # PHP transpile count($errors)
+        if errorsCnt > 0:
             raise Error('Failed private tests [' + market['type'] + ']: ' + ', '.join(errors))
         else:
             if self.info:

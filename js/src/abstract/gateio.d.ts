@@ -69,6 +69,7 @@ interface gate {
     privateSubAccountsPutSubAccountsUserIdKeysKey(params?: {}): Promise<implicitReturnType>;
     privateSubAccountsDeleteSubAccountsUserIdKeysKey(params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccounts(params?: {}): Promise<implicitReturnType>;
+    privateSpotGetAccountBook(params?: {}): Promise<implicitReturnType>;
     privateSpotGetOpenOrders(params?: {}): Promise<implicitReturnType>;
     privateSpotGetOrders(params?: {}): Promise<implicitReturnType>;
     privateSpotGetOrdersOrderId(params?: {}): Promise<implicitReturnType>;
@@ -121,6 +122,7 @@ interface gate {
     privateFuturesGetSettleOrders(params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettleOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettleMyTrades(params?: {}): Promise<implicitReturnType>;
+    privateFuturesGetSettleMyTradesTimerange(params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettlePositionClose(params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettleLiquidates(params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettlePriceOrders(params?: {}): Promise<implicitReturnType>;

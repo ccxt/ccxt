@@ -1,16 +1,16 @@
 import testSharedMethods from './test.sharedMethods.js';
 
-function testAccount (exchange, method, entry) {
+function testAccount (exchange, skippedProperties, method, entry) {
     const format = {
         'info': {},
-        'code': 'BTC',
-        // 'name': 'account name',
+        'code': 'BTC', // todo
+        // 'name': 'account name', // todo
         'type': 'spot', // 'spot', 'margin', 'futures', 'swap'
-        'id': '12345',
+        'id': '12345', // todo
     };
-    const emptyNotAllowedFor = [ 'type' ];
-    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['code']);
+    const emptyAllowedFor = [ 'code', 'id' ];
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+    testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['code']);
 }
 
 export default testAccount;

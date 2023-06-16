@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2591,6 +2591,10 @@ export default class huobi extends Exchange {
          * @method
          * @name huobi#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-klines-candles
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-kline-data
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-kline-data
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
@@ -2613,6 +2617,11 @@ export default class huobi extends Exchange {
         params = this.omit (params, 'price');
         let method = 'spotPublicGetMarketHistoryCandles';
         if (market['spot']) {
+            if (timeframe === '1M' || timeframe === '1y') {
+                // for some reason 1M and 1Y does not work with the regular endpoint
+                // https://github.com/ccxt/ccxt/issues/18006
+                method = 'spotPublicGetMarketHistoryKline';
+            }
             if (since !== undefined) {
                 request['from'] = this.parseToInt (since / 1000);
             }
@@ -2918,12 +2927,15 @@ export default class huobi extends Exchange {
          * @name huobi#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} params extra parameters specific to the huobi api endpoint
+         * @param {bool} params.unified provide this parameter if you have a recent account with unified cross+isolated margin account
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const options = this.safeValue (this.options, 'fetchBalance', {});
+        const isUnifiedAccount = this.safeValue2 (params, 'isUnifiedAccount', 'unified', false);
+        params = this.omit (params, [ 'isUnifiedAccount', 'unified' ]);
         const request = {};
         let method = undefined;
         const spot = (type === 'spot');
@@ -2953,6 +2965,8 @@ export default class huobi extends Exchange {
                 request['account-id'] = accountId;
                 method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
             }
+        } else if (isUnifiedAccount) {
+            method = 'contractPrivateGetLinearSwapApiV3UnifiedAccountInfo';
         } else if (linear) {
             if (isolated) {
                 method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
@@ -3150,6 +3164,32 @@ export default class huobi extends Exchange {
                     result[code] = this.parseMarginBalanceHelper (balance, code, result);
                 }
                 result = this.safeBalance (result);
+            }
+        } else if (isUnifiedAccount) {
+            for (let i = 0; i < data.length; i++) {
+                const entry = data[i];
+                const marginAsset = this.safeString (entry, 'margin_asset');
+                const currencyCode = this.safeCurrencyCode (marginAsset);
+                if (isolated) {
+                    const isolated_swap = this.safeValue (entry, 'isolated_swap', {});
+                    for (let j = 0; j < isolated_swap.length; j++) {
+                        const balance = isolated_swap[j];
+                        const marketId = this.safeString (balance, 'contract_code');
+                        const subBalance = {
+                            'code': currencyCode,
+                            'free': this.safeNumber (balance, 'margin_available'),
+                        };
+                        const symbol = this.safeSymbol (marketId);
+                        result[symbol] = subBalance;
+                        result = this.safeBalance (result);
+                    }
+                } else {
+                    const account = this.account ();
+                    account['free'] = this.safeString (entry, 'margin_static');
+                    account['used'] = this.safeString (entry, 'margin_frozen');
+                    result[currencyCode] = account;
+                    result = this.safeBalance (result);
+                }
             }
         } else if (linear) {
             const first = this.safeValue (data, 0, {});
@@ -4436,7 +4476,7 @@ export default class huobi extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name huobi#createOrder
@@ -5420,10 +5460,14 @@ export default class huobi extends Exchange {
             feeCost = Precise.stringAbs (feeCost);
         }
         const networkId = this.safeString (transaction, 'chain');
+        let txHash = this.safeString (transaction, 'tx-hash');
+        if (networkId === 'ETH' && txHash.indexOf ('0x') < 0) {
+            txHash = '0x' + txHash;
+        }
         return {
             'info': transaction,
             'id': this.safeString2 (transaction, 'id', 'data'),
-            'txid': this.safeString (transaction, 'tx-hash'),
+            'txid': txHash,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'network': this.networkIdToCode (networkId, code),

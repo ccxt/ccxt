@@ -1,2 +1,2 @@
-declare function testFetchStatus(exchange: any): Promise<void>;
+declare function testFetchStatus(exchange: any, skippedProperties: any): Promise<void>;
 export default testFetchStatus;

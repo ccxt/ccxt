@@ -16,6 +16,7 @@ class whitebit extends whitebit$1 {
             'version': 'v4',
             'countries': ['EE'],
             'rateLimit': 500,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -2049,6 +2050,9 @@ class whitebit extends whitebit$1 {
     isFiat(currency) {
         const fiatCurrencies = this.safeValue(this.options, 'fiatCurrencies', []);
         return this.inArray(currency, fiatCurrencies);
+    }
+    nonce() {
+        return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));
