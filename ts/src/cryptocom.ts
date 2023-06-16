@@ -1937,7 +1937,7 @@ export default class cryptocom extends Exchange {
             'symbol': market['symbol'],
             'order': this.safeString (trade, 'order_id'),
             'side': this.safeStringLower2 (trade, 's', 'side'),
-            'takerOrMaker': this.safeStringLower2 (trade, 'liquidity_indicator', 'taker_side'),
+            'takerOrMaker': this.safeStringLower (trade, 'taker_side'),
             'price': this.safeNumber2 (trade, 'p', 'traded_price'),
             'amount': this.safeNumber2 (trade, 'q', 'traded_quantity'),
             'cost': undefined,
