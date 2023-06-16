@@ -250,6 +250,7 @@ interface Exchange {
     privateGetV5SpotCrossMarginTradeOrders(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeRepayHistory(params?: {}): Promise<implicitReturnType>;
     privateGetV5InsLoanLtvConvert(params?: {}): Promise<implicitReturnType>;
+    privateGetV5BrokerEarningRecord(params?: {}): Promise<implicitReturnType>;
     privatePostV2PrivateOrderCreate(params?: {}): Promise<implicitReturnType>;
     privatePostV2PrivateOrderCancel(params?: {}): Promise<implicitReturnType>;
     privatePostV2PrivateOrderCancelAll(params?: {}): Promise<implicitReturnType>;
