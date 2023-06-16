@@ -2520,6 +2520,75 @@ export default class okcoin extends Exchange {
         return this.parseLedger (data, currency, since, limit);
     }
 
+    parseLedgerEntryType (type) {
+        const types = {
+            '1': 'transfer', // funds transfer in/out
+            '2': 'trade', // funds moved as a result of a trade, spot accounts only
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        // {
+        //     "bal": "1.63093282565",
+        //     "balChg": "1.63093282565",
+        //     "billId": "530758662684151809",
+        //     "ccy": "USD",
+        //     "execType": "T",
+        //     "fee": "-0.00245007435",
+        //     "from": "",
+        //     "instId": "USDT-USD",
+        //     "instType": "SPOT",
+        //     "mgnMode": "cash",
+        //     "notes": "",
+        //     "ordId": "530758662663180288",
+        //     "pnl": "0",
+        //     "posBal": "0",
+        //     "posBalChg": "0",
+        //     "subType": "1",
+        //     "sz": "1.6333829",
+        //     "to": "",
+        //     "ts": "1672814726203",
+        //     "type": "2"
+        // }
+        //
+        const id = this.safeString (item, 'billId');
+        const details = this.safeValue (item, 'details', {});
+        const referenceId = this.safeString (details, 'order_id');
+        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
+        const code = this.safeCurrencyCode (this.safeString (item, 'ccy'), currency);
+        const amount = this.safeString (item, 'sz');
+        const timestamp = this.safeString (item, 'ts');
+        const fee = {
+            'cost': this.safeString (item, 'fee'),
+            'currency': code,
+        };
+        const after = this.safeString (item, 'bal');
+        const balanceChange = this.safeString (item, 'balChg');
+        const before = Precise.stringSub (after, balanceChange);
+        const status = 'ok';
+        const marketId = this.safeString (item, 'instId');
+        const symbol = this.safeSymbol (marketId);
+        return {
+            'info': item,
+            'id': id,
+            'account': undefined,
+            'referenceId': referenceId,
+            'referenceAccount': undefined,
+            'type': type,
+            'currency': code,
+            'symbol': symbol,
+            'amount': amount,
+            'before': before, // balance before
+            'after': after, // balance after
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': fee,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const isArray = Array.isArray (params);
         let request = '/api/' + this.version + '/';
