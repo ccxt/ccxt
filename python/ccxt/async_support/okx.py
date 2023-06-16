@@ -128,7 +128,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchTransactionFees': False,
                 'fetchTransactions': False,
                 'fetchTransfer': True,
-                'fetchTransfers': False,
+                'fetchTransfers': True,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
@@ -257,6 +257,7 @@ class okx(Exchange, ImplicitAPI):
                         'asset/deposit-address': 5 / 3,
                         'asset/balances': 5 / 3,
                         'asset/transfer-state': 10,
+                        'asset/transfer-record': 10,
                         'asset/deposit-history': 5 / 3,
                         'asset/withdrawal-history': 5 / 3,
                         'asset/deposit-withdraw-status': 20,
@@ -793,7 +794,7 @@ class okx(Exchange, ImplicitAPI):
                 #     'type': 'spot',  # 'funding', 'trading', 'spot'
                 # },
                 'fetchLedger': {
-                    'method': 'privateGetAccountBills',  # privateGetAccountBillsArchive, privateGetAssetBills
+                    'method': 'privateGetAccountBills',  # privateGetAccountBills, privateGetAccountBillsArchive, privateGetAssetBills
                 },
                 # 6: Funding account, 18: Trading account
                 'fetchOrder': {
@@ -3411,58 +3412,10 @@ class okx(Exchange, ImplicitAPI):
             # 'ccy': None,  # currency['id'],
             # 'mgnMode': None,  # 'isolated', 'cross'
             # 'ctType': None,  # 'linear', 'inverse', only applicable to FUTURES/SWAP
-            # 'type': None,
-            #     1 Transfer,
-            #     2 Trade,
-            #     3 Delivery,
-            #     4 Auto token conversion,
-            #     5 Liquidation,
-            #     6 Margin transfer,
-            #     7 Interest deduction,
-            #     8 Funding rate,
-            #     9 ADL,
-            #     10 Clawback,
-            #     11 System token conversion
-            # 'subType': None,
-            #     1 Buy
-            #     2 Sell
-            #     3 Open long
-            #     4 Open short
-            #     5 Close long
-            #     6 Close short
-            #     9 Interest deduction
-            #     11 Transfer in
-            #     12 Transfer out
-            #     160 Manual margin increase
-            #     161 Manual margin decrease
-            #     162 Auto margin increase
-            #     110 Auto buy
-            #     111 Auto sell
-            #     118 System token conversion transfer in
-            #     119 System token conversion transfer out
-            #     100 Partial liquidation close long
-            #     101 Partial liquidation close short
-            #     102 Partial liquidation buy
-            #     103 Partial liquidation sell
-            #     104 Liquidation long
-            #     105 Liquidation short
-            #     106 Liquidation buy
-            #     107 Liquidation sell
-            #     110 Liquidation transfer in
-            #     111 Liquidation transfer out
-            #     125 ADL close long
-            #     126 ADL close short
-            #     127 ADL buy
-            #     128 ADL sell
-            #     170 Exercised
-            #     171 Counterparty exercised
-            #     172 Expired OTM
-            #     112 Delivery long
-            #     113 Delivery short
-            #     117 Delivery/Exercise clawback
-            #     173 Funding fee expense
-            #     174 Funding fee income
-            #
+            # 'type': varies depending the 'method' endpoint :
+            #     - https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+            #     - https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
+            #     - https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
             # 'after': 'id',  # return records earlier than the requested bill id
             # 'before': 'id',  # return records newer than the requested bill id
             # 'limit': 100,  # default 100, max 100
@@ -4581,17 +4534,43 @@ class okx(Exchange, ImplicitAPI):
         #         "type": "0"
         #     }
         #
-        id = self.safe_string(transfer, 'transId')
+        # fetchTransfers
+        #
+        #     {
+        #         "bal": "70.6874353780312913",
+        #         "balChg": "-4.0000000000000000",  # negative means "to funding", positive meand "from funding"
+        #         "billId": "588900695232225299",
+        #         "ccy": "USDT",
+        #         "execType": "",
+        #         "fee": "",
+        #         "from": "18",
+        #         "instId": "",
+        #         "instType": "",
+        #         "mgnMode": "",
+        #         "notes": "To Funding Account",
+        #         "ordId": "",
+        #         "pnl": "",
+        #         "posBal": "",
+        #         "posBalChg": "",
+        #         "price": "0",
+        #         "subType": "12",
+        #         "sz": "-4",
+        #         "to": "6",
+        #         "ts": "1686676866989",
+        #         "type": "1"
+        #     }
+        #
+        id = self.safe_string_2(transfer, 'transId', 'billId')
         currencyId = self.safe_string(transfer, 'ccy')
         code = self.safe_currency_code(currencyId, currency)
         amount = self.safe_number(transfer, 'amt')
         fromAccountId = self.safe_string(transfer, 'from')
         toAccountId = self.safe_string(transfer, 'to')
         accountsById = self.safe_value(self.options, 'accountsById', {})
-        fromAccount = self.safe_string(accountsById, fromAccountId)
-        toAccount = self.safe_string(accountsById, toAccountId)
-        timestamp = self.milliseconds()
-        status = self.safe_string(transfer, 'state')
+        timestamp = self.safe_integer(transfer, 'ts', self.milliseconds())
+        balanceChange = self.safe_string(transfer, 'sz')
+        if balanceChange is not None:
+            amount = self.parse_number(Precise.string_abs(balanceChange))
         return {
             'info': transfer,
             'id': id,
@@ -4599,10 +4578,16 @@ class okx(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'currency': code,
             'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'status': status,
+            'fromAccount': self.safe_string(accountsById, fromAccountId),
+            'toAccount': self.safe_string(accountsById, toAccountId),
+            'status': self.parse_transfer_status(self.safe_string(transfer, 'state')),
         }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'success': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
 
     async def fetch_transfer(self, id: str, code: Optional[str] = None, params={}):
         await self.load_markets()
@@ -4634,6 +4619,63 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         transfer = self.safe_value(data, 0)
         return self.parse_transfer(transfer)
+
+    async def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch a history of internal transfers made on an account
+        :param str|None code: unified currency code of the currency transferred
+        :param int|None since: the earliest time in ms to fetch transfers for
+        :param int|None limit: the maximum number of transfers structures to retrieve
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        """
+        await self.load_markets()
+        currency = None
+        request = {
+            'type': '1',  # https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+        }
+        if code is not None:
+            currency = self.currency(code)
+            request['ccy'] = currency['id']
+        if since is not None:
+            request['begin'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privateGetAccountBillsArchive(self.extend(request, params))
+        #
+        #    {
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                "bal": "70.6874353780312913",
+        #                "balChg": "-4.0000000000000000",
+        #                "billId": "588900695232225299",
+        #                "ccy": "USDT",
+        #                "execType": "",
+        #                "fee": "",
+        #                "from": "18",
+        #                "instId": "",
+        #                "instType": "",
+        #                "mgnMode": "",
+        #                "notes": "To Funding Account",
+        #                "ordId": "",
+        #                "pnl": "",
+        #                "posBal": "",
+        #                "posBalChg": "",
+        #                "price": "0",
+        #                "subType": "12",
+        #                "sz": "-4",
+        #                "to": "6",
+        #                "ts": "1686676866989",
+        #                "type": "1"
+        #            },
+        #            ...
+        #        ],
+        #        "msg": ""
+        #    }
+        #
+        transfers = self.safe_value(response, 'data', [])
+        return self.parse_transfers(transfers, currency, since, limit, params)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         isArray = isinstance(params, list)

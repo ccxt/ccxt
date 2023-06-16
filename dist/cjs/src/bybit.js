@@ -400,6 +400,7 @@ class bybit extends bybit$1 {
                         'v5/spot-cross-margin-trade/orders': 1,
                         'v5/spot-cross-margin-trade/repay-history': 1,
                         'v5/ins-loan/ltv-convert': 1,
+                        'v5/broker/earning-record': 1,
                     },
                     'post': {
                         // inverse swap
@@ -4932,7 +4933,7 @@ class bybit extends bybit$1 {
                 request['category'] = 'linear';
             }
             else {
-                throw new errors.NotSupported(this.id + ' fetchOrders() does not allow inverse market orders for ' + symbol + ' markets');
+                request['category'] = 'inverse';
             }
         }
         const isStop = this.safeValue(params, 'stop', false);
@@ -5146,6 +5147,20 @@ class bybit extends bybit$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        const endTime = this.safeInteger(params, 'endTime', until); // exchange-specific in milliseconds
+        params = this.omit(params, ['endTime', 'till', 'until']);
+        if (endTime !== undefined) {
+            request['endTime'] = endTime;
+        }
+        else {
+            if (since !== undefined) {
+                throw new errors.BadRequest(this.id + ' fetchOrders() requires until/endTime when since is provided.');
+            }
+        }
         const response = await this.privateGetV5OrderHistory(this.extend(request, params));
         //
         //     {
@@ -5231,7 +5246,7 @@ class bybit extends bybit$1 {
         }
         const [type, query] = this.handleMarketTypeAndParams('fetchOrders', market, params);
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
-        if (enableUnifiedAccount && !isInverse) {
+        if (enableUnifiedAccount) {
             return await this.fetchUnifiedAccountOrders(symbol, since, limit, query);
         }
         else if (type === 'spot') {

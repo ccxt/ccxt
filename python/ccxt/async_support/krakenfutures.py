@@ -1560,16 +1560,24 @@ class krakenfutures(Exchange, ImplicitAPI):
         #  'vol24h': 0.1,
         #  'volumeQuote': 2.63}
         #
+        fundingRateMultiplier = '8'  # https://support.kraken.com/hc/en-us/articles/9618146737172-Perpetual-Contracts-Funding-Rate-Method-Prior-to-September-29-2022
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.symbol(marketId)
         timestamp = self.parse8601(self.safe_string(ticker, 'lastTime'))
-        fundingRate = self.safe_number(ticker, 'fundingRate')
-        nextFundingRate = self.safe_number(ticker, 'fundingRatePrediction')
+        indexPrice = self.safe_number(ticker, 'indexPrice')
+        markPriceString = self.safe_string(ticker, 'markPrice')
+        markPrice = self.parse_number(markPriceString)
+        fundingRateString = self.safe_string(ticker, 'fundingRate')
+        fundingRateResult = Precise.string_div(Precise.string_mul(fundingRateString, fundingRateMultiplier), markPriceString)
+        fundingRate = self.parse_number(fundingRateResult)
+        nextFundingRateString = self.safe_string(ticker, 'fundingRatePrediction')
+        nextFundingRateResult = Precise.string_div(Precise.string_mul(nextFundingRateString, fundingRateMultiplier), markPriceString)
+        nextFundingRate = self.parse_number(nextFundingRateResult)
         return {
             'info': ticker,
             'symbol': symbol,
-            'markPrice': None,
-            'indexPrice': None,
+            'markPrice': markPrice,
+            'indexPrice': indexPrice,
             'interestRate': None,
             'estimatedSettlePrice': None,
             'timestamp': timestamp,

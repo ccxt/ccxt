@@ -1639,16 +1639,24 @@ class krakenfutures extends krakenfutures$1 {
         //  'vol24h': 0.1,
         //  'volumeQuote': 2.63}
         //
+        const fundingRateMultiplier = '8'; // https://support.kraken.com/hc/en-us/articles/9618146737172-Perpetual-Contracts-Funding-Rate-Method-Prior-to-September-29-2022
         const marketId = this.safeString(ticker, 'symbol');
         const symbol = this.symbol(marketId);
         const timestamp = this.parse8601(this.safeString(ticker, 'lastTime'));
-        const fundingRate = this.safeNumber(ticker, 'fundingRate');
-        const nextFundingRate = this.safeNumber(ticker, 'fundingRatePrediction');
+        const indexPrice = this.safeNumber(ticker, 'indexPrice');
+        const markPriceString = this.safeString(ticker, 'markPrice');
+        const markPrice = this.parseNumber(markPriceString);
+        const fundingRateString = this.safeString(ticker, 'fundingRate');
+        const fundingRateResult = Precise["default"].stringDiv(Precise["default"].stringMul(fundingRateString, fundingRateMultiplier), markPriceString);
+        const fundingRate = this.parseNumber(fundingRateResult);
+        const nextFundingRateString = this.safeString(ticker, 'fundingRatePrediction');
+        const nextFundingRateResult = Precise["default"].stringDiv(Precise["default"].stringMul(nextFundingRateString, fundingRateMultiplier), markPriceString);
+        const nextFundingRate = this.parseNumber(nextFundingRateResult);
         return {
             'info': ticker,
             'symbol': symbol,
-            'markPrice': undefined,
-            'indexPrice': undefined,
+            'markPrice': markPrice,
+            'indexPrice': indexPrice,
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': timestamp,
