@@ -2364,11 +2364,11 @@ export default class Exchange {
             let content = response;
             if (startRegex !== undefined) {
                 const splitted_by_start = content.split (startRegex);
-                content = splitted_by_start[1]; // as it's START_REGEX, we need second part
+                content = splitted_by_start[1]; // we need second part after start
             }
             if (endRegex !== undefined) {
                 const splitted_by_end = content.split (endRegex);
-                content = splitted_by_end[0]; // as it's END_REGEX, we need first part
+                content = splitted_by_end[0]; // we need first part after start
             }
             if (returnAsJson) {
                 const jsoned = this.parseJson (content.trim ()); // content should be trimmed before json parsing
