@@ -255,6 +255,8 @@ https://www.youtube.com/watch?v=K-EZ9QXezZM
 
 [Simple trading bot in JavaScript using ~40 lines of code](https://www.tuicool.com/articles/vqymAj3) – A demo of how to make a trading bot with CCXT.
 
+[CCXT Python: Exploring Cryptocurrency Trading on Binance, Kucoin, and Bitmex](https://awstip.com/ccxt-python-exploring-cryptocurrency-trading-on-binance-kucoin-and-bitmex-b2bae06ce79c) – An article @ Medium on programming a trading script for Binance, Kucoin, and Bitmex.
+
 [Using ccxt and technicalindicators to calculate MACD for BTC/USDT with Node.js](https://runkit.com/dhilipb/macd-for-btc-usdt) – A runkit sample showing how to fetch data and run statistical calculations.
 
 [Which Bitcoin crypto currency bot project? Gekko vs ccxt vs Tribeca vs Blackbird](https://www.youtube.com/watch?v=Bn2p-nkbVdE) – A video comparison of opensource cryptocurrency trading platforms.
