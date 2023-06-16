@@ -96,6 +96,7 @@ class Transpiler {
             [ /\.parseFundingRateHistory\s/g, '.parse_funding_rate_history'],
             [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
             [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
+            [ /\.parseWsOHLCVs\s/g, '.parse_ws_ohlcvs'],
             [ /\.parseWsOHLCV\s/g, '.parse_ws_ohlcv'],
             [ /\.parseDate\s/g, '.parse_date'],
             [ /\.parseDepositAddresses\s/g, '.parse_deposit_addresses'],
@@ -261,7 +262,6 @@ class Transpiler {
             [ /\.isDecimalPrecision\s/g, '.is_decimal_precision'],
             [ /\.isSignificantPrecision\s/g, '.is_significant_precision'],
             [ /\.filterByLimit\s/g, '.filter_by_limit'],
-            [ /\.parseWsOHLCVs\s/g, '.parse_ws_ohlcvs'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
