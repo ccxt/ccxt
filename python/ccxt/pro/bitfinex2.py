@@ -912,7 +912,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
             'EXECUTED': 'closed',
-            'PARTIALLY FILLED': 'open',
+            'PARTIALLY': 'open',
         }
         return self.safe_string(statuses, status, status)
 

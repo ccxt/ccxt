@@ -405,7 +405,7 @@ class bybit extends bybit$1 {
         //     }
         //
         return [
-            this.safeInteger(ohlcv, 'timestamp'),
+            this.safeInteger(ohlcv, 'start'),
             this.safeNumber(ohlcv, 'open'),
             this.safeNumber(ohlcv, 'high'),
             this.safeNumber(ohlcv, 'low'),

@@ -21,6 +21,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
 
 
@@ -312,6 +313,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             'currencies': {
                 'WX': self.safe_currency_structure({'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': None, 'code': 'WX', 'precision': self.parse_number('8')}),
             },
+            'precisionMode': DECIMAL_PLACES,
             'options': {
                 'allowedCandles': 1440,
                 'accessToken': None,

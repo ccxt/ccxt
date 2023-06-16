@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.35'
+__version__ = '3.1.40'
 
 # -----------------------------------------------------------------------------
 
@@ -14,6 +14,7 @@ import aiohttp
 import ssl
 import sys
 import yarl
+import math
 from typing import Any, Optional, List
 
 # -----------------------------------------------------------------------------
@@ -2518,6 +2519,7 @@ class Exchange(BaseExchange):
         if self.has['fetchFundingRates']:
             await self.load_markets()
             market = self.market(symbol)
+            symbol = market['symbol']
             if not market['contract']:
                 raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
             rates = await self.fetchFundingRates([symbol], params)

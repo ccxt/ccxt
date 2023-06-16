@@ -999,7 +999,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             'ACTIVE' => 'open',
             'CANCELED' => 'canceled',
             'EXECUTED' => 'closed',
-            'PARTIALLY FILLED' => 'open',
+            'PARTIALLY' => 'open',
         );
         return $this->safe_string($statuses, $status, $status);
     }

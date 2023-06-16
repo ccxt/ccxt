@@ -4600,7 +4600,7 @@ export default class xt extends Exchange {
         //     }
         //
         const status = this.safeStringUpper2 (response, 'msgInfo', 'mc');
-        if (status !== 'SUCCESS') {
+        if (status !== undefined && status !== 'SUCCESS') {
             const feedback = this.id + ' ' + body;
             const error = this.safeValue (response, 'error', {});
             const spotErrorCode = this.safeString (response, 'mc');

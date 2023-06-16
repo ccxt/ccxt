@@ -999,6 +999,8 @@ class bitso(Exchange, ImplicitAPI):
     def parse_order_status(self, status):
         statuses = {
             'partial-fill': 'open',  # self is a common substitution in ccxt
+            'partially filled': 'open',
+            'queued': 'open',
             'completed': 'closed',
         }
         return self.safe_string(statuses, status, status)
