@@ -478,6 +478,8 @@ class okx extends okx$1 {
                     '51028': errors.BadSymbol,
                     '51029': errors.BadSymbol,
                     '51030': errors.BadSymbol,
+                    '51046': errors.InvalidOrder,
+                    '51047': errors.InvalidOrder,
                     '51031': errors.InvalidOrder,
                     '51100': errors.InvalidOrder,
                     '51101': errors.InvalidOrder,

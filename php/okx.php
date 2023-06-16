@@ -479,6 +479,8 @@ class okx extends Exchange {
                     '51028' => '\\ccxt\\BadSymbol', // Contract under delivery
                     '51029' => '\\ccxt\\BadSymbol', // Contract is being settled
                     '51030' => '\\ccxt\\BadSymbol', // Funding fee is being settled
+                    '51046' => '\\ccxt\\InvalidOrder', // The take profit trigger price must be higher than the order price
+                    '51047' => '\\ccxt\\InvalidOrder', // The stop loss trigger price must be lower than the order price
                     '51031' => '\\ccxt\\InvalidOrder', // This order price is not within the closing price range
                     '51100' => '\\ccxt\\InvalidOrder', // Trading amount does not meet the min tradable amount
                     '51101' => '\\ccxt\\InvalidOrder', // Entered amount exceeds the max pending order amount (Cont) per transaction
