@@ -4881,7 +4881,7 @@ export default class bybit extends Exchange {
             } else if (market['linear']) {
                 request['category'] = 'linear';
             } else {
-                throw new NotSupported (this.id + ' fetchOrders() does not allow inverse market orders for ' + symbol + ' markets');
+                request['category'] = 'inverse';
             }
         }
         const isStop = this.safeValue (params, 'stop', false);
@@ -5090,6 +5090,19 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
+        const endTime = this.safeInteger (params, 'endTime', until); // exchange-specific in milliseconds
+        params = this.omit (params, [ 'endTime', 'till', 'until' ]);
+        if (endTime !== undefined) {
+            request['endTime'] = endTime;
+        } else {
+            if (since !== undefined) {
+                throw new BadRequest (this.id + ' fetchOrders() requires until/endTime when since is provided.');
+            }
+        }
         const response = await this.privateGetV5OrderHistory (this.extend (request, params));
         //
         //     {
@@ -5176,7 +5189,7 @@ export default class bybit extends Exchange {
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        if (enableUnifiedAccount && !isInverse) {
+        if (enableUnifiedAccount) {
             return await this.fetchUnifiedAccountOrders (symbol, since, limit, query);
         } else if (type === 'spot') {
             throw new NotSupported (this.id + ' fetchOrders() only support ' + type + ' markets for unified trade account, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
