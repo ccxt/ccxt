@@ -760,7 +760,7 @@ export default class coinex extends coinexRest {
         client.resolve (this.orders, messageHash);
     }
 
-    parseWSOrder (order) {
+    parseWSOrder (order, market = undefined) {
         //
         //  spot
         //
@@ -874,7 +874,7 @@ export default class coinex extends coinexRest {
         const amount = this.safeString (order, 'amount');
         const status = this.safeString (order, 'status');
         const defaultType = this.safeString (this.options, 'defaultType');
-        const market = this.safeMarket (marketId, undefined, undefined, defaultType);
+        market = this.safeMarket (marketId, market, undefined, defaultType);
         let cost = this.safeString (order, 'deal_money');
         let filled = this.safeString (order, 'deal_stock');
         let average = undefined;
