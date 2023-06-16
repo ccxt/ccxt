@@ -4,6 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.hitbtc import ImplicitAPI
+from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadSymbol
@@ -18,7 +23,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class hitbtc(Exchange):
+class hitbtc(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(hitbtc, self).describe(), {
@@ -217,8 +222,8 @@ class hitbtc(Exchange):
                 'networks': {
                     'ETH': 'T20',
                     'ERC20': 'T20',
-                    'TRX': 'TTRX',
-                    'TRC20': 'TTRX',
+                    'TRX': 'TRX',
+                    'TRC20': 'TRX',
                     'OMNI': '',
                 },
                 'defaultTimeInForce': 'FOK',
@@ -235,6 +240,9 @@ class hitbtc(Exchange):
                     'spot': 'trading',
                     'trade': 'trading',
                     'trading': 'trading',
+                },
+                'withdraw': {
+                    'includeFee': False,
                 },
             },
             'commonCurrencies': {
@@ -368,7 +376,7 @@ class hitbtc(Exchange):
             }))
         return result
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -492,6 +500,7 @@ class hitbtc(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 
@@ -512,7 +521,7 @@ class hitbtc(Exchange):
             'tierBased': True,
         }
 
-    def fetch_trading_fee(self, symbol, params={}):
+    def fetch_trading_fee(self, symbol: str, params={}):
         """
         fetch the trading fees for a market
         :param str symbol: unified market symbol
@@ -594,7 +603,7 @@ class hitbtc(Exchange):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -624,7 +633,7 @@ class hitbtc(Exchange):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -672,7 +681,7 @@ class hitbtc(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -691,7 +700,7 @@ class hitbtc(Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -786,7 +795,7 @@ class hitbtc(Exchange):
             'fee': fee,
         }, market)
 
-    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         see https://api.hitbtc.com/v2#get-transactions-history
@@ -898,7 +907,7 @@ class hitbtc(Exchange):
         }
         return self.safe_string(types, type, type)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -920,7 +929,7 @@ class hitbtc(Exchange):
         response = self.publicGetTradesSymbol(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -959,7 +968,7 @@ class hitbtc(Exchange):
             raise InvalidOrder(self.id + ' order was rejected by the exchange ' + self.json(order))
         return order
 
-    def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         self.load_markets()
         # we use clientOrderId order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
@@ -980,7 +989,7 @@ class hitbtc(Exchange):
         response = self.privatePatchOrderClientOrderId(self.extend(request, params))
         return self.parse_order(response)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1096,7 +1105,7 @@ class hitbtc(Exchange):
             'info': order,
         }, market)
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by hitbtc fetchOrder
@@ -1116,7 +1125,7 @@ class hitbtc(Exchange):
             return self.parse_order(response[0])
         raise OrderNotFound(self.id + ' order ' + id + ' not found')
 
-    def fetch_open_order(self, id, symbol=None, params={}):
+    def fetch_open_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id
@@ -1134,7 +1143,7 @@ class hitbtc(Exchange):
         response = self.privateGetOrderClientOrderId(self.extend(request, params))
         return self.parse_order(response)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -1152,7 +1161,7 @@ class hitbtc(Exchange):
         response = self.privateGetOrder(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -1181,7 +1190,7 @@ class hitbtc(Exchange):
                 orders.append(order)
         return self.filter_by_since_limit(orders, since, limit)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -1237,7 +1246,7 @@ class hitbtc(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1263,7 +1272,7 @@ class hitbtc(Exchange):
             return self.parse_trades(response, market, since, limit)
         raise OrderNotFound(self.id + ' order ' + id + ' not found, ' + self.id + '.fetchOrderTrades() requires an exchange-specific order id, you need to grab it from order["info"]["id"]')
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -1280,13 +1289,13 @@ class hitbtc(Exchange):
         self.check_address(address)
         tag = self.safe_string(response, 'paymentId')
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': tag,
             'info': response,
         }
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1316,7 +1325,7 @@ class hitbtc(Exchange):
             'info': response,
         }
 
-    def convert_currency_network(self, code, amount, fromNetwork, toNetwork, params):
+    def convert_currency_network(self, code: str, amount, fromNetwork, toNetwork, params):
         self.load_markets()
         currency = self.currency(code)
         networks = self.safe_value(self.options, 'networks', {})
@@ -1334,7 +1343,7 @@ class hitbtc(Exchange):
             'info': response,
         }
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1361,6 +1370,10 @@ class hitbtc(Exchange):
         if network is not None:
             request['currency'] += network  # when network the currency need to be changed to currency + network
             params = self.omit(params, 'network')
+        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
+        includeFee = self.safe_value(withdrawOptions, 'includeFee', False)
+        if includeFee:
+            request['includeFee'] = True
         response = self.privatePostAccountCryptoWithdraw(self.extend(request, params))
         #
         #     {
@@ -1387,7 +1400,7 @@ class hitbtc(Exchange):
                     url += '?' + self.urlencode(query)
             elif query:
                 body = self.json(query)
-            payload = self.encode(self.apiKey + ':' + self.secret)
+            payload = self.apiKey + ':' + self.secret
             auth = self.string_to_base64(payload)
             headers = {
                 'Authorization': 'Basic ' + auth,
@@ -1398,7 +1411,7 @@ class hitbtc(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         if code >= 400:
             feedback = self.id + ' ' + body
             # {"code":504,"message":"Gateway Timeout","description":""}
@@ -1407,7 +1420,7 @@ class hitbtc(Exchange):
             # fallback to default error handler on rate limit errors
             # {"code":429,"message":"Too many requests","description":"Too many requests"}
             if code == 429:
-                return
+                return None
             # {"error":{"code":20002,"message":"Order not found","description":""}}
             if body[0] == '{':
                 if 'error' in response:
@@ -1417,3 +1430,4 @@ class hitbtc(Exchange):
                     if message == 'Duplicate clientOrderId':
                         raise InvalidOrder(feedback)
             raise ExchangeError(feedback)
+        return None

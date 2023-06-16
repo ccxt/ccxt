@@ -9,7 +9,6 @@ import alpacaRest from '../alpaca.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class alpaca extends alpacaRest {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -372,7 +371,7 @@ export default class alpaca extends alpacaRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleTradeUpdate(client, message) {
         this.handleOrder(client, message);

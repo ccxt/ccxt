@@ -7,7 +7,6 @@
 //  ---------------------------------------------------------------------------
 import hitbtc from './hitbtc.js';
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bequant extends hitbtc {
     describe() {
         return this.deepExtend(super.describe(), {

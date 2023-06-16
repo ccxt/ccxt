@@ -5,6 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.client import Client
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
@@ -50,7 +52,7 @@ class alpaca(ccxt.async_support.alpaca):
             },
         })
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -68,7 +70,7 @@ class alpaca(ccxt.async_support.alpaca):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #    {
         #         T: 'q',
@@ -123,7 +125,7 @@ class alpaca(ccxt.async_support.alpaca):
             'info': ticker,
         }, market)
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -148,7 +150,7 @@ class alpaca(ccxt.async_support.alpaca):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #    {
         #        T: 'b',
@@ -175,7 +177,7 @@ class alpaca(ccxt.async_support.alpaca):
         messageHash = 'ohlcv:' + symbol
         client.resolve(stored, messageHash)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -196,7 +198,7 @@ class alpaca(ccxt.async_support.alpaca):
         orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         # snapshot
         #    {
@@ -248,7 +250,7 @@ class alpaca(ccxt.async_support.alpaca):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple trades made in a market
         :param str symbol: unified market symbol of the market orders were made in
@@ -272,7 +274,7 @@ class alpaca(ccxt.async_support.alpaca):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         T: 't',
@@ -296,7 +298,7 @@ class alpaca(ccxt.async_support.alpaca):
         messageHash = 'trade' + ':' + symbol
         client.resolve(stored, messageHash)
 
-    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -324,7 +326,7 @@ class alpaca(ccxt.async_support.alpaca):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -350,13 +352,13 @@ class alpaca(ccxt.async_support.alpaca):
         orders = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
-    def handle_trade_update(self, client, message):
+    def handle_trade_update(self, client: Client, message):
         self.handle_order(client, message)
         self.handle_my_trade(client, message)
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         #
         #    {
         #        stream: 'trade_updates',
@@ -415,7 +417,7 @@ class alpaca(ccxt.async_support.alpaca):
         messageHash = 'orders:' + order['symbol']
         client.resolve(orders, messageHash)
 
-    def handle_my_trade(self, client, message):
+    def handle_my_trade(self, client: Client, message):
         #
         #    {
         #        stream: 'trade_updates',
@@ -561,7 +563,7 @@ class alpaca(ccxt.async_support.alpaca):
             self.spawn(self.watch, url, messageHash, request, messageHash, future)
         return await future
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         #
         #    {
         #        T: 'error',
@@ -573,7 +575,7 @@ class alpaca(ccxt.async_support.alpaca):
         msg = self.safe_value(message, 'msg', {})
         raise ExchangeError(self.id + ' code: ' + code + ' message: ' + msg)
 
-    def handle_connected(self, client, message):
+    def handle_connected(self, client: Client, message):
         #
         #    {
         #        T: 'success',
@@ -582,7 +584,7 @@ class alpaca(ccxt.async_support.alpaca):
         #
         return message
 
-    def handle_crypto_message(self, client, message):
+    def handle_crypto_message(self, client: Client, message):
         for i in range(0, len(message)):
             data = message[i]
             T = self.safe_string(data, 'T')
@@ -604,7 +606,7 @@ class alpaca(ccxt.async_support.alpaca):
             if method is not None:
                 method(client, data)
 
-    def handle_trading_message(self, client, message):
+    def handle_trading_message(self, client: Client, message):
         stream = self.safe_string(message, 'stream')
         methods = {
             'authorization': self.handle_authenticate,
@@ -615,12 +617,12 @@ class alpaca(ccxt.async_support.alpaca):
         if method is not None:
             method(client, message)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         if isinstance(message, list):
             return self.handle_crypto_message(client, message)
         self.handle_trading_message(client, message)
 
-    def handle_authenticate(self, client, message):
+    def handle_authenticate(self, client: Client, message):
         #
         # crypto
         #    {
@@ -654,7 +656,7 @@ class alpaca(ccxt.async_support.alpaca):
             return
         raise AuthenticationError(self.id + ' failed to authenticate.')
 
-    def handle_subscription(self, client, message):
+    def handle_subscription(self, client: Client, message):
         #
         # crypto
         #    {

@@ -8,7 +8,6 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 class bitfinex2 extends bitfinex2$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -326,6 +325,9 @@ class bitfinex2 extends bitfinex2$1 {
                     'derivatives': 'margin',
                     'future': 'margin',
                 },
+                'withdraw': {
+                    'includeFee': false,
+                },
             },
             'exceptions': {
                 'exact': {
@@ -502,14 +504,16 @@ class bitfinex2 extends bitfinex2$1 {
             baseId = this.getCurrencyId(baseId);
             quoteId = this.getCurrencyId(quoteId);
             let settle = undefined;
+            let settleId = undefined;
             if (swap) {
                 settle = quote;
+                settleId = quote;
                 symbol = symbol + ':' + settle;
             }
             const minOrderSizeString = this.safeString(market, 3);
             const maxOrderSizeString = this.safeString(market, 4);
             let margin = false;
-            if (this.inArray(id, marginIds)) {
+            if (spot && this.inArray(id, marginIds)) {
                 margin = true;
             }
             result.push({
@@ -520,7 +524,7 @@ class bitfinex2 extends bitfinex2$1 {
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': quoteId,
+                'settleId': settleId,
                 'type': spot ? 'spot' : 'swap',
                 'spot': spot,
                 'margin': margin,
@@ -715,6 +719,7 @@ class bitfinex2 extends bitfinex2$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
             const networks = {};
             const currencyNetworks = this.safeValue(response, 8, []);
@@ -1961,10 +1966,14 @@ class bitfinex2 extends bitfinex2$1 {
     parseTransactionStatus(status) {
         const statuses = {
             'SUCCESS': 'ok',
+            'COMPLETED': 'ok',
             'ERROR': 'failed',
             'FAILURE': 'failed',
             'CANCELED': 'canceled',
-            'COMPLETED': 'ok',
+            'PENDING APPROVAL': 'pending',
+            'PENDING': 'pending',
+            'PENDING REVIEW': 'pending',
+            'PENDING CANCELLATION': 'pending',
         };
         return this.safeString(statuses, status, status);
     }
@@ -2045,7 +2054,7 @@ class bitfinex2 extends bitfinex2$1 {
                 feeCost = Precise["default"].stringAbs(feeCost);
             }
             amount = this.safeNumber(data, 5);
-            id = this.safeValue(data, 0);
+            id = this.safeString(data, 0);
             status = 'ok';
             if (id === 0) {
                 id = undefined;
@@ -2299,7 +2308,7 @@ class bitfinex2 extends bitfinex2$1 {
         const currencyNetwork = this.safeValue(currencyNetworks, network);
         const networkId = this.safeString(currencyNetwork, 'id');
         if (networkId === undefined) {
-            throw new errors.ArgumentsRequired(this.id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
+            throw new errors.ArgumentsRequired(this.id + " withdraw() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
         }
         const wallet = this.safeString(params, 'wallet', 'exchange'); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         params = this.omit(params, 'network', 'wallet');
@@ -2311,6 +2320,11 @@ class bitfinex2 extends bitfinex2$1 {
         };
         if (tag !== undefined) {
             request['payment_id'] = tag;
+        }
+        const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
+        const includeFee = this.safeValue(withdrawOptions, 'includeFee', false);
+        if (includeFee) {
+            request['fee_deduct'] = 1;
         }
         const response = await this.privatePostAuthWWithdraw(this.extend(request, params));
         //

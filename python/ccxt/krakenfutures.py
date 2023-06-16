@@ -4,7 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
+from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -23,7 +28,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class krakenfutures(Exchange):
+class krakenfutures(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(krakenfutures, self).describe(), {
@@ -33,6 +38,7 @@ class krakenfutures(Exchange):
             'version': 'v3',
             'userAgent': None,
             'rateLimit': 600,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': False,
@@ -53,9 +59,9 @@ class krakenfutures(Exchange):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': None,  # https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchFundingHistory': None,
-                'fetchFundingRate': False,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': False,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedPositions': False,
                 'fetchLeverageTiers': True,
@@ -78,8 +84,8 @@ class krakenfutures(Exchange):
             },
             'urls': {
                 'test': {
-                    'public': 'https://demo-futures.kraken.com/derivatives',
-                    'private': 'https://demo-futures.kraken.com/derivatives',
+                    'public': 'https://demo-futures.kraken.com/derivatives/api/',
+                    'private': 'https://demo-futures.kraken.com/derivatives/api/',
                     'www': 'https://demo-futures.kraken.com',
                 },
                 'logo': 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -306,7 +312,7 @@ class krakenfutures(Exchange):
             symbol = id
             split = id.split('_')
             splitMarket = self.safe_string(split, 1)
-            baseId = splitMarket.replace('usd', '')
+            baseId = splitMarket[0:len(splitMarket) - 3]
             quoteId = 'usd'  # always USD
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
@@ -315,8 +321,9 @@ class krakenfutures(Exchange):
             settleId = None
             amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'contractValueTradePrecision', '0')))
             pricePrecision = self.safe_number(market, 'tickSize')
-            contract = (swap or future)
-            if contract:
+            contract = (swap or future or index)
+            swapOrFutures = (swap or future)
+            if swapOrFutures:
                 exchangeType = self.safe_string(market, 'type')
                 if exchangeType == 'futures_inverse':
                     settle = base
@@ -393,7 +400,7 @@ class krakenfutures(Exchange):
         self.currencies = self.deep_extend(currencies, self.currencies)
         return result
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         Fetches a list of open orders in a market
         :param str symbol: Unified market symbol
@@ -440,7 +447,7 @@ class krakenfutures(Exchange):
         timestamp = self.parse8601(response['serverTime'])
         return self.parse_order_book(response['orderBook'], symbol, timestamp)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         self.load_markets()
         response = self.publicGetTickers(params)
         #
@@ -546,7 +553,7 @@ class krakenfutures(Exchange):
             'info': ticker,
         })
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -610,7 +617,7 @@ class krakenfutures(Exchange):
             self.safe_number(ohlcv, 'volume'),      # trading volume, None for mark or index price
         ]
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
          * @descriptions Fetch a history of filled trades that self account has made
         :param str symbol: Unified CCXT market symbol
@@ -764,7 +771,7 @@ class krakenfutures(Exchange):
             'fee': None,
         })
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
         :param str symbol: market symbol
@@ -783,15 +790,16 @@ class krakenfutures(Exchange):
         type = self.safe_string(params, 'orderType', type)
         timeInForce = self.safe_string(params, 'timeInForce')
         stopPrice = self.safe_string(params, 'stopPrice')
-        postOnly = self.safe_string(params, 'postOnly')
+        postOnly = False
+        postOnly, params = self.handle_post_only(type == 'market', type == 'post', params)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'cliOrdId')
         params = self.omit(params, ['clientOrderId', 'cliOrdId'])
         if (type == 'stp' or type == 'take_profit') and stopPrice is None:
             raise ArgumentsRequired(self.id + ' createOrder requires params.stopPrice when type is ' + type)
-        if stopPrice is not None:
+        if stopPrice is not None and type != 'take_profit':
             type = 'stp'
         elif postOnly:
-            type = 'postOnly'
+            type = 'post'
         elif timeInForce == 'ioc':
             type = 'ioc'
         elif type == 'limit':
@@ -844,7 +852,7 @@ class krakenfutures(Exchange):
         self.verify_order_action_success(status, 'createOrder', ['filled'])
         return self.parse_order(sendStatus)
 
-    def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         Edit an open order on the exchange
         :param str id: order id
@@ -870,7 +878,7 @@ class krakenfutures(Exchange):
         order = self.parse_order(response['editStatus'])
         return self.extend({'info': response}, order)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         :param str id: Order id
         :param str|None symbol: Not used by Krakenfutures
@@ -886,7 +894,7 @@ class krakenfutures(Exchange):
             order = self.parse_order(response['cancelStatus'])
         return self.extend({'info': response}, order)
 
-    def cancel_all_orders(self, symbol=None, params={}):
+    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         Cancels all orders on the exchange, including trigger orders
         :param str symbol: Unified market symbol
@@ -899,7 +907,7 @@ class krakenfutures(Exchange):
         response = self.privatePostCancelallorders(self.extend(request, params))
         return response
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Gets all open orders, including trigger orders, for an account from the exchange api
         :param str symbol: Unified market symbol
@@ -1265,7 +1273,7 @@ class krakenfutures(Exchange):
             'trades': trades,
         })
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
         market = None
         if symbol is not None:
@@ -1505,7 +1513,79 @@ class krakenfutures(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
+        fetch the current funding rates
+        :param [str] symbols: unified market symbols
+        :param dict params: extra parameters specific to the krakenfutures api endpoint
+        :returns [dict]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        self.load_markets()
+        marketIds = self.market_ids(symbols)
+        response = self.publicGetTickers(params)
+        tickers = self.safe_value(response, 'tickers')
+        fundingRates = []
+        for i in range(0, len(tickers)):
+            entry = tickers[i]
+            entry_symbol = self.safe_value(entry, 'symbol')
+            if marketIds is not None:
+                if not self.in_array(entry_symbol, marketIds):
+                    continue
+            market = self.safe_market(entry_symbol)
+            parsed = self.parse_funding_rate(entry, market)
+            fundingRates.append(parsed)
+        return self.index_by(fundingRates, 'symbol')
+
+    def parse_funding_rate(self, ticker, market=None):
+        #
+        # {'ask': 26.283,
+        #  'askSize': 4.6,
+        #  'bid': 26.201,
+        #  'bidSize': 190,
+        #  'fundingRate': -0.000944642727438883,
+        #  'fundingRatePrediction': -0.000872671532340275,
+        #  'indexPrice': 26.253,
+        #  'last': 26.3,
+        #  'lastSize': 0.1,
+        #  'lastTime': '2023-06-11T18:55:28.958Z',
+        #  'markPrice': 26.239,
+        #  'open24h': 26.3,
+        #  'openInterest': 641.1,
+        #  'pair': 'COMP:USD',
+        #  'postOnly': False,
+        #  'suspended': False,
+        #  'symbol': 'pf_compusd',
+        #  'tag': 'perpetual',
+        #  'vol24h': 0.1,
+        #  'volumeQuote': 2.63}
+        #
+        marketId = self.safe_string(ticker, 'symbol')
+        symbol = self.symbol(marketId)
+        timestamp = self.parse8601(self.safe_string(ticker, 'lastTime'))
+        fundingRate = self.safe_number(ticker, 'fundingRate')
+        nextFundingRate = self.safe_number(ticker, 'fundingRatePrediction')
+        return {
+            'info': ticker,
+            'symbol': symbol,
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fundingRate': fundingRate,
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': nextFundingRate,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
+
+    def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.check_required_symbol('fetchFundingRateHistory', symbol)
         self.load_markets()
         market = self.market(symbol)
@@ -1542,7 +1622,7 @@ class krakenfutures(Exchange):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def fetch_positions(self, symbols=None, params={}):
+    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         Fetches current contract trading positions
         :param [str] symbols: List of unified symbols
@@ -1571,7 +1651,7 @@ class krakenfutures(Exchange):
         result = self.parse_positions(response)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
-    def parse_positions(self, response, symbols=None, params={}):
+    def parse_positions(self, response, symbols: Optional[List[str]] = None, params={}):
         result = []
         positions = self.safe_value(response, 'openPositions')
         for i in range(0, len(positions)):
@@ -1633,7 +1713,7 @@ class krakenfutures(Exchange):
             'percentage': None,
         }
 
-    def fetch_leverage_tiers(self, symbols=None, params={}):
+    def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
         self.load_markets()
         response = self.publicGetInstruments(params)
         #
@@ -1791,7 +1871,7 @@ class krakenfutures(Exchange):
         else:
             return account
 
-    def transfer_out(self, code, amount, params={}):
+    def transfer_out(self, code: str, amount, params={}):
         """
         transfer from futures wallet to spot wallet
         :param str code: Unified currency code
@@ -1801,7 +1881,7 @@ class krakenfutures(Exchange):
         """
         return self.transfer(code, amount, 'future', 'spot', params)
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfers currencies between sub-accounts
         :param str code: Unified currency code
@@ -1815,7 +1895,7 @@ class krakenfutures(Exchange):
         currency = self.currency(code)
         method = 'privatePostTransfer'
         request = {
-            'amount': self.currency_to_precision(code, amount),
+            'amount': amount,
         }
         if fromAccount == 'spot':
             raise BadRequest(self.id + ' transfer does not yet support transfers from spot')
@@ -1844,12 +1924,12 @@ class krakenfutures(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
         message = self.safe_string(response, 'error')
         if message is None:
-            return
+            return None
         feedback = self.id + ' ' + body
         self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
@@ -1875,7 +1955,10 @@ class krakenfutures(Exchange):
             query += '?' + postData
         url = self.urls['api'][api] + query
         if api == 'private' or access == 'private':
-            auth = postData + '/api/' + endpoint  # 1
+            auth = postData + '/api/'
+            if api != 'private':
+                auth += api + '/'
+            auth += endpoint  # 1
             hash = self.hash(self.encode(auth), 'sha256', 'binary')  # 2
             secret = self.base64_to_binary(self.secret)  # 3
             signature = self.hmac(hash, secret, hashlib.sha512, 'base64')  # 4-5

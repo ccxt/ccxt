@@ -11,7 +11,6 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class zonda extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -290,6 +289,7 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchMarkets
+         * @see https://docs.zonda.exchange/reference/ticker-1
          * @description retrieves data on all markets for zonda
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
@@ -391,6 +391,7 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchOpenOrders
+         * @see https://docs.zonda.exchange/reference/active-orders
          * @description fetch all unfilled currently open orders
          * @param {string|undefined} symbol not used by zonda fetchOpenOrders
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
@@ -458,6 +459,7 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchMyTrades
+         * @see https://docs.zonda.exchange/reference/transactions-history
          * @description fetch all trades made by the user
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
@@ -522,6 +524,7 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchBalance
+         * @see https://docs.zonda.exchange/reference/list-of-wallets
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} params extra parameters specific to the zonda api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
@@ -534,6 +537,7 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchOrderBook
+         * @see https://docs.zonda.exchange/reference/orderbook-2
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
@@ -619,6 +623,7 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchTicker
+         * @see https://docs.zonda.exchange/reference/market-statistics
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the zonda api endpoint
@@ -649,6 +654,7 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchTickers
+         * @see https://docs.zonda.exchange/reference/market-statistics
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the zonda api endpoint
@@ -677,6 +683,7 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchLedger
+         * @see https://docs.zonda.exchange/reference/operations-history
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|undefined} code unified currency code, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
@@ -1050,6 +1057,7 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchOHLCV
+         * @see https://docs.zonda.exchange/reference/candles-chart
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -1077,7 +1085,7 @@ export default class zonda extends Exchange {
             request['from'] = request['to'] - timerange;
         }
         else {
-            request['from'] = parseInt(since);
+            request['from'] = since;
             request['to'] = this.sum(request['from'], timerange);
         }
         const response = await this.v1_01PublicGetTradingCandleHistorySymbolResolution(this.extend(request, params));
@@ -1175,6 +1183,7 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchTrades
+         * @see https://docs.zonda.exchange/reference/last-transactions
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
@@ -1329,6 +1338,7 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#cancelOrder
+         * @see https://docs.zonda.exchange/reference/cancel-order
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
@@ -1389,6 +1399,7 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchDepositAddress
+         * @see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the zonda api endpoint
@@ -1422,6 +1433,7 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchDepositAddresses
+         * @see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
          * @description fetch deposit addresses for multiple currencies and chain types
          * @param {[string]|undefined} codes zonda does not support filtering filtering by multiple codes and will ignore this parameter.
          * @param {object} params extra parameters specific to the zonda api endpoint
@@ -1449,6 +1461,7 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#transfer
+         * @see https://docs.zonda.exchange/reference/internal-transfer
          * @description transfer currency internally between wallets on the same account
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
@@ -1560,6 +1573,7 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#withdraw
+         * @see https://docs.zonda.exchange/reference/crypto-withdrawal-1
          * @description make a withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
@@ -1689,7 +1703,7 @@ export default class zonda extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('code' in response) {
             //
@@ -1737,5 +1751,6 @@ export default class zonda extends Exchange {
                 throw new ExchangeError(feedback);
             }
         }
+        return undefined;
     }
 }

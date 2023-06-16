@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\exmo as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -230,7 +231,7 @@ class exmo extends Exchange {
         ));
     }
 
-    public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $type, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -274,7 +275,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function reduce_margin($symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -287,7 +288,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function add_margin($symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -492,10 +493,10 @@ class exmo extends Exchange {
                 $providers = $this->safe_value($cryptoList, $currencyId, array());
                 for ($j = 0; $j < count($providers); $j++) {
                     $provider = $providers[$j];
-                    $type = $this->safe_string($provider, 'type');
+                    $typeInner = $this->safe_string($provider, 'type');
                     $commissionDesc = $this->safe_string($provider, 'commission_desc');
                     $fee = $this->parse_fixed_float_value($commissionDesc);
-                    $result[$code][$type] = $fee;
+                    $result[$code][$typeInner] = $fee;
                 }
                 $result[$code]['info'] = $providers;
             }
@@ -663,20 +664,20 @@ class exmo extends Exchange {
                 } else {
                     for ($j = 0; $j < count($providers); $j++) {
                         $provider = $providers[$j];
-                        $type = $this->safe_string($provider, 'type');
+                        $typeInner = $this->safe_string($provider, 'type');
                         $minValue = $this->safe_number($provider, 'min');
                         $maxValue = $this->safe_number($provider, 'max');
                         if ($maxValue === 0.0) {
                             $maxValue = null;
                         }
                         $activeProvider = $this->safe_value($provider, 'enabled');
-                        if ($type === 'deposit') {
+                        if ($typeInner === 'deposit') {
                             if ($activeProvider && !$depositEnabled) {
                                 $depositEnabled = true;
                             } elseif (!$activeProvider) {
                                 $depositEnabled = false;
                             }
-                        } elseif ($type === 'withdraw') {
+                        } elseif ($typeInner === 'withdraw') {
                             if ($activeProvider && !$withdrawEnabled) {
                                 $withdrawEnabled = true;
                             } elseif (!$activeProvider) {
@@ -685,10 +686,10 @@ class exmo extends Exchange {
                         }
                         if ($activeProvider) {
                             $active = true;
-                            if (($limits[$type]['min'] === null) || ($minValue < $limits[$type]['min'])) {
-                                $limits[$type]['min'] = $minValue;
-                                $limits[$type]['max'] = $maxValue;
-                                if ($type === 'withdraw') {
+                            if (($limits[$typeInner]['min'] === null) || ($minValue < $limits[$typeInner]['min'])) {
+                                $limits[$typeInner]['min'] = $minValue;
+                                $limits[$typeInner]['max'] = $maxValue;
+                                if ($typeInner === 'withdraw') {
                                     $commissionDesc = $this->safe_string($provider, 'commission_desc');
                                     $fee = $this->parse_fixed_float_value($commissionDesc);
                                 }
@@ -709,6 +710,7 @@ class exmo extends Exchange {
                     'precision' => $this->parse_number('1e-8'),
                     'limits' => $limits,
                     'info' => $providers,
+                    'networks' => array(),
                 );
             }
             return $result;
@@ -804,7 +806,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -927,7 +929,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -950,7 +952,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
@@ -1031,7 +1033,7 @@ class exmo extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -1070,7 +1072,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -1159,7 +1161,7 @@ class exmo extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1202,7 +1204,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
@@ -1238,9 +1240,9 @@ class exmo extends Exchange {
             }
             $response = Async\await($this->privatePostUserTrades (array_merge($request, $params)));
             $result = array();
-            $marketIds = is_array($response) ? array_keys($response) : array();
-            for ($i = 0; $i < count($marketIds); $i++) {
-                $marketId = $marketIds[$i];
+            $marketIdsInner = is_array($response) ? array_keys($response) : array();
+            for ($i = 0; $i < count($marketIdsInner); $i++) {
+                $marketId = $marketIdsInner[$i];
                 $resultMarket = $this->safe_market($marketId, null, '_');
                 $items = $response[$marketId];
                 $trades = $this->parse_trades($items, $resultMarket, $since, $limit);
@@ -1250,7 +1252,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1332,7 +1334,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1347,7 +1349,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
@@ -1388,7 +1390,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the $trades made from a single order
@@ -1437,7 +1439,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open $orders
@@ -1554,7 +1556,7 @@ class exmo extends Exchange {
         ), $market);
     }
 
-    public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled orders made by the user
@@ -1596,7 +1598,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a currency associated with this account
@@ -1644,7 +1646,7 @@ class exmo extends Exchange {
         return null;
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1824,7 +1826,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -1878,7 +1880,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1932,7 +1934,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch data on a $currency withdrawal via the withdrawal $id
@@ -1984,7 +1986,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit($id = null, $code = null, $params = array ()) {
+    public function fetch_deposit($id = null, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch information on a deposit
@@ -2036,7 +2038,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -2119,7 +2121,7 @@ class exmo extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         if ((is_array($response) && array_key_exists('result', $response)) || (is_array($response) && array_key_exists('errmsg', $response))) {
             //
@@ -2150,5 +2152,6 @@ class exmo extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+        return null;
     }
 }

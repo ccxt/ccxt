@@ -9,7 +9,6 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class kraken extends kraken$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -191,6 +190,9 @@ class kraken extends kraken$1 {
                         'Staking/Assets': 3,
                         'Staking/Pending': 3,
                         'Staking/Transactions': 3,
+                        // sub accounts
+                        'CreateSubaccount': 3,
+                        'AccountTransfer': 3,
                     },
                 },
             },
@@ -578,6 +580,7 @@ class kraken extends kraken$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -1514,7 +1517,7 @@ class kraken extends kraken$1 {
         params = this.omit(params, ['price', 'stopPrice', 'price2', 'close']);
         return [request, params];
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name kraken#editOrder
@@ -2475,7 +2478,7 @@ class kraken extends kraken$1 {
             throw new errors.RateLimitExceeded(this.id + ' ' + body);
         }
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (body[0] === '{') {
             if (typeof response !== 'string') {
@@ -2492,6 +2495,7 @@ class kraken extends kraken$1 {
                 }
             }
         }
+        return undefined;
     }
 }
 

@@ -8,7 +8,6 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class btcmarkets extends btcmarkets$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1204,7 +1203,7 @@ class btcmarkets extends btcmarkets$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('success' in response) {
             if (!response['success']) {
@@ -1223,6 +1222,7 @@ class btcmarkets extends btcmarkets$1 {
             this.throwExactlyMatchedException(this.exceptions, message, feedback);
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
 }
 

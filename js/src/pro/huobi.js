@@ -6,11 +6,10 @@
 
 //  ---------------------------------------------------------------------------
 import huobiRest from '../huobi.js';
-import { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError, } from '../base/errors.js';
+import { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class huobi extends huobiRest {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -341,6 +340,7 @@ export default class huobi extends huobiRest {
         const url = this.getUrlByMarketType(market['type'], market['linear']);
         let method = this.handleOrderBookSubscription;
         if (!market['spot']) {
+            params = this.extend(params);
             params['data_type'] = 'incremental';
             method = undefined;
         }

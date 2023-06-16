@@ -10,7 +10,6 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../ba
 import { ExchangeError } from '../base/errors.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class gemini extends geminiRest {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -400,7 +399,7 @@ export default class gemini extends geminiRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleHeartbeat(client, message) {
         //
@@ -629,7 +628,7 @@ export default class gemini extends geminiRest {
             'nonce': this.nonce(),
         };
         const b64 = this.stringToBase64(this.json(payload));
-        const signature = this.hmac(b64, this.encode(this.secret), sha384, 'hex');
+        const signature = this.hmac(this.encode(b64), this.encode(this.secret), sha384, 'hex');
         const defaultOptions = {
             'ws': {
                 'options': {

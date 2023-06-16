@@ -7,7 +7,6 @@ var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// @ts-expect-error
 class binance extends binance$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -285,8 +284,10 @@ class binance extends binance$1 {
         //         ]
         //     }
         //
-        const index = client.url.indexOf('/stream');
-        const marketType = (index >= 0) ? 'spot' : 'contract';
+        const isTestnetSpot = client.url.indexOf('testnet') > 0;
+        const isSpotMainNet = client.url.indexOf('/stream.binance.') > 0;
+        const isSpot = isTestnetSpot || isSpotMainNet;
+        const marketType = isSpot ? 'spot' : 'contract';
         const marketId = this.safeString(message, 's');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
@@ -777,10 +778,10 @@ class binance extends binance$1 {
         const marketIds = this.marketIds(symbols);
         let market = undefined;
         let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('watchTickers', market, params);
-        if (marketIds !== undefined) {
-            market = this.safeMarket(marketIds[0], undefined, undefined, type);
+        if (symbols !== undefined) {
+            market = this.market(symbols[0]);
         }
+        [type, params] = this.handleMarketTypeAndParams('watchTickers', market, params);
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('watchTickers', market, params);
         if (this.isLinear(type, subType)) {
@@ -792,10 +793,12 @@ class binance extends binance$1 {
         const options = this.safeValue(this.options, 'watchTickers', {});
         let name = this.safeString(options, 'name', 'ticker');
         name = this.safeString(params, 'name', name);
-        const oriParams = params;
         params = this.omit(params, 'name');
         let wsParams = [];
-        const messageHash = '!' + name + '@arr';
+        let messageHash = 'tickers';
+        if (symbols !== undefined) {
+            messageHash = 'tickers::' + symbols.join(',');
+        }
         if (name === 'bookTicker') {
             if (marketIds === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' watchTickers() requires symbols for bookTicker');
@@ -807,7 +810,7 @@ class binance extends binance$1 {
         }
         else {
             wsParams = [
-                messageHash,
+                '!' + name + '@arr',
             ];
         }
         const url = this.urls['api']['ws'][type] + '/' + this.stream(type, messageHash);
@@ -820,24 +823,11 @@ class binance extends binance$1 {
         const subscribe = {
             'id': requestId,
         };
-        const tickers = await this.watch(url, messageHash, this.extend(request, params), messageHash, subscribe);
-        const result = {};
-        for (let i = 0; i < tickers.length; i++) {
-            const ticker = tickers[i];
-            const tickerSymbol = ticker['symbol'];
-            if (symbols === undefined || this.inArray(tickerSymbol, symbols)) {
-                result[tickerSymbol] = ticker;
-            }
+        const newTickers = await this.watch(url, messageHash, this.extend(request, params), messageHash, subscribe);
+        if (this.newUpdates) {
+            return newTickers;
         }
-        const resultKeys = Object.keys(result);
-        const resultKeysLength = resultKeys.length;
-        if (resultKeysLength > 0) {
-            if (this.newUpdates) {
-                return result;
-            }
-            return this.filterByArray(this.tickers, 'symbol', symbols);
-        }
-        return await this.watchTickers(symbols, oriParams);
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     parseWsTicker(message, marketType) {
         //
@@ -975,27 +965,37 @@ class binance extends binance$1 {
         }
     }
     handleTickers(client, message) {
-        let event = undefined;
         const index = client.url.indexOf('/stream');
         const marketType = (index >= 0) ? 'spot' : 'contract';
-        for (let i = 0; i < message.length; i++) {
-            const ticker = message[i];
-            event = this.safeString(ticker, 'e');
-            if (event === '24hrTicker') {
-                event = 'ticker';
-            }
-            else if (event === '24hrMiniTicker') {
-                event = 'miniTicker';
-            }
-            const wsMarketId = this.safeStringLower(ticker, 's');
-            const messageHash = wsMarketId + '@' + event;
+        let rawTickers = [];
+        const newTickers = [];
+        if (Array.isArray(message)) {
+            rawTickers = message;
+        }
+        else {
+            rawTickers.push(message);
+        }
+        for (let i = 0; i < rawTickers.length; i++) {
+            const ticker = rawTickers[i];
             const result = this.parseWsTicker(ticker, marketType);
             const symbol = result['symbol'];
             this.tickers[symbol] = result;
-            client.resolve(result, messageHash);
+            newTickers.push(result);
         }
-        const values = Object.values(this.tickers);
-        client.resolve(values, '!' + event + '@arr');
+        const messageHashes = this.findMessageHashes(client, 'tickers::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const tickers = this.filterByArray(newTickers, 'symbol', symbols);
+            const tickersSymbols = Object.keys(tickers);
+            const numTickers = tickersSymbols.length;
+            if (numTickers > 0) {
+                client.resolve(tickers, messageHash);
+            }
+        }
+        client.resolve(newTickers, 'tickers');
     }
     async authenticate(params = {}) {
         const time = this.milliseconds();
@@ -1036,7 +1036,7 @@ class binance extends binance$1 {
                     throw new errors.ArgumentsRequired(this.id + ' authenticate() requires a symbol argument for isolated margin mode');
                 }
                 const marketId = this.marketId(symbol);
-                params['symbol'] = marketId;
+                params = this.extend(params, { 'symbol': marketId });
             }
             const response = await this[method](params);
             this.options[type] = this.extend(options, {
@@ -1293,7 +1293,7 @@ class binance extends binance$1 {
             market = this.market(symbol);
             symbol = market['symbol'];
             messageHash += ':' + symbol;
-            params['symbol'] = symbol; // needed inside authenticate for isolated margin
+            params = this.extend(params, { 'symbol': symbol }); // needed inside authenticate for isolated margin
         }
         await this.authenticate(params);
         let type = undefined;
@@ -1314,7 +1314,7 @@ class binance extends binance$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     parseWsOrder(order, market = undefined) {
         //
@@ -1401,7 +1401,7 @@ class binance extends binance$1 {
         let timestamp = this.safeInteger(order, 'O');
         const T = this.safeInteger(order, 'T');
         let lastTradeTimestamp = undefined;
-        if (executionType === 'NEW') {
+        if (executionType === 'NEW' || executionType === 'AMENDMENT' || executionType === 'CANCELED') {
             if (timestamp === undefined) {
                 timestamp = T;
             }
@@ -1450,6 +1450,7 @@ class binance extends binance$1 {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': undefined,
+            'reduceOnly': this.safeValue(order, 'R'),
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1579,7 +1580,7 @@ class binance extends binance$1 {
         if (symbol !== undefined) {
             symbol = this.symbol(symbol);
             messageHash += ':' + symbol;
-            params['symbol'] = symbol;
+            params = this.extend(params, { 'symbol': symbol });
         }
         await this.authenticate(params);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
@@ -1683,8 +1684,11 @@ class binance extends binance$1 {
                     parsed['fees'] = fees;
                 }
                 parsed['trades'] = this.safeValue(order, 'trades');
-                parsed['timestamp'] = this.safeInteger(order, 'timestamp');
-                parsed['datetime'] = this.safeString(order, 'datetime');
+                const timestamp = this.safeInteger(parsed, 'timestamp');
+                if (timestamp === undefined) {
+                    parsed['timestamp'] = this.safeInteger(order, 'timestamp');
+                    parsed['datetime'] = this.safeString(order, 'datetime');
+                }
             }
             cachedOrders.append(parsed);
             client.resolve(this.orders, messageHash);
@@ -1735,6 +1739,7 @@ class binance extends binance$1 {
             //
             if (event === undefined) {
                 this.handleTicker(client, message);
+                this.handleTickers(client, message);
             }
         }
         else {

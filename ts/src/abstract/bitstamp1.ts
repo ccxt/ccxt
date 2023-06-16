@@ -8,24 +8,27 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickerHour (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOrderBook (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTransactions (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetEurUsd (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBalance (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostUserTransactions (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOpenOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderStatus (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCancelAllOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBuy (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostSell (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBitcoinDepositAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostUnconfirmedBtc (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRippleWithdrawal (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostRippleAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostWithdrawalRequests (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBitcoinWithdrawal (params?: {}): Promise<implicitReturnType>;
+interface Exchange {
+    publicGetTicker (params?: {}): Promise<implicitReturnType>;
+    publicGetTickerHour (params?: {}): Promise<implicitReturnType>;
+    publicGetOrderBook (params?: {}): Promise<implicitReturnType>;
+    publicGetTransactions (params?: {}): Promise<implicitReturnType>;
+    publicGetEurUsd (params?: {}): Promise<implicitReturnType>;
+    privatePostBalance (params?: {}): Promise<implicitReturnType>;
+    privatePostUserTransactions (params?: {}): Promise<implicitReturnType>;
+    privatePostOpenOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostOrderStatus (params?: {}): Promise<implicitReturnType>;
+    privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostCancelAllOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostBuy (params?: {}): Promise<implicitReturnType>;
+    privatePostSell (params?: {}): Promise<implicitReturnType>;
+    privatePostBitcoinDepositAddress (params?: {}): Promise<implicitReturnType>;
+    privatePostUnconfirmedBtc (params?: {}): Promise<implicitReturnType>;
+    privatePostRippleWithdrawal (params?: {}): Promise<implicitReturnType>;
+    privatePostRippleAddress (params?: {}): Promise<implicitReturnType>;
+    privatePostWithdrawalRequests (params?: {}): Promise<implicitReturnType>;
+    privatePostBitcoinWithdrawal (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

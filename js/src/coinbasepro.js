@@ -11,7 +11,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
-// @ts-expect-error
 export default class coinbasepro extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -289,6 +288,7 @@ export default class coinbasepro extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -901,7 +901,13 @@ export default class coinbasepro extends Exchange {
             else {
                 limit = Math.min(300, limit);
             }
-            request['end'] = this.iso8601(this.sum((limit - 1) * parsedTimeframe * 1000, since));
+            const parsedTimeframeMilliseconds = parsedTimeframe * 1000;
+            if (since % parsedTimeframeMilliseconds === 0) {
+                request['end'] = this.iso8601(this.sum((limit - 1) * parsedTimeframeMilliseconds, since));
+            }
+            else {
+                request['end'] = this.iso8601(this.sum(limit * parsedTimeframeMilliseconds, since));
+            }
         }
         const response = await this.publicGetProductsIdCandles(this.extend(request, params));
         //
@@ -1547,8 +1553,8 @@ export default class coinbasepro extends Exchange {
             for (let i = 0; i < response.length; i++) {
                 const account_id = this.safeString(response[i], 'account_id');
                 const account = this.safeValue(this.accountsById, account_id);
-                const code = this.safeString(account, 'code');
-                response[i]['currency'] = code;
+                const codeInner = this.safeString(account, 'code');
+                response[i]['currency'] = codeInner;
             }
         }
         else {
@@ -1792,9 +1798,10 @@ export default class coinbasepro extends Exchange {
             }
             throw new ExchangeError(this.id + ' ' + body);
         }
+        return undefined;
     }
-    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        const response = await this.fetch2(path, api, method, params, headers, body, config, context);
+    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
+        const response = await this.fetch2(path, api, method, params, headers, body, config);
         if (typeof response !== 'string') {
             if ('message' in response) {
                 throw new ExchangeError(this.id + ' ' + this.json(response));

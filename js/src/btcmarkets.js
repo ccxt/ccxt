@@ -11,7 +11,6 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class btcmarkets extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1207,7 +1206,7 @@ export default class btcmarkets extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('success' in response) {
             if (!response['success']) {
@@ -1226,5 +1225,6 @@ export default class btcmarkets extends Exchange {
             this.throwExactlyMatchedException(this.exceptions, message, feedback);
             throw new ExchangeError(feedback);
         }
+        return undefined;
     }
 }

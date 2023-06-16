@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\alpaca as Exchange;
 
 class alpaca extends Exchange {
 
@@ -304,7 +305,7 @@ class alpaca extends Exchange {
         return $markets;
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
@@ -323,7 +324,7 @@ class alpaca extends Exchange {
             $request['start'] = $this->iso8601($since);
         }
         if ($limit !== null) {
-            $request['limit'] = intval($limit);
+            $request['limit'] = $limit;
         }
         $method = $this->safe_string($this->options, 'fetchTradesMethod', 'cryptoPublicGetCryptoTrades');
         $response = $this->$method (array_merge($request, $params));
@@ -348,7 +349,7 @@ class alpaca extends Exchange {
         return $this->parse_trades($symbolTrades, $market, $since, $limit);
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -406,7 +407,7 @@ class alpaca extends Exchange {
         return $this->parse_order_book($rawOrderbook, $market['symbol'], $timestamp, 'b', 'a', 'p', 's');
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -489,7 +490,7 @@ class alpaca extends Exchange {
         );
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @param {string} $symbol unified $symbol of the $market to create an $order in
@@ -575,7 +576,7 @@ class alpaca extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -596,7 +597,7 @@ class alpaca extends Exchange {
         return $this->safe_value($response, 'message', array());
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the $order was made in
@@ -613,7 +614,7 @@ class alpaca extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open $orders
          * @param {string|null} $symbol unified $market $symbol
@@ -802,7 +803,7 @@ class alpaca extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // default error handler
+            return null; // default error handler
         }
         // {
         //     "code" => 40110000,
@@ -819,5 +820,6 @@ class alpaca extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

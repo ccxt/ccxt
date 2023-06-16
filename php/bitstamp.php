@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\bitstamp as Exchange;
 
 class bitstamp extends Exchange {
 
@@ -66,6 +67,7 @@ class bitstamp extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
@@ -110,20 +112,26 @@ class bitstamp extends Exchange {
                     'get' => array(
                         'ohlc/{pair}/' => 1,
                         'order_book/{pair}/' => 1,
+                        'ticker/' => 1,
                         'ticker_hour/{pair}/' => 1,
                         'ticker/{pair}/' => 1,
                         'transactions/{pair}/' => 1,
                         'trading-pairs-info/' => 1,
+                        'currencies/' => 1,
+                        'eur_usd/' => 1,
                     ),
                 ),
                 'private' => array(
                     'post' => array(
+                        'account_balances/' => 1,
+                        'account_balances/{currency}/' => 1,
                         'balance/' => 1,
                         'balance/{pair}/' => 1,
                         'bch_withdrawal/' => 1,
                         'bch_address/' => 1,
                         'user_transactions/' => 1,
                         'user_transactions/{pair}/' => 1,
+                        'crypto-transactions/' => 1,
                         'open_orders/all/' => 1,
                         'open_orders/{pair}/' => 1,
                         'order_status/' => 1,
@@ -138,6 +146,10 @@ class bitstamp extends Exchange {
                         'sell/instant/{pair}/' => 1,
                         'transfer-to-main/' => 1,
                         'transfer-from-main/' => 1,
+                        'my_trading_pairs/' => 1,
+                        'fees/trading/' => 1,
+                        'fees/withdrawal/' => 1,
+                        'fees/withdrawal/{currency}/' => 1,
                         'withdrawal-requests/' => 1,
                         'withdrawal/open/' => 1,
                         'withdrawal/status/' => 1,
@@ -305,6 +317,10 @@ class bitstamp extends Exchange {
                         'doge_address/' => 1,
                         'flr_withdrawal/' => 1,
                         'flr_address/' => 1,
+                        'dgld_withdrawal/' => 1,
+                        'dgld_address/' => 1,
+                        'ldo_withdrawal/' => 1,
+                        'ldo_address/' => 1,
                     ),
                 ),
             ),
@@ -526,6 +542,7 @@ class bitstamp extends Exchange {
                     'max' => null,
                 ),
             ),
+            'networks' => array(),
         );
     }
 
@@ -593,7 +610,7 @@ class bitstamp extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -633,19 +650,22 @@ class bitstamp extends Exchange {
     public function parse_ticker($ticker, $market = null) {
         //
         // {
-        //     "high" => "37534.15",
-        //     "last" => "36487.44",
-        //     "timestamp":
-        //     "1643370585",
-        //     "bid" => "36475.15",
-        //     "vwap" => "36595.67",
-        //     "volume" => "2848.49168527",
-        //     "low" => "35511.32",
-        //     "ask" => "36487.44",
-        //     "open" => "37179.62"
+        //     "timestamp" => "1686068944",
+        //     "high" => "26252",
+        //     "last" => "26216",
+        //     "bid" => "26208",
+        //     "vwap" => "25681",
+        //     "volume" => "3563.13819902",
+        //     "low" => "25350",
+        //     "ask" => "26211",
+        //     "open" => "25730",
+        //     "open_24" => "25895",
+        //     "percent_change_24" => "1.24",
+        //     "pair" => "BTC/USD"
         // }
         //
-        $symbol = $this->safe_symbol(null, $market);
+        $marketId = $this->safe_string($ticker, 'pair');
+        $symbol = $this->safe_symbol($marketId, $market, null);
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $vwap = $this->safe_string($ticker, 'vwap');
         $baseVolume = $this->safe_string($ticker, 'volume');
@@ -675,7 +695,7 @@ class bitstamp extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
@@ -690,19 +710,49 @@ class bitstamp extends Exchange {
         $ticker = $this->publicGetTickerPair (array_merge($request, $params));
         //
         // {
-        //     "high" => "37534.15",
-        //     "last" => "36487.44",
-        //     "timestamp":
-        //     "1643370585",
-        //     "bid" => "36475.15",
-        //     "vwap" => "36595.67",
-        //     "volume" => "2848.49168527",
-        //     "low" => "35511.32",
-        //     "ask" => "36487.44",
-        //     "open" => "37179.62"
+        //     "timestamp" => "1686068944",
+        //     "high" => "26252",
+        //     "last" => "26216",
+        //     "bid" => "26208",
+        //     "vwap" => "25681",
+        //     "volume" => "3563.13819902",
+        //     "low" => "25350",
+        //     "ask" => "26211",
+        //     "open" => "25730",
+        //     "open_24" => "25895",
+        //     "percent_change_24" => "1.24"
         // }
         //
         return $this->parse_ticker($ticker, $market);
+    }
+
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://www.bitstamp.net/api/#all-tickers
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {array} $params extra parameters specific to the bitstamp api endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         */
+        $this->load_markets();
+        $response = $this->publicGetTicker ($params);
+        //
+        // {
+        //     "timestamp" => "1686068944",
+        //     "high" => "26252",
+        //     "last" => "26216",
+        //     "bid" => "26208",
+        //     "vwap" => "25681",
+        //     "volume" => "3563.13819902",
+        //     "low" => "25350",
+        //     "ask" => "26211",
+        //     "open" => "25730",
+        //     "open_24" => "25895",
+        //     "percent_change_24" => "1.24",
+        //     "pair" => "BTC/USD"
+        // }
+        //
+        return $this->parse_tickers($response, $symbols);
     }
 
     public function get_currency_id_from_transaction($transaction) {
@@ -903,7 +953,7 @@ class bitstamp extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
@@ -961,7 +1011,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -1063,7 +1113,7 @@ class bitstamp extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_trading_fee($symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()) {
         /**
          * fetch the trading fees for a $market
          * @param {string} $symbol unified $market $symbol
@@ -1249,7 +1299,7 @@ class bitstamp extends Exchange {
         return $result;
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @param {string} $symbol unified $symbol of the $market to create an $order in
@@ -1287,7 +1337,7 @@ class bitstamp extends Exchange {
         ));
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1302,7 +1352,7 @@ class bitstamp extends Exchange {
         return $this->privatePostCancelOrder (array_merge($request, $params));
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
          * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
@@ -1331,7 +1381,7 @@ class bitstamp extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_order_status($id, $symbol = null, $params = array ()) {
+    public function fetch_order_status(string $id, ?string $symbol = null, $params = array ()) {
         $this->load_markets();
         $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
         $request = array();
@@ -1345,7 +1395,7 @@ class bitstamp extends Exchange {
         return $this->parse_order_status($this->safe_string($response, 'status'));
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the order was made in
@@ -1387,7 +1437,7 @@ class bitstamp extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
          * @param {string|null} $symbol unified $market $symbol
@@ -1413,7 +1463,7 @@ class bitstamp extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
          * @param {string|null} $code unified $currency $code for the $currency of the $transactions, default is null
@@ -1462,7 +1512,7 @@ class bitstamp extends Exchange {
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified currency $code
@@ -1826,7 +1876,7 @@ class bitstamp extends Exchange {
         }
     }
 
-    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null
@@ -1848,7 +1898,7 @@ class bitstamp extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
          * @param {string|null} $symbol unified $market $symbol
@@ -1895,7 +1945,7 @@ class bitstamp extends Exchange {
         return $code === 'USD' || $code === 'EUR' || $code === 'GBP';
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a currency associated with this account
          * @param {string} $code unified currency $code
@@ -1920,7 +1970,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -2014,7 +2064,7 @@ class bitstamp extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         //
         //     array("error" => "No permission found") // fetchDepositAddress returns this on apiKeys that don't have the permission required
@@ -2039,11 +2089,11 @@ class bitstamp extends Exchange {
                     }
                 }
             }
-            $reason = $this->safe_value($response, 'reason', array());
-            if (gettype($reason) === 'string') {
-                $errors[] = $reason;
+            $reasonInner = $this->safe_value($response, 'reason', array());
+            if (gettype($reasonInner) === 'string') {
+                $errors[] = $reasonInner;
             } else {
-                $all = $this->safe_value($reason, '__all__', array());
+                $all = $this->safe_value($reasonInner, '__all__', array());
                 for ($i = 0; $i < count($all); $i++) {
                     $errors[] = $all[$i];
                 }
@@ -2060,5 +2110,6 @@ class bitstamp extends Exchange {
             }
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

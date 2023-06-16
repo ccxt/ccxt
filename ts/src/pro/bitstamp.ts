@@ -4,10 +4,11 @@
 import bitstampRest from '../bitstamp.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class bitstamp extends bitstampRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -44,7 +45,7 @@ export default class bitstamp extends bitstampRest {
         });
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#watchOrderBook
@@ -71,7 +72,7 @@ export default class bitstamp extends bitstampRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -159,7 +160,7 @@ export default class bitstamp extends bitstampRest {
         return deltas.length;
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#watchTrades
@@ -230,7 +231,7 @@ export default class bitstamp extends bitstampRest {
         }, market);
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: Client, message) {
         //
         //     {
         //         data: {
@@ -269,7 +270,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#watchOrders
@@ -301,7 +302,7 @@ export default class bitstamp extends bitstampRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    handleOrders (client, message) {
+    handleOrders (client: Client, message) {
         //
         // {
         //     "data":{
@@ -381,7 +382,7 @@ export default class bitstamp extends bitstampRest {
         }, market);
     }
 
-    handleOrderBookSubscription (client, message) {
+    handleOrderBookSubscription (client: Client, message) {
         const channel = this.safeString (message, 'channel');
         const parts = channel.split ('_');
         const marketId = this.safeString (parts, 3);
@@ -389,7 +390,7 @@ export default class bitstamp extends bitstampRest {
         this.orderbooks[symbol] = this.orderBook ();
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     {
         //         'event': "bts:subscription_succeeded",
@@ -408,7 +409,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    handleSubject (client, message) {
+    handleSubject (client: Client, message) {
         //
         //     {
         //         data: {
@@ -461,7 +462,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         // {
         //     event: 'bts:error',
         //     channel: '',
@@ -477,7 +478,7 @@ export default class bitstamp extends bitstampRest {
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }

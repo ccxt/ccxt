@@ -5,10 +5,10 @@ import Exchange from './abstract/bittrex.js';
 import { ArgumentsRequired, BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class bittrex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -399,7 +399,7 @@ export default class bittrex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchOrderBook
@@ -604,7 +604,7 @@ export default class bittrex extends Exchange {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bittrex#fetchTicker
@@ -772,7 +772,7 @@ export default class bittrex extends Exchange {
         return this.safeInteger (response, 'serverTime');
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchTrades
@@ -803,7 +803,7 @@ export default class bittrex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchTradingFee (symbol, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}) {
         /**
          * @method
          * @name bittrex#fetchTradingFee
@@ -896,7 +896,7 @@ export default class bittrex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchOHLCV
@@ -959,7 +959,7 @@ export default class bittrex extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchOpenOrders
@@ -1030,7 +1030,7 @@ export default class bittrex extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchOrderTrades
@@ -1054,7 +1054,7 @@ export default class bittrex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#createOrder
@@ -1239,7 +1239,7 @@ export default class bittrex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#cancelOrder
@@ -1370,7 +1370,7 @@ export default class bittrex extends Exchange {
         return this.parseOrders (orders, market);
     }
 
-    async fetchDeposit (id, code = undefined, params = {}) {
+    async fetchDeposit (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchDeposit
@@ -1393,7 +1393,7 @@ export default class bittrex extends Exchange {
         return this.safeValue (transactions, 0);
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchDeposits
@@ -1416,7 +1416,7 @@ export default class bittrex extends Exchange {
             request['currencySymbol'] = currency['id'];
         }
         if (since !== undefined) {
-            const startDate = parseInt ((since / 1000).toString ()) * 1000;
+            const startDate = this.parseToInt (since / 1000) * 1000;
             request['startDate'] = this.iso8601 (startDate);
         }
         if (limit !== undefined) {
@@ -1439,7 +1439,7 @@ export default class bittrex extends Exchange {
         return this.parseTransactions (response, currency, undefined, limit);
     }
 
-    async fetchPendingDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchPendingDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchPendingDeposits
@@ -1457,7 +1457,7 @@ export default class bittrex extends Exchange {
         return this.fetchDeposits (code, since, limit, this.extend (params, { 'status': 'pending' }));
     }
 
-    async fetchWithdrawal (id, code = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchWithdrawal
@@ -1480,7 +1480,7 @@ export default class bittrex extends Exchange {
         return this.safeValue (transactions, 0);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchWithdrawals
@@ -1503,7 +1503,7 @@ export default class bittrex extends Exchange {
             request['currencySymbol'] = currency['id'];
         }
         if (since !== undefined) {
-            const startDate = parseInt ((since / 1000).toString ()) * 1000;
+            const startDate = this.parseToInt (since / 1000) * 1000;
             request['startDate'] = this.iso8601 (startDate);
         }
         if (limit !== undefined) {
@@ -1523,7 +1523,7 @@ export default class bittrex extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchPendingWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchPendingWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchPendingWithdrawals
@@ -1804,7 +1804,7 @@ export default class bittrex extends Exchange {
         }, market);
     }
 
-    parseOrders (orders, market = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    parseOrders (orders, market = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.options['fetchClosedOrdersFilterBySince']) {
             return super.parseOrders (orders, market, since, limit, params);
         } else {
@@ -1822,7 +1822,7 @@ export default class bittrex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchOrder
@@ -1862,7 +1862,7 @@ export default class bittrex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchMyTrades
@@ -1892,7 +1892,7 @@ export default class bittrex extends Exchange {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit) as any;
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchClosedOrders
@@ -1976,7 +1976,7 @@ export default class bittrex extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bittrex#createDepositAddress
@@ -2014,7 +2014,7 @@ export default class bittrex extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bittrex#fetchDepositAddress
@@ -2052,7 +2052,7 @@ export default class bittrex extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#withdraw
@@ -2090,7 +2090,7 @@ export default class bittrex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    sign (path, api = 'v3', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'v3', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         }) + '/';
@@ -2143,7 +2143,7 @@ export default class bittrex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     { success: false, message: "message" }
@@ -2152,16 +2152,16 @@ export default class bittrex extends Exchange {
             const feedback = this.id + ' ' + body;
             let success = this.safeValue (response, 'success');
             if (success === undefined) {
-                const code = this.safeString (response, 'code');
-                if ((code === 'NOT_FOUND') && (url.indexOf ('addresses') >= 0)) {
+                const codeInner = this.safeString (response, 'code');
+                if ((codeInner === 'NOT_FOUND') && (url.indexOf ('addresses') >= 0)) {
                     throw new InvalidAddress (feedback);
                 }
-                if (code !== undefined) {
-                    this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-                    this.throwBroadlyMatchedException (this.exceptions['broad'], code, feedback);
+                if (codeInner !== undefined) {
+                    this.throwExactlyMatchedException (this.exceptions['exact'], codeInner, feedback);
+                    this.throwBroadlyMatchedException (this.exceptions['broad'], codeInner, feedback);
                 }
                 // throw new ExchangeError (this.id + ' malformed response ' + this.json (response));
-                return;
+                return undefined;
             }
             if (typeof success === 'string') {
                 // bleutrade uses string instead of boolean
@@ -2220,5 +2220,6 @@ export default class bittrex extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
+        return undefined;
     }
 }

@@ -4,7 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.bitvavo import ImplicitAPI
 import hashlib
+from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -26,7 +31,7 @@ from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 from ccxt.base.precise import Precise
 
 
-class bitvavo(Exchange):
+class bitvavo(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitvavo, self).describe(), {
@@ -469,7 +474,7 @@ class bitvavo(Exchange):
             }
         return result
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -549,7 +554,7 @@ class bitvavo(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -578,7 +583,7 @@ class bitvavo(Exchange):
         #
         return self.parse_tickers(response, symbols)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -742,7 +747,7 @@ class bitvavo(Exchange):
             }
         return result
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -798,7 +803,7 @@ class bitvavo(Exchange):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -871,7 +876,7 @@ class bitvavo(Exchange):
         #
         return self.parse_balance(response)
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -901,7 +906,7 @@ class bitvavo(Exchange):
             'info': response,
         }
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
@@ -1018,7 +1023,7 @@ class bitvavo(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {}
@@ -1039,7 +1044,7 @@ class bitvavo(Exchange):
         else:
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument, or a price argument, or non-empty params')
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1063,7 +1068,7 @@ class bitvavo(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def cancel_all_orders(self, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1086,7 +1091,7 @@ class bitvavo(Exchange):
         #
         return self.parse_orders(response, market)
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1138,7 +1143,7 @@ class bitvavo(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1202,7 +1207,7 @@ class bitvavo(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -1378,7 +1383,7 @@ class bitvavo(Exchange):
             'trades': rawTrades,
         }, market)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -1423,7 +1428,7 @@ class bitvavo(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1456,7 +1461,7 @@ class bitvavo(Exchange):
         #
         return self.parse_transaction(response, currency)
 
-    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1497,7 +1502,7 @@ class bitvavo(Exchange):
         #
         return self.parse_transactions(response, currency, since, limit, {'type': 'withdrawal'})
 
-    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1656,7 +1661,7 @@ class bitvavo(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {"errorCode":308,"error":"The signature length is invalid(HMAC-SHA256 should return a 64 length hexadecimal string)."}
         #     {"errorCode":203,"error":"symbol parameter is required."}
@@ -1669,8 +1674,9 @@ class bitvavo(Exchange):
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         if ('noMarket' in config) and not ('market' in params):
             return config['noMarket']
         return self.safe_value(config, 'cost', 1)

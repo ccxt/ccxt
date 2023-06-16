@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\bittrex as Exchange;
 
 class bittrex extends Exchange {
 
@@ -394,7 +395,7 @@ class bittrex extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -545,7 +546,7 @@ class bittrex extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
@@ -593,7 +594,7 @@ class bittrex extends Exchange {
         return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
@@ -636,7 +637,7 @@ class bittrex extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_bids_asks($symbols = null, $params = array ()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
         /**
          * fetches the bid and ask price and volume for multiple markets
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
@@ -755,7 +756,7 @@ class bittrex extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
@@ -784,7 +785,7 @@ class bittrex extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_trading_fee($symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()) {
         /**
          * fetch the trading fees for a $market
          * @param {string} $symbol unified $market $symbol
@@ -873,7 +874,7 @@ class bittrex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -934,7 +935,7 @@ class bittrex extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
          * @param {string|null} $symbol unified $market $symbol
@@ -1003,7 +1004,7 @@ class bittrex extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
          * @param {string} $id order $id
@@ -1025,7 +1026,7 @@ class bittrex extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1208,7 +1209,7 @@ class bittrex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1288,7 +1289,7 @@ class bittrex extends Exchange {
         ));
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open $orders
          * @param {string|null} $symbol unified $market $symbol, only $orders in the $market of this $symbol are cancelled when $symbol is not null
@@ -1335,7 +1336,7 @@ class bittrex extends Exchange {
         return $this->parse_orders($orders, $market);
     }
 
-    public function fetch_deposit($id, $code = null, $params = array ()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch data on a $currency deposit via the deposit $id
          * @param {string} $id deposit $id
@@ -1356,7 +1357,7 @@ class bittrex extends Exchange {
         return $this->safe_value($transactions, 0);
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code
@@ -1377,7 +1378,7 @@ class bittrex extends Exchange {
             $request['currencySymbol'] = $currency['id'];
         }
         if ($since !== null) {
-            $startDate = intval(($since / (string) 1000)) * 1000;
+            $startDate = $this->parse_to_int($since / 1000) * 1000;
             $request['startDate'] = $this->iso8601($startDate);
         }
         if ($limit !== null) {
@@ -1400,7 +1401,7 @@ class bittrex extends Exchange {
         return $this->parse_transactions($response, $currency, null, $limit);
     }
 
-    public function fetch_pending_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_pending_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all pending deposits made from an account
          * @param {string|null} $code unified currency $code
@@ -1416,7 +1417,7 @@ class bittrex extends Exchange {
         return $this->fetch_deposits($code, $since, $limit, array_merge($params, array( 'status' => 'pending' )));
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch data on a $currency withdrawal via the withdrawal $id
          * @param {string} $id withdrawal $id
@@ -1437,7 +1438,7 @@ class bittrex extends Exchange {
         return $this->safe_value($transactions, 0);
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code
@@ -1458,7 +1459,7 @@ class bittrex extends Exchange {
             $request['currencySymbol'] = $currency['id'];
         }
         if ($since !== null) {
-            $startDate = intval(($since / (string) 1000)) * 1000;
+            $startDate = $this->parse_to_int($since / 1000) * 1000;
             $request['startDate'] = $this->iso8601($startDate);
         }
         if ($limit !== null) {
@@ -1478,7 +1479,7 @@ class bittrex extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_pending_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_pending_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all pending withdrawals made from an account
          * @param {string|null} $code unified currency $code
@@ -1757,7 +1758,7 @@ class bittrex extends Exchange {
         ), $market);
     }
 
-    public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array ()) {
+    public function parse_orders($orders, $market = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         if ($this->options['fetchClosedOrdersFilterBySince']) {
             return parent::parse_orders($orders, $market, $since, $limit, $params);
         } else {
@@ -1775,7 +1776,7 @@ class bittrex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the order was made in
@@ -1813,7 +1814,7 @@ class bittrex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $trades made by the user
          * @param {string|null} $symbol unified $market $symbol
@@ -1841,7 +1842,7 @@ class bittrex extends Exchange {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
          * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
@@ -1923,7 +1924,7 @@ class bittrex extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a $currency deposit $address
          * @param {string} $code unified $currency $code of the $currency for the deposit $address
@@ -1959,7 +1960,7 @@ class bittrex extends Exchange {
         );
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -1995,7 +1996,7 @@ class bittrex extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -2084,7 +2085,7 @@ class bittrex extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         //
         //     array( $success => false, $message => "message" )
@@ -2093,16 +2094,16 @@ class bittrex extends Exchange {
             $feedback = $this->id . ' ' . $body;
             $success = $this->safe_value($response, 'success');
             if ($success === null) {
-                $code = $this->safe_string($response, 'code');
-                if (($code === 'NOT_FOUND') && (mb_strpos($url, 'addresses') !== false)) {
+                $codeInner = $this->safe_string($response, 'code');
+                if (($codeInner === 'NOT_FOUND') && (mb_strpos($url, 'addresses') !== false)) {
                     throw new InvalidAddress($feedback);
                 }
-                if ($code !== null) {
-                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
-                    $this->throw_broadly_matched_exception($this->exceptions['broad'], $code, $feedback);
+                if ($codeInner !== null) {
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeInner, $feedback);
+                    $this->throw_broadly_matched_exception($this->exceptions['broad'], $codeInner, $feedback);
                 }
                 // throw new ExchangeError($this->id . ' malformed $response ' . $this->json($response));
-                return;
+                return null;
             }
             if (gettype($success) === 'string') {
                 // bleutrade uses string instead of boolean
@@ -2161,5 +2162,6 @@ class bittrex extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+        return null;
     }
 }

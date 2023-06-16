@@ -1,22 +1,26 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetMarket(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCurrency(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCurrencyWithPlatform(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTime(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTicker(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOrderBook(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTrade(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetCandle(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostNewOrder(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCancelOrder(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostWithdrawal(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetBalance(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrder(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOpenOrder(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrderHistory(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTradeHistory(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetDepositAddress(params?: {}): Promise<implicitReturnType>;
-    abstract accountsPostToken(params?: {}): Promise<implicitReturnType>;
+interface Exchange {
+    publicGetMarket(params?: {}): Promise<implicitReturnType>;
+    publicGetCurrency(params?: {}): Promise<implicitReturnType>;
+    publicGetCurrencyWithPlatform(params?: {}): Promise<implicitReturnType>;
+    publicGetTime(params?: {}): Promise<implicitReturnType>;
+    publicGetTicker(params?: {}): Promise<implicitReturnType>;
+    publicGetOrderBook(params?: {}): Promise<implicitReturnType>;
+    publicGetTrade(params?: {}): Promise<implicitReturnType>;
+    publicGetCandle(params?: {}): Promise<implicitReturnType>;
+    privatePostNewOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostCancelOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privateGetBalance(params?: {}): Promise<implicitReturnType>;
+    privateGetOrder(params?: {}): Promise<implicitReturnType>;
+    privateGetOpenOrder(params?: {}): Promise<implicitReturnType>;
+    privateGetOrderHistory(params?: {}): Promise<implicitReturnType>;
+    privateGetTradeHistory(params?: {}): Promise<implicitReturnType>;
+    privateGetDepositAddress(params?: {}): Promise<implicitReturnType>;
+    privateGetTransferPayment(params?: {}): Promise<implicitReturnType>;
+    accountsPostToken(params?: {}): Promise<implicitReturnType>;
 }
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

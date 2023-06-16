@@ -11,7 +11,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bitstamp1 extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -394,11 +393,12 @@ export default class bitstamp1 extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const status = this.safeString(response, 'status');
         if (status === 'error') {
             throw new ExchangeError(this.id + ' ' + this.json(response));
         }
+        return undefined;
     }
 }

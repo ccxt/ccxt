@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\cex as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\NullResponse;
@@ -486,7 +487,7 @@ class cex extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -530,7 +531,7 @@ class cex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -571,6 +572,7 @@ class cex extends Exchange {
                     return array();
                 }
             }
+            return null;
         }) ();
     }
 
@@ -607,7 +609,7 @@ class cex extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -635,7 +637,7 @@ class cex extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -689,7 +691,7 @@ class cex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -751,7 +753,7 @@ class cex extends Exchange {
         }) ();
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -829,7 +831,7 @@ class cex extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -894,7 +896,7 @@ class cex extends Exchange {
                 $feeRate = $this->safe_number($order, 'tradingFeeTaker', $feeRate);
             }
             if ($feeRate) {
-                $feeRate /= 100.0; // convert to mathematically-correct percentage coefficients => 1.0 = 100%
+                $feeRate = $feeRate / 100.0; // convert to mathematically-correct percentage coefficients => 1.0 = 100%
             }
             if ((is_array($order) && array_key_exists($baseFee, $order)) || (is_array($order) && array_key_exists($baseTakerFee, $order))) {
                 $baseFeeCost = $this->safe_number_2($order, $baseFee, $baseTakerFee);
@@ -1104,7 +1106,7 @@ class cex extends Exchange {
         );
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open $orders
@@ -1131,7 +1133,7 @@ class cex extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -1153,7 +1155,7 @@ class cex extends Exchange {
         }) ();
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -1271,7 +1273,7 @@ class cex extends Exchange {
         }) ();
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -1430,7 +1432,7 @@ class cex extends Exchange {
                 $quoteId = $this->safe_string($order, 'symbol2');
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
+                $symbolInner = $base . '/' . $quote;
                 $side = $this->safe_string($order, 'type');
                 $baseAmount = $this->safe_number($order, 'a:' . $baseId . ':cds');
                 $quoteAmount = $this->safe_number($order, 'a:' . $quoteId . ':cds');
@@ -1471,7 +1473,7 @@ class cex extends Exchange {
                     'datetime' => $this->iso8601($timestamp),
                     'lastUpdated' => $this->parse8601($lastTxTime),
                     'status' => $status,
-                    'symbol' => $symbol,
+                    'symbol' => $symbolInner,
                     'side' => $side,
                     'price' => $price,
                     'amount' => $orderAmount,
@@ -1495,7 +1497,7 @@ class cex extends Exchange {
         return $this->safe_string($this->options['order']['status'], $status, $status);
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             if ($amount === null) {
                 throw new ArgumentsRequired($this->id . ' editOrder() requires a $amount argument');
@@ -1518,7 +1520,7 @@ class cex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -1604,7 +1606,7 @@ class cex extends Exchange {
             return $response; // public endpoints may return array()-arrays
         }
         if ($body === 'true') {
-            return;
+            return null;
         }
         if ($response === null) {
             throw new NullResponse($this->id . ' returned ' . $this->json($response));
@@ -1612,7 +1614,7 @@ class cex extends Exchange {
         if (is_array($response) && array_key_exists('e', $response)) {
             if (is_array($response) && array_key_exists('ok', $response)) {
                 if ($response['ok'] === 'ok') {
-                    return;
+                    return null;
                 }
             }
         }
@@ -1623,5 +1625,6 @@ class cex extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\hollaex as Exchange;
 use ccxt\ArgumentsRequired;
 use ccxt\OrderNotFound;
 use ccxt\Precise;
@@ -396,13 +397,14 @@ class hollaex extends Exchange {
                             'max' => $this->safe_value($withdrawalLimits, 0),
                         ),
                     ),
+                    'networks' => array(),
                 );
             }
             return $result;
         }) ();
     }
 
-    public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
@@ -426,7 +428,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -466,7 +468,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -495,7 +497,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -505,7 +507,7 @@ class hollaex extends Exchange {
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->publicGetTickers (array_merge($params)));
+            $response = Async\await($this->publicGetTickers ($params));
             //
             //     {
             //         "bch-usdt" => array(
@@ -525,7 +527,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function parse_tickers($response, $symbols = null, $params = array ()) {
+    public function parse_tickers($response, ?array $symbols = null, $params = array ()) {
         $result = array();
         $keys = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -595,7 +597,7 @@ class hollaex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -745,7 +747,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -799,7 +801,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($response, $market = null, $timeframe = '1h', $since = null, $limit = null) {
+    public function parse_ohlcv($response, $market = null) {
         //
         //     {
         //         "time":"2020-03-02T20:00:00.000Z",
@@ -865,7 +867,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function fetch_open_order($id, $symbol = null, $params = array ()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an open order by it's $id
@@ -907,7 +909,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -924,7 +926,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -941,7 +943,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
@@ -984,7 +986,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -1131,7 +1133,7 @@ class hollaex extends Exchange {
         ), $market);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1198,7 +1200,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1229,7 +1231,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
@@ -1265,7 +1267,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
@@ -1411,7 +1413,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1471,7 +1473,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch $data on a $currency withdrawal via the withdrawal $id
@@ -1519,7 +1521,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1676,7 +1678,7 @@ class hollaex extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1740,7 +1742,7 @@ class hollaex extends Exchange {
         $url = $this->urls['api']['rest'] . $path;
         if ($api === 'private') {
             $this->check_required_credentials();
-            $defaultExpires = $this->safe_integer_2($this->options, 'api-expires', 'expires', intval(($this->timeout / (string) 1000)));
+            $defaultExpires = $this->safe_integer_2($this->options, 'api-expires', 'expires', $this->parse_to_int($this->timeout / 1000));
             $expires = $this->sum($this->seconds(), $defaultExpires);
             $expiresString = (string) $expires;
             $auth = $method . $path . $expiresString;
@@ -1763,7 +1765,7 @@ class hollaex extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         if (($code >= 400) && ($code <= 503)) {
             //
@@ -1781,5 +1783,6 @@ class hollaex extends Exchange {
             $status = (string) $code;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $status, $feedback);
         }
+        return null;
     }
 }

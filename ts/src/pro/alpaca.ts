@@ -3,10 +3,11 @@
 import alpacaRest from '../alpaca.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class alpaca extends alpacaRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -48,7 +49,7 @@ export default class alpaca extends alpacaRest {
         });
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name alpaca#watchTicker
@@ -69,7 +70,7 @@ export default class alpaca extends alpacaRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //    {
         //         T: 'q',
@@ -126,7 +127,7 @@ export default class alpaca extends alpacaRest {
         }, market);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#watchOHLCV
@@ -155,7 +156,7 @@ export default class alpaca extends alpacaRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //    {
         //        T: 'b',
@@ -184,7 +185,7 @@ export default class alpaca extends alpacaRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#watchOrderBook
@@ -208,7 +209,7 @@ export default class alpaca extends alpacaRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         // snapshot
         //    {
@@ -266,7 +267,7 @@ export default class alpaca extends alpacaRest {
         }
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#watchTrades
@@ -294,7 +295,7 @@ export default class alpaca extends alpacaRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         T: 't',
@@ -320,7 +321,7 @@ export default class alpaca extends alpacaRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#watchMyTrades
@@ -353,7 +354,7 @@ export default class alpaca extends alpacaRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#watchOrders
@@ -383,15 +384,15 @@ export default class alpaca extends alpacaRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    handleTradeUpdate (client, message) {
+    handleTradeUpdate (client: Client, message) {
         this.handleOrder (client, message);
         this.handleMyTrade (client, message);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         //
         //    {
         //        stream: 'trade_updates',
@@ -452,7 +453,7 @@ export default class alpaca extends alpacaRest {
         client.resolve (orders, messageHash);
     }
 
-    handleMyTrade (client, message) {
+    handleMyTrade (client: Client, message) {
         //
         //    {
         //        stream: 'trade_updates',
@@ -606,7 +607,7 @@ export default class alpaca extends alpacaRest {
         return await future;
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         //    {
         //        T: 'error',
@@ -619,7 +620,7 @@ export default class alpaca extends alpacaRest {
         throw new ExchangeError (this.id + ' code: ' + code + ' message: ' + msg);
     }
 
-    handleConnected (client, message) {
+    handleConnected (client: Client, message) {
         //
         //    {
         //        T: 'success',
@@ -629,7 +630,7 @@ export default class alpaca extends alpacaRest {
         return message;
     }
 
-    handleCryptoMessage (client, message) {
+    handleCryptoMessage (client: Client, message) {
         for (let i = 0; i < message.length; i++) {
             const data = message[i];
             const T = this.safeString (data, 'T');
@@ -657,7 +658,7 @@ export default class alpaca extends alpacaRest {
         }
     }
 
-    handleTradingMessage (client, message) {
+    handleTradingMessage (client: Client, message) {
         const stream = this.safeString (message, 'stream');
         const methods = {
             'authorization': this.handleAuthenticate,
@@ -670,14 +671,14 @@ export default class alpaca extends alpacaRest {
         }
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (Array.isArray (message)) {
             return this.handleCryptoMessage (client, message);
         }
         this.handleTradingMessage (client, message);
     }
 
-    handleAuthenticate (client, message) {
+    handleAuthenticate (client: Client, message) {
         //
         // crypto
         //    {
@@ -713,7 +714,7 @@ export default class alpaca extends alpacaRest {
         throw new AuthenticationError (this.id + ' failed to authenticate.');
     }
 
-    handleSubscription (client, message) {
+    handleSubscription (client: Client, message) {
         //
         // crypto
         //    {

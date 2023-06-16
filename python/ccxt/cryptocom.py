@@ -4,7 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
+from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
@@ -22,7 +27,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class cryptocom(Exchange):
+class cryptocom(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(cryptocom, self).describe(), {
@@ -31,6 +36,7 @@ class cryptocom(Exchange):
             'countries': ['MT'],
             'version': 'v2',
             'rateLimit': 10,  # 100 requests per second
+            'certified': True,
             'pro': True,
             'has': {
                 'CORS': False,
@@ -55,6 +61,8 @@ class cryptocom(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRates': False,
@@ -309,6 +317,18 @@ class cryptocom(Exchange):
                     'swap': 'DERIVATIVES',
                     'future': 'DERIVATIVES',
                 },
+                'networks': {
+                    'BEP20': 'BSC',
+                    'ERC20': 'ETH',
+                    'TRX': 'TRON',
+                    'TRC20': 'TRON',
+                },
+                'networksById': {
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
+                    'TRON': 'TRC20',
+                },
+                'broker': 'CCXT_',
             },
             # https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
@@ -360,201 +380,166 @@ class cryptocom(Exchange):
 
     def fetch_markets(self, params={}):
         """
-        see https://exchange-docs.crypto.com/spot/index.html#public-get-instruments
-        see https://exchange-docs.crypto.com/derivatives/index.html#public-get-instruments
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments
         retrieves data on all markets for cryptocom
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
-        promises = [self.fetch_spot_markets(params), self.fetch_derivatives_markets(params)]
-        # @ts-ignore
-        promises = promises
-        spotMarkets = promises[0]
-        derivativeMarkets = promises[1]
-        markets = self.array_concat(spotMarkets, derivativeMarkets)
-        return markets
-
-    def fetch_spot_markets(self, params={}):
-        response = self.v2PublicGetPublicGetInstruments(params)
-        #
-        #    {
-        #        id: 11,
-        #        method: 'public/get-instruments',
-        #        code: 0,
-        #        result: {
-        #            'instruments': [
-        #                {
-        #                    instrument_name: 'NEAR_BTC',
-        #                    quote_currency: 'BTC',
-        #                    base_currency: 'NEAR',
-        #                    price_decimals: '8',
-        #                    quantity_decimals: '2',
-        #                    margin_trading_enabled: True,
-        #                    margin_trading_enabled_5x: True,
-        #                    margin_trading_enabled_10x: True,
-        #                    max_quantity: '100000000',
-        #                    min_quantity: '0.01',
-        #                    max_price:'1',
-        #                    min_price:'0.00000001',
-        #                    last_update_date:1667263094857,
-        #                    quantity_tick_size:'0.1',
-        #                    price_tick_size:'0.00000001'
-        #               },
-        #            ]
-        #        }
-        #    }
-        #
-        resultResponse = self.safe_value(response, 'result', {})
-        markets = self.safe_value(resultResponse, 'instruments', [])
-        result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
-            id = self.safe_string(market, 'instrument_name')
-            baseId = self.safe_string(market, 'base_currency')
-            quoteId = self.safe_string(market, 'quote_currency')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            minPrice = self.safe_string(market, 'min_price')
-            minQuantity = self.safe_string(market, 'min_quantity')
-            maxLeverage = self.parse_number('1')
-            margin_trading_enabled_5x = self.safe_value(market, 'margin_trading_enabled_5x')
-            if margin_trading_enabled_5x:
-                maxLeverage = self.parse_number('5')
-            margin_trading_enabled_10x = self.safe_value(market, 'margin_trading_enabled_10x')
-            if margin_trading_enabled_10x:
-                maxLeverage = self.parse_number('10')
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': self.safe_value(market, 'margin_trading_enabled'),
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': None,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.safe_number(market, 'quantity_tick_size'),
-                    'price': self.safe_number(market, 'price_tick_size'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': self.parse_number('1'),
-                        'max': maxLeverage,
-                    },
-                    'amount': {
-                        'min': self.parse_number(minQuantity),
-                        'max': self.safe_number(market, 'max_quantity'),
-                    },
-                    'price': {
-                        'min': self.parse_number(minPrice),
-                        'max': self.safe_number(market, 'max_price'),
-                    },
-                    'cost': {
-                        'min': self.parse_number(Precise.string_mul(minQuantity, minPrice)),
-                        'max': None,
-                    },
-                },
-                'info': market,
-            })
-        return result
-
-    def fetch_derivatives_markets(self, params={}):
-        result = []
-        futuresResponse = self.derivativesPublicGetPublicGetInstruments()
+        response = self.v1PublicGetPublicGetInstruments(params)
         #
         #     {
-        #       id: -1,
-        #       method: 'public/get-instruments',
-        #       code: 0,
-        #       result: {
-        #         data: [
-        #           {
-        #             symbol: '1INCHUSD-PERP',
-        #             inst_type: 'PERPETUAL_SWAP',
-        #             display_name: '1INCHUSD Perpetual',
-        #             base_ccy: '1INCH',
-        #             quote_ccy: 'USD_Stable_Coin',
-        #             quote_decimals: 4,
-        #             quantity_decimals: 0,
-        #             price_tick_size: '0.0001',
-        #             qty_tick_size: '1',
-        #             max_leverage: '50',
-        #             tradable: True,
-        #             expiry_timestamp_ms: 0,
-        #             beta_product: False,
-        #             underlying_symbol: '1INCHUSD-INDEX',
-        #             put_call: 'UNDEFINED',
-        #             strike: '0',
-        #             contract_size: '1'
-        #           },
-        #         ]
-        #       }
+        #         "id": 1,
+        #         "method": "public/get-instruments",
+        #         "code": 0,
+        #         "result": {
+        #             "data": [
+        #                 {
+        #                     "symbol": "BTC_USDT",
+        #                     "inst_type": "CCY_PAIR",
+        #                     "display_name": "BTC/USDT",
+        #                     "base_ccy": "BTC",
+        #                     "quote_ccy": "USDT",
+        #                     "quote_decimals": 2,
+        #                     "quantity_decimals": 5,
+        #                     "price_tick_size": "0.01",
+        #                     "qty_tick_size": "0.00001",
+        #                     "max_leverage": "50",
+        #                     "tradable": True,
+        #                     "expiry_timestamp_ms": 0,
+        #                     "beta_product": False,
+        #                     "margin_buy_enabled": False,
+        #                     "margin_sell_enabled": True
+        #                 },
+        #                 {
+        #                     "symbol": "RUNEUSD-PERP",
+        #                     "inst_type": "PERPETUAL_SWAP",
+        #                     "display_name": "RUNEUSD Perpetual",
+        #                     "base_ccy": "RUNE",
+        #                     "quote_ccy": "USD",
+        #                     "quote_decimals": 3,
+        #                     "quantity_decimals": 1,
+        #                     "price_tick_size": "0.001",
+        #                     "qty_tick_size": "0.1",
+        #                     "max_leverage": "50",
+        #                     "tradable": True,
+        #                     "expiry_timestamp_ms": 0,
+        #                     "beta_product": False,
+        #                     "underlying_symbol": "RUNEUSD-INDEX",
+        #                     "contract_size": "1",
+        #                     "margin_buy_enabled": False,
+        #                     "margin_sell_enabled": False
+        #                 },
+        #                 {
+        #                     "symbol": "ETHUSD-230825",
+        #                     "inst_type": "FUTURE",
+        #                     "display_name": "ETHUSD Futures 20230825",
+        #                     "base_ccy": "ETH",
+        #                     "quote_ccy": "USD",
+        #                     "quote_decimals": 2,
+        #                     "quantity_decimals": 4,
+        #                     "price_tick_size": "0.01",
+        #                     "qty_tick_size": "0.0001",
+        #                     "max_leverage": "100",
+        #                     "tradable": True,
+        #                     "expiry_timestamp_ms": 1692950400000,
+        #                     "beta_product": False,
+        #                     "underlying_symbol": "ETHUSD-INDEX",
+        #                     "contract_size": "1",
+        #                     "margin_buy_enabled": False,
+        #                     "margin_sell_enabled": False
+        #                 },
+        #                 {
+        #                     "symbol": "BTCUSD-230630-CW30000",
+        #                     "inst_type": "WARRANT",
+        #                     "display_name": "BTCUSD-230630-CW30000",
+        #                     "base_ccy": "BTC",
+        #                     "quote_ccy": "USD",
+        #                     "quote_decimals": 3,
+        #                     "quantity_decimals": 0,
+        #                     "price_tick_size": "0.001",
+        #                     "qty_tick_size": "10",
+        #                     "max_leverage": "50",
+        #                     "tradable": True,
+        #                     "expiry_timestamp_ms": 1688112000000,
+        #                     "beta_product": False,
+        #                     "underlying_symbol": "BTCUSD-INDEX",
+        #                     "put_call": "CALL",
+        #                     "strike": "30000",
+        #                     "contract_size": "0.0001",
+        #                     "margin_buy_enabled": False,
+        #                     "margin_sell_enabled": False
+        #                 },
+        #             ]
+        #         }
         #     }
         #
-        futuresResult = self.safe_value(futuresResponse, 'result', {})
-        data = self.safe_value(futuresResult, 'data', [])
+        resultResponse = self.safe_value(response, 'result', {})
+        data = self.safe_value(resultResponse, 'data', [])
+        result = []
         for i in range(0, len(data)):
             market = data[i]
             inst_type = self.safe_string(market, 'inst_type')
+            spot = inst_type == 'CCY_PAIR'
             swap = inst_type == 'PERPETUAL_SWAP'
             future = inst_type == 'FUTURE'
-            if inst_type == 'CCY_PAIR':
-                continue  # Found some inconsistencies between spot and derivatives api so use spot api for currency pairs.
+            option = inst_type == 'WARRANT'
             baseId = self.safe_string(market, 'base_ccy')
             quoteId = self.safe_string(market, 'quote_ccy')
+            settleId = None if spot else quoteId
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote + ':' + quote
-            expiry = self.safe_integer(market, 'expiry_timestamp_ms')
-            if expiry == 0:
-                expiry = None
-            type = 'swap'
-            if future:
+            settle = None if spot else self.safe_currency_code(settleId)
+            optionType = self.safe_string_lower(market, 'put_call')
+            strike = self.safe_string(market, 'strike')
+            marginBuyEnabled = self.safe_value(market, 'margin_buy_enabled')
+            marginSellEnabled = self.safe_value(market, 'margin_sell_enabled')
+            expiry = self.omit_zero(self.safe_integer(market, 'expiry_timestamp_ms'))
+            symbol = base + '/' + quote
+            type = None
+            contract = None
+            if inst_type == 'CCY_PAIR':
+                type = 'spot'
+                contract = False
+            elif inst_type == 'PERPETUAL_SWAP':
+                type = 'swap'
+                symbol = symbol + ':' + quote
+                contract = True
+            elif inst_type == 'FUTURE':
                 type = 'future'
-                symbol = symbol + '-' + self.yymmdd(expiry)
-            contractSize = self.safe_number(market, 'contract_size')
+                symbol = symbol + ':' + quote + '-' + self.yymmdd(expiry)
+                contract = True
+            elif inst_type == 'WARRANT':
+                type = 'option'
+                symbolOptionType = 'C' if (optionType == 'call') else 'P'
+                symbol = symbol + ':' + quote + '-' + self.yymmdd(expiry) + '-' + strike + '-' + symbolOptionType
+                contract = True
             result.append({
                 'id': self.safe_string(market, 'symbol'),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': quoteId,
+                'settleId': settleId,
                 'type': type,
-                'spot': False,
-                'margin': False,
+                'spot': spot,
+                'margin': ((marginBuyEnabled) or (marginSellEnabled)),
                 'swap': swap,
                 'future': future,
-                'option': False,
+                'option': option,
                 'active': self.safe_value(market, 'tradable'),
-                'contract': True,
-                'linear': True,
-                'inverse': False,
-                'contractSize': contractSize,
+                'contract': contract,
+                'linear': True if (contract) else None,
+                'inverse': False if (contract) else None,
+                'contractSize': self.safe_number(market, 'contract_size'),
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
-                'strike': None,
-                'optionType': None,
+                'strike': self.parse_number(strike),
+                'optionType': optionType,
                 'precision': {
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quote_decimals'))),
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantity_decimals'))),
+                    'price': self.parse_number(self.safe_string(market, 'price_tick_size')),
+                    'amount': self.parse_number(self.safe_string(market, 'qty_tick_size')),
                 },
                 'limits': {
                     'leverage': {
@@ -562,7 +547,7 @@ class cryptocom(Exchange):
                         'max': self.safe_number(market, 'max_leverage'),
                     },
                     'amount': {
-                        'min': self.parse_number(contractSize),
+                        'min': None,
                         'max': None,
                     },
                     'price': {
@@ -578,7 +563,7 @@ class cryptocom(Exchange):
             })
         return result
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
@@ -619,7 +604,7 @@ class cryptocom(Exchange):
         data = self.safe_value(result, 'data', [])
         return self.parse_tickers(data, symbols)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -651,7 +636,7 @@ class cryptocom(Exchange):
         first = self.safe_value(data, 0, {})
         return self.parse_ticker(first, market)
 
-    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -756,7 +741,7 @@ class cryptocom(Exchange):
         orderList = self.safe_value_2(data, 'order_list', 'data', [])
         return self.parse_orders(orderList, market, since, limit)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -804,8 +789,10 @@ class cryptocom(Exchange):
         data = self.safe_value(resultResponse, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://exchange-docs.crypto.com/derivatives/index.html#public-get-candlestick
+        see https://exchange-docs.crypto.com/spot/index.html#public-get-candlestick
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -820,18 +807,22 @@ class cryptocom(Exchange):
             'instrument_name': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        marketType, query = self.handle_market_type_and_params('fetchOHLCV', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'v2PublicGetPublicGetCandlestick',
-            'future': 'derivativesPublicGetPublicGetCandlestick',
-            'swap': 'derivativesPublicGetPublicGetCandlestick',
-        })
-        if marketType != 'spot':
+        if not market['spot']:
             reqLimit = 100
             if limit is not None:
                 reqLimit = limit
             request['count'] = reqLimit
-        response = getattr(self, method)(self.extend(request, query))
+        if since is not None:
+            request['start_ts'] = since
+        until = self.safe_integer_2(params, 'until', 'till')
+        params = self.omit(params, ['until', 'till'])
+        if until is not None:
+            request['end_ts'] = until
+        response = None
+        if market['spot']:
+            response = self.v2PublicGetPublicGetCandlestick(self.extend(request, params))
+        elif market['contract']:
+            response = self.derivativesPublicGetPublicGetCandlestick(self.extend(request, params))
         # {
         #     "code":0,
         #     "method":"public/get-candlestick",
@@ -850,7 +841,7 @@ class cryptocom(Exchange):
         data = self.safe_value(resultResponse, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -1029,7 +1020,7 @@ class cryptocom(Exchange):
         })
         return getattr(self, parser)(response)
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1096,7 +1087,7 @@ class cryptocom(Exchange):
         order = self.safe_value(result, 'order_info', result)
         return self.parse_order(order, market)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1118,10 +1109,15 @@ class cryptocom(Exchange):
         }
         if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT'):
             request['price'] = self.price_to_precision(symbol, price)
+        broker = self.safe_string(self.options, 'broker', 'CCXT_')
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is None:
+            clientOrderId = broker + self.uuid22()
+        request['client_oid'] = clientOrderId
         postOnly = self.safe_value(params, 'postOnly', False)
         if postOnly:
             request['exec_inst'] = 'POST_ONLY'
-            params = self.omit(params, ['postOnly'])
+        params = self.omit(params, ['postOnly', 'clientOrderId'])
         marketType, marketTypeQuery = self.handle_market_type_and_params('createOrder', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'v2PrivatePostPrivateCreateOrder',
@@ -1144,7 +1140,7 @@ class cryptocom(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    def cancel_all_orders(self, symbol=None, params={}):
+    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1172,7 +1168,7 @@ class cryptocom(Exchange):
             method = 'v2PrivatePostPrivateMarginCancelAllOrders'
         return getattr(self, method)(self.extend(request, query))
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1206,7 +1202,7 @@ class cryptocom(Exchange):
         result = self.safe_value(response, 'result', response)
         return self.parse_order(result)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -1282,7 +1278,7 @@ class cryptocom(Exchange):
         resultList = self.safe_value_2(data, 'order_list', 'data', [])
         return self.parse_orders(resultList, market, since, limit)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -1351,7 +1347,7 @@ class cryptocom(Exchange):
             address = addressString
         return [address, tag]
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1391,7 +1387,7 @@ class cryptocom(Exchange):
         result = self.safe_value(response, 'result')
         return self.parse_transaction(result, currency)
 
-    def fetch_deposit_addresses_by_network(self, code, params={}):
+    def fetch_deposit_addresses_by_network(self, code: str, params={}):
         """
         fetch a dictionary of addresses for a currency, indexed by network
         :param str code: unified currency code of the currency for the deposit address
@@ -1453,7 +1449,7 @@ class cryptocom(Exchange):
             }
         return result
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1481,7 +1477,7 @@ class cryptocom(Exchange):
         }
         return self.safe_string(networksById, networkId, networkId)
 
-    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1525,7 +1521,7 @@ class cryptocom(Exchange):
         depositList = self.safe_value(data, 'deposit_list', [])
         return self.parse_transactions(depositList, currency, since, limit)
 
-    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1573,7 +1569,7 @@ class cryptocom(Exchange):
         withdrawalList = self.safe_value(data, 'withdrawal_list', [])
         return self.parse_transactions(withdrawalList, currency, since, limit)
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -1609,7 +1605,7 @@ class cryptocom(Exchange):
         #
         return self.parse_transfer(response, currency)
 
-    def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+    def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :param str|None code: unified currency code of the currency transferred
@@ -2082,7 +2078,7 @@ class cryptocom(Exchange):
             'fee': fee,
         }
 
-    def repay_margin(self, code, amount, symbol=None, params={}):
+    def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://exchange-docs.crypto.com/spot/index.html#private-margin-repay
@@ -2114,7 +2110,7 @@ class cryptocom(Exchange):
             'amount': amount,
         })
 
-    def borrow_margin(self, code, amount, symbol=None, params={}):
+    def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         see https://exchange-docs.crypto.com/spot/index.html#private-margin-borrow
@@ -2174,7 +2170,7 @@ class cryptocom(Exchange):
             'info': info,
         }
 
-    def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+    def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
         request = {}
         market = None
@@ -2315,11 +2311,72 @@ class cryptocom(Exchange):
                 marginMode = 'cross'
         return [marginMode, params]
 
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    {
+        #        full_name: 'Alchemix',
+        #        default_network: 'ETH',
+        #        network_list: [
+        #          {
+        #            network_id: 'ETH',
+        #            withdrawal_fee: '0.25000000',
+        #            withdraw_enabled: True,
+        #            min_withdrawal_amount: '0.5',
+        #            deposit_enabled: True,
+        #            confirmation_required: '0'
+        #          }
+        #        ]
+        #    }
+        #
+        networkList = self.safe_value(fee, 'network_list')
+        networkListLength = len(networkList)
+        result = {
+            'info': fee,
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+        if networkList is not None:
+            for i in range(0, networkListLength):
+                networkInfo = networkList[i]
+                networkId = self.safe_string(networkInfo, 'network_id')
+                currencyCode = self.safe_string(currency, 'code')
+                networkCode = self.network_id_to_code(networkId, currencyCode)
+                result['networks'][networkCode] = {
+                    'deposit': {'fee': None, 'percentage': None},
+                    'withdraw': {'fee': self.safe_number(networkInfo, 'withdrawal_fee'), 'percentage': False},
+                }
+                if networkListLength == 1:
+                    result['withdraw']['fee'] = self.safe_number(networkInfo, 'withdrawal_fee')
+                    result['withdraw']['percentage'] = False
+        return result
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the cryptocom api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.v2PrivatePostPrivateGetCurrencyNetworks(params)
+        data = self.safe_value(response, 'result')
+        currencyMap = self.safe_value(data, 'currency_map')
+        return self.parse_deposit_withdraw_fees(currencyMap, codes, 'full_name')
+
     def nonce(self):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        type, access = api
+        type = self.safe_string(api, 0)
+        access = self.safe_string(api, 1)
         url = self.urls['api'][type] + '/' + path
         query = self.omit(params, self.extract_params(path))
         if access == 'public':
@@ -2365,3 +2422,4 @@ class cryptocom(Exchange):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             raise ExchangeError(self.id + ' ' + body)
+        return None

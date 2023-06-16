@@ -11,7 +11,6 @@ import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/func
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
-// @ts-expect-error
 export default class bitvavo extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1742,7 +1741,7 @@ export default class bitvavo extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {"errorCode":308,"error":"The signature length is invalid (HMAC-SHA256 should return a 64 length hexadecimal string)."}
@@ -1757,8 +1756,9 @@ export default class bitvavo extends Exchange {
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
         if (('noMarket' in config) && !('market' in params)) {
             return config['noMarket'];
         }

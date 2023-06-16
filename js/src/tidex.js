@@ -9,7 +9,6 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-// @ts-expect-error
 export default class tidex extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -862,7 +861,7 @@ export default class tidex extends Exchange {
             request['pair'] = market['id'];
         }
         if (limit !== undefined) {
-            request['count'] = parseInt(limit);
+            request['count'] = limit;
         }
         if (since !== undefined) {
             request['since'] = this.parseToInt(since / 1000);
@@ -1009,7 +1008,7 @@ export default class tidex extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('success' in response) {
             //
@@ -1057,5 +1056,6 @@ export default class tidex extends Exchange {
                 throw new ExchangeError(feedback); // unknown message
             }
         }
+        return undefined;
     }
 }

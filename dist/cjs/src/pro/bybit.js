@@ -7,7 +7,6 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class bybit extends bybit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -104,11 +103,6 @@ class bybit extends bybit$1 {
                 'ping': this.ping,
                 'keepAlive': 20000,
             },
-            'exceptions': {
-                'ws': {
-                    'exact': {},
-                },
-            },
         });
     }
     requestId() {
@@ -172,7 +166,8 @@ class bybit extends bybit$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const messageHash = 'ticker:' + market['symbol'];
+        symbol = market['symbol'];
+        const messageHash = 'ticker:' + symbol;
         const url = this.getUrlByMarketType(symbol, false, params);
         params = this.cleanParams(params);
         const options = this.safeValue(this.options, 'watchTicker', {});
@@ -410,7 +405,7 @@ class bybit extends bybit$1 {
         //     }
         //
         return [
-            this.safeInteger(ohlcv, 'timestamp'),
+            this.safeInteger(ohlcv, 'start'),
             this.safeNumber(ohlcv, 'open'),
             this.safeNumber(ohlcv, 'high'),
             this.safeNumber(ohlcv, 'low'),
@@ -833,7 +828,7 @@ class bybit extends bybit$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleOrder(client, message, subscription = undefined) {
         //

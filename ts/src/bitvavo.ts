@@ -6,10 +6,10 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class bitvavo extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -469,7 +469,7 @@ export default class bitvavo extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchTicker
@@ -585,7 +585,7 @@ export default class bitvavo extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchTrades
@@ -761,7 +761,7 @@ export default class bitvavo extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchOrderBook
@@ -822,7 +822,7 @@ export default class bitvavo extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchOHLCV
@@ -906,7 +906,7 @@ export default class bitvavo extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchDepositAddress
@@ -939,7 +939,7 @@ export default class bitvavo extends Exchange {
         };
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#createOrder
@@ -1068,7 +1068,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let request = {};
@@ -1094,7 +1094,7 @@ export default class bitvavo extends Exchange {
         }
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#cancelOrder
@@ -1149,7 +1149,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchOrder
@@ -1205,7 +1205,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchOrders
@@ -1275,7 +1275,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchOpenOrders
@@ -1459,7 +1459,7 @@ export default class bitvavo extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchMyTrades
@@ -1510,7 +1510,7 @@ export default class bitvavo extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#withdraw
@@ -1547,7 +1547,7 @@ export default class bitvavo extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchWithdrawals
@@ -1594,7 +1594,7 @@ export default class bitvavo extends Exchange {
         return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchDeposits
@@ -1732,7 +1732,7 @@ export default class bitvavo extends Exchange {
         };
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         const getOrDelete = (method === 'GET') || (method === 'DELETE');
@@ -1770,7 +1770,7 @@ export default class bitvavo extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {"errorCode":308,"error":"The signature length is invalid (HMAC-SHA256 should return a 64 length hexadecimal string)."}
@@ -1785,9 +1785,10 @@ export default class bitvavo extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 
-    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost (api, method, path, params, config = {}) {
         if (('noMarket' in config) && !('market' in params)) {
             return config['noMarket'];
         }

@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\zonda as Exchange;
 
 class zonda extends Exchange {
 
@@ -285,6 +286,7 @@ class zonda extends Exchange {
 
     public function fetch_markets($params = array ()) {
         /**
+         * @see https://docs.zonda.exchange/reference/ticker-1
          * retrieves data on all markets for zonda
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of objects representing $market data
@@ -383,8 +385,9 @@ class zonda extends Exchange {
         return $result;
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.zonda.exchange/reference/active-orders
          * fetch all unfilled currently open orders
          * @param {string|null} $symbol not used by zonda fetchOpenOrders
          * @param {int|null} $since the earliest time in ms to fetch open orders for
@@ -450,8 +453,9 @@ class zonda extends Exchange {
         ), $market);
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.zonda.exchange/reference/transactions-history
          * fetch all trades made by the user
          * @param {string|null} $symbol unified market $symbol
          * @param {int|null} $since the earliest time in ms to fetch trades for
@@ -516,6 +520,7 @@ class zonda extends Exchange {
 
     public function fetch_balance($params = array ()) {
         /**
+         * @see https://docs.zonda.exchange/reference/list-of-wallets
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} $params extra parameters specific to the zonda api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
@@ -525,8 +530,9 @@ class zonda extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.zonda.exchange/reference/orderbook-2
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
@@ -610,8 +616,9 @@ class zonda extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
+         * @see https://docs.zonda.exchange/reference/market-statistics
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} $params extra parameters specific to the zonda api endpoint
@@ -639,8 +646,9 @@ class zonda extends Exchange {
         return $this->parse_ticker($stats, $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
+         * @see https://docs.zonda.exchange/reference/market-statistics
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the zonda api endpoint
@@ -666,8 +674,9 @@ class zonda extends Exchange {
         return $this->parse_tickers($items, $symbols);
     }
 
-    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.zonda.exchange/reference/operations-history
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null
          * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
@@ -1041,8 +1050,9 @@ class zonda extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.zonda.exchange/reference/candles-chart
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
@@ -1069,7 +1079,7 @@ class zonda extends Exchange {
             $request['to'] = $this->milliseconds();
             $request['from'] = $request['to'] - $timerange;
         } else {
-            $request['from'] = intval($since);
+            $request['from'] = $since;
             $request['to'] = $this->sum($request['from'], $timerange);
         }
         $response = $this->v1_01PublicGetTradingCandleHistorySymbolResolution (array_merge($request, $params));
@@ -1165,8 +1175,9 @@ class zonda extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.zonda.exchange/reference/last-transactions
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
@@ -1191,7 +1202,7 @@ class zonda extends Exchange {
         return $this->parse_trades($items, $market, $since, $limit);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1315,8 +1326,9 @@ class zonda extends Exchange {
         ));
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
+         * @see https://docs.zonda.exchange/reference/cancel-order
          * cancels an open order
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -1376,8 +1388,9 @@ class zonda extends Exchange {
         );
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
+         * @see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
          * @param {array} $params extra parameters specific to the zonda api endpoint
@@ -1410,6 +1423,7 @@ class zonda extends Exchange {
 
     public function fetch_deposit_addresses($codes = null, $params = array ()) {
         /**
+         * @see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
          * fetch deposit addresses for multiple currencies and chain types
          * @param {[string]|null} $codes zonda does not support filtering filtering by multiple $codes and will ignore this parameter.
          * @param {array} $params extra parameters specific to the zonda api endpoint
@@ -1434,8 +1448,9 @@ class zonda extends Exchange {
         return $this->parse_deposit_addresses($data, $codes);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
+         * @see https://docs.zonda.exchange/reference/internal-$transfer
          * $transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to $transfer
@@ -1546,8 +1561,9 @@ class zonda extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
+         * @see https://docs.zonda.exchange/reference/crypto-withdrawal-1
          * make a withdrawal
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
@@ -1675,7 +1691,7 @@ class zonda extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         if (is_array($response) && array_key_exists('code', $response)) {
             //
@@ -1722,5 +1738,6 @@ class zonda extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+        return null;
     }
 }

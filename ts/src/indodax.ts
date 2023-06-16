@@ -5,10 +5,10 @@ import Exchange from './abstract/indodax.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class indodax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -350,7 +350,7 @@ export default class indodax extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchOrderBook
@@ -411,7 +411,7 @@ export default class indodax extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name indodax#fetchTicker
@@ -495,7 +495,7 @@ export default class indodax extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchTrades
@@ -603,7 +603,7 @@ export default class indodax extends Exchange {
         });
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchOrder
@@ -627,7 +627,7 @@ export default class indodax extends Exchange {
         return this.extend ({ 'info': response }, order);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchOpenOrders
@@ -668,7 +668,7 @@ export default class indodax extends Exchange {
         return exchangeOrders;
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchClosedOrders
@@ -696,7 +696,7 @@ export default class indodax extends Exchange {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as any;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name indodax#createOrder
@@ -735,7 +735,7 @@ export default class indodax extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name indodax#cancelOrder
@@ -762,7 +762,7 @@ export default class indodax extends Exchange {
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
-    async fetchTransactionFee (code, params = {}) {
+    async fetchTransactionFee (code: string, params = {}) {
         /**
          * @method
          * @name indodax#fetchTransactionFee
@@ -796,7 +796,7 @@ export default class indodax extends Exchange {
         };
     }
 
-    async fetchTransactions (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchTransactions
@@ -897,7 +897,7 @@ export default class indodax extends Exchange {
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name indodax#withdraw
@@ -1032,7 +1032,7 @@ export default class indodax extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         if (api === 'public') {
             url += '/' + this.implodeParams (path, params);
@@ -1054,24 +1054,24 @@ export default class indodax extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         // { success: 0, error: "invalid order." }
         // or
         // [{ data, ... }, { ... }, ... ]
         if (Array.isArray (response)) {
-            return; // public endpoints may return []-arrays
+            return undefined; // public endpoints may return []-arrays
         }
         const error = this.safeValue (response, 'error', '');
         if (!('success' in response) && error === '') {
-            return; // no 'success' property on public responses
+            return undefined; // no 'success' property on public responses
         }
         if (this.safeInteger (response, 'success', 0) === 1) {
             // { success: 1, return: { orders: [] }}
             if (!('return' in response)) {
                 throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
             } else {
-                return;
+                return undefined;
             }
         }
         const feedback = this.id + ' ' + body;

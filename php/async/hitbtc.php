@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\hitbtc as Exchange;
 use ccxt\ExchangeError;
 use ccxt\InvalidOrder;
 use ccxt\OrderNotFound;
@@ -212,8 +213,8 @@ class hitbtc extends Exchange {
                 'networks' => array(
                     'ETH' => 'T20',
                     'ERC20' => 'T20',
-                    'TRX' => 'TTRX',
-                    'TRC20' => 'TTRX',
+                    'TRX' => 'TRX',
+                    'TRC20' => 'TRX',
                     'OMNI' => '',
                 ),
                 'defaultTimeInForce' => 'FOK',
@@ -230,6 +231,9 @@ class hitbtc extends Exchange {
                     'spot' => 'trading',
                     'trade' => 'trading',
                     'trading' => 'trading',
+                ),
+                'withdraw' => array(
+                    'includeFee' => false,
                 ),
             ),
             'commonCurrencies' => array(
@@ -370,7 +374,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -504,6 +508,7 @@ class hitbtc extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'networks' => array(),
                 );
             }
             return $result;
@@ -528,7 +533,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function fetch_trading_fee($symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -620,7 +625,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -655,7 +660,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -708,7 +713,7 @@ class hitbtc extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -731,7 +736,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -832,7 +837,7 @@ class hitbtc extends Exchange {
         ), $market);
     }
 
-    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -953,7 +958,7 @@ class hitbtc extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -980,7 +985,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -1024,7 +1029,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->load_markets());
             // we use clientOrderId order $id with this exchange intentionally
@@ -1050,7 +1055,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1171,7 +1176,7 @@ class hitbtc extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -1195,7 +1200,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function fetch_open_order($id, $symbol = null, $params = array ()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an open order by it's $id
@@ -1216,7 +1221,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1238,7 +1243,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed $orders made by the user
@@ -1275,7 +1280,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
@@ -1337,7 +1342,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
@@ -1368,7 +1373,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * create a $currency deposit $address
@@ -1386,7 +1391,7 @@ class hitbtc extends Exchange {
             $this->check_address($address);
             $tag = $this->safe_string($response, 'paymentId');
             return array(
-                'currency' => $currency,
+                'currency' => $code,
                 'address' => $address,
                 'tag' => $tag,
                 'info' => $response,
@@ -1394,7 +1399,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -1428,7 +1433,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function convert_currency_network($code, $amount, $fromNetwork, $toNetwork, $params) {
+    public function convert_currency_network(string $code, $amount, $fromNetwork, $toNetwork, $params) {
         return Async\async(function () use ($code, $amount, $fromNetwork, $toNetwork, $params) {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1450,7 +1455,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1479,6 +1484,11 @@ class hitbtc extends Exchange {
             if ($network !== null) {
                 $request['currency'] .= $network; // when $network the $currency need to be changed to $currency . $network
                 $params = $this->omit($params, 'network');
+            }
+            $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
+            $includeFee = $this->safe_value($withdrawOptions, 'includeFee', false);
+            if ($includeFee) {
+                $request['includeFee'] = true;
             }
             $response = Async\await($this->privatePostAccountCryptoWithdraw (array_merge($request, $params)));
             //
@@ -1512,7 +1522,7 @@ class hitbtc extends Exchange {
             } elseif ($query) {
                 $body = $this->json($query);
             }
-            $payload = $this->encode($this->apiKey . ':' . $this->secret);
+            $payload = $this->apiKey . ':' . $this->secret;
             $auth = base64_encode($payload);
             $headers = array(
                 'Authorization' => 'Basic ' . $auth,
@@ -1525,7 +1535,7 @@ class hitbtc extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         if ($code >= 400) {
             $feedback = $this->id . ' ' . $body;
@@ -1536,7 +1546,7 @@ class hitbtc extends Exchange {
             // fallback to default error handler on rate limit errors
             // array("code":429,"message":"Too many requests","description":"Too many requests")
             if ($code === 429) {
-                return;
+                return null;
             }
             // array("error":array("code":20002,"message":"Order not found","description":""))
             if ($body[0] === '{') {
@@ -1551,5 +1561,6 @@ class hitbtc extends Exchange {
             }
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

@@ -4,7 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitso import ImplicitAPI
 import hashlib
+from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -16,7 +20,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bitso(Exchange):
+class bitso(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitso, self).describe(), {
@@ -182,7 +186,7 @@ class bitso(Exchange):
             },
         })
 
-    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -219,7 +223,8 @@ class bitso(Exchange):
         #     }
         #
         payload = self.safe_value(response, 'payload', [])
-        return self.parse_ledger(payload, code, since, limit)
+        currency = self.safe_currency(code)
+        return self.parse_ledger(payload, currency, since, limit)
 
     def parse_ledger_entry_type(self, type):
         types = {
@@ -517,7 +522,7 @@ class bitso(Exchange):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -579,7 +584,7 @@ class bitso(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -612,7 +617,7 @@ class bitso(Exchange):
         #
         return self.parse_ticker(ticker, market)
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -660,7 +665,7 @@ class bitso(Exchange):
         payload = self.safe_value(response, 'payload', [])
         return self.parse_ohlcvs(payload, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m'):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "bucket_start_time":1648219140000,
@@ -777,7 +782,7 @@ class bitso(Exchange):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -862,7 +867,7 @@ class bitso(Exchange):
             }
         return result
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=25, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=25, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -895,7 +900,7 @@ class bitso(Exchange):
         response = self.privateGetUserTrades(self.extend(request, params))
         return self.parse_trades(response['payload'], market, since, limit)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -923,7 +928,7 @@ class bitso(Exchange):
             'id': id,
         }, market)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -937,7 +942,7 @@ class bitso(Exchange):
         }
         return self.privateDeleteOrdersOid(self.extend(request, params))
 
-    def cancel_orders(self, ids, symbol=None, params={}):
+    def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
         """
         cancel multiple orders
         :param [str] ids: order ids
@@ -968,7 +973,7 @@ class bitso(Exchange):
             orders.append(self.parse_order(id, market))
         return orders
 
-    def cancel_all_orders(self, symbol=None, params={}):
+    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
         :param None symbol: bitso does not support canceling orders for only a specific market
@@ -994,6 +999,8 @@ class bitso(Exchange):
     def parse_order_status(self, status):
         statuses = {
             'partial-fill': 'open',  # self is a common substitution in ccxt
+            'partially filled': 'open',
+            'queued': 'open',
             'completed': 'closed',
         }
         return self.safe_string(statuses, status, status)
@@ -1044,7 +1051,7 @@ class bitso(Exchange):
             'trades': None,
         }, market)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=25, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=25, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -1078,7 +1085,7 @@ class bitso(Exchange):
         orders = self.parse_orders(response['payload'], market, since, limit)
         return orders
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by bitso fetchOrder
@@ -1096,7 +1103,7 @@ class bitso(Exchange):
                 return self.parse_order(payload[0])
         raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
 
-    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1114,7 +1121,7 @@ class bitso(Exchange):
         response = self.privateGetOrderTradesOid(self.extend(request, params))
         return self.parse_trades(response['payload'], market)
 
-    def fetch_deposit(self, id, code=None, params={}):
+    def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id
@@ -1154,7 +1161,7 @@ class bitso(Exchange):
         first = self.safe_value(transactions, 0, {})
         return self.parse_transaction(first)
 
-    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1194,7 +1201,7 @@ class bitso(Exchange):
         transactions = self.safe_value(response, 'payload', [])
         return self.parse_transactions(transactions, currency, since, limit, params)
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1439,7 +1446,7 @@ class bitso(Exchange):
                 result[code]['info'][code] = withdrawFee
         return result
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1582,6 +1589,9 @@ class bitso(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
+    def nonce(self):
+        return self.milliseconds()
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -1607,7 +1617,7 @@ class bitso(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if 'success' in response:
             #
             #     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
@@ -1626,3 +1636,4 @@ class bitso(Exchange):
                 code = self.safe_string(error, 'code')
                 self.throw_exactly_matched_exception(self.exceptions, code, feedback)
                 raise ExchangeError(feedback)
+        return None

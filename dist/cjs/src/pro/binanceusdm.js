@@ -1,10 +1,10 @@
 'use strict';
 
 var binance = require('./binance.js');
+var errors = require('../base/errors.js');
 
 //  ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 class binanceusdm extends binance {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -16,6 +16,14 @@ class binanceusdm extends binance {
             'options': {
                 'fetchMarkets': ['linear'],
                 'defaultSubType': 'linear',
+            },
+            // https://binance-docs.github.io/apidocs/futures/en/#error-codes
+            'exceptions': {
+                'exact': {
+                    '-5021': errors.InvalidOrder,
+                    '-5022': errors.InvalidOrder,
+                    '-5028': errors.InvalidOrder, // {"code":-5028,"msg":"Timestamp for this request is outside of the ME recvWindow."}
+                },
             },
         });
     }

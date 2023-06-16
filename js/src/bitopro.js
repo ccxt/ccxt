@@ -11,7 +11,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bitopro extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1593,7 +1592,7 @@ export default class bitopro extends Exchange {
             if (method === 'POST' || method === 'PUT') {
                 body = this.json(params);
                 const payload = this.stringToBase64(body);
-                const signature = this.hmac(payload, this.encode(this.secret), sha384);
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;
@@ -1624,10 +1623,10 @@ export default class bitopro extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to the default error handler
+            return undefined; // fallback to the default error handler
         }
         if (code >= 200 && code < 300) {
-            return;
+            return undefined;
         }
         const feedback = this.id + ' ' + body;
         const error = this.safeString(response, 'error');

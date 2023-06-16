@@ -11,7 +11,6 @@ import { Precise } from './base/Precise.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bitfinex extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -878,7 +877,7 @@ export default class bitfinex extends Exchange {
     }
     parseTicker(ticker, market = undefined) {
         const timestamp = this.safeTimestamp(ticker, 'timestamp');
-        const marketId = this.safeString(market, 'pair');
+        const marketId = this.safeString(ticker, 'pair');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
         const last = this.safeString(ticker, 'last_price');
@@ -1633,7 +1632,7 @@ export default class bitfinex extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         let throwError = false;
         if (code >= 400) {
@@ -1657,5 +1656,6 @@ export default class bitfinex extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }

@@ -8,24 +8,27 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetMarkets (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketsMarket (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketsMarketOrders (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetMarketsMarketTrades (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetUserAccounts (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetUserOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetUserOrdersId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetUserOrdersIdTrades (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetUserTrades (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetUserFees (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountWithdrawalsId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountWithdrawals (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountDepositId (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountDeposits (params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountDepositAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostUserOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostAccountWithdraw (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteUserOrdersId (params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteAccountWithdrawalsId (params?: {}): Promise<implicitReturnType>;
+interface Exchange {
+    publicGetMarkets (params?: {}): Promise<implicitReturnType>;
+    publicGetMarketsMarket (params?: {}): Promise<implicitReturnType>;
+    publicGetMarketsMarketOrders (params?: {}): Promise<implicitReturnType>;
+    publicGetMarketsMarketTrades (params?: {}): Promise<implicitReturnType>;
+    privateGetUserAccounts (params?: {}): Promise<implicitReturnType>;
+    privateGetUserOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetUserOrdersId (params?: {}): Promise<implicitReturnType>;
+    privateGetUserOrdersIdTrades (params?: {}): Promise<implicitReturnType>;
+    privateGetUserTrades (params?: {}): Promise<implicitReturnType>;
+    privateGetUserFees (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountWithdrawalsId (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountWithdrawals (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountDepositId (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountDeposits (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountDepositAddress (params?: {}): Promise<implicitReturnType>;
+    privatePostUserOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountWithdraw (params?: {}): Promise<implicitReturnType>;
+    privateDeleteUserOrdersId (params?: {}): Promise<implicitReturnType>;
+    privateDeleteAccountWithdrawalsId (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

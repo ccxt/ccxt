@@ -6,10 +6,11 @@ import { ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder
 import { Precise } from './base/Precise.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
+import { DECIMAL_PLACES } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class wavesexchange extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -295,8 +296,9 @@ export default class wavesexchange extends Exchange {
                 },
             },
             'currencies': {
-                'WX': { 'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': undefined, 'code': 'WX', 'precision': 8 },
+                'WX': this.safeCurrencyStructure ({ 'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': undefined, 'code': 'WX', 'precision': this.parseNumber ('8') }),
             },
+            'precisionMode': DECIMAL_PLACES,
             'options': {
                 'allowedCandles': 1440,
                 'accessToken': undefined,
@@ -354,10 +356,10 @@ export default class wavesexchange extends Exchange {
 
     setSandboxMode (enabled) {
         this.options['messagePrefix'] = enabled ? 'T' : 'W';
-        return super.setSandboxMode (enabled);
+        super.setSandboxMode (enabled);
     }
 
-    async getFeesForAsset (symbol, side, amount, price, params = {}) {
+    async getFeesForAsset (symbol: string, side, amount, price, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         amount = this.customAmountToPrecision (symbol, amount);
@@ -372,7 +374,7 @@ export default class wavesexchange extends Exchange {
         return await this.matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee (request);
     }
 
-    async customCalculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+    async customCalculateFee (symbol: string, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const response = await this.getFeesForAsset (symbol, side, amount, price);
         // {
         //     "base":{
@@ -575,7 +577,7 @@ export default class wavesexchange extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchOrderBook
@@ -605,7 +607,7 @@ export default class wavesexchange extends Exchange {
         } as any;
     }
 
-    parseOrderBookSide (bookSide, market = undefined, limit = undefined) {
+    parseOrderBookSide (bookSide, market = undefined, limit: Int = undefined) {
         const precision = market['precision'];
         const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
         const amountPrecision = Math.pow (10, precision['amount']);
@@ -653,7 +655,7 @@ export default class wavesexchange extends Exchange {
         }
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const isCancelOrder = path === 'matcher/orders/{wavesAddress}/cancel';
         path = this.implodeParams (path, params);
@@ -744,6 +746,7 @@ export default class wavesexchange extends Exchange {
             this.options['accessToken'] = this.safeString (response, 'access_token');
             return this.options['accessToken'];
         }
+        return undefined;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -821,7 +824,7 @@ export default class wavesexchange extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchTicker
@@ -907,7 +910,7 @@ export default class wavesexchange extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchOHLCV
@@ -1030,7 +1033,7 @@ export default class wavesexchange extends Exchange {
         ];
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchDepositAddress
@@ -1113,15 +1116,15 @@ export default class wavesexchange extends Exchange {
                 const request = {
                     'publicKey': this.apiKey,
                 };
-                const response = await this.nodeGetAddressesPublicKeyPublicKey (this.extend (request, request));
-                const address = this.safeString (response, 'address');
+                const responseInner = await this.nodeGetAddressesPublicKeyPublicKey (this.extend (request, request));
+                const addressInner = this.safeString (response, 'address');
                 return {
-                    'address': address,
+                    'address': addressInner,
                     'code': code, // kept here for backward-compatibility, but will be removed soon
                     'currency': code,
                     'network': network,
                     'tag': undefined,
-                    'info': response,
+                    'info': responseInner,
                 };
             } else {
                 const request = {
@@ -1260,7 +1263,7 @@ export default class wavesexchange extends Exchange {
         return rates;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#createOrder
@@ -1323,7 +1326,7 @@ export default class wavesexchange extends Exchange {
             const matcherFeeAsset = this.safeCurrencyCode (matcherFeeAssetId);
             const rawMatcherFee = (matcherFeeAssetId === baseFeeAssetId) ? baseMatcherFee : discountMatcherFee;
             const floatMatcherFee = parseFloat (this.currencyFromPrecision (matcherFeeAsset, rawMatcherFee));
-            if ((matcherFeeAsset in balances) && (balances[matcherFeeAsset]['free'] >= floatMatcherFee)) {
+            if ((matcherFeeAsset in balances) && (balances[matcherFeeAsset]['free'] as any >= floatMatcherFee)) {
                 matcherFee = parseInt (rawMatcherFee);
             } else {
                 throw new InsufficientFunds (this.id + ' not enough funds of the selected asset fee');
@@ -1332,12 +1335,12 @@ export default class wavesexchange extends Exchange {
         if (matcherFeeAssetId === undefined) {
             // try to the pay the fee using the base first then discount asset
             const floatBaseMatcherFee = parseFloat (this.currencyFromPrecision (baseFeeAsset, baseMatcherFee));
-            if ((baseFeeAsset in balances) && (balances[baseFeeAsset]['free'] >= floatBaseMatcherFee)) {
+            if ((baseFeeAsset in balances) && (balances[baseFeeAsset]['free'] as any >= floatBaseMatcherFee)) {
                 matcherFeeAssetId = baseFeeAssetId;
                 matcherFee = parseInt (baseMatcherFee);
             } else {
                 const floatDiscountMatcherFee = parseFloat (this.currencyFromPrecision (discountFeeAsset, discountMatcherFee));
-                if ((discountFeeAsset in balances) && (balances[discountFeeAsset]['free'] >= floatDiscountMatcherFee)) {
+                if ((discountFeeAsset in balances) && (balances[discountFeeAsset]['free'] as any >= floatDiscountMatcherFee)) {
                     matcherFeeAssetId = discountFeeAssetId;
                     matcherFee = parseInt (discountMatcherFee);
                 }
@@ -1421,7 +1424,7 @@ export default class wavesexchange extends Exchange {
         }
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#cancelOrder
@@ -1470,7 +1473,7 @@ export default class wavesexchange extends Exchange {
         };
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchOrder
@@ -1504,7 +1507,7 @@ export default class wavesexchange extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchOrders
@@ -1557,7 +1560,7 @@ export default class wavesexchange extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchOpenOrders
@@ -1583,7 +1586,7 @@ export default class wavesexchange extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchClosedOrders
@@ -1858,10 +1861,10 @@ export default class wavesexchange extends Exchange {
         }
         const nonStandardAssets = assetIds.length;
         if (nonStandardAssets) {
-            const request = {
+            const requestInner = {
                 'ids': assetIds,
             };
-            const response = await this.publicGetAssets (request);
+            const response = await this.publicGetAssets (requestInner);
             const data = this.safeValue (response, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const entry = data[i];
@@ -1926,7 +1929,7 @@ export default class wavesexchange extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchMyTrades
@@ -2019,7 +2022,7 @@ export default class wavesexchange extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchTrades
@@ -2210,8 +2213,8 @@ export default class wavesexchange extends Exchange {
         const success = this.safeValue (response, 'success', true);
         const Exception = this.safeValue (this.exceptions, errorCode);
         if (Exception !== undefined) {
-            const message = this.safeString (response, 'message');
-            throw new Exception (this.id + ' ' + message);
+            const messageInner = this.safeString (response, 'message');
+            throw new Exception (this.id + ' ' + messageInner);
         }
         const message = this.safeString (response, 'message');
         if (message === 'Validation Error') {
@@ -2220,9 +2223,10 @@ export default class wavesexchange extends Exchange {
         if (!success) {
             throw new ExchangeError (this.id + ' ' + body);
         }
+        return undefined;
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#withdraw
@@ -2277,8 +2281,8 @@ export default class wavesexchange extends Exchange {
                 'currency': code,
             };
             const withdrawAddress = await this.privateGetWithdrawAddressesCurrencyAddress (withdrawAddressRequest);
-            const currency = this.safeValue (withdrawAddress, 'currency');
-            const allowedAmount = this.safeValue (currency, 'allowed_amount');
+            const currencyInner = this.safeValue (withdrawAddress, 'currency');
+            const allowedAmount = this.safeValue (currencyInner, 'allowed_amount');
             const minimum = this.safeNumber (allowedAmount, 'min');
             if (amount <= minimum) {
                 throw new BadRequest (this.id + ' ' + code + ' withdraw failed, amount ' + amount.toString () + ' must be greater than the minimum allowed amount of ' + minimum.toString ());

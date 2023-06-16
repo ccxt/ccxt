@@ -11,7 +11,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class coinfalcon extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1000,7 +999,7 @@ export default class coinfalcon extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (code < 400) {
-            return;
+            return undefined;
         }
         const ErrorClass = this.safeValue({
             '401': AuthenticationError,

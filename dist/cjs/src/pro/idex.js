@@ -7,7 +7,6 @@ var Precise = require('../base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class idex extends idex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -652,7 +651,7 @@ class idex extends idex$1 {
         if (this.newUpdates) {
             limit = transactions.getLimit(code, limit);
         }
-        return this.filterBySinceLimit(transactions, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(transactions, since, limit, 'timestamp');
     }
     handleTransaction(client, message) {
         // Update Speed: Real time, updates on any deposit or withdrawal of the wallet

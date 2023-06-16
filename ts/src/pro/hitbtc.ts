@@ -3,10 +3,11 @@
 
 import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class hitbtc extends hitbtcRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -36,7 +37,7 @@ export default class hitbtc extends hitbtcRest {
         });
     }
 
-    async watchPublic (symbol, channel, timeframe = undefined, params = {}) {
+    async watchPublic (symbol: string, channel, timeframe = undefined, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
         const url = this.urls['api']['ws'];
@@ -58,7 +59,7 @@ export default class hitbtc extends hitbtcRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#watchOrderBook
@@ -72,7 +73,7 @@ export default class hitbtc extends hitbtcRest {
         return orderbook.limit ();
     }
 
-    handleOrderBookSnapshot (client, message) {
+    handleOrderBookSnapshot (client: Client, message) {
         //
         //     {
         //         jsonrpc: "2.0",
@@ -111,7 +112,7 @@ export default class hitbtc extends hitbtcRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBookUpdate (client, message) {
+    handleOrderBookUpdate (client: Client, message) {
         //
         //     {
         //         jsonrpc: "2.0",
@@ -166,7 +167,7 @@ export default class hitbtc extends hitbtcRest {
         }
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name hitbtc#watchTicker
@@ -178,7 +179,7 @@ export default class hitbtc extends hitbtcRest {
         return await this.watchPublic (symbol, 'ticker', undefined, params);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         jsonrpc: '2.0',
@@ -208,7 +209,7 @@ export default class hitbtc extends hitbtcRest {
         client.resolve (result, messageHash);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#watchTrades
@@ -226,7 +227,7 @@ export default class hitbtc extends hitbtcRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         jsonrpc: '2.0',
@@ -277,7 +278,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#watchOHLCV
@@ -307,7 +308,7 @@ export default class hitbtc extends hitbtcRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         jsonrpc: '2.0',
@@ -362,14 +363,14 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    handleNotification (client, message) {
+    handleNotification (client: Client, message) {
         //
         //     { jsonrpc: '2.0', result: true, id: null }
         //
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         const methods = {
             'snapshotOrderbook': this.handleOrderBookSnapshot,
             'updateOrderbook': this.handleOrderBookUpdate,

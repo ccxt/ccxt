@@ -6,5 +6,6 @@
 
 // -------------------------------------------------------------------------------
 import _okex from '../okex.js';
-export default class okex extends _okex {
+class okex extends _okex {
 }
+export default okex;

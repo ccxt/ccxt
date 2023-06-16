@@ -4,7 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.wavesexchange import ImplicitAPI
 import math
+from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -16,10 +21,11 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
 
 
-class wavesexchange(Exchange):
+class wavesexchange(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(wavesexchange, self).describe(), {
@@ -305,8 +311,9 @@ class wavesexchange(Exchange):
                 },
             },
             'currencies': {
-                'WX': {'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': None, 'code': 'WX', 'precision': 8},
+                'WX': self.safe_currency_structure({'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': None, 'code': 'WX', 'precision': self.parse_number('8')}),
             },
+            'precisionMode': DECIMAL_PLACES,
             'options': {
                 'allowedCandles': 1440,
                 'accessToken': None,
@@ -363,9 +370,9 @@ class wavesexchange(Exchange):
 
     def set_sandbox_mode(self, enabled):
         self.options['messagePrefix'] = 'T' if enabled else 'W'
-        return super(wavesexchange, self).set_sandbox_mode(enabled)
+        super(wavesexchange, self).set_sandbox_mode(enabled)
 
-    async def get_fees_for_asset(self, symbol, side, amount, price, params={}):
+    async def get_fees_for_asset(self, symbol: str, side, amount, price, params={}):
         await self.load_markets()
         market = self.market(symbol)
         amount = self.custom_amount_to_precision(symbol, amount)
@@ -379,7 +386,7 @@ class wavesexchange(Exchange):
         }, params)
         return await self.matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee(request)
 
-    async def custom_calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+    async def custom_calculate_fee(self, symbol: str, type, side, amount, price, takerOrMaker='taker', params={}):
         response = await self.get_fees_for_asset(symbol, side, amount, price)
         # {
         #     "base":{
@@ -573,7 +580,7 @@ class wavesexchange(Exchange):
             })
         return result
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -600,7 +607,7 @@ class wavesexchange(Exchange):
             'nonce': None,
         }
 
-    def parse_order_book_side(self, bookSide, market=None, limit=None):
+    def parse_order_book_side(self, bookSide, market=None, limit: Optional[int] = None):
         precision = market['precision']
         wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
         amountPrecision = math.pow(10, precision['amount'])
@@ -717,6 +724,7 @@ class wavesexchange(Exchange):
             #   scope: 'general'}
             self.options['accessToken'] = self.safe_string(response, 'access_token')
             return self.options['accessToken']
+        return None
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -792,7 +800,7 @@ class wavesexchange(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -833,7 +841,7 @@ class wavesexchange(Exchange):
         dataTicker = self.safe_value(ticker, 'data', {})
         return self.parse_ticker(dataTicker, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -872,7 +880,7 @@ class wavesexchange(Exchange):
         #
         return self.parse_tickers(response, symbols)
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -984,7 +992,7 @@ class wavesexchange(Exchange):
             self.safe_number(data, 'volume', 0),
         ]
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1060,15 +1068,15 @@ class wavesexchange(Exchange):
                 request = {
                     'publicKey': self.apiKey,
                 }
-                response = await self.nodeGetAddressesPublicKeyPublicKey(self.extend(request, request))
-                address = self.safe_string(response, 'address')
+                responseInner = await self.nodeGetAddressesPublicKeyPublicKey(self.extend(request, request))
+                addressInner = self.safe_string(response, 'address')
                 return {
-                    'address': address,
+                    'address': addressInner,
                     'code': code,  # kept here for backward-compatibility, but will be removed soon
                     'currency': code,
                     'network': network,
                     'tag': None,
-                    'info': response,
+                    'info': responseInner,
                 }
             else:
                 request = {
@@ -1186,7 +1194,7 @@ class wavesexchange(Exchange):
             return {'WAVES': 1}
         return rates
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1333,7 +1341,7 @@ class wavesexchange(Exchange):
             value = self.safe_value(response, 'message')
             return self.parse_order(value, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1379,7 +1387,7 @@ class wavesexchange(Exchange):
             'trades': None,
         }
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1409,7 +1417,7 @@ class wavesexchange(Exchange):
         response = await self.matcherGetMatcherOrderbookPublicKeyOrderId(self.extend(request, params))
         return self.parse_order(response, market)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1458,7 +1466,7 @@ class wavesexchange(Exchange):
         #     avgWeighedPrice: 0}, ...]
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -1480,7 +1488,7 @@ class wavesexchange(Exchange):
         response = await self.forwardGetMatcherOrdersAddress(request)
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -1738,10 +1746,10 @@ class wavesexchange(Exchange):
                 result[code]['total'] = self.from_precision(balance, decimals)
         nonStandardAssets = len(assetIds)
         if nonStandardAssets:
-            request = {
+            requestInner = {
                 'ids': assetIds,
             }
-            response = await self.publicGetAssets(request)
+            response = await self.publicGetAssets(requestInner)
             data = self.safe_value(response, 'data', [])
             for i in range(0, len(data)):
                 entry = data[i]
@@ -1798,7 +1806,7 @@ class wavesexchange(Exchange):
         result['datetime'] = self.iso8601(timestamp)
         return self.safe_balance(result)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -1887,7 +1895,7 @@ class wavesexchange(Exchange):
         #
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -2070,15 +2078,16 @@ class wavesexchange(Exchange):
         success = self.safe_value(response, 'success', True)
         Exception = self.safe_value(self.exceptions, errorCode)
         if Exception is not None:
-            message = self.safe_string(response, 'message')
-            raise Exception(self.id + ' ' + message)
+            messageInner = self.safe_string(response, 'message')
+            raise Exception(self.id + ' ' + messageInner)
         message = self.safe_string(response, 'message')
         if message == 'Validation Error':
             raise BadRequest(self.id + ' ' + body)
         if not success:
             raise ExchangeError(self.id + ' ' + body)
+        return None
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2125,8 +2134,8 @@ class wavesexchange(Exchange):
                 'currency': code,
             }
             withdrawAddress = await self.privateGetWithdrawAddressesCurrencyAddress(withdrawAddressRequest)
-            currency = self.safe_value(withdrawAddress, 'currency')
-            allowedAmount = self.safe_value(currency, 'allowed_amount')
+            currencyInner = self.safe_value(withdrawAddress, 'currency')
+            allowedAmount = self.safe_value(currencyInner, 'allowed_amount')
             minimum = self.safe_number(allowedAmount, 'min')
             if amount <= minimum:
                 raise BadRequest(self.id + ' ' + code + ' withdraw failed, amount ' + str(amount) + ' must be greater than the minimum allowed amount of ' + str(minimum))

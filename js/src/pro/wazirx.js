@@ -9,7 +9,6 @@ import wazirxRest from '../wazirx.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class wazirx extends wazirxRest {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -561,7 +560,7 @@ export default class wazirx extends wazirxRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleOrder(client, message) {
         //

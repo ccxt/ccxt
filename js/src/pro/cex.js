@@ -11,7 +11,6 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class cex extends cexRest {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -411,7 +410,7 @@ export default class cex extends cexRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -446,7 +445,7 @@ export default class cex extends cexRest {
         };
         const request = this.deepExtend(message, params);
         const orders = await this.watch(url, messageHash, request, subscriptionHash, request);
-        return this.filterBySymbolSinceLimit(orders, market['symbol'], since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, market['symbol'], since, limit);
     }
     handleTransaction(client, message) {
         const data = this.safeValue(message, 'data');

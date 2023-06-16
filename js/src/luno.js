@@ -10,7 +10,6 @@ import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class luno extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -852,8 +851,14 @@ export default class luno extends Exchange {
         };
         return await this.privatePostStoporder(this.extend(request, params));
     }
-    async fetchLedgerByEntries(code = undefined, entry = -1, limit = 1, params = {}) {
+    async fetchLedgerByEntries(code = undefined, entry = undefined, limit = undefined, params = {}) {
         // by default without entry number or limit number, return most recent entry
+        if (entry === undefined) {
+            entry = -1;
+        }
+        if (limit === undefined) {
+            limit = 1;
+        }
         const since = undefined;
         const request = {
             'min_row': entry,
@@ -1020,11 +1025,12 @@ export default class luno extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const error = this.safeValue(response, 'error');
         if (error !== undefined) {
             throw new ExchangeError(this.id + ' ' + this.json(response));
         }
+        return undefined;
     }
 }

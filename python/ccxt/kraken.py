@@ -4,7 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.kraken import ImplicitAPI
 import hashlib
+from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -28,7 +33,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class kraken(Exchange):
+class kraken(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(kraken, self).describe(), {
@@ -210,6 +215,9 @@ class kraken(Exchange):
                         'Staking/Assets': 3,
                         'Staking/Pending': 3,
                         'Staking/Transactions': 3,
+                        # sub accounts
+                        'CreateSubaccount': 3,
+                        'AccountTransfer': 3,
                     },
                 },
             },
@@ -584,10 +592,11 @@ class kraken(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 
-    def fetch_trading_fee(self, symbol, params={}):
+    def fetch_trading_fee(self, symbol: str, params={}):
         """
         fetch the trading fees for a market
         :param str symbol: unified market symbol
@@ -653,7 +662,7 @@ class kraken(Exchange):
         timestamp = self.safe_integer(bidask, 2)
         return [price, amount, timestamp]
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -750,7 +759,7 @@ class kraken(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -780,7 +789,7 @@ class kraken(Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -821,7 +830,7 @@ class kraken(Exchange):
             self.safe_number(ohlcv, 6),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -925,7 +934,7 @@ class kraken(Exchange):
             },
         }
 
-    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -964,7 +973,7 @@ class kraken(Exchange):
             items.append(value)
         return self.parse_ledger(items, currency, since, limit)
 
-    def fetch_ledger_entries_by_ids(self, ids, code=None, params={}):
+    def fetch_ledger_entries_by_ids(self, ids, code: Optional[str] = None, params={}):
         # https://www.kraken.com/features/api#query-ledgers
         self.load_markets()
         ids = ','.join(ids)
@@ -991,7 +1000,7 @@ class kraken(Exchange):
             items.append(value)
         return self.parse_ledger(items)
 
-    def fetch_ledger_entry(self, id, code=None, params={}):
+    def fetch_ledger_entry(self, id: str, code: Optional[str] = None, params={}):
         items = self.fetch_ledger_entries_by_ids([id], code, params)
         return items[0]
 
@@ -1088,7 +1097,7 @@ class kraken(Exchange):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1174,7 +1183,7 @@ class kraken(Exchange):
         #
         return self.parse_balance(response)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1437,7 +1446,7 @@ class kraken(Exchange):
         params = self.omit(params, ['price', 'stopPrice', 'price2', 'close'])
         return [request, params]
 
-    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         edit a trade order
         see https://docs.kraken.com/rest/#tag/User-Trading/operation/editOrder
@@ -1481,7 +1490,7 @@ class kraken(Exchange):
         data = self.safe_value(response, 'result', {})
         return self.parse_order(data, market)
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by kraken fetchOrder
@@ -1545,7 +1554,7 @@ class kraken(Exchange):
         order = self.parse_order(self.extend({'id': id}, result[id]))
         return self.extend({'info': response}, order)
 
-    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1615,7 +1624,7 @@ class kraken(Exchange):
             result = self.array_concat(result, tradesFilteredBySymbol)
         return result
 
-    def fetch_orders_by_ids(self, ids, symbol=None, params={}):
+    def fetch_orders_by_ids(self, ids, symbol: Optional[str] = None, params={}):
         self.load_markets()
         response = self.privatePostQueryOrders(self.extend({
             'trades': True,  # whether or not to include trades in output(optional, default False)
@@ -1631,7 +1640,7 @@ class kraken(Exchange):
             orders.append(order)
         return orders
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -1685,7 +1694,7 @@ class kraken(Exchange):
             market = self.market(symbol)
         return self.parse_trades(trades, market, since, limit)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1709,7 +1718,7 @@ class kraken(Exchange):
             raise e
         return response
 
-    def cancel_orders(self, ids, symbol=None, params={}):
+    def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
         """
         cancel multiple orders
         :param [str] ids: open orders transaction ID(txid) or user reference(userref)
@@ -1731,7 +1740,7 @@ class kraken(Exchange):
         #
         return response
 
-    def cancel_all_orders(self, symbol=None, params={}):
+    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1741,7 +1750,7 @@ class kraken(Exchange):
         self.load_markets()
         return self.privatePostCancelAll(params)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -1767,7 +1776,7 @@ class kraken(Exchange):
         orders = self.safe_value(result, 'open', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -1946,7 +1955,7 @@ class kraken(Exchange):
             },
         }
 
-    def parse_transactions_by_type(self, type, transactions, code=None, since=None, limit=None):
+    def parse_transactions_by_type(self, type, transactions, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None):
         result = []
         for i in range(0, len(transactions)):
             transaction = self.parse_transaction(self.extend({
@@ -1955,7 +1964,7 @@ class kraken(Exchange):
             result.append(transaction)
         return self.filter_by_currency_since_limit(result, code, since, limit)
 
-    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -2008,7 +2017,7 @@ class kraken(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.safe_timestamp(result, 'unixtime')
 
-    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -2041,7 +2050,7 @@ class kraken(Exchange):
         #
         return self.parse_transactions_by_type('withdrawal', response['result'], code, since, limit)
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -2053,7 +2062,7 @@ class kraken(Exchange):
         }
         return self.fetch_deposit_address(code, self.extend(request, params))
 
-    def fetch_deposit_methods(self, code, params={}):
+    def fetch_deposit_methods(self, code: str, params={}):
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -2085,7 +2094,7 @@ class kraken(Exchange):
         #
         return self.safe_value(response, 'result')
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -2157,7 +2166,7 @@ class kraken(Exchange):
             'info': depositAddress,
         }
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2190,7 +2199,7 @@ class kraken(Exchange):
             return self.parse_transaction(result, currency)
         raise ExchangeError(self.id + " withdraw() requires a 'key' parameter(withdrawal key name, up on your account)")
 
-    def fetch_positions(self, symbols=None, params={}):
+    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str]|None symbols: not used by kraken fetchPositions()
@@ -2308,7 +2317,7 @@ class kraken(Exchange):
         if body.find('Rate limit exceeded') >= 0:
             raise RateLimitExceeded(self.id + ' ' + body)
         if response is None:
-            return
+            return None
         if body[0] == '{':
             if not isinstance(response, str):
                 if 'error' in response:
@@ -2319,3 +2328,4 @@ class kraken(Exchange):
                             error = response['error'][i]
                             self.throw_exactly_matched_exception(self.exceptions, error, message)
                         raise ExchangeError(message)
+        return None

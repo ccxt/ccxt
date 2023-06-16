@@ -6,7 +6,6 @@ var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// @ts-expect-error
 class hitbtc3 extends hitbtc3$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -314,6 +313,9 @@ class hitbtc3 extends hitbtc3$1 {
                     'spot': 'spot',
                     'funding': 'wallet',
                     'future': 'derivatives',
+                },
+                'withdraw': {
+                    'includeFee': false,
                 },
             },
             'commonCurrencies': {
@@ -861,9 +863,9 @@ class hitbtc3 extends hitbtc3$1 {
         let trades = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.market(marketId);
+            const marketInner = this.market(marketId);
             const rawTrades = response[marketId];
-            const parsed = this.parseTrades(rawTrades, market);
+            const parsed = this.parseTrades(rawTrades, marketInner);
             trades = this.arrayConcat(trades, parsed);
         }
         return trades;
@@ -1200,8 +1202,8 @@ class hitbtc3 extends hitbtc3$1 {
         await this.loadMarkets();
         const request = {};
         if (symbols !== undefined) {
-            const marketIds = this.marketIds(symbols);
-            request['symbols'] = marketIds.join(',');
+            const marketIdsInner = this.marketIds(symbols);
+            request['symbols'] = marketIdsInner.join(',');
         }
         if (limit !== undefined) {
             request['depth'] = limit;
@@ -1277,7 +1279,7 @@ class hitbtc3 extends hitbtc3$1 {
         //
         return this.parseTradingFee(response, market);
     }
-    async fetchTradingFees(symbols = undefined, params = {}) {
+    async fetchTradingFees(params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchTradingFees
@@ -1734,7 +1736,7 @@ class hitbtc3 extends hitbtc3$1 {
         const response = await this[method](this.extend(request, query));
         return this.parseOrder(response, market);
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets();
         let market = undefined;
         const request = {
@@ -2087,6 +2089,11 @@ class hitbtc3 extends hitbtc3$1 {
             }
             params = this.omit(params, 'network');
         }
+        const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
+        const includeFee = this.safeValue(withdrawOptions, 'includeFee', false);
+        if (includeFee) {
+            request['include_fee'] = true;
+        }
         const response = await this.privatePostWalletCryptoWithdraw(this.extend(request, params));
         //
         //     {
@@ -2148,16 +2155,16 @@ class hitbtc3 extends hitbtc3$1 {
         const rates = [];
         for (let i = 0; i < contracts.length; i++) {
             const marketId = contracts[i];
-            const market = this.safeMarket(marketId);
+            const marketInner = this.safeMarket(marketId);
             const fundingRateData = response[marketId];
-            for (let i = 0; i < fundingRateData.length; i++) {
-                const entry = fundingRateData[i];
-                const symbol = this.safeSymbol(market['symbol']);
+            for (let j = 0; j < fundingRateData.length; j++) {
+                const entry = fundingRateData[j];
+                const symbolInner = this.safeSymbol(marketInner['symbol']);
                 const fundingRate = this.safeNumber(entry, 'funding_rate');
                 const datetime = this.safeString(entry, 'timestamp');
                 rates.push({
                     'info': entry,
-                    'symbol': symbol,
+                    'symbol': symbolInner,
                     'fundingRate': fundingRate,
                     'timestamp': this.parse8601(datetime),
                     'datetime': datetime,
@@ -2345,7 +2352,7 @@ class hitbtc3 extends hitbtc3$1 {
         const marketId = this.safeString(position, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -2359,10 +2366,12 @@ class hitbtc3 extends hitbtc3$1 {
             'contracts': contracts,
             'contractSize': undefined,
             'markPrice': undefined,
+            'lastPrice': undefined,
             'side': undefined,
             'hedged': undefined,
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
+            'lastUpdateTimestamp': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'collateral': collateral,
@@ -2370,7 +2379,7 @@ class hitbtc3 extends hitbtc3$1 {
             'initialMarginPercentage': undefined,
             'leverage': leverage,
             'marginRatio': undefined,
-        };
+        });
     }
     async fetchFundingRate(symbol, params = {}) {
         /**
@@ -2776,6 +2785,7 @@ class hitbtc3 extends hitbtc3$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));

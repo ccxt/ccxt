@@ -40,16 +40,75 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@3.0.33/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@3.0.33/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@3.1.40/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@3.1.40/dist/ccxt.browser.js
+* ccxt: https://cdn.ccxt.com/latest/ccxt.min.js
 
-You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
+You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) or the /latest/ on our cdn — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
-```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@3.0.33/dist/ccxt.browser.js"></script>
+```html
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@3.1.40/dist/ccxt.browser.js"></script>
 ```
 
-Creates a global `ccxt` object:
+We also provide webpack minified and tree-shaken versions of the library starting from version 3.0.35 - Visit https://cdn.ccxt.com to browse the prebundled versions we distribute.
+
+| name           | size   |
+|----------------|--------|
+| binance.min.js | ~300kb |
+| bitget.min.js  | ~200kb |
+| bitmart.min.js | ~200kb |
+| bybit.min.js   | ~300kb |
+| ccxt.min.js    | ~3mb   |
+| huobi.min.js   | ~300kb |
+| kucoin.min.js  | ~200kb |
+| mexc.min.js    | ~200kb |
+| okx.min.js     | ~250kb |
+
+Note: the the file sizes are subject to change.
+
+```html
+<script type="text/javascript" src="https://cdn.ccxt.com/3.0.35/ccxt.min.js"></script>
+```
+
+Here is an [example](https://cdn.ccxt.com/example.html) using a custom bybit bundle from our cdn in the browser
+
+```html
+<html>
+<head>
+<script type="text/javascript" src="https://cdn.ccxt.com/latest/bybit.min.js"></script>
+<script>
+async function update () {
+    const bid = document.querySelector ('#bid')
+    const ask = document.querySelector ('#ask')
+    const updates = document.querySelector ('#updates')
+
+    const bybit = new ccxt.pro.bybit ()
+    window.bybit = bybit
+    const ticker = await bybit.fetchTicker ('BTC/USDT:USDT')
+    bid.innerText = ticker.bid.toFixed (2)
+    ask.innerText = ticker.ask.toFixed (2)
+    while (true) {
+        const trades = await bybit.watchTrades ('BTC/USDT:USDT')
+        // const trades = await bybit.fetchTrades ('BTC/USDT:USDT', 1)
+        const trade = trades[0]
+
+        const notify = document.createElement ('li')
+        notify.innerHTML = `<strong>${trade.datetime.slice (11, 19)}</strong> &nbsp; ${trade.amount.toFixed (3)} btc was bought at ${trade.price.toFixed (1)}`
+        notify.style = 'padding-top: 8px;'
+        updates.appendChild (notify)
+    }
+}
+</script>
+</head>
+
+<body onload="update()">
+<h3>The current bitcoin bid on bybit is <span id="bid"></span><br><br>and the best ask is <span id="ask"></span></h3>
+<ul id="updates" style="color: red;"></ul>
+</body>
+</html>
+```
+
+The default entry point for the browser is `window.ccxt` and it creates a global ccxt object:
 
 ```javascript
 console.log (ccxt.exchanges) // print all available exchanges
@@ -57,14 +116,14 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 ### Custom JavaScript Builds
 
-It takes time to load all scripts and resources. The problem with in-browser usage is that the entire CCXT library weighs a few megabytes which is a lot for a web application. Sometimes it is also critical for a Node app. Therefore to lower the loading time you might want to make your own custom build of CCXT for your app with just the exchanges you need.
+It takes time to load all scripts and resources. The problem with in-browser usage is that the entire CCXT library weighs a few megabytes which is a lot for a web application. Sometimes it is also critical for a Node app. Therefore to lower the loading time you might want to make your own custom build of CCXT for your app with just the exchanges you need. CCXT uses webpack to remove dead code paths to make the package smaller.
 
 Follow these steps:
 
 ```bash
 # 1. clone the repository
 
-git clone https://github.com/ccxt/ccxt.git
+git clone --depth 1 https://github.com/ccxt/ccxt.git
 
 # 2. go to the cloned repository
 
@@ -76,20 +135,33 @@ npm install
 
 # 4. edit exchanges.cfg for the exchanges of your interest
 
-echo "binance\nftx" > exchanges.cfg
+echo -e "binance\nokx" > exchanges.cfg
 
 # 5. build the library
 
-npm run build
+npm run export-exchanges
+npm run bundle-browser
 
 # 6a. copy the browser file to your project folder if you are buildig a web application
 
-cp build/ccxt.browser.js path/to/your/html/project
+cp dist/ccxt.browser.js path/to/your/html/project
 
 # 6b. or link against the library if you are building a Node.js application
 npm link
 cd path/to/your/node/project
 npm link ccxt
+
+# 6c. directly import ccxt from the entry point
+touch app.js
+
+# inside of app.js
+
+import ccxt from './js/ccxt.js'
+console.log (ccxt)
+
+# now you can run your app like so
+
+node app.js
 ```
 
 ### Python

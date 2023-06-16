@@ -8,7 +8,6 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class bitbns extends bitbns$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1169,7 +1168,7 @@ class bitbns extends bitbns$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {"msg":"Invalid Request","status":-1,"code":400}
@@ -1185,6 +1184,7 @@ class bitbns extends bitbns$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }
 

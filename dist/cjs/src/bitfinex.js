@@ -8,7 +8,6 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class bitfinex extends bitfinex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -875,7 +874,7 @@ class bitfinex extends bitfinex$1 {
     }
     parseTicker(ticker, market = undefined) {
         const timestamp = this.safeTimestamp(ticker, 'timestamp');
-        const marketId = this.safeString(market, 'pair');
+        const marketId = this.safeString(ticker, 'pair');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
         const last = this.safeString(ticker, 'last_price');
@@ -1630,7 +1629,7 @@ class bitfinex extends bitfinex$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         let throwError = false;
         if (code >= 400) {
@@ -1654,6 +1653,7 @@ class bitfinex extends bitfinex$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }
 

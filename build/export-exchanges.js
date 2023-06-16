@@ -131,7 +131,10 @@ function createExchange (id, content) {
             'parent': parent,
         }
     }
-    return undefined
+    return {
+        'alias': true,
+        'id': id,
+    }
 }
 
 // ----------------------------------------------------------------------------

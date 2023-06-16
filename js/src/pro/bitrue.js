@@ -9,7 +9,6 @@ import bitrueRest from '../bitrue.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { ArgumentsRequired } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bitrue extends bitrueRest {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -21,7 +20,7 @@ export default class bitrue extends bitrueRest {
                 'watchTrades': false,
                 'watchMyTrades': false,
                 'watchOrders': true,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchOHLCV': false,
             },
             'urls': {
@@ -198,7 +197,7 @@ export default class bitrue extends bitrueRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleOrder(client, message) {
         //

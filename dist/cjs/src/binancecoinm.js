@@ -4,7 +4,6 @@ var binance = require('./binance.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class binancecoinm extends binance {
     describe() {
         return this.deepExtend(super.describe(), {

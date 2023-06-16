@@ -7,7 +7,6 @@ var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class lykke extends lykke$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -245,6 +244,7 @@ class lykke extends lykke$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -1263,7 +1263,7 @@ class lykke extends lykke$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const error = this.safeValue(response, 'error', {});
         const errorCode = this.safeString(error, 'code');
@@ -1274,6 +1274,7 @@ class lykke extends lykke$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
 }
 

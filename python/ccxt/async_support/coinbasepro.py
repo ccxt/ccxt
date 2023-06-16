@@ -4,7 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.coinbasepro import ImplicitAPI
 import hashlib
+from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -20,7 +25,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class coinbasepro(Exchange):
+class coinbasepro(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(coinbasepro, self).describe(), {
@@ -296,6 +301,7 @@ class coinbasepro(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 
@@ -487,7 +493,7 @@ class coinbasepro(Exchange):
         response = await self.privateGetAccounts(params)
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -602,7 +608,7 @@ class coinbasepro(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -645,7 +651,7 @@ class coinbasepro(Exchange):
             result[symbol] = self.parse_ticker(first, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -753,7 +759,7 @@ class coinbasepro(Exchange):
             'cost': cost,
         }, market)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -775,7 +781,7 @@ class coinbasepro(Exchange):
         response = await self.privateGetFills(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -844,7 +850,7 @@ class coinbasepro(Exchange):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -871,7 +877,11 @@ class coinbasepro(Exchange):
                 limit = 300  # max = 300
             else:
                 limit = min(300, limit)
-            request['end'] = self.iso8601(self.sum((limit - 1) * parsedTimeframe * 1000, since))
+            parsedTimeframeMilliseconds = parsedTimeframe * 1000
+            if since % parsedTimeframeMilliseconds == 0:
+                request['end'] = self.iso8601(self.sum((limit - 1) * parsedTimeframeMilliseconds, since))
+            else:
+                request['end'] = self.iso8601(self.sum(limit * parsedTimeframeMilliseconds, since))
         response = await self.publicGetProductsIdCandles(self.extend(request, params))
         #
         #     [
@@ -981,7 +991,7 @@ class coinbasepro(Exchange):
             'trades': None,
         }, market)
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by coinbasepro fetchOrder
@@ -1002,7 +1012,7 @@ class coinbasepro(Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_order(response)
 
-    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1022,7 +1032,7 @@ class coinbasepro(Exchange):
         response = await self.privateGetFills(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -1036,7 +1046,7 @@ class coinbasepro(Exchange):
         }
         return await self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -1056,7 +1066,7 @@ class coinbasepro(Exchange):
         response = await self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -1070,7 +1080,7 @@ class coinbasepro(Exchange):
         }
         return await self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1152,7 +1162,7 @@ class coinbasepro(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1179,7 +1189,7 @@ class coinbasepro(Exchange):
             request['product_id'] = market['symbol']  # the request will be more performant if you include it
         return await getattr(self, method)(self.extend(request, params))
 
-    async def cancel_all_orders(self, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1197,7 +1207,7 @@ class coinbasepro(Exchange):
     async def fetch_payment_methods(self, params={}):
         return await self.privateGetPaymentMethods(params)
 
-    async def deposit(self, code, amount, address, params={}):
+    async def deposit(self, code: str, amount, address, params={}):
         """
         Creates a new deposit address, by coinbasepro
         :param str code: Unified CCXT currency code(e.g. `"USDT"`)
@@ -1232,7 +1242,7 @@ class coinbasepro(Exchange):
             'id': response['id'],
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1345,7 +1355,7 @@ class coinbasepro(Exchange):
             'info': item,
         }
 
-    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None
@@ -1382,7 +1392,7 @@ class coinbasepro(Exchange):
             response[i]['currency'] = code
         return self.parse_ledger(response, currency, since, limit)
 
-    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
@@ -1445,8 +1455,8 @@ class coinbasepro(Exchange):
             for i in range(0, len(response)):
                 account_id = self.safe_string(response[i], 'account_id')
                 account = self.safe_value(self.accountsById, account_id)
-                code = self.safe_string(account, 'code')
-                response[i]['currency'] = code
+                codeInner = self.safe_string(account, 'code')
+                response[i]['currency'] = codeInner
         else:
             response = await self.privateGetAccountsIdTransfers(self.extend(request, params))
             #
@@ -1479,7 +1489,7 @@ class coinbasepro(Exchange):
                 response[i]['currency'] = code
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1490,7 +1500,7 @@ class coinbasepro(Exchange):
         """
         return await self.fetch_transactions(code, since, limit, self.extend({'type': 'deposit'}, params))
 
-    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1590,7 +1600,7 @@ class coinbasepro(Exchange):
             'fee': fee,
         }
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -1662,9 +1672,10 @@ class coinbasepro(Exchange):
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(feedback)  # unknown message
             raise ExchangeError(self.id + ' ' + body)
+        return None
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
-        response = await self.fetch2(path, api, method, params, headers, body, config, context)
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}):
+        response = await self.fetch2(path, api, method, params, headers, body, config)
         if not isinstance(response, str):
             if 'message' in response:
                 raise ExchangeError(self.id + ' ' + self.json(response))

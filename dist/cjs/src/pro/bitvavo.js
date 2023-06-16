@@ -7,7 +7,6 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class bitvavo extends bitvavo$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -447,7 +446,7 @@ class bitvavo extends bitvavo$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

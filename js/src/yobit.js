@@ -11,7 +11,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class yobit extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -232,9 +231,8 @@ export default class yobit extends Exchange {
                 'XRA': 'Ratecoin',
             },
             'options': {
-                // 'fetchTickersMaxLength': 2048,
+                'maxUrlLength': 2048,
                 'fetchOrdersRequiresSymbol': true,
-                'fetchTickersMaxLength': 512,
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
@@ -302,6 +300,7 @@ export default class yobit extends Exchange {
         /**
          * @method
          * @name yobit#fetchBalance
+         * @see https://yobit.net/en/api
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} params extra parameters specific to the yobit api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
@@ -339,6 +338,7 @@ export default class yobit extends Exchange {
         /**
          * @method
          * @name yobit#fetchMarkets
+         * @see https://yobit.net/en/api
          * @description retrieves data on all markets for yobit
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
@@ -434,6 +434,7 @@ export default class yobit extends Exchange {
         /**
          * @method
          * @name yobit#fetchOrderBook
+         * @see https://yobit.net/en/api
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
@@ -460,6 +461,7 @@ export default class yobit extends Exchange {
         /**
          * @method
          * @name yobit#fetchOrderBooks
+         * @see https://yobit.net/en/api
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
          * @param {[string]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
          * @param {int|undefined} limit max number of entries per orderbook to return, default is undefined
@@ -540,29 +542,35 @@ export default class yobit extends Exchange {
         /**
          * @method
          * @name yobit#fetchTickers
+         * @see https://yobit.net/en/api
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the yobit api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
+        if (symbols === undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchTickers() requires "symbols" argument');
+        }
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         let ids = undefined;
         if (symbols === undefined) {
-            const numIds = this.ids.length;
-            ids = ids.join('-');
-            const maxLength = this.safeInteger(this.options, 'fetchTickersMaxLength', 2048);
-            // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > this.options['fetchTickersMaxLength']) {
-                throw new ArgumentsRequired(this.id + ' fetchTickers() has ' + numIds.toString() + ' markets exceeding max URL length for this endpoint (' + maxLength.toString() + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers');
-            }
+            ids = this.ids;
         }
         else {
-            const newIds = this.marketIds(symbols);
-            ids = newIds.join('-');
+            ids = this.marketIds(symbols);
+        }
+        const idsLength = ids.length;
+        const idsString = ids.join('-');
+        const maxLength = this.safeInteger(this.options, 'maxUrlLength', 2048);
+        // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
+        const lenghtOfBaseUrl = 30; // the url including api-base and endpoint dir is 30 chars
+        const actualLength = idsString.length + lenghtOfBaseUrl;
+        if (actualLength > maxLength) {
+            throw new ArgumentsRequired(this.id + ' fetchTickers() is being requested for ' + idsLength.toString() + ' markets (which has an URL length of ' + actualLength.toString() + ' characters), but it exceedes max URL length (' + maxLength.toString() + '), please pass limisted symbols array to fetchTickers to fit in one request');
         }
         const request = {
-            'pair': ids,
+            'pair': idsString,
         };
         const tickers = await this.publicGetTickerPair(this.extend(request, params));
         const result = {};
@@ -580,6 +588,7 @@ export default class yobit extends Exchange {
         /**
          * @method
          * @name yobit#fetchTicker
+         * @see https://yobit.net/en/api
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the yobit api endpoint
@@ -671,6 +680,7 @@ export default class yobit extends Exchange {
         /**
          * @method
          * @name yobit#fetchTrades
+         * @see https://yobit.net/en/api
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
@@ -713,6 +723,7 @@ export default class yobit extends Exchange {
         /**
          * @method
          * @name yobit#fetchTradingFees
+         * @see https://yobit.net/en/api
          * @description fetch the trading fees for multiple markets
          * @param {object} params extra parameters specific to the yobit api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
@@ -764,6 +775,7 @@ export default class yobit extends Exchange {
         /**
          * @method
          * @name yobit#createOrder
+         * @see https://yobit.net/en/api
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type must be 'limit'
@@ -813,6 +825,7 @@ export default class yobit extends Exchange {
         /**
          * @method
          * @name yobit#cancelOrder
+         * @see https://yobit.net/en/api
          * @description cancels an open order
          * @param {string} id order id
          * @param {string|undefined} symbol not used by yobit cancelOrder ()
@@ -962,6 +975,7 @@ export default class yobit extends Exchange {
         /**
          * @method
          * @name yobit#fetchOrder
+         * @see https://yobit.net/en/api
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol not used by yobit fetchOrder
          * @param {object} params extra parameters specific to the yobit api endpoint
@@ -996,6 +1010,7 @@ export default class yobit extends Exchange {
         /**
          * @method
          * @name yobit#fetchOpenOrders
+         * @see https://yobit.net/en/api
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
@@ -1010,8 +1025,8 @@ export default class yobit extends Exchange {
         const request = {};
         const market = undefined;
         if (symbol !== undefined) {
-            const market = this.market(symbol);
-            request['pair'] = market['id'];
+            const marketInner = this.market(symbol);
+            request['pair'] = marketInner['id'];
         }
         const response = await this.privatePostActiveOrders(this.extend(request, params));
         //
@@ -1044,6 +1059,7 @@ export default class yobit extends Exchange {
         /**
          * @method
          * @name yobit#fetchMyTrades
+         * @see https://yobit.net/en/api
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
@@ -1068,7 +1084,7 @@ export default class yobit extends Exchange {
             'pair': market['id'],
         };
         if (limit !== undefined) {
-            request['count'] = parseInt(limit);
+            request['count'] = limit;
         }
         if (since !== undefined) {
             request['since'] = this.parseToInt(since / 1000);
@@ -1106,6 +1122,7 @@ export default class yobit extends Exchange {
         /**
          * @method
          * @name yobit#createDepositAddress
+         * @see https://yobit.net/en/api
          * @description create a currency deposit address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} params extra parameters specific to the yobit api endpoint
@@ -1128,6 +1145,7 @@ export default class yobit extends Exchange {
         /**
          * @method
          * @name yobit#fetchDepositAddress
+         * @see https://yobit.net/en/api
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the yobit api endpoint
@@ -1164,6 +1182,7 @@ export default class yobit extends Exchange {
         /**
          * @method
          * @name yobit#withdraw
+         * @see https://yobit.net/en/api
          * @description make a withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
@@ -1234,7 +1253,7 @@ export default class yobit extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('success' in response) {
             //
@@ -1282,5 +1301,6 @@ export default class yobit extends Exchange {
                 throw new ExchangeError(feedback); // unknown message
             }
         }
+        return undefined;
     }
 }

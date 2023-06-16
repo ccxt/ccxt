@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\bitmex as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -30,6 +31,7 @@ class bitmex extends Exchange {
             // 120 per minute => 2 per second => weight = 5 (authenticated)
             // 30 per minute => 0.5 per second => weight = 20 (unauthenticated)
             'rateLimit' => 100,
+            'certified' => true,
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -276,6 +278,7 @@ class bitmex extends Exchange {
              */
             $response = Async\await($this->publicGetInstrumentActiveAndIndices ($params));
             //
+            //  array(
             //    {
             //        "symbol" => "LTCUSDT",
             //        "rootSymbol" => "LTC",
@@ -294,12 +297,12 @@ class bitmex extends Exchange {
             //        "optionStrikeRound" => null,
             //        "optionStrikePrice" => null,
             //        "optionMultiplier" => null,
-            //        "positionCurrency" => "LTC",
+            //        "positionCurrency" => "LTC", // can be empty for $spot markets
             //        "underlying" => "LTC",
             //        "quoteCurrency" => "USDT",
-            //        "underlyingSymbol" => "LTCT=",
+            //        "underlyingSymbol" => "LTCT=", // can be empty for $spot markets
             //        "reference" => "BMEX",
-            //        "referenceSymbol" => ".BLTCT",
+            //        "referenceSymbol" => ".BLTCT", // can be empty for $spot markets
             //        "calcInterval" => null,
             //        "publishInterval" => null,
             //        "publishTime" => null,
@@ -308,7 +311,7 @@ class bitmex extends Exchange {
             //        "lotSize" => 1000,
             //        "tickSize" => 0.01,
             //        "multiplier" => 100,
-            //        "settlCurrency" => "USDt",
+            //        "settlCurrency" => "USDt", // can be empty for $spot markets
             //        "underlyingToPositionMultiplier" => 10000,
             //        "underlyingToSettleMultiplier" => null,
             //        "quoteToSettleMultiplier" => 1000000,
@@ -316,8 +319,8 @@ class bitmex extends Exchange {
             //        "isInverse" => false,
             //        "initMargin" => 0.03,
             //        "maintMargin" => 0.015,
-            //        "riskLimit" => 1000000000000,
-            //        "riskStep" => 1000000000000,
+            //        "riskLimit" => 1000000000000, // can be null for $spot markets
+            //        "riskStep" => 1000000000000, // can be null for $spot markets
             //        "limit" => null,
             //        "capped" => false,
             //        "taxed" => true,
@@ -326,9 +329,9 @@ class bitmex extends Exchange {
             //        "takerFee" => 0.0005,
             //        "settlementFee" => 0,
             //        "insuranceFee" => 0,
-            //        "fundingBaseSymbol" => ".LTCBON8H",
-            //        "fundingQuoteSymbol" => ".USDTBON8H",
-            //        "fundingPremiumSymbol" => ".LTCUSDTPI8H",
+            //        "fundingBaseSymbol" => ".LTCBON8H", // can be empty for $spot markets
+            //        "fundingQuoteSymbol" => ".USDTBON8H", // can be empty for $spot markets
+            //        "fundingPremiumSymbol" => ".LTCUSDTPI8H", // can be empty for $spot markets
             //        "fundingTimestamp" => "2022-01-14T20:00:00.000Z",
             //        "fundingInterval" => "2000-01-01T08:00:00.000Z",
             //        "fundingRate" => 0.0001,
@@ -383,6 +386,7 @@ class bitmex extends Exchange {
             //        "settledPrice" => null,
             //        "timestamp" => "2022-01-14T17:49:55.000Z"
             //    }
+            //  )
             //
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
@@ -390,102 +394,111 @@ class bitmex extends Exchange {
                 $id = $this->safe_string($market, 'symbol');
                 $baseId = $this->safe_string($market, 'underlying');
                 $quoteId = $this->safe_string($market, 'quoteCurrency');
-                $settleId = $this->safe_string($market, 'settlCurrency', '');
+                $settleId = $this->safe_string($market, 'settlCurrency');
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
                 $settle = $this->safe_currency_code($settleId);
-                $basequote = $baseId . $quoteId;
-                $swap = ($id === $basequote);
                 // 'positionCurrency' may be empty ("", currently returns for ETHUSD)
                 // so let's take the settlCurrency first and then adjust if needed
-                $type = null;
-                $future = false;
-                $prediction = false;
-                $index = false;
-                $symbol = $base . '/' . $quote . ':' . $settle;
-                $expiryDatetime = $this->safe_string($market, 'expiry');
-                $expiry = $this->parse8601($expiryDatetime);
+                $typ = $this->safe_string($market, 'typ');
+                // Perpetual Contracts - FFWCSX
+                // Perpetual Contracts (FX underliers) - FFWCSF
+                // Spot - IFXXXP
+                // Futures - FFCCSX
+                // BitMEX Basket Index - MRBXXX
+                // BitMEX Crypto Index - MRCXXX
+                // BitMEX FX Index - MRFXXX
+                // BitMEX Lending/Premium Index - MRRXXX
+                // BitMEX Volatility Index - MRIXXX
+                $types = array(
+                    'FFWCSX' => 'swap',
+                    'FFWCSF' => 'swap',
+                    'IFXXXP' => 'spot',
+                    'FFCCSX' => 'future',
+                );
+                $type = $this->safe_string($types, $typ, $typ);
+                $swap = $type === 'swap';
+                $future = $type === 'future';
+                $spot = $type === 'spot';
+                $contract = $swap || $future;
+                $symbol = $base . '/' . $quote;
+                $contractSize = null;
+                if ($contract) {
+                    $symbol = $symbol . ':' . $settle;
+                    $multiplierString = Precise::string_abs($this->safe_string($market, 'multiplier'));
+                    $contractSize = $this->parse_number($multiplierString);
+                }
                 $inverse = $this->safe_value($market, 'isInverse');
                 $status = $this->safe_string($market, 'state');
                 $active = $status !== 'Unlisted';
-                if ($swap) {
-                    $type = 'swap';
-                } elseif (mb_strpos($id, 'B_') !== false) {
-                    $prediction = true;
-                    $type = 'prediction';
-                    $symbol = $id;
-                } elseif ($expiry !== null) {
-                    $future = true;
-                    $type = 'future';
+                $expiry = null;
+                $expiryDatetime = null;
+                if ($future) {
+                    $expiryDatetime = $this->safe_string($market, 'expiry');
+                    $expiry = $this->parse8601($expiryDatetime);
                     $symbol = $symbol . '-' . $this->yymmdd($expiry);
-                } else {
-                    $index = true;
-                    $type = 'index';
-                    $symbol = $id;
-                    $active = false;
                 }
                 $positionId = $this->safe_string_2($market, 'positionCurrency', 'underlying');
                 $position = $this->safe_currency_code($positionId);
                 $positionIsQuote = ($position === $quote);
                 $maxOrderQty = $this->safe_number($market, 'maxOrderQty');
-                $contract = !$index;
                 $initMargin = $this->safe_string($market, 'initMargin', '1');
                 $maxLeverage = $this->parse_number(Precise::string_div('1', $initMargin));
-                $multiplierString = Precise::string_abs($this->safe_string($market, 'multiplier'));
-                $result[] = array(
-                    'id' => $id,
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => $settle,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => $settleId,
-                    'type' => $type,
-                    'spot' => false,
-                    'margin' => false,
-                    'swap' => $swap,
-                    'future' => $future,
-                    'option' => false,
-                    'prediction' => $prediction,
-                    'index' => $index,
-                    'active' => $active,
-                    'contract' => $contract,
-                    'linear' => $contract ? !$inverse : null,
-                    'inverse' => $contract ? $inverse : null,
-                    'taker' => $this->safe_number($market, 'takerFee'),
-                    'maker' => $this->safe_number($market, 'makerFee'),
-                    'contractSize' => $this->parse_number($multiplierString),
-                    'expiry' => $expiry,
-                    'expiryDatetime' => $expiryDatetime,
-                    'strike' => $this->safe_number($market, 'optionStrikePrice'),
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $this->safe_number($market, 'lotSize'),
-                        'price' => $this->safe_number($market, 'tickSize'),
-                        'quote' => $this->safe_number($market, 'tickSize'),
-                        'base' => $this->safe_number($market, 'tickSize'),
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => $contract ? $this->parse_number('1') : null,
-                            'max' => $contract ? $maxLeverage : null,
+                // temporarily filter out unlisted markets to avoid $symbol conflicts
+                if ($active) {
+                    $result[] = array(
+                        'id' => $id,
+                        'symbol' => $symbol,
+                        'base' => $base,
+                        'quote' => $quote,
+                        'settle' => $settle,
+                        'baseId' => $baseId,
+                        'quoteId' => $quoteId,
+                        'settleId' => $settleId,
+                        'type' => $type,
+                        'spot' => $spot,
+                        'margin' => false,
+                        'swap' => $swap,
+                        'future' => $future,
+                        'option' => false,
+                        'active' => $active,
+                        'contract' => $contract,
+                        'linear' => $contract ? !$inverse : null,
+                        'inverse' => $contract ? $inverse : null,
+                        'taker' => $this->safe_number($market, 'takerFee'),
+                        'maker' => $this->safe_number($market, 'makerFee'),
+                        'contractSize' => $contractSize,
+                        'expiry' => $expiry,
+                        'expiryDatetime' => $expiryDatetime,
+                        'strike' => $this->safe_number($market, 'optionStrikePrice'),
+                        'optionType' => null,
+                        'precision' => array(
+                            'amount' => $this->safe_number($market, 'lotSize'),
+                            'price' => $this->safe_number($market, 'tickSize'),
+                            'quote' => $this->safe_number($market, 'tickSize'),
+                            'base' => $this->safe_number($market, 'tickSize'),
                         ),
-                        'amount' => array(
-                            'min' => null,
-                            'max' => $positionIsQuote ? null : $maxOrderQty,
+                        'limits' => array(
+                            'leverage' => array(
+                                'min' => $contract ? $this->parse_number('1') : null,
+                                'max' => $contract ? $maxLeverage : null,
+                            ),
+                            'amount' => array(
+                                'min' => null,
+                                'max' => $positionIsQuote ? null : $maxOrderQty,
+                            ),
+                            'price' => array(
+                                'min' => null,
+                                'max' => $this->safe_number($market, 'maxPrice'),
+                            ),
+                            'cost' => array(
+                                'min' => null,
+                                'max' => $positionIsQuote ? $maxOrderQty : null,
+                            ),
                         ),
-                        'price' => array(
-                            'min' => null,
-                            'max' => $this->safe_number($market, 'maxPrice'),
-                        ),
-                        'cost' => array(
-                            'min' => null,
-                            'max' => $positionIsQuote ? $maxOrderQty : null,
-                        ),
-                    ),
-                    'info' => $market,
-                );
+                        'info' => $market,
+                    );
+                }
             }
             return $result;
         }) ();
@@ -635,7 +648,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -679,7 +692,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -701,7 +714,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -736,7 +749,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -755,7 +768,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed $orders made by the user
@@ -771,7 +784,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
@@ -971,7 +984,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
@@ -1022,7 +1035,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -1070,7 +1083,7 @@ class bitmex extends Exchange {
         //        'transactID' => 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
         //        'account' => 123456,
         //        'currency' => 'XBt',
-        //        'network':'',
+        //        'network':'', // "tron" for USDt, etc...
         //        'transactType' => 'Withdrawal',
         //        'amount' => -100100000,
         //        'fee' => 100000,
@@ -1079,8 +1092,8 @@ class bitmex extends Exchange {
         //        'tx' => '3BMEXabcdefghijklmnopqrstuvwxyz123',
         //        'text' => '',
         //        'transactTime' => '2019-01-02T01:00:00.000Z',
-        //        'walletBalance' => 99900000,
-        //        'marginBalance' => None,
+        //        'walletBalance' => 99900000, // this field might be inexistent
+        //        'marginBalance' => None, // this field might be inexistent
         //        'timestamp' => '2019-01-02T13:00:00.000Z'
         //    }
         //
@@ -1099,6 +1112,9 @@ class bitmex extends Exchange {
             $address = $this->safe_string($transaction, 'address');
             $addressFrom = $this->safe_string($transaction, 'tx');
             $addressTo = $address;
+        } elseif ($type === 'deposit') {
+            $addressTo = $this->safe_string($transaction, 'address');
+            $addressFrom = $this->safe_string($transaction, 'tx');
         }
         $amountString = $this->safe_string($transaction, 'amount');
         $scale = ($currency['code'] === 'BTC') ? '1e8' : '1e6';
@@ -1115,7 +1131,7 @@ class bitmex extends Exchange {
             'txid' => $this->safe_string($transaction, 'tx'),
             'type' => $type,
             'currency' => $currency['code'],
-            'network' => $this->safe_string($transaction, 'status'),
+            'network' => $this->safe_string($transaction, 'network'),
             'amount' => $this->parse_number($amountString),
             'status' => $status,
             'timestamp' => $transactTime,
@@ -1136,7 +1152,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -1146,16 +1162,19 @@ class bitmex extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $tickers = Async\await($this->fetch_tickers([ $market['symbol'] ], $params));
-            $ticker = $this->safe_value($tickers, $market['symbol']);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicGetInstrument (array_merge($request, $params)));
+            $ticker = $this->safe_value($response, 0);
             if ($ticker === null) {
                 throw new BadSymbol($this->id . ' fetchTicker() $symbol ' . $symbol . ' not found');
             }
-            return $ticker;
+            return $this->parse_ticker($ticker, $market);
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -1166,117 +1185,7 @@ class bitmex extends Exchange {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $response = Async\await($this->publicGetInstrumentActiveAndIndices ($params));
-            //
-            //     array(
-            //         {
-            //             "symbol":".EVOL7D",
-            //             "rootSymbol":"EVOL",
-            //             "state":"Unlisted",
-            //             "typ":"MRIXXX",
-            //             "listing":null,
-            //             "front":null,
-            //             "expiry":null,
-            //             "settle":null,
-            //             "listedSettle":null,
-            //             "relistInterval":null,
-            //             "inverseLeg":"",
-            //             "sellLeg":"",
-            //             "buyLeg":"",
-            //             "optionStrikePcnt":null,
-            //             "optionStrikeRound":null,
-            //             "optionStrikePrice":null,
-            //             "optionMultiplier":null,
-            //             "positionCurrency":"",
-            //             "underlying":"ETH",
-            //             "quoteCurrency":"XXX",
-            //             "underlyingSymbol":".EVOL7D",
-            //             "reference":"BMI",
-            //             "referenceSymbol":".BETHXBT",
-            //             "calcInterval":"2000-01-08T00:00:00.000Z",
-            //             "publishInterval":"2000-01-01T00:05:00.000Z",
-            //             "publishTime":null,
-            //             "maxOrderQty":null,
-            //             "maxPrice":null,
-            //             "lotSize":null,
-            //             "tickSize":0.01,
-            //             "multiplier":null,
-            //             "settlCurrency":"",
-            //             "underlyingToPositionMultiplier":null,
-            //             "underlyingToSettleMultiplier":null,
-            //             "quoteToSettleMultiplier":null,
-            //             "isQuanto":false,
-            //             "isInverse":false,
-            //             "initMargin":null,
-            //             "maintMargin":null,
-            //             "riskLimit":null,
-            //             "riskStep":null,
-            //             "limit":null,
-            //             "capped":false,
-            //             "taxed":false,
-            //             "deleverage":false,
-            //             "makerFee":null,
-            //             "takerFee":null,
-            //             "settlementFee":null,
-            //             "insuranceFee":null,
-            //             "fundingBaseSymbol":"",
-            //             "fundingQuoteSymbol":"",
-            //             "fundingPremiumSymbol":"",
-            //             "fundingTimestamp":null,
-            //             "fundingInterval":null,
-            //             "fundingRate":null,
-            //             "indicativeFundingRate":null,
-            //             "rebalanceTimestamp":null,
-            //             "rebalanceInterval":null,
-            //             "openingTimestamp":null,
-            //             "closingTimestamp":null,
-            //             "sessionInterval":null,
-            //             "prevClosePrice":null,
-            //             "limitDownPrice":null,
-            //             "limitUpPrice":null,
-            //             "bankruptLimitDownPrice":null,
-            //             "bankruptLimitUpPrice":null,
-            //             "prevTotalVolume":null,
-            //             "totalVolume":null,
-            //             "volume":null,
-            //             "volume24h":null,
-            //             "prevTotalTurnover":null,
-            //             "totalTurnover":null,
-            //             "turnover":null,
-            //             "turnover24h":null,
-            //             "homeNotional24h":null,
-            //             "foreignNotional24h":null,
-            //             "prevPrice24h":5.27,
-            //             "vwap":null,
-            //             "highPrice":null,
-            //             "lowPrice":null,
-            //             "lastPrice":4.72,
-            //             "lastPriceProtected":null,
-            //             "lastTickDirection":"ZeroMinusTick",
-            //             "lastChangePcnt":-0.1044,
-            //             "bidPrice":null,
-            //             "midPrice":null,
-            //             "askPrice":null,
-            //             "impactBidPrice":null,
-            //             "impactMidPrice":null,
-            //             "impactAskPrice":null,
-            //             "hasLiquidity":false,
-            //             "openInterest":null,
-            //             "openValue":0,
-            //             "fairMethod":"",
-            //             "fairBasisRate":null,
-            //             "fairBasis":null,
-            //             "fairPrice":null,
-            //             "markMethod":"LastPrice",
-            //             "markPrice":4.72,
-            //             "indicativeTaxRate":null,
-            //             "indicativeSettlePrice":null,
-            //             "optionUnderlyingPrice":null,
-            //             "settledPriceAdjustmentRate":null,
-            //             "settledPrice":null,
-            //             "timestamp":"2022-05-21T04:30:00.000Z"
-            //         }
-            //     )
-            //
+            // same $response "fetchMarkets"
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
                 $ticker = $this->parse_ticker($response[$i]);
@@ -1453,7 +1362,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1747,7 +1656,7 @@ class bitmex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1804,7 +1713,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1855,7 +1764,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->load_markets());
             $request = array();
@@ -1883,7 +1792,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open $order
@@ -1914,7 +1823,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -1939,7 +1848,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
@@ -1998,7 +1907,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -2219,18 +2128,20 @@ class bitmex extends Exchange {
         $maintenanceMargin = $this->safe_number($position, 'maintMargin');
         $unrealisedPnl = $this->safe_number($position, 'unrealisedPnl');
         $contracts = $this->omit_zero($this->safe_number($position, 'currentQty'));
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'account'),
             'symbol' => $symbol,
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
+            'lastUpdateTimestamp' => null,
             'hedged' => null,
             'side' => null,
             'contracts' => $this->convert_value($contracts, $market),
             'contractSize' => null,
             'entryPrice' => $this->safe_number($position, 'avgEntryPrice'),
             'markPrice' => $this->safe_number($position, 'markPrice'),
+            'lastPrice' => null,
             'notional' => $notional,
             'leverage' => $this->safe_number($position, 'leverage'),
             'collateral' => null,
@@ -2243,7 +2154,7 @@ class bitmex extends Exchange {
             'marginMode' => $marginMode,
             'marginRatio' => null,
             'percentage' => $this->safe_number($position, 'unrealisedPnlPcnt'),
-        );
+        ));
     }
 
     public function convert_value($value, $market = null) {
@@ -2280,7 +2191,7 @@ class bitmex extends Exchange {
         return false;
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2307,11 +2218,28 @@ class bitmex extends Exchange {
                 // 'fee' => 0.001, // bitcoin network fee
             );
             $response = Async\await($this->privatePostUserRequestWithdrawal (array_merge($request, $params)));
+            //
+            //     {
+            //         "transactID" => "3aece414-bb29-76c8-6c6d-16a477a51a1e",
+            //         "account" => 1403035,
+            //         "currency" => "USDt",
+            //         "network" => "tron",
+            //         "transactType" => "Withdrawal",
+            //         "amount" => -11000000,
+            //         "fee" => 1000000,
+            //         "transactStatus" => "Pending",
+            //         "address" => "TAf5JxcAQQsC2Nm2zu21XE2iDtnisxPo1x",
+            //         "tx" => "",
+            //         "text" => "",
+            //         "transactTime" => "2022-12-16T07:37:06.500Z",
+            //         "timestamp" => "2022-12-16T07:37:06.500Z",
+            //     }
+            //
             return $this->parse_transaction($response, $currency);
         }) ();
     }
 
-    public function fetch_funding_rates($symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the funding rate for multiple markets
@@ -2321,117 +2249,7 @@ class bitmex extends Exchange {
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetInstrumentActiveAndIndices ($params));
-            //
-            //    array(
-            //        {
-            //            "symbol" => "LTCUSDT",
-            //            "rootSymbol" => "LTC",
-            //            "state" => "Open",
-            //            "typ" => "FFWCSX",
-            //            "listing" => "2021-11-10T04:00:00.000Z",
-            //            "front" => "2021-11-10T04:00:00.000Z",
-            //            "expiry" => null,
-            //            "settle" => null,
-            //            "listedSettle" => null,
-            //            "relistInterval" => null,
-            //            "inverseLeg" => "",
-            //            "sellLeg" => "",
-            //            "buyLeg" => "",
-            //            "optionStrikePcnt" => null,
-            //            "optionStrikeRound" => null,
-            //            "optionStrikePrice" => null,
-            //            "optionMultiplier" => null,
-            //            "positionCurrency" => "LTC",
-            //            "underlying" => "LTC",
-            //            "quoteCurrency" => "USDT",
-            //            "underlyingSymbol" => "LTCT=",
-            //            "reference" => "BMEX",
-            //            "referenceSymbol" => ".BLTCT",
-            //            "calcInterval" => null,
-            //            "publishInterval" => null,
-            //            "publishTime" => null,
-            //            "maxOrderQty" => 1000000000,
-            //            "maxPrice" => 1000000,
-            //            "lotSize" => 1000,
-            //            "tickSize" => 0.01,
-            //            "multiplier" => 100,
-            //            "settlCurrency" => "USDt",
-            //            "underlyingToPositionMultiplier" => 10000,
-            //            "underlyingToSettleMultiplier" => null,
-            //            "quoteToSettleMultiplier" => 1000000,
-            //            "isQuanto" => false,
-            //            "isInverse" => false,
-            //            "initMargin" => 0.03,
-            //            "maintMargin" => 0.015,
-            //            "riskLimit" => 1000000000000,
-            //            "riskStep" => 1000000000000,
-            //            "limit" => null,
-            //            "capped" => false,
-            //            "taxed" => true,
-            //            "deleverage" => true,
-            //            "makerFee" => -0.0001,
-            //            "takerFee" => 0.0005,
-            //            "settlementFee" => 0,
-            //            "insuranceFee" => 0,
-            //            "fundingBaseSymbol" => ".LTCBON8H",
-            //            "fundingQuoteSymbol" => ".USDTBON8H",
-            //            "fundingPremiumSymbol" => ".LTCUSDTPI8H",
-            //            "fundingTimestamp" => "2022-01-14T20:00:00.000Z",
-            //            "fundingInterval" => "2000-01-01T08:00:00.000Z",
-            //            "fundingRate" => 0.0001,
-            //            "indicativeFundingRate" => 0.0001,
-            //            "rebalanceTimestamp" => null,
-            //            "rebalanceInterval" => null,
-            //            "openingTimestamp" => "2022-01-14T17:00:00.000Z",
-            //            "closingTimestamp" => "2022-01-14T18:00:00.000Z",
-            //            "sessionInterval" => "2000-01-01T01:00:00.000Z",
-            //            "prevClosePrice" => 138.511,
-            //            "limitDownPrice" => null,
-            //            "limitUpPrice" => null,
-            //            "bankruptLimitDownPrice" => null,
-            //            "bankruptLimitUpPrice" => null,
-            //            "prevTotalVolume" => 12699024000,
-            //            "totalVolume" => 12702160000,
-            //            "volume" => 3136000,
-            //            "volume24h" => 114251000,
-            //            "prevTotalTurnover" => 232418052349000,
-            //            "totalTurnover" => 232463353260000,
-            //            "turnover" => 45300911000,
-            //            "turnover24h" => 1604331340000,
-            //            "homeNotional24h" => 11425.1,
-            //            "foreignNotional24h" => 1604331.3400000003,
-            //            "prevPrice24h" => 135.48,
-            //            "vwap" => 140.42165,
-            //            "highPrice" => 146.42,
-            //            "lowPrice" => 135.08,
-            //            "lastPrice" => 144.36,
-            //            "lastPriceProtected" => 144.36,
-            //            "lastTickDirection" => "MinusTick",
-            //            "lastChangePcnt" => 0.0655,
-            //            "bidPrice" => 143.75,
-            //            "midPrice" => 143.855,
-            //            "askPrice" => 143.96,
-            //            "impactBidPrice" => 143.75,
-            //            "impactMidPrice" => 143.855,
-            //            "impactAskPrice" => 143.96,
-            //            "hasLiquidity" => true,
-            //            "openInterest" => 38103000,
-            //            "openValue" => 547963053300,
-            //            "fairMethod" => "FundingRate",
-            //            "fairBasisRate" => 0.1095,
-            //            "fairBasis" => 0.004,
-            //            "fairPrice" => 143.811,
-            //            "markMethod" => "FairPrice",
-            //            "markPrice" => 143.811,
-            //            "indicativeTaxRate" => null,
-            //            "indicativeSettlePrice" => 143.807,
-            //            "optionUnderlyingPrice" => null,
-            //            "settledPriceAdjustmentRate" => null,
-            //            "settledPrice" => null,
-            //            "timestamp" => "2022-01-14T17:49:55.000Z"
-            //        }
-            //    )
-            //
+            // same $response "fetchMarkets"
             $filteredResponse = array();
             for ($i = 0; $i < count($response); $i++) {
                 $item = $response[$i];
@@ -2580,7 +2398,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * Fetches the history of funding rates
@@ -2662,7 +2480,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -2690,7 +2508,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
+    public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
@@ -2720,7 +2538,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -2751,7 +2569,7 @@ class bitmex extends Exchange {
             //
             return array(
                 'currency' => $code,
-                'address' => str_replace('"', '', $response->replace ('"', '')),  // Done twice because some languages only replace the first instance
+                'address' => str_replace('"', '', $response->replace ('"', '')), // Done twice because some languages only replace the first instance
                 'tag' => null,
                 'network' => strtoupper($this->network_id_to_code($networkId)),
                 'info' => $response,
@@ -2759,7 +2577,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         $isAuthenticated = $this->check_required_credentials(false);
         $cost = $this->safe_value($config, 'cost', 1);
         if ($cost !== 1) { // trading endpoints
@@ -2774,7 +2592,7 @@ class bitmex extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         if ($code === 429) {
             throw new DDoSProtection($this->id . ' ' . $body);
@@ -2790,6 +2608,7 @@ class bitmex extends Exchange {
             }
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 
     public function nonce() {
@@ -2819,9 +2638,10 @@ class bitmex extends Exchange {
                 'Content-Type' => 'application/json',
                 'api-key' => $this->apiKey,
             );
-            $expires = $this->sum($this->seconds(), (string) $expires);
-            $auth .= $expires;
-            $headers['api-expires'] = $expires;
+            $expires = $this->sum($this->seconds(), $expires);
+            $stringExpires = (string) $expires;
+            $auth .= $stringExpires;
+            $headers['api-expires'] = $stringExpires;
             if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
                 if ($params) {
                     $body = $this->json($params);

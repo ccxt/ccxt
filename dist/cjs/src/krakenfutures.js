@@ -9,7 +9,6 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class krakenfutures extends krakenfutures$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -19,6 +18,7 @@ class krakenfutures extends krakenfutures$1 {
             'version': 'v3',
             'userAgent': undefined,
             'rateLimit': 600,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -39,9 +39,9 @@ class krakenfutures extends krakenfutures$1 {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': undefined,
                 'fetchFundingHistory': undefined,
-                'fetchFundingRate': false,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedPositions': false,
                 'fetchLeverageTiers': true,
@@ -64,8 +64,8 @@ class krakenfutures extends krakenfutures$1 {
             },
             'urls': {
                 'test': {
-                    'public': 'https://demo-futures.kraken.com/derivatives',
-                    'private': 'https://demo-futures.kraken.com/derivatives',
+                    'public': 'https://demo-futures.kraken.com/derivatives/api/',
+                    'private': 'https://demo-futures.kraken.com/derivatives/api/',
                     'www': 'https://demo-futures.kraken.com',
                 },
                 'logo': 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -296,7 +296,7 @@ class krakenfutures extends krakenfutures$1 {
             let symbol = id;
             const split = id.split('_');
             const splitMarket = this.safeString(split, 1);
-            const baseId = splitMarket.replace('usd', '');
+            const baseId = splitMarket.slice(0, splitMarket.length - 3);
             const quoteId = 'usd'; // always USD
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
@@ -305,8 +305,9 @@ class krakenfutures extends krakenfutures$1 {
             let settleId = undefined;
             const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'contractValueTradePrecision', '0')));
             const pricePrecision = this.safeNumber(market, 'tickSize');
-            const contract = (swap || future);
-            if (contract) {
+            const contract = (swap || future || index);
+            const swapOrFutures = (swap || future);
+            if (swapOrFutures) {
                 const exchangeType = this.safeString(market, 'type');
                 if (exchangeType === 'futures_inverse') {
                     settle = base;
@@ -806,17 +807,18 @@ class krakenfutures extends krakenfutures$1 {
         type = this.safeString(params, 'orderType', type);
         const timeInForce = this.safeString(params, 'timeInForce');
         const stopPrice = this.safeString(params, 'stopPrice');
-        const postOnly = this.safeString(params, 'postOnly');
+        let postOnly = false;
+        [postOnly, params] = this.handlePostOnly(type === 'market', type === 'post', params);
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'cliOrdId');
         params = this.omit(params, ['clientOrderId', 'cliOrdId']);
         if ((type === 'stp' || type === 'take_profit') && stopPrice === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createOrder requires params.stopPrice when type is ' + type);
         }
-        if (stopPrice !== undefined) {
+        if (stopPrice !== undefined && type !== 'take_profit') {
             type = 'stp';
         }
         else if (postOnly) {
-            type = 'postOnly';
+            type = 'post';
         }
         else if (timeInForce === 'ioc') {
             type = 'ioc';
@@ -1585,6 +1587,83 @@ class krakenfutures extends krakenfutures$1 {
         }
         return this.safeBalance(result);
     }
+    async fetchFundingRates(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#fetchFundingRates
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
+         * @description fetch the current funding rates
+         * @param {[string]} symbols unified market symbols
+         * @param {object} params extra parameters specific to the krakenfutures api endpoint
+         * @returns {[object]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets();
+        const marketIds = this.marketIds(symbols);
+        const response = await this.publicGetTickers(params);
+        const tickers = this.safeValue(response, 'tickers');
+        const fundingRates = [];
+        for (let i = 0; i < tickers.length; i++) {
+            const entry = tickers[i];
+            const entry_symbol = this.safeValue(entry, 'symbol');
+            if (marketIds !== undefined) {
+                if (!this.inArray(entry_symbol, marketIds)) {
+                    continue;
+                }
+            }
+            const market = this.safeMarket(entry_symbol);
+            const parsed = this.parseFundingRate(entry, market);
+            fundingRates.push(parsed);
+        }
+        return this.indexBy(fundingRates, 'symbol');
+    }
+    parseFundingRate(ticker, market = undefined) {
+        //
+        // {'ask': 26.283,
+        //  'askSize': 4.6,
+        //  'bid': 26.201,
+        //  'bidSize': 190,
+        //  'fundingRate': -0.000944642727438883,
+        //  'fundingRatePrediction': -0.000872671532340275,
+        //  'indexPrice': 26.253,
+        //  'last': 26.3,
+        //  'lastSize': 0.1,
+        //  'lastTime': '2023-06-11T18:55:28.958Z',
+        //  'markPrice': 26.239,
+        //  'open24h': 26.3,
+        //  'openInterest': 641.1,
+        //  'pair': 'COMP:USD',
+        //  'postOnly': False,
+        //  'suspended': False,
+        //  'symbol': 'pf_compusd',
+        //  'tag': 'perpetual',
+        //  'vol24h': 0.1,
+        //  'volumeQuote': 2.63}
+        //
+        const marketId = this.safeString(ticker, 'symbol');
+        const symbol = this.symbol(marketId);
+        const timestamp = this.parse8601(this.safeString(ticker, 'lastTime'));
+        const fundingRate = this.safeNumber(ticker, 'fundingRate');
+        const nextFundingRate = this.safeNumber(ticker, 'fundingRatePrediction');
+        return {
+            'info': ticker,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'fundingRate': fundingRate,
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': nextFundingRate,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
+    }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();
@@ -1911,7 +1990,7 @@ class krakenfutures extends krakenfutures$1 {
         const currency = this.currency(code);
         let method = 'privatePostTransfer';
         const request = {
-            'amount': this.currencyToPrecision(code, amount),
+            'amount': amount,
         };
         if (fromAccount === 'spot') {
             throw new errors.BadRequest(this.id + ' transfer does not yet support transfers from spot');
@@ -1944,14 +2023,14 @@ class krakenfutures extends krakenfutures$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (code === 429) {
             throw new errors.DDoSProtection(this.id + ' ' + body);
         }
         const message = this.safeString(response, 'error');
         if (message === undefined) {
-            return;
+            return undefined;
         }
         const feedback = this.id + ' ' + body;
         this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
@@ -1980,7 +2059,11 @@ class krakenfutures extends krakenfutures$1 {
         }
         const url = this.urls['api'][api] + query;
         if (api === 'private' || access === 'private') {
-            const auth = postData + '/api/' + endpoint; // 1
+            let auth = postData + '/api/';
+            if (api !== 'private') {
+                auth += api + '/';
+            }
+            auth += endpoint; // 1
             const hash = this.hash(this.encode(auth), sha256.sha256, 'binary'); // 2
             const secret = this.base64ToBinary(this.secret); // 3
             const signature = this.hmac(hash, secret, sha512.sha512, 'base64'); // 4-5

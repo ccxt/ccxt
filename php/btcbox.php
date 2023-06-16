@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\btcbox as Exchange;
 
 class btcbox extends Exchange {
 
@@ -145,7 +146,7 @@ class btcbox extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -192,7 +193,7 @@ class btcbox extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
@@ -246,7 +247,7 @@ class btcbox extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
@@ -277,7 +278,7 @@ class btcbox extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -306,7 +307,7 @@ class btcbox extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -402,7 +403,7 @@ class btcbox extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the order was made in
@@ -435,7 +436,7 @@ class btcbox extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_orders_by_type($type, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_by_type($type, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         // a special case for btcbox – default $symbol is BTC/JPY
         if ($symbol === null) {
@@ -470,7 +471,7 @@ class btcbox extends Exchange {
         return $orders;
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple orders made by the user
          * @param {string|null} $symbol unified market $symbol of the market orders were made in
@@ -482,7 +483,7 @@ class btcbox extends Exchange {
         return $this->fetch_orders_by_type('all', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
          * @param {string|null} $symbol unified market $symbol
@@ -524,15 +525,15 @@ class btcbox extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // resort to defaultErrorHandler
+            return null; // resort to defaultErrorHandler
         }
         // typical error $response => array("result":false,"code":"401")
         if ($httpCode >= 400) {
-            return; // resort to defaultErrorHandler
+            return null; // resort to defaultErrorHandler
         }
         $result = $this->safe_value($response, 'result');
         if ($result === null || $result === true) {
-            return; // either public API (no error codes expected) or success
+            return null; // either public API (no error codes expected) or success
         }
         $code = $this->safe_value($response, 'code');
         $feedback = $this->id . ' ' . $body;
@@ -540,8 +541,8 @@ class btcbox extends Exchange {
         throw new ExchangeError($feedback); // unknown message
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
-        $response = $this->fetch2($path, $api, $method, $params, $headers, $body, $config, $context);
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array ()) {
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body, $config);
         if (gettype($response) === 'string') {
             // sometimes the exchange returns whitespace prepended to json
             $response = $this->strip($response);

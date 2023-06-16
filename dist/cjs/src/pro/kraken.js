@@ -7,7 +7,6 @@ var Precise = require('../base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class kraken extends kraken$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -584,7 +583,7 @@ class kraken extends kraken$1 {
         if (this.newUpdates) {
             limit = result.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(result, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

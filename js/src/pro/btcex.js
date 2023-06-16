@@ -9,7 +9,6 @@ import btcexRest from '../btcex.js';
 import { NotSupported, ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class btcex extends btcexRest {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -469,7 +468,7 @@ export default class btcex extends btcexRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleOrder(client, message) {
         //
