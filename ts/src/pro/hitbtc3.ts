@@ -5,7 +5,7 @@ import hitbtc3Rest from '../hitbtc3.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { Trade, OHLCV } from '../base/types';
+import { Trade } from '../base/types';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { AuthenticationError } from '../base/errors.js';
@@ -688,15 +688,6 @@ export default class hitbtc3 extends hitbtc3Rest {
             client.resolve (stored, messageHash);
         }
         return message;
-    }
-
-    parseWsOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined): OHLCV[] {
-        const results = [];
-        for (let i = 0; i < ohlcvs.length; i++) {
-            results.push (this.parseWsOHLCV (ohlcvs[i], market));
-        }
-        const sorted = this.sortBy (results, 0);
-        return this.filterBySinceLimit (sorted, since, limit, 0) as any;
     }
 
     parseWsOHLCV (ohlcv, market = undefined) {
