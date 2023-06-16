@@ -41,9 +41,8 @@ module.exports = class gemini extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': undefined,
-                'fetchCurrencies': true,
                 'fetchDepositAddress': undefined, // TODO
-                'fetchDepositAddressesByNetwork': undefined,
+                'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': undefined,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -261,16 +260,6 @@ module.exports = class gemini extends Exchange {
                     'FILECOIN': 'filecoin',
                     'POLKADOT': 'polkadot',
                     'DOGECOIN': 'dogecoin',
-                },
-                'networkIds': {
-                    'bitcoin': 'BTC',
-                    'ethereum': 'ERC20',
-                    'bitcoincash': 'BCH',
-                    'litecoin': 'LTC',
-                    'zcash': 'ZEC',
-                    'filecoin': 'FIL',
-                    'dogecoin': 'DOGE',
-                    'tezos': 'XTZ',
                 },
                 'nonce': 'milliseconds', // if getting a Network 400 error change to seconds
             },
