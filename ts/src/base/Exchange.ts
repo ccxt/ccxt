@@ -2339,6 +2339,50 @@ export default class Exchange {
         return result;
     }
 
+    async fetchWebEndpoint (method, endpointMethod, returnAsJson, startRegex = undefined, endRegex = undefined) {
+        try {
+            const options = this.safeValue (this.options, method, {});
+            // if it was not explicitly disabled, then don't fetch
+            if (this.safeValue (options, 'webApiEnable', true) !== true) {
+                return undefined;
+            }
+            const maxRetries = this.safeValue (options, 'webApiRetries', 10);
+            let response = undefined;
+            let retry = 0;
+            while (retry < maxRetries) {
+                try {
+                    response = await this[endpointMethod] ({});
+                    break;
+                } catch (e) {
+                    retry = retry + 1;
+                    if (retry === maxRetries) {
+                        throw e;
+                    }
+                }
+            }
+            let content = response;
+            if (startRegex !== undefined) {
+                const splitted_by_start = content.split (startRegex);
+                content = splitted_by_start[1]; // as it's START_REGEX, we need second part
+            }
+            if (endRegex !== undefined) {
+                const splitted_by_end = content.split (endRegex);
+                content = splitted_by_end[0]; // as it's END_REGEX, we need first part
+            }
+            if (returnAsJson) {
+                const jsoned = this.parseJson (content.trim ()); // content should be trimmed before json parsing
+                if (jsoned) {
+                    return jsoned; // if parsing was not successfull, exception should be thrown
+                }
+            } else {
+                return content;
+            }
+        } catch (e) {
+            // just pass to final exception
+        }
+        throw new NotSupported (this.id + ' ' + method + '() failed to fetch correct data from website. Probably HTML markup has been changed, breaking the parser.');
+    }
+
     marketIds (symbols) {
         if (symbols === undefined) {
             return symbols;
