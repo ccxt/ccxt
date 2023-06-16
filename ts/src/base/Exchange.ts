@@ -1277,10 +1277,6 @@ export default class Exchange {
         return -1;
     }
 
-    notNotValue (value) {
-        return !!value; // eslint-disable-line no-extra-boolean-cast
-    }
-
     removeSubKeyFromInstance (parentKey, subKey) {
         delete this[parentKey][subKey];
     }
@@ -1417,8 +1413,8 @@ export default class Exchange {
         return this.filterByLimit (result, limit, key);
     }
 
-    setSandboxMode (enabled) {
-        if (this.notNotValue (enabled)) {
+    setSandboxMode (enabled: boolean) {
+        if (enabled) {
             if ('test' in this.urls) {
                 if (typeof this.urls['api'] === 'string') {
                     this.urls['apiBackup'] = this.urls['api'];

@@ -2027,10 +2027,6 @@ class Exchange {
         return is_array($obj) ? $obj : $this->extend($obj);
     }
 
-    function notNotValue($value) {
-        return $value;
-    }
-
     function removeSubKeyFromInstance($parentKey, $subKey) {
         unset($this->$parentKey[$subKey]);
     }

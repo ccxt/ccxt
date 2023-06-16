@@ -1580,9 +1580,6 @@ class Exchange(object):
     def clone(self, obj):
         return obj if isinstance(obj, list) else self.extend(obj)
 
-    def notNotValue(self, value):
-        return value
-
     def removeSubKeyFromInstance(self, parentKey, subKey):
         del getattr(self, parentKey)[subKey]
 
