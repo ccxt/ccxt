@@ -612,8 +612,7 @@
         "skipMethods": {
             "loadMarkets": {
                 "limits":"max is below min",
-                "active":"is undefined",
-                "currencyIdAndCode": "travis location cant load webapi"
+                "active":"is undefined"
             },
             "fetchTickers": "timestamp might be of 1970-01-01T00:00:00.000Z",
             "fetchTicker": "same"
