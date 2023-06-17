@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import hitbtc3Rest from '../hitbtc3.js';
-import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Trade } from '../base/types';
@@ -148,7 +148,7 @@ export default class hitbtc3 extends hitbtc3Rest {
          * @returns
          */
         await this.loadMarkets ();
-        this.authenticate ();
+        await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
         const splitName = name.split ('_subscribe');
         let messageHash = this.safeString (splitName, 0);
@@ -676,7 +676,7 @@ export default class hitbtc3 extends hitbtc3Rest {
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCache (limit);
+                stored = new ArrayCacheByTimestamp (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             const ohlcvs = this.parseWsOHLCVs (data[marketId], market);
