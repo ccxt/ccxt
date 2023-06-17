@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.42'
+__version__ = '3.1.43'
 
 # -----------------------------------------------------------------------------
 
@@ -605,6 +605,18 @@ class Exchange(BaseExchange):
 
     def parse_borrow_interest(self, info, market=None):
         raise NotSupported(self.id + ' parseBorrowInterest() is not supported yet')
+
+    def parse_ws_trade(self, trade, market=None):
+        raise NotSupported(self.id + ' parseWsTrade() is not supported yet')
+
+    def parse_ws_order(self, order, market=None):
+        raise NotSupported(self.id + ' parseWsOrder() is not supported yet')
+
+    def parse_ws_order_trade(self, trade, market=None):
+        raise NotSupported(self.id + ' parseWsOrderTrade() is not supported yet')
+
+    def parse_ws_ohlcv(self, ohlcv, market=None):
+        raise NotSupported(self.id + ' parseWsOHLCV() is not supported yet')
 
     async def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchFundingRates() is not supported yet')

@@ -1819,7 +1819,7 @@ class huobi(ccxt.async_support.huobi):
                 genericTradesHash = genericOrderHash + ':' + 'trade'
                 client.resolve(self.myTrades, genericTradesHash)
 
-    def parse_ws_trade(self, trade):
+    def parse_ws_trade(self, trade, market=None):
         # spot private
         #
         #     {
