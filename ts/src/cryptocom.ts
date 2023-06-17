@@ -1204,7 +1204,8 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#cancelOrder
          * @description cancels an open order
-         * @param {string} id order id
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
+         * @param {string} id the order id of the order to cancel
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1214,30 +1215,24 @@ export default class cryptocom extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {};
-        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('cancelOrder', marketTypeQuery);
-        if ((marketType === 'spot') || (marketType === 'margin') || (marginMode !== undefined)) {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument for ' + marketType + ' orders');
-            }
-            request['instrument_name'] = market['id'];
-            request['order_id'] = id.toString ();
-        } else {
-            request['order_id'] = parseInt (id);
-        }
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'v2PrivatePostPrivateCancelOrder',
-            'margin': 'v2PrivatePostPrivateMarginCancelOrder',
-            'future': 'derivativesPrivatePostPrivateCancelOrder',
-            'swap': 'derivativesPrivatePostPrivateCancelOrder',
-        });
-        if (marginMode !== undefined) {
-            method = 'v2PrivatePostPrivateMarginCancelOrder';
-        }
-        const response = await this[method] (this.extend (request, query));
-        const result = this.safeValue (response, 'result', response);
-        return this.parseOrder (result);
+        const request = {
+            'order_id': id,
+        };
+        const response = await this.v1PrivatePostPrivateCancelOrder (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1686882846638,
+        //         "method": "private/cancel-order",
+        //         "code": 0,
+        //         "message": "NO_ERROR",
+        //         "result": {
+        //             "client_oid": "CCXT_c2d2152cc32d40a3ae7fbf",
+        //             "order_id": "6142909895025252686"
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseOrder (result, market);
     }
 
     async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
