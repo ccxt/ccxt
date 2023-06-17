@@ -1137,6 +1137,14 @@
             "fetchTrades": {
                 "side": "side is not buy/sell"
             }
+            "fetchTicker": {
+                "quoteVolume": "quoteVolume <= baseVolume * high | https://app.travis-ci.com/github/ccxt/ccxt/builds/263884643#L2462",
+                "baseVolume": "same"
+            },
+            "fetchTickers": {
+                "quoteVolume": "same",
+                "baseVolume": "same"
+            }
         }
     },
     "okx": {
