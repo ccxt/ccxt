@@ -1928,6 +1928,7 @@ export default class cryptocom extends Exchange {
         const timestamp = this.safeInteger2 (trade, 't', 'create_time');
         const marketId = this.safeString2 (trade, 'i', 'instrument_name');
         market = this.safeMarket (marketId, market, '_');
+        const feeCurrency = this.safeString (trade, 'fee_instrument_name');
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString2 (trade, 'd', 'trade_id'),
@@ -1942,7 +1943,7 @@ export default class cryptocom extends Exchange {
             'cost': undefined,
             'type': undefined,
             'fee': {
-                'currency': this.safeString (trade, 'fee_instrument_name'),
+                'currency': this.safeCurrencyCode (feeCurrency),
                 'cost': this.safeNumber (trade, 'fees'),
             },
         }, market);
