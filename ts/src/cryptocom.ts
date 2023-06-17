@@ -1973,14 +1973,14 @@ export default class cryptocom extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // createOrder
+        // createOrder, cancelOrder
         //
         //     {
         //         "order_id": "6540219377766741832",
         //         "client_oid": "CCXT_d6ef7c3db6c1495aa8b757"
         //     }
         //
-        // fetchOpenOrders, fetchOrder
+        // fetchOpenOrders, fetchOrder, fetchOrders
         //
         //     {
         //         "account_id": "ce075bef-1234-4321-bd6g-ff9007252e63",
@@ -2017,15 +2017,7 @@ export default class cryptocom extends Exchange {
         if (execInst !== undefined) {
             postOnly = (execInst === 'POST_ONLY');
         }
-        const feeCost = this.safeString (order, 'cumulative_fee');
-        let fee = undefined;
-        if (feeCost !== undefined) {
-            const feeCurrency = this.safeString (order, 'fee_instrument_name');
-            fee = {
-                'cost': feeCost,
-                'currency': this.safeCurrencyCode (feeCurrency),
-            };
-        }
+        const feeCurrency = this.safeString (order, 'fee_instrument_name');
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'order_id'),
@@ -2035,17 +2027,20 @@ export default class cryptocom extends Exchange {
             'lastTradeTimestamp': this.safeInteger (order, 'update_time'),
             'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'symbol': symbol,
-            'type': this.safeStringLower2 (order, 'type', 'order_type'),
+            'type': this.safeStringLower (order, 'order_type'),
             'timeInForce': this.parseTimeInForce (this.safeString (order, 'time_in_force')),
             'postOnly': postOnly,
             'side': this.safeStringLower (order, 'side'),
-            'price': this.safeNumber2 (order, 'price', 'limit_price'),
+            'price': this.safeNumber (order, 'limit_price'),
             'amount': this.safeNumber (order, 'quantity'),
             'filled': this.safeNumber (order, 'cumulative_quantity'),
             'remaining': undefined,
             'average': this.safeNumber (order, 'avg_price'),
             'cost': this.safeNumber (order, 'cumulative_value'),
-            'fee': fee,
+            'fee': {
+                'currency': this.safeCurrencyCode (feeCurrency),
+                'cost': this.safeNumber (order, 'cumulative_fee'),
+            },
             'trades': [],
         }, market);
     }
