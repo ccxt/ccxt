@@ -2029,15 +2029,7 @@ export default class cryptocom extends Exchange {
         if (execInst !== undefined) {
             postOnly = (execInst === 'POST_ONLY');
         }
-        const feeCost = this.safeString (order, 'cumulative_fee');
-        let fee = undefined;
-        if (feeCost !== undefined) {
-            const feeCurrency = this.safeString (order, 'fee_instrument_name');
-            fee = {
-                'cost': feeCost,
-                'currency': this.safeCurrencyCode (feeCurrency),
-            };
-        }
+        const feeCurrency = this.safeString (order, 'fee_instrument_name');
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'order_id'),
@@ -2047,7 +2039,7 @@ export default class cryptocom extends Exchange {
             'lastTradeTimestamp': this.safeInteger (order, 'update_time'),
             'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'symbol': symbol,
-            'type': this.safeStringLower2 (order, 'type', 'order_type'),
+            'type': this.safeStringLower (order, 'order_type'),
             'timeInForce': this.parseTimeInForce (this.safeString (order, 'time_in_force')),
             'postOnly': postOnly,
             'side': this.safeStringLower (order, 'side'),
@@ -2057,7 +2049,10 @@ export default class cryptocom extends Exchange {
             'remaining': undefined,
             'average': this.safeNumber (order, 'avg_price'),
             'cost': this.safeNumber (order, 'cumulative_value'),
-            'fee': fee,
+            'fee': {
+                'currency': this.safeCurrencyCode (feeCurrency),
+                'cost': this.safeNumber (order, 'cumulative_fee'),
+            },
             'trades': [],
         }, market);
     }
