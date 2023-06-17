@@ -619,6 +619,7 @@
         }
     },
     "currencycom": {
+        "skip": "17/06 exchange not available 503",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
