@@ -229,6 +229,9 @@ abstract class okex5 extends \ccxt\async\okex {
     public function private_get_asset_transfer_state($params = array()) {
         return $this->request('asset/transfer-state', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function private_get_asset_transfer_record($params = array()) {
+        return $this->request('asset/transfer-record', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function private_get_asset_deposit_history($params = array()) {
         return $this->request('asset/deposit-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
@@ -831,6 +834,9 @@ abstract class okex5 extends \ccxt\async\okex {
     }
     public function privateGetAssetTransferState($params = array()) {
         return $this->request('asset/transfer-state', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function privateGetAssetTransferRecord($params = array()) {
+        return $this->request('asset/transfer-record', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function privateGetAssetDepositHistory($params = array()) {
         return $this->request('asset/deposit-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));

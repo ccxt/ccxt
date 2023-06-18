@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.1.14';
+$version = '3.1.44';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.1.14';
+    const VERSION = '3.1.44';
 
     public $browser;
     public $marketsLoading = null;
@@ -300,9 +300,10 @@ class Exchange extends \ccxt\Exchange {
         return $array;
     }
 
-    public function filter_by_since_limit(mixed $array, ?int $since = null, ?int $limit = null, int|string $key = 'timestamp') {
+    public function filter_by_since_limit(mixed $array, ?int $since = null, ?int $limit = null, int|string $key = 'timestamp', $tail = false) {
         $sinceIsDefined = $this->valueIsDefined ($since);
         $parsedArray = $this->to_array($array);
+        $result = $parsedArray;
         if ($sinceIsDefined) {
             $result = [ ];
             for ($i = 0; $i < count($parsedArray); $i++) {
@@ -311,15 +312,18 @@ class Exchange extends \ccxt\Exchange {
                     $result[] = $entry;
                 }
             }
-            return $this->filter_by_limit($result, $limit, $key);
         }
-        return $this->filter_by_limit($parsedArray, $limit, $key);
+        if ($tail) {
+            return mb_substr($result, -$limit);
+        }
+        return $this->filter_by_limit($result, $limit, $key);
     }
 
-    public function filter_by_value_since_limit(mixed $array, int|string $field, $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp') {
+    public function filter_by_value_since_limit(mixed $array, int|string $field, $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp', $tail = false) {
         $valueIsDefined = $this->valueIsDefined ($value);
         $sinceIsDefined = $this->valueIsDefined ($since);
         $parsedArray = $this->to_array($array);
+        $result = $parsedArray;
         // single-pass filter for both symbol and $since
         if ($valueIsDefined || $sinceIsDefined) {
             $result = [ ];
@@ -333,9 +337,11 @@ class Exchange extends \ccxt\Exchange {
                     $result[] = $entry;
                 }
             }
-            return $this->filter_by_limit($result, $limit, $key);
         }
-        return $this->filter_by_limit($parsedArray, $limit, $key);
+        if ($tail) {
+            return mb_substr($result, -$limit);
+        }
+        return $this->filter_by_limit($result, $limit, $key);
     }
 
     public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null) {
@@ -428,6 +434,22 @@ class Exchange extends \ccxt\Exchange {
 
     public function parse_borrow_interest($info, $market = null) {
         throw new NotSupported($this->id . ' parseBorrowInterest() is not supported yet');
+    }
+
+    public function parse_ws_trade($trade, $market = null) {
+        throw new NotSupported($this->id . ' parseWsTrade() is not supported yet');
+    }
+
+    public function parse_ws_order($order, $market = null) {
+        throw new NotSupported($this->id . ' parseWsOrder() is not supported yet');
+    }
+
+    public function parse_ws_order_trade($trade, $market = null) {
+        throw new NotSupported($this->id . ' parseWsOrderTrade() is not supported yet');
+    }
+
+    public function parse_ws_ohlcv($ohlcv, $market = null) {
+        throw new NotSupported($this->id . ' parseWsOHLCV() is not supported yet');
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
@@ -1194,25 +1216,11 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            if (!$this->has['fetchTrades']) {
-                throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet');
-            }
-            $trades = Async\await($this->fetchTrades ($symbol, $since, $limit, $params));
-            $ohlcvc = $this->build_ohlcvc($trades, $timeframe, $since, $limit);
-            $result = array();
-            for ($i = 0; $i < count($ohlcvc); $i++) {
-                $result[] = [
-                    $this->safe_integer($ohlcvc[$i], 0),
-                    $this->safe_number($ohlcvc[$i], 1),
-                    $this->safe_number($ohlcvc[$i], 2),
-                    $this->safe_number($ohlcvc[$i], 3),
-                    $this->safe_number($ohlcvc[$i], 4),
-                    $this->safe_number($ohlcvc[$i], 5),
-                ];
-            }
-            return $result;
-        }) ();
+        $message = '';
+        if ($this->has['fetchTrades']) {
+            $message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
+        }
+        throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet' . $message);
     }
 
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -1737,15 +1745,53 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function fetch_ohlcvc($symbol, $timeframe = '1m', mixed $since = null, ?int $limit = null, $params = array ()) {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            if (!$this->has['fetchTrades']) {
-                throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet');
+    public function build_ohlcvc(array $trades, string $timeframe = '1m', float $since = 0, float $limit = 2147483647) {
+        // given a sorted arrays of $trades (recent last) and a $timeframe builds an array of OHLCV candles
+        // note, default $limit value (2147483647) is max int32 value
+        $ms = $this->parse_timeframe($timeframe) * 1000;
+        $ohlcvs = array();
+        $i_timestamp = 0;
+        // $open = 1;
+        $i_high = 2;
+        $i_low = 3;
+        $i_close = 4;
+        $i_volume = 5;
+        $i_count = 6;
+        $tradesLength = count($trades);
+        $oldest = min ($tradesLength, $limit);
+        for ($i = 0; $i < $oldest; $i++) {
+            $trade = $trades[$i];
+            $ts = $trade['timestamp'];
+            if ($ts < $since) {
+                continue;
             }
-            Async\await($this->load_markets());
-            $trades = Async\await($this->fetchTrades ($symbol, $since, $limit, $params));
-            return $this->build_ohlcvc($trades, $timeframe, $since, $limit);
-        }) ();
+            $openingTime = (int) floor($ts / $ms) * $ms; // shift to the edge of m/h/d (but not M)
+            if ($openingTime < $since) { // we don't need bars, that have opening time earlier than requested
+                continue;
+            }
+            $ohlcv_length = count($ohlcvs);
+            $candle = $ohlcv_length - 1;
+            if (($candle === -1) || ($openingTime >= $this->sum ($ohlcvs[$candle][$i_timestamp], $ms))) {
+                // moved to a new $timeframe -> create a new $candle from opening $trade
+                $ohlcvs[] = [
+                    $openingTime, // timestamp
+                    $trade['price'], // O
+                    $trade['price'], // H
+                    $trade['price'], // L
+                    $trade['price'], // C
+                    $trade['amount'], // V
+                    1, // count
+                ];
+            } else {
+                // still processing the same $timeframe -> update opening $trade
+                $ohlcvs[$candle][$i_high] = max ($ohlcvs[$candle][$i_high], $trade['price']);
+                $ohlcvs[$candle][$i_low] = min ($ohlcvs[$candle][$i_low], $trade['price']);
+                $ohlcvs[$candle][$i_close] = $trade['price'];
+                $ohlcvs[$candle][$i_volume] = $this->sum ($ohlcvs[$candle][$i_volume], $trade['amount']);
+                $ohlcvs[$candle][$i_count] = $this->sum ($ohlcvs[$candle][$i_count], 1);
+            }
+        }
+        return $ohlcvs;
     }
 
     public function parse_trading_view_ohlcv($ohlcvs, $market = null, $timeframe = '1m', ?int $since = null, ?int $limit = null) {
@@ -1771,7 +1817,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->cancelOrder ($id, $symbol));
             return Async\await($this->create_order($symbol, $type, $side, $amount, $price, $params));
@@ -1930,6 +1976,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_balance($params = array ()) {
         throw new NotSupported($this->id . ' fetchBalance() is not supported yet');
+    }
+
+    public function parse_balance($response) {
+        throw new NotSupported($this->id . ' parseBalance() is not supported yet');
     }
 
     public function watch_balance($params = array ()) {
@@ -2564,12 +2614,12 @@ class Exchange extends \ccxt\Exchange {
         return $currency['code'];
     }
 
-    public function filter_by_symbol_since_limit($array, ?string $symbol = null, ?int $since = null, ?int $limit = null) {
-        return $this->filter_by_value_since_limit($array, 'symbol', $symbol, $since, $limit, 'timestamp');
+    public function filter_by_symbol_since_limit($array, ?string $symbol = null, ?int $since = null, ?int $limit = null, $tail = false) {
+        return $this->filter_by_value_since_limit($array, 'symbol', $symbol, $since, $limit, 'timestamp', $tail);
     }
 
-    public function filter_by_currency_since_limit($array, $code = null, ?int $since = null, ?int $limit = null) {
-        return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp');
+    public function filter_by_currency_since_limit($array, $code = null, ?int $since = null, ?int $limit = null, $tail = false) {
+        return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp', $tail);
     }
 
     public function parse_last_prices($pricesData, ?array $symbols = null, $params = array ()) {
@@ -2809,6 +2859,7 @@ class Exchange extends \ccxt\Exchange {
             if ($this->has['fetchFundingRates']) {
                 Async\await($this->load_markets());
                 $market = $this->market ($symbol);
+                $symbol = $market['symbol'];
                 if (!$market['contract']) {
                     throw new BadSymbol($this->id . ' fetchFundingRate() supports contract markets only');
                 }
@@ -2967,7 +3018,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {string} $symbol unified $symbol of the market
          * @param {string} $methodName name of the method that requires a $symbol
          */
-        $this->checkRequiredArgument ($methodName, $symbol, 'symbol');
+        $this->check_required_argument($methodName, $symbol, 'symbol');
     }
 
     public function parse_deposit_withdraw_fees($response, ?array $codes = null, $currencyIdKey = null) {

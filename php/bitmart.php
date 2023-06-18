@@ -1459,7 +1459,7 @@ class bitmart extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_balance($response, $marketType) {
+    public function custom_parse_balance($response, $marketType) {
         $data = $this->safe_value($response, 'data', array());
         $wallet = null;
         if ($marketType === 'swap') {
@@ -1632,7 +1632,7 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        return $this->parse_balance($response, $marketType);
+        return $this->custom_parse_balance($response, $marketType);
     }
 
     public function parse_trading_fee($fee, $market = null) {
@@ -1792,7 +1792,7 @@ class bitmart extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @see https://developer-pro.bitmart.com/en/spot/#place-spot-$order

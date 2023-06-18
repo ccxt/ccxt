@@ -438,7 +438,7 @@ class coinex(ccxt.async_support.coinex):
         self.options['watchTradesSubscriptions'] = subscribedSymbols
         request = self.deep_extend(message, params)
         trades = await self.watch(url, messageHash, request, subscriptionHash)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -713,7 +713,7 @@ class coinex(ccxt.async_support.coinex):
         messageHash += ':' + parsedOrder['symbol']
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order):
+    def parse_ws_order(self, order, market=None):
         #
         #  spot
         #
@@ -827,7 +827,7 @@ class coinex(ccxt.async_support.coinex):
         amount = self.safe_string(order, 'amount')
         status = self.safe_string(order, 'status')
         defaultType = self.safe_string(self.options, 'defaultType')
-        market = self.safe_market(marketId, None, None, defaultType)
+        market = self.safe_market(marketId, market, None, defaultType)
         cost = self.safe_string(order, 'deal_money')
         filled = self.safe_string(order, 'deal_stock')
         average = None

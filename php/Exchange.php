@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.1.14';
+$version = '3.1.44';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.1.14';
+    const VERSION = '3.1.44';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -427,7 +427,6 @@ class Exchange {
         'poloniex',
         'poloniexfutures',
         'probit',
-        'stex',
         'tidex',
         'timex',
         'tokocrypto',
@@ -697,49 +696,6 @@ class Exchange {
         // Get offset based on timeframe in milliseconds
         $offset = $timestamp % $ms;
         return $timestamp - $offset + (($direction === ROUND_UP) ? $ms : 0);
-    }
-
-    // given a sorted arrays of trades (recent first) and a timeframe builds an array of OHLCV candles
-    public static function build_ohlcv($trades, $timeframe = '1m', $since = PHP_INT_MIN, $limits = PHP_INT_MAX) {
-        if (empty($trades) || !is_array($trades)) {
-            return array();
-        }
-        if (!is_numeric($since)) {
-            $since = PHP_INT_MIN;
-        }
-        if (!is_numeric($limits)) {
-            $limits = PHP_INT_MAX;
-        }
-        $ms = static::parse_timeframe($timeframe) * 1000;
-        $ohlcvs = array();
-        list(/* $timestamp */, /* $open */, $high, $low, $close, $volume) = array(0, 1, 2, 3, 4, 5);
-        for ($i = 0; $i < min(count($trades), $limits); $i++) {
-            $trade = $trades[$i];
-            if ($trade['timestamp'] < $since) {
-                continue;
-            }
-            $openingTime = floor($trade['timestamp'] / $ms) * $ms; // shift to the edge of m/h/d (but not M)
-            $j = count($ohlcvs);
-
-            if (($j == 0) || ($openingTime >= $ohlcvs[$j - 1][0] + $ms)) {
-                // moved to a new timeframe -> create a new candle from opening trade
-                $ohlcvs[] = array(
-                    $openingTime,
-                    $trade['price'],
-                    $trade['price'],
-                    $trade['price'],
-                    $trade['price'],
-                    $trade['amount'],
-                );
-            } else {
-                // still processing the same timeframe -> update opening trade
-                $ohlcvs[$j - 1][$high] = max($ohlcvs[$j - 1][$high], $trade['price']);
-                $ohlcvs[$j - 1][$low] = min($ohlcvs[$j - 1][$low], $trade['price']);
-                $ohlcvs[$j - 1][$close] = $trade['price'];
-                $ohlcvs[$j - 1][$volume] += $trade['amount'];
-            }
-        }
-        return $ohlcvs;
     }
 
     public static function capitalize($string) {
@@ -2165,9 +2121,10 @@ class Exchange {
         return $array;
     }
 
-    public function filter_by_since_limit(mixed $array, ?int $since = null, ?int $limit = null, int|string $key = 'timestamp') {
+    public function filter_by_since_limit(mixed $array, ?int $since = null, ?int $limit = null, int|string $key = 'timestamp', $tail = false) {
         $sinceIsDefined = $this->valueIsDefined ($since);
         $parsedArray = $this->to_array($array);
+        $result = $parsedArray;
         if ($sinceIsDefined) {
             $result = [ ];
             for ($i = 0; $i < count($parsedArray); $i++) {
@@ -2176,15 +2133,18 @@ class Exchange {
                     $result[] = $entry;
                 }
             }
-            return $this->filter_by_limit($result, $limit, $key);
         }
-        return $this->filter_by_limit($parsedArray, $limit, $key);
+        if ($tail) {
+            return mb_substr($result, -$limit);
+        }
+        return $this->filter_by_limit($result, $limit, $key);
     }
 
-    public function filter_by_value_since_limit(mixed $array, int|string $field, $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp') {
+    public function filter_by_value_since_limit(mixed $array, int|string $field, $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp', $tail = false) {
         $valueIsDefined = $this->valueIsDefined ($value);
         $sinceIsDefined = $this->valueIsDefined ($since);
         $parsedArray = $this->to_array($array);
+        $result = $parsedArray;
         // single-pass filter for both symbol and $since
         if ($valueIsDefined || $sinceIsDefined) {
             $result = [ ];
@@ -2198,9 +2158,11 @@ class Exchange {
                     $result[] = $entry;
                 }
             }
-            return $this->filter_by_limit($result, $limit, $key);
         }
-        return $this->filter_by_limit($parsedArray, $limit, $key);
+        if ($tail) {
+            return mb_substr($result, -$limit);
+        }
+        return $this->filter_by_limit($result, $limit, $key);
     }
 
     public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null) {
@@ -2293,6 +2255,22 @@ class Exchange {
 
     public function parse_borrow_interest($info, $market = null) {
         throw new NotSupported($this->id . ' parseBorrowInterest() is not supported yet');
+    }
+
+    public function parse_ws_trade($trade, $market = null) {
+        throw new NotSupported($this->id . ' parseWsTrade() is not supported yet');
+    }
+
+    public function parse_ws_order($order, $market = null) {
+        throw new NotSupported($this->id . ' parseWsOrder() is not supported yet');
+    }
+
+    public function parse_ws_order_trade($trade, $market = null) {
+        throw new NotSupported($this->id . ' parseWsOrderTrade() is not supported yet');
+    }
+
+    public function parse_ws_ohlcv($ohlcv, $market = null) {
+        throw new NotSupported($this->id . ' parseWsOHLCV() is not supported yet');
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
@@ -3059,23 +3037,11 @@ class Exchange {
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
-        if (!$this->has['fetchTrades']) {
-            throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet');
+        $message = '';
+        if ($this->has['fetchTrades']) {
+            $message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
         }
-        $trades = $this->fetchTrades ($symbol, $since, $limit, $params);
-        $ohlcvc = $this->build_ohlcvc($trades, $timeframe, $since, $limit);
-        $result = array();
-        for ($i = 0; $i < count($ohlcvc); $i++) {
-            $result[] = [
-                $this->safe_integer($ohlcvc[$i], 0),
-                $this->safe_number($ohlcvc[$i], 1),
-                $this->safe_number($ohlcvc[$i], 2),
-                $this->safe_number($ohlcvc[$i], 3),
-                $this->safe_number($ohlcvc[$i], 4),
-                $this->safe_number($ohlcvc[$i], 5),
-            ];
-        }
-        return $result;
+        throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet' . $message);
     }
 
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3590,13 +3556,53 @@ class Exchange {
         return $this->accounts;
     }
 
-    public function fetch_ohlcvc($symbol, $timeframe = '1m', mixed $since = null, ?int $limit = null, $params = array ()) {
-        if (!$this->has['fetchTrades']) {
-            throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet');
+    public function build_ohlcvc(array $trades, string $timeframe = '1m', float $since = 0, float $limit = 2147483647) {
+        // given a sorted arrays of $trades (recent last) and a $timeframe builds an array of OHLCV candles
+        // note, default $limit value (2147483647) is max int32 value
+        $ms = $this->parse_timeframe($timeframe) * 1000;
+        $ohlcvs = array();
+        $i_timestamp = 0;
+        // $open = 1;
+        $i_high = 2;
+        $i_low = 3;
+        $i_close = 4;
+        $i_volume = 5;
+        $i_count = 6;
+        $tradesLength = count($trades);
+        $oldest = min ($tradesLength, $limit);
+        for ($i = 0; $i < $oldest; $i++) {
+            $trade = $trades[$i];
+            $ts = $trade['timestamp'];
+            if ($ts < $since) {
+                continue;
+            }
+            $openingTime = (int) floor($ts / $ms) * $ms; // shift to the edge of m/h/d (but not M)
+            if ($openingTime < $since) { // we don't need bars, that have opening time earlier than requested
+                continue;
+            }
+            $ohlcv_length = count($ohlcvs);
+            $candle = $ohlcv_length - 1;
+            if (($candle === -1) || ($openingTime >= $this->sum ($ohlcvs[$candle][$i_timestamp], $ms))) {
+                // moved to a new $timeframe -> create a new $candle from opening $trade
+                $ohlcvs[] = [
+                    $openingTime, // timestamp
+                    $trade['price'], // O
+                    $trade['price'], // H
+                    $trade['price'], // L
+                    $trade['price'], // C
+                    $trade['amount'], // V
+                    1, // count
+                ];
+            } else {
+                // still processing the same $timeframe -> update opening $trade
+                $ohlcvs[$candle][$i_high] = max ($ohlcvs[$candle][$i_high], $trade['price']);
+                $ohlcvs[$candle][$i_low] = min ($ohlcvs[$candle][$i_low], $trade['price']);
+                $ohlcvs[$candle][$i_close] = $trade['price'];
+                $ohlcvs[$candle][$i_volume] = $this->sum ($ohlcvs[$candle][$i_volume], $trade['amount']);
+                $ohlcvs[$candle][$i_count] = $this->sum ($ohlcvs[$candle][$i_count], 1);
+            }
         }
-        $this->load_markets();
-        $trades = $this->fetchTrades ($symbol, $since, $limit, $params);
-        return $this->build_ohlcvc($trades, $timeframe, $since, $limit);
+        return $ohlcvs;
     }
 
     public function parse_trading_view_ohlcv($ohlcvs, $market = null, $timeframe = '1m', ?int $since = null, ?int $limit = null) {
@@ -3616,7 +3622,7 @@ class Exchange {
         return $this->edit_order($id, $symbol, 'limit', $side, $amount, $price, $params);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $this->cancelOrder ($id, $symbol);
         return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
@@ -3773,6 +3779,10 @@ class Exchange {
 
     public function fetch_balance($params = array ()) {
         throw new NotSupported($this->id . ' fetchBalance() is not supported yet');
+    }
+
+    public function parse_balance($response) {
+        throw new NotSupported($this->id . ' parseBalance() is not supported yet');
     }
 
     public function watch_balance($params = array ()) {
@@ -4353,12 +4363,12 @@ class Exchange {
         return $currency['code'];
     }
 
-    public function filter_by_symbol_since_limit($array, ?string $symbol = null, ?int $since = null, ?int $limit = null) {
-        return $this->filter_by_value_since_limit($array, 'symbol', $symbol, $since, $limit, 'timestamp');
+    public function filter_by_symbol_since_limit($array, ?string $symbol = null, ?int $since = null, ?int $limit = null, $tail = false) {
+        return $this->filter_by_value_since_limit($array, 'symbol', $symbol, $since, $limit, 'timestamp', $tail);
     }
 
-    public function filter_by_currency_since_limit($array, $code = null, ?int $since = null, ?int $limit = null) {
-        return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp');
+    public function filter_by_currency_since_limit($array, $code = null, ?int $since = null, ?int $limit = null, $tail = false) {
+        return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp', $tail);
     }
 
     public function parse_last_prices($pricesData, ?array $symbols = null, $params = array ()) {
@@ -4595,6 +4605,7 @@ class Exchange {
         if ($this->has['fetchFundingRates']) {
             $this->load_markets();
             $market = $this->market ($symbol);
+            $symbol = $market['symbol'];
             if (!$market['contract']) {
                 throw new BadSymbol($this->id . ' fetchFundingRate() supports contract markets only');
             }
@@ -4746,7 +4757,7 @@ class Exchange {
          * @param {string} $symbol unified $symbol of the market
          * @param {string} $methodName name of the method that requires a $symbol
          */
-        $this->checkRequiredArgument ($methodName, $symbol, 'symbol');
+        $this->check_required_argument($methodName, $symbol, 'symbol');
     }
 
     public function parse_deposit_withdraw_fees($response, ?array $codes = null, $currencyIdKey = null) {

@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.btctradeua import ImplicitAPI
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -381,7 +382,7 @@ class btctradeua(Exchange, ImplicitAPI):
                 trades.append(response[i])
         return self.parse_trades(trades, market, since, limit)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

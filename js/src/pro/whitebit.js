@@ -88,7 +88,7 @@ export default class whitebit extends whitebitRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -320,7 +320,7 @@ export default class whitebit extends whitebitRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -389,7 +389,7 @@ export default class whitebit extends whitebitRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleMyTrades(client, message, subscription = undefined) {
         //
@@ -488,7 +488,7 @@ export default class whitebit extends whitebitRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleOrder(client, message, subscription = undefined) {
         //
@@ -525,13 +525,13 @@ export default class whitebit extends whitebitRest {
         }
         const stored = this.orders;
         const status = this.safeInteger(params, 0);
-        const parsed = this.parseWsOrder(data, status);
+        const parsed = this.parseWsOrder(this.extend(data, { 'status': status }));
         stored.append(parsed);
         const symbol = parsed['symbol'];
         const messageHash = 'orders:' + symbol;
         client.resolve(this.orders, messageHash);
     }
-    parseWsOrder(order, status, market = undefined) {
+    parseWsOrder(order, market = undefined) {
         //
         //   {
         //         id: 96433622651,
@@ -551,8 +551,10 @@ export default class whitebit extends whitebitRest {
         //         activation_price: '40',
         //         activation_condition: 'lte',
         //         client_order_id: ''
+        //         status: 1, // 1 = new, 2 = update 3 = cancel or execute
         //    }
         //
+        const status = this.safeInteger(order, 'status');
         const marketId = this.safeString(order, 'market');
         market = this.safeMarket(marketId, market);
         const id = this.safeString(order, 'id');
@@ -586,15 +588,16 @@ export default class whitebit extends whitebitRest {
                 'currency': market['quote'],
             };
         }
+        let unifiedStatus = undefined;
         if ((status === 1) || (status === 2)) {
-            status = 'open';
+            unifiedStatus = 'open';
         }
         else {
             if (Precise.stringEquals(remaining, '0')) {
-                status = 'closed';
+                unifiedStatus = 'closed';
             }
             else {
-                status = 'canceled';
+                unifiedStatus = 'canceled';
             }
         }
         return this.safeOrder({
@@ -617,7 +620,7 @@ export default class whitebit extends whitebitRest {
             'average': undefined,
             'filled': filled,
             'remaining': remaining,
-            'status': status,
+            'status': unifiedStatus,
             'fee': fee,
             'trades': undefined,
         }, market);

@@ -8,6 +8,7 @@ from ccxt.abstract.tokocrypto import ImplicitAPI
 import hashlib
 import json
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1491,7 +1492,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'trades': fills,
         }, market)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
         create a trade order

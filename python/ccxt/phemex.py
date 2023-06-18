@@ -8,6 +8,7 @@ from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -2184,7 +2185,7 @@ class phemex(Exchange, ImplicitAPI):
             return self.parse_swap_order(order, market)
         return self.parse_spot_order(order, market)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#place-order

@@ -90,7 +90,7 @@ class whitebit extends \ccxt\async\whitebit {
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 
@@ -328,7 +328,7 @@ class whitebit extends \ccxt\async\whitebit {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -399,7 +399,7 @@ class whitebit extends \ccxt\async\whitebit {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -501,7 +501,7 @@ class whitebit extends \ccxt\async\whitebit {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -540,14 +540,14 @@ class whitebit extends \ccxt\async\whitebit {
         }
         $stored = $this->orders;
         $status = $this->safe_integer($params, 0);
-        $parsed = $this->parse_ws_order($data, $status);
+        $parsed = $this->parse_ws_order(array_merge($data, array( 'status' => $status )));
         $stored->append ($parsed);
         $symbol = $parsed['symbol'];
         $messageHash = 'orders:' . $symbol;
         $client->resolve ($this->orders, $messageHash);
     }
 
-    public function parse_ws_order($order, $status, $market = null) {
+    public function parse_ws_order($order, $market = null) {
         //
         //   {
         //         $id => 96433622651,
@@ -567,8 +567,10 @@ class whitebit extends \ccxt\async\whitebit {
         //         activation_price => '40',
         //         activation_condition => 'lte',
         //         client_order_id => ''
+        //         $status => 1, // 1 = new, 2 = update 3 = cancel or execute
         //    }
         //
+        $status = $this->safe_integer($order, 'status');
         $marketId = $this->safe_string($order, 'market');
         $market = $this->safe_market($marketId, $market);
         $id = $this->safe_string($order, 'id');
@@ -601,13 +603,14 @@ class whitebit extends \ccxt\async\whitebit {
                 'currency' => $market['quote'],
             );
         }
+        $unifiedStatus = null;
         if (($status === 1) || ($status === 2)) {
-            $status = 'open';
+            $unifiedStatus = 'open';
         } else {
             if (Precise::string_equals($remaining, '0')) {
-                $status = 'closed';
+                $unifiedStatus = 'closed';
             } else {
-                $status = 'canceled';
+                $unifiedStatus = 'canceled';
             }
         }
         return $this->safe_order(array(
@@ -630,7 +633,7 @@ class whitebit extends \ccxt\async\whitebit {
             'average' => null,
             'filled' => $filled,
             'remaining' => $remaining,
-            'status' => $status,
+            'status' => $unifiedStatus,
             'fee' => $fee,
             'trades' => null,
         ), $market);

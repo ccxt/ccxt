@@ -42,7 +42,10 @@ class gate(ccxt.async_support.gate):
                         'usdt': 'wss://fx-ws.gateio.ws/v4/ws/delivery/usdt',
                         'btc': 'wss://fx-ws.gateio.ws/v4/ws/delivery/btc',
                     },
-                    'option': 'wss://op-ws.gateio.live/v4/ws',
+                    'option': {
+                        'usdt': 'wss://op-ws.gateio.live/v4/ws/usdt',
+                        'btc': 'wss://op-ws.gateio.live/v4/ws/btc',
+                    },
                 },
                 'test': {
                     'swap': {
@@ -53,7 +56,10 @@ class gate(ccxt.async_support.gate):
                         'usdt': 'wss://fx-ws-testnet.gateio.ws/v4/ws/usdt',
                         'btc': 'wss://fx-ws-testnet.gateio.ws/v4/ws/btc',
                     },
-                    'option': 'wss://op-ws-testnet.gateio.live/v4/ws',
+                    'option': {
+                        'usdt': 'wss://op-ws-testnet.gateio.live/v4/ws/usdt',
+                        'btc': 'wss://op-ws-testnet.gateio.live/v4/ws/btc',
+                    },
                 },
             },
             'options': {
@@ -367,7 +373,7 @@ class gate(ccxt.async_support.gate):
         trades = await self.subscribe_public(url, messageHash, payload, channel, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
         #
@@ -425,7 +431,7 @@ class gate(ccxt.async_support.gate):
         ohlcv = await self.subscribe_public(url, messageHash, payload, channel, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -515,7 +521,7 @@ class gate(ccxt.async_support.gate):
         trades = await self.subscribe_private(url, messageHash, payload, channel, params, requiresUid)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trades(self, client: Client, message):
         #
@@ -713,7 +719,7 @@ class gate(ccxt.async_support.gate):
         orders = await self.subscribe_private(url, messageHash, payload, channel, query, requiresUid)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_since_limit(orders, since, limit, 'timestamp')
+        return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
     def handle_order(self, client: Client, message):
         #
@@ -763,7 +769,7 @@ class gate(ccxt.async_support.gate):
             # inject order status
             info = self.safe_value(parsed, 'info')
             event = self.safe_string(info, 'event')
-            if event == 'put' or event == ' update':
+            if event == 'put' or event == 'update':
                 parsed['status'] = 'open'
             elif event == 'finish':
                 left = self.safe_number(info, 'left')

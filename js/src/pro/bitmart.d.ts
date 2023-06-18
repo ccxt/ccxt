@@ -9,7 +9,7 @@ export default class bitmart extends bitmartRest {
     watchTicker(symbol: string, params?: {}): Promise<any>;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): any;
+    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleTrade(client: Client, message: any): any;
     handleTicker(client: Client, message: any): any;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

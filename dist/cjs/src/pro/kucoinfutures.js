@@ -197,7 +197,7 @@ class kucoinfutures extends kucoinfutures$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrade(client, message) {
         //
@@ -435,8 +435,8 @@ class kucoinfutures extends kucoinfutures$1 {
     }
     parseWsOrder(order, market = undefined) {
         //
-        //     {
         //         'symbol': 'XCAD-USDT',
+        //     {
         //         'orderType': 'limit',
         //         'side': 'buy',
         //         'orderId': '6249167327218b000135e749',

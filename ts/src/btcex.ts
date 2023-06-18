@@ -2,7 +2,7 @@ import Exchange from './abstract/btcex.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1248,7 +1248,7 @@ export default class btcex extends Exchange {
         return this.parseOrder (result);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name btcex#createOrder

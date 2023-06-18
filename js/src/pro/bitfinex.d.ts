@@ -34,6 +34,6 @@ export default class bitfinex extends bitfinexRest {
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any, subscription: any): void;
     parseWsOrderStatus(status: any): string;
-    handleOrder(client: Client, order: any): any;
+    handleOrder(client: Client, order: any): import("../base/types.js").Order;
     handleMessage(client: Client, message: any): any;
 }

@@ -120,6 +120,9 @@ class mexc extends Exchange {
                         'public' => 'https://contract.mexc.com/api/v1/contract',
                         'private' => 'https://contract.mexc.com/api/v1/private',
                     ),
+                    'broker' => array(
+                        'private' => 'https://api.mexc.com/api/v3/broker',
+                    ),
                 ),
                 'www' => 'https://www.mexc.com/',
                 'doc' => array(
@@ -328,6 +331,29 @@ class mexc extends Exchange {
                             'order/cancel' => 1,
                             'order/cancel_by_symbol' => 1,
                             'asset/withdraw' => 2,
+                        ),
+                    ),
+                ),
+                'broker' => array(
+                    'private' => array(
+                        'get' => array(
+                            'sub-account/universalTransfer' => 1,
+                            'sub-account/list' => 1,
+                            'sub-account/apiKey' => 1,
+                            'capital/deposit/subAddress' => 1,
+                            'capital/deposit/subHisrec' => 1,
+                            'capital/deposit/subHisrec/getall' => 1,
+                        ),
+                        'post' => array(
+                            'sub-account/virtualSubAccount' => 1,
+                            'sub-account/apiKey' => 1,
+                            'capital/deposit/subAddress' => 1,
+                            'capital/withdraw/apply' => 1,
+                            'sub-account/universalTransfer' => 1,
+                            'sub-account/futures' => 1,
+                        ),
+                        'delete' => array(
+                            'sub-account/apiKey' => 1,
                         ),
                     ),
                 ),
@@ -1733,7 +1759,7 @@ class mexc extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -2974,7 +3000,7 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response, $marketType) {
+    public function custom_parse_balance($response, $marketType) {
         //
         // spot
         //
@@ -3219,7 +3245,7 @@ class mexc extends Exchange {
         //         )
         //     }
         //
-        return $this->parse_balance($response, $marketType);
+        return $this->custom_parse_balance($response, $marketType);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -4905,8 +4931,12 @@ class mexc extends Exchange {
         $access = $this->safe_string($api, 1);
         list($path, $params) = $this->resolve_path($path, $params);
         $url = null;
-        if ($section === 'spot') {
-            $url = $this->urls['api'][$section][$access] . '/api/' . $this->version . '/' . $path;
+        if ($section === 'spot' || $section === 'broker') {
+            if ($section === 'broker') {
+                $url = $this->urls['api'][$section][$access] . '/' . $path;
+            } else {
+                $url = $this->urls['api'][$section][$access] . '/api/' . $this->version . '/' . $path;
+            }
             $paramsEncoded = '';
             if ($access === 'private') {
                 $params['timestamp'] = $this->milliseconds();

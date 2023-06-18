@@ -892,7 +892,8 @@ class huobi extends huobi$1 {
                     'base-currency-chain-error': errors.BadRequest,
                     'dw-insufficient-balance': errors.InsufficientFunds,
                     'base-withdraw-fee-error': errors.BadRequest,
-                    'dw-withdraw-min-limit': errors.BadRequest, // {"status":"error","err-code":"dw-withdraw-min-limit","err-msg":"The withdrawal amount is less than the minimum limit.","data":null}
+                    'dw-withdraw-min-limit': errors.BadRequest,
+                    'request limit': errors.RateLimitExceeded, // {"ts":1687004814731,"status":"error","err-code":"invalid-parameter","err-msg":"request limit"}
                 },
             },
             'precisionMode': number.TICK_SIZE,
@@ -5575,10 +5576,14 @@ class huobi extends huobi$1 {
             feeCost = Precise["default"].stringAbs(feeCost);
         }
         const networkId = this.safeString(transaction, 'chain');
+        let txHash = this.safeString(transaction, 'tx-hash');
+        if (networkId === 'ETH' && txHash.indexOf('0x') < 0) {
+            txHash = '0x' + txHash;
+        }
         return {
             'info': transaction,
             'id': this.safeString2(transaction, 'id', 'data'),
-            'txid': this.safeString(transaction, 'tx-hash'),
+            'txid': txHash,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'network': this.networkIdToCode(networkId, code),

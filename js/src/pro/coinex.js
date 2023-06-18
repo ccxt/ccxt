@@ -310,13 +310,13 @@ export default class coinex extends coinexRest {
         }
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
-            const parsed = this.parseWSTrade(trade, market);
+            const parsed = this.parseWsTrade(trade, market);
             stored.append(parsed);
         }
         this.trades[symbol] = stored;
         client.resolve(this.trades[symbol], messageHash);
     }
-    parseWSTrade(trade, market = undefined) {
+    parseWsTrade(trade, market = undefined) {
         //
         //     {
         //         "type": "sell",
@@ -449,7 +449,7 @@ export default class coinex extends coinexRest {
         this.options['watchTradesSubscriptions'] = subscribedSymbols;
         const request = this.deepExtend(message, params);
         const trades = await this.watch(url, messageHash, request, subscriptionHash);
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -732,7 +732,7 @@ export default class coinex extends coinexRest {
         //
         const params = this.safeValue(message, 'params', []);
         const order = this.safeValue(params, 1, {});
-        const parsedOrder = this.parseWSOrder(order);
+        const parsedOrder = this.parseWsOrder(order);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -743,7 +743,7 @@ export default class coinex extends coinexRest {
         messageHash += ':' + parsedOrder['symbol'];
         client.resolve(this.orders, messageHash);
     }
-    parseWSOrder(order) {
+    parseWsOrder(order, market = undefined) {
         //
         //  spot
         //
@@ -857,7 +857,7 @@ export default class coinex extends coinexRest {
         const amount = this.safeString(order, 'amount');
         const status = this.safeString(order, 'status');
         const defaultType = this.safeString(this.options, 'defaultType');
-        const market = this.safeMarket(marketId, undefined, undefined, defaultType);
+        market = this.safeMarket(marketId, market, undefined, defaultType);
         let cost = this.safeString(order, 'deal_money');
         let filled = this.safeString(order, 'deal_stock');
         let average = undefined;
@@ -896,12 +896,12 @@ export default class coinex extends coinexRest {
             'remaining': remaining,
             'cost': cost,
             'average': average,
-            'status': this.parseWSOrderStatus(status),
+            'status': this.parseWsOrderStatus(status),
             'fee': fee,
             'trades': undefined,
         }, market);
     }
-    parseWSOrderStatus(status) {
+    parseWsOrderStatus(status) {
         const statuses = {
             '0': 'pending',
             '1': 'ok',

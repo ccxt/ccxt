@@ -108,7 +108,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -134,7 +134,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -160,7 +160,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -254,7 +254,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         return $message;
     }
 
-    public function parse_ws_trade($trade) {
+    public function parse_ws_trade($trade, $market = null) {
         //
         // private trades
         // {
@@ -503,7 +503,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         }
     }
 
-    public function parse_ws_order($order) {
+    public function parse_ws_order($order, $market = null) {
         $id = $this->safe_string($order, 'order_id');
         $clientOrderId = $this->safe_string($order, 'client_oid');
         $marketId = $this->safe_string($order, 'product_id');

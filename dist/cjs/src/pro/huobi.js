@@ -199,7 +199,7 @@ class huobi extends huobi$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -264,7 +264,7 @@ class huobi extends huobi$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -684,7 +684,7 @@ class huobi extends huobi$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     getOrderChannelAndMessageHash(type, subType, market = undefined, params = {}) {
         let messageHash = undefined;
@@ -776,7 +776,7 @@ class huobi extends huobi$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(orders, since, limit, 'timestamp');
+        return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
     }
     handleOrder(client, message) {
         //
@@ -1960,7 +1960,7 @@ class huobi extends huobi$1 {
             }
         }
     }
-    parseWsTrade(trade) {
+    parseWsTrade(trade, market = undefined) {
         // spot private
         //
         //     {
@@ -1992,7 +1992,7 @@ class huobi extends huobi$1 {
         const amount = this.safeString(trade, 'tradeVolume');
         const order = this.safeString(trade, 'orderId');
         const timestamp = this.safeInteger(trade, 'tradeTime');
-        const market = this.market(symbol);
+        market = this.market(symbol);
         const orderType = this.safeString(trade, 'orderType');
         const aggressor = this.safeValue(trade, 'aggressor');
         let takerOrMaker = undefined;

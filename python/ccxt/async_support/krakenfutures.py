@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -58,9 +59,9 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': None,  # https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchFundingHistory': None,
-                'fetchFundingRate': False,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': False,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedPositions': False,
                 'fetchLeverageTiers': True,
@@ -770,7 +771,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'fee': None,
         })
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
         :param str symbol: market symbol
@@ -1511,6 +1512,86 @@ class krakenfutures(Exchange, ImplicitAPI):
                 account['total'] = self.safe_string(auxiliary, 'pv')
             result[code] = account
         return self.safe_balance(result)
+
+    async def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
+        fetch the current funding rates
+        :param [str] symbols: unified market symbols
+        :param dict params: extra parameters specific to the krakenfutures api endpoint
+        :returns [dict]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        marketIds = self.market_ids(symbols)
+        response = await self.publicGetTickers(params)
+        tickers = self.safe_value(response, 'tickers')
+        fundingRates = []
+        for i in range(0, len(tickers)):
+            entry = tickers[i]
+            entry_symbol = self.safe_value(entry, 'symbol')
+            if marketIds is not None:
+                if not self.in_array(entry_symbol, marketIds):
+                    continue
+            market = self.safe_market(entry_symbol)
+            parsed = self.parse_funding_rate(entry, market)
+            fundingRates.append(parsed)
+        return self.index_by(fundingRates, 'symbol')
+
+    def parse_funding_rate(self, ticker, market=None):
+        #
+        # {'ask': 26.283,
+        #  'askSize': 4.6,
+        #  'bid': 26.201,
+        #  'bidSize': 190,
+        #  'fundingRate': -0.000944642727438883,
+        #  'fundingRatePrediction': -0.000872671532340275,
+        #  'indexPrice': 26.253,
+        #  'last': 26.3,
+        #  'lastSize': 0.1,
+        #  'lastTime': '2023-06-11T18:55:28.958Z',
+        #  'markPrice': 26.239,
+        #  'open24h': 26.3,
+        #  'openInterest': 641.1,
+        #  'pair': 'COMP:USD',
+        #  'postOnly': False,
+        #  'suspended': False,
+        #  'symbol': 'pf_compusd',
+        #  'tag': 'perpetual',
+        #  'vol24h': 0.1,
+        #  'volumeQuote': 2.63}
+        #
+        fundingRateMultiplier = '8'  # https://support.kraken.com/hc/en-us/articles/9618146737172-Perpetual-Contracts-Funding-Rate-Method-Prior-to-September-29-2022
+        marketId = self.safe_string(ticker, 'symbol')
+        symbol = self.symbol(marketId)
+        timestamp = self.parse8601(self.safe_string(ticker, 'lastTime'))
+        indexPrice = self.safe_number(ticker, 'indexPrice')
+        markPriceString = self.safe_string(ticker, 'markPrice')
+        markPrice = self.parse_number(markPriceString)
+        fundingRateString = self.safe_string(ticker, 'fundingRate')
+        fundingRateResult = Precise.string_div(Precise.string_mul(fundingRateString, fundingRateMultiplier), markPriceString)
+        fundingRate = self.parse_number(fundingRateResult)
+        nextFundingRateString = self.safe_string(ticker, 'fundingRatePrediction')
+        nextFundingRateResult = Precise.string_div(Precise.string_mul(nextFundingRateString, fundingRateMultiplier), markPriceString)
+        nextFundingRate = self.parse_number(nextFundingRateResult)
+        return {
+            'info': ticker,
+            'symbol': symbol,
+            'markPrice': markPrice,
+            'indexPrice': indexPrice,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fundingRate': fundingRate,
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': nextFundingRate,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
 
     async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.check_required_symbol('fetchFundingRateHistory', symbol)

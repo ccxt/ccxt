@@ -17,7 +17,7 @@ class ImplicitAPI:
     private_post_order_limit_sell = privatePostOrderLimitSell = Entry('order/limit_sell/', 'private', 'POST', {})
     private_post_order_complete_orders = privatePostOrderCompleteOrders = Entry('order/complete_orders/', 'private', 'POST', {})
     private_post_order_limit_orders = privatePostOrderLimitOrders = Entry('order/limit_orders/', 'private', 'POST', {})
-    private_post_order_order_info = privatePostOrderOrderInfo = Entry('order/order_info/', 'private', 'POST', {})
+    private_post_order_query_order = privatePostOrderQueryOrder = Entry('order/query_order/', 'private', 'POST', {})
     private_post_transaction_auth_number = privatePostTransactionAuthNumber = Entry('transaction/auth_number/', 'private', 'POST', {})
     private_post_transaction_history = privatePostTransactionHistory = Entry('transaction/history/', 'private', 'POST', {})
     private_post_transaction_krw_history = privatePostTransactionKrwHistory = Entry('transaction/krw/history/', 'private', 'POST', {})
