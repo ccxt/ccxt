@@ -620,7 +620,7 @@ class wazirx extends \ccxt\async\wazirx {
         $client->resolve ($this->orders, $messageHash);
     }
 
-    public function parse_ws_order($order) {
+    public function parse_ws_order($order, $market = null) {
         //
         //     {
         //         "E" => 1631683058904,

@@ -3787,6 +3787,7 @@ exchange.create_limit_sell_order (symbol, amount, price[, params])
 #### Stop Orders
 
 Stop orders, are placed onto the order book when the price of the underlying asset reaches the trigger price.
+
 * They can be used to close positions when a certain profit level is reached, or to mitigate a large loss.
 * They can be stand-alone orders ([Trigger](#trigger-order), [Stop Loss](#stop-loss-orders), [Take Profit](#take-profit-orders)).
 * Or they can be attached to a primary order ([Conditional Stop Orders](#stopLoss-and-takeProfit-orders-attached-to-a-position)).
@@ -3796,6 +3797,7 @@ Stop orders, are placed onto the order book when the price of the underlying ass
 ##### Trigger Order
 
 Traditional "stop" order (which you might see across exchanges' websites) is now called "trigger" order across CCXT library. Implemented by adding a `triggerPrice` parameter. They are independent basic trigger orders that can open and close a position.
+
 * Activated when price of the underlying asset/contract crosses the `triggerPrice` from **any direction**
 
 ```javascript
@@ -3838,15 +3840,19 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 ```
 
 ##### Stop Loss Orders
+
 The same as Trigger Orders, but the direction matters. Implemented by specifying a `stopLossPrice` parameter.
 
 Stop Loss orders are activated when the price of the underlying asset/contract:
+
 * drops below the `stopLossPrice` from above, for sell orders. (eg: to close a long position, and avoid further losses)
 * rises above the `stopLossPrice` from below, for buy orders (eg: to close a short position, and avoid further losses)
 
 ##### Take Profit Orders
+
 The same as Trigger Orders, but the direction matters. Implemented by specifying a `takeProfitPrice` parameter.
 Take Profit orders are activated when the price of the underlying:
+
 * rises above the `takeProfitPrice` from below, for sell orders (eg: to close a long position, at a profit)
 * drops below the `takeProfitPrice` from above, for buy orders (eg: to close a short position, at a profit)
 
@@ -3899,7 +3905,9 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 ```
 
 #### StopLoss and TakeProfit orders attached to a position
+
 **Take Profit** / **Stop Loss** Orders which are tied to a position-opening primary order. Implemented by supplying a dictionary parameters for `stopLoss` and `takeProfit` describing each respectively.
+
 * By default StopLoss and TakeProfit Orders will be the same magnitude as primary order but in the opposite direction.
 * Attached stop orders are conditional on the primary order being executed.§
 * Not supported by all exchanges.
@@ -3965,8 +3973,6 @@ $params = {
 }
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
-
-
 
 #### Custom Order Params
 

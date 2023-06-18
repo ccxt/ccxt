@@ -403,6 +403,7 @@ export default class bybit extends Exchange {
                         'v5/spot-cross-margin-trade/orders': 1,
                         'v5/spot-cross-margin-trade/repay-history': 1,
                         'v5/ins-loan/ltv-convert': 1,
+                        'v5/broker/earning-record': 1,
                     },
                     'post': {
                         // inverse swap
@@ -1825,8 +1826,9 @@ export default class bybit extends Exchange {
         const timestamp = this.safeInteger(ticker, 'time');
         const marketId = this.safeString(ticker, 'symbol');
         const defaultType = this.safeString(this.options, 'defaultType', 'spot');
-        market = this.safeMarket(marketId, market, undefined, defaultType);
-        const symbol = this.safeSymbol(marketId, market, undefined, defaultType);
+        const type = this.safeString(market, 'type', defaultType);
+        market = this.safeMarket(marketId, market, undefined, type);
+        const symbol = this.safeSymbol(marketId, market, undefined, type);
         const last = this.safeString(ticker, 'lastPrice');
         const open = this.safeString(ticker, 'prevPrice24h');
         let percentage = this.safeString(ticker, 'price24hPcnt');
@@ -4934,7 +4936,7 @@ export default class bybit extends Exchange {
                 request['category'] = 'linear';
             }
             else {
-                throw new NotSupported(this.id + ' fetchOrders() does not allow inverse market orders for ' + symbol + ' markets');
+                request['category'] = 'inverse';
             }
         }
         const isStop = this.safeValue(params, 'stop', false);
@@ -5148,6 +5150,20 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        const endTime = this.safeInteger(params, 'endTime', until); // exchange-specific in milliseconds
+        params = this.omit(params, ['endTime', 'till', 'until']);
+        if (endTime !== undefined) {
+            request['endTime'] = endTime;
+        }
+        else {
+            if (since !== undefined) {
+                throw new BadRequest(this.id + ' fetchOrders() requires until/endTime when since is provided.');
+            }
+        }
         const response = await this.privateGetV5OrderHistory(this.extend(request, params));
         //
         //     {
@@ -5233,7 +5249,7 @@ export default class bybit extends Exchange {
         }
         const [type, query] = this.handleMarketTypeAndParams('fetchOrders', market, params);
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
-        if (enableUnifiedAccount && !isInverse) {
+        if (enableUnifiedAccount) {
             return await this.fetchUnifiedAccountOrders(symbol, since, limit, query);
         }
         else if (type === 'spot') {

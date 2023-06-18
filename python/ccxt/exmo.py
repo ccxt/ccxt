@@ -633,9 +633,9 @@ class exmo(Exchange, ImplicitAPI):
                 for j in range(0, len(providers)):
                     provider = providers[j]
                     typeInner = self.safe_string(provider, 'type')
-                    minValue = self.safe_number(provider, 'min')
-                    maxValue = self.safe_number(provider, 'max')
-                    if maxValue == 0.0:
+                    minValue = self.safe_string(provider, 'min')
+                    maxValue = self.safe_string(provider, 'max')
+                    if Precise.string_eq(maxValue, '0.0'):
                         maxValue = None
                     activeProvider = self.safe_value(provider, 'enabled')
                     if typeInner == 'deposit':
@@ -650,7 +650,8 @@ class exmo(Exchange, ImplicitAPI):
                             withdrawEnabled = False
                     if activeProvider:
                         active = True
-                        if (limits[typeInner]['min'] is None) or (minValue < limits[typeInner]['min']):
+                        limitMin = self.number_to_string(limits[typeInner]['min'])
+                        if (limits[typeInner]['min'] is None) or (Precise.string_lt(minValue, limitMin)):
                             limits[typeInner]['min'] = minValue
                             limits[typeInner]['max'] = maxValue
                             if typeInner == 'withdraw':

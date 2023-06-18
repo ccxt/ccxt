@@ -249,7 +249,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         #
         name = 'myTrade'
         data = self.safe_value(message, 2)
-        trade = self.parse_ws_trade(data, False)
+        trade = self.parse_ws_trade(data)
         symbol = trade['symbol']
         market = self.market(symbol)
         messageHash = name + ':' + market['id']
@@ -305,13 +305,12 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         if stored is None:
             stored = ArrayCache(tradesLimit)
             self.trades[symbol] = stored
-        isPublicTrade = True
         messageLength = len(message)
         if messageLength == 2:
             # initial snapshot
             trades = self.safe_value(message, 1, [])
             for i in range(0, len(trades)):
-                parsed = self.parse_ws_trade(trades[i], isPublicTrade, market)
+                parsed = self.parse_ws_trade(trades[i], market)
                 stored.append(parsed)
         else:
             # update
@@ -321,12 +320,12 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                 # since te and tu updates are duplicated on the public stream
                 return
             trade = self.safe_value(message, 2, [])
-            parsed = self.parse_ws_trade(trade, isPublicTrade, market)
+            parsed = self.parse_ws_trade(trade, market)
             stored.append(parsed)
         client.resolve(stored, messageHash)
         return message
 
-    def parse_ws_trade(self, trade, isPublic=False, market=None):
+    def parse_ws_trade(self, trade, market=None):
         #
         #    [
         #        1128060969,  # id
@@ -369,6 +368,8 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         #       1655110144596
         #    ]
         #
+        numFields = len(trade)
+        isPublic = numFields <= 8
         marketId = self.safe_string(trade, 1) if (not isPublic) else None
         market = self.safe_market(marketId, market)
         createdKey = 1 if isPublic else 2

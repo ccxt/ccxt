@@ -713,7 +713,7 @@ class coinex(ccxt.async_support.coinex):
         messageHash += ':' + parsedOrder['symbol']
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order):
+    def parse_ws_order(self, order, market=None):
         #
         #  spot
         #
@@ -827,7 +827,7 @@ class coinex(ccxt.async_support.coinex):
         amount = self.safe_string(order, 'amount')
         status = self.safe_string(order, 'status')
         defaultType = self.safe_string(self.options, 'defaultType')
-        market = self.safe_market(marketId, None, None, defaultType)
+        market = self.safe_market(marketId, market, None, defaultType)
         cost = self.safe_string(order, 'deal_money')
         filled = self.safe_string(order, 'deal_stock')
         average = None
