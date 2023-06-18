@@ -1711,7 +1711,7 @@ export default class binance extends Exchange {
             return undefined;
         }
         // sandbox/testnet does not support sapi endpoints
-        const apiBackup = this.safeString (this.urls, 'apiBackup');
+        const apiBackup = this.safeValue (this.urls, 'apiBackup');
         if (apiBackup !== undefined) {
             return undefined;
         }
