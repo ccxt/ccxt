@@ -2817,6 +2817,11 @@ export default class Exchange {
         return await this.createOrder (symbol, type, side, amount, price, params);
     }
 
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
+        await this.cancelOrderWs (id, symbol);
+        return await this.createOrderWs (symbol, type, side, amount, price, params);
+    }
+
     async fetchPermissions (params = {}) {
         throw new NotSupported (this.id + ' fetchPermissions() is not supported yet');
     }
@@ -3234,11 +3239,27 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
+        throw new NotSupported (this.id + ' createOrderWs() is not supported yet');
+    }
+
     async cancelOrder (id: string, symbol: string = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
     }
 
+    async cancelOrderWs (id: string, symbol: string = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' cancelOrderWs() is not supported yet');
+    }
+
+    async cancelOrdersWs (ids: string[], symbol: string = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' cancelOrdersWs() is not supported yet');
+    }
+
     async cancelAllOrders (symbol: string = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' cancelAllOrders() is not supported yet');
+    }
+
+    async cancelAllOrderWs (symbol: string = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' cancelAllOrders() is not supported yet');
     }
 
