@@ -636,111 +636,75 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-history
+         * @param {string} symbol unified market symbol of the market the orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for, max date range is one day
+         * @param {int|undefined} limit the maximum number of order structures to retrieve, default 100 max 100
          * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
-        }
         await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
-            'instrument_name': market['id'],
-        };
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['instrument_name'] = market['id'];
+        }
         if (since !== undefined) {
-            // maximum date range is one day
-            request['start_ts'] = since;
+            request['start_time'] = since;
         }
         if (limit !== undefined) {
-            request['page_size'] = limit;
+            request['limit'] = limit;
         }
-        const [marketType, marketTypeQuery] = this.handleMarketTypeAndParams('fetchOrders', market, params);
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'v2PrivatePostPrivateGetOrderHistory',
-            'margin': 'v2PrivatePostPrivateMarginGetOrderHistory',
-            'future': 'derivativesPrivatePostPrivateGetOrderHistory',
-            'swap': 'derivativesPrivatePostPrivateGetOrderHistory',
-        });
-        const [marginMode, query] = this.customHandleMarginModeAndParams('fetchOrders', marketTypeQuery);
-        if (marginMode !== undefined) {
-            method = 'v2PrivatePostPrivateMarginGetOrderHistory';
+        const until = this.safeInteger2(params, 'until', 'till');
+        params = this.omit(params, ['until', 'till']);
+        if (until !== undefined) {
+            request['end_time'] = until;
         }
-        const response = await this[method](this.extend(request, query));
+        const response = await this.v1PrivatePostPrivateGetOrderHistory(this.extend(request, params));
         //
-        // spot and margin
         //     {
-        //       id: 1641026542065,
-        //       method: 'private/get-order-history',
-        //       code: 0,
-        //       result: {
-        //         order_list: [
-        //           {
-        //             status: 'FILLED',
-        //             side: 'BUY',
-        //             price: 0,
-        //             quantity: 110,
-        //             order_id: '2120246337927715937',
-        //             client_oid: '',
-        //             create_time: 1641025064904,
-        //             update_time: 1641025064958,
-        //             type: 'MARKET',
-        //             instrument_name: 'USDC_USDT',
-        //             avg_price: 1.0001,
-        //             cumulative_quantity: 110,
-        //             cumulative_value: 110.011,
-        //             fee_currency: 'USDC',
-        //             exec_inst: '',
-        //             time_in_force: 'GOOD_TILL_CANCEL'
-        //           }
-        //         ]
-        //       }
-        //     }
-        //
-        // swap
-        //     {
-        //       id: 1641026373106,
-        //       method: 'private/get-order-history',
-        //       code: 0,
-        //       result: {
-        //         data: [
-        //           {
-        //             account_id: '85ff689a-7508-4b96-aa79-dc0545d6e637',
-        //             order_id: 13191401932,
-        //             client_oid: '1641025941461',
-        //             order_type: 'LIMIT',
-        //             time_in_force: 'GOOD_TILL_CANCEL',
-        //             side: 'BUY',
-        //             exec_inst: [],
-        //             quantity: '0.0001',
-        //             limit_price: '48000.0',
-        //             order_value: '4.80000000',
-        //             maker_fee_rate: '0.00050',
-        //             taker_fee_rate: '0.00070',
-        //             avg_price: '47253.5',
-        //             trigger_price: '0.0',
-        //             ref_price_type: 'NULL_VAL',
-        //             cumulative_quantity: '0.0001',
-        //             cumulative_value: '4.72535000',
-        //             cumulative_fee: '0.00330775',
-        //             status: 'FILLED',
-        //             update_user_id: 'ce075bef-b600-4277-bd6e-ff9007251e63',
-        //             order_date: '2022-01-01',
-        //             instrument_name: 'BTCUSD-PERP',
-        //             fee_instrument_name: 'USD_Stable_Coin',
-        //             create_time: 1641025941827,
-        //             create_time_ns: '1641025941827994756',
-        //             update_time: 1641025941827
-        //           }
-        //         ]
-        //       }
+        //         "id": 1686881486183,
+        //         "method": "private/get-order-history",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "account_id": "ce075bef-1234-4321-bd6g-ff9007252e63",
+        //                     "order_id": "6142909895014042762",
+        //                     "client_oid": "4e918597-1234-4321-8201-a7577e1e1d91",
+        //                     "order_type": "MARKET",
+        //                     "time_in_force": "GOOD_TILL_CANCEL",
+        //                     "side": "SELL",
+        //                     "exec_inst": [ ],
+        //                     "quantity": "0.00024",
+        //                     "order_value": "5.7054672",
+        //                     "maker_fee_rate": "0",
+        //                     "taker_fee_rate": "0",
+        //                     "avg_price": "25023.97",
+        //                     "trigger_price": "0",
+        //                     "ref_price": "0",
+        //                     "ref_price_type": "NULL_VAL",
+        //                     "cumulative_quantity": "0.00024",
+        //                     "cumulative_value": "6.0057528",
+        //                     "cumulative_fee": "0.001501438200",
+        //                     "status": "FILLED",
+        //                     "update_user_id": "ce075bef-1234-4321-bd6g-ff9007252e63",
+        //                     "order_date": "2023-06-15",
+        //                     "instrument_name": "BTC_USD",
+        //                     "fee_instrument_name": "USD",
+        //                     "create_time": 1686805465891,
+        //                     "create_time_ns": "1686805465891812578",
+        //                     "update_time": 1686805465891
+        //                 }
+        //             ]
+        //         }
         //     }
         //
         const data = this.safeValue(response, 'result', {});
-        const orderList = this.safeValue2(data, 'order_list', 'data', []);
-        return this.parseOrders(orderList, market, since, limit);
+        const orders = this.safeValue(data, 'data', []);
+        return this.parseOrders(orders, market, since, limit);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**

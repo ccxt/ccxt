@@ -639,112 +639,76 @@ class cryptocom extends Exchange {
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * fetches information on multiple orders made by the user
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * fetches information on multiple $orders made by the user
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-history
+             * @param {string} $symbol unified $market $symbol of the $market the $orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch $orders for, max date range is one day
+             * @param {int|null} $limit the maximum number of order structures to retrieve, default 100 max 100
              * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @param {int|null} $params->until timestamp in ms for the ending date filter, default is the current time
              * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $request = array(
-                'instrument_name' => $market['id'],
-            );
+            $market = null;
+            $request = array();
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['instrument_name'] = $market['id'];
+            }
             if ($since !== null) {
-                // maximum date range is one day
-                $request['start_ts'] = $since;
+                $request['start_time'] = $since;
             }
             if ($limit !== null) {
-                $request['page_size'] = $limit;
+                $request['limit'] = $limit;
             }
-            list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'v2PrivatePostPrivateGetOrderHistory',
-                'margin' => 'v2PrivatePostPrivateMarginGetOrderHistory',
-                'future' => 'derivativesPrivatePostPrivateGetOrderHistory',
-                'swap' => 'derivativesPrivatePostPrivateGetOrderHistory',
-            ));
-            list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('fetchOrders', $marketTypeQuery);
-            if ($marginMode !== null) {
-                $method = 'v2PrivatePostPrivateMarginGetOrderHistory';
+            $until = $this->safe_integer_2($params, 'until', 'till');
+            $params = $this->omit($params, array( 'until', 'till' ));
+            if ($until !== null) {
+                $request['end_time'] = $until;
             }
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = Async\await($this->v1PrivatePostPrivateGetOrderHistory (array_merge($request, $params)));
             //
-            // spot and margin
             //     {
-            //       id => 1641026542065,
-            //       $method => 'private/get-order-history',
-            //       code => 0,
-            //       result => {
-            //         order_list => array(
-            //           {
-            //             status => 'FILLED',
-            //             side => 'BUY',
-            //             price => 0,
-            //             quantity => 110,
-            //             order_id => '2120246337927715937',
-            //             client_oid => '',
-            //             create_time => 1641025064904,
-            //             update_time => 1641025064958,
-            //             type => 'MARKET',
-            //             instrument_name => 'USDC_USDT',
-            //             avg_price => 1.0001,
-            //             cumulative_quantity => 110,
-            //             cumulative_value => 110.011,
-            //             fee_currency => 'USDC',
-            //             exec_inst => '',
-            //             time_in_force => 'GOOD_TILL_CANCEL'
-            //           }
-            //         )
-            //       }
-            //     }
-            //
-            // swap
-            //     {
-            //       id => 1641026373106,
-            //       $method => 'private/get-order-history',
-            //       code => 0,
-            //       result => {
-            //         $data => array(
-            //           {
-            //             account_id => '85ff689a-7508-4b96-aa79-dc0545d6e637',
-            //             order_id => 13191401932,
-            //             client_oid => '1641025941461',
-            //             order_type => 'LIMIT',
-            //             time_in_force => 'GOOD_TILL_CANCEL',
-            //             side => 'BUY',
-            //             exec_inst => array(),
-            //             quantity => '0.0001',
-            //             limit_price => '48000.0',
-            //             order_value => '4.80000000',
-            //             maker_fee_rate => '0.00050',
-            //             taker_fee_rate => '0.00070',
-            //             avg_price => '47253.5',
-            //             trigger_price => '0.0',
-            //             ref_price_type => 'NULL_VAL',
-            //             cumulative_quantity => '0.0001',
-            //             cumulative_value => '4.72535000',
-            //             cumulative_fee => '0.00330775',
-            //             status => 'FILLED',
-            //             update_user_id => 'ce075bef-b600-4277-bd6e-ff9007251e63',
-            //             order_date => '2022-01-01',
-            //             instrument_name => 'BTCUSD-PERP',
-            //             fee_instrument_name => 'USD_Stable_Coin',
-            //             create_time => 1641025941827,
-            //             create_time_ns => '1641025941827994756',
-            //             update_time => 1641025941827
-            //           }
-            //         )
-            //       }
+            //         "id" => 1686881486183,
+            //         "method" => "private/get-order-history",
+            //         "code" => 0,
+            //         "result" => {
+            //             "data" => array(
+            //                 {
+            //                     "account_id" => "ce075bef-1234-4321-bd6g-ff9007252e63",
+            //                     "order_id" => "6142909895014042762",
+            //                     "client_oid" => "4e918597-1234-4321-8201-a7577e1e1d91",
+            //                     "order_type" => "MARKET",
+            //                     "time_in_force" => "GOOD_TILL_CANCEL",
+            //                     "side" => "SELL",
+            //                     "exec_inst" => array( ),
+            //                     "quantity" => "0.00024",
+            //                     "order_value" => "5.7054672",
+            //                     "maker_fee_rate" => "0",
+            //                     "taker_fee_rate" => "0",
+            //                     "avg_price" => "25023.97",
+            //                     "trigger_price" => "0",
+            //                     "ref_price" => "0",
+            //                     "ref_price_type" => "NULL_VAL",
+            //                     "cumulative_quantity" => "0.00024",
+            //                     "cumulative_value" => "6.0057528",
+            //                     "cumulative_fee" => "0.001501438200",
+            //                     "status" => "FILLED",
+            //                     "update_user_id" => "ce075bef-1234-4321-bd6g-ff9007252e63",
+            //                     "order_date" => "2023-06-15",
+            //                     "instrument_name" => "BTC_USD",
+            //                     "fee_instrument_name" => "USD",
+            //                     "create_time" => 1686805465891,
+            //                     "create_time_ns" => "1686805465891812578",
+            //                     "update_time" => 1686805465891
+            //                 }
+            //             )
+            //         }
             //     }
             //
             $data = $this->safe_value($response, 'result', array());
-            $orderList = $this->safe_value_2($data, 'order_list', 'data', array());
-            return $this->parse_orders($orderList, $market, $since, $limit);
+            $orders = $this->safe_value($data, 'data', array());
+            return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
 
