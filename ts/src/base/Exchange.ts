@@ -876,58 +876,40 @@ export default class Exchange {
         }
 
         // ################## PROXY ##################
-        // old approach, kept for backward-compatibility
-        if (this.proxy !== undefined) {
-            if (typeof this.proxy === 'function') {
-                url = (this as any).proxy (url)
-                if (isNode) {
-                    headers = this.extend ({ 'Origin': this.origin }, headers)
-                }
-            } else if (typeof this.proxy === 'string') {
-                if (this.proxy.length && isNode) {
-                    headers = this.extend ({ 'Origin': this.origin }, headers)
-                }
-                url = this.proxy + url
+        if (proxyUrl !== undefined) {
+            // in node we need to set header to *
+            if (isNode) {
+                headers = this.extend ({ 'Origin': this.origin }, headers)
             }
-        }
-        // new code
-        else {
-            if (proxyUrl !== undefined) {
-                // in node we need to set header to *
-                if (isNode) {
-                    headers = this.extend ({ 'Origin': this.origin }, headers)
-                }
-                url = proxyUrl + url
-            } else if (proxyUrlCallback !== undefined) {
-                // in node we need to set header to *
-                if (isNode) {
-                    headers = this.extend ({ 'Origin': this.origin }, headers)
-                }
-                url = proxyUrlCallback (url, method, headers, body);
-            } else if (httpProxy !== undefined) {
-                const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js')
-                const proxyAgent = new module.HttpProxyAgent(httpProxy);
-                this.agent = proxyAgent;
-            }  else if (httpsProxy !== undefined) {
-                const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js')
-                const proxyAgent = new module.HttpsProxyAgent(httpsProxy);
-                proxyAgent.keepAlive = true;
-                this.agent = proxyAgent;
-            } else if (socksProxy !== undefined) {
-                let module = undefined;
-                try {
-                    // @ts-ignore
-                    module = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
-                } catch (e) {
-                    throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" '); 
-                }
-                const proxyAgent = new module.SocksProxyAgent(socksProxy);
-                this.agent = proxyAgent;
-            } else if (userAgentCallback !== undefined) {
-                this.agent = userAgentCallback (url, method, headers, body);
+            url = proxyUrl + url
+        } else if (proxyUrlCallback !== undefined) {
+            // in node we need to set header to *
+            if (isNode) {
+                headers = this.extend ({ 'Origin': this.origin }, headers)
             }
+            url = proxyUrlCallback (url, method, headers, body);
+        } else if (httpProxy !== undefined) {
+            const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js')
+            const proxyAgent = new module.HttpProxyAgent(httpProxy);
+            this.agent = proxyAgent;
+        }  else if (httpsProxy !== undefined) {
+            const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js')
+            const proxyAgent = new module.HttpsProxyAgent(httpsProxy);
+            proxyAgent.keepAlive = true;
+            this.agent = proxyAgent;
+        } else if (socksProxy !== undefined) {
+            let module = undefined;
+            try {
+                // @ts-ignore
+                module = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
+            } catch (e) {
+                throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" '); 
+            }
+            const proxyAgent = new module.SocksProxyAgent(socksProxy);
+            this.agent = proxyAgent;
+        } else if (userAgentCallback !== undefined) {
+            this.agent = userAgentCallback (url, method, headers, body);
         }
-
 
         // ####################################
         // ####################################
