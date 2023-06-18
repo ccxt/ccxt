@@ -1364,7 +1364,6 @@ class Exchange {
 
         $headers = array_merge($this->headers, $headers ? $headers : array());
 
-        // 
         // old approach, kept for backward-compatibility
         if ($this->proxy !== null) {
             if (is_callable($this->proxy)) {
@@ -1458,7 +1457,8 @@ class Exchange {
             curl_setopt($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
         }
 
-        if (!$this->proxy) {
+        // if old approach is not being used
+        if ($this->proxy === null) {
             if ($proxyUrl !== null) {
                 $url = $proxyUrl . $url;
             } else if ($proxyUrlCallback !== null) {
