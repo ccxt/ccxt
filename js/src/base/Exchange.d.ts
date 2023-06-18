@@ -509,6 +509,10 @@ export default class Exchange {
     parsePosition(position: any, market?: any): void;
     parseFundingRateHistory(info: any, market?: any): void;
     parseBorrowInterest(info: any, market?: any): void;
+    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrderTrade(trade: any, market?: any): Trade;
+    parseWsOHLCV(ohlcv: any, market?: any): void;
     fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;

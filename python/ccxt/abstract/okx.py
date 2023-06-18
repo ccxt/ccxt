@@ -76,6 +76,7 @@ class ImplicitAPI:
     private_get_asset_deposit_address = privateGetAssetDepositAddress = Entry('asset/deposit-address', 'private', 'GET', {'cost': 1.6666666666666667})
     private_get_asset_balances = privateGetAssetBalances = Entry('asset/balances', 'private', 'GET', {'cost': 1.6666666666666667})
     private_get_asset_transfer_state = privateGetAssetTransferState = Entry('asset/transfer-state', 'private', 'GET', {'cost': 10})
+    private_get_asset_transfer_record = privateGetAssetTransferRecord = Entry('asset/transfer-record', 'private', 'GET', {'cost': 10})
     private_get_asset_deposit_history = privateGetAssetDepositHistory = Entry('asset/deposit-history', 'private', 'GET', {'cost': 1.6666666666666667})
     private_get_asset_withdrawal_history = privateGetAssetWithdrawalHistory = Entry('asset/withdrawal-history', 'private', 'GET', {'cost': 1.6666666666666667})
     private_get_asset_deposit_withdraw_status = privateGetAssetDepositWithdrawStatus = Entry('asset/deposit-withdraw-status', 'private', 'GET', {'cost': 20})

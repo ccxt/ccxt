@@ -38,6 +38,8 @@ export default class xt extends Exchange {
         precision: {
             price: number;
             amount: number;
+            base: number;
+            quote: number;
         };
         limits: {
             leverage: {

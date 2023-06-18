@@ -274,6 +274,7 @@ class lbank2 extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves $data on all markets for lbank2
+         * @see https://www.lbank.com/en-US/docs/index.html#trading-pairs
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of objects representing $market $data
          */
@@ -298,23 +299,7 @@ class lbank2 extends Exchange {
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
             $symbol = $base . '/' . $quote;
-            $productTypes = array(
-                '3l' => true,
-                '5l' => true,
-                '3s' => true,
-                '5s' => true,
-            );
             $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityAccuracy')));
-            $contractSize = $amountPrecision;
-            $ending = mb_substr($baseId, -2);
-            $isLeveragedProduct = $this->safe_value($productTypes, $ending, false);
-            if ($isLeveragedProduct) {
-                $symbol .= ':' . $quote;
-            }
-            $linear = null;
-            if ($isLeveragedProduct === true) {
-                $linear = true;
-            }
             $result[] = array(
                 'id' => $marketId,
                 'symbol' => $symbol,
@@ -327,14 +312,14 @@ class lbank2 extends Exchange {
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => false,
-                'swap' => $isLeveragedProduct,
+                'swap' => false,
                 'future' => false,
                 'option' => false,
                 'active' => true,
-                'contract' => $isLeveragedProduct,
-                'linear' => $linear, // all leveraged ETF products are in USDT
+                'contract' => null,
+                'linear' => null,
                 'inverse' => null,
-                'contractSize' => $isLeveragedProduct ? $contractSize : null,
+                'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

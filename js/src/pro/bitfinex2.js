@@ -262,7 +262,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         //
         const name = 'myTrade';
         const data = this.safeValue(message, 2);
-        const trade = this.parseWsTrade(data, false);
+        const trade = this.parseWsTrade(data);
         const symbol = trade['symbol'];
         const market = this.market(symbol);
         const messageHash = name + ':' + market['id'];
@@ -320,13 +320,12 @@ export default class bitfinex2 extends bitfinex2Rest {
             stored = new ArrayCache(tradesLimit);
             this.trades[symbol] = stored;
         }
-        const isPublicTrade = true;
         const messageLength = message.length;
         if (messageLength === 2) {
             // initial snapshot
             const trades = this.safeValue(message, 1, []);
             for (let i = 0; i < trades.length; i++) {
-                const parsed = this.parseWsTrade(trades[i], isPublicTrade, market);
+                const parsed = this.parseWsTrade(trades[i], market);
                 stored.append(parsed);
             }
         }
@@ -339,13 +338,13 @@ export default class bitfinex2 extends bitfinex2Rest {
                 return;
             }
             const trade = this.safeValue(message, 2, []);
-            const parsed = this.parseWsTrade(trade, isPublicTrade, market);
+            const parsed = this.parseWsTrade(trade, market);
             stored.append(parsed);
         }
         client.resolve(stored, messageHash);
         return message;
     }
-    parseWsTrade(trade, isPublic = false, market = undefined) {
+    parseWsTrade(trade, market = undefined) {
         //
         //    [
         //        1128060969, // id
@@ -388,6 +387,8 @@ export default class bitfinex2 extends bitfinex2Rest {
         //       1655110144596
         //    ]
         //
+        const numFields = trade.length;
+        const isPublic = numFields <= 8;
         let marketId = (!isPublic) ? this.safeString(trade, 1) : undefined;
         market = this.safeMarket(marketId, market);
         const createdKey = isPublic ? 1 : 2;

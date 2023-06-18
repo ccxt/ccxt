@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.1.40';
+$version = '3.1.43';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.1.40';
+    const VERSION = '3.1.43';
 
     public $browser;
     public $marketsLoading = null;
@@ -434,6 +434,22 @@ class Exchange extends \ccxt\Exchange {
 
     public function parse_borrow_interest($info, $market = null) {
         throw new NotSupported($this->id . ' parseBorrowInterest() is not supported yet');
+    }
+
+    public function parse_ws_trade($trade, $market = null) {
+        throw new NotSupported($this->id . ' parseWsTrade() is not supported yet');
+    }
+
+    public function parse_ws_order($order, $market = null) {
+        throw new NotSupported($this->id . ' parseWsOrder() is not supported yet');
+    }
+
+    public function parse_ws_order_trade($trade, $market = null) {
+        throw new NotSupported($this->id . ' parseWsOrderTrade() is not supported yet');
+    }
+
+    public function parse_ws_ohlcv($ohlcv, $market = null) {
+        throw new NotSupported($this->id . ' parseWsOHLCV() is not supported yet');
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array ()) {

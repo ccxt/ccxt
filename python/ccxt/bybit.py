@@ -418,6 +418,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-cross-margin-trade/orders': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/repay-history': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/ins-loan/ltv-convert': 1,
+                        'v5/broker/earning-record': 1,
                     },
                     'post': {
                         # inverse swap
@@ -4605,7 +4606,7 @@ class bybit(Exchange, ImplicitAPI):
             elif market['linear']:
                 request['category'] = 'linear'
             else:
-                raise NotSupported(self.id + ' fetchOrders() does not allow inverse market orders for ' + symbol + ' markets')
+                request['category'] = 'inverse'
         isStop = self.safe_value(params, 'stop', False)
         params = self.omit(params, ['stop'])
         if isStop:
@@ -4795,6 +4796,16 @@ class bybit(Exchange, ImplicitAPI):
             request['orderFilter'] = 'StopOrder'
         if limit is not None:
             request['limit'] = limit
+        if since is not None:
+            request['startTime'] = since
+        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
+        params = self.omit(params, ['endTime', 'till', 'until'])
+        if endTime is not None:
+            request['endTime'] = endTime
+        else:
+            if since is not None:
+                raise BadRequest(self.id + ' fetchOrders() requires until/endTime when since is provided.')
         response = self.privateGetV5OrderHistory(self.extend(request, params))
         #
         #     {
@@ -4875,7 +4886,7 @@ class bybit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrders with inverse subType requires settle to not be USDT or USDC')
         type, query = self.handle_market_type_and_params('fetchOrders', market, params)
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
-        if enableUnifiedAccount and not isInverse:
+        if enableUnifiedAccount:
             return self.fetch_unified_account_orders(symbol, since, limit, query)
         elif type == 'spot':
             raise NotSupported(self.id + ' fetchOrders() only support ' + type + ' markets for unified trade account, use exchange.fetch_open_orders() and exchange.fetchClosedOrders() instead')
