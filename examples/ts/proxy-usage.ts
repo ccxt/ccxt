@@ -27,8 +27,8 @@ async function example_3 () {
 
 async function example_4 () {
     const myEx = new ccxt.kucoin ();
-    // for advanced use, set  `meEx.proxyAgentCallback` callback
-    myEx.proxyAgentCallback = myCallback;
+    // for advanced use, set  `meEx.userAgentCallback` callback
+    myEx.userAgentCallback = myCallback;
 }
 
 function myCallback (url, method, headers, body) {

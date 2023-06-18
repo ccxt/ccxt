@@ -86,7 +86,7 @@ class Exchange extends \ccxt\Exchange {
             $proxy = null;
             $request_browser_options = array();
             $proxy_files_dir = __DIR__ . '/../static_dependencies/proxies/';
-            [ $proxyUrl, $proxyUrlCallback, $httpProxy, $httpsProxy, $socksProxy, $proxyAgentCallback ] = $this->check_proxy_settings();
+            [ $proxyUrl, $proxyUrlCallback, $httpProxy, $httpsProxy, $socksProxy, $userAgentCallback ] = $this->check_proxy_settings();
             if ($proxyUrl !== null) {
                 $url = $proxyUrl . $url;
                 $headers['Origin'] = $this->origin;
@@ -108,8 +108,8 @@ class Exchange extends \ccxt\Exchange {
                     throw new NotSupported($this->id . ' - to use SOCKS proxy with ccxt, at first you need install module "composer require clue/socks-react"');
                 }
                 $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
-            } else if ($proxyAgentCallback !== null) {
-                $this->userAgent = $proxyAgentCallback ($url, $method, $headers, $body);
+            } else if ($userAgentCallback !== null) {
+                $this->userAgent = $userAgentCallback ($url, $method, $headers, $body);
             }
 
             $this->set_request_browser($request_browser_options);

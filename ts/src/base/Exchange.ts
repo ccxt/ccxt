@@ -152,17 +152,11 @@ export default class Exchange {
     options: {
         [key: string]: any;
     }
-    userAgents: any;
-    headers: any;
-
-    httpAgent = undefined
-    httpsAgent = undefined
-    agent = undefined
 
     api = undefined
 
-    // prepended to URL, like https://proxy.com/https://exchange.com/api...
-    proxy: string; // maintained just for backwards compatibility
+    // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
+    proxy: string; // maintained for backwards compatibility, no-one should use it from now on
     proxyUrl: string;
     proxy_url: string;
     proxyUrlCallback: string;
@@ -173,9 +167,20 @@ export default class Exchange {
     https_proxy: string;
     socksProxy: string;
     socks_proxy: string;
-    proxyAgentCallback: any;
-    proxy_agent_callback: any;
+    userAgent: { 'User-Agent': string } | false = undefined;
+    user_agent: { 'User-Agent': string } | false = undefined;
+    userAgentCallback: any;
+    user_agent_callback: any;
+    //
+    userAgents: any = {
+        'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
+        'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
+        'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
+    };
+    headers: any = {};
     origin = '*' // CORS origin
+    //
+    agent = undefined; // maintained for backwards compatibility
 
     minFundingAddressLength = 1 // used in checkAddress
     substituteCommonCurrencyCodes = true  // reserved
@@ -196,8 +201,6 @@ export default class Exchange {
 
     timeout       = 10000 // milliseconds
     verbose       = false
-    debug         = false
-    userAgent: { 'User-Agent': string } | false = undefined;
     twofa         = undefined // two-factor authentication (2FA)
 
     apiKey: string;
@@ -621,11 +624,6 @@ export default class Exchange {
         this.options = this.getDefaultOptions(); // exchange-specific options, if any
         // fetch implementation options (JS only)
         // http properties
-        this.userAgents = {
-            'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
-            'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
-            'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
-        }
         this.headers = {}
         // prepended to URL, like https://proxy.com/https://exchange.com/api...
         this.proxy = undefined
@@ -645,8 +643,6 @@ export default class Exchange {
         // default property values
         this.timeout       = 10000 // milliseconds
         this.verbose       = false
-        this.debug         = false
-        this.userAgent     = undefined
         this.twofa         = undefined // two-factor authentication (2FA)
         // default credentials
         this.apiKey        = undefined
@@ -869,11 +865,13 @@ export default class Exchange {
     }
 
     async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
-        if (isNode && this.userAgent) {
-            if (typeof this.userAgent === 'string') {
-                headers = this.extend ({ 'User-Agent': this.userAgent }, headers)
-            } else if ((typeof this.userAgent === 'object') && ('User-Agent' in this.userAgent)) {
-                headers = this.extend (this.userAgent, headers)
+        const [ proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, userAgent, userAgentCallback ] = this.checkProxySettings ();
+
+        if (isNode && userAgent) {
+            if (typeof userAgent === 'string') {
+                headers = this.extend ({ 'User-Agent': userAgent }, headers)
+            } else if ((typeof userAgent === 'object') && ('User-Agent' in userAgent)) {
+                headers = this.extend (userAgent, headers)
             }
         }
 
@@ -894,7 +892,6 @@ export default class Exchange {
         }
         // new code
         else {
-            const [ proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, proxyAgentCallback ] = this.checkProxySettings ();
             if (proxyUrl !== undefined) {
                 // in node we need to set header to *
                 if (isNode) {
@@ -926,8 +923,8 @@ export default class Exchange {
                 }
                 const proxyAgent = new module.SocksProxyAgent(socksProxy);
                 this.agent = proxyAgent;
-            } else if (proxyAgentCallback !== undefined) {
-                this.agent = proxyAgentCallback (url, method, headers, body);
+            } else if (userAgentCallback !== undefined) {
+                this.agent = userAgentCallback (url, method, headers, body);
             }
         }
 
@@ -1430,7 +1427,8 @@ export default class Exchange {
         const httpProxy = (this.httpProxy !== undefined) ? this.httpProxy : this.http_proxy;
         const httpsProxy = (this.httpsProxy !== undefined) ? this.httpsProxy : this.https_proxy;
         const socksProxy = (this.socksProxy !== undefined) ? this.socksProxy : this.socks_proxy;
-        const proxyAgentCallback = (this.proxyAgentCallback !== undefined) ? this.proxyAgentCallback : this.proxy_agent_callback;
+        const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
+        const userAgentCallback = (this.userAgentCallback !== undefined) ? this.userAgentCallback : this.user_agent_callback;
         let val = 0;
         if (proxyUrl !== undefined) {
             val = val + 1;
@@ -1447,13 +1445,16 @@ export default class Exchange {
         if (socksProxy !== undefined) {
             val = val + 1;
         }
-        if (proxyAgentCallback !== undefined) {
+        if (userAgent !== undefined) {
+            val = val + 1;
+        }
+        if (userAgentCallback !== undefined) {
             val = val + 1;
         }
         if (val > 1) {
-            throw new ExchangeError (this.id + ' you have multiple proxy settings, please use only one from : proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, proxyAgentCallback');
+            throw new ExchangeError (this.id + ' you have multiple proxy settings, please use only one from : proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, userAgent, userAgentCallback');
         }
-        return [ proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, proxyAgentCallback ];
+        return [ proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, userAgent, userAgentCallback ];
     }
 
     findMessageHashes (client, element: string): string[] {

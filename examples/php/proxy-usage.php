@@ -50,8 +50,8 @@ function example_3() {
 function example_4() {
     return Async\async(function () {
         $my_ex = new \ccxt\async\kucoin();
-        // for advanced use, set  `meEx.proxyAgentCallback` callback
-        $my_ex->proxy_agent_callback = $my_callback;
+        // for advanced use, set  `meEx.userAgentCallback` callback
+        $my_ex->user_agent_callback = $my_callback;
     }) ();
 }
 

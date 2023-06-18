@@ -126,7 +126,7 @@ class Exchange(BaseExchange):
         # proxy
         final_proxy = None  # set default
         final_session = None
-        proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, proxyAgentCallback = self.check_proxy_settings()
+        proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, userAgentCallback = self.check_proxy_settings()
         if proxyUrl:
             url = proxyUrl + url
         elif proxyUrlCallback:
@@ -149,8 +149,8 @@ class Exchange(BaseExchange):
             )
             # override session
             final_session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
-        elif proxyAgentCallback:
-            final_proxy = proxyAgentCallback(url, method, headers, body)
+        elif userAgentCallback:
+            final_proxy = userAgentCallback(url, method, headers, body)
 
         # avoid old proxies mixing
         if (self.aiohttp_proxy is not None) and ((final_proxy is not None) or (socksProxy is not None)):

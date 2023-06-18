@@ -41,8 +41,8 @@ async def example_3():
 
 async def example_4():
     my_ex = ccxt.kucoin()
-    # for advanced use, set  `meEx.proxyAgentCallback` callback
-    my_ex.proxy_agent_callback = my_callback
+    # for advanced use, set  `meEx.userAgentCallback` callback
+    my_ex.user_agent_callback = my_callback
 
     await my_ex.close()
 

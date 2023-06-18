@@ -117,12 +117,6 @@ class Exchange(object):
     validateServerSsl = True
     validateClientSsl = False
     logger = None  # logging.getLogger(__name__) by default
-    userAgent = None
-    userAgents = {
-        'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
-        'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
-        'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
-    }
     verbose = False
     markets = None
     symbols = None
@@ -150,6 +144,8 @@ class Exchange(object):
     urls = None
     api = None
     parseJsonResponse = True
+
+    # PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
     proxy = ''  # for backwards compatibility
     proxyUrl = None
     proxy_url = None
@@ -161,10 +157,19 @@ class Exchange(object):
     https_proxy = None
     socksProxy = None
     socks_proxy = None
-    proxyAgentCallback = None
-    proxy_agent_callback = None
+    userAgent = None
+    userAgents = {
+        'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
+        'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
+        'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
+    }
+    userAgentCallback = None
+    user_agent_callback = None
+    headers = None
     origin = '*'  # CORS origin
+    #
     proxies = None
+
     hostname = None  # in case of inaccessibility of the "main" domain
     apiKey = ''
     secret = ''
@@ -223,7 +228,6 @@ class Exchange(object):
         '407': AuthenticationError,
         '511': AuthenticationError,
     }
-    headers = None
     balance = None
     orderbooks = None
     orders = None
@@ -511,7 +515,7 @@ class Exchange(object):
             headers.update({'Origin': self.origin})
         else:
             # new approach
-            proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, proxyAgentCallback = self.check_proxy_settings()
+            proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, userAgentCallback = self.check_proxy_settings()
             if self.proxyUrl is not None or self.proxyUrlCallback is not None:
                 headers.update({'Origin': self.origin})
         headers.update({'Accept-Encoding': 'gzip, deflate'})
@@ -534,7 +538,7 @@ class Exchange(object):
         request_headers = self.prepare_request_headers(headers)
         # proxy
         proxies = None  # set default
-        proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, proxyAgentCallback = self.check_proxy_settings()
+        proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, userAgentCallback = self.check_proxy_settings()
         if proxyUrl:
             url = proxyUrl + url
         elif proxyUrlCallback:
@@ -550,8 +554,8 @@ class Exchange(object):
             # https://stackoverflow.com/a/15661226/2377343
             proxies['http'] = socksProxy
             proxies['https'] = socksProxy
-        elif proxyAgentCallback:
-            proxies = proxyAgentCallback(url, method, headers, body)
+        elif userAgentCallback:
+            proxies = userAgentCallback(url, method, headers, body)
 
         # avoid old proxies mixing
         if (proxies is not None) and (self.proxies is not None):

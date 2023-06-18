@@ -74,7 +74,10 @@ class Exchange {
     public $validateClientSsl = false;
     public $curlopt_interface = null;
     public $timeout = 10000; // in milliseconds
-    public $proxy = ''; // for backwards compatibility
+
+
+    // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
+    public $proxy = ''; // maintained for backwards compatibility, no-one should use it from now on
     public $proxyUrl = null;
     public $proxy_url = null;
     public $proxyUrlCallback = null;
@@ -85,10 +88,20 @@ class Exchange {
     public $https_proxy = null;
     public $socksProxy = null;
     public $socks_proxy = null;
-    public $proxyAgentCallback = null;
-    public $proxy_agent_callback = null;
-    public $origin = '*'; // CORS origin
+    public $userAgent = null; // 'ccxt/' . $this::VERSION . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
+    public $user_agent = null;
+    public $userAgentCallback = null;
+    public $user_agent_callback = null;
+    public $userAgents = array(
+        'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
+        'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
+        'chrome100' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
+    );
     public $headers = array();
+    public $origin = '*'; // CORS origin
+    //
+
+
     public $hostname = null; // in case of inaccessibility of the "main" domain
 
     public $options = array(); // exchange-specific options if any
@@ -186,12 +199,6 @@ class Exchange {
     public $twofa = null;
     public $markets_by_id = null;
     public $currencies_by_id = null;
-    public $userAgent = null; // 'ccxt/' . $this::VERSION . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
-    public $userAgents = array(
-        'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
-        'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
-        'chrome100' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
-    );
     public $minFundingAddressLength = 1; // used in check_address
     public $substituteCommonCurrencyCodes = true;
 
@@ -1376,7 +1383,7 @@ class Exchange {
                 }
             }
         } else {
-            [ $proxyUrl, $proxyUrlCallback, $httpProxy, $httpsProxy, $socksProxy, $proxyAgentCallback ] = $this->check_proxy_settings();
+            [ $proxyUrl, $proxyUrlCallback, $httpProxy, $httpsProxy, $socksProxy, $userAgentCallback ] = $this->check_proxy_settings();
             // new approach
             if ($proxyUrl !== null || $proxyUrlCallback !== null) {
                 $headers['Origin'] = $this->origin;
@@ -1475,8 +1482,8 @@ class Exchange {
             } else if ($socksProxy !== null) {
                 curl_setopt($this->curl, CURLOPT_PROXY, $socksProxy);
                 curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
-            } else if ($proxyAgentCallback !== null) {
-                $this->userAgent = $proxyAgentCallback ($url, $method, $headers, $body);
+            } else if ($userAgentCallback !== null) {
+                $this->userAgent = $userAgentCallback ($url, $method, $headers, $body);
             }
         }
 
