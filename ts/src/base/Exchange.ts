@@ -3322,6 +3322,19 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
     }
 
+    async cancelOrders (ids: string[], symbol: string = undefined, params = {}): Promise<any> {
+        if (this.has['cancelOrder']) {
+            await this.loadMarkets ();
+            const requests = [];
+            for (let i = 0; i < ids.length; i++) {
+                const id = ids[i];
+                requests.push (this.cancelOrder (id, symbol, params));
+            }
+            return await Promise.all (requests);
+        }
+        throw new NotSupported (this.id + ' cancelOrders() is not supported yet');
+    }
+
     async cancelAllOrders (symbol: string = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' cancelAllOrders() is not supported yet');
     }
