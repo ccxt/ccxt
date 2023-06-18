@@ -75,6 +75,7 @@ interface Exchange {
     privateGetAssetDepositAddress(params?: {}): Promise<implicitReturnType>;
     privateGetAssetBalances(params?: {}): Promise<implicitReturnType>;
     privateGetAssetTransferState(params?: {}): Promise<implicitReturnType>;
+    privateGetAssetTransferRecord(params?: {}): Promise<implicitReturnType>;
     privateGetAssetDepositHistory(params?: {}): Promise<implicitReturnType>;
     privateGetAssetWithdrawalHistory(params?: {}): Promise<implicitReturnType>;
     privateGetAssetDepositWithdrawStatus(params?: {}): Promise<implicitReturnType>;

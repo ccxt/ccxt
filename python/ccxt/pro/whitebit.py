@@ -496,13 +496,13 @@ class whitebit(ccxt.async_support.whitebit):
             self.orders = ArrayCacheBySymbolById(limit)
         stored = self.orders
         status = self.safe_integer(params, 0)
-        parsed = self.parse_ws_order(data, status)
+        parsed = self.parse_ws_order(self.extend(data, {'status': status}))
         stored.append(parsed)
         symbol = parsed['symbol']
         messageHash = 'orders:' + symbol
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order, status, market=None):
+    def parse_ws_order(self, order, market=None):
         #
         #   {
         #         id: 96433622651,
@@ -522,8 +522,10 @@ class whitebit(ccxt.async_support.whitebit):
         #         activation_price: '40',
         #         activation_condition: 'lte',
         #         client_order_id: ''
+        #         status: 1,  # 1 = new, 2 = update 3 = cancel or execute
         #    }
         #
+        status = self.safe_integer(order, 'status')
         marketId = self.safe_string(order, 'market')
         market = self.safe_market(marketId, market)
         id = self.safe_string(order, 'id')
@@ -554,13 +556,14 @@ class whitebit(ccxt.async_support.whitebit):
                 'cost': self.parse_number(dealFee),
                 'currency': market['quote'],
             }
+        unifiedStatus = None
         if (status == 1) or (status == 2):
-            status = 'open'
+            unifiedStatus = 'open'
         else:
             if Precise.string_equals(remaining, '0'):
-                status = 'closed'
+                unifiedStatus = 'closed'
             else:
-                status = 'canceled'
+                unifiedStatus = 'canceled'
         return self.safe_order({
             'info': order,
             'symbol': symbol,
@@ -581,7 +584,7 @@ class whitebit(ccxt.async_support.whitebit):
             'average': None,
             'filled': filled,
             'remaining': remaining,
-            'status': status,
+            'status': unifiedStatus,
             'fee': fee,
             'trades': None,
         }, market)

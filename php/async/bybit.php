@@ -409,6 +409,7 @@ class bybit extends Exchange {
                         'v5/spot-cross-margin-trade/orders' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/repay-history' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/ins-loan/ltv-convert' => 1,
+                        'v5/broker/earning-record' => 1,
                     ),
                     'post' => array(
                         // inverse swap
@@ -4937,7 +4938,7 @@ class bybit extends Exchange {
                 } elseif ($market['linear']) {
                     $request['category'] = 'linear';
                 } else {
-                    throw new NotSupported($this->id . ' fetchOrders() does not allow inverse $market orders for ' . $symbol . ' markets');
+                    $request['category'] = 'inverse';
                 }
             }
             $isStop = $this->safe_value($params, 'stop', false);
@@ -5150,6 +5151,19 @@ class bybit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+            $endTime = $this->safe_integer($params, 'endTime', $until); // exchange-specific in milliseconds
+            $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
+            if ($endTime !== null) {
+                $request['endTime'] = $endTime;
+            } else {
+                if ($since !== null) {
+                    throw new BadRequest($this->id . ' fetchOrders() requires until/endTime when $since is provided.');
+                }
+            }
             $response = Async\await($this->privateGetV5OrderHistory (array_merge($request, $params)));
             //
             //     {
@@ -5236,7 +5250,7 @@ class bybit extends Exchange {
             }
             list($type, $query) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
-            if ($enableUnifiedAccount && !$isInverse) {
+            if ($enableUnifiedAccount) {
                 return Async\await($this->fetch_unified_account_orders($symbol, $since, $limit, $query));
             } elseif ($type === 'spot') {
                 throw new NotSupported($this->id . ' fetchOrders() only support ' . $type . ' markets for unified trade account, use exchange.fetch_open_orders() and exchange.fetchClosedOrders () instead');

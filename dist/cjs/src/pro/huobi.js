@@ -1960,7 +1960,7 @@ class huobi extends huobi$1 {
             }
         }
     }
-    parseWsTrade(trade) {
+    parseWsTrade(trade, market = undefined) {
         // spot private
         //
         //     {
@@ -1992,7 +1992,7 @@ class huobi extends huobi$1 {
         const amount = this.safeString(trade, 'tradeVolume');
         const order = this.safeString(trade, 'orderId');
         const timestamp = this.safeInteger(trade, 'tradeTime');
-        const market = this.market(symbol);
+        market = this.market(symbol);
         const orderType = this.safeString(trade, 'orderType');
         const aggressor = this.safeValue(trade, 'aggressor');
         let takerOrMaker = undefined;

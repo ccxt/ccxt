@@ -224,7 +224,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             client.resolve(tradesArray, messageHash)
         return message
 
-    def parse_ws_trade(self, trade):
+    def parse_ws_trade(self, trade, market=None):
         #
         # private trades
         # {
@@ -453,7 +453,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
                         orders.append(previousOrder)
                         client.resolve(orders, messageHash)
 
-    def parse_ws_order(self, order):
+    def parse_ws_order(self, order, market=None):
         id = self.safe_string(order, 'order_id')
         clientOrderId = self.safe_string(order, 'client_oid')
         marketId = self.safe_string(order, 'product_id')
