@@ -3560,7 +3560,7 @@ There are different types of orders that a user can send to the exchange, regula
 - [Limit Orders](#limit-orders) – regular orders having an `amount` in base currency (how much you want to buy or sell) and a `price` in quote currency (for which price you want to buy or sell).
 - [Market Orders](#market-orders) – regular orders having an `amount` in base currency (how much you want to buy or sell)
   - [Market Buys](#market-buys) – some exchanges require market buy orders with an `amount` in quote currency (how much you want to spend for buying)
-- [Trigger Orders](#trigger-order) – an advanced type of order used to wait for a certain condition on a market and then react automatically: when a `triggerPrice` is reached, the trigger order gets triggered and then a regular limit `price` or market price order is placed, that eventually results in entering a position or exiting a position
+- [Trigger Orders](#trigger-orders) – an advanced type of order used to wait for a certain condition on a market and then react automatically: when a `triggerPrice` is reached, the trigger order gets triggered and then a regular limit `price` or market price order is placed, that eventually results in entering a position or exiting a position
 - [Stop Loss Orders](#stop-loss-orders) – almost the same as trigger orders, but used to close a position to stop further losses on that position: when the price eaches `triggerPrice` then the stop loss order is triggered that results in placing another regular limit or market order to close a position at a specific limit `price` or at market price (a position with a stop loss order attached to it).
 - [Take Profit Orders](#take-profit-orders) – a counterpart to stop loss orders, this type of order is used to close a position to take existing profits on that position: when the price reaches `triggerPrice` then the take profit order is triggered that results in placing another regular limit or market order to close a position at a specific limit `price` or at market price (a position with a take profit order attached to it).
 - [StopLoss And TakeProfit Orders Attached To A Position](#stoploss-and-takeprofit-orders-attached-to-a-position) – advanced orders, consisting of three orders of types listed above: a regular limit or market order placed to enter a position with stop loss and/or take profit orders that will be placed upon opening that position and will be used to close that position later (when a stop loss is reached, it will close the position and will cancel its take profit counterpart, and vice versa, when a take profit is reached, it will close the position and will cancel its stop loss counterpart, these two counterparts are also known as "OCO orders – one cancels the other), apart from the `amount` (and `price` for the limit order) to open a position it will also require a `triggerPrice` for a stop loss order (with a limit `price` if it's a stop loss limit order) and/or a `triggerPrice` for a take profit order (with a limit `price` if it's a take profit limit order).
@@ -3808,7 +3808,7 @@ Stop orders, are placed onto the order book when the price of the underlying ass
 * Stop Orders can be limit or market orders
 
 
-##### Trigger Order
+##### Trigger Orders
 
 Traditional "stop" order (which you might see across exchanges' websites) is now called "trigger" order across CCXT library. Implemented by adding a `triggerPrice` parameter. They are independent basic trigger orders that can open and close a position.
 
@@ -3857,18 +3857,54 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 
 The same as Trigger Orders, but the direction matters. Implemented by specifying a `stopLossPrice` parameter.
 
+Suppose you entered a long position (you bought) at 1000 and want to protect yourself from losses from a possible a price drop below 700. You would place a stop loss order with triggerPrice at 700. For that stop loss order either you would specify a limit price or it will be executed at market price.
+
+```
+    | price  | amount
+----|----------------
+    |  1500 | 200
+    |  1400 | 300
+  a |  1300 | 100
+  s |  1200 | 200
+  k |  1100 | 300
+    |  1000 | 100 <--- you bought to enter a long position here at 1000
+    |   900 | 100
+----|---------------- last price is 900
+    |   800 | 100
+    |   700 | 200 <------- you place a stop loss order here at 700 <---------+
+  b |   600 | 100        when a stopLossPrice is reached from above          |
+  i |   500 | 300   it will close your position at market price around 700 --+
+  d |   400 | 200 <----- or it will be executed at your limit price lower
+    |   300 | 100
+    |   200 | 100
+```
+
+Suppose you entered a short position (you sold) at 700 and want to protect yourself from losses from a possible a price pump above 1300. You would place a stop loss order with triggerPrice at 1300. For that stop loss order either you would specify a limit price or it will be executed at market price.
+
+```
+    | price  | amount
+----|----------------
+    |  1500 | 200
+    |  1400 | 300 <-------------------------------------------------------------+
+  a |  1300 | 100 <------ you place a stop loss order here at 1300 <----------+ |
+  s |  1200 | 200        when a stopLossPrice is reached from below           | |
+  k |  1100 | 300   it will close your position at market price around 1300 --+ |
+    |  1000 | 100      or it will be executed at your limit price higher -------+
+    |   900 | 100
+----|---------------- last price is 900 (you sold at 700)
+    |   800 | 100
+    |   700 | 200 <--- you sold to enter a short position here at 700
+  b |   600 | 100
+  i |   500 | 300
+  d |   400 | 200
+    |   300 | 100
+    |   200 | 100
+```
+
 Stop Loss orders are activated when the price of the underlying asset/contract:
 
 * drops below the `stopLossPrice` from above, for sell orders. (eg: to close a long position, and avoid further losses)
 * rises above the `stopLossPrice` from below, for buy orders (eg: to close a short position, and avoid further losses)
-
-##### Take Profit Orders
-
-The same as Trigger Orders, but the direction matters. Implemented by specifying a `takeProfitPrice` parameter.
-Take Profit orders are activated when the price of the underlying:
-
-* rises above the `takeProfitPrice` from below, for sell orders (eg: to close a long position, at a profit)
-* drops below the `takeProfitPrice` from above, for buy orders (eg: to close a short position, at a profit)
 
 ```javascript
 // JavaScript
@@ -3876,11 +3912,6 @@ Take Profit orders are activated when the price of the underlying:
 // for a stop loss order
 const params = {
     'stopLossPrice': 55.45, // your stop loss price
-}
-
-// for a take profit order
-const params = {
-    'takeProfitPrice': 120.45, // your take profit price
 }
 
 const order = await exchange.createOrder (symbol, type, side, amount, price, params)
@@ -3894,11 +3925,6 @@ params = {
     'stopLossPrice': 55.45,  # your stop loss price
 }
 
-# for a take profit order
-params = {
-    'takeProfitPrice': 120.45,  # your take profit price
-}
-
 order = exchange.create_order (symbol, type, side, amount, price, params)
 ```
 
@@ -3909,6 +3935,42 @@ order = exchange.create_order (symbol, type, side, amount, price, params)
 $params = {
     'stopLossPrice': 55.45, // your stop loss price
 }
+
+$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+```
+
+##### Take Profit Orders
+
+The same as Trigger Orders, but the direction matters. Implemented by specifying a `takeProfitPrice` parameter.
+Take Profit orders are activated when the price of the underlying:
+
+* rises above the `takeProfitPrice` from below, for sell orders (eg: to close a long position, at a profit)
+* drops below the `takeProfitPrice` from above, for buy orders (eg: to close a short position, at a profit)
+
+```javascript
+// JavaScript
+
+// for a take profit order
+const params = {
+    'takeProfitPrice': 120.45, // your take profit price
+}
+
+const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+```
+
+```python
+# Python
+
+# for a take profit order
+params = {
+    'takeProfitPrice': 120.45,  # your take profit price
+}
+
+order = exchange.create_order (symbol, type, side, amount, price, params)
+```
+
+```php
+// PHP
 
 // for a take profit order
 $params = {
@@ -3957,11 +4019,11 @@ params = {
     'stopLoss': {
         'type': 'limit', # or 'market'
         'price': 100.33,
-        'stopLossPrice': 101.25,
+        'triggerPrice': 101.25,
     },
     'takeProfit': {
         'type': 'market',
-        'takeProfitPrice': 150.75,
+        'triggerPrice': 150.75,
     }
 }
 order = exchange.create_order (symbol, type, side, amount, price, params)
@@ -3978,11 +4040,11 @@ $params = {
     'stopLoss': {
         'type': 'limit', // or 'market'
         'price': 100.33,
-        'stopLossPrice': 101.25,
+        'triggerPrice': 101.25,
     },
     'takeProfit': {
         'type': 'market',
-        'takeProfitPrice': 150.75,
+        'triggerPrice': 150.75,
     }
 }
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
