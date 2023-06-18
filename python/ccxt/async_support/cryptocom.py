@@ -987,6 +987,7 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-detail
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the cryptocom api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -995,60 +996,44 @@ class cryptocom(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {}
-        marketType, marketTypeQuery = self.handle_market_type_and_params('fetchOrder', market, params)
-        marginMode, query = self.custom_handle_margin_mode_and_params('fetchOrder', marketTypeQuery)
-        if (marketType == 'spot') or (marketType == 'margin') or (marginMode is not None):
-            request['order_id'] = str(id)
-        else:
-            request['order_id'] = int(id)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'v2PrivatePostPrivateGetOrderDetail',
-            'margin': 'v2PrivatePostPrivateMarginGetOrderDetail',
-            'future': 'derivativesPrivatePostPrivateGetOrderDetail',
-            'swap': 'derivativesPrivatePostPrivateGetOrderDetail',
-        })
-        if marginMode is not None:
-            method = 'v2PrivatePostPrivateMarginGetOrderDetail'
-        response = await getattr(self, method)(self.extend(request, query))
-        # {
-        #     "id": 11,
-        #     "method": "private/get-order-detail",
-        #     "code": 0,
-        #     "result": {
-        #       "trade_list": [
-        #         {
-        #           "side": "BUY",
-        #           "instrument_name": "ETH_CRO",
-        #           "fee": 0.007,
-        #           "trade_id": "371303044218155296",
-        #           "create_time": 1588902493045,
-        #           "traded_price": 7,
-        #           "traded_quantity": 7,
-        #           "fee_currency": "CRO",
-        #           "order_id": "371302913889488619"
+        request = {
+            'order_id': id,
+        }
+        response = await self.v1PrivatePostPrivateGetOrderDetail(self.extend(request, params))
+        #
+        #     {
+        #         "id": 1686872583882,
+        #         "method": "private/get-order-detail",
+        #         "code": 0,
+        #         "result": {
+        #             "account_id": "ae075bef-1234-4321-bd6g-bb9007252a63",
+        #             "order_id": "6142909895025252686",
+        #             "client_oid": "CCXT_c2d2152cc32d40a3ae7fbf",
+        #             "order_type": "LIMIT",
+        #             "time_in_force": "GOOD_TILL_CANCEL",
+        #             "side": "BUY",
+        #             "exec_inst": [],
+        #             "quantity": "0.00020",
+        #             "limit_price": "20000.00",
+        #             "order_value": "4",
+        #             "avg_price": "0",
+        #             "trigger_price": "0",
+        #             "ref_price": "0",
+        #             "cumulative_quantity": "0",
+        #             "cumulative_value": "0",
+        #             "cumulative_fee": "0",
+        #             "status": "ACTIVE",
+        #             "update_user_id": "ae075bef-1234-4321-bd6g-bb9007252a63",
+        #             "order_date": "2023-06-15",
+        #             "instrument_name": "BTC_USD",
+        #             "fee_instrument_name": "BTC",
+        #             "create_time": 1686870220684,
+        #             "create_time_ns": "1686870220684239675",
+        #             "update_time": 1686870220684
         #         }
-        #       ],
-        #       "order_info": {
-        #         "status": "FILLED",
-        #         "side": "BUY",
-        #         "order_id": "371302913889488619",
-        #         "client_oid": "9_yMYJDNEeqHxLqtD_2j3g",
-        #         "create_time": 1588902489144,
-        #         "update_time": 1588902493024,
-        #         "type": "LIMIT",
-        #         "instrument_name": "ETH_CRO",
-        #         "cumulative_quantity": 7,
-        #         "cumulative_value": 7,
-        #         "avg_price": 7,
-        #         "fee_currency": "CRO",
-        #         "time_in_force": "GOOD_TILL_CANCEL",
-        #         "exec_inst": "POST_ONLY"
-        #       }
         #     }
-        # }
-        result = self.safe_value(response, 'result', {})
-        order = self.safe_value(result, 'order_info', result)
+        #
+        order = self.safe_value(response, 'result', {})
         return self.parse_order(order, market)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
