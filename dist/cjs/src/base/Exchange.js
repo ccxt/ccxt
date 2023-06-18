@@ -1248,6 +1248,18 @@ class Exchange {
     parseBorrowInterest(info, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseBorrowInterest() is not supported yet');
     }
+    parseWsTrade(trade, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseWsTrade() is not supported yet');
+    }
+    parseWsOrder(order, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseWsOrder() is not supported yet');
+    }
+    parseWsOrderTrade(trade, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseWsOrderTrade() is not supported yet');
+    }
+    parseWsOHLCV(ohlcv, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseWsOHLCV() is not supported yet');
+    }
     async fetchFundingRates(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchFundingRates() is not supported yet');
     }

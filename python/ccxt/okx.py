@@ -505,6 +505,8 @@ class okx(Exchange, ImplicitAPI):
                     '51028': BadSymbol,  # Contract under delivery
                     '51029': BadSymbol,  # Contract is being settled
                     '51030': BadSymbol,  # Funding fee is being settled
+                    '51046': InvalidOrder,  # The take profit trigger price must be higher than the order price
+                    '51047': InvalidOrder,  # The stop loss trigger price must be lower than the order price
                     '51031': InvalidOrder,  # This order price is not within the closing price range
                     '51100': InvalidOrder,  # Trading amount does not meet the min tradable amount
                     '51101': InvalidOrder,  # Entered amount exceeds the max pending order amount(Cont) per transaction

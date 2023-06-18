@@ -411,8 +411,8 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
 
     def parse_ws_order(self, order, market=None):
         #
-        #     {
         #         'symbol': 'XCAD-USDT',
+        #     {
         #         'orderType': 'limit',
         #         'side': 'buy',
         #         'orderId': '6249167327218b000135e749',
