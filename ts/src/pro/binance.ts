@@ -1584,7 +1584,7 @@ export default class binance extends binanceRest {
         let market = undefined;
         let messageHash = '';
         if (!this.isEmpty (symbols)) {
-            market = this.marketSymbols (symbols);
+            market = this.getMarketFromSymbols (symbols);
             messageHash = '::' + symbols.join (',');
         }
         let type = undefined;
@@ -1597,7 +1597,7 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
-        this.setPositionsCache (client, type);
+        this.setPositionsCache (client, type, symbols);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.positions[type];
@@ -1611,7 +1611,10 @@ export default class binance extends binanceRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
-    setPositionsCache (client, type) {
+    setPositionsCache (client: Client, type, symbols: string[] = undefined) {
+        if (this.positions === undefined) {
+            this.positions = {};
+        }
         if (type in this.positions) {
             return;
         }
@@ -1621,15 +1624,13 @@ export default class binance extends binanceRest {
             const messageHash = type + ':fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
-                this.spawn (this.loadPositionsSnapshot, client, messageHash, type);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash, type, symbols);
             }
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash, type) {
-        let positions = await this.fetchPositions (undefined, { 'type': type });
-        positions = this.filterByValueSinceLimit (positions, 'contracts', undefined, undefined, 0);
-        this.positions[type] = new ArrayCacheBySymbolBySide ();
+    async loadPositionsSnapshot (client, messageHash, type, symbols) {
+        const positions = await this.fetchPositions (symbols, { 'type': type });
         const cache = this.positions[type];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
@@ -1693,7 +1694,7 @@ export default class binance extends binanceRest {
             const parts = messageHash.split ('::');
             const symbolsString = parts[1];
             const symbols = symbolsString.split (',');
-            const positions = this.filterByArray (newPositions, 'symbol', symbols);
+            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
             if (!this.isEmpty (positions)) {
                 client.resolve (positions, messageHash);
             }
