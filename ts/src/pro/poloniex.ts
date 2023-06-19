@@ -141,19 +141,10 @@ export default class poloniex extends poloniexRest {
                 name,
             ],
         };
-        const marketIds = [ ];
-        if (symbols !== undefined) {
-            if (symbols.length === 1) {
-                const symbol = symbols[0];
-                const marketId = this.marketId (symbol);
-                marketIds.push (marketId);
-                messageHash = messageHash + ':' + symbol;
-            } else {
-                for (let i = 0; i < symbols.length; i++) {
-                    const symbol = symbols[i];
-                    marketIds.push (this.marketId (symbol));
-                }
-            }
+        let marketIds = [ ];
+        if (!this.isEmpty (symbols)) {
+            messageHash = messageHash + '::' + symbols.join (',');
+            marketIds = this.marketIds (symbols);
         } else {
             marketIds.push ('all');
         }
@@ -201,8 +192,7 @@ export default class poloniex extends poloniexRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const name = 'ticker';
-        return await this.subscribe (name, name, false, [ symbol ], params);
+        return await this.watchTickers ([ symbol ], params);
     }
 
     async watchTickers (symbols = undefined, params = {}) {
@@ -217,6 +207,7 @@ export default class poloniex extends poloniexRest {
          */
         await this.loadMarkets ();
         const name = 'ticker';
+        symbols = this.marketSymbols (symbols);
         const newTickers = await this.subscribe (name, name, false, symbols, params);
         if (this.newUpdates) {
             return newTickers;
@@ -390,7 +381,7 @@ export default class poloniex extends poloniexRest {
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (symbol);
         const timeframe = this.findTimeframe (channel);
-        const messageHash = channel + ':' + symbol;
+        const messageHash = channel + '::' + symbol;
         const parsed = this.parseWsOHLCV (data, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
@@ -432,7 +423,7 @@ export default class poloniex extends poloniexRest {
                 const trade = this.parseWsTrade (item);
                 const symbol = trade['symbol'];
                 const type = 'trades';
-                const messageHash = type + ':' + symbol;
+                const messageHash = type + '::' + symbol;
                 let tradesArray = this.safeValue (this.trades, symbol);
                 if (tradesArray === undefined) {
                     const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -693,7 +684,7 @@ export default class poloniex extends poloniexRest {
             const marketId = marketIds[i];
             const market = this.market (marketId);
             const symbol = market['symbol'];
-            const messageHash = 'orders:' + symbol;
+            const messageHash = 'orders::' + symbol;
             client.resolve (orders[symbol], messageHash);
         }
         client.resolve (orders, 'orders');
@@ -795,6 +786,7 @@ export default class poloniex extends poloniexRest {
         //    }
         //
         const data = this.safeValue (message, 'data', []);
+        const newTickers = [];
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
             const marketId = this.safeString (item, 'symbol');
@@ -802,11 +794,21 @@ export default class poloniex extends poloniexRest {
                 const ticker = this.parseTicker (item);
                 const symbol = ticker['symbol'];
                 this.tickers[symbol] = ticker;
-                const messageHash = 'ticker:' + symbol;
-                client.resolve (ticker, messageHash);
+                newTickers.push (ticker);
             }
         }
-        client.resolve (this.tickers, 'ticker');
+        const messageHashes = this.findMessageHashes (client, 'ticker::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const tickers = this.filterByArray (newTickers, 'symbol', symbols);
+            if (!this.isEmpty (tickers)) {
+                client.resolve (tickers, messageHash);
+            }
+        }
+        client.resolve (newTickers, 'ticker');
         return message;
     }
 
