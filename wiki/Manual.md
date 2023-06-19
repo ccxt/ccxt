@@ -3996,12 +3996,14 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 
 const params = {
     'stopLoss': {
-        'type': 'limit', // or 'market'
-        'price': 100.33,
+        'type': 'limit', // or 'market', this field is not necessary if limit price is specified
+        'price': 100.33, // limit price for a limit stop loss order
         'triggerPrice': 101.25,
     },
     'takeProfit': {
-        'type': 'market',
+        'type': 'market', // or 'limit', this field is not necessary if limit price is specified
+        // no limit price for a market take profit order
+        // 'price': 160.33, // this field is not necessary for a market take profit order
         'triggerPrice': 150.75,
     }
 }
@@ -4017,12 +4019,14 @@ amount = 123.45  # your amount
 price = 115.321  # your price
 params = {
     'stopLoss': {
-        'type': 'limit', # or 'market'
-        'price': 100.33,
+        'type': 'limit',  # or 'market', this field is not necessary if limit price is specified
+        'price': 100.33,  # limit price for a limit stop loss order
         'triggerPrice': 101.25,
     },
     'takeProfit': {
-        'type': 'market',
+        'type': 'market',  # or 'limit', this field is not necessary if limit price is specified
+        # no limit price for a market take profit order
+        # 'price': 160.33,  # this field is not necessary for a market take profit order
         'triggerPrice': 150.75,
     }
 }
@@ -4038,12 +4042,14 @@ $amount = 123.45; // your amount
 $price = 115.321; // your price
 $params = {
     'stopLoss': {
-        'type': 'limit', // or 'market'
-        'price': 100.33,
+        'type': 'limit', // or 'market', this field is not necessary if limit price is specified
+        'price': 100.33, // limit price for a limit stop loss order
         'triggerPrice': 101.25,
     },
     'takeProfit': {
-        'type': 'market',
+        'type': 'market', // or 'limit', this field is not necessary if limit price is specified
+        // no limit price for a market take profit order
+        // 'price': 160.33, // this field is not necessary for a market take profit order
         'triggerPrice': 150.75,
     }
 }
