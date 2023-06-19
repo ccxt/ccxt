@@ -130,6 +130,7 @@ class Exchange(BaseExchange):
         final_session = None
         proxyUrl, httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
         if proxyUrl:
+            request_headers.update({'Origin': self.origin})
             url = proxyUrl + url
         elif httpProxy:
             final_proxy = httpProxy
@@ -137,7 +138,7 @@ class Exchange(BaseExchange):
             final_proxy = httpsProxy
         elif socksProxy:
             if ProxyConnector is None:
-                raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, at first you need install module "pip install aiohttp_socks"')
+                raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you need "aiohttp_socks" module that can be installed by "pip install aiohttp_socks"')
             # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
             connector = ProxyConnector.from_url(

@@ -146,7 +146,7 @@ class Exchange(object):
     parseJsonResponse = True
 
     # PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
-    proxy = ''  # for backwards compatibility
+    proxy = None  # for backwards compatibility
     proxyUrl = None
     proxy_url = None
     proxyUrlCallback = None
@@ -629,12 +629,14 @@ class Exchange(object):
 
         except RequestException as e:  # base exception class
             error_string = str(e)
+            if ('Missing dependencies for SOCKS support' in error_string):
+                raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you might need "pysocks" module that can be installed by "pip install pysocks"')
             details = ' '.join([self.id, method, url])
             if any(x in error_string for x in ['ECONNRESET', 'Connection aborted.', 'Connection broken:']):
                 raise NetworkError(details) from e
             else:
                 raise ExchangeError(details) from e
-
+    
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
         if json_response is not None:
             return json_response
