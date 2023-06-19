@@ -2,6 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/cryptocom.js';
+import { Precise } from './base/Precise.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -1836,6 +1837,7 @@ export default class cryptocom extends Exchange {
         const marketId = this.safeString2 (trade, 'i', 'instrument_name');
         market = this.safeMarket (marketId, market, '_');
         const feeCurrency = this.safeString (trade, 'fee_instrument_name');
+        const feeCostString = this.safeString (trade, 'fees');
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString2 (trade, 'd', 'trade_id'),
@@ -1851,7 +1853,7 @@ export default class cryptocom extends Exchange {
             'type': undefined,
             'fee': {
                 'currency': this.safeCurrencyCode (feeCurrency),
-                'cost': this.safeNumber (trade, 'fees'),
+                'cost': this.parseNumber (Precise.stringNeg (feeCostString)),
             },
         }, market);
     }
