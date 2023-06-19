@@ -259,66 +259,9 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
     }
 }
 
-class PositionsCache {
-
-    constructor (positions = []) {
-        this.hashmap = {}
-        for (let i = 0; i < positions.length; i++) {
-            this.append (positions[i]);
-        }
-    }
-
-    append (item) {
-        const bySide = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {}
-        if (item.side in bySide) {
-            const reference = bySide[item.side]
-            if (reference !== item) {
-                for (const prop in item) {
-                    reference[prop] = item[prop]
-                }
-            }
-            item = reference
-        } else {
-            bySide[item.side] = item
-        }
-        Object.defineProperty (item, 'seenBy', {
-            __proto__: null, // make it invisible
-            value: {},
-            writable: true,
-        })
-    }
-
-    toArray (symbols = [], newUpdates = true) {
-        let positions = []
-        const requestId = symbols.toString ()
-        if (symbols === undefined || symbols.length === 0) {
-            symbols = Object.keys (this.hashmap);
-        }
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i]
-            for (let side in this.hashmap[symbol]) {
-                let position = this.hashmap[symbol][side];
-                // skip closed positions already seen
-                const seenUpdate = position['seenBy'][requestId] === true
-                if (seenUpdate && position['contracts'] === 0) {
-                    continue;
-                }
-                // skip old updates if new updates selected
-                if (newUpdates && seenUpdate) {
-                    continue;
-                }
-                position['seenBy'][requestId] = true
-                positions.push (position)
-            }
-        }
-        return sortBy (positions, 'timestamp', true)
-    }
-}
-
 export {
     ArrayCache,
     ArrayCacheByTimestamp,
     ArrayCacheBySymbolById,
     ArrayCacheBySymbolBySide,
-    PositionsCache
 };

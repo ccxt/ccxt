@@ -143,7 +143,7 @@ export {Market, Trade, Fee, Ticker} from './types'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, PositionsCache } from './ws/Cache.js'
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from './ws/Cache.js'
 import totp from './functions/totp.js';
 
 // ----------------------------------------------------------------------------
