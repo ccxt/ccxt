@@ -189,7 +189,7 @@ class idex extends \ccxt\async\idex {
         $client->resolve ($trades, $messageHash);
     }
 
-    public function parse_ws_trade($trade) {
+    public function parse_ws_trade($trade, $market = null) {
         // public trades
         // { m => 'DIL-ETH',
         //   i => '897ecae6-4b75-368a-ac00-be555e6ad65f',

@@ -1357,7 +1357,7 @@ export default class ndax extends Exchange {
         //
         return this.parseOrder(response, market);
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const omsId = this.safeInteger(this.options, 'omsId', 1);
         await this.loadMarkets();
         await this.loadAccounts();

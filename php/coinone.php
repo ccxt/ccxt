@@ -478,7 +478,7 @@ class coinone extends Exchange {
         return $this->parse_trades($completeOrders, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy

@@ -312,6 +312,10 @@
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
+            },
+            "fetchTickers": {
+                "baseVolume": "baseVolume * low = 8.43e-6 * 3692.59081464 = 0.03112854056 < 0.0311285405674152",
+                "quoteVolume": "quoteVolume >= baseVolume * low <<< bitstamp fetchTickers"
             }
         }
     },
@@ -615,6 +619,7 @@
         }
     },
     "currencycom": {
+        "skip": "17/06 exchange not available 503",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -624,10 +629,12 @@
                 "settleId": "not defined when contract"
             },
             "fetchTickers": {
+                "ask": "not above bid https://app.travis-ci.com/github/ccxt/ccxt/builds/263871244#L2163",
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
             "fetchTicker": {
+                "ask": "not above bid https://app.travis-ci.com/github/ccxt/ccxt/builds/263871244#L2163",
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             }
@@ -674,7 +681,12 @@
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
+                "currencyIdAndCode": "messed codes",
                 "active": "not provided"
+            },
+            "fetchCurrencies":{
+                "withdraw": "not provided",
+                "deposit": "not provided"
             }
         }
     },

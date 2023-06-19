@@ -892,7 +892,8 @@ class huobi extends huobi$1 {
                     'base-currency-chain-error': errors.BadRequest,
                     'dw-insufficient-balance': errors.InsufficientFunds,
                     'base-withdraw-fee-error': errors.BadRequest,
-                    'dw-withdraw-min-limit': errors.BadRequest, // {"status":"error","err-code":"dw-withdraw-min-limit","err-msg":"The withdrawal amount is less than the minimum limit.","data":null}
+                    'dw-withdraw-min-limit': errors.BadRequest,
+                    'request limit': errors.RateLimitExceeded, // {"ts":1687004814731,"status":"error","err-code":"invalid-parameter","err-msg":"request limit"}
                 },
             },
             'precisionMode': number.TICK_SIZE,

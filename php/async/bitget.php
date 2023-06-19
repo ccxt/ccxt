@@ -283,10 +283,10 @@ class bitget extends Exchange {
                             'account/setMarginMode' => 4, // 5 times/1s (UID) => 20/5 = 4
                             'account/setPositionMode' => 4, // 5 times/1s (UID) => 20/5 = 4
                             'order/placeOrder' => 2,
-                            'order/modifyOrder' => 2,
                             'order/batch-orders' => 2,
                             'order/cancel-order' => 2,
                             'order/cancel-batch-orders' => 2,
+                            'order/modifyOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'order/cancel-symbol-orders' => 2,
                             'order/cancel-all-orders' => 2,
                             'order/close-all-positions' => 20,
@@ -308,6 +308,11 @@ class bitget extends Exchange {
                             'trace/followerCloseByAll' => 2,
                             'trace/followerSetTpsl' => 2,
                             'trace/cancelCopyTrader' => 4, // 5 times/1s (UID) => 20/5 = 4
+                            'trace/traderUpdateConfig' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/myTraderList' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/myFollowerList' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/removeFollower' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/public/getFollowerConfig' => 2, // 10 times/1s (UID) => 20/10 = 2
                         ),
                     ),
                     'user' => array(
@@ -1830,6 +1835,45 @@ class bitget extends Exchange {
         //         $quoteVolume => '5552388715.9215',
         //         usdtVolume => '5552388715.9215'
         //     }
+        // spot tickers
+        //    {
+        //        "symbol":"LINKUSDT",
+        //        "high24h":"5.2816",
+        //        "low24h":"5.0828",
+        //        "close":"5.24",
+        //        "quoteVol":"1427864.6815",
+        //        "baseVol":"276089.9017",
+        //        "usdtVol":"1427864.68148328",
+        //        "ts":"1686653354407",
+        //        "buyOne":"5.239",
+        //        "sellOne":"5.2404",
+        //        "+":"95.187",
+        //        "askSz":"947.6127",
+        //        "openUtc0":"5.1599",
+        //        "changeUtc":"0.01552",
+        //        "change":"0.02594"
+        //    }
+        // swap tickers
+        //    {
+        //        "symbol":"BTCUSDT_UMCBL",
+        //        "last":"26139",
+        //        "bestAsk":"26139",
+        //        "bestBid":"26138.5",
+        //        "bidSz":"4.62",
+        //        "askSz":"11.142",
+        //        "high24h":"26260",
+        //        "low24h":"25637",
+        //        "timestamp":"1686653988192",
+        //        "priceChangePercent":"0.01283",
+        //        "baseVolume":"130207.098",
+        //        "quoteVolume":"3378775678.441",
+        //        "usdtVolume":"3378775678.441",
+        //        "openUtc":"25889",
+        //        "chgUtc":"0.00966",
+        //        "indexPrice":"26159.375846",
+        //        "fundingRate":"0.000062",
+        //        "holdingAmount":"74551.735"
+        //    }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         if (($market === null) && ($marketId !== null) && (mb_strpos($marketId, '_') === -1)) {
@@ -1846,10 +1890,13 @@ class bitget extends Exchange {
         $quoteVolume = $this->safe_string_2($ticker, 'quoteVol', 'quoteVolume');
         $baseVolume = $this->safe_string_2($ticker, 'baseVol', 'baseVolume');
         $timestamp = $this->safe_integer_2($ticker, 'ts', 'timestamp');
+        $bidVolume = $this->safe_string($ticker, 'bidSz');
+        $askVolume = $this->safe_string($ticker, 'askSz');
         $datetime = $this->iso8601($timestamp);
         $bid = $this->safe_string_2($ticker, 'buyOne', 'bestBid');
         $ask = $this->safe_string_2($ticker, 'sellOne', 'bestAsk');
-        $percentage = Precise::string_mul($this->safe_string($ticker, 'priceChangePercent'), '100');
+        $percentage = Precise::string_mul($this->safe_string_n($ticker, array( 'priceChangePercent', 'changeUtc', 'change', 'chgUtc' )), '100');
+        $open = $this->safe_string_2($ticker, 'openUtc0', 'openUtc');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1857,11 +1904,11 @@ class bitget extends Exchange {
             'high' => $high,
             'low' => $low,
             'bid' => $bid,
-            'bidVolume' => null,
+            'bidVolume' => $bidVolume,
             'ask' => $ask,
-            'askVolume' => null,
+            'askVolume' => $askVolume,
             'vwap' => null,
-            'open' => null,
+            'open' => $open,
             'close' => $close,
             'last' => null,
             'previousClose' => null,
@@ -2457,19 +2504,22 @@ class bitget extends Exchange {
         //
         // spot
         //     {
-        //       accountId => '6394957606',
-        //       $symbol => 'BTCUSDT_SPBL',
-        //       orderId => '881623995442958336',
-        //       $clientOrderId => '135335e9-b054-4e43-b00a-499f11d3a5cc',
-        //       $price => '39000.000000000000',
-        //       quantity => '0.000700000000',
-        //       orderType => 'limit',
-        //       $side => 'buy',
-        //       $status => 'new',
-        //       fillPrice => '0.000000000000',
-        //       fillQuantity => '0.000000000000',
-        //       fillTotalAmount => '0.000000000000',
-        //       cTime => '1645921460972'
+        //         "accountId" => "222222222",
+        //         "symbol" => "TRXUSDT_SPBL",
+        //         "orderId" => "1041901704004947968",
+        //         "clientOrderId" => "c5e8a5e1-a07f-4202-8061-b88bd598b264",
+        //         "price" => "0",
+        //         "quantity" => "10.0000000000000000",
+        //         "orderType" => "market",
+        //         "side" => "buy",
+        //         "status" => "full_fill",
+        //         "fillPrice" => "0.0699782527055350",
+        //         "fillQuantity" => "142.9015000000000000",
+        //         "fillTotalAmount" => "9.9999972790000000",
+        //         "enterPointSource" => "API",
+        //         "feeDetail" => "array(\"BGB\":array(\"deduction\":true,\"feeCoinCode\":\"BGB\",\"totalDeductionFee\":-0.017118519726,\"totalFee\":-0.017118519726))",
+        //         "orderSource" => "market",
+        //         "cTime" => "1684134644509"
         //     }
         //
         // swap
@@ -2532,6 +2582,24 @@ class bitget extends Exchange {
         }
         $clientOrderId = $this->safe_string_2($order, 'clientOrderId', 'clientOid');
         $fee = null;
+        $feeCostString = $this->safe_string($order, 'fee');
+        if ($feeCostString !== null) {
+            // swap
+            $fee = array(
+                'cost' => $feeCostString,
+                'currency' => $market['settle'],
+            );
+        }
+        $feeDetail = $this->safe_value($order, 'feeDetail');
+        if ($feeDetail !== null) {
+            $parsedFeeDetail = json_decode($feeDetail, $as_associative_array = true);
+            $feeValues = is_array($parsedFeeDetail) ? array_values($parsedFeeDetail) : array();
+            $first = $this->safe_value($feeValues, 0);
+            $fee = array(
+                'cost' => $this->safe_string($first, 'totalFee'),
+                'currency' => $this->safe_currency_code($this->safe_string($first, 'feeCoinCode')),
+            );
+        }
         $rawStatus = $this->safe_string_2($order, 'status', 'state');
         $status = $this->parse_order_status($rawStatus);
         $lastTradeTimestamp = $this->safe_integer($order, 'uTime');
@@ -2561,7 +2629,7 @@ class bitget extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * @see https://bitgetlimited.github.io/apidoc/en/spot/#place-order
@@ -2654,7 +2722,9 @@ class bitget extends Exchange {
                     $triggerType = $this->safe_string($params, 'triggerType', 'market_price');
                     $request['triggerType'] = $triggerType;
                     $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                    $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                    if ($price !== null) {
+                        $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                    }
                     $method = 'privateSpotPostPlanPlacePlan';
                 }
                 if ($quantity !== null) {
@@ -2754,7 +2824,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -3497,7 +3567,11 @@ class bitget extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data');
-            return $this->safe_value($data, 'orderList', array());
+            if ($data !== null) {
+                return $this->safe_value_2($data, 'orderList', 'data', array());
+            }
+            $parsedData = json_decode($response, $as_associative_array = true);
+            return $this->safe_value($parsedData, 'data', array());
         }) ();
     }
 

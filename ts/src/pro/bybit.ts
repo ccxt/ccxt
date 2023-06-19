@@ -394,7 +394,7 @@ export default class bybit extends bybitRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (ohlcv) {
+    parseWsOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "start": 1670363160000,
@@ -411,7 +411,7 @@ export default class bybit extends bybitRest {
         //     }
         //
         return [
-            this.safeInteger (ohlcv, 'timestamp'),
+            this.safeInteger (ohlcv, 'start'),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),

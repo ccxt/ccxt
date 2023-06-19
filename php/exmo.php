@@ -642,9 +642,9 @@ class exmo extends Exchange {
                 for ($j = 0; $j < count($providers); $j++) {
                     $provider = $providers[$j];
                     $typeInner = $this->safe_string($provider, 'type');
-                    $minValue = $this->safe_number($provider, 'min');
-                    $maxValue = $this->safe_number($provider, 'max');
-                    if ($maxValue === 0.0) {
+                    $minValue = $this->safe_string($provider, 'min');
+                    $maxValue = $this->safe_string($provider, 'max');
+                    if (Precise::string_eq($maxValue, '0.0')) {
                         $maxValue = null;
                     }
                     $activeProvider = $this->safe_value($provider, 'enabled');
@@ -663,7 +663,8 @@ class exmo extends Exchange {
                     }
                     if ($activeProvider) {
                         $active = true;
-                        if (($limits[$typeInner]['min'] === null) || ($minValue < $limits[$typeInner]['min'])) {
+                        $limitMin = $this->number_to_string($limits[$typeInner]['min']);
+                        if (($limits[$typeInner]['min'] === null) || (Precise::string_lt($minValue, $limitMin))) {
                             $limits[$typeInner]['min'] = $minValue;
                             $limits[$typeInner]['max'] = $maxValue;
                             if ($typeInner === 'withdraw') {
@@ -1210,7 +1211,7 @@ class exmo extends Exchange {
         return $this->filter_by_since_limit($result, $since, $limit);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in

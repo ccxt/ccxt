@@ -8,6 +8,7 @@ from ccxt.abstract.okx import ImplicitAPI
 import asyncio
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -127,7 +128,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchTransactionFees': False,
                 'fetchTransactions': False,
                 'fetchTransfer': True,
-                'fetchTransfers': False,
+                'fetchTransfers': True,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
@@ -256,6 +257,7 @@ class okx(Exchange, ImplicitAPI):
                         'asset/deposit-address': 5 / 3,
                         'asset/balances': 5 / 3,
                         'asset/transfer-state': 10,
+                        'asset/transfer-record': 10,
                         'asset/deposit-history': 5 / 3,
                         'asset/withdrawal-history': 5 / 3,
                         'asset/deposit-withdraw-status': 20,
@@ -504,6 +506,8 @@ class okx(Exchange, ImplicitAPI):
                     '51028': BadSymbol,  # Contract under delivery
                     '51029': BadSymbol,  # Contract is being settled
                     '51030': BadSymbol,  # Funding fee is being settled
+                    '51046': InvalidOrder,  # The take profit trigger price must be higher than the order price
+                    '51047': InvalidOrder,  # The stop loss trigger price must be lower than the order price
                     '51031': InvalidOrder,  # This order price is not within the closing price range
                     '51100': InvalidOrder,  # Trading amount does not meet the min tradable amount
                     '51101': InvalidOrder,  # Entered amount exceeds the max pending order amount(Cont) per transaction
@@ -792,7 +796,7 @@ class okx(Exchange, ImplicitAPI):
                 #     'type': 'spot',  # 'funding', 'trading', 'spot'
                 # },
                 'fetchLedger': {
-                    'method': 'privateGetAccountBills',  # privateGetAccountBillsArchive, privateGetAssetBills
+                    'method': 'privateGetAccountBills',  # privateGetAccountBills, privateGetAccountBillsArchive, privateGetAssetBills
                 },
                 # 6: Funding account, 18: Trading account
                 'fetchOrder': {
@@ -2166,7 +2170,7 @@ class okx(Exchange, ImplicitAPI):
         #
         return self.parse_balance_by_type(marketType, response)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -2218,6 +2222,10 @@ class okx(Exchange, ImplicitAPI):
         slOrdPx = self.safe_value(params, 'slOrdPx', price)
         slTriggerPxType = self.safe_string(params, 'slTriggerPxType', 'last')
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
+        stopLoss = self.safe_value(params, 'stopLoss')
+        stopLossDefined = (stopLoss is not None)
+        takeProfit = self.safe_value(params, 'takeProfit')
+        takeProfitDefined = (takeProfit is not None)
         defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
         marginMode = self.safe_string_2(params, 'marginMode', 'tdMode')  # cross or isolated, tdMode not ommited so be extended into the request
         margin = False
@@ -2238,7 +2246,7 @@ class okx(Exchange, ImplicitAPI):
         isMarketOrder = type == 'market'
         postOnly = False
         postOnly, params = self.handle_post_only(isMarketOrder, type == 'post_only', params)
-        params = self.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin'])
+        params = self.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit'])
         ioc = (timeInForce == 'IOC') or (type == 'ioc')
         fok = (timeInForce == 'FOK') or (type == 'fok')
         trigger = (triggerPrice is not None) or (type == 'trigger')
@@ -2278,14 +2286,68 @@ class okx(Exchange, ImplicitAPI):
             if (not trigger) and (not conditional):
                 request['px'] = self.price_to_precision(symbol, price)
         if postOnly:
-            method = defaultMethod
             request['ordType'] = 'post_only'
         elif ioc and not marketIOC:
-            method = defaultMethod
             request['ordType'] = 'ioc'
         elif fok:
-            method = defaultMethod
             request['ordType'] = 'fok'
+        elif stopLossDefined or takeProfitDefined:
+            if stopLossDefined:
+                stopLossTriggerPrice = self.safe_value_n(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx'])
+                if stopLossTriggerPrice is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order')
+                request['slTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                stopLossLimitPrice = self.safe_value_n(stopLoss, ['price', 'stopLossPrice', 'slOrdPx'])
+                stopLossOrderType = self.safe_string(stopLoss, 'type')
+                if stopLossOrderType is not None:
+                    stopLossLimitOrderType = (stopLossOrderType == 'limit')
+                    stopLossMarketOrderType = (stopLossOrderType == 'market')
+                    if (not stopLossLimitOrderType) and (not stopLossMarketOrderType):
+                        raise InvalidOrder(self.id + ' createOrder() params["stopLoss"]["type"] must be either "limit" or "market"')
+                    elif stopLossLimitOrderType:
+                        if stopLossLimitPrice is None:
+                            raise InvalidOrder(self.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] or params["stopLoss"]["slOrdPx"] for a stop loss limit order')
+                        else:
+                            request['slOrdPx'] = self.price_to_precision(symbol, stopLossLimitPrice)
+                    elif stopLossOrderType == 'market':
+                        request['slOrdPx'] = '-1'
+                elif stopLossLimitPrice is not None:
+                    request['slOrdPx'] = self.price_to_precision(symbol, stopLossLimitPrice)  # limit sl order
+                else:
+                    request['slOrdPx'] = '-1'  # market sl order
+                stopLossTriggerPriceType = self.safe_string_2(stopLoss, 'triggerPriceType', 'slTriggerPxType')
+                if stopLossTriggerPriceType is not None:
+                    if (stopLossTriggerPriceType != 'last') and (stopLossTriggerPriceType != 'index') and (stopLossTriggerPriceType != 'mark'):
+                        raise InvalidOrder(self.id + ' createOrder() stop loss trigger price type must be one of "last", "index" or "mark"')
+                    request['slTriggerPxType'] = stopLossTriggerPriceType
+            if takeProfitDefined:
+                takeProfitTriggerPrice = self.safe_value_n(takeProfit, ['triggerPrice', 'stopPrice', 'tpTriggerPx'])
+                if takeProfitTriggerPrice is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order')
+                request['tpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                takeProfitLimitPrice = self.safe_value_n(takeProfit, ['price', 'takeProfitPrice', 'tpOrdPx'])
+                takeProfitOrderType = self.safe_string(takeProfit, 'type')
+                if takeProfitOrderType is not None:
+                    takeProfitLimitOrderType = (takeProfitOrderType == 'limit')
+                    takeProfitMarketOrderType = (takeProfitOrderType == 'market')
+                    if (not takeProfitLimitOrderType) and (not takeProfitMarketOrderType):
+                        raise InvalidOrder(self.id + ' createOrder() params["takeProfit"]["type"] must be either "limit" or "market"')
+                    elif takeProfitLimitOrderType:
+                        if takeProfitLimitPrice is None:
+                            raise InvalidOrder(self.id + ' createOrder() requires a limit price in params["takeProfit"]["price"] or params["takeProfit"]["tpOrdPx"] for a take profit limit order')
+                        else:
+                            request['tpOrdPx'] = self.price_to_precision(symbol, takeProfitLimitPrice)
+                    elif takeProfitOrderType == 'market':
+                        request['tpOrdPx'] = '-1'
+                elif takeProfitLimitPrice is not None:
+                    request['tpOrdPx'] = self.price_to_precision(symbol, takeProfitLimitPrice)  # limit tp order
+                else:
+                    request['tpOrdPx'] = '-1'  # market tp order
+                takeProfitTriggerPriceType = self.safe_string_2(stopLoss, 'triggerPriceType', 'tpTriggerPxType')
+                if takeProfitTriggerPriceType is not None:
+                    if (takeProfitTriggerPriceType != 'last') and (takeProfitTriggerPriceType != 'index') and (takeProfitTriggerPriceType != 'mark'):
+                        raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "last", "index" or "mark"')
+                    request['tpTriggerPxType'] = takeProfitTriggerPriceType
         elif trigger:
             method = 'privatePostTradeOrderAlgo'
             request['ordType'] = 'trigger'
@@ -2336,7 +2398,7 @@ class okx(Exchange, ImplicitAPI):
             'side': side,
         })
 
-    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         edit a trade order
         see https://www.okx.com/docs-v5/en/#rest-api-trade-amend-order
@@ -3410,58 +3472,10 @@ class okx(Exchange, ImplicitAPI):
             # 'ccy': None,  # currency['id'],
             # 'mgnMode': None,  # 'isolated', 'cross'
             # 'ctType': None,  # 'linear', 'inverse', only applicable to FUTURES/SWAP
-            # 'type': None,
-            #     1 Transfer,
-            #     2 Trade,
-            #     3 Delivery,
-            #     4 Auto token conversion,
-            #     5 Liquidation,
-            #     6 Margin transfer,
-            #     7 Interest deduction,
-            #     8 Funding rate,
-            #     9 ADL,
-            #     10 Clawback,
-            #     11 System token conversion
-            # 'subType': None,
-            #     1 Buy
-            #     2 Sell
-            #     3 Open long
-            #     4 Open short
-            #     5 Close long
-            #     6 Close short
-            #     9 Interest deduction
-            #     11 Transfer in
-            #     12 Transfer out
-            #     160 Manual margin increase
-            #     161 Manual margin decrease
-            #     162 Auto margin increase
-            #     110 Auto buy
-            #     111 Auto sell
-            #     118 System token conversion transfer in
-            #     119 System token conversion transfer out
-            #     100 Partial liquidation close long
-            #     101 Partial liquidation close short
-            #     102 Partial liquidation buy
-            #     103 Partial liquidation sell
-            #     104 Liquidation long
-            #     105 Liquidation short
-            #     106 Liquidation buy
-            #     107 Liquidation sell
-            #     110 Liquidation transfer in
-            #     111 Liquidation transfer out
-            #     125 ADL close long
-            #     126 ADL close short
-            #     127 ADL buy
-            #     128 ADL sell
-            #     170 Exercised
-            #     171 Counterparty exercised
-            #     172 Expired OTM
-            #     112 Delivery long
-            #     113 Delivery short
-            #     117 Delivery/Exercise clawback
-            #     173 Funding fee expense
-            #     174 Funding fee income
-            #
+            # 'type': varies depending the 'method' endpoint :
+            #     - https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+            #     - https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
+            #     - https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
             # 'after': 'id',  # return records earlier than the requested bill id
             # 'before': 'id',  # return records newer than the requested bill id
             # 'limit': 100,  # default 100, max 100
@@ -4580,17 +4594,43 @@ class okx(Exchange, ImplicitAPI):
         #         "type": "0"
         #     }
         #
-        id = self.safe_string(transfer, 'transId')
+        # fetchTransfers
+        #
+        #     {
+        #         "bal": "70.6874353780312913",
+        #         "balChg": "-4.0000000000000000",  # negative means "to funding", positive meand "from funding"
+        #         "billId": "588900695232225299",
+        #         "ccy": "USDT",
+        #         "execType": "",
+        #         "fee": "",
+        #         "from": "18",
+        #         "instId": "",
+        #         "instType": "",
+        #         "mgnMode": "",
+        #         "notes": "To Funding Account",
+        #         "ordId": "",
+        #         "pnl": "",
+        #         "posBal": "",
+        #         "posBalChg": "",
+        #         "price": "0",
+        #         "subType": "12",
+        #         "sz": "-4",
+        #         "to": "6",
+        #         "ts": "1686676866989",
+        #         "type": "1"
+        #     }
+        #
+        id = self.safe_string_2(transfer, 'transId', 'billId')
         currencyId = self.safe_string(transfer, 'ccy')
         code = self.safe_currency_code(currencyId, currency)
         amount = self.safe_number(transfer, 'amt')
         fromAccountId = self.safe_string(transfer, 'from')
         toAccountId = self.safe_string(transfer, 'to')
         accountsById = self.safe_value(self.options, 'accountsById', {})
-        fromAccount = self.safe_string(accountsById, fromAccountId)
-        toAccount = self.safe_string(accountsById, toAccountId)
-        timestamp = self.milliseconds()
-        status = self.safe_string(transfer, 'state')
+        timestamp = self.safe_integer(transfer, 'ts', self.milliseconds())
+        balanceChange = self.safe_string(transfer, 'sz')
+        if balanceChange is not None:
+            amount = self.parse_number(Precise.string_abs(balanceChange))
         return {
             'info': transfer,
             'id': id,
@@ -4598,10 +4638,16 @@ class okx(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'currency': code,
             'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'status': status,
+            'fromAccount': self.safe_string(accountsById, fromAccountId),
+            'toAccount': self.safe_string(accountsById, toAccountId),
+            'status': self.parse_transfer_status(self.safe_string(transfer, 'state')),
         }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'success': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
 
     async def fetch_transfer(self, id: str, code: Optional[str] = None, params={}):
         await self.load_markets()
@@ -4633,6 +4679,63 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         transfer = self.safe_value(data, 0)
         return self.parse_transfer(transfer)
+
+    async def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch a history of internal transfers made on an account
+        :param str|None code: unified currency code of the currency transferred
+        :param int|None since: the earliest time in ms to fetch transfers for
+        :param int|None limit: the maximum number of transfers structures to retrieve
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        """
+        await self.load_markets()
+        currency = None
+        request = {
+            'type': '1',  # https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+        }
+        if code is not None:
+            currency = self.currency(code)
+            request['ccy'] = currency['id']
+        if since is not None:
+            request['begin'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privateGetAccountBillsArchive(self.extend(request, params))
+        #
+        #    {
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                "bal": "70.6874353780312913",
+        #                "balChg": "-4.0000000000000000",
+        #                "billId": "588900695232225299",
+        #                "ccy": "USDT",
+        #                "execType": "",
+        #                "fee": "",
+        #                "from": "18",
+        #                "instId": "",
+        #                "instType": "",
+        #                "mgnMode": "",
+        #                "notes": "To Funding Account",
+        #                "ordId": "",
+        #                "pnl": "",
+        #                "posBal": "",
+        #                "posBalChg": "",
+        #                "price": "0",
+        #                "subType": "12",
+        #                "sz": "-4",
+        #                "to": "6",
+        #                "ts": "1686676866989",
+        #                "type": "1"
+        #            },
+        #            ...
+        #        ],
+        #        "msg": ""
+        #    }
+        #
+        transfers = self.safe_value(response, 'data', [])
+        return self.parse_transfers(transfers, currency, since, limit, params)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         isArray = isinstance(params, list)

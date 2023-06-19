@@ -1443,7 +1443,7 @@ class kucoin extends Exchange {
         return $orderbook;
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * Create an order on the exchange
          * @see https://docs.kucoin.com/spot#place-a-new-order
@@ -1558,7 +1558,7 @@ class kucoin extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         /**
          * edit an order, kucoin currently only supports the modification of HF orders
          * @see https://docs.kucoin.com/spot-hf/#modify-order

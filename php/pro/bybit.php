@@ -396,7 +396,7 @@ class bybit extends \ccxt\async\bybit {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv) {
+    public function parse_ws_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "start" => 1670363160000,
@@ -413,7 +413,7 @@ class bybit extends \ccxt\async\bybit {
         //     }
         //
         return array(
-            $this->safe_integer($ohlcv, 'timestamp'),
+            $this->safe_integer($ohlcv, 'start'),
             $this->safe_number($ohlcv, 'open'),
             $this->safe_number($ohlcv, 'high'),
             $this->safe_number($ohlcv, 'low'),

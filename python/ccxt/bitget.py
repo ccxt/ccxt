@@ -8,6 +8,7 @@ from ccxt.abstract.bitget import ImplicitAPI
 import hashlib
 import json
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -299,10 +300,10 @@ class bitget(Exchange, ImplicitAPI):
                             'account/setMarginMode': 4,  # 5 times/1s(UID) => 20/5 = 4
                             'account/setPositionMode': 4,  # 5 times/1s(UID) => 20/5 = 4
                             'order/placeOrder': 2,
-                            'order/modifyOrder': 2,
                             'order/batch-orders': 2,
                             'order/cancel-order': 2,
                             'order/cancel-batch-orders': 2,
+                            'order/modifyOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'order/cancel-symbol-orders': 2,
                             'order/cancel-all-orders': 2,
                             'order/close-all-positions': 20,
@@ -324,6 +325,11 @@ class bitget(Exchange, ImplicitAPI):
                             'trace/followerCloseByAll': 2,
                             'trace/followerSetTpsl': 2,
                             'trace/cancelCopyTrader': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'trace/traderUpdateConfig': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/myTraderList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/myFollowerList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/removeFollower': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/public/getFollowerConfig': 2,  # 10 times/1s(UID) => 20/10 = 2
                         },
                     },
                     'user': {
@@ -1781,6 +1787,45 @@ class bitget(Exchange, ImplicitAPI):
         #         quoteVolume: '5552388715.9215',
         #         usdtVolume: '5552388715.9215'
         #     }
+        # spot tickers
+        #    {
+        #        "symbol":"LINKUSDT",
+        #        "high24h":"5.2816",
+        #        "low24h":"5.0828",
+        #        "close":"5.24",
+        #        "quoteVol":"1427864.6815",
+        #        "baseVol":"276089.9017",
+        #        "usdtVol":"1427864.68148328",
+        #        "ts":"1686653354407",
+        #        "buyOne":"5.239",
+        #        "sellOne":"5.2404",
+        #        "+":"95.187",
+        #        "askSz":"947.6127",
+        #        "openUtc0":"5.1599",
+        #        "changeUtc":"0.01552",
+        #        "change":"0.02594"
+        #    }
+        # swap tickers
+        #    {
+        #        "symbol":"BTCUSDT_UMCBL",
+        #        "last":"26139",
+        #        "bestAsk":"26139",
+        #        "bestBid":"26138.5",
+        #        "bidSz":"4.62",
+        #        "askSz":"11.142",
+        #        "high24h":"26260",
+        #        "low24h":"25637",
+        #        "timestamp":"1686653988192",
+        #        "priceChangePercent":"0.01283",
+        #        "baseVolume":"130207.098",
+        #        "quoteVolume":"3378775678.441",
+        #        "usdtVolume":"3378775678.441",
+        #        "openUtc":"25889",
+        #        "chgUtc":"0.00966",
+        #        "indexPrice":"26159.375846",
+        #        "fundingRate":"0.000062",
+        #        "holdingAmount":"74551.735"
+        #    }
         #
         marketId = self.safe_string(ticker, 'symbol')
         if (market is None) and (marketId is not None) and (marketId.find('_') == -1):
@@ -1796,10 +1841,13 @@ class bitget(Exchange, ImplicitAPI):
         quoteVolume = self.safe_string_2(ticker, 'quoteVol', 'quoteVolume')
         baseVolume = self.safe_string_2(ticker, 'baseVol', 'baseVolume')
         timestamp = self.safe_integer_2(ticker, 'ts', 'timestamp')
+        bidVolume = self.safe_string(ticker, 'bidSz')
+        askVolume = self.safe_string(ticker, 'askSz')
         datetime = self.iso8601(timestamp)
         bid = self.safe_string_2(ticker, 'buyOne', 'bestBid')
         ask = self.safe_string_2(ticker, 'sellOne', 'bestAsk')
-        percentage = Precise.string_mul(self.safe_string(ticker, 'priceChangePercent'), '100')
+        percentage = Precise.string_mul(self.safe_string_n(ticker, ['priceChangePercent', 'changeUtc', 'change', 'chgUtc']), '100')
+        open = self.safe_string_2(ticker, 'openUtc0', 'openUtc')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1807,11 +1855,11 @@ class bitget(Exchange, ImplicitAPI):
             'high': high,
             'low': low,
             'bid': bid,
-            'bidVolume': None,
+            'bidVolume': bidVolume,
             'ask': ask,
-            'askVolume': None,
+            'askVolume': askVolume,
             'vwap': None,
-            'open': None,
+            'open': open,
             'close': close,
             'last': None,
             'previousClose': None,
@@ -2360,19 +2408,22 @@ class bitget(Exchange, ImplicitAPI):
         #
         # spot
         #     {
-        #       accountId: '6394957606',
-        #       symbol: 'BTCUSDT_SPBL',
-        #       orderId: '881623995442958336',
-        #       clientOrderId: '135335e9-b054-4e43-b00a-499f11d3a5cc',
-        #       price: '39000.000000000000',
-        #       quantity: '0.000700000000',
-        #       orderType: 'limit',
-        #       side: 'buy',
-        #       status: 'new',
-        #       fillPrice: '0.000000000000',
-        #       fillQuantity: '0.000000000000',
-        #       fillTotalAmount: '0.000000000000',
-        #       cTime: '1645921460972'
+        #         "accountId": "222222222",
+        #         "symbol": "TRXUSDT_SPBL",
+        #         "orderId": "1041901704004947968",
+        #         "clientOrderId": "c5e8a5e1-a07f-4202-8061-b88bd598b264",
+        #         "price": "0",
+        #         "quantity": "10.0000000000000000",
+        #         "orderType": "market",
+        #         "side": "buy",
+        #         "status": "full_fill",
+        #         "fillPrice": "0.0699782527055350",
+        #         "fillQuantity": "142.9015000000000000",
+        #         "fillTotalAmount": "9.9999972790000000",
+        #         "enterPointSource": "API",
+        #         "feeDetail": "{\"BGB\":{\"deduction\":true,\"feeCoinCode\":\"BGB\",\"totalDeductionFee\":-0.017118519726,\"totalFee\":-0.017118519726}}",
+        #         "orderSource": "market",
+        #         "cTime": "1684134644509"
         #     }
         #
         # swap
@@ -2434,6 +2485,22 @@ class bitget(Exchange, ImplicitAPI):
             side = 'sell'
         clientOrderId = self.safe_string_2(order, 'clientOrderId', 'clientOid')
         fee = None
+        feeCostString = self.safe_string(order, 'fee')
+        if feeCostString is not None:
+            # swap
+            fee = {
+                'cost': feeCostString,
+                'currency': market['settle'],
+            }
+        feeDetail = self.safe_value(order, 'feeDetail')
+        if feeDetail is not None:
+            parsedFeeDetail = json.loads(feeDetail)
+            feeValues = list(parsedFeeDetail.values())
+            first = self.safe_value(feeValues, 0)
+            fee = {
+                'cost': self.safe_string(first, 'totalFee'),
+                'currency': self.safe_currency_code(self.safe_string(first, 'feeCoinCode')),
+            }
         rawStatus = self.safe_string_2(order, 'status', 'state')
         status = self.parse_order_status(rawStatus)
         lastTradeTimestamp = self.safe_integer(order, 'uTime')
@@ -2462,7 +2529,7 @@ class bitget(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         see https://bitgetlimited.github.io/apidoc/en/spot/#place-order
         see https://bitgetlimited.github.io/apidoc/en/spot/#place-plan-order
@@ -2548,7 +2615,8 @@ class bitget(Exchange, ImplicitAPI):
                 triggerType = self.safe_string(params, 'triggerType', 'market_price')
                 request['triggerType'] = triggerType
                 request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-                request['executePrice'] = self.price_to_precision(symbol, price)
+                if price is not None:
+                    request['executePrice'] = self.price_to_precision(symbol, price)
                 method = 'privateSpotPostPlanPlacePlan'
             if quantity is not None:
                 request[quantityKey] = quantity
@@ -2629,7 +2697,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         edit a trade order
         :param str id: cancel order id
@@ -3307,7 +3375,10 @@ class bitget(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data')
-        return self.safe_value(data, 'orderList', [])
+        if data is not None:
+            return self.safe_value_2(data, 'orderList', 'data', [])
+        parsedData = json.loads(response)
+        return self.safe_value(parsedData, 'data', [])
 
     def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

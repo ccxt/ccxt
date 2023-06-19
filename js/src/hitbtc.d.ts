@@ -1,5 +1,5 @@
 import Exchange from './abstract/hitbtc.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 export default class hitbtc extends Exchange {
     describe(): any;
     feeToPrecision(symbol: any, fee: any): any;
@@ -81,13 +81,13 @@ export default class hitbtc extends Exchange {
     parseTransactionStatus(status: any): string;
     parseTransactionType(type: any): string;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: any): any;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    fetchOpenOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    parseOrder(order: any, market?: any): import("./base/types.js").Order;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
+    fetchOpenOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;

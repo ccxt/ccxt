@@ -243,11 +243,14 @@ interface Exchange {
     privateGetV5AssetTransferQueryAccountCoinsBalance(params?: {}): Promise<implicitReturnType>;
     privateGetV5UserQuerySubMembers(params?: {}): Promise<implicitReturnType>;
     privateGetV5UserQueryApi(params?: {}): Promise<implicitReturnType>;
+    privateGetV5UserAffCustomerInfo(params?: {}): Promise<implicitReturnType>;
+    privateGetV5CustomerInfo(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeLoanInfo(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeAccount(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeOrders(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeRepayHistory(params?: {}): Promise<implicitReturnType>;
     privateGetV5InsLoanLtvConvert(params?: {}): Promise<implicitReturnType>;
+    privateGetV5BrokerEarningRecord(params?: {}): Promise<implicitReturnType>;
     privatePostV2PrivateOrderCreate(params?: {}): Promise<implicitReturnType>;
     privatePostV2PrivateOrderCancel(params?: {}): Promise<implicitReturnType>;
     privatePostV2PrivateOrderCancelAll(params?: {}): Promise<implicitReturnType>;

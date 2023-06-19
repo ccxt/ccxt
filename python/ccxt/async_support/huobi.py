@@ -8,6 +8,7 @@ from ccxt.abstract.huobi import ImplicitAPI
 import asyncio
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -917,6 +918,7 @@ class huobi(Exchange, ImplicitAPI):
                     'dw-insufficient-balance': InsufficientFunds,  # {"status":"error","err-code":"dw-insufficient-balance","err-msg":"Insufficient balance. You can only transfer `12.3456` at most.","data":null}
                     'base-withdraw-fee-error': BadRequest,  # {"status":"error","err-code":"base-withdraw-fee-error","err-msg":"withdrawal fee is not within limits","data":null}
                     'dw-withdraw-min-limit': BadRequest,  # {"status":"error","err-code":"dw-withdraw-min-limit","err-msg":"The withdrawal amount is less than the minimum limit.","data":null}
+                    'request limit': RateLimitExceeded,  # {"ts":1687004814731,"status":"error","err-code":"invalid-parameter","err-msg":"request limit"}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -4257,7 +4259,7 @@ class huobi(Exchange, ImplicitAPI):
             'trades': trades,
         }, market)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

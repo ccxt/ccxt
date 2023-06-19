@@ -9,7 +9,7 @@ export default class coinex extends coinexRest {
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
     handleTrades(client: Client, message: any): void;
-    parseWSTrade(trade: any, market?: any): import("../base/types.js").Trade;
+    parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
     handleOHLCV(client: Client, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     watchTickers(symbols?: string[], params?: {}): Promise<any>;
@@ -21,8 +21,8 @@ export default class coinex extends coinexRest {
     handleOrderBook(client: Client, message: any): void;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any): void;
-    parseWSOrder(order: any): any;
-    parseWSOrderStatus(status: any): string;
+    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
+    parseWsOrderStatus(status: any): string;
     handleMessage(client: Client, message: any): any;
     handleAuthenticationMessage(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): void;

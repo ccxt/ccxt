@@ -379,7 +379,7 @@ class Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
-                'fetchOHLCV': 'emulated',
+                'fetchOHLCV': undefined,
                 'fetchOpenInterest': undefined,
                 'fetchOpenInterestHistory': undefined,
                 'fetchOpenOrder': undefined,
@@ -1248,6 +1248,18 @@ class Exchange {
     parseBorrowInterest(info, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseBorrowInterest() is not supported yet');
     }
+    parseWsTrade(trade, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseWsTrade() is not supported yet');
+    }
+    parseWsOrder(order, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseWsOrder() is not supported yet');
+    }
+    parseWsOrderTrade(trade, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseWsOrderTrade() is not supported yet');
+    }
+    parseWsOHLCV(ohlcv, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseWsOHLCV() is not supported yet');
+    }
     async fetchFundingRates(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchFundingRates() is not supported yet');
     }
@@ -2012,23 +2024,11 @@ class Exchange {
         });
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (!this.has['fetchTrades']) {
-            throw new errors.NotSupported(this.id + ' fetchOHLCV() is not supported yet');
+        let message = '';
+        if (this.has['fetchTrades']) {
+            message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
         }
-        const trades = await this.fetchTrades(symbol, since, limit, params);
-        const ohlcvc = this.buildOHLCVC(trades, timeframe, since, limit);
-        const result = [];
-        for (let i = 0; i < ohlcvc.length; i++) {
-            result.push([
-                this.safeInteger(ohlcvc[i], 0),
-                this.safeNumber(ohlcvc[i], 1),
-                this.safeNumber(ohlcvc[i], 2),
-                this.safeNumber(ohlcvc[i], 3),
-                this.safeNumber(ohlcvc[i], 4),
-                this.safeNumber(ohlcvc[i], 5),
-            ]);
-        }
-        return result;
+        throw new errors.NotSupported(this.id + ' fetchOHLCV() is not supported yet' + message);
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchOHLCV() is not supported yet');
@@ -2567,14 +2567,6 @@ class Exchange {
         }
         return ohlcvs;
     }
-    async fetchOHLCVC(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (!this.has['fetchTrades']) {
-            throw new errors.NotSupported(this.id + ' fetchOHLCV() is not supported yet');
-        }
-        await this.loadMarkets();
-        const trades = await this.fetchTrades(symbol, since, limit, params);
-        return this.buildOHLCVC(trades, timeframe, since, limit);
-    }
     parseTradingViewOHLCV(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         const result = this.convertTradingViewToOHLCV(ohlcvs);
         return this.parseOHLCVs(result, market, timeframe, since, limit);
@@ -2588,7 +2580,7 @@ class Exchange {
     async editLimitOrder(id, symbol, side, amount, price = undefined, params = {}) {
         return await this.editOrder(id, symbol, 'limit', side, amount, price, params);
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.cancelOrder(id, symbol);
         return await this.createOrder(symbol, type, side, amount, price, params);
     }
@@ -2739,6 +2731,9 @@ class Exchange {
     }
     async fetchBalance(params = {}) {
         throw new errors.NotSupported(this.id + ' fetchBalance() is not supported yet');
+    }
+    parseBalance(response) {
+        throw new errors.NotSupported(this.id + ' parseBalance() is not supported yet');
     }
     async watchBalance(params = {}) {
         throw new errors.NotSupported(this.id + ' watchBalance() is not supported yet');
@@ -3488,6 +3483,7 @@ class Exchange {
         if (this.has['fetchFundingRates']) {
             await this.loadMarkets();
             const market = this.market(symbol);
+            symbol = market['symbol'];
             if (!market['contract']) {
                 throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports contract markets only');
             }

@@ -111,7 +111,7 @@ class okx extends Exchange {
                 'fetchTransactionFees' => false,
                 'fetchTransactions' => false,
                 'fetchTransfer' => true,
-                'fetchTransfers' => false,
+                'fetchTransfers' => true,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,
@@ -240,6 +240,7 @@ class okx extends Exchange {
                         'asset/deposit-address' => 5 / 3,
                         'asset/balances' => 5 / 3,
                         'asset/transfer-state' => 10,
+                        'asset/transfer-record' => 10,
                         'asset/deposit-history' => 5 / 3,
                         'asset/withdrawal-history' => 5 / 3,
                         'asset/deposit-withdraw-status' => 20,
@@ -488,6 +489,8 @@ class okx extends Exchange {
                     '51028' => '\\ccxt\\BadSymbol', // Contract under delivery
                     '51029' => '\\ccxt\\BadSymbol', // Contract is being settled
                     '51030' => '\\ccxt\\BadSymbol', // Funding fee is being settled
+                    '51046' => '\\ccxt\\InvalidOrder', // The take profit trigger price must be higher than the order price
+                    '51047' => '\\ccxt\\InvalidOrder', // The stop loss trigger price must be lower than the order price
                     '51031' => '\\ccxt\\InvalidOrder', // This order price is not within the closing price range
                     '51100' => '\\ccxt\\InvalidOrder', // Trading amount does not meet the min tradable amount
                     '51101' => '\\ccxt\\InvalidOrder', // Entered amount exceeds the max pending order amount (Cont) per transaction
@@ -776,7 +779,7 @@ class okx extends Exchange {
                 //     'type' => 'spot', // 'funding', 'trading', 'spot'
                 // ),
                 'fetchLedger' => array(
-                    'method' => 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
+                    'method' => 'privateGetAccountBills', // privateGetAccountBills, privateGetAccountBillsArchive, privateGetAssetBills
                 ),
                 // 6 => Funding account, 18 => Trading account
                 'fetchOrder' => array(
@@ -2259,7 +2262,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -2312,6 +2315,10 @@ class okx extends Exchange {
             $slOrdPx = $this->safe_value($params, 'slOrdPx', $price);
             $slTriggerPxType = $this->safe_string($params, 'slTriggerPxType', 'last');
             $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
+            $stopLoss = $this->safe_value($params, 'stopLoss');
+            $stopLossDefined = ($stopLoss !== null);
+            $takeProfit = $this->safe_value($params, 'takeProfit');
+            $takeProfitDefined = ($takeProfit !== null);
             $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
             $marginMode = $this->safe_string_2($params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so be extended into the $request
             $margin = false;
@@ -2335,7 +2342,7 @@ class okx extends Exchange {
             $isMarketOrder = $type === 'market';
             $postOnly = false;
             list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $type === 'post_only', $params);
-            $params = $this->omit($params, array( 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin' ));
+            $params = $this->omit($params, array( 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit' ));
             $ioc = ($timeInForce === 'IOC') || ($type === 'ioc');
             $fok = ($timeInForce === 'FOK') || ($type === 'fok');
             $trigger = ($triggerPrice !== null) || ($type === 'trigger');
@@ -2384,14 +2391,82 @@ class okx extends Exchange {
                 }
             }
             if ($postOnly) {
-                $method = $defaultMethod;
                 $request['ordType'] = 'post_only';
             } elseif ($ioc && !$marketIOC) {
-                $method = $defaultMethod;
                 $request['ordType'] = 'ioc';
             } elseif ($fok) {
-                $method = $defaultMethod;
                 $request['ordType'] = 'fok';
+            } elseif ($stopLossDefined || $takeProfitDefined) {
+                if ($stopLossDefined) {
+                    $stopLossTriggerPrice = $this->safe_value_n($stopLoss, array( 'triggerPrice', 'stopPrice', 'slTriggerPx' ));
+                    if ($stopLossTriggerPrice === null) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires a $trigger $price in $params["stopLoss"]["triggerPrice"], or $params["stopLoss"]["stopPrice"], or $params["stopLoss"]["slTriggerPx"] for a stop loss order');
+                    }
+                    $request['slTriggerPx'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                    $stopLossLimitPrice = $this->safe_value_n($stopLoss, array( 'price', 'stopLossPrice', 'slOrdPx' ));
+                    $stopLossOrderType = $this->safe_string($stopLoss, 'type');
+                    if ($stopLossOrderType !== null) {
+                        $stopLossLimitOrderType = ($stopLossOrderType === 'limit');
+                        $stopLossMarketOrderType = ($stopLossOrderType === 'market');
+                        if ((!$stopLossLimitOrderType) && (!$stopLossMarketOrderType)) {
+                            throw new InvalidOrder($this->id . ' createOrder() $params["stopLoss"]["type"] must be either "limit" or "market"');
+                        } elseif ($stopLossLimitOrderType) {
+                            if ($stopLossLimitPrice === null) {
+                                throw new InvalidOrder($this->id . ' createOrder() requires a limit $price in $params["stopLoss"]["price"] or $params["stopLoss"]["slOrdPx"] for a stop loss limit order');
+                            } else {
+                                $request['slOrdPx'] = $this->price_to_precision($symbol, $stopLossLimitPrice);
+                            }
+                        } elseif ($stopLossOrderType === 'market') {
+                            $request['slOrdPx'] = '-1';
+                        }
+                    } elseif ($stopLossLimitPrice !== null) {
+                        $request['slOrdPx'] = $this->price_to_precision($symbol, $stopLossLimitPrice); // limit sl $order
+                    } else {
+                        $request['slOrdPx'] = '-1'; // $market sl $order
+                    }
+                    $stopLossTriggerPriceType = $this->safe_string_2($stopLoss, 'triggerPriceType', 'slTriggerPxType');
+                    if ($stopLossTriggerPriceType !== null) {
+                        if (($stopLossTriggerPriceType !== 'last') && ($stopLossTriggerPriceType !== 'index') && ($stopLossTriggerPriceType !== 'mark')) {
+                            throw new InvalidOrder($this->id . ' createOrder() stop loss $trigger $price $type must be one of "last", "index" or "mark"');
+                        }
+                        $request['slTriggerPxType'] = $stopLossTriggerPriceType;
+                    }
+                }
+                if ($takeProfitDefined) {
+                    $takeProfitTriggerPrice = $this->safe_value_n($takeProfit, array( 'triggerPrice', 'stopPrice', 'tpTriggerPx' ));
+                    if ($takeProfitTriggerPrice === null) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires a $trigger $price in $params["takeProfit"]["triggerPrice"], or $params["takeProfit"]["stopPrice"], or $params["takeProfit"]["tpTriggerPx"] for a take profit order');
+                    }
+                    $request['tpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                    $takeProfitLimitPrice = $this->safe_value_n($takeProfit, array( 'price', 'takeProfitPrice', 'tpOrdPx' ));
+                    $takeProfitOrderType = $this->safe_string($takeProfit, 'type');
+                    if ($takeProfitOrderType !== null) {
+                        $takeProfitLimitOrderType = ($takeProfitOrderType === 'limit');
+                        $takeProfitMarketOrderType = ($takeProfitOrderType === 'market');
+                        if ((!$takeProfitLimitOrderType) && (!$takeProfitMarketOrderType)) {
+                            throw new InvalidOrder($this->id . ' createOrder() $params["takeProfit"]["type"] must be either "limit" or "market"');
+                        } elseif ($takeProfitLimitOrderType) {
+                            if ($takeProfitLimitPrice === null) {
+                                throw new InvalidOrder($this->id . ' createOrder() requires a limit $price in $params["takeProfit"]["price"] or $params["takeProfit"]["tpOrdPx"] for a take profit limit order');
+                            } else {
+                                $request['tpOrdPx'] = $this->price_to_precision($symbol, $takeProfitLimitPrice);
+                            }
+                        } elseif ($takeProfitOrderType === 'market') {
+                            $request['tpOrdPx'] = '-1';
+                        }
+                    } elseif ($takeProfitLimitPrice !== null) {
+                        $request['tpOrdPx'] = $this->price_to_precision($symbol, $takeProfitLimitPrice); // limit tp $order
+                    } else {
+                        $request['tpOrdPx'] = '-1'; // $market tp $order
+                    }
+                    $takeProfitTriggerPriceType = $this->safe_string_2($stopLoss, 'triggerPriceType', 'tpTriggerPxType');
+                    if ($takeProfitTriggerPriceType !== null) {
+                        if (($takeProfitTriggerPriceType !== 'last') && ($takeProfitTriggerPriceType !== 'index') && ($takeProfitTriggerPriceType !== 'mark')) {
+                            throw new InvalidOrder($this->id . ' createOrder() take profit $trigger $price $type must be one of "last", "index" or "mark"');
+                        }
+                        $request['tpTriggerPxType'] = $takeProfitTriggerPriceType;
+                    }
+                }
             } elseif ($trigger) {
                 $method = 'privatePostTradeOrderAlgo';
                 $request['ordType'] = 'trigger';
@@ -2452,7 +2527,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade $order
@@ -3605,58 +3680,10 @@ class okx extends Exchange {
                 // 'ccy' => null, // $currency['id'],
                 // 'mgnMode' => null, // 'isolated', 'cross'
                 // 'ctType' => null, // 'linear', 'inverse', only applicable to FUTURES/SWAP
-                // 'type' => null,
-                //     1 Transfer,
-                //     2 Trade,
-                //     3 Delivery,
-                //     4 Auto token conversion,
-                //     5 Liquidation,
-                //     6 Margin transfer,
-                //     7 Interest deduction,
-                //     8 Funding rate,
-                //     9 ADL,
-                //     10 Clawback,
-                //     11 System token conversion
-                // 'subType' => null,
-                //     1 Buy
-                //     2 Sell
-                //     3 Open long
-                //     4 Open short
-                //     5 Close long
-                //     6 Close short
-                //     9 Interest deduction
-                //     11 Transfer in
-                //     12 Transfer out
-                //     160 Manual margin increase
-                //     161 Manual margin decrease
-                //     162 Auto margin increase
-                //     110 Auto buy
-                //     111 Auto sell
-                //     118 System token conversion transfer in
-                //     119 System token conversion transfer out
-                //     100 Partial liquidation close long
-                //     101 Partial liquidation close short
-                //     102 Partial liquidation buy
-                //     103 Partial liquidation sell
-                //     104 Liquidation long
-                //     105 Liquidation short
-                //     106 Liquidation buy
-                //     107 Liquidation sell
-                //     110 Liquidation transfer in
-                //     111 Liquidation transfer out
-                //     125 ADL close long
-                //     126 ADL close short
-                //     127 ADL buy
-                //     128 ADL sell
-                //     170 Exercised
-                //     171 Counterparty exercised
-                //     172 Expired OTM
-                //     112 Delivery long
-                //     113 Delivery short
-                //     117 Delivery/Exercise clawback
-                //     173 Funding fee expense
-                //     174 Funding fee income
-                //
+                // 'type' => varies depending the 'method' endpoint :
+                //     - https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+                //     - https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
+                //     - https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
                 // 'after' => 'id', // return records earlier than the requested bill id
                 // 'before' => 'id', // return records newer than the requested bill id
                 // 'limit' => 100, // default 100, max 100
@@ -4866,17 +4893,44 @@ class okx extends Exchange {
         //         "type" => "0"
         //     }
         //
-        $id = $this->safe_string($transfer, 'transId');
+        // fetchTransfers
+        //
+        //     {
+        //         "bal" => "70.6874353780312913",
+        //         "balChg" => "-4.0000000000000000", // negative means "to funding", positive meand "from funding"
+        //         "billId" => "588900695232225299",
+        //         "ccy" => "USDT",
+        //         "execType" => "",
+        //         "fee" => "",
+        //         "from" => "18",
+        //         "instId" => "",
+        //         "instType" => "",
+        //         "mgnMode" => "",
+        //         "notes" => "To Funding Account",
+        //         "ordId" => "",
+        //         "pnl" => "",
+        //         "posBal" => "",
+        //         "posBalChg" => "",
+        //         "price" => "0",
+        //         "subType" => "12",
+        //         "sz" => "-4",
+        //         "to" => "6",
+        //         "ts" => "1686676866989",
+        //         "type" => "1"
+        //     }
+        //
+        $id = $this->safe_string_2($transfer, 'transId', 'billId');
         $currencyId = $this->safe_string($transfer, 'ccy');
         $code = $this->safe_currency_code($currencyId, $currency);
         $amount = $this->safe_number($transfer, 'amt');
         $fromAccountId = $this->safe_string($transfer, 'from');
         $toAccountId = $this->safe_string($transfer, 'to');
         $accountsById = $this->safe_value($this->options, 'accountsById', array());
-        $fromAccount = $this->safe_string($accountsById, $fromAccountId);
-        $toAccount = $this->safe_string($accountsById, $toAccountId);
-        $timestamp = $this->milliseconds();
-        $status = $this->safe_string($transfer, 'state');
+        $timestamp = $this->safe_integer($transfer, 'ts', $this->milliseconds());
+        $balanceChange = $this->safe_string($transfer, 'sz');
+        if ($balanceChange !== null) {
+            $amount = $this->parse_number(Precise::string_abs($balanceChange));
+        }
         return array(
             'info' => $transfer,
             'id' => $id,
@@ -4884,10 +4938,17 @@ class okx extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'currency' => $code,
             'amount' => $amount,
-            'fromAccount' => $fromAccount,
-            'toAccount' => $toAccount,
-            'status' => $status,
+            'fromAccount' => $this->safe_string($accountsById, $fromAccountId),
+            'toAccount' => $this->safe_string($accountsById, $toAccountId),
+            'status' => $this->parse_transfer_status($this->safe_string($transfer, 'state')),
         );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'success' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function fetch_transfer(string $id, ?string $code = null, $params = array ()) {
@@ -4921,6 +4982,69 @@ class okx extends Exchange {
             $data = $this->safe_value($response, 'data', array());
             $transfer = $this->safe_value($data, 0);
             return $this->parse_transfer($transfer);
+        }) ();
+    }
+
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch a history of internal $transfers made on an account
+             * @param {string|null} $code unified $currency $code of the $currency transferred
+             * @param {int|null} $since the earliest time in ms to fetch $transfers for
+             * @param {int|null} $limit the maximum number of $transfers structures to retrieve
+             * @param {array} $params extra parameters specific to the okx api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+             */
+            Async\await($this->load_markets());
+            $currency = null;
+            $request = array(
+                'type' => '1', // https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+            );
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['ccy'] = $currency['id'];
+            }
+            if ($since !== null) {
+                $request['begin'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->privateGetAccountBillsArchive (array_merge($request, $params)));
+            //
+            //    {
+            //        "code" => "0",
+            //        "data" => array(
+            //            array(
+            //                "bal" => "70.6874353780312913",
+            //                "balChg" => "-4.0000000000000000",
+            //                "billId" => "588900695232225299",
+            //                "ccy" => "USDT",
+            //                "execType" => "",
+            //                "fee" => "",
+            //                "from" => "18",
+            //                "instId" => "",
+            //                "instType" => "",
+            //                "mgnMode" => "",
+            //                "notes" => "To Funding Account",
+            //                "ordId" => "",
+            //                "pnl" => "",
+            //                "posBal" => "",
+            //                "posBalChg" => "",
+            //                "price" => "0",
+            //                "subType" => "12",
+            //                "sz" => "-4",
+            //                "to" => "6",
+            //                "ts" => "1686676866989",
+            //                "type" => "1"
+            //            ),
+            //            ...
+            //        ),
+            //        "msg" => ""
+            //    }
+            //
+            $transfers = $this->safe_value($response, 'data', array());
+            return $this->parse_transfers($transfers, $currency, $since, $limit, $params);
         }) ();
     }
 
