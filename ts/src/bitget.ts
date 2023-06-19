@@ -47,6 +47,8 @@ export default class bitget extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -4600,6 +4602,89 @@ export default class bitget extends Exchange {
             'toAccount': toAccount,
             'status': this.parseTransferStatus (msg),
         };
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        // {
+        //     "chains": [
+        //       {
+        //         "browserUrl": "https://bscscan.com/tx/",
+        //         "chain": "BEP20",
+        //         "depositConfirm": "15",
+        //         "extraWithDrawFee": "0",
+        //         "minDepositAmount": "0.000001",
+        //         "minWithdrawAmount": "0.0000078",
+        //         "needTag": "false",
+        //         "rechargeable": "true",
+        //         "withdrawConfirm": "15",
+        //         "withdrawFee": "0.0000051",
+        //         "withdrawable": "true"
+        //       },
+        //       {
+        //         "browserUrl": "https://blockchair.com/bitcoin/transaction/",
+        //         "chain": "BTC",
+        //         "depositConfirm": "1",
+        //         "extraWithDrawFee": "0",
+        //         "minDepositAmount": "0.0001",
+        //         "minWithdrawAmount": "0.002",
+        //         "needTag": "false",
+        //         "rechargeable": "true",
+        //         "withdrawConfirm": "1",
+        //         "withdrawFee": "0.0005",
+        //         "withdrawable": "true"
+        //       }
+        //     ],
+        //     "coinId": "1",
+        //     "coinName": "BTC",
+        //     "transfer": "true"
+        // }
+        //
+        const chains = this.safeValue (fee, 'chains', []);
+        const chainsLength = chains.length;
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+        for (let i = 0; i < chainsLength; i++) {
+            const chain = chains[i];
+            const networkId = this.safeString (chain, 'chain');
+            const currencyCode = this.safeString (currency, 'code');
+            const networkCode = this.networkIdToCode (networkId, currencyCode);
+            result['networks'][networkCode] = {
+                'deposit': { 'fee': undefined, 'percentage': undefined },
+                'withdraw': { 'fee': this.safeNumber (chain, 'withdrawFee'), 'percentage': false },
+            };
+            if (chainsLength === 1) {
+                result['withdraw']['fee'] = this.safeNumber (chain, 'withdrawFee');
+                result['withdraw']['percentage'] = false;
+            }
+        }
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-list
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicSpotGetPublicCurrencies (params);
+        const data = this.safeValue (response, 'data');
+        return this.parseDepositWithdrawFees (data, codes, 'coinName');
     }
 
     parseTransferStatus (status) {
