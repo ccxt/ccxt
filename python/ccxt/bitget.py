@@ -72,6 +72,8 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -4325,6 +4327,83 @@ class bitget(Exchange, ImplicitAPI):
             'toAccount': toAccount,
             'status': self.parse_transfer_status(msg),
         }
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        # {
+        #     "chains": [
+        #       {
+        #         "browserUrl": "https://bscscan.com/tx/",
+        #         "chain": "BEP20",
+        #         "depositConfirm": "15",
+        #         "extraWithDrawFee": "0",
+        #         "minDepositAmount": "0.000001",
+        #         "minWithdrawAmount": "0.0000078",
+        #         "needTag": "false",
+        #         "rechargeable": "true",
+        #         "withdrawConfirm": "15",
+        #         "withdrawFee": "0.0000051",
+        #         "withdrawable": "true"
+        #       },
+        #       {
+        #         "browserUrl": "https://blockchair.com/bitcoin/transaction/",
+        #         "chain": "BTC",
+        #         "depositConfirm": "1",
+        #         "extraWithDrawFee": "0",
+        #         "minDepositAmount": "0.0001",
+        #         "minWithdrawAmount": "0.002",
+        #         "needTag": "false",
+        #         "rechargeable": "true",
+        #         "withdrawConfirm": "1",
+        #         "withdrawFee": "0.0005",
+        #         "withdrawable": "true"
+        #       }
+        #     ],
+        #     "coinId": "1",
+        #     "coinName": "BTC",
+        #     "transfer": "true"
+        # }
+        #
+        chains = self.safe_value(fee, 'chains', [])
+        chainsLength = len(chains)
+        result = {
+            'info': fee,
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+        for i in range(0, chainsLength):
+            chain = chains[i]
+            networkId = self.safe_string(chain, 'chain')
+            currencyCode = self.safe_string(currency, 'code')
+            networkCode = self.network_id_to_code(networkId, currencyCode)
+            result['networks'][networkCode] = {
+                'deposit': {'fee': None, 'percentage': None},
+                'withdraw': {'fee': self.safe_number(chain, 'withdrawFee'), 'percentage': False},
+            }
+            if chainsLength == 1:
+                result['withdraw']['fee'] = self.safe_number(chain, 'withdrawFee')
+                result['withdraw']['percentage'] = False
+        return result
+
+    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-list
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.publicSpotGetPublicCurrencies(params)
+        data = self.safe_value(response, 'data')
+        return self.parse_deposit_withdraw_fees(data, codes, 'coinName')
 
     def parse_transfer_status(self, status):
         statuses = {
