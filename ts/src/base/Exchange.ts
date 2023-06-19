@@ -1277,8 +1277,8 @@ export default class Exchange {
         return -1;
     }
 
-    removeSubKeyFromInstance (parentKey, subKey) {
-        delete this[parentKey][subKey];
+    removeSubKeyFromInstance (obj, parentKey, subKey) {
+        delete obj[parentKey][subKey];
     }
 
     convertToBigInt(value: string) {
@@ -1432,7 +1432,7 @@ export default class Exchange {
             } else {
                 this.urls['api'] = this.clone (this.urls['apiBackup']);
             }
-            this.removeSubKeyFromInstance ('urls', 'apiBackup');
+            this.removeSubKeyFromInstance (this, 'urls', 'apiBackup');
         }
     }
 

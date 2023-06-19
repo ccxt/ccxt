@@ -2026,8 +2026,8 @@ class Exchange {
         return is_array($obj) ? $obj : $this->extend($obj);
     }
 
-    function removeSubKeyFromInstance($parentKey, $subKey) {
-        unset($this->$parentKey[$subKey]);
+    function removeSubKeyFromInstance($obj, $parentKey, $subKey) {
+        unset($obj->$parentKey[$subKey]);
     }
 
     function parse_to_big_int($value) {

@@ -1580,8 +1580,8 @@ class Exchange(object):
     def clone(self, obj):
         return obj if isinstance(obj, list) else self.extend(obj)
 
-    def removeSubKeyFromInstance(self, parentKey, subKey):
-        del getattr(self, parentKey)[subKey]
+    def removeSubKeyFromInstance(self, obj, parentKey, subKey):
+        del getattr(obj, parentKey)[subKey]
 
     def convert_to_big_int(self, value):
         return int(value) if isinstance(value, str) else value
