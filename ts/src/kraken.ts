@@ -1245,6 +1245,7 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#createOrder
+         * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/addOrder
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1550,7 +1551,7 @@ export default class kraken extends Exchange {
         if (timeInForce !== undefined) {
             request['timeinforce'] = timeInForce;
         }
-        params = this.omit (params, [ 'price', 'stopPrice', 'price2', 'close' ]);
+        params = this.omit (params, [ 'price', 'stopPrice', 'price2', 'close', 'timeInForce' ]);
         return [ request, params ];
     }
 
