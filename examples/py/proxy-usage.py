@@ -39,13 +39,6 @@ async def example_3():
 
     await my_ex.close()
 
-async def example_4():
-    my_ex = ccxt.kucoin()
-    # for advanced use, set  `meEx.userAgentCallback` callback
-    my_ex.user_agent_callback = my_callback
-
-    await my_ex.close()
-
 def my_callback(url, method, headers, body):
     # in JS it sets .agent property for fetch, in PHP it sets .userAgent, in Python (sync) it returns dict of proxies for `Requests` module, in Python (async) it returns signle proxy entry
     return {}   #

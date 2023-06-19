@@ -25,12 +25,6 @@ async function example_3 () {
 }
 
 
-async function example_4 () {
-    const myEx = new ccxt.kucoin ();
-    // for advanced use, set  `meEx.userAgentCallback` callback
-    myEx.userAgentCallback = myCallback;
-}
-
 function myCallback (url, method, headers, body) {
     // in JS it sets .agent property for fetch, in PHP it sets .userAgent, in Python (sync) it returns dict of proxies for `Requests` module, in Python (async) it returns signle proxy entry
     return {}; //
