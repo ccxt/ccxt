@@ -2987,7 +2987,7 @@ export default class ascendex extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchDepositWithdrawFees
