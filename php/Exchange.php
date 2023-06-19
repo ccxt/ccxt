@@ -77,7 +77,7 @@ class Exchange {
 
 
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
-    public $proxy = ''; // maintained for backwards compatibility, no-one should use it from now on
+    public $proxy = null; // maintained for backwards compatibility, no-one should use it from now on
     public $proxyUrl = null;
     public $proxy_url = null;
     public $httpProxy = null;
@@ -1336,7 +1336,7 @@ class Exchange {
 
 
         // ##### PROXY & HEADERS #####
-        $headers = $this->extend($this->headers, $headers);
+        $headers = array_merge($this->headers, $headers ? $headers : array());
 
         [ $proxyUrl, $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
         if ($proxyUrl !== null) {

@@ -12,7 +12,7 @@ async function example_1 () {
 
 async function example_2 () {
     const myEx = new ccxt.kucoin ();
-    // same as httpProxy
+    // choose "httpProxy" or "httpsProxy" depending on your proxy url protocol
     myEx.httpsProxy = 'http://51.83.140.52:11230'; // It sets a real proxy for communication, so calls are made directly to url https://target_url.com , but tunneled through a proxy server (Note, this might work for websocket connections too).
     // or
     // myEx.socksProxy = myCallback;
