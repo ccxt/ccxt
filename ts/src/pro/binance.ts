@@ -4,7 +4,7 @@
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, PositionsCache } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -80,8 +80,8 @@ export default class binance extends binanceRest {
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
                 'watchPositions': {
-                    'fetchPositionsSnapshot': false, // or true
-                    'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
+                    'fetchPositionsSnapshot': true, // or false
+                    'awaitPositionsSnapshot': false, // whether to wait for the positions snapshot before providing updates
                 },
                 'wallet': 'wb', // wb = wallet balance, cw = cross balance
                 'listenKeyRefreshRate': 1200000, // 20 mins
@@ -1579,41 +1579,40 @@ export default class binance extends binanceRest {
          */
         await this.loadMarkets ();
         await this.authenticate (params);
-        const market = undefined;
-        if (symbols !== undefined) {
-            symbols = this.marketSymbols (symbols);
+        let market = undefined;
+        let messageHash = '';
+        if (!this.isEmpty (symbols)) {
+            market = this.marketSymbols (symbols);
+            messageHash = '::' + symbols.join (',');
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
         if (type === 'swap' || type === 'spot') {
             type = 'future';
         }
-        const messageHash = type + ':positions';
+        symbols = this.marketSymbols (symbols);
+        messageHash = type + ':positions' + messageHash;
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setPositionsCache (client, type);
-        const options = this.safeValue (this.options, 'watchPositions');
-        const fetchPositionsSnapshot = this.safeValue (options, 'fetchPositionsSnapshot', false);
-        const awaitPositionsSnapshot = this.safeValue (options, 'awaitPositionsSnapshot', true);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot) {
-            await client.future (type + ':fetchPositionsSnapshot');
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.isEmpty (this.positions)) {
+            return await client.future (type + ':fetchPositionsSnapshot');
         }
-        let positions = await this.watch (url, messageHash, undefined, type);
-        positions = positions.toArray (symbols, this.newUpdates);
-        positions = this.filterBySinceLimit (positions, since, limit);
-        const positionsLength = positions.length;
-        if (positionsLength === 0) {
-            return await this.watchPositions (symbols, since, limit, params);
+        const newPositions = await this.watch (url, messageHash, undefined, type);
+        if (this.newUpdates) {
+            return newPositions;
         }
-        return positions;
+        const cache = this.positions;
+        return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
     setPositionsCache (client, type) {
-        if (type in client.subscriptions) {
-            return undefined;
+        if (!this.isEmpty (this.positions)) {
+            return;
         }
-        const options = this.safeValue (this.options, 'watchPositions');
-        const fetchPositionsSnapshot = this.safeValue (options, 'fetchPositionsSnapshot', false);
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot) {
             const messageHash = type + ':fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
@@ -1621,17 +1620,22 @@ export default class binance extends binanceRest {
                 this.spawn (this.loadPositionsSnapshot, client, messageHash, type);
             }
         } else {
-            this.positions = new PositionsCache ();
+            this.positions = new ArrayCacheBySymbolBySide ();
         }
     }
 
     async loadPositionsSnapshot (client, messageHash, type) {
         let positions = await this.fetchPositions (undefined, { 'type': type });
         positions = this.filterByValueSinceLimit (positions, 'contracts', undefined, undefined, 0);
-        this.positions = new PositionsCache (positions);
+        this.positions = new ArrayCacheBySymbolBySide ();
+        const cache = this.positions;
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            cache.append (position);
+        }
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
-        future.resolve ();
+        future.resolve (this.positions);
         client.resolve (this.positions, type + ':position');
     }
 
@@ -1668,22 +1672,31 @@ export default class binance extends binanceRest {
         const subscriptions = Object.keys (client.subscriptions);
         const accountType = subscriptions[0];
         const messageHash = accountType + ':positions';
-        let cache = this.positions;
-        if (this.positions === undefined) {
-            cache = new PositionsCache ();
-        }
+        const cache = this.positions;
         const data = this.safeValue (message, 'a', {});
         const rawPositions = this.safeValue (data, 'P', []);
+        const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parseWsPosition (rawPosition);
             const timestamp = this.safeInteger (message, 'E');
             position['timestamp'] = timestamp;
             position['datetime'] = this.iso8601 (timestamp);
+            newPositions.push (position);
             cache.append (position);
         }
-        this.positions = cache;
-        client.resolve (this.positions, messageHash);
+        const messageHashes = this.findMessageHashes (client, accountType + ':positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const positions = this.filterByArray (newPositions, 'symbol', symbols);
+            if (!this.isEmpty (positions)) {
+                client.resolve (positions, messageHash);
+            }
+        }
+        client.resolve (newPositions, messageHash);
     }
 
     parseWsPosition (position, market = undefined) {

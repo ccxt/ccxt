@@ -652,7 +652,7 @@ export default class Exchange {
         this.transactions = {}
         this.ohlcvs       = {}
         this.myTrades     = undefined
-        this.positions    = {}
+        this.positions    = undefined
         // web3 and cryptography flags
         this.requiresWeb3 = false
         this.requiresEddsa = false
@@ -3645,6 +3645,11 @@ export default class Exchange {
 
     filterBySymbolSinceLimit (array, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
         return this.filterByValueSinceLimit (array, 'symbol', symbol, since, limit, 'timestamp', tail);
+    }
+
+    filterBySymbolsSinceLimit (array, symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+        const result = this.filterByArray (array, 'symbol', symbols);
+        return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
     }
 
     filterByCurrencySinceLimit (array, code = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
