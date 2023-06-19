@@ -1172,6 +1172,7 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
+        this.setPositionsCache (client, type);
         const options = this.safeValue (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeValue (options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeValue (options, 'awaitBalanceSnapshot', true);
@@ -1321,6 +1322,7 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
+        this.setPositionsCache (client, type);
         const message = undefined;
         const orders = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
@@ -1594,24 +1596,26 @@ export default class binance extends binanceRest {
         messageHash = type + ':positions' + messageHash;
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
+        this.setBalanceCache (client, type);
         this.setPositionsCache (client, type);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.isEmpty (this.positions)) {
+        const cache = this.positions[type];
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.isEmpty (cache)) {
             return await client.future (type + ':fetchPositionsSnapshot');
         }
         const newPositions = await this.watch (url, messageHash, undefined, type);
         if (this.newUpdates) {
             return newPositions;
         }
-        const cache = this.positions;
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
     setPositionsCache (client, type) {
-        if (!this.isEmpty (this.positions)) {
+        if (type in this.positions) {
             return;
         }
+        this.positions[type] = new ArrayCacheBySymbolBySide ();
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot) {
             const messageHash = type + ':fetchPositionsSnapshot';
@@ -1619,24 +1623,22 @@ export default class binance extends binanceRest {
                 client.future (messageHash);
                 this.spawn (this.loadPositionsSnapshot, client, messageHash, type);
             }
-        } else {
-            this.positions = new ArrayCacheBySymbolBySide ();
         }
     }
 
     async loadPositionsSnapshot (client, messageHash, type) {
         let positions = await this.fetchPositions (undefined, { 'type': type });
         positions = this.filterByValueSinceLimit (positions, 'contracts', undefined, undefined, 0);
-        this.positions = new ArrayCacheBySymbolBySide ();
-        const cache = this.positions;
+        this.positions[type] = new ArrayCacheBySymbolBySide ();
+        const cache = this.positions[type];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             cache.append (position);
         }
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
-        future.resolve (this.positions);
-        client.resolve (this.positions, type + ':position');
+        future.resolve (cache);
+        client.resolve (cache, type + ':position');
     }
 
     handlePositions (client, message) {
@@ -1672,7 +1674,7 @@ export default class binance extends binanceRest {
         const subscriptions = Object.keys (client.subscriptions);
         const accountType = subscriptions[0];
         const messageHash = accountType + ':positions';
-        const cache = this.positions;
+        const cache = this.positions[accountType];
         const data = this.safeValue (message, 'a', {});
         const rawPositions = this.safeValue (data, 'P', []);
         const newPositions = [];
@@ -1773,6 +1775,7 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
+        this.setPositionsCache (client, type);
         const message = undefined;
         const trades = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {

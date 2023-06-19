@@ -11,7 +11,7 @@ sys.path.append(root)
 
 # ----------------------------------------------------------------------------
 
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402
 
 
 def equals(a, b):
@@ -346,3 +346,51 @@ assert cache.getLimit(None, outsideLimit) == 2  # watch all orders
 cache.append({'symbol': symbol2, 'id': 'two', 'i': 3})  # update second order
 cache.append({'symbol': symbol2, 'id': 'three', 'i': 3})  # create third order
 assert cache.getLimit(None, outsideLimit) == 2  # watch all orders
+
+# ----------------------------------------------------------------------------
+# test ArrayCacheBySymbolBySide, watch all positions, same symbol and side id gets updated
+
+cache = ArrayCacheBySymbolBySide()
+symbol = 'BTC/USDT'
+outsideLimit = 5
+cache.append({'symbol': symbol, 'side': 'short', 'contracts': 1})  # create first position
+cache.append({'symbol': symbol, 'side': 'short', 'contracts': 0})  # first position is closed
+assert cache.getLimit(symbol, outsideLimit) == 1  # limit position
+cache.append({'symbol': symbol, 'side': 'short', 'contracts': 1})  # create first position
+assert(cache.getLimit(symbol, outsideLimit) == 1)  # watch all positions
+
+# ----------------------------------------------------------------------------
+# test ArrayCacheBySymbolBySide, watch all positions, same symbol and side id gets updated
+
+cache = ArrayCacheBySymbolBySide()
+symbol = 'BTC/USDT'
+outsideLimit = 5
+cache.append({'symbol': symbol, 'side': 'short', 'contracts': 1})  # create first position
+assert cache.getLimit(None, outsideLimit) == 1  # watch all positions
+cache.append({'symbol': symbol, 'side': 'short', 'contracts': 0})  # first position is closed
+assert(cache.getLimit(None, outsideLimit) == 1)  # watch all positions
+cache.append({'symbol': symbol, 'side': 'long', 'contracts': 3})  # create second position
+assert cache.getLimit(None, outsideLimit) == 1  # watch all positions
+cache.append({'symbol': symbol, 'side': 'long', 'contracts': 2})  # second position is reduced
+cache.append({'symbol': symbol, 'side': 'long', 'contracts': 1})  # second position is reduced
+assert cache.getLimit(None, outsideLimit) == 1  # watch all orders
+assert len(cache) == 2  # one new update
+
+# ----------------------------------------------------------------------------
+# test ArrayCacheBySymbolBySide, watchPositions, and watchPosition(symbol) work independently
+
+cache = ArrayCacheBySymbolBySide()
+symbol = 'BTC/USDT'
+symbol2 = 'ETH/USDT'
+
+cache.append({'symbol': symbol, 'side': 'short', 'contracts': 1})  # create first position
+cache.append({'symbol': symbol2, 'side': 'long', 'contracts': 1})  # create second position
+assert cache.getLimit(None, outsideLimit) == 2  # watch all positions
+assert cache.getLimit(symbol, outsideLimit) == 1  # watch by symbol
+cache.append({'symbol': symbol, 'side': 'short', 'contracts': 2})  # update first position
+cache.append({'symbol': symbol2, 'side': 'long', 'contracts': 2})  # update second position
+assert cache.getLimit(symbol, outsideLimit) == 1  # watch by symbol
+assert cache.getLimit(None, outsideLimit) == 2  # watch all positions
+cache.append({'symbol': symbol2, 'side': 'long', 'contracts': 3})  # update second position
+assert cache.getLimit(None, outsideLimit) == 1  # watch all positions
+
