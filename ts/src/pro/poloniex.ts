@@ -142,11 +142,11 @@ export default class poloniex extends poloniexRest {
             ],
         };
         let marketIds = [ ];
-        if (!this.isEmpty (symbols)) {
+        if (this.isEmpty (symbols)) {
+            marketIds.push ('all');
+        } else {
             messageHash = messageHash + '::' + symbols.join (',');
             marketIds = this.marketIds (symbols);
-        } else {
-            marketIds.push ('all');
         }
         if (name !== 'balances') {
             subscribe['symbols'] = marketIds;
