@@ -1,5 +1,4 @@
 import ccxt from '../../js/ccxt.js';
-// import { kucoin } from '../../js/ccxt.js';
 
 // AUTO-TRANSPILE //
 
