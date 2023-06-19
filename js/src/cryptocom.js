@@ -6,8 +6,8 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/cryptocom.js';
-import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
+import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 export default class cryptocom extends Exchange {
@@ -710,11 +710,13 @@ export default class cryptocom extends Exchange {
         /**
          * @method
          * @name cryptocom#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
+         * @description get a list of the most recent trades for a particular symbol
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch, maximum date range is one day
+         * @param {int|undefined} limit the maximum number of trades to fetch
          * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
@@ -723,40 +725,39 @@ export default class cryptocom extends Exchange {
             'instrument_name': market['id'],
         };
         if (since !== undefined) {
-            // maximum date range is one day
             request['start_ts'] = since;
         }
         if (limit !== undefined) {
-            request['page_size'] = limit;
+            request['count'] = limit;
         }
-        const [marketType, query] = this.handleMarketTypeAndParams('fetchTrades', market, params);
-        const method = this.getSupportedMapping(marketType, {
-            'spot': 'v2PublicGetPublicGetTrades',
-            'future': 'derivativesPublicGetPublicGetTrades',
-            'swap': 'derivativesPublicGetPublicGetTrades',
-        });
-        const response = await this[method](this.extend(request, query));
-        // {
-        //     "code":0,
-        //     "method":"public/get-trades",
-        //     "result": {
-        //          "instrument_name": "BTC_USDT",
-        //          "data:": [
-        //              {"dataTime":1591710781947,"d":465533583799589409,"s":"BUY","p":2.96,"q":16.0,"t":1591710781946,"i":"ICX_CRO"},
-        //              {"dataTime":1591707701899,"d":465430234542863152,"s":"BUY","p":0.007749,"q":115.0,"t":1591707701898,"i":"VET_USDT"},
-        //              {"dataTime":1591710786155,"d":465533724976458209,"s":"SELL","p":25.676,"q":0.55,"t":1591710786154,"i":"XTZ_CRO"},
-        //              {"dataTime":1591710783300,"d":465533629172286576,"s":"SELL","p":2.9016,"q":0.6,"t":1591710783298,"i":"XTZ_USDT"},
-        //              {"dataTime":1591710784499,"d":465533669425626384,"s":"SELL","p":2.7662,"q":0.58,"t":1591710784498,"i":"EOS_USDT"},
-        //              {"dataTime":1591710784700,"d":465533676120104336,"s":"SELL","p":243.21,"q":0.01647,"t":1591710784698,"i":"ETH_USDT"},
-        //              {"dataTime":1591710786600,"d":465533739878620208,"s":"SELL","p":253.06,"q":0.00516,"t":1591710786598,"i":"BCH_USDT"},
-        //              {"dataTime":1591710786900,"d":465533749959572464,"s":"BUY","p":0.9999,"q":0.2,"t":1591710786898,"i":"USDC_USDT"},
-        //              {"dataTime":1591710787500,"d":465533770081010000,"s":"BUY","p":3.159,"q":1.65,"t":1591710787498,"i":"ATOM_USDT"},
-        //            ]
-        //      }
-        // }
-        const resultResponse = this.safeValue(response, 'result', {});
-        const data = this.safeValue(resultResponse, 'data', []);
-        return this.parseTrades(data, market, since, limit);
+        const until = this.safeInteger2(params, 'until', 'till');
+        params = this.omit(params, ['until', 'till']);
+        if (until !== undefined) {
+            request['end_ts'] = until;
+        }
+        const response = await this.v1PublicGetPublicGetTrades(this.extend(request, params));
+        //
+        //     {
+        //         "id": -1,
+        //         "method": "public/get-trades",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "s": "sell",
+        //                     "p": "26386.00",
+        //                     "q": "0.00453",
+        //                     "t": 1686944282062,
+        //                     "d": "4611686018455979970",
+        //                     "i": "BTC_USD"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeValue(response, 'result', {});
+        const trades = this.safeValue(result, 'data', []);
+        return this.parseTrades(trades, market, since, limit);
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
@@ -1239,10 +1240,12 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-trades
          * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch trades for, maximum date range is one day
+         * @param {int|undefined} limit the maximum number of trade structures to retrieve
          * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
@@ -1253,49 +1256,49 @@ export default class cryptocom extends Exchange {
             request['instrument_name'] = market['id'];
         }
         if (since !== undefined) {
-            // maximum date range is one day
-            request['start_ts'] = since;
-            const endTimestamp = this.sum(since, 24 * 60 * 60 * 1000);
-            request['end_ts'] = endTimestamp;
+            request['start_time'] = since;
         }
         if (limit !== undefined) {
-            request['page_size'] = limit;
+            request['limit'] = limit;
         }
-        const [marketType, marketTypeQuery] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'v2PrivatePostPrivateGetTrades',
-            'margin': 'v2PrivatePostPrivateMarginGetTrades',
-            'future': 'derivativesPrivatePostPrivateGetTrades',
-            'swap': 'derivativesPrivatePostPrivateGetTrades',
-        });
-        const [marginMode, query] = this.customHandleMarginModeAndParams('fetchMyTrades', marketTypeQuery);
-        if (marginMode !== undefined) {
-            method = 'v2PrivatePostPrivateMarginGetTrades';
+        const until = this.safeInteger2(params, 'until', 'till');
+        params = this.omit(params, ['until', 'till']);
+        if (until !== undefined) {
+            request['end_time'] = until;
         }
-        const response = await this[method](this.extend(request, query));
-        // {
-        //     "id": 11,
-        //     "method": "private/get-trades",
-        //     "code": 0,
-        //     "result": {
-        //       "trade_list": [
-        //         {
-        //           "side": "SELL",
-        //           "instrument_name": "ETH_CRO",
-        //           "fee": 0.014,
-        //           "trade_id": "367107655537806900",
-        //           "create_time": 1588777459755,
-        //           "traded_price": 7,
-        //           "traded_quantity": 1,
-        //           "fee_currency": "CRO",
-        //           "order_id": "367107623521528450"
+        const response = await this.v1PrivatePostPrivateGetTrades(this.extend(request, params));
+        //
+        //     {
+        //         "id": 1686942003520,
+        //         "method": "private/get-trades",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "account_id": "ds075abc-1234-4321-bd6g-ff9007252r63",
+        //                     "event_date": "2023-06-16",
+        //                     "journal_type": "TRADING",
+        //                     "side": "BUY",
+        //                     "instrument_name": "BTC_USD",
+        //                     "fees": "-0.0000000525",
+        //                     "trade_id": "6142909898247428343",
+        //                     "trade_match_id": "4611686018455978480",
+        //                     "create_time": 1686941992887,
+        //                     "traded_price": "26347.16",
+        //                     "traded_quantity": "0.00021",
+        //                     "fee_instrument_name": "BTC",
+        //                     "client_oid": "d1c70a60-810e-4c92-b2a0-72b931cb31e0",
+        //                     "taker_side": "TAKER",
+        //                     "order_id": "6142909895036331486",
+        //                     "create_time_ns": "1686941992887207066"
+        //                 }
+        //             ]
         //         }
-        //       ]
         //     }
-        // }
-        const data = this.safeValue(response, 'result', {});
-        const resultList = this.safeValue2(data, 'trade_list', 'data', []);
-        return this.parseTrades(resultList, market, since, limit);
+        //
+        const result = this.safeValue(response, 'result', {});
+        const trades = this.safeValue(result, 'data', []);
+        return this.parseTrades(trades, market, since, limit);
     }
     parseAddress(addressString) {
         let address = undefined;
@@ -1780,69 +1783,60 @@ export default class cryptocom extends Exchange {
     }
     parseTrade(trade, market = undefined) {
         //
-        // public/get-trades
+        // fetchTrades
         //
-        // {"dataTime":1591710781947,"d":465533583799589409,"s":"BUY","p":2.96,"q":16.0,"t":1591710781946,"i":"ICX_CRO"},
+        //     {
+        //         "s": "sell",
+        //         "p": "26386.00",
+        //         "q": "0.00453",
+        //         "t": 1686944282062,
+        //         "d": "4611686018455979970",
+        //         "i": "BTC_USD"
+        //     }
         //
-        // private/get-trades
+        // fetchMyTrades
         //
-        // {
-        //     "side": "SELL",
-        //     "instrument_name": "ETH_CRO",
-        //     "fee": 0.014,
-        //     "trade_id": "367107655537806900",
-        //     "create_time": 1588777459755,
-        //     "traded_price": 7,
-        //     "traded_quantity": 1,
-        //     "fee_currency": "CRO",
-        //     "order_id": "367107623521528450"
-        // }
+        //     {
+        //         "account_id": "ds075abc-1234-4321-bd6g-ff9007252r63",
+        //         "event_date": "2023-06-16",
+        //         "journal_type": "TRADING",
+        //         "side": "BUY",
+        //         "instrument_name": "BTC_USD",
+        //         "fees": "-0.0000000525",
+        //         "trade_id": "6142909898247428343",
+        //         "trade_match_id": "4611686018455978480",
+        //         "create_time": 1686941992887,
+        //         "traded_price": "26347.16",
+        //         "traded_quantity": "0.00021",
+        //         "fee_instrument_name": "BTC",
+        //         "client_oid": "d1c70a60-1234-4c92-b2a0-72b931cb31e0",
+        //         "taker_side": "TAKER",
+        //         "order_id": "6142909895036331486",
+        //         "create_time_ns": "1686941992887207066"
+        //     }
+        //
         const timestamp = this.safeInteger2(trade, 't', 'create_time');
         const marketId = this.safeString2(trade, 'i', 'instrument_name');
         market = this.safeMarket(marketId, market, '_');
-        const symbol = market['symbol'];
-        const price = this.safeString2(trade, 'p', 'traded_price');
-        const amount = this.safeString2(trade, 'q', 'traded_quantity');
-        let side = this.safeString2(trade, 's', 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase();
-        }
-        const id = this.safeString2(trade, 'd', 'trade_id');
-        const takerOrMaker = this.safeStringLower2(trade, 'liquidity_indicator', 'taker_side');
-        const order = this.safeString(trade, 'order_id');
-        let fee = undefined;
-        let feeCost = this.safeString2(trade, 'fee', 'fees');
-        if (feeCost !== undefined) {
-            const contract = this.safeValue(market, 'contract', false);
-            if (contract) {
-                feeCost = Precise.stringNeg(feeCost);
-            }
-            let feeCurrency = undefined;
-            if (market['spot']) {
-                feeCurrency = this.safeString(trade, 'fee_currency');
-            }
-            else if (market['linear']) {
-                feeCurrency = market['quote'];
-            }
-            fee = {
-                'currency': feeCurrency,
-                'cost': feeCost,
-            };
-        }
+        const feeCurrency = this.safeString(trade, 'fee_instrument_name');
+        const feeCostString = this.safeString(trade, 'fees');
         return this.safeTrade({
             'info': trade,
-            'id': id,
+            'id': this.safeString2(trade, 'd', 'trade_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': symbol,
-            'side': side,
-            'price': price,
-            'amount': amount,
+            'symbol': market['symbol'],
+            'order': this.safeString(trade, 'order_id'),
+            'side': this.safeStringLower2(trade, 's', 'side'),
+            'takerOrMaker': this.safeStringLower(trade, 'taker_side'),
+            'price': this.safeNumber2(trade, 'p', 'traded_price'),
+            'amount': this.safeNumber2(trade, 'q', 'traded_quantity'),
             'cost': undefined,
-            'order': order,
-            'takerOrMaker': takerOrMaker,
             'type': undefined,
-            'fee': fee,
+            'fee': {
+                'currency': this.safeCurrencyCode(feeCurrency),
+                'cost': this.parseNumber(Precise.stringNeg(feeCostString)),
+            },
         }, market);
     }
     parseOHLCV(ohlcv, market = undefined) {

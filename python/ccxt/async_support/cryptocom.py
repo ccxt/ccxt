@@ -707,11 +707,13 @@ class cryptocom(Exchange, ImplicitAPI):
 
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        get the list of most recent trades for a particular symbol
+        get a list of the most recent trades for a particular symbol
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-trades
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
+        :param int|None since: timestamp in ms of the earliest trade to fetch, maximum date range is one day
+        :param int|None limit: the maximum number of trades to fetch
         :param dict params: extra parameters specific to the cryptocom api endpoint
+        :param int|None params['until']: timestamp in ms for the ending date filter, default is the current time
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
@@ -720,38 +722,36 @@ class cryptocom(Exchange, ImplicitAPI):
             'instrument_name': market['id'],
         }
         if since is not None:
-            # maximum date range is one day
             request['start_ts'] = since
         if limit is not None:
-            request['page_size'] = limit
-        marketType, query = self.handle_market_type_and_params('fetchTrades', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'v2PublicGetPublicGetTrades',
-            'future': 'derivativesPublicGetPublicGetTrades',
-            'swap': 'derivativesPublicGetPublicGetTrades',
-        })
-        response = await getattr(self, method)(self.extend(request, query))
-        # {
-        #     "code":0,
-        #     "method":"public/get-trades",
-        #     "result": {
-        #          "instrument_name": "BTC_USDT",
-        #          "data:": [
-        #              {"dataTime":1591710781947,"d":465533583799589409,"s":"BUY","p":2.96,"q":16.0,"t":1591710781946,"i":"ICX_CRO"},
-        #              {"dataTime":1591707701899,"d":465430234542863152,"s":"BUY","p":0.007749,"q":115.0,"t":1591707701898,"i":"VET_USDT"},
-        #              {"dataTime":1591710786155,"d":465533724976458209,"s":"SELL","p":25.676,"q":0.55,"t":1591710786154,"i":"XTZ_CRO"},
-        #              {"dataTime":1591710783300,"d":465533629172286576,"s":"SELL","p":2.9016,"q":0.6,"t":1591710783298,"i":"XTZ_USDT"},
-        #              {"dataTime":1591710784499,"d":465533669425626384,"s":"SELL","p":2.7662,"q":0.58,"t":1591710784498,"i":"EOS_USDT"},
-        #              {"dataTime":1591710784700,"d":465533676120104336,"s":"SELL","p":243.21,"q":0.01647,"t":1591710784698,"i":"ETH_USDT"},
-        #              {"dataTime":1591710786600,"d":465533739878620208,"s":"SELL","p":253.06,"q":0.00516,"t":1591710786598,"i":"BCH_USDT"},
-        #              {"dataTime":1591710786900,"d":465533749959572464,"s":"BUY","p":0.9999,"q":0.2,"t":1591710786898,"i":"USDC_USDT"},
-        #              {"dataTime":1591710787500,"d":465533770081010000,"s":"BUY","p":3.159,"q":1.65,"t":1591710787498,"i":"ATOM_USDT"},
-        #            ]
-        #      }
-        # }
-        resultResponse = self.safe_value(response, 'result', {})
-        data = self.safe_value(resultResponse, 'data', [])
-        return self.parse_trades(data, market, since, limit)
+            request['count'] = limit
+        until = self.safe_integer_2(params, 'until', 'till')
+        params = self.omit(params, ['until', 'till'])
+        if until is not None:
+            request['end_ts'] = until
+        response = await self.v1PublicGetPublicGetTrades(self.extend(request, params))
+        #
+        #     {
+        #         "id": -1,
+        #         "method": "public/get-trades",
+        #         "code": 0,
+        #         "result": {
+        #             "data": [
+        #                 {
+        #                     "s": "sell",
+        #                     "p": "26386.00",
+        #                     "q": "0.00453",
+        #                     "t": 1686944282062,
+        #                     "d": "4611686018455979970",
+        #                     "i": "BTC_USD"
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        trades = self.safe_value(result, 'data', [])
+        return self.parse_trades(trades, market, since, limit)
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -1198,10 +1198,12 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-trades
         :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
+        :param int|None since: the earliest time in ms to fetch trades for, maximum date range is one day
+        :param int|None limit: the maximum number of trade structures to retrieve
         :param dict params: extra parameters specific to the cryptocom api endpoint
+        :param int|None params['until']: timestamp in ms for the ending date filter, default is the current time
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
@@ -1211,46 +1213,46 @@ class cryptocom(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['instrument_name'] = market['id']
         if since is not None:
-            # maximum date range is one day
-            request['start_ts'] = since
-            endTimestamp = self.sum(since, 24 * 60 * 60 * 1000)
-            request['end_ts'] = endTimestamp
+            request['start_time'] = since
         if limit is not None:
-            request['page_size'] = limit
-        marketType, marketTypeQuery = self.handle_market_type_and_params('fetchMyTrades', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'v2PrivatePostPrivateGetTrades',
-            'margin': 'v2PrivatePostPrivateMarginGetTrades',
-            'future': 'derivativesPrivatePostPrivateGetTrades',
-            'swap': 'derivativesPrivatePostPrivateGetTrades',
-        })
-        marginMode, query = self.custom_handle_margin_mode_and_params('fetchMyTrades', marketTypeQuery)
-        if marginMode is not None:
-            method = 'v2PrivatePostPrivateMarginGetTrades'
-        response = await getattr(self, method)(self.extend(request, query))
-        # {
-        #     "id": 11,
-        #     "method": "private/get-trades",
-        #     "code": 0,
-        #     "result": {
-        #       "trade_list": [
-        #         {
-        #           "side": "SELL",
-        #           "instrument_name": "ETH_CRO",
-        #           "fee": 0.014,
-        #           "trade_id": "367107655537806900",
-        #           "create_time": 1588777459755,
-        #           "traded_price": 7,
-        #           "traded_quantity": 1,
-        #           "fee_currency": "CRO",
-        #           "order_id": "367107623521528450"
+            request['limit'] = limit
+        until = self.safe_integer_2(params, 'until', 'till')
+        params = self.omit(params, ['until', 'till'])
+        if until is not None:
+            request['end_time'] = until
+        response = await self.v1PrivatePostPrivateGetTrades(self.extend(request, params))
+        #
+        #     {
+        #         "id": 1686942003520,
+        #         "method": "private/get-trades",
+        #         "code": 0,
+        #         "result": {
+        #             "data": [
+        #                 {
+        #                     "account_id": "ds075abc-1234-4321-bd6g-ff9007252r63",
+        #                     "event_date": "2023-06-16",
+        #                     "journal_type": "TRADING",
+        #                     "side": "BUY",
+        #                     "instrument_name": "BTC_USD",
+        #                     "fees": "-0.0000000525",
+        #                     "trade_id": "6142909898247428343",
+        #                     "trade_match_id": "4611686018455978480",
+        #                     "create_time": 1686941992887,
+        #                     "traded_price": "26347.16",
+        #                     "traded_quantity": "0.00021",
+        #                     "fee_instrument_name": "BTC",
+        #                     "client_oid": "d1c70a60-810e-4c92-b2a0-72b931cb31e0",
+        #                     "taker_side": "TAKER",
+        #                     "order_id": "6142909895036331486",
+        #                     "create_time_ns": "1686941992887207066"
+        #                 }
+        #             ]
         #         }
-        #       ]
         #     }
-        # }
-        data = self.safe_value(response, 'result', {})
-        resultList = self.safe_value_2(data, 'trade_list', 'data', [])
-        return self.parse_trades(resultList, market, since, limit)
+        #
+        result = self.safe_value(response, 'result', {})
+        trades = self.safe_value(result, 'data', [])
+        return self.parse_trades(trades, market, since, limit)
 
     def parse_address(self, addressString):
         address = None
@@ -1694,64 +1696,60 @@ class cryptocom(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade, market=None):
         #
-        # public/get-trades
+        # fetchTrades
         #
-        # {"dataTime":1591710781947,"d":465533583799589409,"s":"BUY","p":2.96,"q":16.0,"t":1591710781946,"i":"ICX_CRO"},
+        #     {
+        #         "s": "sell",
+        #         "p": "26386.00",
+        #         "q": "0.00453",
+        #         "t": 1686944282062,
+        #         "d": "4611686018455979970",
+        #         "i": "BTC_USD"
+        #     }
         #
-        # private/get-trades
+        # fetchMyTrades
         #
-        # {
-        #     "side": "SELL",
-        #     "instrument_name": "ETH_CRO",
-        #     "fee": 0.014,
-        #     "trade_id": "367107655537806900",
-        #     "create_time": 1588777459755,
-        #     "traded_price": 7,
-        #     "traded_quantity": 1,
-        #     "fee_currency": "CRO",
-        #     "order_id": "367107623521528450"
-        # }
+        #     {
+        #         "account_id": "ds075abc-1234-4321-bd6g-ff9007252r63",
+        #         "event_date": "2023-06-16",
+        #         "journal_type": "TRADING",
+        #         "side": "BUY",
+        #         "instrument_name": "BTC_USD",
+        #         "fees": "-0.0000000525",
+        #         "trade_id": "6142909898247428343",
+        #         "trade_match_id": "4611686018455978480",
+        #         "create_time": 1686941992887,
+        #         "traded_price": "26347.16",
+        #         "traded_quantity": "0.00021",
+        #         "fee_instrument_name": "BTC",
+        #         "client_oid": "d1c70a60-1234-4c92-b2a0-72b931cb31e0",
+        #         "taker_side": "TAKER",
+        #         "order_id": "6142909895036331486",
+        #         "create_time_ns": "1686941992887207066"
+        #     }
+        #
         timestamp = self.safe_integer_2(trade, 't', 'create_time')
         marketId = self.safe_string_2(trade, 'i', 'instrument_name')
         market = self.safe_market(marketId, market, '_')
-        symbol = market['symbol']
-        price = self.safe_string_2(trade, 'p', 'traded_price')
-        amount = self.safe_string_2(trade, 'q', 'traded_quantity')
-        side = self.safe_string_2(trade, 's', 'side')
-        if side is not None:
-            side = side.lower()
-        id = self.safe_string_2(trade, 'd', 'trade_id')
-        takerOrMaker = self.safe_string_lower_2(trade, 'liquidity_indicator', 'taker_side')
-        order = self.safe_string(trade, 'order_id')
-        fee = None
-        feeCost = self.safe_string_2(trade, 'fee', 'fees')
-        if feeCost is not None:
-            contract = self.safe_value(market, 'contract', False)
-            if contract:
-                feeCost = Precise.string_neg(feeCost)
-            feeCurrency = None
-            if market['spot']:
-                feeCurrency = self.safe_string(trade, 'fee_currency')
-            elif market['linear']:
-                feeCurrency = market['quote']
-            fee = {
-                'currency': feeCurrency,
-                'cost': feeCost,
-            }
+        feeCurrency = self.safe_string(trade, 'fee_instrument_name')
+        feeCostString = self.safe_string(trade, 'fees')
         return self.safe_trade({
             'info': trade,
-            'id': id,
+            'id': self.safe_string_2(trade, 'd', 'trade_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
-            'side': side,
-            'price': price,
-            'amount': amount,
+            'symbol': market['symbol'],
+            'order': self.safe_string(trade, 'order_id'),
+            'side': self.safe_string_lower_2(trade, 's', 'side'),
+            'takerOrMaker': self.safe_string_lower(trade, 'taker_side'),
+            'price': self.safe_number_2(trade, 'p', 'traded_price'),
+            'amount': self.safe_number_2(trade, 'q', 'traded_quantity'),
             'cost': None,
-            'order': order,
-            'takerOrMaker': takerOrMaker,
             'type': None,
-            'fee': fee,
+            'fee': {
+                'currency': self.safe_currency_code(feeCurrency),
+                'cost': self.parse_number(Precise.string_neg(feeCostString)),
+            },
         }, market)
 
     def parse_ohlcv(self, ohlcv, market=None):

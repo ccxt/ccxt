@@ -4496,6 +4496,11 @@ class binance(Exchange, ImplicitAPI):
 
     def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
+        see https://binance-docs.github.io/apidocs/spot/en/#cancel-all-open-orders-on-a-symbol-trade
+        see https://binance-docs.github.io/apidocs/futures/en/#cancel-all-open-orders-trade
+        see https://binance-docs.github.io/apidocs/delivery/en/#cancel-all-open-orders-trade
+        see https://binance-docs.github.io/apidocs/voptions/en/#cancel-all-option-orders-on-specific-symbol-trade
+        see https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade
         cancel all open orders in a market
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict params: extra parameters specific to the binance api endpoint
