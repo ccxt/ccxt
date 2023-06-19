@@ -11,7 +11,7 @@ else:
 
 OrderSide = Literal['buy', 'sell']
 OrderType = Literal['limit', 'market']
-PositionSide = Literal['LONG', 'SHORT']
+PositionSide = Literal['long', 'side']
 
 
 class Entry:
