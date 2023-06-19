@@ -1706,7 +1706,7 @@ class binance(Exchange, ImplicitAPI):
         if not self.check_required_credentials(False):
             return None
         # sandbox/testnet does not support sapi endpoints
-        apiBackup = self.safe_string(self.urls, 'apiBackup')
+        apiBackup = self.safe_value(self.urls, 'apiBackup')
         if apiBackup is not None:
             return None
         response = await self.sapiGetCapitalConfigGetall(params)
