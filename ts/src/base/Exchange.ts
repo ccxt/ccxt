@@ -23,7 +23,6 @@ const {
     , Throttler
     , capitalize
     , now
-    , buildOHLCVC
     , decimalToPrecision
     , safeValue
     , safeValue2
@@ -335,7 +334,6 @@ export default class Exchange {
     precisionFromString = precisionFromString
     capitalize = capitalize
     now = now
-    buildOHLCVC = buildOHLCVC
     decimalToPrecision = decimalToPrecision
     safeValue = safeValue
     safeValue2 = safeValue2
@@ -447,6 +445,11 @@ export default class Exchange {
                 'createStopOrder': undefined,
                 'createStopLimitOrder': undefined,
                 'createStopMarketOrder': undefined,
+                'createOrderWs': undefined,
+                'editOrderWs': undefined,
+                'cancelOrderWs': undefined,
+                'cancelOrdersWs': undefined,
+                'cancelAllOrdersWs': undefined,
                 'editOrder': 'emulated',
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -481,7 +484,7 @@ export default class Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
-                'fetchOHLCV': 'emulated',
+                'fetchOHLCV': undefined,
                 'fetchOpenInterest': undefined,
                 'fetchOpenInterestHistory': undefined,
                 'fetchOpenOrder': undefined,
@@ -1597,6 +1600,22 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseBorrowInterest() is not supported yet');
     }
 
+    parseWsTrade (trade, market = undefined): Trade {
+        throw new NotSupported (this.id + ' parseWsTrade() is not supported yet');
+    }
+
+    parseWsOrder (order, market = undefined): Order {
+        throw new NotSupported (this.id + ' parseWsOrder() is not supported yet');
+    }
+
+    parseWsOrderTrade (trade, market = undefined): Trade {
+        throw new NotSupported (this.id + ' parseWsOrderTrade() is not supported yet');
+    }
+
+    parseWsOHLCV (ohlcv, market = undefined) {
+        throw new NotSupported (this.id + ' parseWsOHLCV() is not supported yet');
+    }
+
     async fetchFundingRates (symbols: string[] = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchFundingRates() is not supported yet');
     }
@@ -1835,7 +1854,7 @@ export default class Exchange {
         return balance as any;
     }
 
-    safeOrder (order: object, market: object = undefined) {
+    safeOrder (order: object, market: object = undefined): Order {
         // parses numbers as strings
         // * it is important pass the trades as unparsed rawTrades
         let amount = this.omitZero (this.safeString (order, 'amount'));
@@ -2361,23 +2380,11 @@ export default class Exchange {
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        if (!this.has['fetchTrades']) {
-            throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet');
+        let message = '';
+        if (this.has['fetchTrades']) {
+            message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
         }
-        const trades = await this.fetchTrades (symbol, since, limit, params);
-        const ohlcvc = this.buildOHLCVC (trades, timeframe, since, limit);
-        const result = [];
-        for (let i = 0; i < ohlcvc.length; i++) {
-            result.push ([
-                this.safeInteger (ohlcvc[i], 0),
-                this.safeNumber (ohlcvc[i], 1),
-                this.safeNumber (ohlcvc[i], 2),
-                this.safeNumber (ohlcvc[i], 3),
-                this.safeNumber (ohlcvc[i], 4),
-                this.safeNumber (ohlcvc[i], 5),
-            ]);
-        }
-        return result;
+        throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet' + message);
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -2896,13 +2903,53 @@ export default class Exchange {
         return this.accounts;
     }
 
-    async fetchOHLCVC (symbol, timeframe = '1m', since: any = undefined, limit: Int = undefined, params = {}): Promise<OHLCVC[]> {
-        if (!this.has['fetchTrades']) {
-            throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet');
+    buildOHLCVC (trades: Trade[], timeframe: string = '1m', since: number = 0, limit: number = 2147483647): OHLCVC[] {
+        // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
+        // note, default limit value (2147483647) is max int32 value
+        const ms = this.parseTimeframe (timeframe) * 1000;
+        const ohlcvs = [];
+        const i_timestamp = 0;
+        // const open = 1;
+        const i_high = 2;
+        const i_low = 3;
+        const i_close = 4;
+        const i_volume = 5;
+        const i_count = 6;
+        const tradesLength = trades.length;
+        const oldest = Math.min (tradesLength, limit);
+        for (let i = 0; i < oldest; i++) {
+            const trade = trades[i];
+            const ts = trade['timestamp'];
+            if (ts < since) {
+                continue;
+            }
+            const openingTime = Math.floor (ts / ms) * ms; // shift to the edge of m/h/d (but not M)
+            if (openingTime < since) { // we don't need bars, that have opening time earlier than requested
+                continue;
+            }
+            const ohlcv_length = ohlcvs.length;
+            const candle = ohlcv_length - 1;
+            if ((candle === -1) || (openingTime >= this.sum (ohlcvs[candle][i_timestamp], ms))) {
+                // moved to a new timeframe -> create a new candle from opening trade
+                ohlcvs.push ([
+                    openingTime, // timestamp
+                    trade['price'], // O
+                    trade['price'], // H
+                    trade['price'], // L
+                    trade['price'], // C
+                    trade['amount'], // V
+                    1, // count
+                ]);
+            } else {
+                // still processing the same timeframe -> update opening trade
+                ohlcvs[candle][i_high] = Math.max (ohlcvs[candle][i_high], trade['price']);
+                ohlcvs[candle][i_low] = Math.min (ohlcvs[candle][i_low], trade['price']);
+                ohlcvs[candle][i_close] = trade['price'];
+                ohlcvs[candle][i_volume] = this.sum (ohlcvs[candle][i_volume], trade['amount']);
+                ohlcvs[candle][i_count] = this.sum (ohlcvs[candle][i_count], 1);
+            }
         }
-        await this.loadMarkets ();
-        const trades = await this.fetchTrades (symbol, since, limit, params);
-        return this.buildOHLCVC (trades, timeframe, since, limit);
+        return ohlcvs;
     }
 
     parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined) {
@@ -2922,9 +2969,14 @@ export default class Exchange {
         return await this.editOrder (id, symbol, 'limit', side, amount, price, params);
     }
 
-    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}): Promise<Order> {
         await this.cancelOrder (id, symbol);
         return await this.createOrder (symbol, type, side, amount, price, params);
+    }
+
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
+        await this.cancelOrderWs (id, symbol);
+        return await this.createOrderWs (symbol, type, side, amount, price, params);
     }
 
     async fetchPermissions (params = {}) {
@@ -3079,6 +3131,10 @@ export default class Exchange {
 
     async fetchBalance (params = {}): Promise<Balances> {
         throw new NotSupported (this.id + ' fetchBalance() is not supported yet');
+    }
+
+    parseBalance (response): Balances {
+        throw new NotSupported (this.id + ' parseBalance() is not supported yet');
     }
 
     async watchBalance (params = {}): Promise<Balances> {
@@ -3344,11 +3400,27 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
+        throw new NotSupported (this.id + ' createOrderWs() is not supported yet');
+    }
+
     async cancelOrder (id: string, symbol: string = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
     }
 
+    async cancelOrderWs (id: string, symbol: string = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' cancelOrderWs() is not supported yet');
+    }
+
+    async cancelOrdersWs (ids: string[], symbol: string = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' cancelOrdersWs() is not supported yet');
+    }
+
     async cancelAllOrders (symbol: string = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' cancelAllOrders() is not supported yet');
+    }
+
+    async cancelAllOrderWs (symbol: string = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' cancelAllOrders() is not supported yet');
     }
 
@@ -3905,6 +3977,7 @@ export default class Exchange {
         if (this.has['fetchFundingRates']) {
             await this.loadMarkets ();
             const market = this.market (symbol);
+            symbol = market['symbol'];
             if (!market['contract']) {
                 throw new BadSymbol (this.id + ' fetchFundingRate() supports contract markets only');
             }

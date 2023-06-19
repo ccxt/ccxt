@@ -458,8 +458,8 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
 
     public function parse_ws_order($order, $market = null) {
         //
-        //     {
         //         'symbol' => 'XCAD-USDT',
+        //     {
         //         'orderType' => 'limit',
         //         'side' => 'buy',
         //         'orderId' => '6249167327218b000135e749',

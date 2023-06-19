@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -178,6 +179,7 @@ class woo(Exchange, ImplicitAPI):
                             'funding_fee/history': 30,
                             'positions': 3.33,  # 30 requests per 10 seconds
                             'position/{symbol}': 3.33,
+                            'client/transaction_history': 60,
                         },
                         'post': {
                             'order': 5,  # 2 requests per 1 second per symbol
@@ -261,6 +263,7 @@ class woo(Exchange, ImplicitAPI):
                 'transfer': {
                     'fillResponseFromRequest': True,
                 },
+                'brokerId': 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -706,7 +709,7 @@ class woo(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -767,6 +770,10 @@ class woo(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
+        applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
+        brokerId = self.safe_string(self.options, 'brokerId', applicationId)
+        if brokerId is not None:
+            request['broker_id'] = brokerId
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'postOnly', 'timeInForce'])
         response = self.v1PrivatePostOrder(self.extend(request, params))
         # {
@@ -784,7 +791,7 @@ class woo(Exchange, ImplicitAPI):
             {'type': type}
         )
 
-    def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         edit a trade order
         :param str id: order id

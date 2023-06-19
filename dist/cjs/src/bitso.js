@@ -1039,6 +1039,8 @@ class bitso extends bitso$1 {
     parseOrderStatus(status) {
         const statuses = {
             'partial-fill': 'open',
+            'partially filled': 'open',
+            'queued': 'open',
             'completed': 'closed',
         };
         return this.safeString(statuses, status, status);

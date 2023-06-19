@@ -150,7 +150,6 @@ export default class Exchange {
     precisionFromString: typeof functions.precisionFromString;
     capitalize: (s: string) => string;
     now: () => number;
-    buildOHLCVC: (trades: Trade[], timeframe?: string, since?: number, limit?: number) => OHLCVC[];
     decimalToPrecision: (x: any, roundingMode: any, numPrecisionDigits: any, countingMode?: number, paddingMode?: number) => any;
     safeValue: (o: any, k: string | number, $default?: any) => any;
     safeValue2: (o: any, k1: string | number, k2: string | number, $default?: any) => any;
@@ -270,6 +269,11 @@ export default class Exchange {
             createStopOrder: any;
             createStopLimitOrder: any;
             createStopMarketOrder: any;
+            createOrderWs: any;
+            editOrderWs: any;
+            cancelOrderWs: any;
+            cancelOrdersWs: any;
+            cancelAllOrdersWs: any;
             editOrder: string;
             fetchAccounts: any;
             fetchBalance: boolean;
@@ -304,7 +308,7 @@ export default class Exchange {
             fetchMarkets: boolean;
             fetchMarkOHLCV: any;
             fetchMyTrades: any;
-            fetchOHLCV: string;
+            fetchOHLCV: any;
             fetchOpenInterest: any;
             fetchOpenInterestHistory: any;
             fetchOpenOrder: any;
@@ -510,6 +514,10 @@ export default class Exchange {
     parsePosition(position: any, market?: any): void;
     parseFundingRateHistory(info: any, market?: any): void;
     parseBorrowInterest(info: any, market?: any): void;
+    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrderTrade(trade: any, market?: any): Trade;
+    parseWsOHLCV(ohlcv: any, market?: any): void;
     fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
@@ -549,7 +557,7 @@ export default class Exchange {
     safeCurrencyStructure(currency: object): any;
     setMarkets(markets: any, currencies?: any): Dictionary<any>;
     safeBalance(balance: object): Balances;
-    safeOrder(order: object, market?: object): any;
+    safeOrder(order: object, market?: object): Order;
     parseOrders(orders: object, market?: object, since?: Int, limit?: Int, params?: {}): Order[];
     calculateFee(symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker?: string, params?: {}): {
         type: string;
@@ -600,12 +608,13 @@ export default class Exchange {
     fetch2(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
     request(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
     loadAccounts(reload?: boolean, params?: {}): Promise<any>;
-    fetchOHLCVC(symbol: any, timeframe?: string, since?: any, limit?: Int, params?: {}): Promise<OHLCVC[]>;
+    buildOHLCVC(trades: Trade[], timeframe?: string, since?: number, limit?: number): OHLCVC[];
     parseTradingViewOHLCV(ohlcvs: any, market?: any, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
     editLimitBuyOrder(id: any, symbol: any, amount: any, price?: any, params?: {}): Promise<Order>;
     editLimitSellOrder(id: any, symbol: any, amount: any, price?: any, params?: {}): Promise<Order>;
     editLimitOrder(id: any, symbol: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     fetchPermissions(params?: {}): Promise<void>;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
@@ -617,6 +626,7 @@ export default class Exchange {
     checkRequiredCredentials(error?: boolean): boolean;
     oath(): string;
     fetchBalance(params?: {}): Promise<Balances>;
+    parseBalance(response: any): Balances;
     watchBalance(params?: {}): Promise<Balances>;
     fetchPartialBalance(part: any, params?: {}): Promise<Balance>;
     fetchFreeBalance(params?: {}): Promise<Balance>;
@@ -649,8 +659,12 @@ export default class Exchange {
     fetchOrderStatus(id: string, symbol?: string, params?: {}): Promise<string>;
     fetchUnifiedOrder(order: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    cancelOrderWs(id: string, symbol?: string, params?: {}): Promise<any>;
+    cancelOrdersWs(ids: string[], symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
+    cancelAllOrderWs(symbol?: string, params?: {}): Promise<any>;
     cancelUnifiedOrder(order: any, params?: {}): Promise<any>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

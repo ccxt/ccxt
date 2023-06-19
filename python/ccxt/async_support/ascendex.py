@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ascendex import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -58,6 +59,8 @@ class ascendex(Exchange, ImplicitAPI):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': False,
@@ -275,6 +278,20 @@ class ascendex(Exchange, ImplicitAPI):
                 },
                 'transfer': {
                     'fillResponseFromRequest': True,
+                },
+                'networks': {
+                    'BSC': 'BEP20(BSC)',
+                    'ARB': 'arbitrum',
+                    'SOL': 'Solana',
+                    'AVAX': 'avalanche C chain',
+                    'OMNI': 'Omni',
+                },
+                'networksById': {
+                    'BEP20(BSC)': 'BSC',
+                    'arbitrum': 'ARB',
+                    'Solana': 'SOL',
+                    'avalanche C chain': 'AVAX',
+                    'Omni': 'OMNI',
                 },
             },
             'exceptions': {
@@ -1398,7 +1415,7 @@ class ascendex(Exchange, ImplicitAPI):
             }
         return result
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
         :param str symbol: Unified CCXT market symbol
@@ -2752,6 +2769,67 @@ class ascendex(Exchange, ImplicitAPI):
                 'info': tier,
             })
         return tiers
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        # {
+        #     "assetCode":      "USDT",
+        #     "assetName":      "Tether",
+        #     "precisionScale":  9,
+        #     "nativeScale":     4,
+        #     "blockChain": [
+        #         {
+        #             "chainName":        "Omni",
+        #             "withdrawFee":      "30.0",
+        #             "allowDeposit":      True,
+        #             "allowWithdraw":     True,
+        #             "minDepositAmt":    "0.0",
+        #             "minWithdrawal":    "50.0",
+        #             "numConfirmations":  3
+        #         },
+        #     ]
+        # }
+        #
+        blockChains = self.safe_value(fee, 'blockChain', [])
+        blockChainsLength = len(blockChains)
+        result = {
+            'info': fee,
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+        for i in range(0, blockChainsLength):
+            blockChain = blockChains[i]
+            networkId = self.safe_string(blockChain, 'chainName')
+            currencyCode = self.safe_string(currency, 'code')
+            networkCode = self.network_id_to_code(networkId, currencyCode)
+            result['networks'][networkCode] = {
+                'deposit': {'fee': None, 'percentage': None},
+                'withdraw': {'fee': self.safe_number(blockChain, 'withdrawFee'), 'percentage': False},
+            }
+            if blockChainsLength == 1:
+                result['withdraw']['fee'] = self.safe_number(blockChain, 'withdrawFee')
+                result['withdraw']['percentage'] = False
+        return result
+
+    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.v2PublicGetAssets(params)
+        data = self.safe_value(response, 'data')
+        return self.parse_deposit_withdraw_fees(data, codes, 'assetCode')
 
     async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """

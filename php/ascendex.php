@@ -45,6 +45,8 @@ class ascendex extends Exchange {
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => 'emulated',
                 'fetchFundingRateHistory' => false,
@@ -262,6 +264,20 @@ class ascendex extends Exchange {
                 ),
                 'transfer' => array(
                     'fillResponseFromRequest' => true,
+                ),
+                'networks' => array(
+                    'BSC' => 'BEP20 (BSC)',
+                    'ARB' => 'arbitrum',
+                    'SOL' => 'Solana',
+                    'AVAX' => 'avalanche C chain',
+                    'OMNI' => 'Omni',
+                ),
+                'networksById' => array(
+                    'BEP20 (BSC)' => 'BSC',
+                    'arbitrum' => 'ARB',
+                    'Solana' => 'SOL',
+                    'avalanche C chain' => 'AVAX',
+                    'Omni' => 'OMNI',
                 ),
             ),
             'exceptions' => array(
@@ -1432,7 +1448,7 @@ class ascendex extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * Create an $order on the exchange
          * @param {string} $symbol Unified CCXT $market $symbol
@@ -2861,6 +2877,71 @@ class ascendex extends Exchange {
             );
         }
         return $tiers;
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        // {
+        //     "assetCode" =>      "USDT",
+        //     "assetName" =>      "Tether",
+        //     "precisionScale" =>  9,
+        //     "nativeScale" =>     4,
+        //     "blockChain" => array(
+        //         array(
+        //             "chainName" =>        "Omni",
+        //             "withdrawFee" =>      "30.0",
+        //             "allowDeposit" =>      true,
+        //             "allowWithdraw" =>     true,
+        //             "minDepositAmt" =>    "0.0",
+        //             "minWithdrawal" =>    "50.0",
+        //             "numConfirmations" =>  3
+        //         ),
+        //     )
+        // }
+        //
+        $blockChains = $this->safe_value($fee, 'blockChain', array());
+        $blockChainsLength = count($blockChains);
+        $result = array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+        for ($i = 0; $i < $blockChainsLength; $i++) {
+            $blockChain = $blockChains[$i];
+            $networkId = $this->safe_string($blockChain, 'chainName');
+            $currencyCode = $this->safe_string($currency, 'code');
+            $networkCode = $this->network_id_to_code($networkId, $currencyCode);
+            $result['networks'][$networkCode] = array(
+                'deposit' => array( 'fee' => null, 'percentage' => null ),
+                'withdraw' => array( 'fee' => $this->safe_number($blockChain, 'withdrawFee'), 'percentage' => false ),
+            );
+            if ($blockChainsLength === 1) {
+                $result['withdraw']['fee'] = $this->safe_number($blockChain, 'withdrawFee');
+                $result['withdraw']['percentage'] = false;
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+        /**
+         * fetch deposit and withdraw fees
+         * @see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
+         * @param {[string]|null} $codes list of unified currency $codes
+         * @param {array} $params extra parameters specific to the bitrue api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         */
+        $this->load_markets();
+        $response = $this->v2PublicGetAssets ($params);
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_deposit_withdraw_fees($data, $codes, 'assetCode');
     }
 
     public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {

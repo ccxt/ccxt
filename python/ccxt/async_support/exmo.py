@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.exmo import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -632,9 +633,9 @@ class exmo(Exchange, ImplicitAPI):
                 for j in range(0, len(providers)):
                     provider = providers[j]
                     typeInner = self.safe_string(provider, 'type')
-                    minValue = self.safe_number(provider, 'min')
-                    maxValue = self.safe_number(provider, 'max')
-                    if maxValue == 0.0:
+                    minValue = self.safe_string(provider, 'min')
+                    maxValue = self.safe_string(provider, 'max')
+                    if Precise.string_eq(maxValue, '0.0'):
                         maxValue = None
                     activeProvider = self.safe_value(provider, 'enabled')
                     if typeInner == 'deposit':
@@ -649,7 +650,8 @@ class exmo(Exchange, ImplicitAPI):
                             withdrawEnabled = False
                     if activeProvider:
                         active = True
-                        if (limits[typeInner]['min'] is None) or (minValue < limits[typeInner]['min']):
+                        limitMin = self.number_to_string(limits[typeInner]['min'])
+                        if (limits[typeInner]['min'] is None) or (Precise.string_lt(minValue, limitMin)):
                             limits[typeInner]['min'] = minValue
                             limits[typeInner]['max'] = maxValue
                             if typeInner == 'withdraw':
@@ -1154,7 +1156,7 @@ class exmo(Exchange, ImplicitAPI):
             result = self.array_concat(result, trades)
         return self.filter_by_since_limit(result, since, limit)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

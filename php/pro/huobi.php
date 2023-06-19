@@ -1971,7 +1971,7 @@ class huobi extends \ccxt\async\huobi {
         }
     }
 
-    public function parse_ws_trade($trade) {
+    public function parse_ws_trade($trade, $market = null) {
         // spot private
         //
         //     {

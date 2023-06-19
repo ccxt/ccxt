@@ -26,7 +26,8 @@ const pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
 const baseExchangeJsFile = './ts/src/base/Exchange.ts'
 
 const exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
-const exchangeIds = exchanges.ids
+const exchangeIds = exchanges.ids;
+const exchangesWsIds = exchanges.ws;
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
@@ -95,6 +96,7 @@ class Transpiler {
             [ /\.parseFundingRateHistory\s/g, '.parse_funding_rate_history'],
             [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
             [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
+            [ /\.parseWsOHLCV\s/g, '.parse_ws_ohlcv'],
             [ /\.parseDate\s/g, '.parse_date'],
             [ /\.parseDepositAddresses\s/g, '.parse_deposit_addresses'],
             [ /\.parseDepositAddress\s/g, '.parse_deposit_address'],
@@ -108,6 +110,7 @@ class Transpiler {
             [ /\.parseTradesData\s/g, '.parse_trades_data'],
             [ /\.parseTrades\s/g, '.parse_trades'],
             [ /\.parseTrade\s/g, '.parse_trade'],
+            [ /\.parseWsTrade\s/g, '.parse_ws_trade'],
             [ /\.parseTradingFees\s/g, '.parse_trading_fees'],
             [ /\.parseTradingFee\s/g, '.parse_trading_fee'],
             [ /\.parseTradingViewOHLCV\s/g, '.parse_trading_view_ohlcv'],
@@ -125,6 +128,8 @@ class Transpiler {
             [ /\.parseOrders\s/g, '.parse_orders'],
             [ /\.parseOrderStatus\s/g, '.parse_order_status'],
             [ /\.parseOrder\s/g, '.parse_order'],
+            [ /\.parseWsOrder\s/g, '.parse_ws_order'],
+            [ /\.parseWsOrderTrade\s/g, '.parse_ws_order_trade'],
             [ /\.parseJson\s/g, '.parse_json'],
             [ /\.parseAccountPosition\s/g, '.parse_account_position' ],
             [ /\.parsePositionRisk\s/g, '.parse_position_risk' ],
@@ -142,6 +147,7 @@ class Transpiler {
             [ /\.filterBySinceLimit\s/g, '.filter_by_since_limit'],
             [ /\.filterBySymbol\s/g, '.filter_by_symbol'],
             [ /\.getVersionString\s/g, '.get_version_string'],
+            [ /\.checkRequiredArgument\s/g, '.check_required_argument'],
             [ /\.indexBy\s/g, '.index_by'],
             [ /\.sortBy\s/g, '.sort_by'],
             [ /\.sortBy2\s/g, '.sort_by_2'],
@@ -322,6 +328,7 @@ class Transpiler {
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
             // [ /\.replaceAll\s*\(([^)]+)\)/g, '.replace($1)' ], // still not a part of the standard
+            [ /replaceAll\s*/g, 'replace'],
             [ /assert\s*\((.+)\);/g, 'assert $1'],
             [ /Promise\.all\s*\(([^\)]+)\)/g, 'asyncio.gather(*$1)' ],
             [ /Precise\.stringAdd\s/g, 'Precise.string_add' ],
@@ -384,6 +391,7 @@ class Transpiler {
             [ /\;$/gm, '' ],
             [ /\.toUpperCase\s*/g, '.upper' ],
             [ /\.toLowerCase\s*/g, '.lower' ],
+            [ /\.trim\s*/g, '.strip' ],
             [ /(\b)String(\b)/g, '$1str$2'],
             [ /JSON\.stringify\s*/g, 'json.dumps' ],
             [ /JSON\.parse\s*/g, "json.loads" ],
@@ -620,7 +628,8 @@ class Transpiler {
             [ / \+\= (?!\d)/g, ' .= ' ],
             [ /([^\s\(]+(?:\s*\(.+\))?)\.toUpperCase\s*\(\)/g, 'strtoupper($1)' ],
             [ /([^\s\(]+(?:\s*\(.+\))?)\.toLowerCase\s*\(\)/g, 'strtolower($1)' ],
-            // [ /([^\s\(]+(?:\s*\(.+\))?)\.replaceAll\s*\(([^)]+)\)/g, 'str_replace($2, $1)' ], // still not a part of the standard in Node.js 13
+            [ /([^\s\(]+(?:\s*\(.+\))?)\.trim\s*\(\)/g, 'trim($1)' ],
+            [ /([^\s\(]+(?:\s*\(.+\))?)\.replaceAll\s*\(([^)]+)\)/g, 'str_replace($2, $1)' ],
             [ /([^\s\(]+(?:\s*\(.+\))?)\.replace\s*\(([^)]+)\)/g, 'str_replace($2, $1)' ],
             [ /this\[([^\]+]+)\]/g, '$$this->$$$1' ],
             [ /([^\s\(]+).slice \(([^\)\:,]+)\)/g, 'mb_substr($1, $2)' ],
@@ -1313,7 +1322,8 @@ class Transpiler {
                 overwriteFile (tsPath, contents)
             }
 
-            const tsMtime = fs.statSync (tsPath).mtime.getTime ()
+            let tsMtime = fs.statSync (tsPath).mtime.getTime ();
+            tsMtime = tsMtime - tsMtime % 1000;
 
             const python2Path  = python2Folder  ? (python2Folder  + pythonFilename) : undefined
             const python3Path  = python3Folder  ? (python3Folder  + pythonFilename) : undefined
@@ -1371,22 +1381,25 @@ class Transpiler {
         const { python2Folder, python3Folder, phpFolder, phpAsyncFolder } = options
 
         // exchanges.json accounts for ids included in exchanges.cfg
-        let ids = undefined
-        try {
-            ids = exchanges.ids
-        } catch (e) {
+        let ids = undefined;
+        if (jsFolder.indexOf('pro/') > -1) {
+            ids = exchangesWsIds;
+        } else {
+            ids = exchangeIds;
         }
 
         const regex = new RegExp (pattern.replace (/[.*+?^${}()|[\]\\]/g, '\\$&'))
 
-        let exchanges
+        let exchangesToTranspile;
         if (options.exchanges && options.exchanges.length) {
-            exchanges = options.exchanges.map (x => x + pattern)
+            exchangesToTranspile = options.exchanges.map (x => x + pattern)
+        } else if (ids !== undefined) {
+            exchangesToTranspile = ids.map(id => id + '.ts');
         } else {
-            exchanges = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.js'))))
+            exchangesToTranspile = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.js'))))
         }
 
-        const classNames = exchanges.map (file => this.transpileDerivedExchangeFile (jsFolder, file, options, force))
+        const classNames = exchangesToTranspile.map (file => this.transpileDerivedExchangeFile (jsFolder, file, options, force))
 
         const classes = {}
 

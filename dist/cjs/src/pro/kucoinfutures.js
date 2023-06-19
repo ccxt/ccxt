@@ -435,8 +435,8 @@ class kucoinfutures extends kucoinfutures$1 {
     }
     parseWsOrder(order, market = undefined) {
         //
-        //     {
         //         'symbol': 'XCAD-USDT',
+        //     {
         //         'orderType': 'limit',
         //         'side': 'buy',
         //         'orderId': '6249167327218b000135e749',

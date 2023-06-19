@@ -21,7 +21,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -128,7 +128,7 @@ class xt(Exchange, ImplicitAPI):
                 'transfer': True,
                 'withdraw': True,
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg',
                 'api': {
@@ -713,7 +713,35 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = await self.publicSpotGetWalletSupportCurrency(params)
+        promisesRaw = [self.publicSpotGetWalletSupportCurrency(params), self.publicSpotGetCurrencies(params)]
+        chainsResponse, currenciesResponse = await asyncio.gather(*promisesRaw)
+        #
+        # currencies
+        #
+        #    {
+        #        "time": "1686626116145",
+        #        "version": "5dbbb2f2527c22b2b2e3b47187ef13d1",
+        #        "currencies": [
+        #            {
+        #                "id": "2",
+        #                "currency": "btc",
+        #                "fullName": "Bitcoin",
+        #                "logo": "https://a.static-global.com/1/currency/btc.png",
+        #                "cmcLink": "https://coinmarketcap.com/currencies/bitcoin/",
+        #                "weight": "99999",
+        #                "maxPrecision": "10",
+        #                "depositStatus": "1",
+        #                "withdrawStatus": "1",
+        #                "convertEnabled": "1",
+        #                "transferEnabled": "1",
+        #                "isChainExist": "1",
+        #                "plates": [152]
+        #            },
+        #        ],
+        #    }
+        #
+        #
+        # chains
         #
         #     {
         #         "rc": 0,
@@ -736,13 +764,20 @@ class xt(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'result', [])
+        # note: individual network's full data is available on per-currency endpoint: https://www.xt.com/sapi/v4/balance/public/currency/11
+        #
+        chainsData = self.safe_value(chainsResponse, 'result', [])
+        currenciesResult = self.safe_value(currenciesResponse, 'result', [])
+        currenciesData = self.safe_value(currenciesResult, 'currencies', [])
+        chainsDataIndexed = self.index_by(chainsData, 'currency')
         result = {}
-        for i in range(0, len(data)):
-            entry = data[i]
+        for i in range(0, len(currenciesData)):
+            entry = currenciesData[i]
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
-            rawNetworks = self.safe_value(entry, 'supportChains', [])
+            minPrecision = self.parse_number(self.parse_precision(self.safe_string(entry, 'maxPrecision')))
+            networkEntry = self.safe_value(chainsDataIndexed, currencyId, {})
+            rawNetworks = self.safe_value(networkEntry, 'supportChains', [])
             networks = {}
             minWithdrawString = None
             minWithdrawFeeString = None
@@ -772,7 +807,7 @@ class xt(Exchange, ImplicitAPI):
                     'name': None,
                     'active': networkActive,
                     'fee': self.parse_number(withdrawFeeString),
-                    'precision': None,
+                    'precision': minPrecision,
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'limits': {
@@ -794,7 +829,7 @@ class xt(Exchange, ImplicitAPI):
                 'info': entry,
                 'id': currencyId,
                 'code': code,
-                'name': None,
+                'name': self.safe_string(entry, 'fullName'),
                 'active': active,
                 'fee': self.parse_number(minWithdrawFeeString),
                 'precision': None,
@@ -1183,8 +1218,10 @@ class xt(Exchange, ImplicitAPI):
             'strike': None,
             'optionType': None,
             'precision': {
-                'price': self.safe_integer(market, 'pricePrecision'),
-                'amount': self.safe_integer(market, 'quantityPrecision'),
+                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision'))),
+                'base': self.parse_number(self.parse_precision(self.safe_string(market, 'baseCoinPrecision'))),
+                'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quoteCoinPrecision'))),
             },
             'limits': {
                 'leverage': {
@@ -2133,10 +2170,9 @@ class xt(Exchange, ImplicitAPI):
     async def create_contract_order(self, symbol: str, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        convertContractsToAmount = Precise.string_div(self.number_to_string(amount), self.number_to_string(market['contractSize']))
         request = {
             'symbol': market['id'],
-            'origQty': self.amount_to_precision(symbol, self.parse_number(convertContractsToAmount)),
+            'origQty': self.amount_to_precision(symbol, amount),
         }
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         if timeInForce is not None:
@@ -4305,7 +4341,7 @@ class xt(Exchange, ImplicitAPI):
         #     }
         #
         status = self.safe_string_upper_2(response, 'msgInfo', 'mc')
-        if status != 'SUCCESS':
+        if status is not None and status != 'SUCCESS':
             feedback = self.id + ' ' + body
             error = self.safe_value(response, 'error', {})
             spotErrorCode = self.safe_string(response, 'mc')
@@ -4342,7 +4378,11 @@ class xt(Exchange, ImplicitAPI):
             timestamp = self.number_to_string(self.nonce())
             body = query
             if (payload == '/v4/order') or (payload == '/future/trade/v1/order/create') or (payload == '/future/trade/v1/entrust/create-plan') or (payload == '/future/trade/v1/entrust/create-profit') or (payload == '/future/trade/v1/order/create-batch'):
-                body['clientMedia'] = 'CCXT'
+                id = 'CCXT'
+                if payload.find('future') > -1:
+                    body['clientMedia'] = id
+                else:
+                    body['media'] = id
             isUndefinedBody = ((method == 'GET') or (path == 'order/{orderId}'))
             body = None if isUndefinedBody else self.json(body)
             payloadString = None

@@ -393,11 +393,14 @@ class bybit extends bybit$1 {
                         // user
                         'v5/user/query-sub-members': 10,
                         'v5/user/query-api': 10,
+                        'v5/user/aff-customer-info': 10,
+                        'v5/customer/info': 10,
                         'v5/spot-cross-margin-trade/loan-info': 1,
                         'v5/spot-cross-margin-trade/account': 1,
                         'v5/spot-cross-margin-trade/orders': 1,
                         'v5/spot-cross-margin-trade/repay-history': 1,
                         'v5/ins-loan/ltv-convert': 1,
+                        'v5/broker/earning-record': 1,
                     },
                     'post': {
                         // inverse swap
@@ -644,6 +647,7 @@ class bybit extends bybit$1 {
                     '10028': errors.PermissionDenied,
                     '10029': errors.PermissionDenied,
                     '12201': errors.BadRequest,
+                    '12141': errors.BadRequest,
                     '100028': errors.PermissionDenied,
                     '110001': errors.InvalidOrder,
                     '110003': errors.InvalidOrder,
@@ -1141,6 +1145,18 @@ class bybit extends bybit$1 {
     nonce() {
         return this.milliseconds() - this.options['timeDifference'];
     }
+    addPaginationCursorToResult(response) {
+        const result = this.safeValue(response, 'result', {});
+        const data = this.safeValueN(result, ['list', 'rows', 'data', 'dataList'], []);
+        const paginationCursor = this.safeString2(result, 'nextPageCursor', 'cursor');
+        const dataLength = data.length;
+        if ((paginationCursor !== undefined) && (dataLength > 0)) {
+            const first = data[0];
+            first['nextPageCursor'] = paginationCursor;
+            data[0] = first;
+        }
+        return data;
+    }
     async isUnifiedEnabled(params = {}) {
         // The API key of user id must own one of permissions will be allowed to call following API endpoints.
         // SUB UID: "Account Transfer"
@@ -1365,17 +1381,26 @@ class bybit extends bybit$1 {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference();
         }
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchMarkets', undefined, params);
         const promisesUnresolved = [
             this.fetchSpotMarkets(params),
             this.fetchDerivativesMarkets({ 'category': 'linear' }),
             this.fetchDerivativesMarkets({ 'category': 'inverse' }),
         ];
+        if (type === 'option') {
+            promisesUnresolved.push(this.fetchDerivativesMarkets({ 'category': 'option' }));
+        }
         const promises = await Promise.all(promisesUnresolved);
         const spotMarkets = promises[0];
         const linearMarkets = promises[1];
         const inverseMarkets = promises[2];
         let markets = spotMarkets;
         markets = this.arrayConcat(markets, linearMarkets);
+        if (type === 'option') {
+            const optionMarkets = promises[3];
+            markets = this.arrayConcat(markets, optionMarkets);
+        }
         return this.arrayConcat(markets, inverseMarkets);
     }
     async fetchSpotMarkets(params) {
@@ -1798,8 +1823,9 @@ class bybit extends bybit$1 {
         const timestamp = this.safeInteger(ticker, 'time');
         const marketId = this.safeString(ticker, 'symbol');
         const defaultType = this.safeString(this.options, 'defaultType', 'spot');
-        market = this.safeMarket(marketId, market, undefined, defaultType);
-        const symbol = this.safeSymbol(marketId, market, undefined, defaultType);
+        const type = this.safeString(market, 'type', defaultType);
+        market = this.safeMarket(marketId, market, undefined, type);
+        const symbol = this.safeSymbol(marketId, market, undefined, type);
         const last = this.safeString(ticker, 'lastPrice');
         const open = this.safeString(ticker, 'prevPrice24h');
         let percentage = this.safeString(ticker, 'price24hPcnt');
@@ -4176,10 +4202,10 @@ class bybit extends bybit$1 {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        return {
+        return this.safeOrder({
             'info': response,
             'id': this.safeString(result, 'orderId'),
-        };
+        });
     }
     async editUnifiedMarginOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
@@ -4337,10 +4363,10 @@ class bybit extends bybit$1 {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        return {
+        return this.safeOrder({
             'info': response,
             'id': this.safeString(result, 'orderId'),
-        };
+        });
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         if (symbol === undefined) {
@@ -4907,7 +4933,7 @@ class bybit extends bybit$1 {
                 request['category'] = 'linear';
             }
             else {
-                throw new errors.NotSupported(this.id + ' fetchOrders() does not allow inverse market orders for ' + symbol + ' markets');
+                request['category'] = 'inverse';
             }
         }
         const isStop = this.safeValue(params, 'stop', false);
@@ -4988,14 +5014,7 @@ class bybit extends bybit$1 {
         //         "time": 1672221263862
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const data = this.safeValue(result, 'list', []);
-        const paginationCursor = this.safeString(result, 'nextPageCursor');
-        if ((paginationCursor !== undefined) && (data.length > 0)) {
-            const first = data[0];
-            first['nextPageCursor'] = paginationCursor;
-            data[0] = first;
-        }
+        const data = this.addPaginationCursorToResult(response);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchUnifiedMarginOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5083,14 +5102,7 @@ class bybit extends bybit$1 {
         //         "time": 1657713451741
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const data = this.safeValue(result, 'list', []);
-        const paginationCursor = this.safeString(result, 'nextPageCursor');
-        if ((paginationCursor !== undefined) && (data.length > 0)) {
-            const first = data[0];
-            first['nextPageCursor'] = paginationCursor;
-            data[0] = first;
-        }
+        const data = this.addPaginationCursorToResult(response);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchDerivativesOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5134,6 +5146,20 @@ class bybit extends bybit$1 {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        const endTime = this.safeInteger(params, 'endTime', until); // exchange-specific in milliseconds
+        params = this.omit(params, ['endTime', 'till', 'until']);
+        if (endTime !== undefined) {
+            request['endTime'] = endTime;
+        }
+        else {
+            if (since !== undefined) {
+                throw new errors.BadRequest(this.id + ' fetchOrders() requires until/endTime when since is provided.');
+            }
         }
         const response = await this.privateGetV5OrderHistory(this.extend(request, params));
         //
@@ -5186,14 +5212,7 @@ class bybit extends bybit$1 {
         //         "time": 1672221263862
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const data = this.safeValue(result, 'list', []);
-        const paginationCursor = this.safeString(result, 'nextPageCursor');
-        if ((paginationCursor !== undefined) && (data.length > 0)) {
-            const first = data[0];
-            first['nextPageCursor'] = paginationCursor;
-            data[0] = first;
-        }
+        const data = this.addPaginationCursorToResult(response);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5227,7 +5246,7 @@ class bybit extends bybit$1 {
         }
         const [type, query] = this.handleMarketTypeAndParams('fetchOrders', market, params);
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
-        if (enableUnifiedAccount && !isInverse) {
+        if (enableUnifiedAccount) {
             return await this.fetchUnifiedAccountOrders(symbol, since, limit, query);
         }
         else if (type === 'spot') {
@@ -5460,8 +5479,7 @@ class bybit extends bybit$1 {
         //         "time": 1672219526294
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const data = this.safeValue(result, 'list', []);
+        const data = this.addPaginationCursorToResult(response);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchSpotOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5590,8 +5608,7 @@ class bybit extends bybit$1 {
         //         "time": 1665565614320
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const orders = this.safeValue(result, 'list', []);
+        const orders = this.addPaginationCursorToResult(response);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchDerivativesOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5692,8 +5709,7 @@ class bybit extends bybit$1 {
         //         "time": 1672219526294
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const orders = this.safeValue(result, 'list', []);
+        const orders = this.addPaginationCursorToResult(response);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchUSDCOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5708,8 +5724,7 @@ class bybit extends bybit$1 {
         [type, params] = this.handleMarketTypeAndParams('fetchUSDCOpenOrders', market, params);
         request['category'] = (type === 'swap') ? 'perpetual' : 'option';
         const response = await this.privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders(this.extend(request, params));
-        const result = this.safeValue(response, 'result', {});
-        const orders = this.safeValue(result, 'dataList', []);
+        const orders = this.addPaginationCursorToResult(response);
         //
         //     {
         //         "retCode": 0,
@@ -5796,10 +5811,17 @@ class bybit extends bybit$1 {
          * @param {int|undefined} limit the maximum number of trades to retrieve
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         *
          */
-        const request = {
-            'orderId': id,
-        };
+        const request = {};
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'orderLinkId');
+        if (clientOrderId !== undefined) {
+            request['orderLinkId'] = clientOrderId;
+        }
+        else {
+            request['orderId'] = id;
+        }
+        params = this.omit(params, ['clientOrderId', 'orderLinkId']);
         return await this.fetchMyTrades(symbol, since, limit, this.extend(request, params));
     }
     async fetchMyUnifiedTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5881,8 +5903,7 @@ class bybit extends bybit$1 {
         //         "time": 1672283754510
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const trades = this.safeValue(result, 'list', []);
+        const trades = this.addPaginationCursorToResult(response);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchMySpotTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5936,8 +5957,7 @@ class bybit extends bybit$1 {
         //         "time": "1666768215157"
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const trades = this.safeValue(result, 'list', []);
+        const trades = this.addPaginationCursorToResult(response);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchMyUnifiedMarginTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -6004,8 +6024,7 @@ class bybit extends bybit$1 {
         //         "time": 1657714292783
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const trades = this.safeValue(result, 'list', []);
+        const trades = this.addPaginationCursorToResult(response);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchMyContractTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -6080,8 +6099,7 @@ class bybit extends bybit$1 {
         //         "time": 1672283754510
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const trades = this.safeValue(result, 'list', []);
+        const trades = this.addPaginationCursorToResult(response);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchMyUsdcTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -6125,8 +6143,7 @@ class bybit extends bybit$1 {
         //       "retMsg": "Success."
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const dataList = this.safeValue(result, 'dataList', []);
+        const dataList = this.addPaginationCursorToResult(response);
         return this.parseTrades(dataList, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -6354,8 +6371,7 @@ class bybit extends bybit$1 {
         //         "time": 1672191992512
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const data = this.safeValue(result, 'rows', []);
+        const data = this.addPaginationCursorToResult(response);
         return this.parseTransactions(data, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -6429,8 +6445,7 @@ class bybit extends bybit$1 {
         //         "time": 1672194949928
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const data = this.safeValue(result, 'rows', []);
+        const data = this.addPaginationCursorToResult(response);
         return this.parseTransactions(data, currency, since, limit);
     }
     parseTransactionStatus(status) {
@@ -6692,8 +6707,7 @@ class bybit extends bybit$1 {
         //         "time": 1672132481405
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const data = this.safeValue2(result, 'data', 'list', []);
+        const data = this.addPaginationCursorToResult(response);
         return this.parseLedger(data, currency, since, limit);
     }
     parseLedgerEntry(item, currency = undefined) {
@@ -7117,8 +7131,7 @@ class bybit extends bybit$1 {
         //         "time": 1657713693182
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const positions = this.safeValue(result, 'list', []);
+        const positions = this.addPaginationCursorToResult(response);
         const results = [];
         for (let i = 0; i < positions.length; i++) {
             let rawPosition = positions[i];
@@ -7193,8 +7206,7 @@ class bybit extends bybit$1 {
         //         "retMsg": "Success."
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const positions = this.safeValue(result, 'dataList', []);
+        const positions = this.addPaginationCursorToResult(response);
         const results = [];
         for (let i = 0; i < positions.length; i++) {
             let rawPosition = positions[i];
@@ -7270,8 +7282,7 @@ class bybit extends bybit$1 {
         //         "time": 1672280219169
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const positions = this.safeValue(result, 'list', []);
+        const positions = this.addPaginationCursorToResult(response);
         return this.parsePositions(positions, symbols, params);
     }
     async fetchPositions(symbols = undefined, params = {}) {
@@ -7789,13 +7800,7 @@ class bybit extends bybit$1 {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        const data = this.safeValue(result, 'list', []);
-        const paginationCursor = this.safeString(result, 'nextPageCursor');
-        if ((paginationCursor !== undefined) && (data.length > 0)) {
-            const first = data[0];
-            first['nextPageCursor'] = paginationCursor;
-            data[0] = first;
-        }
+        const data = this.addPaginationCursorToResult(response);
         const id = this.safeString(result, 'symbol');
         market = this.safeMarket(id, market, undefined, 'contract');
         return this.parseOpenInterests(data, market, since, limit);
@@ -7857,7 +7862,7 @@ class bybit extends bybit$1 {
         const result = this.safeValue(response, 'result', {});
         const id = this.safeString(result, 'symbol');
         market = this.safeMarket(id, market, undefined, 'contract');
-        const data = this.safeValue(result, 'list', []);
+        const data = this.addPaginationCursorToResult(response);
         return this.parseOpenInterest(data[0], market);
     }
     async fetchOpenInterestHistory(symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {

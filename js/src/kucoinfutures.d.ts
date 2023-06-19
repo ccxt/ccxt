@@ -1,5 +1,5 @@
 import kucoin from './abstract/kucoinfutures.js';
-import { Dictionary, Int, OrderSide, Ticker } from './base/types.js';
+import { Dictionary, Int, OrderSide, Ticker, OrderType } from './base/types.js';
 export default class kucoinfutures extends kucoin {
     describe(): any;
     fetchStatus(params?: {}): Promise<{
@@ -29,7 +29,7 @@ export default class kucoinfutures extends kucoin {
     fetchPosition(symbol: string, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     parsePosition(position: any, market?: any): any;
-    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<{
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<{
         id: string;
         clientOrderId: any;
         timestamp: any;
@@ -67,8 +67,8 @@ export default class kucoinfutures extends kucoin {
     };
     fetchOrdersByStatus(status: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrder(id?: any, symbol?: string, params?: {}): Promise<any>;
-    parseOrder(order: any, market?: any): any;
+    fetchOrder(id?: any, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
+    parseOrder(order: any, market?: any): import("./base/types.js").Order;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: any;

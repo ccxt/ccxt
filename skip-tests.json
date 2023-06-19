@@ -307,6 +307,10 @@
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
+            },
+            "fetchTickers": {
+                "baseVolume": "baseVolume * low = 8.43e-6 * 3692.59081464 = 0.03112854056 < 0.0311285405674152",
+                "quoteVolume": "quoteVolume >= baseVolume * low <<< bitstamp fetchTickers"
             }
         }
     },
@@ -543,7 +547,10 @@
     },
     "coinspot": {
         "skipMethods": {
-            "loadMarkets": "precision key has an null value, but is expected to have a value| taker key missing from structure (markets are created from constructor .options, so needs to fill with default values in base)"
+            "loadMarkets": "precision key has an null value, but is expected to have a value| taker key missing from structure (markets are created from constructor .options, so needs to fill with default values in base)",
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing"
+            }
         }
     },
     "coinsph": {
@@ -551,6 +558,14 @@
             "loadMarkets": {
                 "taker":"messed",
                 "maker":"messed"
+            },
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
+                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "fetchTicker": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
+                "baseVolume": "quoteVolume >= baseVolume * low is failing"
             }
         }
     },
@@ -599,6 +614,7 @@
         }
     },
     "currencycom": {
+        "skip": "17/06 exchange not available 503",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -608,10 +624,12 @@
                 "settleId": "not defined when contract"
             },
             "fetchTickers": {
+                "ask": "not above bid https://app.travis-ci.com/github/ccxt/ccxt/builds/263871244#L2163",
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
             "fetchTicker": {
+                "ask": "not above bid https://app.travis-ci.com/github/ccxt/ccxt/builds/263871244#L2163",
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             }
@@ -658,7 +676,12 @@
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
+                "currencyIdAndCode": "messed codes",
                 "active": "not provided"
+            },
+            "fetchCurrencies":{
+                "withdraw": "not provided",
+                "deposit": "not provided"
             }
         }
     },
@@ -782,6 +805,7 @@
         }
     },
     "stex": {
+        "skip": "31/05 maintenance",
         "skipMethods": {
             "fetchCurrencies":{
                 "withdraw":"not provided",

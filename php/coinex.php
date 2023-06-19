@@ -1748,7 +1748,7 @@ class coinex extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http017_put_limit
@@ -1999,7 +1999,7 @@ class coinex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade022_modify_order

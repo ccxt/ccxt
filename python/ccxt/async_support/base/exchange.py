@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.15'
+__version__ = '3.1.45'
 
 # -----------------------------------------------------------------------------
 
@@ -14,6 +14,7 @@ import aiohttp
 import ssl
 import sys
 import yarl
+import math
 from typing import Any, Optional, List
 
 # -----------------------------------------------------------------------------
@@ -24,7 +25,7 @@ from ccxt.async_support.base.throttler import Throttler
 
 from ccxt.base.errors import BaseError, BadSymbol, BadRequest, AuthenticationError, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidOrder, InvalidAddress
 from ccxt.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE, DECIMAL_PLACES, SIGNIFICANT_DIGITS
-from ccxt.base.types import OrderType, OrderSide, IndexType, Balance
+from ccxt.base.types import OrderType, OrderSide, IndexType, Balance, Trade
 
 # -----------------------------------------------------------------------------
 
@@ -644,6 +645,18 @@ class Exchange(BaseExchange):
 
     def parse_borrow_interest(self, info, market=None):
         raise NotSupported(self.id + ' parseBorrowInterest() is not supported yet')
+
+    def parse_ws_trade(self, trade, market=None):
+        raise NotSupported(self.id + ' parseWsTrade() is not supported yet')
+
+    def parse_ws_order(self, order, market=None):
+        raise NotSupported(self.id + ' parseWsOrder() is not supported yet')
+
+    def parse_ws_order_trade(self, trade, market=None):
+        raise NotSupported(self.id + ' parseWsOrderTrade() is not supported yet')
+
+    def parse_ws_ohlcv(self, ohlcv, market=None):
+        raise NotSupported(self.id + ' parseWsOHLCV() is not supported yet')
 
     async def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchFundingRates() is not supported yet')
@@ -1290,21 +1303,10 @@ class Exchange(BaseExchange):
         })
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        if not self.has['fetchTrades']:
-            raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
-        trades = await self.fetchTrades(symbol, since, limit, params)
-        ohlcvc = self.build_ohlcvc(trades, timeframe, since, limit)
-        result = []
-        for i in range(0, len(ohlcvc)):
-            result.append([
-                self.safe_integer(ohlcvc[i], 0),
-                self.safe_number(ohlcvc[i], 1),
-                self.safe_number(ohlcvc[i], 2),
-                self.safe_number(ohlcvc[i], 3),
-                self.safe_number(ohlcvc[i], 4),
-                self.safe_number(ohlcvc[i], 5),
-            ])
-        return result
+        message = ''
+        if self.has['fetchTrades']:
+            message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file'
+        raise NotSupported(self.id + ' fetchOHLCV() is not supported yet' + message)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
@@ -1727,12 +1729,49 @@ class Exchange(BaseExchange):
         self.accountsById = self.index_by(self.accounts, 'id')
         return self.accounts
 
-    async def fetch_ohlcvc(self, symbol, timeframe='1m', since: Optional[Any] = None, limit: Optional[int] = None, params={}):
-        if not self.has['fetchTrades']:
-            raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
-        await self.load_markets()
-        trades = await self.fetchTrades(symbol, since, limit, params)
-        return self.build_ohlcvc(trades, timeframe, since, limit)
+    def build_ohlcvc(self, trades: List[Trade], timeframe: str = '1m', since: float = 0, limit: float = 2147483647):
+        # given a sorted arrays of trades(recent last) and a timeframe builds an array of OHLCV candles
+        # note, default limit value(2147483647) is max int32 value
+        ms = self.parse_timeframe(timeframe) * 1000
+        ohlcvs = []
+        i_timestamp = 0
+        # open = 1
+        i_high = 2
+        i_low = 3
+        i_close = 4
+        i_volume = 5
+        i_count = 6
+        tradesLength = len(trades)
+        oldest = min(tradesLength, limit)
+        for i in range(0, oldest):
+            trade = trades[i]
+            ts = trade['timestamp']
+            if ts < since:
+                continue
+            openingTime = int(math.floor(ts / ms)) * ms  # shift to the edge of m/h/d(but not M)
+            if openingTime < since:  # we don't need bars, that have opening time earlier than requested
+                continue
+            ohlcv_length = len(ohlcvs)
+            candle = ohlcv_length - 1
+            if (candle == -1) or (openingTime >= self.sum(ohlcvs[candle][i_timestamp], ms)):
+                # moved to a new timeframe -> create a new candle from opening trade
+                ohlcvs.append([
+                    openingTime,  # timestamp
+                    trade['price'],  # O
+                    trade['price'],  # H
+                    trade['price'],  # L
+                    trade['price'],  # C
+                    trade['amount'],  # V
+                    1,  # count
+                ])
+            else:
+                # still processing the same timeframe -> update opening trade
+                ohlcvs[candle][i_high] = max(ohlcvs[candle][i_high], trade['price'])
+                ohlcvs[candle][i_low] = min(ohlcvs[candle][i_low], trade['price'])
+                ohlcvs[candle][i_close] = trade['price']
+                ohlcvs[candle][i_volume] = self.sum(ohlcvs[candle][i_volume], trade['amount'])
+                ohlcvs[candle][i_count] = self.sum(ohlcvs[candle][i_count], 1)
+        return ohlcvs
 
     def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None):
         result = self.convert_trading_view_to_ohlcv(ohlcvs)
@@ -1747,9 +1786,13 @@ class Exchange(BaseExchange):
     async def edit_limit_order(self, id, symbol, side, amount, price=None, params={}):
         return await self.edit_order(id, symbol, 'limit', side, amount, price, params)
 
-    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         await self.cancelOrder(id, symbol)
         return await self.create_order(symbol, type, side, amount, price, params)
+
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
+        await self.cancelOrderWs(id, symbol)
+        return await self.createOrderWs(symbol, type, side, amount, price, params)
 
     async def fetch_permissions(self, params={}):
         raise NotSupported(self.id + ' fetchPermissions() is not supported yet')
@@ -1878,6 +1921,9 @@ class Exchange(BaseExchange):
 
     async def fetch_balance(self, params={}):
         raise NotSupported(self.id + ' fetchBalance() is not supported yet')
+
+    def parse_balance(self, response):
+        raise NotSupported(self.id + ' parseBalance() is not supported yet')
 
     async def watch_balance(self, params={}):
         raise NotSupported(self.id + ' watchBalance() is not supported yet')
@@ -2084,10 +2130,22 @@ class Exchange(BaseExchange):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
 
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
+        raise NotSupported(self.id + ' createOrderWs() is not supported yet')
+
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         raise NotSupported(self.id + ' cancelOrder() is not supported yet')
 
+    async def cancel_order_ws(self, id: str, symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' cancelOrderWs() is not supported yet')
+
+    async def cancel_orders_ws(self, ids: List[str], symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' cancelOrdersWs() is not supported yet')
+
     async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
+
+    async def cancel_all_order_ws(self, symbol: Optional[str] = None, params={}):
         raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
 
     async def cancel_unified_order(self, order, params={}):
@@ -2529,6 +2587,7 @@ class Exchange(BaseExchange):
         if self.has['fetchFundingRates']:
             await self.load_markets()
             market = self.market(symbol)
+            symbol = market['symbol']
             if not market['contract']:
                 raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
             rates = await self.fetchFundingRates([symbol], params)
@@ -2660,7 +2719,7 @@ class Exchange(BaseExchange):
         :param str symbol: unified symbol of the market
         :param str methodName: name of the method that requires a symbol
         """
-        self.checkRequiredArgument(methodName, symbol, 'symbol')
+        self.check_required_argument(methodName, symbol, 'symbol')
 
     def parse_deposit_withdraw_fees(self, response, codes: Optional[List[str]] = None, currencyIdKey=None):
         """

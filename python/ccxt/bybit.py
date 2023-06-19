@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -410,11 +411,14 @@ class bybit(Exchange, ImplicitAPI):
                         # user
                         'v5/user/query-sub-members': 10,
                         'v5/user/query-api': 10,
+                        'v5/user/aff-customer-info': 10,
+                        'v5/customer/info': 10,
                         'v5/spot-cross-margin-trade/loan-info': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/account': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/repay-history': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/ins-loan/ltv-convert': 1,
+                        'v5/broker/earning-record': 1,
                     },
                     'post': {
                         # inverse swap
@@ -661,6 +665,7 @@ class bybit(Exchange, ImplicitAPI):
                     '10028': PermissionDenied,  # The API can only be accessed by unified account users.
                     '10029': PermissionDenied,  # The requested symbol is invalid, please check symbol whitelist
                     '12201': BadRequest,  # {"retCode":12201,"retMsg":"Invalid orderCategory parameter.","result":{},"retExtInfo":null,"time":1666699391220}
+                    '12141': BadRequest,  # "retCode":12141,"retMsg":"Duplicate clientOrderId.","result":{},"retExtInfo":{},"time":1686134298989}
                     '100028': PermissionDenied,  # The API cannot be accessed by unified account users.
                     '110001': InvalidOrder,  # Order does not exist
                     '110003': InvalidOrder,  # Order price is out of permissible range
@@ -1158,6 +1163,17 @@ class bybit(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
+    def add_pagination_cursor_to_result(self, response):
+        result = self.safe_value(response, 'result', {})
+        data = self.safe_value_n(result, ['list', 'rows', 'data', 'dataList'], [])
+        paginationCursor = self.safe_string_2(result, 'nextPageCursor', 'cursor')
+        dataLength = len(data)
+        if (paginationCursor is not None) and (dataLength > 0):
+            first = data[0]
+            first['nextPageCursor'] = paginationCursor
+            data[0] = first
+        return data
+
     def is_unified_enabled(self, params={}):
         # The API key of user id must own one of permissions will be allowed to call following API endpoints.
         # SUB UID: "Account Transfer"
@@ -1367,17 +1383,24 @@ class bybit(Exchange, ImplicitAPI):
         """
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
+        type = None
+        type, params = self.handle_market_type_and_params('fetchMarkets', None, params)
         promisesUnresolved = [
             self.fetch_spot_markets(params),
             self.fetch_derivatives_markets({'category': 'linear'}),
             self.fetch_derivatives_markets({'category': 'inverse'}),
         ]
+        if type == 'option':
+            promisesUnresolved.append(self.fetch_derivatives_markets({'category': 'option'}))
         promises = promisesUnresolved
         spotMarkets = promises[0]
         linearMarkets = promises[1]
         inverseMarkets = promises[2]
         markets = spotMarkets
         markets = self.array_concat(markets, linearMarkets)
+        if type == 'option':
+            optionMarkets = promises[3]
+            markets = self.array_concat(markets, optionMarkets)
         return self.array_concat(markets, inverseMarkets)
 
     def fetch_spot_markets(self, params):
@@ -1783,8 +1806,9 @@ class bybit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(ticker, 'time')
         marketId = self.safe_string(ticker, 'symbol')
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        market = self.safe_market(marketId, market, None, defaultType)
-        symbol = self.safe_symbol(marketId, market, None, defaultType)
+        type = self.safe_string(market, 'type', defaultType)
+        market = self.safe_market(marketId, market, None, type)
+        symbol = self.safe_symbol(marketId, market, None, type)
         last = self.safe_string(ticker, 'lastPrice')
         open = self.safe_string(ticker, 'prevPrice24h')
         percentage = self.safe_string(ticker, 'price24hPcnt')
@@ -3351,7 +3375,7 @@ class bybit(Exchange, ImplicitAPI):
                 raise InvalidOrder(self.id + ' returned more than one order')
             return self.safe_value(result, 0)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://bybit-exchange.github.io/docs/v5/order/create-order
@@ -3939,10 +3963,10 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return {
+        return self.safe_order({
             'info': response,
             'id': self.safe_string(result, 'orderId'),
-        }
+        })
 
     def edit_unified_margin_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -4078,10 +4102,10 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return {
+        return self.safe_order({
             'info': response,
             'id': self.safe_string(result, 'orderId'),
-        }
+        })
 
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         if symbol is None:
@@ -4582,7 +4606,7 @@ class bybit(Exchange, ImplicitAPI):
             elif market['linear']:
                 request['category'] = 'linear'
             else:
-                raise NotSupported(self.id + ' fetchOrders() does not allow inverse market orders for ' + symbol + ' markets')
+                request['category'] = 'inverse'
         isStop = self.safe_value(params, 'stop', False)
         params = self.omit(params, ['stop'])
         if isStop:
@@ -4653,13 +4677,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672221263862
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'list', [])
-        paginationCursor = self.safe_string(result, 'nextPageCursor')
-        if (paginationCursor is not None) and (len(data) > 0):
-            first = data[0]
-            first['nextPageCursor'] = paginationCursor
-            data[0] = first
+        data = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(data, market, since, limit)
 
     def fetch_unified_margin_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -4740,13 +4758,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1657713451741
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'list', [])
-        paginationCursor = self.safe_string(result, 'nextPageCursor')
-        if (paginationCursor is not None) and (len(data) > 0):
-            first = data[0]
-            first['nextPageCursor'] = paginationCursor
-            data[0] = first
+        data = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(data, market, since, limit)
 
     def fetch_derivatives_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -4784,6 +4796,16 @@ class bybit(Exchange, ImplicitAPI):
             request['orderFilter'] = 'StopOrder'
         if limit is not None:
             request['limit'] = limit
+        if since is not None:
+            request['startTime'] = since
+        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
+        params = self.omit(params, ['endTime', 'till', 'until'])
+        if endTime is not None:
+            request['endTime'] = endTime
+        else:
+            if since is not None:
+                raise BadRequest(self.id + ' fetchOrders() requires until/endTime when since is provided.')
         response = self.privateGetV5OrderHistory(self.extend(request, params))
         #
         #     {
@@ -4835,13 +4857,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672221263862
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'list', [])
-        paginationCursor = self.safe_string(result, 'nextPageCursor')
-        if (paginationCursor is not None) and (len(data) > 0):
-            first = data[0]
-            first['nextPageCursor'] = paginationCursor
-            data[0] = first
+        data = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(data, market, since, limit)
 
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -4870,7 +4886,7 @@ class bybit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrders with inverse subType requires settle to not be USDT or USDC')
         type, query = self.handle_market_type_and_params('fetchOrders', market, params)
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
-        if enableUnifiedAccount and not isInverse:
+        if enableUnifiedAccount:
             return self.fetch_unified_account_orders(symbol, since, limit, query)
         elif type == 'spot':
             raise NotSupported(self.id + ' fetchOrders() only support ' + type + ' markets for unified trade account, use exchange.fetch_open_orders() and exchange.fetchClosedOrders() instead')
@@ -5072,8 +5088,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672219526294
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'list', [])
+        data = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(data, market, since, limit)
 
     def fetch_spot_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5193,8 +5208,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1665565614320
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        orders = self.safe_value(result, 'list', [])
+        orders = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_derivatives_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5287,8 +5301,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672219526294
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        orders = self.safe_value(result, 'list', [])
+        orders = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_usdc_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5302,8 +5315,7 @@ class bybit(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchUSDCOpenOrders', market, params)
         request['category'] = 'perpetual' if (type == 'swap') else 'option'
         response = self.privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders(self.extend(request, params))
-        result = self.safe_value(response, 'result', {})
-        orders = self.safe_value(result, 'dataList', [])
+        orders = self.add_pagination_cursor_to_result(response)
         #
         #     {
         #         "retCode": 0,
@@ -5378,10 +5390,15 @@ class bybit(Exchange, ImplicitAPI):
         :param int|None limit: the maximum number of trades to retrieve
         :param dict params: extra parameters specific to the bybit api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+         *
         """
-        request = {
-            'orderId': id,
-        }
+        request = {}
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'orderLinkId')
+        if clientOrderId is not None:
+            request['orderLinkId'] = clientOrderId
+        else:
+            request['orderId'] = id
+        params = self.omit(params, ['clientOrderId', 'orderLinkId'])
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
     def fetch_my_unified_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5457,8 +5474,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672283754510
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        trades = self.safe_value(result, 'list', [])
+        trades = self.add_pagination_cursor_to_result(response)
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_my_spot_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5509,8 +5525,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": "1666768215157"
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        trades = self.safe_value(result, 'list', [])
+        trades = self.add_pagination_cursor_to_result(response)
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_my_unified_margin_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5573,8 +5588,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1657714292783
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        trades = self.safe_value(result, 'list', [])
+        trades = self.add_pagination_cursor_to_result(response)
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_my_contract_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5645,8 +5659,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672283754510
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        trades = self.safe_value(result, 'list', [])
+        trades = self.add_pagination_cursor_to_result(response)
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_my_usdc_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5688,8 +5701,7 @@ class bybit(Exchange, ImplicitAPI):
         #       "retMsg": "Success."
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        dataList = self.safe_value(result, 'dataList', [])
+        dataList = self.add_pagination_cursor_to_result(response)
         return self.parse_trades(dataList, market, since, limit)
 
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5896,8 +5908,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672191992512
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'rows', [])
+        data = self.add_pagination_cursor_to_result(response)
         return self.parse_transactions(data, currency, since, limit)
 
     def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -5966,8 +5977,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672194949928
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'rows', [])
+        data = self.add_pagination_cursor_to_result(response)
         return self.parse_transactions(data, currency, since, limit)
 
     def parse_transaction_status(self, status):
@@ -6220,8 +6230,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672132481405
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value_2(result, 'data', 'list', [])
+        data = self.add_pagination_cursor_to_result(response)
         return self.parse_ledger(data, currency, since, limit)
 
     def parse_ledger_entry(self, item, currency=None):
@@ -6619,8 +6628,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1657713693182
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        positions = self.safe_value(result, 'list', [])
+        positions = self.add_pagination_cursor_to_result(response)
         results = []
         for i in range(0, len(positions)):
             rawPosition = positions[i]
@@ -6690,8 +6698,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "retMsg": "Success."
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        positions = self.safe_value(result, 'dataList', [])
+        positions = self.add_pagination_cursor_to_result(response)
         results = []
         for i in range(0, len(positions)):
             rawPosition = positions[i]
@@ -6761,8 +6768,7 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672280219169
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        positions = self.safe_value(result, 'list', [])
+        positions = self.add_pagination_cursor_to_result(response)
         return self.parse_positions(positions, symbols, params)
 
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
@@ -7222,12 +7228,7 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'list', [])
-        paginationCursor = self.safe_string(result, 'nextPageCursor')
-        if (paginationCursor is not None) and (len(data) > 0):
-            first = data[0]
-            first['nextPageCursor'] = paginationCursor
-            data[0] = first
+        data = self.add_pagination_cursor_to_result(response)
         id = self.safe_string(result, 'symbol')
         market = self.safe_market(id, market, None, 'contract')
         return self.parse_open_interests(data, market, since, limit)
@@ -7285,7 +7286,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         id = self.safe_string(result, 'symbol')
         market = self.safe_market(id, market, None, 'contract')
-        data = self.safe_value(result, 'list', [])
+        data = self.add_pagination_cursor_to_result(response)
         return self.parse_open_interest(data[0], market)
 
     def fetch_open_interest_history(self, symbol: str, timeframe='1h', since: Optional[int] = None, limit: Optional[int] = None, params={}):
