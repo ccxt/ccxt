@@ -2905,6 +2905,10 @@ class Exchange(object):
         self.cancelOrder(id, symbol)
         return self.create_order(symbol, type, side, amount, price, params)
 
+    def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
+        self.cancelOrderWs(id, symbol)
+        return self.createOrderWs(symbol, type, side, amount, price, params)
+
     def fetch_permissions(self, params={}):
         raise NotSupported(self.id + ' fetchPermissions() is not supported yet')
 
@@ -3241,10 +3245,22 @@ class Exchange(object):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
 
+    def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
+        raise NotSupported(self.id + ' createOrderWs() is not supported yet')
+
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         raise NotSupported(self.id + ' cancelOrder() is not supported yet')
 
+    def cancel_order_ws(self, id: str, symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' cancelOrderWs() is not supported yet')
+
+    def cancel_orders_ws(self, ids: List[str], symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' cancelOrdersWs() is not supported yet')
+
     def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
+
+    def cancel_all_order_ws(self, symbol: Optional[str] = None, params={}):
         raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
 
     def cancel_unified_order(self, order, params={}):

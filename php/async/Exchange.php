@@ -1824,6 +1824,13 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            Async\await($this->cancelOrderWs ($id, $symbol));
+            return Async\await($this->createOrderWs ($symbol, $type, $side, $amount, $price, $params));
+        }) ();
+    }
+
     public function fetch_permissions($params = array ()) {
         throw new NotSupported($this->id . ' fetchPermissions() is not supported yet');
     }
@@ -2270,11 +2277,27 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+        throw new NotSupported($this->id . ' createOrderWs() is not supported yet');
+    }
+
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelOrder() is not supported yet');
     }
 
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelOrderWs() is not supported yet');
+    }
+
+    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelOrdersWs() is not supported yet');
+    }
+
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelAllOrders() is not supported yet');
+    }
+
+    public function cancel_all_order_ws(?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelAllOrders() is not supported yet');
     }
 

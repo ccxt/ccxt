@@ -345,6 +345,11 @@ class Exchange {
                 'createStopOrder': undefined,
                 'createStopLimitOrder': undefined,
                 'createStopMarketOrder': undefined,
+                'createOrderWs': undefined,
+                'editOrderWs': undefined,
+                'cancelOrderWs': undefined,
+                'cancelOrdersWs': undefined,
+                'cancelAllOrdersWs': undefined,
                 'editOrder': 'emulated',
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -2584,6 +2589,10 @@ class Exchange {
         await this.cancelOrder(id, symbol);
         return await this.createOrder(symbol, type, side, amount, price, params);
     }
+    async editOrderWs(id, symbol, type, side, amount, price = undefined, params = {}) {
+        await this.cancelOrderWs(id, symbol);
+        return await this.createOrderWs(symbol, type, side, amount, price, params);
+    }
     async fetchPermissions(params = {}) {
         throw new errors.NotSupported(this.id + ' fetchPermissions() is not supported yet');
     }
@@ -2973,10 +2982,22 @@ class Exchange {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' createOrder() is not supported yet');
     }
+    async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' createOrderWs() is not supported yet');
+    }
     async cancelOrder(id, symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' cancelOrder() is not supported yet');
     }
+    async cancelOrderWs(id, symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' cancelOrderWs() is not supported yet');
+    }
+    async cancelOrdersWs(ids, symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' cancelOrdersWs() is not supported yet');
+    }
     async cancelAllOrders(symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' cancelAllOrders() is not supported yet');
+    }
+    async cancelAllOrderWs(symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' cancelAllOrders() is not supported yet');
     }
     async cancelUnifiedOrder(order, params = {}) {
