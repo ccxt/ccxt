@@ -123,14 +123,13 @@ class Exchange(BaseExchange):
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         request_headers = self.prepare_request_headers(headers)
-        # proxy
+
+        # ##### PROXY & HEADERS #####
         final_proxy = None  # set default
         final_session = None
-        proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, userAgentCallback = self.check_proxy_settings()
+        proxyUrl, httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
         if proxyUrl:
             url = proxyUrl + url
-        elif proxyUrlCallback:
-            url = proxyUrlCallback(url, method, headers, body)
         elif httpProxy:
             final_proxy = httpProxy
         elif httpsProxy:
@@ -149,12 +148,14 @@ class Exchange(BaseExchange):
             )
             # override session
             final_session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
-        elif userAgentCallback:
-            final_proxy = userAgentCallback(url, method, headers, body)
+        # add aiohttp_proxy for python as exclusion
+        elif self.aiohttp_proxy:
+            final_proxy = self.aiohttp_proxy
 
         # avoid old proxies mixing
-        if (self.aiohttp_proxy is not None) and ((final_proxy is not None) or (socksProxy is not None)):
+        if (self.aiohttp_proxy is not None) and (proxyUrl is not None or httpProxy is not None or httpsProxy is not None or socksProxy is not None):
             raise NotSupported(self.id + ' you have set multiple proxies, please use one or another')
+        # ######## end of proxies ########
 
         if self.verbose:
             self.log("\nfetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body)

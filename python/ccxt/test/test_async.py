@@ -89,7 +89,6 @@ rootDir = current_dir + '/../../../'
 rootDirForSkips = current_dir + '/../../../'
 envVars = os.environ
 ext = 'py'
-httpsAgent = None
 
 
 def dump(*args):
@@ -197,7 +196,6 @@ class testMainClass(baseMainTestClass):
         exchangeArgs = {
             'verbose': self.verbose,
             'debug': self.debug,
-            'httpsAgent': httpsAgent,
             'enableRateLimit': True,
             'timeout': 30000,
         }

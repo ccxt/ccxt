@@ -156,21 +156,17 @@ export default class Exchange {
     api = undefined
 
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
-    proxy: string; // maintained for backwards compatibility, no-one should use it from now on
-    proxyUrl: string;
-    proxy_url: string;
-    proxyUrlCallback: string;
-    proxy_url_callback: string;
-    httpProxy: string;
-    http_proxy: string;
-    httpsProxy: string;
-    https_proxy: string;
-    socksProxy: string;
-    socks_proxy: string;
+    proxy: any; // maintained for backwards compatibility, no-one should use it from now on
+    proxyUrl: any;
+    proxy_url: any;
+    httpProxy: any;
+    http_proxy: any;
+    httpsProxy: any;
+    https_proxy: any;
+    socksProxy: any;
+    socks_proxy: any;
     userAgent: { 'User-Agent': string } | false = undefined;
     user_agent: { 'User-Agent': string } | false = undefined;
-    userAgentCallback: any;
-    user_agent_callback: any;
     //
     userAgents: any = {
         'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -625,8 +621,6 @@ export default class Exchange {
         // fetch implementation options (JS only)
         // http properties
         this.headers = {}
-        // prepended to URL, like https://proxy.com/https://exchange.com/api...
-        this.proxy = undefined
         this.origin = '*' // CORS origin
         // underlying properties
         this.minFundingAddressLength = 1 // used in checkAddress
@@ -865,29 +859,17 @@ export default class Exchange {
     }
 
     async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
-        const [ proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, userAgent, userAgentCallback ] = this.checkProxySettings ();
 
-        if (isNode && userAgent) {
-            if (typeof userAgent === 'string') {
-                headers = this.extend ({ 'User-Agent': userAgent }, headers)
-            } else if ((typeof userAgent === 'object') && ('User-Agent' in userAgent)) {
-                headers = this.extend (userAgent, headers)
-            }
-        }
 
-        // ################## PROXY ##################
+        // ##### PROXY & HEADERS #####
+        headers = this.extend (this.headers, headers);
+        const [ proxyUrl, httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
         if (proxyUrl !== undefined) {
             // in node we need to set header to *
             if (isNode) {
                 headers = this.extend ({ 'Origin': this.origin }, headers)
             }
-            url = proxyUrl + url
-        } else if (proxyUrlCallback !== undefined) {
-            // in node we need to set header to *
-            if (isNode) {
-                headers = this.extend ({ 'Origin': this.origin }, headers)
-            }
-            url = proxyUrlCallback (url, method, headers, body);
+            url = proxyUrl + url;
         } else if (httpProxy !== undefined) {
             const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js')
             const proxyAgent = new module.HttpProxyAgent(httpProxy);
@@ -905,17 +887,20 @@ export default class Exchange {
             } catch (e) {
                 throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" '); 
             }
-            const proxyAgent = new module.SocksProxyAgent(socksProxy);
-            this.agent = proxyAgent;
-        } else if (userAgentCallback !== undefined) {
-            this.agent = userAgentCallback (url, method, headers, body);
+            this.agent = new module.SocksProxyAgent(socksProxy);
         }
 
-        // ####################################
-        // ####################################
-
-        headers = this.extend (this.headers, headers)
+        const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
+        if (userAgent && isNode) {
+            if (typeof userAgent === 'string') {
+                headers = this.extend ({ 'User-Agent': userAgent }, headers)
+            } else if ((typeof userAgent === 'object') && ('User-Agent' in userAgent)) {
+                headers = this.extend (userAgent, headers)
+            }
+        }
         headers = this.setHeaders (headers)
+        // ######## end of proxies ########
+
         if (this.verbose) {
             this.log ("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n")
         }
@@ -1402,20 +1387,25 @@ export default class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    checkProxySettings () {
-        const proxyUrl = (this.proxyUrl !== undefined) ? this.proxyUrl : this.proxy_url;
-        const proxyUrlCallback = (this.proxyUrlCallback !== undefined) ? this.proxyUrlCallback : this.proxy_url_callback;
-        // for backwards compatibility,added old keys too
-        const httpProxy = (this.httpProxy !== undefined) ? this.httpProxy : this.http_proxy;
-        const httpsProxy = (this.httpsProxy !== undefined) ? this.httpsProxy : this.https_proxy;
-        const socksProxy = (this.socksProxy !== undefined) ? this.socksProxy : this.socks_proxy;
-        const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
-        const userAgentCallback = (this.userAgentCallback !== undefined) ? this.userAgentCallback : this.user_agent_callback;
+    checkProxySettings (url, method, headers, body) {
+        let proxyUrl = (this.proxyUrl !== undefined) ? this.proxyUrl : this.proxy_url;
+        if (typeof proxyUrl === 'function') {
+            proxyUrl = proxyUrl (url, method, headers, body);
+        }
+        let httpProxy = (this.httpProxy !== undefined) ? this.httpProxy : this.http_proxy;
+        if (typeof httpProxy === 'function') {
+            httpProxy = httpProxy (url, method, headers, body);
+        }
+        let httpsProxy = (this.httpsProxy !== undefined) ? this.httpsProxy : this.https_proxy;
+        if (typeof httpsProxy === 'function') {
+            httpsProxy = httpsProxy (url, method, headers, body);
+        }
+        let socksProxy = (this.socksProxy !== undefined) ? this.socksProxy : this.socks_proxy;
+        if (typeof socksProxy === 'function') {
+            socksProxy = socksProxy (url, method, headers, body);
+        }
         let val = 0;
         if (proxyUrl !== undefined) {
-            val = val + 1;
-        }
-        if (proxyUrlCallback !== undefined) {
             val = val + 1;
         }
         if (httpProxy !== undefined) {
@@ -1427,16 +1417,18 @@ export default class Exchange {
         if (socksProxy !== undefined) {
             val = val + 1;
         }
-        if (userAgent !== undefined) {
-            val = val + 1;
-        }
-        if (userAgentCallback !== undefined) {
-            val = val + 1;
-        }
         if (val > 1) {
-            throw new ExchangeError (this.id + ' you have multiple proxy settings, please use only one from : proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, userAgent, userAgentCallback');
+            throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy, userAgent');
         }
-        return [ proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, userAgent, userAgentCallback ];
+        const proxyOld = this.proxy; // support for backwards-compatibility
+        if (proxyOld !== undefined) {
+            if (val === 1) {
+                throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, instead of deprecated .proxy please use from: proxyUrl, httpProxy, httpsProxy, socksProxy');
+            } else {
+                proxyUrl = proxyOld;
+            }
+        }
+        return [ proxyUrl, httpProxy, httpsProxy, socksProxy ];
     }
 
     findMessageHashes (client, element: string): string[] {

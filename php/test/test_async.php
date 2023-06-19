@@ -48,7 +48,6 @@ define ('is_synchronous', stripos(__FILE__, '_async') === false);
 define('rootDirForSkips', __DIR__ . '/../../');
 define('envVars', $_ENV);
 define('ext', 'php');
-define('httpsAgent', null);
 
 function dump(...$s) {
     $args = array_map(function ($arg) {
@@ -162,7 +161,6 @@ class testMainClass extends baseMainTestClass {
             $exchangeArgs = array(
                 'verbose' => $this->verbose,
                 'debug' => $this->debug,
-                'httpsAgent' => httpsAgent,
                 'enableRateLimit' => true,
                 'timeout' => 30000,
             );

@@ -158,13 +158,12 @@ class Exchange(object):
     socksProxy = None
     socks_proxy = None
     userAgent = None
+    user_agent = None
     userAgents = {
         'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
         'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
         'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
     }
-    userAgentCallback = None
-    user_agent_callback = None
     headers = None
     origin = '*'  # CORS origin
     #
@@ -505,19 +504,12 @@ class Exchange(object):
         if self.session:
             headers.update(self.session.headers)
         headers.update(self.headers)
-        if self.userAgent:
-            if type(self.userAgent) is str:
-                headers.update({'User-Agent': self.userAgent})
-            elif (type(self.userAgent) is dict) and ('User-Agent' in self.userAgent):
-                headers.update(self.userAgent)
-        # for back-compatibility
-        if self.proxy:
-            headers.update({'Origin': self.origin})
-        else:
-            # new approach
-            proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, userAgentCallback = self.check_proxy_settings()
-            if self.proxyUrl is not None or self.proxyUrlCallback is not None:
-                headers.update({'Origin': self.origin})
+        userAgent = self.userAgent if self.userAgent is not None else self.user_agent
+        if userAgent:
+            if type(userAgent) is str:
+                headers.update({'User-Agent': userAgent})
+            elif (type(userAgent) is dict) and ('User-Agent' in userAgent):
+                headers.update(userAgent)
         headers.update({'Accept-Encoding': 'gzip, deflate'})
         return self.set_headers(headers)
 
@@ -536,13 +528,13 @@ class Exchange(object):
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         request_headers = self.prepare_request_headers(headers)
-        # proxy
+
+        # ##### PROXY & HEADERS #####
         proxies = None  # set default
-        proxyUrl, proxyUrlCallback, httpProxy, httpsProxy, socksProxy, userAgentCallback = self.check_proxy_settings()
+        proxyUrl, httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
         if proxyUrl:
+            request_headers.update({'Origin': self.origin})
             url = proxyUrl + url
-        elif proxyUrlCallback:
-            url = proxyUrlCallback(url, method, headers, body)
         elif httpProxy:
             proxies = {}
             proxies['http'] = httpProxy
@@ -554,12 +546,11 @@ class Exchange(object):
             # https://stackoverflow.com/a/15661226/2377343
             proxies['http'] = socksProxy
             proxies['https'] = socksProxy
-        elif userAgentCallback:
-            proxies = userAgentCallback(url, method, headers, body)
 
-        # avoid old proxies mixing
         if (proxies is not None) and (self.proxies is not None):
+            # avoid old proxies mixing
             raise NotSupported(self.id + ' you have set multiple proxies, please use one or another')
+        # ######## end of proxies ########
 
         if self.verbose:
             self.log("\nfetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body)

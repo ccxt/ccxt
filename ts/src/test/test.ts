@@ -36,7 +36,6 @@ const rootDir = __dirname + '/../../../';
 const rootDirForSkips = __dirname + '/../../../';
 const envVars = process.env;
 const ext = import.meta.url.split ('.')[1];
-const httpsAgent = new Agent ({ 'ecdhCurve': 'auto' });
 
 function dump (...args) {
     console.log (...args);
@@ -134,7 +133,6 @@ export default class testMainClass extends baseMainTestClass {
         const exchangeArgs = {
             'verbose': this.verbose,
             'debug': this.debug,
-            'httpsAgent': httpsAgent,
             'enableRateLimit': true,
             'timeout': 30000,
         };
