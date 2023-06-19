@@ -172,7 +172,7 @@ class idex(ccxt.async_support.idex):
         trades.append(trade)
         client.resolve(trades, messageHash)
 
-    def parse_ws_trade(self, trade):
+    def parse_ws_trade(self, trade, market=None):
         # public trades
         # {m: 'DIL-ETH',
         #   i: '897ecae6-4b75-368a-ac00-be555e6ad65f',

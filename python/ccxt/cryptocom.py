@@ -639,107 +639,71 @@ class cryptocom(Exchange, ImplicitAPI):
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-history
+        :param str symbol: unified market symbol of the market the orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for, max date range is one day
+        :param int|None limit: the maximum number of order structures to retrieve, default 100 max 100
         :param dict params: extra parameters specific to the cryptocom api endpoint
+        :param int|None params['until']: timestamp in ms for the ending date filter, default is the current time
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'instrument_name': market['id'],
-        }
+        market = None
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['instrument_name'] = market['id']
         if since is not None:
-            # maximum date range is one day
-            request['start_ts'] = since
+            request['start_time'] = since
         if limit is not None:
-            request['page_size'] = limit
-        marketType, marketTypeQuery = self.handle_market_type_and_params('fetchOrders', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'v2PrivatePostPrivateGetOrderHistory',
-            'margin': 'v2PrivatePostPrivateMarginGetOrderHistory',
-            'future': 'derivativesPrivatePostPrivateGetOrderHistory',
-            'swap': 'derivativesPrivatePostPrivateGetOrderHistory',
-        })
-        marginMode, query = self.custom_handle_margin_mode_and_params('fetchOrders', marketTypeQuery)
-        if marginMode is not None:
-            method = 'v2PrivatePostPrivateMarginGetOrderHistory'
-        response = getattr(self, method)(self.extend(request, query))
+            request['limit'] = limit
+        until = self.safe_integer_2(params, 'until', 'till')
+        params = self.omit(params, ['until', 'till'])
+        if until is not None:
+            request['end_time'] = until
+        response = self.v1PrivatePostPrivateGetOrderHistory(self.extend(request, params))
         #
-        # spot and margin
         #     {
-        #       id: 1641026542065,
-        #       method: 'private/get-order-history',
-        #       code: 0,
-        #       result: {
-        #         order_list: [
-        #           {
-        #             status: 'FILLED',
-        #             side: 'BUY',
-        #             price: 0,
-        #             quantity: 110,
-        #             order_id: '2120246337927715937',
-        #             client_oid: '',
-        #             create_time: 1641025064904,
-        #             update_time: 1641025064958,
-        #             type: 'MARKET',
-        #             instrument_name: 'USDC_USDT',
-        #             avg_price: 1.0001,
-        #             cumulative_quantity: 110,
-        #             cumulative_value: 110.011,
-        #             fee_currency: 'USDC',
-        #             exec_inst: '',
-        #             time_in_force: 'GOOD_TILL_CANCEL'
-        #           }
-        #         ]
-        #       }
-        #     }
-        #
-        # swap
-        #     {
-        #       id: 1641026373106,
-        #       method: 'private/get-order-history',
-        #       code: 0,
-        #       result: {
-        #         data: [
-        #           {
-        #             account_id: '85ff689a-7508-4b96-aa79-dc0545d6e637',
-        #             order_id: 13191401932,
-        #             client_oid: '1641025941461',
-        #             order_type: 'LIMIT',
-        #             time_in_force: 'GOOD_TILL_CANCEL',
-        #             side: 'BUY',
-        #             exec_inst: [],
-        #             quantity: '0.0001',
-        #             limit_price: '48000.0',
-        #             order_value: '4.80000000',
-        #             maker_fee_rate: '0.00050',
-        #             taker_fee_rate: '0.00070',
-        #             avg_price: '47253.5',
-        #             trigger_price: '0.0',
-        #             ref_price_type: 'NULL_VAL',
-        #             cumulative_quantity: '0.0001',
-        #             cumulative_value: '4.72535000',
-        #             cumulative_fee: '0.00330775',
-        #             status: 'FILLED',
-        #             update_user_id: 'ce075bef-b600-4277-bd6e-ff9007251e63',
-        #             order_date: '2022-01-01',
-        #             instrument_name: 'BTCUSD-PERP',
-        #             fee_instrument_name: 'USD_Stable_Coin',
-        #             create_time: 1641025941827,
-        #             create_time_ns: '1641025941827994756',
-        #             update_time: 1641025941827
-        #           }
-        #         ]
-        #       }
+        #         "id": 1686881486183,
+        #         "method": "private/get-order-history",
+        #         "code": 0,
+        #         "result": {
+        #             "data": [
+        #                 {
+        #                     "account_id": "ce075bef-1234-4321-bd6g-ff9007252e63",
+        #                     "order_id": "6142909895014042762",
+        #                     "client_oid": "4e918597-1234-4321-8201-a7577e1e1d91",
+        #                     "order_type": "MARKET",
+        #                     "time_in_force": "GOOD_TILL_CANCEL",
+        #                     "side": "SELL",
+        #                     "exec_inst": [],
+        #                     "quantity": "0.00024",
+        #                     "order_value": "5.7054672",
+        #                     "maker_fee_rate": "0",
+        #                     "taker_fee_rate": "0",
+        #                     "avg_price": "25023.97",
+        #                     "trigger_price": "0",
+        #                     "ref_price": "0",
+        #                     "ref_price_type": "NULL_VAL",
+        #                     "cumulative_quantity": "0.00024",
+        #                     "cumulative_value": "6.0057528",
+        #                     "cumulative_fee": "0.001501438200",
+        #                     "status": "FILLED",
+        #                     "update_user_id": "ce075bef-1234-4321-bd6g-ff9007252e63",
+        #                     "order_date": "2023-06-15",
+        #                     "instrument_name": "BTC_USD",
+        #                     "fee_instrument_name": "USD",
+        #                     "create_time": 1686805465891,
+        #                     "create_time_ns": "1686805465891812578",
+        #                     "update_time": 1686805465891
+        #                 }
+        #             ]
+        #         }
         #     }
         #
         data = self.safe_value(response, 'result', {})
-        orderList = self.safe_value_2(data, 'order_list', 'data', [])
-        return self.parse_orders(orderList, market, since, limit)
+        orders = self.safe_value(data, 'data', [])
+        return self.parse_orders(orders, market, since, limit)
 
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -1023,6 +987,7 @@ class cryptocom(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-detail
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the cryptocom api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1031,60 +996,44 @@ class cryptocom(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {}
-        marketType, marketTypeQuery = self.handle_market_type_and_params('fetchOrder', market, params)
-        marginMode, query = self.custom_handle_margin_mode_and_params('fetchOrder', marketTypeQuery)
-        if (marketType == 'spot') or (marketType == 'margin') or (marginMode is not None):
-            request['order_id'] = str(id)
-        else:
-            request['order_id'] = int(id)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'v2PrivatePostPrivateGetOrderDetail',
-            'margin': 'v2PrivatePostPrivateMarginGetOrderDetail',
-            'future': 'derivativesPrivatePostPrivateGetOrderDetail',
-            'swap': 'derivativesPrivatePostPrivateGetOrderDetail',
-        })
-        if marginMode is not None:
-            method = 'v2PrivatePostPrivateMarginGetOrderDetail'
-        response = getattr(self, method)(self.extend(request, query))
-        # {
-        #     "id": 11,
-        #     "method": "private/get-order-detail",
-        #     "code": 0,
-        #     "result": {
-        #       "trade_list": [
-        #         {
-        #           "side": "BUY",
-        #           "instrument_name": "ETH_CRO",
-        #           "fee": 0.007,
-        #           "trade_id": "371303044218155296",
-        #           "create_time": 1588902493045,
-        #           "traded_price": 7,
-        #           "traded_quantity": 7,
-        #           "fee_currency": "CRO",
-        #           "order_id": "371302913889488619"
+        request = {
+            'order_id': id,
+        }
+        response = self.v1PrivatePostPrivateGetOrderDetail(self.extend(request, params))
+        #
+        #     {
+        #         "id": 1686872583882,
+        #         "method": "private/get-order-detail",
+        #         "code": 0,
+        #         "result": {
+        #             "account_id": "ae075bef-1234-4321-bd6g-bb9007252a63",
+        #             "order_id": "6142909895025252686",
+        #             "client_oid": "CCXT_c2d2152cc32d40a3ae7fbf",
+        #             "order_type": "LIMIT",
+        #             "time_in_force": "GOOD_TILL_CANCEL",
+        #             "side": "BUY",
+        #             "exec_inst": [],
+        #             "quantity": "0.00020",
+        #             "limit_price": "20000.00",
+        #             "order_value": "4",
+        #             "avg_price": "0",
+        #             "trigger_price": "0",
+        #             "ref_price": "0",
+        #             "cumulative_quantity": "0",
+        #             "cumulative_value": "0",
+        #             "cumulative_fee": "0",
+        #             "status": "ACTIVE",
+        #             "update_user_id": "ae075bef-1234-4321-bd6g-bb9007252a63",
+        #             "order_date": "2023-06-15",
+        #             "instrument_name": "BTC_USD",
+        #             "fee_instrument_name": "BTC",
+        #             "create_time": 1686870220684,
+        #             "create_time_ns": "1686870220684239675",
+        #             "update_time": 1686870220684
         #         }
-        #       ],
-        #       "order_info": {
-        #         "status": "FILLED",
-        #         "side": "BUY",
-        #         "order_id": "371302913889488619",
-        #         "client_oid": "9_yMYJDNEeqHxLqtD_2j3g",
-        #         "create_time": 1588902489144,
-        #         "update_time": 1588902493024,
-        #         "type": "LIMIT",
-        #         "instrument_name": "ETH_CRO",
-        #         "cumulative_quantity": 7,
-        #         "cumulative_value": 7,
-        #         "avg_price": 7,
-        #         "fee_currency": "CRO",
-        #         "time_in_force": "GOOD_TILL_CANCEL",
-        #         "exec_inst": "POST_ONLY"
-        #       }
         #     }
-        # }
-        result = self.safe_value(response, 'result', {})
-        order = self.safe_value(result, 'order_info', result)
+        #
+        order = self.safe_value(response, 'result', {})
         return self.parse_order(order, market)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
@@ -1143,35 +1092,24 @@ class cryptocom(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
-        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
+        :param str|None symbol: unified market symbol of the orders to cancel
         :param dict params: extra parameters specific to the cryptocom api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = None
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
-        request = {}
-        marketType, marketTypeQuery = self.handle_market_type_and_params('cancelAllOrders', market, params)
-        marginMode, query = self.custom_handle_margin_mode_and_params('cancelAllOrders', marketTypeQuery)
-        if (marketType == 'spot') or (marketType == 'margin') or (marginMode is not None):
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument for ' + marketType + ' orders')
             request['instrument_name'] = market['id']
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'v2PrivatePostPrivateCancelAllOrders',
-            'margin': 'v2PrivatePostPrivateMarginCancelAllOrders',
-            'future': 'derivativesPrivatePostPrivateCancelAllOrders',
-            'swap': 'derivativesPrivatePostPrivateCancelAllOrders',
-        })
-        if marginMode is not None:
-            method = 'v2PrivatePostPrivateMarginCancelAllOrders'
-        return getattr(self, method)(self.extend(request, query))
+        return self.v1PrivatePostPrivateCancelAllOrders(self.extend(request, params))
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
-        :param str id: order id
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
+        :param str id: the order id of the order to cancel
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the cryptocom api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1180,34 +1118,32 @@ class cryptocom(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {}
-        marketType, marketTypeQuery = self.handle_market_type_and_params('cancelOrder', market, params)
-        marginMode, query = self.custom_handle_margin_mode_and_params('cancelOrder', marketTypeQuery)
-        if (marketType == 'spot') or (marketType == 'margin') or (marginMode is not None):
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument for ' + marketType + ' orders')
-            request['instrument_name'] = market['id']
-            request['order_id'] = str(id)
-        else:
-            request['order_id'] = int(id)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'v2PrivatePostPrivateCancelOrder',
-            'margin': 'v2PrivatePostPrivateMarginCancelOrder',
-            'future': 'derivativesPrivatePostPrivateCancelOrder',
-            'swap': 'derivativesPrivatePostPrivateCancelOrder',
-        })
-        if marginMode is not None:
-            method = 'v2PrivatePostPrivateMarginCancelOrder'
-        response = getattr(self, method)(self.extend(request, query))
-        result = self.safe_value(response, 'result', response)
-        return self.parse_order(result)
+        request = {
+            'order_id': id,
+        }
+        response = self.v1PrivatePostPrivateCancelOrder(self.extend(request, params))
+        #
+        #     {
+        #         "id": 1686882846638,
+        #         "method": "private/cancel-order",
+        #         "code": 0,
+        #         "message": "NO_ERROR",
+        #         "result": {
+        #             "client_oid": "CCXT_c2d2152cc32d40a3ae7fbf",
+        #             "order_id": "6142909895025252686"
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.parse_order(result, market)
 
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-open-orders
         :param str|None symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param int|None limit: the maximum number of open order structures to retrieve
         :param dict params: extra parameters specific to the cryptocom api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1217,66 +1153,47 @@ class cryptocom(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
-        if limit is not None:
-            request['page_size'] = limit
-        marketType, marketTypeQuery = self.handle_market_type_and_params('fetchOpenOrders', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'v2PrivatePostPrivateGetOpenOrders',
-            'margin': 'v2PrivatePostPrivateMarginGetOpenOrders',
-            'future': 'derivativesPrivatePostPrivateGetOpenOrders',
-            'swap': 'derivativesPrivatePostPrivateGetOpenOrders',
-        })
-        marginMode, query = self.custom_handle_margin_mode_and_params('fetchOpenOrders', marketTypeQuery)
-        if marginMode is not None:
-            method = 'v2PrivatePostPrivateMarginGetOpenOrders'
-        response = getattr(self, method)(self.extend(request, query))
-        # {
-        #     "id": 11,
-        #     "method": "private/get-open-orders",
-        #     "code": 0,
-        #     "result": {
-        #       "count": 1177,
-        #       "order_list": [
-        #         {
-        #           "status": "ACTIVE",
-        #           "side": "BUY",
-        #           "price": 1,
-        #           "quantity": 1,
-        #           "order_id": "366543374673423753",
-        #           "client_oid": "my_order_0002",
-        #           "create_time": 1588760643829,
-        #           "update_time": 1588760644292,
-        #           "type": "LIMIT",
-        #           "instrument_name": "ETH_CRO",
-        #           "cumulative_quantity": 0,
-        #           "cumulative_value": 0,
-        #           "avg_price": 0,
-        #           "fee_currency": "CRO",
-        #           "time_in_force": "GOOD_TILL_CANCEL"
-        #         },
-        #         {
-        #           "status": "ACTIVE",
-        #           "side": "BUY",
-        #           "price": 1,
-        #           "quantity": 1,
-        #           "order_id": "366455245775097673",
-        #           "client_oid": "my_order_0002",
-        #           "create_time": 1588758017375,
-        #           "update_time": 1588758017411,
-        #           "type": "LIMIT",
-        #           "instrument_name": "ETH_CRO",
-        #           "cumulative_quantity": 0,
-        #           "cumulative_value": 0,
-        #           "avg_price": 0,
-        #           "fee_currency": "CRO",
-        #           "time_in_force": "GOOD_TILL_CANCEL"
+        response = self.v1PrivatePostPrivateGetOpenOrders(self.extend(request, params))
+        #
+        #     {
+        #         "id": 1686806134961,
+        #         "method": "private/get-open-orders",
+        #         "code": 0,
+        #         "result": {
+        #             "data": [
+        #                 {
+        #                     "account_id": "ce075bef-1234-4321-bd6g-ff9007252e63",
+        #                     "order_id": "6530219477767564494",
+        #                     "client_oid": "CCXT_7ce730f0388441df9bc218",
+        #                     "order_type": "LIMIT",
+        #                     "time_in_force": "GOOD_TILL_CANCEL",
+        #                     "side": "BUY",
+        #                     "exec_inst": [],
+        #                     "quantity": "0.00020",
+        #                     "limit_price": "20000.00",
+        #                     "order_value": "4",
+        #                     "avg_price": "0",
+        #                     "trigger_price": "0",
+        #                     "ref_price": "0",
+        #                     "cumulative_quantity": "0",
+        #                     "cumulative_value": "0",
+        #                     "cumulative_fee": "0",
+        #                     "status": "ACTIVE",
+        #                     "update_user_id": "ce075bef-1234-4321-bd6g-gg9007252e63",
+        #                     "order_date": "2023-06-15",
+        #                     "instrument_name": "BTC_USD",
+        #                     "fee_instrument_name": "BTC",
+        #                     "create_time": 1686806053992,
+        #                     "create_time_ns": "1686806053992921880",
+        #                     "update_time": 1686806053993
+        #                 }
+        #             ]
         #         }
-        #       ]
         #     }
-        # }
+        #
         data = self.safe_value(response, 'result', {})
-        resultList = self.safe_value_2(data, 'order_list', 'data', [])
-        return self.parse_orders(resultList, market, since, limit)
+        orders = self.safe_value(data, 'data', [])
+        return self.parse_orders(orders, market, since, limit)
 
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -1867,108 +1784,74 @@ class cryptocom(Exchange, ImplicitAPI):
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
     def parse_order(self, order, market=None):
-        #       {
-        #         "status": "FILLED",
-        #         "side": "BUY",
-        #         "order_id": "371302913889488619",
-        #         "client_oid": "9_yMYJDNEeqHxLqtD_2j3g",
-        #         "create_time": 1588902489144,
-        #         "update_time": 1588902493024,
-        #         "type": "LIMIT",
-        #         "instrument_name": "ETH_CRO",
-        #         "cumulative_quantity": 7,
-        #         "cumulative_value": 7,
-        #         "avg_price": 7,
-        #         "fee_currency": "CRO",
-        #         "time_in_force": "GOOD_TILL_CANCEL",
-        #         "exec_inst": "POST_ONLY"
-        #       }
+        #
+        # createOrder, cancelOrder
         #
         #     {
-        #       id: 1641026373106,
-        #       method: 'private/get-order-history',
-        #       code: 0,
-        #       result: {
-        #         data: [
-        #           {
-        #             account_id: '85ff689a-7508-4b96-aa79-dc0545d6e637',
-        #             order_id: 13191401932,
-        #             client_oid: '1641025941461',
-        #             order_type: 'LIMIT',
-        #             time_in_force: 'GOOD_TILL_CANCEL',
-        #             side: 'BUY',
-        #             exec_inst: [],
-        #             quantity: '0.0001',
-        #             limit_price: '48000.0',
-        #             order_value: '4.80000000',
-        #             maker_fee_rate: '0.00050',
-        #             taker_fee_rate: '0.00070',
-        #             avg_price: '47253.5',
-        #             trigger_price: '0.0',
-        #             ref_price_type: 'NULL_VAL',
-        #             cumulative_quantity: '0.0001',
-        #             cumulative_value: '4.72535000',
-        #             cumulative_fee: '0.00330775',
-        #             status: 'FILLED',
-        #             update_user_id: 'ce075bef-b600-4277-bd6e-ff9007251e63',
-        #             order_date: '2022-01-01',
-        #             instrument_name: 'BTCUSD-PERP',
-        #             fee_instrument_name: 'USD_Stable_Coin',
-        #             create_time: 1641025941827,
-        #             create_time_ns: '1641025941827994756',
-        #             update_time: 1641025941827
-        #           }
-        #         ]
-        #       }
+        #         "order_id": "6540219377766741832",
+        #         "client_oid": "CCXT_d6ef7c3db6c1495aa8b757"
+        #     }
+        #
+        # fetchOpenOrders, fetchOrder, fetchOrders
+        #
+        #     {
+        #         "account_id": "ce075bef-1234-4321-bd6g-ff9007252e63",
+        #         "order_id": "6530219477767564494",
+        #         "client_oid": "CCXT_7ce730f0388441df9bc218",
+        #         "order_type": "LIMIT",
+        #         "time_in_force": "GOOD_TILL_CANCEL",
+        #         "side": "BUY",
+        #         "exec_inst": [],
+        #         "quantity": "0.00020",
+        #         "limit_price": "20000.00",
+        #         "order_value": "4",
+        #         "avg_price": "0",
+        #         "trigger_price": "0",
+        #         "ref_price": "0",
+        #         "cumulative_quantity": "0",
+        #         "cumulative_value": "0",
+        #         "cumulative_fee": "0",
+        #         "status": "ACTIVE",
+        #         "update_user_id": "ce075bef-1234-4321-bd6g-gg9007252e63",
+        #         "order_date": "2023-06-15",
+        #         "instrument_name": "BTC_USD",
+        #         "fee_instrument_name": "BTC",
+        #         "create_time": 1686806053992,
+        #         "create_time_ns": "1686806053992921880",
+        #         "update_time": 1686806053993
         #     }
         #
         created = self.safe_integer(order, 'create_time')
-        updated = self.safe_integer(order, 'update_time')
         marketId = self.safe_string(order, 'instrument_name')
         symbol = self.safe_symbol(marketId, market)
-        amount = self.safe_string(order, 'quantity')
-        filled = self.safe_string(order, 'cumulative_quantity')
-        status = self.parse_order_status(self.safe_string(order, 'status'))
-        id = self.safe_string(order, 'order_id')
-        clientOrderId = self.safe_string(order, 'client_oid')
-        price = self.safe_string_2(order, 'price', 'limit_price')
-        average = self.safe_string(order, 'avg_price')
-        type = self.safe_string_lower_2(order, 'type', 'order_type')
-        side = self.safe_string_lower(order, 'side')
-        timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
         execInst = self.safe_string(order, 'exec_inst')
         postOnly = None
         if execInst is not None:
             postOnly = (execInst == 'POST_ONLY')
-        cost = self.safe_string(order, 'cumulative_value')
-        feeCost = self.safe_string(order, 'cumulative_fee')
-        fee = None
-        if feeCost is not None:
-            feeCurrency = self.safe_string(order, 'fee_instrument_name')
-            fee = {
-                'cost': feeCost,
-                'currency': self.safe_currency_code(feeCurrency),
-            }
+        feeCurrency = self.safe_string(order, 'fee_instrument_name')
         return self.safe_order({
             'info': order,
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': self.safe_string(order, 'order_id'),
+            'clientOrderId': self.safe_string(order, 'client_oid'),
             'timestamp': created,
             'datetime': self.iso8601(created),
-            'lastTradeTimestamp': updated,
-            'status': status,
+            'lastTradeTimestamp': self.safe_integer(order, 'update_time'),
+            'status': self.parse_order_status(self.safe_string(order, 'status')),
             'symbol': symbol,
-            'type': type,
-            'timeInForce': timeInForce,
+            'type': self.safe_string_lower(order, 'order_type'),
+            'timeInForce': self.parse_time_in_force(self.safe_string(order, 'time_in_force')),
             'postOnly': postOnly,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'filled': filled,
+            'side': self.safe_string_lower(order, 'side'),
+            'price': self.safe_number(order, 'limit_price'),
+            'amount': self.safe_number(order, 'quantity'),
+            'filled': self.safe_number(order, 'cumulative_quantity'),
             'remaining': None,
-            'cost': cost,
-            'fee': fee,
-            'average': average,
+            'average': self.safe_number(order, 'avg_price'),
+            'cost': self.safe_number(order, 'cumulative_value'),
+            'fee': {
+                'currency': self.safe_currency_code(feeCurrency),
+                'cost': self.safe_number(order, 'cumulative_fee'),
+            },
             'trades': [],
         }, market)
 

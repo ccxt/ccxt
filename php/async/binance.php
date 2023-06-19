@@ -1720,7 +1720,7 @@ class binance extends Exchange {
                 return null;
             }
             // sandbox/testnet does not support sapi endpoints
-            $apiBackup = $this->safe_string($this->urls, 'apiBackup');
+            $apiBackup = $this->safe_value($this->urls, 'apiBackup');
             if ($apiBackup !== null) {
                 return null;
             }

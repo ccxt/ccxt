@@ -20,7 +20,7 @@ export default class bitpanda extends bitpandaRest {
     parseTradingOrderStatus(status: any): string;
     handleOrders(client: Client, message: any): void;
     handleAccountUpdate(client: Client, message: any): void;
-    parseWSOrderStatus(status: any): string;
+    parseWsOrderStatus(status: any): string;
     updateBalance(balance: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
