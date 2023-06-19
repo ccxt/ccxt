@@ -92,6 +92,8 @@ export default class kraken extends krakenRest {
                         'EOrder:Rate limit exceeded': RateLimitExceeded,
                         'EOrder:Scheduled orders limit exceeded': InvalidOrder,
                         'EOrder:Unknown position': OrderNotFound,
+                        'EOrder:Unknown order': OrderNotFound,
+                        'EOrder:Invalid order': InvalidOrder,
                         'EService:Deadline elapsed': ExchangeNotAvailable,
                         'EService:Market in cancel_only mode': NotSupported,
                         'EService:Market in limit_only mode': NotSupported,
