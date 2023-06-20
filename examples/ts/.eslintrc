@@ -60,12 +60,11 @@
     "lines-between-class-members": "error",
     "no-multiple-empty-lines": ["error", { "max": 2 }],
     "padding-line-between-statements": ["warn",
-      { "blankLine": "never", "prev":"*", "next": "*" },
+      // { "blankLine": "never", "prev":"*", "next": "*" }, // comment this to allow blank-lines
       { "blankLine": "always", "prev":"directive", "next": "*" },
       { "blankLine": "always", "prev":"*", "next": "cjs-export" },
       { "blankLine": "always", "prev":"*", "next": "export" },
       { "blankLine": "always", "prev":"*", "next": "function" }
-
     ],
     "prefer-template": "off",
     "curly": "error",
