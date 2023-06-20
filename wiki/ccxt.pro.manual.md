@@ -982,7 +982,7 @@ cancel_orders_ws(string[] $ids, string $symbol, $params = array ())
 ```
 ##### cancelAllOrdersWs
 
-```javascript
+```typescript
 // JavaScript
 cancelAllOrdersWs(symbol: string = undefined, params = {})
 ```
