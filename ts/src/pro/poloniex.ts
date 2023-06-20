@@ -870,7 +870,7 @@ export default class poloniex extends poloniexRest {
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             const name = 'book_lv2';
-            const messageHash = name + ':' + symbol;
+            const messageHash = name + '::' + symbol;
             const subscription = this.safeValue (client.subscriptions, messageHash, {});
             const limit = this.safeInteger (subscription, 'limit');
             const timestamp = this.safeInteger (item, 'ts');
