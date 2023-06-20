@@ -636,7 +636,7 @@ class Exchange(object):
                 raise NetworkError(details) from e
             else:
                 raise ExchangeError(details) from e
-    
+
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
         if json_response is not None:
             return json_response
