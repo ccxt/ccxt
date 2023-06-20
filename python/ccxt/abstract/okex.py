@@ -97,6 +97,7 @@ class ImplicitAPI:
     private_get_account_subaccount_balances = privateGetAccountSubaccountBalances = Entry('account/subaccount/balances', 'private', 'GET', {'cost': 10})
     private_get_account_subaccount_interest_limits = privateGetAccountSubaccountInterestLimits = Entry('account/subaccount/interest-limits', 'private', 'GET', {'cost': 4})
     private_get_asset_subaccount_bills = privateGetAssetSubaccountBills = Entry('asset/subaccount/bills', 'private', 'GET', {'cost': 1.6666666666666667})
+    private_get_asset_subaccount_managed_subaccount_bills = privateGetAssetSubaccountManagedSubaccountBills = Entry('asset/subaccount/managed-subaccount-bills', 'private', 'GET', {'cost': 1.6666666666666667})
     private_get_users_subaccount_list = privateGetUsersSubaccountList = Entry('users/subaccount/list', 'private', 'GET', {'cost': 10})
     private_get_users_subaccount_apikey = privateGetUsersSubaccountApikey = Entry('users/subaccount/apikey', 'private', 'GET', {'cost': 10})
     private_get_users_entrust_subaccount_list = privateGetUsersEntrustSubaccountList = Entry('users/entrust-subaccount-list', 'private', 'GET', {'cost': 10})
