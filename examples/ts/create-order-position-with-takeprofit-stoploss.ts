@@ -12,10 +12,10 @@ async function example () {
     const exchange = new ccxt.okx ({
         "apiKey": "YOUR_API_KEY",
         "secret": "YOUR_API_SECRET",
-        "password": "YOUR_API_PASSWORD", // comment out if not needed for chosen exchange
+        "password": "YOUR_API_PASSWORD",
     });
 
-    const symbol = 'ETH/USDT:USDT';
+    const symbol = 'DOGE/USDT:USDT';
     const side = 'buy'; // set it to 'buy' for a long position, 'sell' for a short position
     const order_type = 'limit'; // set it to 'market' or 'limit'
     const amount = 1; // how many contracts
@@ -23,7 +23,7 @@ async function example () {
     await exchange.loadMarkets ();
     const market = exchange.market (symbol);
 
-    const ticker = exchange.fetchTicker (symbol);
+    const ticker = await exchange.fetchTicker (symbol);
 
     const last_price = ticker['last'];
     const ask_price = ticker['ask'];
@@ -31,9 +31,9 @@ async function example () {
 
     // if order_type is 'market', then price is not needed
     let price = undefined;
-    // if order_type is 'limit', then set a price
+    // if order_type is 'limit', then set a price at your desired level
     if (order_type === 'limit') {
-        price = (side === 'buy') ? bid_price * 0.999 : ask_price * 1.001;
+        price = (side === 'buy') ? bid_price * 0.95 : ask_price * 1.05; // i.e. 5% from current price
     }
 
     // set trigger-price for stop-loss/take-profit to 2% from current price
@@ -57,19 +57,23 @@ async function example () {
     const position_amount = market['contractSize'] * amount;
     const position_value = position_amount * last_price;
     // log
-    console.log ('Going to open a position', 'for', amount, 'contracts worth', position_amount, market['base'], '~', position_value * last_price, market['settle'], 'using', side, order_type, 'order',  (order_type === 'limit' ? 'at price' + exchange.priceToPrecision (symbol, price) : ''), ', using the following params:');
+    console.log ('Going to open a position', 'for', amount, 'contracts worth', position_amount, market['base'], '~', position_value, market['settle'], 'using', side, order_type, 'order', (order_type === 'limit' ? 'at price' + exchange.priceToPrecision (symbol, price) : ''), ', using the following params:');
     console.log (params);
     console.log ('-----------------------------------------------------------------------');
 
     // exchange.verbose = True  // uncomment for debugging purposes if necessary
 
     try {
-        const created_order = exchange.createOrder (symbol, order_type, side, amount, price, params);
-        console.log (created_order);
-        // uncomment the following lines to cancel a limit order
-        // if order_type == 'limit':
-        //     canceled_order = exchange.cancel_order(created_order['id'], symbol)
-        //     pconsole.log(canceled_order)
+        const created_order = await exchange.createOrder (symbol, order_type, side, amount, price, params);
+        console.log ("Created an order", created_order);
+
+        // Fetch all your open orders for this symbol
+        // - use 'fetchOpenOrders' or 'fetchOrders' and filter with 'open' status
+        // - note, that some exchanges might return one order object with embedded stoploss/takeprofit fields, while other exchanges might have separate stoploss/takeprofit order objects
+        const all_open_rders = await exchange.fetchOpenOrders (symbol);
+        console.log ("Fetched all your orders for this symbol", all_open_rders);
+
+        // To cancel a limit order, use "exchange.cancel_order(created_order['id'], symbol)""
     } catch (e) {
         console.log (e.toString ());
     }
