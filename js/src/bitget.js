@@ -187,6 +187,7 @@ export default class bitget extends Exchange {
                             'wallet/deposit-list': 1,
                             'account/getInfo': 20,
                             'account/assets': 2,
+                            'account/assets-lite': 2,
                             'account/transferRecords': 1, // 20 times/1s (UID) => 20/20 = 1
                         },
                         'post': {
@@ -307,7 +308,11 @@ export default class bitget extends Exchange {
                             'trace/myTraderList': 2,
                             'trace/myFollowerList': 2,
                             'trace/removeFollower': 2,
-                            'trace/public/getFollowerConfig': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/public/getFollowerConfig': 2,
+                            'trace/report/order/historyList': 2,
+                            'trace/report/order/currentList': 2,
+                            'trace/queryTraderTpslRatioConfig': 2,
+                            'trace/traderUpdateTpslRatioConfig': 2, // 10 times/1s (UID) => 20/10 = 2
                         },
                     },
                     'user': {

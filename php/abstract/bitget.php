@@ -124,6 +124,9 @@ abstract class bitget extends \ccxt\Exchange {
     public function private_spot_get_account_assets($params = array()) {
         return $this->request('account/assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function private_spot_get_account_assets_lite($params = array()) {
+        return $this->request('account/assets-lite', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_spot_get_account_transferrecords($params = array()) {
         return $this->request('account/transferRecords', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -463,6 +466,18 @@ abstract class bitget extends \ccxt\Exchange {
     public function private_mix_post_trace_public_getfollowerconfig($params = array()) {
         return $this->request('trace/public/getFollowerConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function private_mix_post_trace_report_order_historylist($params = array()) {
+        return $this->request('trace/report/order/historyList', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_trace_report_order_currentlist($params = array()) {
+        return $this->request('trace/report/order/currentList', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_trace_querytradertpslratioconfig($params = array()) {
+        return $this->request('trace/queryTraderTpslRatioConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_trace_traderupdatetpslratioconfig($params = array()) {
+        return $this->request('trace/traderUpdateTpslRatioConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function private_user_get_fee_query($params = array()) {
         return $this->request('fee/query', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -759,6 +774,9 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function privateSpotGetAccountAssets($params = array()) {
         return $this->request('account/assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotGetAccountAssetsLite($params = array()) {
+        return $this->request('account/assets-lite', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateSpotGetAccountTransferRecords($params = array()) {
         return $this->request('account/transferRecords', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -1098,6 +1116,18 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function privateMixPostTracePublicGetFollowerConfig($params = array()) {
         return $this->request('trace/public/getFollowerConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostTraceReportOrderHistoryList($params = array()) {
+        return $this->request('trace/report/order/historyList', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostTraceReportOrderCurrentList($params = array()) {
+        return $this->request('trace/report/order/currentList', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostTraceQueryTraderTpslRatioConfig($params = array()) {
+        return $this->request('trace/queryTraderTpslRatioConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostTraceTraderUpdateTpslRatioConfig($params = array()) {
+        return $this->request('trace/traderUpdateTpslRatioConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function privateUserGetFeeQuery($params = array()) {
         return $this->request('fee/query', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
