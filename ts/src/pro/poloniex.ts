@@ -192,7 +192,9 @@ export default class poloniex extends poloniexRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        return await this.watchTickers ([ symbol ], params);
+        symbol = this.symbol (symbol);
+        const tickers = await this.watchTickers ([ symbol ], params);
+        return this.safeValue (tickers, symbol);
     }
 
     async watchTickers (symbols = undefined, params = {}) {
