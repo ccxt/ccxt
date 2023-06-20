@@ -1634,7 +1634,7 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/open/currencies.md
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitrue api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
