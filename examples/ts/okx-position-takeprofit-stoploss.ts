@@ -7,6 +7,7 @@ console.log ('CCXT Version:', ccxt.version);
 // ------------------------------------------------------------------------------
 
 async function example () {
+    // at this moment, only OKX support embedded stop-loss & take-profit orders in unified manner. other exchanges are being added actively and will be available soon.
     const exchange = new ccxt.okx ({
         "apiKey": "YOUR_API_KEY",
         "secret": "YOUR_API_SECRET",
