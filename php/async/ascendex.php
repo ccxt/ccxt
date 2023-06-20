@@ -205,6 +205,7 @@ class ascendex extends Exchange {
                             'futures/collateral' => 1,
                             'futures/pricing-data' => 1,
                             'futures/ticker' => 1,
+                            'risk-limit-info' => 1,
                         ),
                     ),
                     'private' => array(
