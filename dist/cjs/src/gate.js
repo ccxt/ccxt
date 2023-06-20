@@ -2628,6 +2628,9 @@ class gate extends gate$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        if (market['option']) {
+            return await this.fetchOptionOHLCV(symbol, timeframe, since, limit, params);
+        }
         const price = this.safeString(params, 'price');
         let request = {};
         [request, params] = this.prepareRequest(market, undefined, params);
@@ -2636,7 +2639,6 @@ class gate extends gate$1 {
         let maxLimit = 1000;
         if (market['contract']) {
             maxLimit = 1999;
-            limit = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
             if (market['future']) {
                 method = 'publicDeliveryGetSettleCandlesticks';
             }
@@ -2677,6 +2679,16 @@ class gate extends gate$1 {
             request['limit'] = limit;
         }
         const response = await this[method](this.extend(request, params));
+        return this.parseOHLCVs(response, market, timeframe, since, limit);
+    }
+    async fetchOptionOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        // separated option logic because the from, to and limit parameters weren't functioning
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        let request = {};
+        [request, params] = this.prepareRequest(market, undefined, params);
+        request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
+        const response = await this.publicOptionsGetCandlesticks(this.extend(request, params));
         return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2740,7 +2752,7 @@ class gate extends gate$1 {
         //    ]
         //
         //
-        // Mark and Index price candles
+        // Swap, Future, Option, Mark and Index price candles
         //
         //     {
         //          "t":1632873600,         // Unix timestamp in seconds
@@ -2761,7 +2773,7 @@ class gate extends gate$1 {
             ];
         }
         else {
-            // Mark and Index price candles
+            // Swap, Future, Option, Mark and Index price candles
             return [
                 this.safeTimestamp(ohlcv, 't'),
                 this.safeNumber(ohlcv, 'o'),

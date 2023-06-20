@@ -55,6 +55,8 @@ class bitget extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -4614,6 +4616,89 @@ class bitget extends Exchange {
             'toAccount' => $toAccount,
             'status' => $this->parse_transfer_status($msg),
         );
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        // {
+        //     "chains" => array(
+        //       array(
+        //         "browserUrl" => "https://bscscan.com/tx/",
+        //         "chain" => "BEP20",
+        //         "depositConfirm" => "15",
+        //         "extraWithDrawFee" => "0",
+        //         "minDepositAmount" => "0.000001",
+        //         "minWithdrawAmount" => "0.0000078",
+        //         "needTag" => "false",
+        //         "rechargeable" => "true",
+        //         "withdrawConfirm" => "15",
+        //         "withdrawFee" => "0.0000051",
+        //         "withdrawable" => "true"
+        //       ),
+        //       {
+        //         "browserUrl" => "https://blockchair.com/bitcoin/transaction/",
+        //         "chain" => "BTC",
+        //         "depositConfirm" => "1",
+        //         "extraWithDrawFee" => "0",
+        //         "minDepositAmount" => "0.0001",
+        //         "minWithdrawAmount" => "0.002",
+        //         "needTag" => "false",
+        //         "rechargeable" => "true",
+        //         "withdrawConfirm" => "1",
+        //         "withdrawFee" => "0.0005",
+        //         "withdrawable" => "true"
+        //       }
+        //     ),
+        //     "coinId" => "1",
+        //     "coinName" => "BTC",
+        //     "transfer" => "true"
+        // }
+        //
+        $chains = $this->safe_value($fee, 'chains', array());
+        $chainsLength = count($chains);
+        $result = array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+        for ($i = 0; $i < $chainsLength; $i++) {
+            $chain = $chains[$i];
+            $networkId = $this->safe_string($chain, 'chain');
+            $currencyCode = $this->safe_string($currency, 'code');
+            $networkCode = $this->network_id_to_code($networkId, $currencyCode);
+            $result['networks'][$networkCode] = array(
+                'deposit' => array( 'fee' => null, 'percentage' => null ),
+                'withdraw' => array( 'fee' => $this->safe_number($chain, 'withdrawFee'), 'percentage' => false ),
+            );
+            if ($chainsLength === 1) {
+                $result['withdraw']['fee'] = $this->safe_number($chain, 'withdrawFee');
+                $result['withdraw']['percentage'] = false;
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-list
+             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {array} $params extra parameters specific to the bitrue api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicSpotGetPublicCurrencies ($params));
+            $data = $this->safe_value($response, 'data');
+            return $this->parse_deposit_withdraw_fees($data, $codes, 'coinName');
+        }) ();
     }
 
     public function parse_transfer_status($status) {

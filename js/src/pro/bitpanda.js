@@ -966,7 +966,7 @@ export default class bitpanda extends bitpandaRest {
             const previousOrder = this.safeValue(previousOrderArray, 0, {});
             symbol = previousOrder['symbol'];
             const filled = this.safeNumber(update, 'filled_amount');
-            let status = this.parseWSOrderStatus(updateType);
+            let status = this.parseWsOrderStatus(updateType);
             if (updateType === 'ORDER_CLOSED' && filled === 0) {
                 status = 'canceled';
             }
@@ -1003,7 +1003,7 @@ export default class bitpanda extends bitpandaRest {
             client.resolve(this.myTrades, 'myTrades');
         }
     }
-    parseWSOrderStatus(status) {
+    parseWsOrderStatus(status) {
         const statuses = {
             'ORDER_REJECTED': 'rejected',
             'ORDER_CLOSED': 'closed',

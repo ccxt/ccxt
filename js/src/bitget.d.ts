@@ -273,6 +273,19 @@ export default class bitget extends Exchange {
         toAccount: string;
         status: string;
     };
+    parseDepositWithdrawFee(fee: any, currency?: any): {
+        info: any;
+        withdraw: {
+            fee: any;
+            percentage: any;
+        };
+        deposit: {
+            fee: any;
+            percentage: any;
+        };
+        networks: {};
+    };
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseTransferStatus(status: any): string;
     parseOpenInterest(interest: any, market?: any): {
         symbol: any;

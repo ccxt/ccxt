@@ -44,6 +44,8 @@ class ascendex extends ascendex$1 {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': false,
@@ -195,6 +197,7 @@ class ascendex extends ascendex$1 {
                             'futures/collateral': 1,
                             'futures/pricing-data': 1,
                             'futures/ticker': 1,
+                            'risk-limit-info': 1,
                         },
                     },
                     'private': {
@@ -261,6 +264,20 @@ class ascendex extends ascendex$1 {
                 },
                 'transfer': {
                     'fillResponseFromRequest': true,
+                },
+                'networks': {
+                    'BSC': 'BEP20 (BSC)',
+                    'ARB': 'arbitrum',
+                    'SOL': 'Solana',
+                    'AVAX': 'avalanche C chain',
+                    'OMNI': 'Omni',
+                },
+                'networksById': {
+                    'BEP20 (BSC)': 'BSC',
+                    'arbitrum': 'ARB',
+                    'Solana': 'SOL',
+                    'avalanche C chain': 'AVAX',
+                    'Omni': 'OMNI',
                 },
             },
             'exceptions': {
@@ -2884,6 +2901,71 @@ class ascendex extends ascendex$1 {
             });
         }
         return tiers;
+    }
+    parseDepositWithdrawFee(fee, currency = undefined) {
+        //
+        // {
+        //     "assetCode":      "USDT",
+        //     "assetName":      "Tether",
+        //     "precisionScale":  9,
+        //     "nativeScale":     4,
+        //     "blockChain": [
+        //         {
+        //             "chainName":        "Omni",
+        //             "withdrawFee":      "30.0",
+        //             "allowDeposit":      true,
+        //             "allowWithdraw":     true,
+        //             "minDepositAmt":    "0.0",
+        //             "minWithdrawal":    "50.0",
+        //             "numConfirmations":  3
+        //         },
+        //     ]
+        // }
+        //
+        const blockChains = this.safeValue(fee, 'blockChain', []);
+        const blockChainsLength = blockChains.length;
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+        for (let i = 0; i < blockChainsLength; i++) {
+            const blockChain = blockChains[i];
+            const networkId = this.safeString(blockChain, 'chainName');
+            const currencyCode = this.safeString(currency, 'code');
+            const networkCode = this.networkIdToCode(networkId, currencyCode);
+            result['networks'][networkCode] = {
+                'deposit': { 'fee': undefined, 'percentage': undefined },
+                'withdraw': { 'fee': this.safeNumber(blockChain, 'withdrawFee'), 'percentage': false },
+            };
+            if (blockChainsLength === 1) {
+                result['withdraw']['fee'] = this.safeNumber(blockChain, 'withdrawFee');
+                result['withdraw']['percentage'] = false;
+            }
+        }
+        return result;
+    }
+    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets();
+        const response = await this.v2PublicGetAssets(params);
+        const data = this.safeValue(response, 'data');
+        return this.parseDepositWithdrawFees(data, codes, 'assetCode');
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         /**

@@ -254,6 +254,7 @@ export default class okx extends Exchange {
         toAccount: string;
         status: string;
     };
+    parseTransferStatus(status: any): string;
     fetchTransfer(id: string, code?: string, params?: {}): Promise<{
         info: any;
         id: string;
@@ -265,6 +266,7 @@ export default class okx extends Exchange {
         toAccount: string;
         status: string;
     }>;
+    fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

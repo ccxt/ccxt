@@ -1,8 +1,8 @@
 'use strict';
 
 var cryptocom$1 = require('./abstract/cryptocom.js');
-var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
+var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
@@ -361,207 +361,170 @@ class cryptocom extends cryptocom$1 {
         /**
          * @method
          * @name cryptocom#fetchMarkets
-         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-instruments
-         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-instruments
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments
          * @description retrieves data on all markets for cryptocom
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        let promises = [this.fetchSpotMarkets(params), this.fetchDerivativesMarkets(params)];
-        // @ts-ignore
-        promises = await Promise.all(promises);
-        const spotMarkets = promises[0];
-        const derivativeMarkets = promises[1];
-        const markets = this.arrayConcat(spotMarkets, derivativeMarkets);
-        return markets;
-    }
-    async fetchSpotMarkets(params = {}) {
-        const response = await this.v2PublicGetPublicGetInstruments(params);
-        //
-        //    {
-        //        id: 11,
-        //        method: 'public/get-instruments',
-        //        code: 0,
-        //        result: {
-        //            'instruments': [
-        //                {
-        //                    instrument_name: 'NEAR_BTC',
-        //                    quote_currency: 'BTC',
-        //                    base_currency: 'NEAR',
-        //                    price_decimals: '8',
-        //                    quantity_decimals: '2',
-        //                    margin_trading_enabled: true,
-        //                    margin_trading_enabled_5x: true,
-        //                    margin_trading_enabled_10x: true,
-        //                    max_quantity: '100000000',
-        //                    min_quantity: '0.01',
-        //                    max_price:'1',
-        //                    min_price:'0.00000001',
-        //                    last_update_date:1667263094857,
-        //                    quantity_tick_size:'0.1',
-        //                    price_tick_size:'0.00000001'
-        //               },
-        //            ]
-        //        }
-        //    }
-        //
-        const resultResponse = this.safeValue(response, 'result', {});
-        const markets = this.safeValue(resultResponse, 'instruments', []);
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString(market, 'instrument_name');
-            const baseId = this.safeString(market, 'base_currency');
-            const quoteId = this.safeString(market, 'quote_currency');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const minPrice = this.safeString(market, 'min_price');
-            const minQuantity = this.safeString(market, 'min_quantity');
-            let maxLeverage = this.parseNumber('1');
-            const margin_trading_enabled_5x = this.safeValue(market, 'margin_trading_enabled_5x');
-            if (margin_trading_enabled_5x) {
-                maxLeverage = this.parseNumber('5');
-            }
-            const margin_trading_enabled_10x = this.safeValue(market, 'margin_trading_enabled_10x');
-            if (margin_trading_enabled_10x) {
-                maxLeverage = this.parseNumber('10');
-            }
-            result.push({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': this.safeValue(market, 'margin_trading_enabled'),
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': undefined,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber(market, 'quantity_tick_size'),
-                    'price': this.safeNumber(market, 'price_tick_size'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': this.parseNumber('1'),
-                        'max': maxLeverage,
-                    },
-                    'amount': {
-                        'min': this.parseNumber(minQuantity),
-                        'max': this.safeNumber(market, 'max_quantity'),
-                    },
-                    'price': {
-                        'min': this.parseNumber(minPrice),
-                        'max': this.safeNumber(market, 'max_price'),
-                    },
-                    'cost': {
-                        'min': this.parseNumber(Precise["default"].stringMul(minQuantity, minPrice)),
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-            });
-        }
-        return result;
-    }
-    async fetchDerivativesMarkets(params = {}) {
-        const result = [];
-        const futuresResponse = await this.derivativesPublicGetPublicGetInstruments();
+        const response = await this.v1PublicGetPublicGetInstruments(params);
         //
         //     {
-        //       id: -1,
-        //       method: 'public/get-instruments',
-        //       code: 0,
-        //       result: {
-        //         data: [
-        //           {
-        //             symbol: '1INCHUSD-PERP',
-        //             inst_type: 'PERPETUAL_SWAP',
-        //             display_name: '1INCHUSD Perpetual',
-        //             base_ccy: '1INCH',
-        //             quote_ccy: 'USD_Stable_Coin',
-        //             quote_decimals: 4,
-        //             quantity_decimals: 0,
-        //             price_tick_size: '0.0001',
-        //             qty_tick_size: '1',
-        //             max_leverage: '50',
-        //             tradable: true,
-        //             expiry_timestamp_ms: 0,
-        //             beta_product: false,
-        //             underlying_symbol: '1INCHUSD-INDEX',
-        //             put_call: 'UNDEFINED',
-        //             strike: '0',
-        //             contract_size: '1'
-        //           },
-        //         ]
-        //       }
+        //         "id": 1,
+        //         "method": "public/get-instruments",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "symbol": "BTC_USDT",
+        //                     "inst_type": "CCY_PAIR",
+        //                     "display_name": "BTC/USDT",
+        //                     "base_ccy": "BTC",
+        //                     "quote_ccy": "USDT",
+        //                     "quote_decimals": 2,
+        //                     "quantity_decimals": 5,
+        //                     "price_tick_size": "0.01",
+        //                     "qty_tick_size": "0.00001",
+        //                     "max_leverage": "50",
+        //                     "tradable": true,
+        //                     "expiry_timestamp_ms": 0,
+        //                     "beta_product": false,
+        //                     "margin_buy_enabled": false,
+        //                     "margin_sell_enabled": true
+        //                 },
+        //                 {
+        //                     "symbol": "RUNEUSD-PERP",
+        //                     "inst_type": "PERPETUAL_SWAP",
+        //                     "display_name": "RUNEUSD Perpetual",
+        //                     "base_ccy": "RUNE",
+        //                     "quote_ccy": "USD",
+        //                     "quote_decimals": 3,
+        //                     "quantity_decimals": 1,
+        //                     "price_tick_size": "0.001",
+        //                     "qty_tick_size": "0.1",
+        //                     "max_leverage": "50",
+        //                     "tradable": true,
+        //                     "expiry_timestamp_ms": 0,
+        //                     "beta_product": false,
+        //                     "underlying_symbol": "RUNEUSD-INDEX",
+        //                     "contract_size": "1",
+        //                     "margin_buy_enabled": false,
+        //                     "margin_sell_enabled": false
+        //                 },
+        //                 {
+        //                     "symbol": "ETHUSD-230825",
+        //                     "inst_type": "FUTURE",
+        //                     "display_name": "ETHUSD Futures 20230825",
+        //                     "base_ccy": "ETH",
+        //                     "quote_ccy": "USD",
+        //                     "quote_decimals": 2,
+        //                     "quantity_decimals": 4,
+        //                     "price_tick_size": "0.01",
+        //                     "qty_tick_size": "0.0001",
+        //                     "max_leverage": "100",
+        //                     "tradable": true,
+        //                     "expiry_timestamp_ms": 1692950400000,
+        //                     "beta_product": false,
+        //                     "underlying_symbol": "ETHUSD-INDEX",
+        //                     "contract_size": "1",
+        //                     "margin_buy_enabled": false,
+        //                     "margin_sell_enabled": false
+        //                 },
+        //                 {
+        //                     "symbol": "BTCUSD-230630-CW30000",
+        //                     "inst_type": "WARRANT",
+        //                     "display_name": "BTCUSD-230630-CW30000",
+        //                     "base_ccy": "BTC",
+        //                     "quote_ccy": "USD",
+        //                     "quote_decimals": 3,
+        //                     "quantity_decimals": 0,
+        //                     "price_tick_size": "0.001",
+        //                     "qty_tick_size": "10",
+        //                     "max_leverage": "50",
+        //                     "tradable": true,
+        //                     "expiry_timestamp_ms": 1688112000000,
+        //                     "beta_product": false,
+        //                     "underlying_symbol": "BTCUSD-INDEX",
+        //                     "put_call": "CALL",
+        //                     "strike": "30000",
+        //                     "contract_size": "0.0001",
+        //                     "margin_buy_enabled": false,
+        //                     "margin_sell_enabled": false
+        //                 },
+        //             ]
+        //         }
         //     }
         //
-        const futuresResult = this.safeValue(futuresResponse, 'result', {});
-        const data = this.safeValue(futuresResult, 'data', []);
+        const resultResponse = this.safeValue(response, 'result', {});
+        const data = this.safeValue(resultResponse, 'data', []);
+        const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const inst_type = this.safeString(market, 'inst_type');
+            const spot = inst_type === 'CCY_PAIR';
             const swap = inst_type === 'PERPETUAL_SWAP';
             const future = inst_type === 'FUTURE';
-            if (inst_type === 'CCY_PAIR') {
-                continue; // Found some inconsistencies between spot and derivatives api so use spot api for currency pairs.
-            }
+            const option = inst_type === 'WARRANT';
             const baseId = this.safeString(market, 'base_ccy');
             const quoteId = this.safeString(market, 'quote_ccy');
+            const settleId = spot ? undefined : quoteId;
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
-            let symbol = base + '/' + quote + ':' + quote;
-            let expiry = this.safeInteger(market, 'expiry_timestamp_ms');
-            if (expiry === 0) {
-                expiry = undefined;
+            const settle = spot ? undefined : this.safeCurrencyCode(settleId);
+            const optionType = this.safeStringLower(market, 'put_call');
+            const strike = this.safeString(market, 'strike');
+            const marginBuyEnabled = this.safeValue(market, 'margin_buy_enabled');
+            const marginSellEnabled = this.safeValue(market, 'margin_sell_enabled');
+            const expiry = this.omitZero(this.safeInteger(market, 'expiry_timestamp_ms'));
+            let symbol = base + '/' + quote;
+            let type = undefined;
+            let contract = undefined;
+            if (inst_type === 'CCY_PAIR') {
+                type = 'spot';
+                contract = false;
             }
-            let type = 'swap';
-            if (future) {
+            else if (inst_type === 'PERPETUAL_SWAP') {
+                type = 'swap';
+                symbol = symbol + ':' + quote;
+                contract = true;
+            }
+            else if (inst_type === 'FUTURE') {
                 type = 'future';
-                symbol = symbol + '-' + this.yymmdd(expiry);
+                symbol = symbol + ':' + quote + '-' + this.yymmdd(expiry);
+                contract = true;
             }
-            const contractSize = this.safeNumber(market, 'contract_size');
+            else if (inst_type === 'WARRANT') {
+                type = 'option';
+                const symbolOptionType = (optionType === 'call') ? 'C' : 'P';
+                symbol = symbol + ':' + quote + '-' + this.yymmdd(expiry) + '-' + strike + '-' + symbolOptionType;
+                contract = true;
+            }
             result.push({
                 'id': this.safeString(market, 'symbol'),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': quoteId,
+                'settleId': settleId,
                 'type': type,
-                'spot': false,
-                'margin': false,
+                'spot': spot,
+                'margin': ((marginBuyEnabled) || (marginSellEnabled)),
                 'swap': swap,
                 'future': future,
-                'option': false,
+                'option': option,
                 'active': this.safeValue(market, 'tradable'),
-                'contract': true,
-                'linear': true,
-                'inverse': false,
-                'contractSize': contractSize,
+                'contract': contract,
+                'linear': (contract) ? true : undefined,
+                'inverse': (contract) ? false : undefined,
+                'contractSize': this.safeNumber(market, 'contract_size'),
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601(expiry),
-                'strike': undefined,
-                'optionType': undefined,
+                'strike': this.parseNumber(strike),
+                'optionType': optionType,
                 'precision': {
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'quote_decimals'))),
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantity_decimals'))),
+                    'price': this.parseNumber(this.safeString(market, 'price_tick_size')),
+                    'amount': this.parseNumber(this.safeString(market, 'qty_tick_size')),
                 },
                 'limits': {
                     'leverage': {
@@ -569,7 +532,7 @@ class cryptocom extends cryptocom$1 {
                         'max': this.safeNumber(market, 'max_leverage'),
                     },
                     'amount': {
-                        'min': this.parseNumber(contractSize),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
@@ -670,121 +633,87 @@ class cryptocom extends cryptocom$1 {
          * @method
          * @name cryptocom#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-history
+         * @param {string} symbol unified market symbol of the market the orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for, max date range is one day
+         * @param {int|undefined} limit the maximum number of order structures to retrieve, default 100 max 100
          * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
-        }
         await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
-            'instrument_name': market['id'],
-        };
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['instrument_name'] = market['id'];
+        }
         if (since !== undefined) {
-            // maximum date range is one day
-            request['start_ts'] = since;
+            request['start_time'] = since;
         }
         if (limit !== undefined) {
-            request['page_size'] = limit;
+            request['limit'] = limit;
         }
-        const [marketType, marketTypeQuery] = this.handleMarketTypeAndParams('fetchOrders', market, params);
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'v2PrivatePostPrivateGetOrderHistory',
-            'margin': 'v2PrivatePostPrivateMarginGetOrderHistory',
-            'future': 'derivativesPrivatePostPrivateGetOrderHistory',
-            'swap': 'derivativesPrivatePostPrivateGetOrderHistory',
-        });
-        const [marginMode, query] = this.customHandleMarginModeAndParams('fetchOrders', marketTypeQuery);
-        if (marginMode !== undefined) {
-            method = 'v2PrivatePostPrivateMarginGetOrderHistory';
+        const until = this.safeInteger2(params, 'until', 'till');
+        params = this.omit(params, ['until', 'till']);
+        if (until !== undefined) {
+            request['end_time'] = until;
         }
-        const response = await this[method](this.extend(request, query));
+        const response = await this.v1PrivatePostPrivateGetOrderHistory(this.extend(request, params));
         //
-        // spot and margin
         //     {
-        //       id: 1641026542065,
-        //       method: 'private/get-order-history',
-        //       code: 0,
-        //       result: {
-        //         order_list: [
-        //           {
-        //             status: 'FILLED',
-        //             side: 'BUY',
-        //             price: 0,
-        //             quantity: 110,
-        //             order_id: '2120246337927715937',
-        //             client_oid: '',
-        //             create_time: 1641025064904,
-        //             update_time: 1641025064958,
-        //             type: 'MARKET',
-        //             instrument_name: 'USDC_USDT',
-        //             avg_price: 1.0001,
-        //             cumulative_quantity: 110,
-        //             cumulative_value: 110.011,
-        //             fee_currency: 'USDC',
-        //             exec_inst: '',
-        //             time_in_force: 'GOOD_TILL_CANCEL'
-        //           }
-        //         ]
-        //       }
-        //     }
-        //
-        // swap
-        //     {
-        //       id: 1641026373106,
-        //       method: 'private/get-order-history',
-        //       code: 0,
-        //       result: {
-        //         data: [
-        //           {
-        //             account_id: '85ff689a-7508-4b96-aa79-dc0545d6e637',
-        //             order_id: 13191401932,
-        //             client_oid: '1641025941461',
-        //             order_type: 'LIMIT',
-        //             time_in_force: 'GOOD_TILL_CANCEL',
-        //             side: 'BUY',
-        //             exec_inst: [],
-        //             quantity: '0.0001',
-        //             limit_price: '48000.0',
-        //             order_value: '4.80000000',
-        //             maker_fee_rate: '0.00050',
-        //             taker_fee_rate: '0.00070',
-        //             avg_price: '47253.5',
-        //             trigger_price: '0.0',
-        //             ref_price_type: 'NULL_VAL',
-        //             cumulative_quantity: '0.0001',
-        //             cumulative_value: '4.72535000',
-        //             cumulative_fee: '0.00330775',
-        //             status: 'FILLED',
-        //             update_user_id: 'ce075bef-b600-4277-bd6e-ff9007251e63',
-        //             order_date: '2022-01-01',
-        //             instrument_name: 'BTCUSD-PERP',
-        //             fee_instrument_name: 'USD_Stable_Coin',
-        //             create_time: 1641025941827,
-        //             create_time_ns: '1641025941827994756',
-        //             update_time: 1641025941827
-        //           }
-        //         ]
-        //       }
+        //         "id": 1686881486183,
+        //         "method": "private/get-order-history",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "account_id": "ce075bef-1234-4321-bd6g-ff9007252e63",
+        //                     "order_id": "6142909895014042762",
+        //                     "client_oid": "4e918597-1234-4321-8201-a7577e1e1d91",
+        //                     "order_type": "MARKET",
+        //                     "time_in_force": "GOOD_TILL_CANCEL",
+        //                     "side": "SELL",
+        //                     "exec_inst": [ ],
+        //                     "quantity": "0.00024",
+        //                     "order_value": "5.7054672",
+        //                     "maker_fee_rate": "0",
+        //                     "taker_fee_rate": "0",
+        //                     "avg_price": "25023.97",
+        //                     "trigger_price": "0",
+        //                     "ref_price": "0",
+        //                     "ref_price_type": "NULL_VAL",
+        //                     "cumulative_quantity": "0.00024",
+        //                     "cumulative_value": "6.0057528",
+        //                     "cumulative_fee": "0.001501438200",
+        //                     "status": "FILLED",
+        //                     "update_user_id": "ce075bef-1234-4321-bd6g-ff9007252e63",
+        //                     "order_date": "2023-06-15",
+        //                     "instrument_name": "BTC_USD",
+        //                     "fee_instrument_name": "USD",
+        //                     "create_time": 1686805465891,
+        //                     "create_time_ns": "1686805465891812578",
+        //                     "update_time": 1686805465891
+        //                 }
+        //             ]
+        //         }
         //     }
         //
         const data = this.safeValue(response, 'result', {});
-        const orderList = this.safeValue2(data, 'order_list', 'data', []);
-        return this.parseOrders(orderList, market, since, limit);
+        const orders = this.safeValue(data, 'data', []);
+        return this.parseOrders(orders, market, since, limit);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
+         * @description get a list of the most recent trades for a particular symbol
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch, maximum date range is one day
+         * @param {int|undefined} limit the maximum number of trades to fetch
          * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
@@ -793,53 +722,52 @@ class cryptocom extends cryptocom$1 {
             'instrument_name': market['id'],
         };
         if (since !== undefined) {
-            // maximum date range is one day
             request['start_ts'] = since;
         }
         if (limit !== undefined) {
-            request['page_size'] = limit;
+            request['count'] = limit;
         }
-        const [marketType, query] = this.handleMarketTypeAndParams('fetchTrades', market, params);
-        const method = this.getSupportedMapping(marketType, {
-            'spot': 'v2PublicGetPublicGetTrades',
-            'future': 'derivativesPublicGetPublicGetTrades',
-            'swap': 'derivativesPublicGetPublicGetTrades',
-        });
-        const response = await this[method](this.extend(request, query));
-        // {
-        //     "code":0,
-        //     "method":"public/get-trades",
-        //     "result": {
-        //          "instrument_name": "BTC_USDT",
-        //          "data:": [
-        //              {"dataTime":1591710781947,"d":465533583799589409,"s":"BUY","p":2.96,"q":16.0,"t":1591710781946,"i":"ICX_CRO"},
-        //              {"dataTime":1591707701899,"d":465430234542863152,"s":"BUY","p":0.007749,"q":115.0,"t":1591707701898,"i":"VET_USDT"},
-        //              {"dataTime":1591710786155,"d":465533724976458209,"s":"SELL","p":25.676,"q":0.55,"t":1591710786154,"i":"XTZ_CRO"},
-        //              {"dataTime":1591710783300,"d":465533629172286576,"s":"SELL","p":2.9016,"q":0.6,"t":1591710783298,"i":"XTZ_USDT"},
-        //              {"dataTime":1591710784499,"d":465533669425626384,"s":"SELL","p":2.7662,"q":0.58,"t":1591710784498,"i":"EOS_USDT"},
-        //              {"dataTime":1591710784700,"d":465533676120104336,"s":"SELL","p":243.21,"q":0.01647,"t":1591710784698,"i":"ETH_USDT"},
-        //              {"dataTime":1591710786600,"d":465533739878620208,"s":"SELL","p":253.06,"q":0.00516,"t":1591710786598,"i":"BCH_USDT"},
-        //              {"dataTime":1591710786900,"d":465533749959572464,"s":"BUY","p":0.9999,"q":0.2,"t":1591710786898,"i":"USDC_USDT"},
-        //              {"dataTime":1591710787500,"d":465533770081010000,"s":"BUY","p":3.159,"q":1.65,"t":1591710787498,"i":"ATOM_USDT"},
-        //            ]
-        //      }
-        // }
-        const resultResponse = this.safeValue(response, 'result', {});
-        const data = this.safeValue(resultResponse, 'data', []);
-        return this.parseTrades(data, market, since, limit);
+        const until = this.safeInteger2(params, 'until', 'till');
+        params = this.omit(params, ['until', 'till']);
+        if (until !== undefined) {
+            request['end_ts'] = until;
+        }
+        const response = await this.v1PublicGetPublicGetTrades(this.extend(request, params));
+        //
+        //     {
+        //         "id": -1,
+        //         "method": "public/get-trades",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "s": "sell",
+        //                     "p": "26386.00",
+        //                     "q": "0.00453",
+        //                     "t": 1686944282062,
+        //                     "d": "4611686018455979970",
+        //                     "i": "BTC_USD"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeValue(response, 'result', {});
+        const trades = this.safeValue(result, 'data', []);
+        return this.parseTrades(trades, market, since, limit);
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchOHLCV
-         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-candlestick
-         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-candlestick
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -848,44 +776,41 @@ class cryptocom extends cryptocom$1 {
             'instrument_name': market['id'],
             'timeframe': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        if (!market['spot']) {
-            let reqLimit = 100;
-            if (limit !== undefined) {
-                reqLimit = limit;
-            }
-            request['count'] = reqLimit;
-        }
         if (since !== undefined) {
             request['start_ts'] = since;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
         }
         const until = this.safeInteger2(params, 'until', 'till');
         params = this.omit(params, ['until', 'till']);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
-        let response = undefined;
-        if (market['spot']) {
-            response = await this.v2PublicGetPublicGetCandlestick(this.extend(request, params));
-        }
-        else if (market['contract']) {
-            response = await this.derivativesPublicGetPublicGetCandlestick(this.extend(request, params));
-        }
-        // {
-        //     "code":0,
-        //     "method":"public/get-candlestick",
-        //     "result":{
-        //       "instrument_name":"BTC_USDT",
-        //       "interval":"5m",
-        //       "data":[
-        //         {"t":1596944700000,"o":11752.38,"h":11754.77,"l":11746.65,"c":11753.64,"v":3.694583},
-        //         {"t":1596945000000,"o":11753.63,"h":11754.77,"l":11739.83,"c":11746.17,"v":2.073019},
-        //         {"t":1596945300000,"o":11746.16,"h":11753.24,"l":11738.1,"c":11740.65,"v":0.867247},
-        //         ...
-        //       ]
+        const response = await this.v1PublicGetPublicGetCandlestick(this.extend(request, params));
+        //
+        //     {
+        //         "id": -1,
+        //         "method": "public/get-candlestick",
+        //         "code": 0,
+        //         "result": {
+        //             "interval": "1m",
+        //             "data": [
+        //                 {
+        //                     "o": "26949.89",
+        //                     "h": "26957.64",
+        //                     "l": "26948.24",
+        //                     "c": "26950.00",
+        //                     "v": "0.0670",
+        //                     "t": 1687237080000
+        //                 },
+        //             ],
+        //             "instrument_name": "BTC_USD"
+        //         }
         //     }
-        // }
-        const resultResponse = this.safeValue(response, 'result', {});
-        const data = this.safeValue(resultResponse, 'data', []);
+        //
+        const result = this.safeValue(response, 'result', {});
+        const data = this.safeValue(result, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -1080,6 +1005,7 @@ class cryptocom extends cryptocom$1 {
          * @method
          * @name cryptocom#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-detail
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1089,63 +1015,44 @@ class cryptocom extends cryptocom$1 {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const request = {};
-        const [marketType, marketTypeQuery] = this.handleMarketTypeAndParams('fetchOrder', market, params);
-        const [marginMode, query] = this.customHandleMarginModeAndParams('fetchOrder', marketTypeQuery);
-        if ((marketType === 'spot') || (marketType === 'margin') || (marginMode !== undefined)) {
-            request['order_id'] = id.toString();
-        }
-        else {
-            request['order_id'] = parseInt(id);
-        }
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'v2PrivatePostPrivateGetOrderDetail',
-            'margin': 'v2PrivatePostPrivateMarginGetOrderDetail',
-            'future': 'derivativesPrivatePostPrivateGetOrderDetail',
-            'swap': 'derivativesPrivatePostPrivateGetOrderDetail',
-        });
-        if (marginMode !== undefined) {
-            method = 'v2PrivatePostPrivateMarginGetOrderDetail';
-        }
-        const response = await this[method](this.extend(request, query));
-        // {
-        //     "id": 11,
-        //     "method": "private/get-order-detail",
-        //     "code": 0,
-        //     "result": {
-        //       "trade_list": [
-        //         {
-        //           "side": "BUY",
-        //           "instrument_name": "ETH_CRO",
-        //           "fee": 0.007,
-        //           "trade_id": "371303044218155296",
-        //           "create_time": 1588902493045,
-        //           "traded_price": 7,
-        //           "traded_quantity": 7,
-        //           "fee_currency": "CRO",
-        //           "order_id": "371302913889488619"
+        const request = {
+            'order_id': id,
+        };
+        const response = await this.v1PrivatePostPrivateGetOrderDetail(this.extend(request, params));
+        //
+        //     {
+        //         "id": 1686872583882,
+        //         "method": "private/get-order-detail",
+        //         "code": 0,
+        //         "result": {
+        //             "account_id": "ae075bef-1234-4321-bd6g-bb9007252a63",
+        //             "order_id": "6142909895025252686",
+        //             "client_oid": "CCXT_c2d2152cc32d40a3ae7fbf",
+        //             "order_type": "LIMIT",
+        //             "time_in_force": "GOOD_TILL_CANCEL",
+        //             "side": "BUY",
+        //             "exec_inst": [ ],
+        //             "quantity": "0.00020",
+        //             "limit_price": "20000.00",
+        //             "order_value": "4",
+        //             "avg_price": "0",
+        //             "trigger_price": "0",
+        //             "ref_price": "0",
+        //             "cumulative_quantity": "0",
+        //             "cumulative_value": "0",
+        //             "cumulative_fee": "0",
+        //             "status": "ACTIVE",
+        //             "update_user_id": "ae075bef-1234-4321-bd6g-bb9007252a63",
+        //             "order_date": "2023-06-15",
+        //             "instrument_name": "BTC_USD",
+        //             "fee_instrument_name": "BTC",
+        //             "create_time": 1686870220684,
+        //             "create_time_ns": "1686870220684239675",
+        //             "update_time": 1686870220684
         //         }
-        //       ],
-        //       "order_info": {
-        //         "status": "FILLED",
-        //         "side": "BUY",
-        //         "order_id": "371302913889488619",
-        //         "client_oid": "9_yMYJDNEeqHxLqtD_2j3g",
-        //         "create_time": 1588902489144,
-        //         "update_time": 1588902493024,
-        //         "type": "LIMIT",
-        //         "instrument_name": "ETH_CRO",
-        //         "cumulative_quantity": 7,
-        //         "cumulative_value": 7,
-        //         "avg_price": 7,
-        //         "fee_currency": "CRO",
-        //         "time_in_force": "GOOD_TILL_CANCEL",
-        //         "exec_inst": "POST_ONLY"
-        //       }
         //     }
-        // }
-        const result = this.safeValue(response, 'result', {});
-        const order = this.safeValue(result, 'order_info', result);
+        //
+        const order = this.safeValue(response, 'result', {});
         return this.parseOrder(order, market);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1212,41 +1119,27 @@ class cryptocom extends cryptocom$1 {
          * @method
          * @name cryptocom#cancelAllOrders
          * @description cancel all open orders
-         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
+         * @param {string|undefined} symbol unified market symbol of the orders to cancel
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
+        const request = {};
         if (symbol !== undefined) {
             market = this.market(symbol);
-        }
-        const request = {};
-        const [marketType, marketTypeQuery] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
-        const [marginMode, query] = this.customHandleMarginModeAndParams('cancelAllOrders', marketTypeQuery);
-        if ((marketType === 'spot') || (marketType === 'margin') || (marginMode !== undefined)) {
-            if (symbol === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument for ' + marketType + ' orders');
-            }
             request['instrument_name'] = market['id'];
         }
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'v2PrivatePostPrivateCancelAllOrders',
-            'margin': 'v2PrivatePostPrivateMarginCancelAllOrders',
-            'future': 'derivativesPrivatePostPrivateCancelAllOrders',
-            'swap': 'derivativesPrivatePostPrivateCancelAllOrders',
-        });
-        if (marginMode !== undefined) {
-            method = 'v2PrivatePostPrivateMarginCancelAllOrders';
-        }
-        return await this[method](this.extend(request, query));
+        return await this.v1PrivatePostPrivateCancelAllOrders(this.extend(request, params));
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#cancelOrder
          * @description cancels an open order
-         * @param {string} id order id
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
+         * @param {string} id the order id of the order to cancel
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1256,40 +1149,34 @@ class cryptocom extends cryptocom$1 {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const request = {};
-        const [marketType, marketTypeQuery] = this.handleMarketTypeAndParams('cancelOrder', market, params);
-        const [marginMode, query] = this.customHandleMarginModeAndParams('cancelOrder', marketTypeQuery);
-        if ((marketType === 'spot') || (marketType === 'margin') || (marginMode !== undefined)) {
-            if (symbol === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument for ' + marketType + ' orders');
-            }
-            request['instrument_name'] = market['id'];
-            request['order_id'] = id.toString();
-        }
-        else {
-            request['order_id'] = parseInt(id);
-        }
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'v2PrivatePostPrivateCancelOrder',
-            'margin': 'v2PrivatePostPrivateMarginCancelOrder',
-            'future': 'derivativesPrivatePostPrivateCancelOrder',
-            'swap': 'derivativesPrivatePostPrivateCancelOrder',
-        });
-        if (marginMode !== undefined) {
-            method = 'v2PrivatePostPrivateMarginCancelOrder';
-        }
-        const response = await this[method](this.extend(request, query));
-        const result = this.safeValue(response, 'result', response);
-        return this.parseOrder(result);
+        const request = {
+            'order_id': id,
+        };
+        const response = await this.v1PrivatePostPrivateCancelOrder(this.extend(request, params));
+        //
+        //     {
+        //         "id": 1686882846638,
+        //         "method": "private/cancel-order",
+        //         "code": 0,
+        //         "message": "NO_ERROR",
+        //         "result": {
+        //             "client_oid": "CCXT_c2d2152cc32d40a3ae7fbf",
+        //             "order_id": "6142909895025252686"
+        //         }
+        //     }
+        //
+        const result = this.safeValue(response, 'result', {});
+        return this.parseOrder(result, market);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-open-orders
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {int|undefined} limit the maximum number of open order structures to retrieve
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1300,78 +1187,59 @@ class cryptocom extends cryptocom$1 {
             market = this.market(symbol);
             request['instrument_name'] = market['id'];
         }
-        if (limit !== undefined) {
-            request['page_size'] = limit;
-        }
-        const [marketType, marketTypeQuery] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'v2PrivatePostPrivateGetOpenOrders',
-            'margin': 'v2PrivatePostPrivateMarginGetOpenOrders',
-            'future': 'derivativesPrivatePostPrivateGetOpenOrders',
-            'swap': 'derivativesPrivatePostPrivateGetOpenOrders',
-        });
-        const [marginMode, query] = this.customHandleMarginModeAndParams('fetchOpenOrders', marketTypeQuery);
-        if (marginMode !== undefined) {
-            method = 'v2PrivatePostPrivateMarginGetOpenOrders';
-        }
-        const response = await this[method](this.extend(request, query));
-        // {
-        //     "id": 11,
-        //     "method": "private/get-open-orders",
-        //     "code": 0,
-        //     "result": {
-        //       "count": 1177,
-        //       "order_list": [
-        //         {
-        //           "status": "ACTIVE",
-        //           "side": "BUY",
-        //           "price": 1,
-        //           "quantity": 1,
-        //           "order_id": "366543374673423753",
-        //           "client_oid": "my_order_0002",
-        //           "create_time": 1588760643829,
-        //           "update_time": 1588760644292,
-        //           "type": "LIMIT",
-        //           "instrument_name": "ETH_CRO",
-        //           "cumulative_quantity": 0,
-        //           "cumulative_value": 0,
-        //           "avg_price": 0,
-        //           "fee_currency": "CRO",
-        //           "time_in_force": "GOOD_TILL_CANCEL"
-        //         },
-        //         {
-        //           "status": "ACTIVE",
-        //           "side": "BUY",
-        //           "price": 1,
-        //           "quantity": 1,
-        //           "order_id": "366455245775097673",
-        //           "client_oid": "my_order_0002",
-        //           "create_time": 1588758017375,
-        //           "update_time": 1588758017411,
-        //           "type": "LIMIT",
-        //           "instrument_name": "ETH_CRO",
-        //           "cumulative_quantity": 0,
-        //           "cumulative_value": 0,
-        //           "avg_price": 0,
-        //           "fee_currency": "CRO",
-        //           "time_in_force": "GOOD_TILL_CANCEL"
+        const response = await this.v1PrivatePostPrivateGetOpenOrders(this.extend(request, params));
+        //
+        //     {
+        //         "id": 1686806134961,
+        //         "method": "private/get-open-orders",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "account_id": "ce075bef-1234-4321-bd6g-ff9007252e63",
+        //                     "order_id": "6530219477767564494",
+        //                     "client_oid": "CCXT_7ce730f0388441df9bc218",
+        //                     "order_type": "LIMIT",
+        //                     "time_in_force": "GOOD_TILL_CANCEL",
+        //                     "side": "BUY",
+        //                     "exec_inst": [ ],
+        //                     "quantity": "0.00020",
+        //                     "limit_price": "20000.00",
+        //                     "order_value": "4",
+        //                     "avg_price": "0",
+        //                     "trigger_price": "0",
+        //                     "ref_price": "0",
+        //                     "cumulative_quantity": "0",
+        //                     "cumulative_value": "0",
+        //                     "cumulative_fee": "0",
+        //                     "status": "ACTIVE",
+        //                     "update_user_id": "ce075bef-1234-4321-bd6g-gg9007252e63",
+        //                     "order_date": "2023-06-15",
+        //                     "instrument_name": "BTC_USD",
+        //                     "fee_instrument_name": "BTC",
+        //                     "create_time": 1686806053992,
+        //                     "create_time_ns": "1686806053992921880",
+        //                     "update_time": 1686806053993
+        //                 }
+        //             ]
         //         }
-        //       ]
         //     }
-        // }
+        //
         const data = this.safeValue(response, 'result', {});
-        const resultList = this.safeValue2(data, 'order_list', 'data', []);
-        return this.parseOrders(resultList, market, since, limit);
+        const orders = this.safeValue(data, 'data', []);
+        return this.parseOrders(orders, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-trades
          * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch trades for, maximum date range is one day
+         * @param {int|undefined} limit the maximum number of trade structures to retrieve
          * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
@@ -1382,49 +1250,49 @@ class cryptocom extends cryptocom$1 {
             request['instrument_name'] = market['id'];
         }
         if (since !== undefined) {
-            // maximum date range is one day
-            request['start_ts'] = since;
-            const endTimestamp = this.sum(since, 24 * 60 * 60 * 1000);
-            request['end_ts'] = endTimestamp;
+            request['start_time'] = since;
         }
         if (limit !== undefined) {
-            request['page_size'] = limit;
+            request['limit'] = limit;
         }
-        const [marketType, marketTypeQuery] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'v2PrivatePostPrivateGetTrades',
-            'margin': 'v2PrivatePostPrivateMarginGetTrades',
-            'future': 'derivativesPrivatePostPrivateGetTrades',
-            'swap': 'derivativesPrivatePostPrivateGetTrades',
-        });
-        const [marginMode, query] = this.customHandleMarginModeAndParams('fetchMyTrades', marketTypeQuery);
-        if (marginMode !== undefined) {
-            method = 'v2PrivatePostPrivateMarginGetTrades';
+        const until = this.safeInteger2(params, 'until', 'till');
+        params = this.omit(params, ['until', 'till']);
+        if (until !== undefined) {
+            request['end_time'] = until;
         }
-        const response = await this[method](this.extend(request, query));
-        // {
-        //     "id": 11,
-        //     "method": "private/get-trades",
-        //     "code": 0,
-        //     "result": {
-        //       "trade_list": [
-        //         {
-        //           "side": "SELL",
-        //           "instrument_name": "ETH_CRO",
-        //           "fee": 0.014,
-        //           "trade_id": "367107655537806900",
-        //           "create_time": 1588777459755,
-        //           "traded_price": 7,
-        //           "traded_quantity": 1,
-        //           "fee_currency": "CRO",
-        //           "order_id": "367107623521528450"
+        const response = await this.v1PrivatePostPrivateGetTrades(this.extend(request, params));
+        //
+        //     {
+        //         "id": 1686942003520,
+        //         "method": "private/get-trades",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "account_id": "ds075abc-1234-4321-bd6g-ff9007252r63",
+        //                     "event_date": "2023-06-16",
+        //                     "journal_type": "TRADING",
+        //                     "side": "BUY",
+        //                     "instrument_name": "BTC_USD",
+        //                     "fees": "-0.0000000525",
+        //                     "trade_id": "6142909898247428343",
+        //                     "trade_match_id": "4611686018455978480",
+        //                     "create_time": 1686941992887,
+        //                     "traded_price": "26347.16",
+        //                     "traded_quantity": "0.00021",
+        //                     "fee_instrument_name": "BTC",
+        //                     "client_oid": "d1c70a60-810e-4c92-b2a0-72b931cb31e0",
+        //                     "taker_side": "TAKER",
+        //                     "order_id": "6142909895036331486",
+        //                     "create_time_ns": "1686941992887207066"
+        //                 }
+        //             ]
         //         }
-        //       ]
         //     }
-        // }
-        const data = this.safeValue(response, 'result', {});
-        const resultList = this.safeValue2(data, 'trade_list', 'data', []);
-        return this.parseTrades(resultList, market, since, limit);
+        //
+        const result = this.safeValue(response, 'result', {});
+        const trades = this.safeValue(result, 'data', []);
+        return this.parseTrades(trades, market, since, limit);
     }
     parseAddress(addressString) {
         let address = undefined;
@@ -1909,73 +1777,73 @@ class cryptocom extends cryptocom$1 {
     }
     parseTrade(trade, market = undefined) {
         //
-        // public/get-trades
+        // fetchTrades
         //
-        // {"dataTime":1591710781947,"d":465533583799589409,"s":"BUY","p":2.96,"q":16.0,"t":1591710781946,"i":"ICX_CRO"},
+        //     {
+        //         "s": "sell",
+        //         "p": "26386.00",
+        //         "q": "0.00453",
+        //         "t": 1686944282062,
+        //         "d": "4611686018455979970",
+        //         "i": "BTC_USD"
+        //     }
         //
-        // private/get-trades
+        // fetchMyTrades
         //
-        // {
-        //     "side": "SELL",
-        //     "instrument_name": "ETH_CRO",
-        //     "fee": 0.014,
-        //     "trade_id": "367107655537806900",
-        //     "create_time": 1588777459755,
-        //     "traded_price": 7,
-        //     "traded_quantity": 1,
-        //     "fee_currency": "CRO",
-        //     "order_id": "367107623521528450"
-        // }
+        //     {
+        //         "account_id": "ds075abc-1234-4321-bd6g-ff9007252r63",
+        //         "event_date": "2023-06-16",
+        //         "journal_type": "TRADING",
+        //         "side": "BUY",
+        //         "instrument_name": "BTC_USD",
+        //         "fees": "-0.0000000525",
+        //         "trade_id": "6142909898247428343",
+        //         "trade_match_id": "4611686018455978480",
+        //         "create_time": 1686941992887,
+        //         "traded_price": "26347.16",
+        //         "traded_quantity": "0.00021",
+        //         "fee_instrument_name": "BTC",
+        //         "client_oid": "d1c70a60-1234-4c92-b2a0-72b931cb31e0",
+        //         "taker_side": "TAKER",
+        //         "order_id": "6142909895036331486",
+        //         "create_time_ns": "1686941992887207066"
+        //     }
+        //
         const timestamp = this.safeInteger2(trade, 't', 'create_time');
         const marketId = this.safeString2(trade, 'i', 'instrument_name');
         market = this.safeMarket(marketId, market, '_');
-        const symbol = market['symbol'];
-        const price = this.safeString2(trade, 'p', 'traded_price');
-        const amount = this.safeString2(trade, 'q', 'traded_quantity');
-        let side = this.safeString2(trade, 's', 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase();
-        }
-        const id = this.safeString2(trade, 'd', 'trade_id');
-        const takerOrMaker = this.safeStringLower2(trade, 'liquidity_indicator', 'taker_side');
-        const order = this.safeString(trade, 'order_id');
-        let fee = undefined;
-        let feeCost = this.safeString2(trade, 'fee', 'fees');
-        if (feeCost !== undefined) {
-            const contract = this.safeValue(market, 'contract', false);
-            if (contract) {
-                feeCost = Precise["default"].stringNeg(feeCost);
-            }
-            let feeCurrency = undefined;
-            if (market['spot']) {
-                feeCurrency = this.safeString(trade, 'fee_currency');
-            }
-            else if (market['linear']) {
-                feeCurrency = market['quote'];
-            }
-            fee = {
-                'currency': feeCurrency,
-                'cost': feeCost,
-            };
-        }
+        const feeCurrency = this.safeString(trade, 'fee_instrument_name');
+        const feeCostString = this.safeString(trade, 'fees');
         return this.safeTrade({
             'info': trade,
-            'id': id,
+            'id': this.safeString2(trade, 'd', 'trade_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': symbol,
-            'side': side,
-            'price': price,
-            'amount': amount,
+            'symbol': market['symbol'],
+            'order': this.safeString(trade, 'order_id'),
+            'side': this.safeStringLower2(trade, 's', 'side'),
+            'takerOrMaker': this.safeStringLower(trade, 'taker_side'),
+            'price': this.safeNumber2(trade, 'p', 'traded_price'),
+            'amount': this.safeNumber2(trade, 'q', 'traded_quantity'),
             'cost': undefined,
-            'order': order,
-            'takerOrMaker': takerOrMaker,
             'type': undefined,
-            'fee': fee,
+            'fee': {
+                'currency': this.safeCurrencyCode(feeCurrency),
+                'cost': this.parseNumber(Precise["default"].stringNeg(feeCostString)),
+            },
         }, market);
     }
     parseOHLCV(ohlcv, market = undefined) {
-        //      {"t":1596944700000,"o":11752.38,"h":11754.77,"l":11746.65,"c":11753.64,"v":3.694583}
+        //
+        //     {
+        //         "o": "26949.89",
+        //         "h": "26957.64",
+        //         "l": "26948.24",
+        //         "c": "26950.00",
+        //         "v": "0.0670",
+        //         "t": 1687237080000
+        //     }
+        //
         return [
             this.safeInteger(ohlcv, 't'),
             this.safeNumber(ohlcv, 'o'),
@@ -2004,110 +1872,75 @@ class cryptocom extends cryptocom$1 {
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
     parseOrder(order, market = undefined) {
-        //       {
-        //         "status": "FILLED",
-        //         "side": "BUY",
-        //         "order_id": "371302913889488619",
-        //         "client_oid": "9_yMYJDNEeqHxLqtD_2j3g",
-        //         "create_time": 1588902489144,
-        //         "update_time": 1588902493024,
-        //         "type": "LIMIT",
-        //         "instrument_name": "ETH_CRO",
-        //         "cumulative_quantity": 7,
-        //         "cumulative_value": 7,
-        //         "avg_price": 7,
-        //         "fee_currency": "CRO",
-        //         "time_in_force": "GOOD_TILL_CANCEL",
-        //         "exec_inst": "POST_ONLY"
-        //       }
+        //
+        // createOrder, cancelOrder
         //
         //     {
-        //       id: 1641026373106,
-        //       method: 'private/get-order-history',
-        //       code: 0,
-        //       result: {
-        //         data: [
-        //           {
-        //             account_id: '85ff689a-7508-4b96-aa79-dc0545d6e637',
-        //             order_id: 13191401932,
-        //             client_oid: '1641025941461',
-        //             order_type: 'LIMIT',
-        //             time_in_force: 'GOOD_TILL_CANCEL',
-        //             side: 'BUY',
-        //             exec_inst: [],
-        //             quantity: '0.0001',
-        //             limit_price: '48000.0',
-        //             order_value: '4.80000000',
-        //             maker_fee_rate: '0.00050',
-        //             taker_fee_rate: '0.00070',
-        //             avg_price: '47253.5',
-        //             trigger_price: '0.0',
-        //             ref_price_type: 'NULL_VAL',
-        //             cumulative_quantity: '0.0001',
-        //             cumulative_value: '4.72535000',
-        //             cumulative_fee: '0.00330775',
-        //             status: 'FILLED',
-        //             update_user_id: 'ce075bef-b600-4277-bd6e-ff9007251e63',
-        //             order_date: '2022-01-01',
-        //             instrument_name: 'BTCUSD-PERP',
-        //             fee_instrument_name: 'USD_Stable_Coin',
-        //             create_time: 1641025941827,
-        //             create_time_ns: '1641025941827994756',
-        //             update_time: 1641025941827
-        //           }
-        //         ]
-        //       }
+        //         "order_id": "6540219377766741832",
+        //         "client_oid": "CCXT_d6ef7c3db6c1495aa8b757"
+        //     }
+        //
+        // fetchOpenOrders, fetchOrder, fetchOrders
+        //
+        //     {
+        //         "account_id": "ce075bef-1234-4321-bd6g-ff9007252e63",
+        //         "order_id": "6530219477767564494",
+        //         "client_oid": "CCXT_7ce730f0388441df9bc218",
+        //         "order_type": "LIMIT",
+        //         "time_in_force": "GOOD_TILL_CANCEL",
+        //         "side": "BUY",
+        //         "exec_inst": [ ],
+        //         "quantity": "0.00020",
+        //         "limit_price": "20000.00",
+        //         "order_value": "4",
+        //         "avg_price": "0",
+        //         "trigger_price": "0",
+        //         "ref_price": "0",
+        //         "cumulative_quantity": "0",
+        //         "cumulative_value": "0",
+        //         "cumulative_fee": "0",
+        //         "status": "ACTIVE",
+        //         "update_user_id": "ce075bef-1234-4321-bd6g-gg9007252e63",
+        //         "order_date": "2023-06-15",
+        //         "instrument_name": "BTC_USD",
+        //         "fee_instrument_name": "BTC",
+        //         "create_time": 1686806053992,
+        //         "create_time_ns": "1686806053992921880",
+        //         "update_time": 1686806053993
         //     }
         //
         const created = this.safeInteger(order, 'create_time');
-        const updated = this.safeInteger(order, 'update_time');
         const marketId = this.safeString(order, 'instrument_name');
         const symbol = this.safeSymbol(marketId, market);
-        const amount = this.safeString(order, 'quantity');
-        const filled = this.safeString(order, 'cumulative_quantity');
-        const status = this.parseOrderStatus(this.safeString(order, 'status'));
-        const id = this.safeString(order, 'order_id');
-        const clientOrderId = this.safeString(order, 'client_oid');
-        const price = this.safeString2(order, 'price', 'limit_price');
-        const average = this.safeString(order, 'avg_price');
-        const type = this.safeStringLower2(order, 'type', 'order_type');
-        const side = this.safeStringLower(order, 'side');
-        const timeInForce = this.parseTimeInForce(this.safeString(order, 'time_in_force'));
         const execInst = this.safeString(order, 'exec_inst');
         let postOnly = undefined;
         if (execInst !== undefined) {
             postOnly = (execInst === 'POST_ONLY');
         }
-        const cost = this.safeString(order, 'cumulative_value');
-        const feeCost = this.safeString(order, 'cumulative_fee');
-        let fee = undefined;
-        if (feeCost !== undefined) {
-            const feeCurrency = this.safeString(order, 'fee_instrument_name');
-            fee = {
-                'cost': feeCost,
-                'currency': this.safeCurrencyCode(feeCurrency),
-            };
-        }
+        const feeCurrency = this.safeString(order, 'fee_instrument_name');
         return this.safeOrder({
             'info': order,
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': this.safeString(order, 'order_id'),
+            'clientOrderId': this.safeString(order, 'client_oid'),
             'timestamp': created,
             'datetime': this.iso8601(created),
-            'lastTradeTimestamp': updated,
-            'status': status,
+            'lastTradeTimestamp': this.safeInteger(order, 'update_time'),
+            'status': this.parseOrderStatus(this.safeString(order, 'status')),
             'symbol': symbol,
-            'type': type,
-            'timeInForce': timeInForce,
+            'type': this.safeStringLower(order, 'order_type'),
+            'timeInForce': this.parseTimeInForce(this.safeString(order, 'time_in_force')),
             'postOnly': postOnly,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'filled': filled,
+            'side': this.safeStringLower(order, 'side'),
+            'price': this.safeNumber(order, 'limit_price'),
+            'amount': this.safeNumber(order, 'quantity'),
+            'filled': this.safeNumber(order, 'cumulative_quantity'),
             'remaining': undefined,
-            'cost': cost,
-            'fee': fee,
-            'average': average,
+            'average': this.safeNumber(order, 'avg_price'),
+            'cost': this.safeNumber(order, 'cumulative_value'),
+            'fee': {
+                'currency': this.safeCurrencyCode(feeCurrency),
+                'cost': this.safeNumber(order, 'cumulative_fee'),
+            },
             'trades': [],
         }, market);
     }

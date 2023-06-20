@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.39'
+__version__ = '3.1.46'
 
 # -----------------------------------------------------------------------------
 
@@ -605,6 +605,18 @@ class Exchange(BaseExchange):
 
     def parse_borrow_interest(self, info, market=None):
         raise NotSupported(self.id + ' parseBorrowInterest() is not supported yet')
+
+    def parse_ws_trade(self, trade, market=None):
+        raise NotSupported(self.id + ' parseWsTrade() is not supported yet')
+
+    def parse_ws_order(self, order, market=None):
+        raise NotSupported(self.id + ' parseWsOrder() is not supported yet')
+
+    def parse_ws_order_trade(self, trade, market=None):
+        raise NotSupported(self.id + ' parseWsOrderTrade() is not supported yet')
+
+    def parse_ws_ohlcv(self, ohlcv, market=None):
+        raise NotSupported(self.id + ' parseWsOHLCV() is not supported yet')
 
     async def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchFundingRates() is not supported yet')
@@ -1738,6 +1750,10 @@ class Exchange(BaseExchange):
         await self.cancelOrder(id, symbol)
         return await self.create_order(symbol, type, side, amount, price, params)
 
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
+        await self.cancelOrderWs(id, symbol)
+        return await self.createOrderWs(symbol, type, side, amount, price, params)
+
     async def fetch_permissions(self, params={}):
         raise NotSupported(self.id + ' fetchPermissions() is not supported yet')
 
@@ -2074,10 +2090,22 @@ class Exchange(BaseExchange):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
 
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
+        raise NotSupported(self.id + ' createOrderWs() is not supported yet')
+
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         raise NotSupported(self.id + ' cancelOrder() is not supported yet')
 
+    async def cancel_order_ws(self, id: str, symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' cancelOrderWs() is not supported yet')
+
+    async def cancel_orders_ws(self, ids: List[str], symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' cancelOrdersWs() is not supported yet')
+
     async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
+
+    async def cancel_all_order_ws(self, symbol: Optional[str] = None, params={}):
         raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
 
     async def cancel_unified_order(self, order, params={}):

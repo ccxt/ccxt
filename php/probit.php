@@ -42,6 +42,7 @@ class probit extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => true,
+                'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -69,10 +70,11 @@ class probit extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransactions' => true,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'fetchWithdrawal' => false,
-                'fetchWithdrawals' => false,
+                'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -1415,6 +1417,89 @@ class probit extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @param {string|null} $code unified currency $code
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of transaction structures to retrieve
+         * @param {array} $params extra parameters specific to the probit api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         */
+        $request = array(
+            'type' => 'deposit',
+        );
+        $result = $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
+        return $result;
+    }
+
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made to an account
+         * @param {string|null} $code unified currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of transaction structures to retrieve
+         * @param {array} $params extra parameters specific to the probit api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         */
+        $request = array(
+            'type' => 'withdrawal',
+        );
+        $result = $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
+        return $result;
+    }
+
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all transactions made to an account
+         * @param {string|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch transactions for
+         * @param {int|null} $limit the maximum number of transaction structures to retrieve
+         * @param {array} $params extra parameters specific to the probit api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         */
+        $this->load_markets();
+        $currency = null;
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency_id'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['start_time'] = $this->iso8601($since);
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->privateGetTransferPayment (array_merge($request, $params));
+        //
+        //     {
+        //         "data" => array(
+        //             {
+        //                 "id" => "01211d4b-0e68-41d6-97cb-298bfe2cab67",
+        //                 "type" => "deposit",
+        //                 "status" => "done",
+        //                 "amount" => "0.01",
+        //                 "address" => "0x9e7430fc0bdd14745bd00a1b92ed25133a7c765f",
+        //                 "time" => "2023-06-14T12:03:11.000Z",
+        //                 "hash" => "0x0ff5bedc9e378f9529acc6b9840fa8c2ef00fd0275e0bac7fa0589a9b5d1712e",
+        //                 "currency_id" => "ETH",
+        //                 "confirmations":0,
+        //                 "fee" => "0",
+        //                 "destination_tag" => null,
+        //                 "platform_id" => "ETH",
+        //                 "fee_currency_id" => "ETH",
+        //                 "payment_service_name":null,
+        //                 "payment_service_display_name":null,
+        //                 "crypto":null
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transactions($data, $currency, $since, $limit);
+    }
+
     public function parse_transaction($transaction, $currency = null) {
         $id = $this->safe_string($transaction, 'id');
         $amount = $this->safe_number($transaction, 'amount');
@@ -1474,9 +1559,8 @@ class probit extends Exchange {
         /**
          * @see https://docs-en.probit.com/reference/currency
          * fetch deposit and withdraw fees
-         * @see https://docs.poloniex.com/#public-endpoints-reference-$data-currency-information
          * @param {[string]|null} $codes list of unified currency $codes
-         * @param {array} $params extra parameters specific to the poloniex api endpoint
+         * @param {array} $params extra parameters specific to the probit api endpoint
          * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
          */
         $this->load_markets();

@@ -291,6 +291,7 @@ class lbank2(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for lbank2
+        see https://www.lbank.com/en-US/docs/index.html#trading-pairs
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
@@ -315,21 +316,7 @@ class lbank2(Exchange, ImplicitAPI):
             base = baseId.upper()
             quote = quoteId.upper()
             symbol = base + '/' + quote
-            productTypes = {
-                '3l': True,
-                '5l': True,
-                '3s': True,
-                '5s': True,
-            }
             amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityAccuracy')))
-            contractSize = amountPrecision
-            ending = baseId[-2:]
-            isLeveragedProduct = self.safe_value(productTypes, ending, False)
-            if isLeveragedProduct:
-                symbol += ':' + quote
-            linear = None
-            if isLeveragedProduct is True:
-                linear = True
             result.append({
                 'id': marketId,
                 'symbol': symbol,
@@ -342,14 +329,14 @@ class lbank2(Exchange, ImplicitAPI):
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
-                'swap': isLeveragedProduct,
+                'swap': False,
                 'future': False,
                 'option': False,
                 'active': True,
-                'contract': isLeveragedProduct,
-                'linear': linear,  # all leveraged ETF products are in USDT
+                'contract': None,
+                'linear': None,
                 'inverse': None,
-                'contractSize': contractSize if isLeveragedProduct else None,
+                'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
