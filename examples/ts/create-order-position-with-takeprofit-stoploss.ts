@@ -1,3 +1,4 @@
+// @ts-nocheck
 import ccxt from '../../js/ccxt.js';
 
 // AUTO-TRANSPILE //
@@ -28,8 +29,12 @@ async function example () {
     const ask_price = ticker['ask'];
     const bid_price = ticker['bid'];
 
-    // None for market orders or a limit price for a limit order
-    const price = (order_type === 'market') ? undefined : (side === 'buy' ? bid_price * 0.999 : ask_price * 1.001);
+    // if order_type is 'market', then price is not needed
+    let price = undefined;
+    // if order_type is 'limit', then set a price
+    if (order_type === 'limit') {
+        price = (side === 'buy') ? bid_price * 0.999 : ask_price * 1.001;
+    }
 
     // set trigger-price for stop-loss/take-profit to 2% from current price
     const stop_loss_trigger_price = (order_type === 'market' ? last_price : price) * (side === 'buy' ? 0.98 : 1.02);
