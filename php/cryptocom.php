@@ -753,14 +753,14 @@ class cryptocom extends Exchange {
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-candlestick
-         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-candlestick
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the cryptocom api endpoint
+         * @param {int|null} $params->until timestamp in ms for the ending date filter, default is the current time
          * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -769,43 +769,41 @@ class cryptocom extends Exchange {
             'instrument_name' => $market['id'],
             'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        if (!$market['spot']) {
-            $reqLimit = 100;
-            if ($limit !== null) {
-                $reqLimit = $limit;
-            }
-            $request['count'] = $reqLimit;
-        }
         if ($since !== null) {
             $request['start_ts'] = $since;
+        }
+        if ($limit !== null) {
+            $request['count'] = $limit;
         }
         $until = $this->safe_integer_2($params, 'until', 'till');
         $params = $this->omit($params, array( 'until', 'till' ));
         if ($until !== null) {
             $request['end_ts'] = $until;
         }
-        $response = null;
-        if ($market['spot']) {
-            $response = $this->v2PublicGetPublicGetCandlestick (array_merge($request, $params));
-        } elseif ($market['contract']) {
-            $response = $this->derivativesPublicGetPublicGetCandlestick (array_merge($request, $params));
-        }
-        // {
-        //     "code":0,
-        //     "method":"public/get-candlestick",
-        //     "result":{
-        //       "instrument_name":"BTC_USDT",
-        //       "interval":"5m",
-        //       "data":array(
-        //         array("t":1596944700000,"o":11752.38,"h":11754.77,"l":11746.65,"c":11753.64,"v":3.694583),
-        //         array("t":1596945000000,"o":11753.63,"h":11754.77,"l":11739.83,"c":11746.17,"v":2.073019),
-        //         array("t":1596945300000,"o":11746.16,"h":11753.24,"l":11738.1,"c":11740.65,"v":0.867247),
-        //         ...
-        //       )
+        $response = $this->v1PublicGetPublicGetCandlestick (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => -1,
+        //         "method" => "public/get-candlestick",
+        //         "code" => 0,
+        //         "result" => {
+        //             "interval" => "1m",
+        //             "data" => array(
+        //                 array(
+        //                     "o" => "26949.89",
+        //                     "h" => "26957.64",
+        //                     "l" => "26948.24",
+        //                     "c" => "26950.00",
+        //                     "v" => "0.0670",
+        //                     "t" => 1687237080000
+        //                 ),
+        //             ),
+        //             "instrument_name" => "BTC_USD"
+        //         }
         //     }
-        // }
-        $resultResponse = $this->safe_value($response, 'result', array());
-        $data = $this->safe_value($resultResponse, 'data', array());
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $data = $this->safe_value($result, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
@@ -1818,7 +1816,16 @@ class cryptocom extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
-        //      array("t":1596944700000,"o":11752.38,"h":11754.77,"l":11746.65,"c":11753.64,"v":3.694583)
+        //
+        //     {
+        //         "o" => "26949.89",
+        //         "h" => "26957.64",
+        //         "l" => "26948.24",
+        //         "c" => "26950.00",
+        //         "v" => "0.0670",
+        //         "t" => 1687237080000
+        //     }
+        //
         return array(
             $this->safe_integer($ohlcv, 't'),
             $this->safe_number($ohlcv, 'o'),

@@ -277,6 +277,7 @@ class okx(Exchange, ImplicitAPI):
                         'account/subaccount/balances': 10,
                         'account/subaccount/interest-limits': 4,
                         'asset/subaccount/bills': 5 / 3,
+                        'asset/subaccount/managed-subaccount-bills': 5 / 3,
                         'users/subaccount/list': 10,
                         'users/subaccount/apikey': 10,
                         'users/entrust-subaccount-list': 10,

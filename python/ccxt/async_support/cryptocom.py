@@ -755,14 +755,14 @@ class cryptocom(Exchange, ImplicitAPI):
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://exchange-docs.crypto.com/derivatives/index.html#public-get-candlestick
-        see https://exchange-docs.crypto.com/spot/index.html#public-get-candlestick
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the cryptocom api endpoint
+        :param int|None params['until']: timestamp in ms for the ending date filter, default is the current time
         :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -771,38 +771,38 @@ class cryptocom(Exchange, ImplicitAPI):
             'instrument_name': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        if not market['spot']:
-            reqLimit = 100
-            if limit is not None:
-                reqLimit = limit
-            request['count'] = reqLimit
         if since is not None:
             request['start_ts'] = since
+        if limit is not None:
+            request['count'] = limit
         until = self.safe_integer_2(params, 'until', 'till')
         params = self.omit(params, ['until', 'till'])
         if until is not None:
             request['end_ts'] = until
-        response = None
-        if market['spot']:
-            response = await self.v2PublicGetPublicGetCandlestick(self.extend(request, params))
-        elif market['contract']:
-            response = await self.derivativesPublicGetPublicGetCandlestick(self.extend(request, params))
-        # {
-        #     "code":0,
-        #     "method":"public/get-candlestick",
-        #     "result":{
-        #       "instrument_name":"BTC_USDT",
-        #       "interval":"5m",
-        #       "data":[
-        #         {"t":1596944700000,"o":11752.38,"h":11754.77,"l":11746.65,"c":11753.64,"v":3.694583},
-        #         {"t":1596945000000,"o":11753.63,"h":11754.77,"l":11739.83,"c":11746.17,"v":2.073019},
-        #         {"t":1596945300000,"o":11746.16,"h":11753.24,"l":11738.1,"c":11740.65,"v":0.867247},
-        #         ...
-        #       ]
+        response = await self.v1PublicGetPublicGetCandlestick(self.extend(request, params))
+        #
+        #     {
+        #         "id": -1,
+        #         "method": "public/get-candlestick",
+        #         "code": 0,
+        #         "result": {
+        #             "interval": "1m",
+        #             "data": [
+        #                 {
+        #                     "o": "26949.89",
+        #                     "h": "26957.64",
+        #                     "l": "26948.24",
+        #                     "c": "26950.00",
+        #                     "v": "0.0670",
+        #                     "t": 1687237080000
+        #                 },
+        #             ],
+        #             "instrument_name": "BTC_USD"
+        #         }
         #     }
-        # }
-        resultResponse = self.safe_value(response, 'result', {})
-        data = self.safe_value(resultResponse, 'data', [])
+        #
+        result = self.safe_value(response, 'result', {})
+        data = self.safe_value(result, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
@@ -1753,7 +1753,16 @@ class cryptocom(Exchange, ImplicitAPI):
         }, market)
 
     def parse_ohlcv(self, ohlcv, market=None):
-        #      {"t":1596944700000,"o":11752.38,"h":11754.77,"l":11746.65,"c":11753.64,"v":3.694583}
+        #
+        #     {
+        #         "o": "26949.89",
+        #         "h": "26957.64",
+        #         "l": "26948.24",
+        #         "c": "26950.00",
+        #         "v": "0.0670",
+        #         "t": 1687237080000
+        #     }
+        #
         return [
             self.safe_integer(ohlcv, 't'),
             self.safe_number(ohlcv, 'o'),

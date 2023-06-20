@@ -104,6 +104,7 @@ interface Exchange {
     privateGetAccountSubaccountBalances (params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubaccountInterestLimits (params?: {}): Promise<implicitReturnType>;
     privateGetAssetSubaccountBills (params?: {}): Promise<implicitReturnType>;
+    privateGetAssetSubaccountManagedSubaccountBills (params?: {}): Promise<implicitReturnType>;
     privateGetUsersSubaccountList (params?: {}): Promise<implicitReturnType>;
     privateGetUsersSubaccountApikey (params?: {}): Promise<implicitReturnType>;
     privateGetUsersEntrustSubaccountList (params?: {}): Promise<implicitReturnType>;

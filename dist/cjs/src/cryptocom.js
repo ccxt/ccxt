@@ -760,14 +760,14 @@ class cryptocom extends cryptocom$1 {
         /**
          * @method
          * @name cryptocom#fetchOHLCV
-         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-candlestick
-         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-candlestick
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -776,44 +776,41 @@ class cryptocom extends cryptocom$1 {
             'instrument_name': market['id'],
             'timeframe': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        if (!market['spot']) {
-            let reqLimit = 100;
-            if (limit !== undefined) {
-                reqLimit = limit;
-            }
-            request['count'] = reqLimit;
-        }
         if (since !== undefined) {
             request['start_ts'] = since;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
         }
         const until = this.safeInteger2(params, 'until', 'till');
         params = this.omit(params, ['until', 'till']);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
-        let response = undefined;
-        if (market['spot']) {
-            response = await this.v2PublicGetPublicGetCandlestick(this.extend(request, params));
-        }
-        else if (market['contract']) {
-            response = await this.derivativesPublicGetPublicGetCandlestick(this.extend(request, params));
-        }
-        // {
-        //     "code":0,
-        //     "method":"public/get-candlestick",
-        //     "result":{
-        //       "instrument_name":"BTC_USDT",
-        //       "interval":"5m",
-        //       "data":[
-        //         {"t":1596944700000,"o":11752.38,"h":11754.77,"l":11746.65,"c":11753.64,"v":3.694583},
-        //         {"t":1596945000000,"o":11753.63,"h":11754.77,"l":11739.83,"c":11746.17,"v":2.073019},
-        //         {"t":1596945300000,"o":11746.16,"h":11753.24,"l":11738.1,"c":11740.65,"v":0.867247},
-        //         ...
-        //       ]
+        const response = await this.v1PublicGetPublicGetCandlestick(this.extend(request, params));
+        //
+        //     {
+        //         "id": -1,
+        //         "method": "public/get-candlestick",
+        //         "code": 0,
+        //         "result": {
+        //             "interval": "1m",
+        //             "data": [
+        //                 {
+        //                     "o": "26949.89",
+        //                     "h": "26957.64",
+        //                     "l": "26948.24",
+        //                     "c": "26950.00",
+        //                     "v": "0.0670",
+        //                     "t": 1687237080000
+        //                 },
+        //             ],
+        //             "instrument_name": "BTC_USD"
+        //         }
         //     }
-        // }
-        const resultResponse = this.safeValue(response, 'result', {});
-        const data = this.safeValue(resultResponse, 'data', []);
+        //
+        const result = this.safeValue(response, 'result', {});
+        const data = this.safeValue(result, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -1837,7 +1834,16 @@ class cryptocom extends cryptocom$1 {
         }, market);
     }
     parseOHLCV(ohlcv, market = undefined) {
-        //      {"t":1596944700000,"o":11752.38,"h":11754.77,"l":11746.65,"c":11753.64,"v":3.694583}
+        //
+        //     {
+        //         "o": "26949.89",
+        //         "h": "26957.64",
+        //         "l": "26948.24",
+        //         "c": "26950.00",
+        //         "v": "0.0670",
+        //         "t": 1687237080000
+        //     }
+        //
         return [
             this.safeInteger(ohlcv, 't'),
             this.safeNumber(ohlcv, 'o'),
