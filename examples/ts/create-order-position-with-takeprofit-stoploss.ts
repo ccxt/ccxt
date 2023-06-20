@@ -36,7 +36,8 @@ async function example () {
         price = (side === 'buy') ? bid_price * 0.95 : ask_price * 1.05; // i.e. 5% from current price
     }
 
-    // set trigger-price for stop-loss/take-profit to 2% from current price
+    // set trigger price for stop-loss/take-profit to 2% from current price
+    // (note, across different exchanges "trigger" price can be also mentioned with different synonyms, like "activation price", "stop price", "conditional price", etc. )
     const stop_loss_trigger_price = (order_type === 'market' ? last_price : price) * (side === 'buy' ? 0.98 : 1.02);
     const take_profit_trigger_price = (order_type === 'market' ? last_price : price) * (side === 'buy' ? 1.02 : 0.98);
 
@@ -57,7 +58,7 @@ async function example () {
     const position_amount = market['contractSize'] * amount;
     const position_value = position_amount * last_price;
     // log
-    console.log ('Going to open a position', 'for', amount, 'contracts worth', position_amount, market['base'], '~', position_value, market['settle'], 'using', side, order_type, 'order', (order_type === 'limit' ? 'at price' + exchange.priceToPrecision (symbol, price) : ''), ', using the following params:');
+    console.log ('Going to open a position', 'for', amount, 'contracts worth', position_amount, market['base'], '~', position_value, market['settle'], 'using', side, order_type, 'order (', (order_type === 'limit' ? exchange.priceToPrecision (symbol, price) : ''), '), using the following params:');
     console.log (params);
     console.log ('-----------------------------------------------------------------------');
 
