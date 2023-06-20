@@ -11,7 +11,7 @@ async function example () {
     const exchange = new ccxt.okx ({
         "apiKey": "YOUR_API_KEY",
         "secret": "YOUR_API_SECRET",
-        // "password": "YOUR_API_PASSWORD", // only exists for some exchanges
+        "password": "YOUR_API_PASSWORD", // comment out if not needed for chosen exchange
     });
 
     const symbol = 'ETH/USDT:USDT';
@@ -69,6 +69,9 @@ async function example () {
         console.log (e.toString ());
     }
 }
+
+
+await example ();
 
 // NOTES:
 // - Sometimes you might experience, when their stop-loss/take-profit order might not become activated, even though on chart the price had crossed that "trigger-price"       order was not executed . That happens because some exchange might be using mark-price (instead of last-price) as a reference-price, so that mark-price might reach your trigger-price and it would activate your SL/TP order (even though on your symbol's chart you are viewing the "last-price" by default, which could have different movements than the mark-price).
