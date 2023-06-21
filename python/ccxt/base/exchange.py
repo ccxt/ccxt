@@ -1584,7 +1584,9 @@ class Exchange(object):
         del getattr(obj, parentKey)[subKey]
 
     def deleteKeyFromDictionary (self, dictionary, key):
-        del dictionary[key]
+        newDictionary = self.clone(dictionary)
+        del newDictionary[key]
+        return newDictionary
 
     def setObjectProperty (obj, prop, value):
         obj[prop] = value

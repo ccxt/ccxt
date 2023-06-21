@@ -1282,7 +1282,9 @@ export default class Exchange {
     }
 
     deleteKeyFromDictionary (dictionary, key) {
-        delete dictionary[key];
+        const newDictionary = this.clone (dictionary);
+        delete newDictionary[key];
+        return newDictionary;
     }
 
     setObjectProperty (obj, prop, value) {
@@ -1440,7 +1442,8 @@ export default class Exchange {
             } else {
                 this.urls['api'] = this.clone (this.urls['apiBackup']);
             }
-            this.removeSubKeyFromInstance (this, 'urls', 'apiBackup');
+            const newUrls = this.removeSubKeyFromInstance (this, 'urls', 'apiBackup');
+            this.setObjectProperty (this, 'urls', newUrls);
         }
     }
 
