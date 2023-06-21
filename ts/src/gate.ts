@@ -226,7 +226,6 @@ export default class gate extends Exchange {
                             'deposit_address': 300,
                             'withdrawals': 300,
                             'deposits': 300,
-                            'transfers': 300,
                             'sub_account_transfers': 300,
                             'withdraw_status': 300,
                             'sub_account_balances': 300,
@@ -3417,7 +3416,6 @@ export default class gate extends Exchange {
         };
     }
 
-
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -5777,6 +5775,27 @@ export default class gate extends Exchange {
         return result;
     }
 
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-margin-account-balance-change-history
+         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-account-changing-history
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry
+         * @param {int|undefined} limit max number of ledger entries to return
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+         */
+        const response = await this.fetchRawRecords ('fetchLedger', code, since, limit, params);
+        const currency = this.currency (code);
+        return this.parseLedger (response, currency, since, limit);
+    }
+
     async fetchRawRecords (methodName: string, code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let type = undefined;
@@ -5866,27 +5885,6 @@ export default class gate extends Exchange {
         //     ]
         //
         return response;
-    }
-
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name gate#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book
-         * @see https://www.gate.io/docs/developers/apiv4/en/#list-margin-account-balance-change-history
-         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
-         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
-         * @see https://www.gate.io/docs/developers/apiv4/en/#list-account-changing-history
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since timestamp in ms of the earliest ledger entry
-         * @param {int|undefined} limit max number of ledger entries to return
-         * @param {object} params extra parameters specific to the gate api endpoint
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-         */
-        const response = await this.fetchRawRecords ('fetchLedger', code, since, limit, params);
-        const currency = this.currency (code);
-        return this.parseLedger (response, currency, since, limit);
     }
 
     async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
