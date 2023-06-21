@@ -1786,7 +1786,7 @@ export default class bitvavo extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchDepositWithdrawFees
