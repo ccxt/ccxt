@@ -158,12 +158,20 @@ export default class Exchange {
     proxy: any; // maintained for backwards compatibility, no-one should use it from now on
     proxyUrl: any;
     proxy_url: any;
+    proxyUrlCallback: any;
+    proxy_url_callback: any;
     httpProxy: any;
     http_proxy: any;
+    httpProxyCallback: any;
+    http_proxy_callback: any;
     httpsProxy: any;
     https_proxy: any;
+    httpsProxyCallback: any;
+    https_proxy_callback: any;
     socksProxy: any;
     socks_proxy: any;
+    socksProxyCallback: any;
+    socks_proxy_callback: any;
     userAgent: { 'User-Agent': string } | false = undefined;
     user_agent: { 'User-Agent': string } | false = undefined;
     //
@@ -1392,44 +1400,63 @@ export default class Exchange {
 
     checkProxySettings (url, method, headers, body) {
         let proxyUrl = (this.proxyUrl !== undefined) ? this.proxyUrl : this.proxy_url;
-        if (typeof proxyUrl === 'function') {
-            proxyUrl = proxyUrl (url, method, headers, body);
+        const proxyUrlCallback = (this.proxyUrlCallback !== undefined) ? this.proxyUrlCallback : this.proxy_url_callback;
+        if (proxyUrlCallback !== undefined) {
+            proxyUrl = proxyUrlCallback (url, method, headers, body);
+        }
+        // backwards-compatibility
+        if (this.proxy !== undefined) {
+            if (typeof this.proxy === 'function') {
+                proxyUrl = this.proxy (url, method, headers, body);
+            } else {
+                proxyUrl = this.proxy;
+            }
         }
         let httpProxy = (this.httpProxy !== undefined) ? this.httpProxy : this.http_proxy;
-        if (typeof httpProxy === 'function') {
-            httpProxy = httpProxy (url, method, headers, body);
+        const httpProxyCallback = (this.httpProxyCallback !== undefined) ? this.httpProxyCallback : this.http_proxy_callback;
+        if (httpProxyCallback !== undefined) {
+            httpProxy = httpProxyCallback (url, method, headers, body);
         }
         let httpsProxy = (this.httpsProxy !== undefined) ? this.httpsProxy : this.https_proxy;
-        if (typeof httpsProxy === 'function') {
-            httpsProxy = httpsProxy (url, method, headers, body);
+        const httpsProxyCallback = (this.httpsProxyCallback !== undefined) ? this.httpsProxyCallback : this.https_proxy_callback;
+        if (httpsProxyCallback !== undefined) {
+            httpsProxy = httpsProxyCallback (url, method, headers, body);
         }
         let socksProxy = (this.socksProxy !== undefined) ? this.socksProxy : this.socks_proxy;
-        if (typeof socksProxy === 'function') {
-            socksProxy = socksProxy (url, method, headers, body);
+        const socksProxyCallback = (this.socksProxyCallback !== undefined) ? this.socksProxyCallback : this.socks_proxy_callback;
+        if (socksProxyCallback !== undefined) {
+            socksProxy = socksProxyCallback (url, method, headers, body);
         }
         let val = 0;
         if (proxyUrl !== undefined) {
             val = val + 1;
         }
+        if (proxyUrlCallback !== undefined) {
+            val = val + 1;
+        }
         if (httpProxy !== undefined) {
+            val = val + 1;
+        }
+        if (httpProxyCallback !== undefined) {
             val = val + 1;
         }
         if (httpsProxy !== undefined) {
             val = val + 1;
         }
+        if (httpsProxyCallback !== undefined) {
+            val = val + 1;
+        }
         if (socksProxy !== undefined) {
+            val = val + 1;
+        }
+        if (socksProxyCallback !== undefined) {
             val = val + 1;
         }
         if (val > 1) {
             throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy, userAgent');
         }
-        const proxyOld = this.proxy; // support for backwards-compatibility
-        if (proxyOld !== undefined) {
-            if (val === 1) {
-                throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, instead of deprecated .proxy please use from: proxyUrl, httpProxy, httpsProxy, socksProxy');
-            } else {
-                proxyUrl = proxyOld;
-            }
+        if ((val === 1) && (this.proxy !== undefined)) {
+            throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, instead of deprecated .proxy please use from: proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
         return [ proxyUrl, httpProxy, httpsProxy, socksProxy ];
     }
