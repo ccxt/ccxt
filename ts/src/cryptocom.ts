@@ -1072,13 +1072,16 @@ export default class cryptocom extends Exchange {
          * @description create a trade order
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @param {string|undefined} params.timeInForce 'GTC', 'IOC', 'FOK' or 'PO'
+         * @param {string|undefined} params.ref_price_type 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
          * @param {float|undefined} params.stopPrice price to trigger a stop order
+         * @param {float|undefined} params.stopLossPrice price to trigger a stop-loss trigger order
+         * @param {float|undefined} params.takeProfitPrice price to trigger a take-profit trigger order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1087,10 +1090,9 @@ export default class cryptocom extends Exchange {
         const request = {
             'instrument_name': market['id'],
             'side': side.toUpperCase (),
-            'type': uppercaseType,
             'quantity': this.amountToPrecision (symbol, amount),
         };
-        if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
+        if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const broker = this.safeString (this.options, 'broker', 'CCXT_');
@@ -1107,10 +1109,6 @@ export default class cryptocom extends Exchange {
             request['spot_margin'] = 'MARGIN';
         } else if (marketType === 'spot') {
             request['spot_margin'] = 'SPOT';
-        }
-        const stopPrice = this.safeNumberN (params, [ 'stopPrice', 'triggerPrice', 'ref_price' ]);
-        if (stopPrice !== undefined) {
-            request['ref_price'] = this.priceToPrecision (symbol, stopPrice);
         }
         const timeInForce = this.safeStringUpper2 (params, 'timeInForce', 'time_in_force');
         if (timeInForce !== undefined) {
@@ -1129,7 +1127,62 @@ export default class cryptocom extends Exchange {
             request['exec_inst'] = 'POST_ONLY';
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
-        params = this.omit (params, [ 'postOnly', 'clientOrderId', 'stopPrice', 'triggerPrice', 'timeInForce' ]);
+        const triggerPrice = this.safeStringN (params, [ 'stopPrice', 'triggerPrice', 'ref_price' ]);
+        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
+        const isTrigger = (triggerPrice !== undefined);
+        const isStopLossTrigger = (stopLossPrice !== undefined);
+        const isTakeProfitTrigger = (takeProfitPrice !== undefined);
+        if (isTrigger) {
+            request['ref_price'] = this.priceToPrecision (symbol, triggerPrice);
+            price = price.toString ();
+            if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                if (side === 'buy') {
+                    if (Precise.stringLt (price, triggerPrice)) {
+                        request['type'] = 'TAKE_PROFIT_LIMIT';
+                    } else {
+                        request['type'] = 'STOP_LIMIT';
+                    }
+                } else {
+                    if (Precise.stringLt (price, triggerPrice)) {
+                        request['type'] = 'STOP_LIMIT';
+                    } else {
+                        request['type'] = 'TAKE_PROFIT_LIMIT';
+                    }
+                }
+            } else {
+                if (side === 'buy') {
+                    if (Precise.stringLt (price, triggerPrice)) {
+                        request['type'] = 'TAKE_PROFIT';
+                    } else {
+                        request['type'] = 'STOP_LOSS';
+                    }
+                } else {
+                    if (Precise.stringLt (price, triggerPrice)) {
+                        request['type'] = 'STOP_LOSS';
+                    } else {
+                        request['type'] = 'TAKE_PROFIT';
+                    }
+                }
+            }
+        } else if (isStopLossTrigger) {
+            if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
+                request['type'] = 'STOP_LIMIT';
+            } else {
+                request['type'] = 'STOP_LOSS';
+            }
+            request['ref_price'] = this.priceToPrecision (symbol, stopLossPrice);
+        } else if (isTakeProfitTrigger) {
+            if ((uppercaseType === 'LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                request['type'] = 'TAKE_PROFIT_LIMIT';
+            } else {
+                request['type'] = 'TAKE_PROFIT';
+            }
+            request['ref_price'] = this.priceToPrecision (symbol, takeProfitPrice);
+        } else {
+            request['type'] = uppercaseType;
+        }
+        params = this.omit (params, [ 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         const response = await this.v1PrivatePostPrivateCreateOrder (this.extend (request, params));
         //
         //     {
