@@ -693,6 +693,9 @@
     },
     "hitbtc": {
         "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "messed codes"
+            },
             "fetchCurrencies": {
                 "fee": "not provided"
             },
@@ -705,7 +708,8 @@
     "hitbtc3": {
         "skipMethods": {
             "loadMarkets": {
-                "limits": "messed min max"
+                "limits": "messed min max",
+                "currencyIdAndCode": "messed codes"
             },
             "fetchCurrencies": {
                 "fee": "not provided"
