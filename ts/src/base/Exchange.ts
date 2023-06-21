@@ -1438,7 +1438,7 @@ export default class Exchange {
             } else {
                 this.urls['api'] = this.clone (this.urls['apiBackup']);
             }
-            const newUrls = this.removeSubKeyFromInstance (this, 'urls', 'apiBackup');
+            const newUrls = this.deleteKeyFromDictionary (this.urls, 'apiBackup');
             this.setObjectProperty (this, 'urls', newUrls);
         }
     }
