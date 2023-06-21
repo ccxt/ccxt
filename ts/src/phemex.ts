@@ -2387,7 +2387,7 @@ export default class phemex extends Exchange {
             }
             if (stopLossDefined || takeProfitDefined) {
                 if (stopLossDefined) {
-                    const stopLossTriggerPrice = this.safeValueN (stopLoss, [ 'triggerPrice', 'stopPrice', 'stopLossPrice' ]);
+                    const stopLossTriggerPrice = this.safeValue (stopLoss, 'triggerPrice');
                     if (stopLossTriggerPrice === undefined) {
                         throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["stopLossPrice"] for a stop loss order');
                     }
@@ -2411,7 +2411,7 @@ export default class phemex extends Exchange {
                     }
                 }
                 if (takeProfitDefined) {
-                    const takeProfitTriggerPrice = this.safeValueN (takeProfit, [ 'triggerPrice', 'stopPrice', 'takeProfitPrice' ]);
+                    const takeProfitTriggerPrice = this.safeValue (takeProfit, 'triggerPrice');
                     if (takeProfitTriggerPrice === undefined) {
                         throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["takeProfitPrice"] for a take profit order');
                     }
