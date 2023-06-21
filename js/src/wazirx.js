@@ -64,6 +64,7 @@ export default class wazirx extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
+                'fetchDepositsWithdrawals': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
                 'transfer': false,

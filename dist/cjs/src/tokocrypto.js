@@ -91,6 +91,7 @@ class tokocrypto extends tokocrypto$1 {
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
+                'fetchDepositsWithdrawals': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,

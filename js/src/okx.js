@@ -102,6 +102,7 @@ export default class okx extends Exchange {
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
+                'fetchDepositsWithdrawals': false,
                 'fetchTransfer': true,
                 'fetchTransfers': true,
                 'fetchWithdrawal': true,
@@ -2849,6 +2850,7 @@ export default class okx extends Exchange {
         //
         const id = this.safeString2(order, 'algoId', 'ordId');
         const timestamp = this.safeInteger(order, 'cTime');
+        const lastUpdateTimestamp = this.safeInteger(order, 'uTime');
         const lastTradeTimestamp = this.safeInteger(order, 'fillTime');
         const side = this.safeString(order, 'side');
         let type = this.safeString(order, 'ordType');
@@ -2918,6 +2920,7 @@ export default class okx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,

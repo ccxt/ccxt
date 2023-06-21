@@ -63,6 +63,7 @@ class bitrue extends bitrue$1 {
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
+                'fetchDepositsWithdrawals': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
                 'transfer': false,

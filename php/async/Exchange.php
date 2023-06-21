@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.1.46';
+$version = '3.1.47';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.1.46';
+    const VERSION = '3.1.47';
 
     public $browser;
     public $marketsLoading = null;
@@ -900,6 +900,7 @@ class Exchange extends \ccxt\Exchange {
             $postOnly = $timeInForce === 'PO';
         }
         $timestamp = $this->safe_integer($order, 'timestamp');
+        $lastUpdateTimestamp = $this->safe_integer($order, 'lastUpdateTimestamp');
         $datetime = $this->safe_string($order, 'datetime');
         if ($datetime === null) {
             $datetime = $this->iso8601 ($timestamp);
@@ -914,6 +915,7 @@ class Exchange extends \ccxt\Exchange {
             'type' => $this->safe_string($order, 'type'),
             'side' => $side,
             'lastTradeTimestamp' => $lastTradeTimeTimestamp,
+            'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'price' => $this->parse_number($price),
             'amount' => $this->parse_number($amount),
             'cost' => $this->parse_number($cost),
@@ -3148,5 +3150,23 @@ class Exchange extends \ccxt\Exchange {
         $firstMarket = $this->safe_string($symbols, 0);
         $market = $this->market ($firstMarket);
         return $market;
+    }
+
+    public function fetch_deposits_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch history of deposits and withdrawals
+             * @param {string|null} $code unified currency $code for the currency of the deposit/withdrawals, default is null
+             * @param {int|null} $since timestamp in ms of the earliest deposit/withdrawal, default is null
+             * @param {int|null} $limit max number of deposit/withdrawals to return, default is null
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            if ($this->has['fetchTransactions']) {
+                return Async\await($this->fetchTransactions ($code, $since, $limit, $params));
+            } else {
+                throw new NotSupported($this->id . ' fetchDepositsWithdrawals () is not supported yet');
+            }
+        }) ();
     }
 }

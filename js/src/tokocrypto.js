@@ -94,6 +94,7 @@ export default class tokocrypto extends Exchange {
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
+                'fetchDepositsWithdrawals': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,

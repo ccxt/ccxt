@@ -70,7 +70,7 @@ class hitbtc extends hitbtc$1 {
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTransactions': true,
-                'fetchWithdrawals': false,
+                'fetchDepositsWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -816,7 +816,7 @@ class hitbtc extends hitbtc$1 {
         /**
          * @method
          * @name hitbtc#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
          * @see https://api.hitbtc.com/v2#get-transactions-history
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined

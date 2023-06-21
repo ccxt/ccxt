@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.46'
+__version__ = '3.1.47'
 
 # -----------------------------------------------------------------------------
 
@@ -989,6 +989,7 @@ class Exchange(BaseExchange):
             # timeInForce is not None here
             postOnly = timeInForce == 'PO'
         timestamp = self.safe_integer(order, 'timestamp')
+        lastUpdateTimestamp = self.safe_integer(order, 'lastUpdateTimestamp')
         datetime = self.safe_string(order, 'datetime')
         if datetime is None:
             datetime = self.iso8601(timestamp)
@@ -1002,6 +1003,7 @@ class Exchange(BaseExchange):
             'type': self.safe_string(order, 'type'),
             'side': side,
             'lastTradeTimestamp': lastTradeTimeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'price': self.parse_number(price),
             'amount': self.parse_number(amount),
             'cost': self.parse_number(cost),
@@ -2771,3 +2773,17 @@ class Exchange(BaseExchange):
         firstMarket = self.safe_string(symbols, 0)
         market = self.market(firstMarket)
         return market
+
+    async def fetch_deposits_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str|None code: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int|None since: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int|None limit: max number of deposit/withdrawals to return, default is None
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns dict: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        if self.has['fetchTransactions']:
+            return await self.fetchTransactions(code, since, limit, params)
+        else:
+            raise NotSupported(self.id + ' fetchDepositsWithdrawals() is not supported yet')

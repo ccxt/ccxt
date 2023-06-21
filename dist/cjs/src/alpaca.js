@@ -73,6 +73,7 @@ class alpaca extends alpaca$1 {
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
+                'fetchDepositsWithdrawals': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
                 'setLeverage': false,

@@ -19,13 +19,16 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
     │                              .                              |
     │                  The Unified CCXT Pro API                   |
     |                              .                              |
-    |       loadMarkets            .           watchBalance       |
-    |       watchTicker            .           watchOrders        |
-    |       watchTickers           .           watchMyTrades      |
-    |       watchOrderBook         .           watchPositions     |
-    |       watchOHLCV             .                              |
-    |       watchStatus            .                              |
-    |       watchTrades            .                              |
+    |       loadMarkets            .         watchBalance         |
+    |       watchTicker            .         watchOrders          |
+    |       watchTickers           .         watchMyTrades        |
+    |       watchOrderBook         .         watchPositions       |
+    |       watchOHLCV             .         createOrderWs        |
+    |       watchStatus            .         editOrderWs          |
+    |       watchTrades            .         cancelOrderWs        |
+    │                              .         cancelOrdersWs       |
+    │                              .         cancelAllOrdersWs    |
+    │                              .                              |
     │                              .                              |
     +=============================================================+
     │                              .                              |
@@ -166,7 +169,14 @@ In CCXT Pro each public and private unified RESTful method having a `fetch*` pre
   - `fetchBalance` → `watchBalance`
   - `fetchOrders` → `watchOrders` <sup>*(notice the `watch` prefix)*</sup>
   - `fetchMyTrades` → `watchMyTrades`
-  - `fetchPositions` → `watchPositions` <sup>*soon*</sup>
+  - `fetchPositions` → `watchPositions`
+  <sup>*soon*</sup>
+  - `createOrder` → `createOrderWs`
+  - `editOrder` → `editOrderWs`
+  - `cancelOrder` → `cancelOrderWs`
+  - `cancelOrders` → `cancelOrdersWs`
+  - `cancelAllOrders` → `cancelAllOrdersWs`
+
 
 The Unified CCXT Pro Streaming API inherits CCXT usage patterns to make migration easier.
 
@@ -816,10 +826,6 @@ if ($exchange->has['watchTrades']) {
 
 ### Private Methods
 
-```diff
-- work in progress now
-```
-
 #### Authentication
 
 In most cases the authentication logic is borrowed from CCXT since the exchanges use the same keypairs and signing algorithms for REST APIs and WebSocket APIs. See [API Keys Setup](https://docs.ccxt.com/#/?id=api-keys-setup) for more details.
@@ -905,6 +911,90 @@ watch_my_trades(symbol=None, since=None, limit=None, params={})
 ```php
 // PHP
 watch_my_trades($symbol = null, $since = null, $lmit = null, $params = array());
+```
+
+#### Trading
+##### createOrderWs
+
+```typescript
+// JavaScript
+createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {})
+```
+
+```python
+# Python
+create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={})
+```
+
+```php
+// PHP
+create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ())
+```
+
+##### editOrderWs
+
+```typescript
+// JavaScript
+editOrderWs (id, symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {})
+```
+
+```python
+# Python
+edit_order_ws(self, id, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={})
+```
+
+```php
+// PHP
+edit_order_ws(string id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ())
+```
+##### cancelOrderWs
+
+```typescript
+// JavaScript
+cancelOrderWs(id: string, symbol: string = undefined, params = {})
+```
+
+```python
+# Python
+cancel_order_ws(self, id, symbol: str, params={})
+```
+
+```php
+// PHP
+cancel_order_ws(string $id, string $symbol, $params = array ())
+```
+
+##### cancelOrdersWs
+
+```typescript
+// JavaScript
+cancelOrdersWs(ids: string[], symbol: string = undefined, params = {})
+```
+
+```python
+# Python
+cancel_orders_ws(self, ids, symbol: str, params={})
+```
+
+```php
+// PHP
+cancel_orders_ws(string[] $ids, string $symbol, $params = array ())
+```
+##### cancelAllOrdersWs
+
+```typescript
+// JavaScript
+cancelAllOrdersWs(symbol: string = undefined, params = {})
+```
+
+```python
+# Python
+cancel_all_orders_ws(self, symbol: str, params={})
+```
+
+```php
+// PHP
+cancel__all_orders_ws(string $symbol, $params = array ())
 ```
 
 #### Funding
