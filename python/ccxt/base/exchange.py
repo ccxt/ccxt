@@ -1583,6 +1583,12 @@ class Exchange(object):
     def removeSubKeyFromInstance(self, obj, parentKey, subKey):
         del getattr(obj, parentKey)[subKey]
 
+    def deleteKeyFromDictionary (self, dictionary, key):
+        del dictionary[key]
+
+    def setObjectProperty (obj, prop, value):
+        obj[prop] = value
+
     def convert_to_big_int(self, value):
         return int(value) if isinstance(value, str) else value
 

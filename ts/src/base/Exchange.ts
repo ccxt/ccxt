@@ -1281,6 +1281,14 @@ export default class Exchange {
         delete obj[parentKey][subKey];
     }
 
+    deleteKeyFromDictionary (dictionary, key) {
+        delete dictionary[key];
+    }
+
+    setObjectProperty (obj, prop, value) {
+        obj[prop] = value;
+    }
+
     convertToBigInt(value: string) {
         return BigInt(value); // used on XT
     }

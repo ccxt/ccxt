@@ -2030,6 +2030,14 @@ class Exchange {
         unset($obj->$parentKey[$subKey]);
     }
 
+    function deleteKeyFromDictionary ($dictionary, $key) {
+        unset($dictionary[$key]);
+    }
+
+    function setObjectProperty ($obj, $prop, $value) {
+        $obj->prop = $value;
+    }
+
     function parse_to_big_int($value) {
         return intval($value);
     }
