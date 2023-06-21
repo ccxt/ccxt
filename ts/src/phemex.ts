@@ -2280,6 +2280,10 @@ export default class phemex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the phemex api endpoint
+         * @param {object|undefined} params.takeProfit *swap only* *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {float|undefined} params.takeProfit.triggerPrice take profit trigger price
+         * @param {object|undefined} params.stopLoss *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {float|undefined} params.stopLoss.triggerPrice stop loss trigger price
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2387,9 +2391,9 @@ export default class phemex extends Exchange {
             }
             if (stopLossDefined || takeProfitDefined) {
                 if (stopLossDefined) {
-                    const stopLossTriggerPrice = this.safeValue (stopLoss, 'triggerPrice');
+                    const stopLossTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice');
                     if (stopLossTriggerPrice === undefined) {
-                        throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["stopLossPrice"] for a stop loss order');
+                        throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"] for a stop loss order');
                     }
                     if (market['settle'] === 'USDT') {
                         request['stopLossRp'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
@@ -2411,9 +2415,9 @@ export default class phemex extends Exchange {
                     }
                 }
                 if (takeProfitDefined) {
-                    const takeProfitTriggerPrice = this.safeValue (takeProfit, 'triggerPrice');
+                    const takeProfitTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice');
                     if (takeProfitTriggerPrice === undefined) {
-                        throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["takeProfitPrice"] for a take profit order');
+                        throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"] for a take profit order');
                     }
                     if (market['settle'] === 'USDT') {
                         request['takeProfitRp'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
