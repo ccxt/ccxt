@@ -153,10 +153,16 @@ class Exchange(object):
     proxy_url_callback = None
     httpProxy = None
     http_proxy = None
+    httpProxyCallback = None
+    http_proxy_callback = None
     httpsProxy = None
     https_proxy = None
+    httpsProxyCallback = None
+    https_proxy_callback = None
     socksProxy = None
     socks_proxy = None
+    socksProxyCallback = None
+    socks_proxy_callback = None
     userAgent = None
     user_agent = None
     userAgents = {
