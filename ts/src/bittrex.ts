@@ -2089,7 +2089,7 @@ export default class bittrex extends Exchange {
         };
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchDepositWithdrawFees
