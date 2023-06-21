@@ -4605,7 +4605,7 @@ export default class gate extends Exchange {
         const accounts = this.parseFromToAccounts (this.safeString (transfer, 'type'));
         const amount = this.parseNumber (Precise.stringAbs (this.safeString (transfer, 'change')));
         return this.extend ({
-            'id': this.safeString (transfer, 'tx_id', 'id'),
+            'id': this.safeString2 (transfer, 'tx_id', 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': this.safeCurrencyCode (currencyId, currency),
