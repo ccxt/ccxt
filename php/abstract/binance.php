@@ -550,6 +550,27 @@ abstract class binance extends \ccxt\Exchange {
     public function sapi_get_staking_personalleftquota($params = array()) {
         return $this->request('staking/personalLeftQuota', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
+    public function sapi_get_lending_auto_invest_target_asset_list($params = array()) {
+        return $this->request('lending/auto-invest/target-asset/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_lending_auto_invest_target_asset_roi_list($params = array()) {
+        return $this->request('lending/auto-invest/target-asset/roi/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_lending_auto_invest_all_asset($params = array()) {
+        return $this->request('lending/auto-invest/all/asset', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_lending_auto_invest_source_asset_list($params = array()) {
+        return $this->request('lending/auto-invest/source-asset/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_lending_auto_invest_plan_list($params = array()) {
+        return $this->request('lending/auto-invest/plan/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_lending_auto_invest_plan_id($params = array()) {
+        return $this->request('lending/auto-invest/plan/id', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_lending_auto_invest_history_list($params = array()) {
+        return $this->request('lending/auto-invest/history/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
     public function sapi_post_asset_dust($params = array()) {
         return $this->request('asset/dust', 'sapi', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -798,6 +819,15 @@ abstract class binance extends \ccxt\Exchange {
     }
     public function sapi_post_portfolio_bnb_transfer($params = array()) {
         return $this->request('portfolio/bnb-transfer', 'sapi', 'POST', $params, null, null, array("cost" => 0.6667));
+    }
+    public function sapi_post_lending_auto_invest_plan_add($params = array()) {
+        return $this->request('lending/auto-invest/plan/add', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_post_lending_auto_invest_plan_edit($params = array()) {
+        return $this->request('lending/auto-invest/plan/edit', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_post_lending_auto_invest_plan_edit_status($params = array()) {
+        return $this->request('lending/auto-invest/plan/edit-status', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
     public function sapi_put_userdatastream($params = array()) {
         return $this->request('userDataStream', 'sapi', 'PUT', $params, null, null, array("cost" => 0.1));
@@ -2185,6 +2215,27 @@ abstract class binance extends \ccxt\Exchange {
     public function sapiGetStakingPersonalLeftQuota($params = array()) {
         return $this->request('staking/personalLeftQuota', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
+    public function sapiGetLendingAutoInvestTargetAssetList($params = array()) {
+        return $this->request('lending/auto-invest/target-asset/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetLendingAutoInvestTargetAssetRoiList($params = array()) {
+        return $this->request('lending/auto-invest/target-asset/roi/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetLendingAutoInvestAllAsset($params = array()) {
+        return $this->request('lending/auto-invest/all/asset', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetLendingAutoInvestSourceAssetList($params = array()) {
+        return $this->request('lending/auto-invest/source-asset/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetLendingAutoInvestPlanList($params = array()) {
+        return $this->request('lending/auto-invest/plan/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetLendingAutoInvestPlanId($params = array()) {
+        return $this->request('lending/auto-invest/plan/id', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetLendingAutoInvestHistoryList($params = array()) {
+        return $this->request('lending/auto-invest/history/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
     public function sapiPostAssetDust($params = array()) {
         return $this->request('asset/dust', 'sapi', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -2433,6 +2484,15 @@ abstract class binance extends \ccxt\Exchange {
     }
     public function sapiPostPortfolioBnbTransfer($params = array()) {
         return $this->request('portfolio/bnb-transfer', 'sapi', 'POST', $params, null, null, array("cost" => 0.6667));
+    }
+    public function sapiPostLendingAutoInvestPlanAdd($params = array()) {
+        return $this->request('lending/auto-invest/plan/add', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiPostLendingAutoInvestPlanEdit($params = array()) {
+        return $this->request('lending/auto-invest/plan/edit', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiPostLendingAutoInvestPlanEditStatus($params = array()) {
+        return $this->request('lending/auto-invest/plan/edit-status', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
     public function sapiPutUserDataStream($params = array()) {
         return $this->request('userDataStream', 'sapi', 'PUT', $params, null, null, array("cost" => 0.1));

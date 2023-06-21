@@ -2846,6 +2846,7 @@ class okx extends okx$1 {
         //
         const id = this.safeString2(order, 'algoId', 'ordId');
         const timestamp = this.safeInteger(order, 'cTime');
+        const lastUpdateTimestamp = this.safeInteger(order, 'uTime');
         const lastTradeTimestamp = this.safeInteger(order, 'fillTime');
         const side = this.safeString(order, 'side');
         let type = this.safeString(order, 'ordType');
@@ -2915,6 +2916,7 @@ class okx extends okx$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,

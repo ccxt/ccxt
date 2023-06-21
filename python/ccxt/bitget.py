@@ -2485,6 +2485,7 @@ class bitget(Exchange, ImplicitAPI):
         average = self.safe_string_2(order, 'fillPrice', 'priceAvg')
         type = self.safe_string(order, 'orderType')
         timestamp = self.safe_integer(order, 'cTime')
+        lastUpdatetimestamp = self.safe_integer(order, 'uTime')
         side = self.safe_string_2(order, 'side', 'posSide')
         if (side == 'open_long') or (side == 'close_short'):
             side = 'buy'
@@ -2518,6 +2519,7 @@ class bitget(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdatetimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': None,

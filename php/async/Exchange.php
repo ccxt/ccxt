@@ -900,6 +900,7 @@ class Exchange extends \ccxt\Exchange {
             $postOnly = $timeInForce === 'PO';
         }
         $timestamp = $this->safe_integer($order, 'timestamp');
+        $lastUpdateTimestamp = $this->safe_integer($order, 'lastUpdateTimestamp');
         $datetime = $this->safe_string($order, 'datetime');
         if ($datetime === null) {
             $datetime = $this->iso8601 ($timestamp);
@@ -914,6 +915,7 @@ class Exchange extends \ccxt\Exchange {
             'type' => $this->safe_string($order, 'type'),
             'side' => $side,
             'lastTradeTimestamp' => $lastTradeTimeTimestamp,
+            'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'price' => $this->parse_number($price),
             'amount' => $this->parse_number($amount),
             'cost' => $this->parse_number($cost),

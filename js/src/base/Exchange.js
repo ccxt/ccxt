@@ -1709,6 +1709,7 @@ export default class Exchange {
             postOnly = timeInForce === 'PO';
         }
         const timestamp = this.safeInteger(order, 'timestamp');
+        const lastUpdateTimestamp = this.safeInteger(order, 'lastUpdateTimestamp');
         let datetime = this.safeString(order, 'datetime');
         if (datetime === undefined) {
             datetime = this.iso8601(timestamp);
@@ -1723,6 +1724,7 @@ export default class Exchange {
             'type': this.safeString(order, 'type'),
             'side': side,
             'lastTradeTimestamp': lastTradeTimeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'price': this.parseNumber(price),
             'amount': this.parseNumber(amount),
             'cost': this.parseNumber(cost),

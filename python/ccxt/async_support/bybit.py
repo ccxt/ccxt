@@ -3211,6 +3211,7 @@ class bybit(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
@@ -3282,12 +3283,14 @@ class bybit(Exchange, ImplicitAPI):
             amount = filled
         else:
             amount = self.safe_string(order, 'orderQty')
+        updatedTime = self.safe_integer(order, 'updateTime')
         return self.safe_order({
             'id': self.safe_string(order, 'orderId'),
             'clientOrderId': self.safe_string(order, 'orderLinkId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': self.safe_integer(order, 'updateTime'),
+            'lastTradeTimestamp': updatedTime,
+            'lastUpdateTimestamp': updatedTime,
             'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,

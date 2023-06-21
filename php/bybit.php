@@ -3309,6 +3309,7 @@ class bybit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastUpdateTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
@@ -3383,12 +3384,14 @@ class bybit extends Exchange {
         } else {
             $amount = $this->safe_string($order, 'orderQty');
         }
+        $updatedTime = $this->safe_integer($order, 'updateTime');
         return $this->safe_order(array(
             'id' => $this->safe_string($order, 'orderId'),
             'clientOrderId' => $this->safe_string($order, 'orderLinkId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $this->safe_integer($order, 'updateTime'),
+            'lastTradeTimestamp' => $updatedTime,
+            'lastUpdateTimestamp' => $updatedTime,
             'symbol' => $market['symbol'],
             'type' => $type,
             'timeInForce' => $timeInForce,

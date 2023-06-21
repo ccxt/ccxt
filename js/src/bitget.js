@@ -2553,6 +2553,7 @@ export default class bitget extends Exchange {
         const average = this.safeString2(order, 'fillPrice', 'priceAvg');
         const type = this.safeString(order, 'orderType');
         const timestamp = this.safeInteger(order, 'cTime');
+        const lastUpdatetimestamp = this.safeInteger(order, 'uTime');
         let side = this.safeString2(order, 'side', 'posSide');
         if ((side === 'open_long') || (side === 'close_short')) {
             side = 'buy';
@@ -2590,6 +2591,7 @@ export default class bitget extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdatetimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,

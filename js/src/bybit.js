@@ -3342,6 +3342,7 @@ export default class bybit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
@@ -3416,12 +3417,14 @@ export default class bybit extends Exchange {
         else {
             amount = this.safeString(order, 'orderQty');
         }
+        const updatedTime = this.safeInteger(order, 'updateTime');
         return this.safeOrder({
             'id': this.safeString(order, 'orderId'),
             'clientOrderId': this.safeString(order, 'orderLinkId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'lastTradeTimestamp': this.safeInteger(order, 'updateTime'),
+            'lastTradeTimestamp': updatedTime,
+            'lastUpdateTimestamp': updatedTime,
             'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,

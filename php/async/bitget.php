@@ -2581,6 +2581,7 @@ class bitget extends Exchange {
         $average = $this->safe_string_2($order, 'fillPrice', 'priceAvg');
         $type = $this->safe_string($order, 'orderType');
         $timestamp = $this->safe_integer($order, 'cTime');
+        $lastUpdatetimestamp = $this->safe_integer($order, 'uTime');
         $side = $this->safe_string_2($order, 'side', 'posSide');
         if (($side === 'open_long') || ($side === 'close_short')) {
             $side = 'buy';
@@ -2617,6 +2618,7 @@ class bitget extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastUpdateTimestamp' => $lastUpdatetimestamp,
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => null,

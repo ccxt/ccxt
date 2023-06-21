@@ -2144,6 +2144,7 @@ class Exchange(object):
             # timeInForce is not None here
             postOnly = timeInForce == 'PO'
         timestamp = self.safe_integer(order, 'timestamp')
+        lastUpdateTimestamp = self.safe_integer(order, 'lastUpdateTimestamp')
         datetime = self.safe_string(order, 'datetime')
         if datetime is None:
             datetime = self.iso8601(timestamp)
@@ -2157,6 +2158,7 @@ class Exchange(object):
             'type': self.safe_string(order, 'type'),
             'side': side,
             'lastTradeTimestamp': lastTradeTimeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'price': self.parse_number(price),
             'amount': self.parse_number(amount),
             'cost': self.parse_number(cost),
