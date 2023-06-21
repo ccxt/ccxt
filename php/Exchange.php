@@ -2026,10 +2026,6 @@ class Exchange {
         return is_array($obj) ? $obj : $this->extend($obj);
     }
 
-    function removeSubKeyFromInstance($obj, $parentKey, $subKey) {
-        unset($obj->$parentKey[$subKey]);
-    }
-
     function deleteKeyFromDictionary ($dictionary, $key) {
         unset($dictionary[$key]);
     }

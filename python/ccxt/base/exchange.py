@@ -1580,9 +1580,6 @@ class Exchange(object):
     def clone(self, obj):
         return obj if isinstance(obj, list) else self.extend(obj)
 
-    def removeSubKeyFromInstance(self, obj, parentKey, subKey):
-        del getattr(obj, parentKey)[subKey]
-
     def deleteKeyFromDictionary (self, dictionary, key):
         newDictionary = self.clone(dictionary)
         del newDictionary[key]

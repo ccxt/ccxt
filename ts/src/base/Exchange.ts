@@ -1277,10 +1277,6 @@ export default class Exchange {
         return -1;
     }
 
-    removeSubKeyFromInstance (obj, parentKey, subKey) {
-        delete obj[parentKey][subKey];
-    }
-
     deleteKeyFromDictionary (dictionary, key) {
         const newDictionary = this.clone (dictionary);
         delete newDictionary[key];
