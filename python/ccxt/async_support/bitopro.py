@@ -1497,6 +1497,59 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(result, currency)
 
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #    {
+        #        "currency":"eth",
+        #        "withdrawFee":"0.007",
+        #        "minWithdraw":"0.001",
+        #        "maxWithdraw":"1000",
+        #        "maxDailyWithdraw":"2000",
+        #        "withdraw":true,
+        #        "deposit":true,
+        #        "depositConfirmation":"12"
+        #    }
+        return {
+            'info': fee,
+            'withdraw': {
+                'fee': self.safe_number(fee, 'withdrawFee'),
+                'percentage': False,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+
+    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/open/currencies.md
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.publicGetProvisioningCurrencies(params)
+        #
+        #     {
+        #         "data":[
+        #             {
+        #                 "currency":"eth",
+        #                 "withdrawFee":"0.007",
+        #                 "minWithdraw":"0.001",
+        #                 "maxWithdraw":"1000",
+        #                 "maxDailyWithdraw":"2000",
+        #                 "withdraw":true,
+        #                 "deposit":true,
+        #                 "depositConfirmation":"12"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_deposit_withdraw_fees(data, codes, 'currency')
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))

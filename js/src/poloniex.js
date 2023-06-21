@@ -293,6 +293,7 @@ export default class poloniex extends Exchange {
                     '21352': BadSymbol,
                     '21353': PermissionDenied,
                     '21354': PermissionDenied,
+                    '21360': InvalidOrder,
                     '24106': BadRequest,
                     '24201': ExchangeNotAvailable,
                     // Orders

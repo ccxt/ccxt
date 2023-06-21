@@ -1606,6 +1606,63 @@ class bitopro extends Exchange {
         }) ();
     }
 
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //    {
+        //        "currency":"eth",
+        //        "withdrawFee":"0.007",
+        //        "minWithdraw":"0.001",
+        //        "maxWithdraw":"1000",
+        //        "maxDailyWithdraw":"2000",
+        //        "withdraw":true,
+        //        "deposit":true,
+        //        "depositConfirmation":"12"
+        //    }
+        return array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => $this->safe_number($fee, 'withdrawFee'),
+                'percentage' => false,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+    }
+
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/open/currencies.md
+             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {array} $params extra parameters specific to the bitrue api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetProvisioningCurrencies ($params));
+            //
+            //     {
+            //         "data":array(
+            //             {
+            //                 "currency":"eth",
+            //                 "withdrawFee":"0.007",
+            //                 "minWithdraw":"0.001",
+            //                 "maxWithdraw":"1000",
+            //                 "maxDailyWithdraw":"2000",
+            //                 "withdraw":true,
+            //                 "deposit":true,
+            //                 "depositConfirmation":"12"
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
+        }) ();
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
