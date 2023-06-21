@@ -2370,7 +2370,7 @@ export default class Exchange {
                 const splitted_by_end = content.split (endRegex);
                 content = splitted_by_end[0]; // we need first part after start
             }
-            if (returnAsJson) {
+            if (returnAsJson && (typeof content === 'string')) {
                 const jsoned = this.parseJson (content.trim ()); // content should be trimmed before json parsing
                 if (jsoned) {
                     return jsoned; // if parsing was not successfull, exception should be thrown
