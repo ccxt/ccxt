@@ -40,6 +40,8 @@ export default class bitopro extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
