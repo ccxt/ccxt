@@ -80,12 +80,20 @@ class Exchange {
     public $proxy = null; // maintained for backwards compatibility, no-one should use it from now on
     public $proxyUrl = null;
     public $proxy_url = null;
+    public $proxyUrlCallback = null;
+    public $proxy_url_callback = null;
     public $httpProxy = null;
     public $http_proxy = null;
+    public $httpProxyCallback = null;
+    public $http_proxy_callback = null;
     public $httpsProxy = null;
     public $https_proxy = null;
+    public $httpsProxyCallback = null;
+    public $https_proxy_callback = null;
     public $socksProxy = null;
     public $socks_proxy = null;
+    public $socksProxyCallback = null;
+    public $socks_proxy_callback = null;
     public $userAgent = null; // 'ccxt/' . $this::VERSION . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
     public $user_agent = null;
     //
