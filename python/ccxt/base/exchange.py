@@ -3928,3 +3928,17 @@ class Exchange(object):
         firstMarket = self.safe_string(symbols, 0)
         market = self.market(firstMarket)
         return market
+
+    def fetch_deposits_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str|None code: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int|None since: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int|None limit: max number of deposit/withdrawals to return, default is None
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns dict: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        if self.has['fetchTransactions']:
+            return self.fetchTransactions(code, since, limit, params)
+        else:
+            raise NotSupported(self.id + ' fetchDepositsWithdrawals() is not supported yet')

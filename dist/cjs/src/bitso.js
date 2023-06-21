@@ -74,6 +74,7 @@ class bitso extends bitso$1 {
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': true,
                 'fetchTransactions': false,
+                'fetchDepositsWithdrawals': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'reduceMargin': false,

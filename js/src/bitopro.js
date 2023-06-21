@@ -70,6 +70,7 @@ export default class bitopro extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
+                'fetchDepositsWithdrawals': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': true,

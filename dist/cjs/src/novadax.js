@@ -73,6 +73,7 @@ class novadax extends novadax$1 {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -1268,7 +1269,7 @@ class novadax extends novadax$1 {
         /**
          * @method
          * @name novadax#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined

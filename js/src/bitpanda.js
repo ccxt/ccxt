@@ -79,6 +79,7 @@ export default class bitpanda extends Exchange {
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
+                'fetchDepositsWithdrawals': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,

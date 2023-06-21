@@ -292,6 +292,7 @@ export default class Exchange {
             fetchDepositAddresses: any;
             fetchDepositAddressesByNetwork: any;
             fetchDeposits: any;
+            fetchDepositsWithdrawals: any;
             fetchTransactionFee: any;
             fetchTransactionFees: any;
             fetchFundingHistory: any;
@@ -743,5 +744,6 @@ export default class Exchange {
     parseIncome(info: any, market?: any): void;
     parseIncomes(incomes: any, market?: any, since?: Int, limit?: Int): any;
     getMarketFromSymbols(symbols?: string[]): any;
+    fetchDepositsWithdrawals(code?: any, since?: any, limit?: any, params?: {}): Promise<any>;
 }
 export { Exchange, };

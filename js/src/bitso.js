@@ -77,6 +77,7 @@ export default class bitso extends Exchange {
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': true,
                 'fetchTransactions': false,
+                'fetchDepositsWithdrawals': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'reduceMargin': false,

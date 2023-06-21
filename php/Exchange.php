@@ -4888,4 +4888,20 @@ class Exchange {
         $market = $this->market ($firstMarket);
         return $market;
     }
+
+    public function fetch_deposits_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch history of deposits and withdrawals
+         * @param {string|null} $code unified currency $code for the currency of the deposit/withdrawals, default is null
+         * @param {int|null} $since timestamp in ms of the earliest deposit/withdrawal, default is null
+         * @param {int|null} $limit max number of deposit/withdrawals to return, default is null
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
+        if ($this->has['fetchTransactions']) {
+            return $this->fetchTransactions ($code, $since, $limit, $params);
+        } else {
+            throw new NotSupported($this->id . ' fetchDepositsWithdrawals () is not supported yet');
+        }
+    }
 }

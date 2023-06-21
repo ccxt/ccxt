@@ -61,6 +61,7 @@ class wazirx extends wazirx$1 {
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
+                'fetchDepositsWithdrawals': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
                 'transfer': false,

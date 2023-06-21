@@ -39,6 +39,7 @@ export default class coinbasepro extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchLedger': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -57,7 +58,6 @@ export default class coinbasepro extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
-                'fetchDepositsWithdrawals': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },

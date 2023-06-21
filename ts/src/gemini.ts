@@ -44,6 +44,7 @@ export default class gemini extends Exchange {
                 'fetchClosedOrders': false,
                 'fetchDepositAddress': undefined, // TODO
                 'fetchDepositAddressesByNetwork': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -72,7 +73,6 @@ export default class gemini extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
-                'fetchDepositsWithdrawals': true,
                 'postOnly': true,
                 'reduceMargin': false,
                 'setLeverage': false,

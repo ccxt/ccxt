@@ -99,6 +99,7 @@ class okx extends okx$1 {
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
+                'fetchDepositsWithdrawals': false,
                 'fetchTransfer': true,
                 'fetchTransfers': true,
                 'fetchWithdrawal': true,
