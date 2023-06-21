@@ -4619,6 +4619,31 @@ export default class gate extends Exchange {
         }, accounts);
     }
 
+    parseFromToAccounts (transferType: string) {
+        // list from : https://gate.io/docs/developers/apiv4/en/#query-account-book
+        const accountsMap = {
+            'margin_in': [ 'spot', 'isolated' ],
+            'margin_out': [ 'isolated', 'spot' ],
+            'margin_funding_in': [ 'spot', 'margin_funding' ],
+            'margin_funding_out': [ 'margin_funding', 'spot' ],
+            'cross_margin_in': [ 'spot', 'cross_margin' ], // same for portolfio
+            'cross_margin_out': [ 'cross_margin', 'spot' ], // same for portolfio
+            'copy_trading_in': [ 'spot', 'copy_trading' ],
+            'copy_trading_out': [ 'copy_trading', 'spot' ],
+            'quant_in': [ 'spot', 'quant_trading' ],
+            'quant_out': [ 'quant_trading', 'spot' ],
+            'futures_in': [ 'spot', 'swap' ],
+            'futures_out': [ 'swap', 'spot' ],
+            'delivery_in': [ 'spot', 'future' ],
+            'delivery_out': [ 'future', 'spot' ],
+        };
+        const selectedMap = this.safeValue (accountsMap, transferType, [ undefined, undefined ]);
+        return {
+            'fromAccount': selectedMap[0],
+            'toAccount': selectedMap[1],
+        };
+    }
+
     async setLeverage (leverage, symbol: string = undefined, params = {}) {
         /**
          * @method
