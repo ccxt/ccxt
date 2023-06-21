@@ -65,6 +65,7 @@ export default class bitrue extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
+                'fetchDepositsWithdrawals': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
                 'transfer': false,
