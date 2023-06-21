@@ -19,5 +19,5 @@ async def test():
     print(await bitfinex.public_get_symbols())
     await bitfinex.close()
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(test())
+
+asyncio.run(test())

@@ -6,14 +6,12 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
+use ccxt\abstract\mercado as Exchange;
 
 class mercado extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'mercado',
             'name' => 'Mercado Bitcoin',
             'countries' => array( 'BR' ), // Brazil
@@ -31,6 +29,9 @@ class mercado extends Exchange {
                 'createMarketOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => false,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistory' => false,
@@ -41,23 +42,25 @@ class mercado extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => 'emulated',
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
-                'fetchTickers' => null,
+                'fetchTickers' => false,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
@@ -68,17 +71,12 @@ class mercado extends Exchange {
                 'withdraw' => true,
             ),
             'timeframes' => array(
-                '1m' => '1m',
-                '5m' => '5m',
                 '15m' => '15m',
-                '30m' => '30m',
                 '1h' => '1h',
-                '6h' => '6h',
-                '12h' => '12h',
+                '3h' => '3h',
                 '1d' => '1d',
-                '3d' => '3d',
                 '1w' => '1w',
-                '2w' => '2w',
+                '1M' => '1M',
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
@@ -86,6 +84,7 @@ class mercado extends Exchange {
                     'public' => 'https://www.mercadobitcoin.net/api',
                     'private' => 'https://www.mercadobitcoin.net/tapi',
                     'v4Public' => 'https://www.mercadobitcoin.com.br/v4',
+                    'v4PublicNet' => 'https://api.mercadobitcoin.net/api/v4',
                 ),
                 'www' => 'https://www.mercadobitcoin.com.br',
                 'doc' => array(
@@ -126,6 +125,11 @@ class mercado extends Exchange {
                         '{coin}/candle/',
                     ),
                 ),
+                'v4PublicNet' => array(
+                    'get' => array(
+                        'candles',
+                    ),
+                ),
             ),
             'fees' => array(
                 'trading' => array(
@@ -142,10 +146,16 @@ class mercado extends Exchange {
                     'XRP' => 0.1,
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for mercado
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {[array]} an array of objects representing market data
+         */
         $response = $this->publicGetCoins ($params);
         //
         //     array(
@@ -177,7 +187,6 @@ class mercado extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $id = $quote . $base;
-            $priceLimit = '1e-5';
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -203,8 +212,8 @@ class mercado extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => intval('8'),
-                    'price' => intval('5'),
+                    'amount' => $this->parse_number('1e-8'),
+                    'price' => $this->parse_number('1e-5'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -216,7 +225,7 @@ class mercado extends Exchange {
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $this->parse_number($priceLimit),
+                        'min' => $this->parse_number('1e-5'),
                         'max' => null,
                     ),
                     'cost' => array(
@@ -230,14 +239,21 @@ class mercado extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {array} $params extra parameters specific to the mercado api endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'coin' => $market['base'],
         );
         $response = $this->publicGetCoinOrderbook (array_merge($request, $params));
-        return $this->parse_order_book($response, $symbol);
+        return $this->parse_order_book($response, $market['symbol']);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -277,10 +293,16 @@ class mercado extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {array} $params extra parameters specific to the mercado api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -338,7 +360,15 @@ class mercado extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {string} $symbol unified $symbol of the $market $to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade $to fetch
+         * @param {int|null} $limit the maximum amount of trades $to fetch
+         * @param {array} $params extra parameters specific $to the mercado api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $method = 'publicGetCoinTrades';
@@ -347,7 +377,7 @@ class mercado extends Exchange {
         );
         if ($since !== null) {
             $method .= 'From';
-            $request['from'] = intval($since / 1000);
+            $request['from'] = $this->parse_to_int($since / 1000);
         }
         $to = $this->safe_integer($params, 'to');
         if ($to !== null) {
@@ -377,43 +407,66 @@ class mercado extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {array} $params extra parameters specific to the mercado api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $response = $this->privatePostGetAccountInfo ($params);
         return $this->parse_balance($response);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the mercado api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'coin_pair' => $this->market_id($symbol),
+            'coin_pair' => $market['id'],
         );
         $method = $this->capitalize($side) . 'Order';
         if ($type === 'limit') {
             $method = 'privatePostPlace' . $method;
-            $request['limit_price'] = $this->price_to_precision($symbol, $price);
-            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+            $request['limit_price'] = $this->price_to_precision($market['symbol'], $price);
+            $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
         } else {
             $method = 'privatePostPlaceMarket' . $method;
             if ($side === 'buy') {
                 if ($price === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and amount');
+                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and amount');
                 }
-                $request['cost'] = $this->price_to_precision($symbol, $amount * $price);
+                $request['cost'] = $this->price_to_precision($market['symbol'], $amount * $price);
             } else {
-                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+                $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
             }
         }
         $response = $this->$method (array_merge($request, $params));
         // TODO => replace this with a call to parseOrder for unification
-        return array(
+        return $this->safe_order(array(
             'info' => $response,
             'id' => (string) $response['response_data']['order']['order_id'],
-        );
+        ), $market);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+        /**
+         * cancels an open $order
+         * @param {string} $id $order $id
+         * @param {string} $symbol unified $symbol of the $market the $order was made in
+         * @param {array} $params extra parameters specific to the mercado api endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder () requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -520,6 +573,7 @@ class mercado extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'average' => $average,
             'amount' => $amount,
@@ -531,9 +585,15 @@ class mercado extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an $order made by the user
+         * @param {string} $symbol unified $symbol of the $market the $order was made in
+         * @param {array} $params extra parameters specific to the mercado api endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder () requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -547,7 +607,16 @@ class mercado extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a $withdrawal
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string|null} $tag
+         * @param {array} $params extra parameters specific to the mercado api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
@@ -562,7 +631,7 @@ class mercado extends Exchange {
             if (!$account_ref) {
                 throw new ArgumentsRequired($this->id . ' withdraw() requires $account_ref parameter to withdraw ' . $code);
             }
-        } else if ($code !== 'LTC') {
+        } elseif ($code !== 'LTC') {
             $tx_fee = (is_array($params) && array_key_exists('tx_fee', $params));
             if (!$tx_fee) {
                 throw new ArgumentsRequired($this->id . ' withdraw() requires $tx_fee parameter to withdraw ' . $code);
@@ -578,48 +647,121 @@ class mercado extends Exchange {
             }
         }
         $response = $this->privatePostWithdrawCoin (array_merge($request, $params));
+        //
+        //     {
+        //         "response_data" => {
+        //             "withdrawal" => array(
+        //                 "id" => 1,
+        //                 "coin" => "BRL",
+        //                 "quantity" => "300.56",
+        //                 "net_quantity" => "291.68",
+        //                 "fee" => "8.88",
+        //                 "account" => "bco => 341, ag => 1111, cta => 23456-X",
+        //                 "status" => 1,
+        //                 "created_timestamp" => "1453912088",
+        //                 "updated_timestamp" => "1453912088"
+        //             }
+        //         ),
+        //         "status_code" => 100,
+        //         "server_unix_timestamp" => "1453912088"
+        //     }
+        //
+        $responseData = $this->safe_value($response, 'response_data', array());
+        $withdrawal = $this->safe_value($responseData, 'withdrawal');
+        return $this->parse_transaction($withdrawal, $currency);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        //     {
+        //         "id" => 1,
+        //         "coin" => "BRL",
+        //         "quantity" => "300.56",
+        //         "net_quantity" => "291.68",
+        //         "fee" => "8.88",
+        //         "account" => "bco => 341, ag => 1111, cta => 23456-X",
+        //         "status" => 1,
+        //         "created_timestamp" => "1453912088",
+        //         "updated_timestamp" => "1453912088"
+        //     }
+        //
+        $currency = $this->safe_currency(null, $currency);
         return array(
-            'info' => $response,
-            'id' => $response['response_data']['withdrawal']['id'],
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'network' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'amount' => null,
+            'type' => null,
+            'currency' => $currency['code'],
+            'status' => null,
+            'updated' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => null,
+            'info' => $transaction,
         );
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
         return array(
-            $this->safe_timestamp($ohlcv, 'timestamp'),
-            $this->safe_number($ohlcv, 'open'),
-            $this->safe_number($ohlcv, 'high'),
-            $this->safe_number($ohlcv, 'low'),
-            $this->safe_number($ohlcv, 'close'),
-            $this->safe_number($ohlcv, 'volume'),
+            $this->safe_integer($ohlcv, 0),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 5),
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '15m', ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of $candles to fetch
+         * @param {array} $params extra parameters specific to the mercado api endpoint
+         * @return {[[int]]} A list of $candles ordered, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'precision' => $this->timeframes[$timeframe],
-            'coin' => strtolower($market['id']),
+            'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+            'symbol' => $market['base'] . '-' . $market['quote'], // exceptional endpoint, that needs custom $symbol syntax
         );
-        if ($limit !== null && $since !== null) {
-            $request['from'] = intval($since / 1000);
+        if ($limit === null) {
+            $limit = 100; // set some default $limit,'s required if user doesn't provide it
+        }
+        if ($since !== null) {
+            $request['from'] = $this->parse_to_int($since / 1000);
             $request['to'] = $this->sum($request['from'], $limit * $this->parse_timeframe($timeframe));
-        } else if ($since !== null) {
-            $request['from'] = intval($since / 1000);
-            $request['to'] = $this->sum($this->seconds(), 1);
-        } else if ($limit !== null) {
+        } else {
             $request['to'] = $this->seconds();
             $request['from'] = $request['to'] - ($limit * $this->parse_timeframe($timeframe));
         }
-        $response = $this->v4PublicGetCoinCandle (array_merge($request, $params));
-        $candles = $this->safe_value($response, 'candles', array());
+        $response = $this->v4PublicNetGetCandles (array_merge($request, $params));
+        $candles = $this->convert_trading_view_to_ohlcv($response, 't', 'o', 'h', 'l', 'c', 'v');
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple $orders made by the user
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {array} $params extra parameters specific to the mercado api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders () requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -632,9 +774,17 @@ class mercado extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open $orders
+         * @param {string} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open $orders for
+         * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+         * @param {array} $params extra parameters specific to the mercado api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders () requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -648,9 +798,17 @@ class mercado extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all $trades made by the user
+         * @param {string} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch $trades for
+         * @param {int|null} $limit the maximum number of $trades structures to retrieve
+         * @param {array} $params extra parameters specific to the mercado api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades () requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -680,7 +838,7 @@ class mercado extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/';
         $query = $this->omit($params, $this->extract_params($path));
-        if ($api === 'public' || ($api === 'v4Public')) {
+        if (($api === 'public') || ($api === 'v4Public') || ($api === 'v4PublicNet')) {
             $url .= $this->implode_params($path, $params);
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
@@ -705,7 +863,7 @@ class mercado extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         //
         // todo add a unified standard handleErrors with $this->exceptions in describe()
@@ -716,5 +874,6 @@ class mercado extends Exchange {
         if ($errorMessage !== null) {
             throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
+        return null;
     }
 }

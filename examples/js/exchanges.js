@@ -1,11 +1,13 @@
-"use strict";
 
-const ccxt      = require ('../../ccxt.js')
-const countries = require ('../../build/countries.js')
-const asTable   = require ('as-table')
-const log       = require ('ololog').configure ({ locate: false })
 
-require ('ansicolor').nice
+import ccxt from '../../js/ccxt.js';
+import countries from '../../build/countries.js';
+import asTable from 'as-table';
+import ololog from 'ololog'
+import ansicolor from 'ansicolor';
+const log = ololog.configure ({ locate: false })
+
+ansicolor.nice
 
 process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit (1) })
 process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit (1) })

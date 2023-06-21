@@ -1,19 +1,18 @@
-"use strict";
+
 
 // ----------------------------------------------------------------------------
 
-const ccxt = require ('../../ccxt.js')
+import ccxt from '../../js/ccxt.js';
 
 // ----------------------------------------------------------------------------
 
-;(async () => {
+(async () => {
 
     const exchange = new ccxt.bittrex ({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET_KEY',
         'verbose': false, // set to true to see more debugging output
         'timeout': 60000,
-        'enableRateLimit': true, // add this
     })
 
     // try to load markets first, retry on request timeouts until it succeeds:

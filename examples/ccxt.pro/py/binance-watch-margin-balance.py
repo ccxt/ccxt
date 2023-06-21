@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import asyncio
-import ccxtpro as ccxt
+from asyncio import run
+import ccxt.pro as ccxt
 from pprint import pprint
 
 
@@ -13,10 +13,8 @@ from pprint import pprint
 # 4. see your balance updated in the example
 
 
-async def main(asyncio_loop):
-    exchange = ccxt.binance({
-        'asyncio_loop': asyncio_loop,
-        'enableRateLimit': True,
+async def main():
+    exchange = ccxt.pro.binance({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
         'options': {
@@ -38,6 +36,5 @@ async def main(asyncio_loop):
             break
     await exchange.close()
 
-if __name__ == '__main__':
-    asyncio_loop = asyncio.get_event_loop()
-    asyncio_loop.run_until_complete(main(asyncio_loop))
+
+run(main())

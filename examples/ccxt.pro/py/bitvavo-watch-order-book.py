@@ -1,15 +1,12 @@
-import ccxtpro
-from asyncio import get_event_loop
+import ccxt.pro
+from asyncio import run
 
 
-print('CCXT Pro version', ccxtpro.__version__)
+print('CCXT Pro version', ccxt.pro.__version__)
 
 
-async def main(loop):
-    exchange = ccxtpro.bitvavo({
-        'enableRateLimit': True,
-        'asyncio_loop': loop,
-    })
+async def main():
+    exchange = ccxt.pro.bitvavo()
     await exchange.load_markets()
     exchange.verbose = True
     symbol = 'BTC/EUR'
@@ -23,5 +20,4 @@ async def main(loop):
     await exchange.close()
 
 
-loop = get_event_loop()
-loop.run_until_complete(main(loop))
+run(main())

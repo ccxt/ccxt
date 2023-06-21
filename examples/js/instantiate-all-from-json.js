@@ -1,9 +1,7 @@
-"use strict";
 
-const ccxt     = require ('../../ccxt')
-    , settings = require ('./credentials.json')
 
-const enableRateLimit = true
+import ccxt from '../../js/ccxt.js';
+import settings from './credentials.json';
 
 async function test () {
 
@@ -12,7 +10,7 @@ async function test () {
     const exchanges = ccxt.indexBy (await Promise.all (ids.map (async id => {
 
         // instantiate the exchange
-        let exchange = new ccxt[id] (ccxt.extend ({ enableRateLimit }, settings[id]))
+        let exchange = new ccxt[id] (settings[id])
 
         // load markets
         await exchange.loadMarkets ()

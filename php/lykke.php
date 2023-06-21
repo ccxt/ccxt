@@ -6,12 +6,12 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
+use ccxt\abstract\lykke as Exchange;
 
 class lykke extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'lykke',
             'name' => 'Lykke',
             'countries' => array( 'UK' ),
@@ -29,6 +29,9 @@ class lykke extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => false,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => false,
                 'editOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
@@ -39,21 +42,24 @@ class lykke extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => false,
-                'fetchFundingFees' => false,
+                'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => 'emulated',
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -62,6 +68,7 @@ class lykke extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransactionFees' => false,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => false,
                 'setLeverage' => false,
@@ -132,6 +139,7 @@ class lykke extends Exchange {
                     'taker' => 0,
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '1001' => '\\ccxt\\ExchangeError',
@@ -170,6 +178,11 @@ class lykke extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {array} $params extra parameters specific to the lykke api endpoint
+         * @return {array} an associative dictionary of $currencies
+         */
         $response = $this->publicGetAssets ($params);
         $currencies = $this->safe_value($response, 'payload', array());
         //
@@ -223,7 +236,7 @@ class lykke extends Exchange {
                 'deposit' => $deposit,
                 'withdraw' => $withdraw,
                 'fee' => null,
-                'precision' => $this->safe_integer($currency, 'accuracy'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'accuracy'))),
                 'limits' => array(
                     'withdraw' => array(
                         'min' => $this->safe_value($currency, 'cashoutMinimalAmount'),
@@ -234,12 +247,18 @@ class lykke extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'networks' => array(),
             );
         }
         return $result;
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for lykke
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {[array]} an array of objects representing $market data
+         */
         $response = $this->publicGetAssetpairs ($params);
         $markets = $this->safe_value($response, 'payload', array());
         //
@@ -271,10 +290,6 @@ class lykke extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $precision = array(
-                'price' => $this->safe_integer($market, 'priceAccuracy'),
-                'amount' => $this->safe_integer($market, 'baseAssetAccuracy'),
-            );
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -300,7 +315,10 @@ class lykke extends Exchange {
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
-                'precision' => $precision,
+                'precision' => array(
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetAccuracy'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'priceAccuracy'))),
+                ),
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_number($market, 'minVolume'),
@@ -365,7 +383,7 @@ class lykke extends Exchange {
         //         "timestamp":1643305510990
         //     }
         //
-        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        $timestamp = null; // temporary bug in lykke api, returns unrealistic numbers
         $marketId = $this->safe_string($ticker, 'assetPairId');
         $market = $this->safe_market($marketId, $market);
         $close = $this->safe_string($ticker, 'lastPrice');
@@ -390,10 +408,16 @@ class lykke extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volumeBase'),
             'quoteVolume' => $this->safe_string($ticker, 'volumeQuote'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {array} $params extra parameters specific to the lykke api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -439,7 +463,13 @@ class lykke extends Exchange {
         return $this->parse_ticker($this->safe_value($ticker, 0, array()), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+         * @param {array} $params extra parameters specific to the lykke api endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         */
         $this->load_markets();
         $response = $this->publicGetTickers ($params);
         $tickers = $this->safe_value($response, 'payload', array());
@@ -463,10 +493,18 @@ class lykke extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {array} $params extra parameters specific to the lykke api endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'assetPairId' => $this->market_id($symbol),
+            'assetPairId' => $market['id'],
         );
         if ($limit !== null) {
             $request['depth'] = $limit; // default 0
@@ -497,11 +535,11 @@ class lykke extends Exchange {
         //     }
         //
         $orderbook = $this->safe_value($payload, 0, array());
-        $timestamp = $this->safe_string($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks', 'p', 'v');
+        $timestamp = $this->safe_integer($orderbook, 'timestamp');
+        return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'p', 'v');
     }
 
-    public function parse_trade($trade, $market) {
+    public function parse_trade($trade, $market = null) {
         //
         //  public fetchTrades
         //
@@ -542,10 +580,6 @@ class lykke extends Exchange {
             $amount = $this->safe_string_2($trade, 'baseVolume', 'amount');
         }
         $side = $this->safe_string_lower($trade, 'side');
-        $fee = array(
-            'cost' => $this->parse_number('0'), // There are no fees for trading.
-            'currency' => $market['quote'],
-        );
         return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
@@ -559,11 +593,19 @@ class lykke extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => null,
-            'fee' => $fee,
+            'fee' => null,
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {array} $params extra parameters specific to the lykke api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -620,6 +662,11 @@ class lykke extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {array} $params extra parameters specific to the lykke api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $response = $this->privateGetBalance ($params);
         $payload = $this->safe_value($response, 'payload', array());
@@ -698,6 +745,7 @@ class lykke extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => $cost,
             'average' => null,
@@ -709,16 +757,26 @@ class lykke extends Exchange {
         ), $market);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the lykke api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $query = array(
             'assetPairId' => $market['id'],
             'side' => $this->capitalize($side),
-            'volume' => floatval($this->amount_to_precision($symbol, $amount)),
+            'volume' => floatval($this->amount_to_precision($market['symbol'], $amount)),
         );
         if ($type === 'limit') {
-            $query['price'] = floatval($this->price_to_precision($symbol, $price));
+            $query['price'] = floatval($this->price_to_precision($market['symbol'], $price));
         }
         $method = 'privatePostOrders' . $this->capitalize($type);
         $result = $this->$method (array_merge($query, $params));
@@ -754,7 +812,7 @@ class lykke extends Exchange {
             'timestamp' => null,
             'datetime' => null,
             'lastTradeTimestamp' => null,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'side' => $side,
             'price' => $price,
@@ -769,7 +827,14 @@ class lykke extends Exchange {
         );
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {string} $id order $id
+         * @param {string|null} $symbol unified $symbol of the market the order was made in
+         * @param {array} $params extra parameters specific to the lykke api endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
         $request = array(
             'orderId' => $id,
         );
@@ -782,7 +847,13 @@ class lykke extends Exchange {
         return $this->privateDeleteOrdersOrderId (array_merge($request, $params));
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders
+         * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {array} $params extra parameters specific to the lykke api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
         $this->load_markets();
         $request = array(
             // 'side' => 'Buy',
@@ -801,7 +872,13 @@ class lykke extends Exchange {
         return $this->privateDeleteOrders (array_merge($request, $params));
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {string|null} $symbol not used by lykke fetchOrder
+         * @param {array} $params extra parameters specific to the lykke api endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
         $this->load_markets();
         $request = array(
             'orderId' => $id,
@@ -830,7 +907,15 @@ class lykke extends Exchange {
         return $this->parse_order($payload);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {string|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {array} $params extra parameters specific to the lykke api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
@@ -869,7 +954,15 @@ class lykke extends Exchange {
         return $this->parse_orders($payload, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {array} $params extra parameters specific to the lykke api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
@@ -908,7 +1001,15 @@ class lykke extends Exchange {
         return $this->parse_orders($payload, $market, $since, $limit);
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {string|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {array} $params extra parameters specific to the lykke api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         */
         $this->load_markets();
         $request = array(
             // 'side' => 'buy',
@@ -959,7 +1060,13 @@ class lykke extends Exchange {
         return array( $this->parse_number($price), $this->parse_number($amount) );
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
+        /**
+         * fetch the deposit $address for a $currency associated with this account
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the lykke api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1047,7 +1154,15 @@ class lykke extends Exchange {
         );
     }
 
-    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * *DEPRECATED* use fetchDepositsWithdrawals instead
+         * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
+         * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
+         * @param {int|null} $limit max number of transactions to return, default is null
+         * @param {array} $params extra parameters specific to the lykke api endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         */
         $this->load_markets();
         $request = array(
             // 'offset' => 0,
@@ -1080,7 +1195,16 @@ class lykke extends Exchange {
         return $this->parse_transactions($payload, $currency, $since, $limit);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string|null} $tag
+         * @param {array} $params extra parameters specific to the lykke api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         */
         $this->load_markets();
         $this->check_address($address);
         $currency = $this->currency($code);
@@ -1111,7 +1235,7 @@ class lykke extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             if (($method === 'GET') || ($method === 'DELETE')) {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
@@ -1133,7 +1257,7 @@ class lykke extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         $error = $this->safe_value($response, 'error', array());
         $errorCode = $this->safe_string($error, 'code');
@@ -1144,5 +1268,6 @@ class lykke extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

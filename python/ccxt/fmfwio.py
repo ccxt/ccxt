@@ -4,9 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.hitbtc import hitbtc
+from ccxt.abstract.fmfwio import ImplicitAPI
 
 
-class fmfwio(hitbtc):
+class fmfwio(hitbtc, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(fmfwio, self).describe(), {
@@ -14,7 +15,7 @@ class fmfwio(hitbtc):
             'name': 'FMFW.io',
             'countries': ['KN'],
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg',
                 'api': {
                     'public': 'https://api.fmfw.io',
                     'private': 'https://api.fmfw.io',

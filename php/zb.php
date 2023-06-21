@@ -6,25 +6,24 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
-use \ccxt\ExchangeNotAvailable;
+use ccxt\abstract\zb as Exchange;
 
 class zb extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'zb',
             'name' => 'ZB',
             'countries' => array( 'CN' ),
-            'rateLimit' => 100,
+            // previously rateLimit = 100
+            // Trading and Margin 10 000 per minute (IP) => 10000 / 60 = 166.66666... per second => rateLimit = 1000/166.66666 = 6
+            // Trade and Margin 60 per second (apiKey) => weight = 166.666 / 60 = 2.778 (2.7777777...)
+            // Kline 1 per second => weight = 166.667
+            // v2 Futures API 100 per 2 seconds => 50 per second => weight = 3.334 (3.3333333...)
+            // for endpoints not mentioned in docs
+            // previous rateLimit was 100 translating to 10 requests per second => weight = 166.666 / 10 = 16.667 (16.666666...)
+            'rateLimit' => 6,
             'version' => 'v1',
-            'certified' => true,
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -34,16 +33,21 @@ class zb extends Exchange {
                 'future' => null,
                 'option' => null,
                 'addMargin' => true,
+                'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'createMarketOrder' => null,
+                'createMarketOrder' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => true,
+                'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -53,11 +57,13 @@ class zb extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -96,6 +102,216 @@ class zb extends Exchange {
                 '5d' => '5d',
                 '1w' => '1w',
             ),
+            'hostname' => 'zb.com', // zb.cafe for users in China
+            'urls' => array(
+                'logo' => 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
+                'api' => array(
+                    'spot' => array(
+                        'v1' => array(
+                            'public' => 'https://api.{hostname}/data',
+                            'private' => 'https://trade.{hostname}/api',
+                        ),
+                    ),
+                    'contract' => array(
+                        'v1' => array(
+                            'public' => 'https://fapi.{hostname}/api/public',
+                        ),
+                        'v2' => array(
+                            'public' => 'https://fapi.{hostname}/Server/api',
+                            'private' => 'https://fapi.{hostname}/Server/api',
+                        ),
+                    ),
+                ),
+                'www' => 'https://www.zb.com',
+                'doc' => 'https://www.zb.com/i/developer',
+                'fees' => 'https://www.zb.com/i/rate',
+                'referral' => array(
+                    'url' => 'https://www.zb.com/en/register?ref=4301lera',
+                    'discount' => 0.16,
+                ),
+            ),
+            'api' => array(
+                'spot' => array(
+                    'v1' => array(
+                        'public' => array(
+                            'get' => array(
+                                'markets' => 16.667,
+                                'ticker' => 16.667,
+                                'allTicker' => 16.667,
+                                'depth' => 16.667,
+                                'trades' => 16.667,
+                                'kline' => 166.667, // Kline 1 per second
+                                'getGroupMarkets' => 16.667,
+                                'getFeeInfo' => 16.667,
+                            ),
+                        ),
+                        'private' => array(
+                            'get' => array(
+                                // spot API
+                                'order' => 1, // Trade API
+                                'orderMoreV2' => 1, // Trade API
+                                'cancelOrder' => 1, // Trade API
+                                'cancelAllOrdersAfter' => 1,  // Trade API TODO add cancelAllOrders
+                                'getOrder' => 1, // Trade API
+                                'getOrders' => 1, // Trade API
+                                'getOrdersNew' => 16.667,
+                                'getOrdersIgnoreTradeType' => 1, // Trade API
+                                'getUnfinishedOrdersIgnoreTradeType' => 1, // Trade API
+                                'getFinishedAndPartialOrders' => 1, // Trade API
+                                'getAccountInfo' => 16.667,
+                                'getUserAddress' => 16.667,
+                                'getPayinAddress' => 16.667,
+                                'getWithdrawAddress' => 16.667,
+                                'getWithdrawRecord' => 16.667,
+                                'getChargeRecord' => 16.667,
+                                'getCnyWithdrawRecord' => 16.667,
+                                'getCnyChargeRecord' => 16.667,
+                                'withdraw' => 16.667,
+                                // sub accounts
+                                'addSubUser' => 16.667,
+                                'getSubUserList' => 16.667,
+                                'doTransferFunds' => 16.667,
+                                'createSubUserKey' => 16.667, // removed on 2021-03-16 according to the update log in the API doc
+                                // leverage API
+                                'getLeverAssetsInfo' => 16.667,
+                                'getLeverBills' => 16.667,
+                                'transferInLever' => 16.667,
+                                'transferOutLever' => 16.667,
+                                'loan' => 16.667,
+                                'cancelLoan' => 16.667,
+                                'getLoans' => 16.667,
+                                'getLoanRecords' => 16.667,
+                                'borrow' => 16.667,
+                                'autoBorrow' => 16.667,
+                                'repay' => 16.667,
+                                'doAllRepay' => 16.667,
+                                'getRepayments' => 16.667,
+                                'getFinanceRecords' => 16.667,
+                                'changeInvestMark' => 16.667,
+                                'changeLoop' => 16.667,
+                                // cross API
+                                'getCrossAssets' => 16.667,
+                                'getCrossBills' => 16.667,
+                                'transferInCross' => 16.667,
+                                'transferOutCross' => 16.667,
+                                'doCrossLoan' => 16.667,
+                                'doCrossRepay' => 16.667,
+                                'getCrossRepayRecords' => 16.667,
+                            ),
+                        ),
+                    ),
+                ),
+                'contract' => array(
+                    'v1' => array(
+                        'public' => array(
+                            'get' => array(
+                                'depth' => 16.667,
+                                'fundingRate' => 16.667,
+                                'indexKline' => 16.667,
+                                'indexPrice' => 16.667,
+                                'kline' => 16.667,
+                                'markKline' => 16.667,
+                                'markPrice' => 16.667,
+                                'ticker' => 16.667,
+                                'trade' => 16.667,
+                            ),
+                        ),
+                    ),
+                    'v2' => array(
+                        'public' => array(
+                            'get' => array(
+                                'allForceOrders' => 3.334,
+                                'config/marketList' => 3.334,
+                                'topLongShortAccountRatio' => 3.334,
+                                'topLongShortPositionRatio' => 3.334,
+                                'fundingRate' => 3.334,
+                                'premiumIndex' => 3.334,
+                            ),
+                        ),
+                        'private' => array(
+                            'get' => array(
+                                'Fund/balance' => 3.334,
+                                'Fund/getAccount' => 3.334,
+                                'Fund/getBill' => 3.334,
+                                'Fund/getBillTypeList' => 3.334,
+                                'Fund/marginHistory' => 3.334,
+                                'Positions/getPositions' => 3.334,
+                                'Positions/getNominalValue' => 3.334,
+                                'Positions/marginInfo' => 3.334,
+                                'setting/get' => 3.334,
+                                'trade/getAllOrders' => 3.334,
+                                'trade/getOrder' => 3.334,
+                                'trade/getOrderAlgos' => 3.334,
+                                'trade/getTradeList' => 3.334,
+                                'trade/getUndoneOrders' => 3.334,
+                                'trade/tradeHistory' => 3.334,
+                            ),
+                            'post' => array(
+                                'activity/buyTicket' => 3.334,
+                                'Fund/transferFund' => 3.334,
+                                'Positions/setMarginCoins' => 3.334,
+                                'Positions/updateAppendUSDValue' => 3.334,
+                                'Positions/updateMargin' => 3.334,
+                                'setting/setLeverage' => 3.334,
+                                'setting/setPositionsMode' => 3.334,
+                                'trade/batchOrder' => 3.334,
+                                'trade/batchCancelOrder' => 3.334,
+                                'trade/cancelAlgos' => 3.334,
+                                'trade/cancelAllOrders' => 3.334,
+                                'trade/cancelOrder' => 3.334,
+                                'trade/order' => 3.334,
+                                'trade/orderAlgo' => 3.334,
+                                'trade/updateOrderAlgo' => 3.334,
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            'fees' => array(
+                'funding' => array(
+                    'withdraw' => array(),
+                ),
+                'trading' => array(
+                    'maker' => $this->parse_number('0.002'),
+                    'taker' => $this->parse_number('0.002'),
+                ),
+            ),
+            'commonCurrencies' => array(
+                'ANG' => 'Anagram',
+                'ENT' => 'ENTCash',
+                'BCHABC' => 'BCHABC', // conflict with BCH / BCHA
+                'BCHSV' => 'BCHSV', // conflict with BCH / BSV
+            ),
+            'options' => array(
+                'timeframes' => array(
+                    'spot' => array(
+                        '1m' => '1min',
+                        '3m' => '3min',
+                        '5m' => '5min',
+                        '15m' => '15min',
+                        '30m' => '30min',
+                        '1h' => '1hour',
+                        '2h' => '2hour',
+                        '4h' => '4hour',
+                        '6h' => '6hour',
+                        '12h' => '12hour',
+                        '1d' => '1day',
+                        '3d' => '3day',
+                        '1w' => '1week',
+                    ),
+                    'swap' => array(
+                        '1m' => '1M',
+                        '5m' => '5M',
+                        '15m' => '15M',
+                        '30m' => '30M',
+                        '1h' => '1H',
+                        '6h' => '6H',
+                        '1d' => '1D',
+                        '5d' => '5D',
+                    ),
+                ),
+            ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'ws' => array(
                     // '1000' => '\\ccxt\\ExchangeError', // The call is successful.
@@ -322,217 +538,15 @@ class zb extends Exchange {
                     '响应超时' => '\\ccxt\\RequestTimeout', // array("code":1001,"message":"响应超时")
                 ),
             ),
-            'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
-                'api' => array(
-                    'spot' => array(
-                        'v1' => array(
-                            'public' => 'https://api.zb.work/data',
-                            'private' => 'https://trade.zb.work/api',
-                        ),
-                    ),
-                    'contract' => array(
-                        'v1' => array(
-                            'public' => 'https://fapi.zb.com/api/public',
-                        ),
-                        'v2' => array(
-                            'public' => 'https://fapi.zb.com/Server/api',
-                            'private' => 'https://fapi.zb.com/Server/api',
-                        ),
-                    ),
-                ),
-                'www' => 'https://www.zb.com',
-                'doc' => 'https://www.zb.com/i/developer',
-                'fees' => 'https://www.zb.com/i/rate',
-                'referral' => array(
-                    'url' => 'https://www.zbex.club/en/register?ref=4301lera',
-                    'discount' => 0.16,
-                ),
-            ),
-            'api' => array(
-                'spot' => array(
-                    'v1' => array(
-                        'public' => array(
-                            'get' => array(
-                                'markets',
-                                'ticker',
-                                'allTicker',
-                                'depth',
-                                'trades',
-                                'kline',
-                                'getGroupMarkets',
-                                'getFeeInfo',
-                            ),
-                        ),
-                        'private' => array(
-                            'get' => array(
-                                // spot API
-                                'order',
-                                'orderMoreV2',
-                                'cancelOrder',
-                                'getOrder',
-                                'getOrders',
-                                'getOrdersNew',
-                                'getOrdersIgnoreTradeType',
-                                'getUnfinishedOrdersIgnoreTradeType',
-                                'getFinishedAndPartialOrders',
-                                'getAccountInfo',
-                                'getUserAddress',
-                                'getPayinAddress',
-                                'getWithdrawAddress',
-                                'getWithdrawRecord',
-                                'getChargeRecord',
-                                'getCnyWithdrawRecord',
-                                'getCnyChargeRecord',
-                                'withdraw',
-                                // sub accounts
-                                'addSubUser',
-                                'getSubUserList',
-                                'doTransferFunds',
-                                'createSubUserKey', // removed on 2021-03-16 according to the update log in the API doc
-                                // leverage API
-                                'getLeverAssetsInfo',
-                                'getLeverBills',
-                                'transferInLever',
-                                'transferOutLever',
-                                'loan',
-                                'cancelLoan',
-                                'getLoans',
-                                'getLoanRecords',
-                                'borrow',
-                                'autoBorrow',
-                                'repay',
-                                'doAllRepay',
-                                'getRepayments',
-                                'getFinanceRecords',
-                                'changeInvestMark',
-                                'changeLoop',
-                                // cross API
-                                'getCrossAssets',
-                                'getCrossBills',
-                                'transferInCross',
-                                'transferOutCross',
-                                'doCrossLoan',
-                                'doCrossRepay',
-                                'getCrossRepayRecords',
-                            ),
-                        ),
-                    ),
-                ),
-                'contract' => array(
-                    'v1' => array(
-                        'public' => array(
-                            'get' => array(
-                                'depth',
-                                'fundingRate',
-                                'indexKline',
-                                'indexPrice',
-                                'kline',
-                                'markKline',
-                                'markPrice',
-                                'ticker',
-                                'trade',
-                            ),
-                        ),
-                    ),
-                    'v2' => array(
-                        'public' => array(
-                            'get' => array(
-                                'allForceOrders',
-                                'config/marketList',
-                                'topLongShortAccountRatio',
-                                'topLongShortPositionRatio',
-                                'fundingRate',
-                                'premiumIndex',
-                            ),
-                        ),
-                        'private' => array(
-                            'get' => array(
-                                'Fund/balance',
-                                'Fund/getAccount',
-                                'Fund/getBill',
-                                'Fund/getBillTypeList',
-                                'Fund/marginHistory',
-                                'Positions/getPositions',
-                                'Positions/getNominalValue',
-                                'Positions/marginInfo',
-                                'setting/get',
-                                'trade/getAllOrders',
-                                'trade/getOrder',
-                                'trade/getOrderAlgos',
-                                'trade/getTradeList',
-                                'trade/getUndoneOrders',
-                                'trade/tradeHistory',
-                            ),
-                            'post' => array(
-                                'activity/buyTicket',
-                                'Fund/transferFund',
-                                'Positions/setMarginCoins',
-                                'Positions/updateAppendUSDValue',
-                                'Positions/updateMargin',
-                                'setting/setLeverage',
-                                'trade/batchOrder',
-                                'trade/batchCancelOrder',
-                                'trade/cancelAlgos',
-                                'trade/cancelAllOrders',
-                                'trade/cancelOrder',
-                                'trade/order',
-                                'trade/orderAlgo',
-                                'trade/updateOrderAlgo',
-                            ),
-                        ),
-                    ),
-                ),
-            ),
-            'fees' => array(
-                'funding' => array(
-                    'withdraw' => array(),
-                ),
-                'trading' => array(
-                    'maker' => $this->parse_number('0.002'),
-                    'taker' => $this->parse_number('0.002'),
-                ),
-            ),
-            'commonCurrencies' => array(
-                'ANG' => 'Anagram',
-                'ENT' => 'ENTCash',
-                'BCHABC' => 'BCHABC', // conflict with BCH / BCHA
-                'BCHSV' => 'BCHSV', // conflict with BCH / BSV
-            ),
-            'options' => array(
-                'timeframes' => array(
-                    'spot' => array(
-                        '1m' => '1min',
-                        '3m' => '3min',
-                        '5m' => '5min',
-                        '15m' => '15min',
-                        '30m' => '30min',
-                        '1h' => '1hour',
-                        '2h' => '2hour',
-                        '4h' => '4hour',
-                        '6h' => '6hour',
-                        '12h' => '12hour',
-                        '1d' => '1day',
-                        '3d' => '3day',
-                        '1w' => '1week',
-                    ),
-                    'swap' => array(
-                        '1m' => '1M',
-                        '5m' => '5M',
-                        '15m' => '15M',
-                        '30m' => '30M',
-                        '1h' => '1H',
-                        '6h' => '6H',
-                        '1d' => '1D',
-                        '5d' => '5D',
-                    ),
-                ),
-            ),
         ));
     }
 
     public function fetch_markets($params = array ()) {
-        $markets = $this->spotV1PublicGetMarkets ($params);
+        /**
+         * retrieves data on all $markets for zb
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {[array]} an array of objects representing $market data
+         */
         //
         //     {
         //         "zb_qc":array(
@@ -543,7 +557,10 @@ class zb extends Exchange {
         //         ),
         //     }
         //
-        $contracts = $this->contractV2PublicGetConfigMarketList ($params);
+        $promises = array( $this->spotV1PublicGetMarkets ($params), $this->contractV2PublicGetConfigMarketList ($params) );
+        $promises = $promises;
+        $markets = $promises[0];
+        $contracts = $promises[1];
         //
         //     {
         //         BTC_USDT => array(
@@ -617,8 +634,6 @@ class zb extends Exchange {
             $linear = $swap ? true : null;
             $active = true;
             $symbol = $base . '/' . $quote;
-            $amountPrecisionString = $this->safe_string_2($market, 'amountScale', 'amountDecimal');
-            $pricePrecisionString = $this->safe_string_2($market, 'priceScale', 'priceDecimal');
             if ($swap) {
                 $status = $this->safe_string($market, 'status');
                 $active = ($status === '1');
@@ -649,8 +664,8 @@ class zb extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => intval($amountPrecisionString),
-                    'price' => intval($pricePrecisionString),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string_2($market, 'amountScale', 'amountDecimal'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string_2($market, 'priceScale', 'priceDecimal'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -677,6 +692,11 @@ class zb extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} an associative dictionary of $currencies
+         */
         $response = $this->spotV1PublicGetGetFeeInfo ($params);
         //
         //     {
@@ -716,13 +736,12 @@ class zb extends Exchange {
             $id = $ids[$i];
             $currency = $currencies[$id];
             $code = $this->safe_currency_code($id);
-            $precision = null;
             $isWithdrawEnabled = true;
             $isDepositEnabled = true;
             $fees = array();
             for ($j = 0; $j < count($currency); $j++) {
                 $networkItem = $currency[$j];
-                $network = $this->safe_string($networkItem, 'chainName');
+                $network = $this->safe_string_2($networkItem, 'chainName', 'mainChainName');
                 // $name = $this->safe_string($networkItem, 'name');
                 $withdrawFee = $this->safe_number($networkItem, 'fee');
                 $depositEnable = $this->safe_value($networkItem, 'canDeposit');
@@ -736,7 +755,7 @@ class zb extends Exchange {
                 'id' => $id,
                 'name' => null,
                 'code' => $code,
-                'precision' => $precision,
+                'precision' => null,
                 'info' => $currency,
                 'active' => $active,
                 'deposit' => $isDepositEnabled,
@@ -808,12 +827,12 @@ class zb extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_margin_balance($response, $marginType) {
+    public function parse_margin_balance($response, $marginMode) {
         $result = array(
             'info' => $response,
         );
         $levers = null;
-        if ($marginType === 'isolated') {
+        if ($marginMode === 'isolated') {
             $message = $this->safe_value($response, 'message', array());
             $data = $this->safe_value($message, 'datas', array());
             $levers = $this->safe_value($data, 'levers', array());
@@ -896,7 +915,7 @@ class zb extends Exchange {
             //     ),
             //
             $account = $this->account();
-            if ($marginType === 'isolated') {
+            if ($marginMode === 'isolated') {
                 $code = $this->safe_currency_code($this->safe_string($balance, 'fShowName'));
                 $account['total'] = $this->safe_string($balance, 'fAvailableUSD'); // total amount in USD
                 $account['free'] = $this->safe_string($balance, 'couldTransferOutFiat');
@@ -914,23 +933,27 @@ class zb extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * $query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @param {string} $params->marginMode 'cross' or 'isolated'
+         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        $margin = ($marketType === 'margin');
+        list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $marketTypeQuery);
         $swap = ($marketType === 'swap');
-        $marginMethod = null;
-        $defaultMargin = $margin ? 'isolated' : 'cross';
-        $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', $defaultMargin);
-        if ($marginType === 'isolated') {
-            $marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo';
-        } else if ($marginType === 'cross') {
-            $marginMethod = 'spotV1PrivateGetGetCrossAssets';
-        }
+        $marginMethod = ($marginMode === 'cross') ? 'spotV1PrivateGetGetCrossAssets' : 'spotV1PrivateGetGetLeverAssetsInfo';
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotV1PrivateGetGetAccountInfo',
             'swap' => 'contractV2PrivateGetFundBalance',
             'margin' => $marginMethod,
         ));
+        if ($marginMode === 'isolated') {
+            $method = 'spotV1PrivateGetGetLeverAssetsInfo';
+        } elseif ($marginMode === 'cross') {
+            $method = 'spotV1PrivateGetGetCrossAssets';
+        }
         $request = array(
             // 'futuresAccountType' => 1, // SWAP
             // 'currencyId' => currency['id'], // SWAP
@@ -1097,8 +1120,8 @@ class zb extends Exchange {
         // $permissions = $response['result']['base'];
         if ($swap) {
             return $this->parse_swap_balance($response);
-        } else if ($margin) {
-            return $this->parse_margin_balance($response, $marginType);
+        } elseif ($marginMode !== null) {
+            return $this->parse_margin_balance($response, $marginMode);
         } else {
             return $this->parse_balance($response);
         }
@@ -1135,11 +1158,12 @@ class zb extends Exchange {
         $memo = $this->safe_string($depositAddress, 'memo');
         if ($memo !== null) {
             $tag = $memo;
-        } else if (mb_strpos($address, '_') !== false) {
+        } elseif (mb_strpos($address, '_') !== false) {
             $parts = explode('_', $address);
             $address = $parts[0];  // WARNING => MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIES!!
             $tag = $parts[1];
         }
+        $this->check_address($address);
         $currencyId = $this->safe_string($depositAddress, 'blockChain');
         $code = $this->safe_currency_code($currencyId, $currency);
         return array(
@@ -1185,7 +1209,13 @@ class zb extends Exchange {
         return $this->parse_deposit_addresses($datas, $codes);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
+        /**
+         * fetch the deposit address for a $currency associated with this account
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1209,7 +1239,14 @@ class zb extends Exchange {
         return $this->parse_deposit_address($datas, $currency);
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1278,25 +1315,46 @@ class zb extends Exchange {
         return $this->parse_order_book($result, $symbol, $timestamp);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+         */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = $this->spotV1PublicGetAllTicker ($params);
         $result = array();
         $marketsByIdWithoutUnderscore = array();
-        $marketIds = is_array($this->markets_by_id) ? array_keys($this->markets_by_id) : array();
+        $marketIds = $this->ids;
         for ($i = 0; $i < count($marketIds); $i++) {
-            $tickerId = str_replace('_', '', $marketIds[$i]);
-            $marketsByIdWithoutUnderscore[$tickerId] = $this->markets_by_id[$marketIds[$i]];
+            $marketId = $marketIds[$i];
+            $tickerId = str_replace('_', '', $marketId);
+            $marketsByIdWithoutUnderscore[$tickerId] = $marketId;
         }
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
-            $market = $marketsByIdWithoutUnderscore[$ids[$i]];
-            $result[$market['symbol']] = $this->parse_ticker($response[$ids[$i]], $market);
+            $marketId = $this->safe_value($marketsByIdWithoutUnderscore, $ids[$i]);
+            $market = $this->safe_market($marketId, null, '_');
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+                $ticker = $this->safe_value($response, $ids[$i]);
+                if ($ticker !== null) {
+                    $result[$symbol] = $this->parse_ticker($ticker, $market);
+                }
+            }
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1342,7 +1400,7 @@ class zb extends Exchange {
         if ($market['type'] === 'swap') {
             $ticker = array();
             $data = $this->safe_value($response, 'data');
-            $values = $this->safe_value($data, $market['id']);
+            $values = $this->safe_value($data, $market['id'], array());
             for ($i = 0; $i < count($values); $i++) {
                 $ticker['open'] = $this->safe_value($values, 0);
                 $ticker['high'] = $this->safe_value($values, 1);
@@ -1409,15 +1467,15 @@ class zb extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
         if ($market['swap']) {
-            $ohlcvLength = is_array($ohlcv) ? count($ohlcv) : 0;
+            $ohlcvLength = count($ohlcv);
             if ($ohlcvLength > 5) {
                 return array(
-                    $this->safe_integer($ohlcv, 5),
+                    $this->safe_timestamp($ohlcv, 5),
                     $this->safe_number($ohlcv, 0),
                     $this->safe_number($ohlcv, 1),
                     $this->safe_number($ohlcv, 2),
@@ -1426,7 +1484,7 @@ class zb extends Exchange {
                 );
             } else {
                 return array(
-                    $this->safe_integer($ohlcv, 4),
+                    $this->safe_timestamp($ohlcv, 4),
                     $this->safe_number($ohlcv, 0),
                     $this->safe_number($ohlcv, 1),
                     $this->safe_number($ohlcv, 2),
@@ -1446,10 +1504,20 @@ class zb extends Exchange {
         }
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $swap = $market['swap'];
+        $spot = $market['spot'];
         $options = $this->safe_value($this->options, 'timeframes', array());
         $timeframes = $this->safe_value($options, $market['type'], array());
         $timeframeValue = $this->safe_string($timeframes, $timeframe);
@@ -1460,29 +1528,34 @@ class zb extends Exchange {
             $limit = 1000;
         }
         $request = array(
-            // 'market' => $market['id'], // spot only
+            'size' => $limit,
+            // 'market' => $market['id'], // $spot only
             // 'symbol' => $market['id'], // $swap only
-            // 'type' => $timeframeValue, // spot only
+            // 'type' => $timeframeValue, // $spot only
             // 'period' => $timeframeValue, // $swap only
-            // 'since' => $since, // spot only
-            // 'limit' => $limit, // spot only
-            // 'size' => $limit, // $swap only
+            // 'since' => $since, // $spot only
+            // 'size' => $limit, // $spot and $swap
         );
         $marketIdField = $swap ? 'symbol' : 'market';
         $request[$marketIdField] = $market['id'];
         $periodField = $swap ? 'period' : 'type';
         $request[$periodField] = $timeframeValue;
-        $sizeField = $swap ? 'size' : 'limit';
-        $request[$sizeField] = $limit;
+        $price = $this->safe_string($params, 'price');
+        $params = $this->omit($params, 'price');
         $method = $this->get_supported_mapping($market['type'], array(
             'spot' => 'spotV1PublicGetKline',
             'swap' => 'contractV1PublicGetKline',
         ));
-        if ($since !== null) {
-            $request['since'] = $since;
-        }
-        if ($limit !== null) {
-            $request['size'] = $limit;
+        if ($swap) {
+            if ($price === 'mark') {
+                $method = 'contractV1PublicGetMarkKline';
+            } elseif ($price === 'index') {
+                $method = 'contractV1PublicGetIndexKline';
+            }
+        } elseif ($spot) {
+            if ($since !== null) {
+                $request['since'] = $since;
+            }
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -1510,34 +1583,7 @@ class zb extends Exchange {
         //         ]
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-    }
-
-    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market($symbol);
-        $options = $this->safe_value($this->options, 'timeframes', array());
-        $timeframes = $this->safe_value($options, $market['type'], array());
-        $timeframeValue = $this->safe_string($timeframes, $timeframe);
-        if ($timeframeValue === null) {
-            throw new NotSupported($this->id . ' fetchMarkOHLCV() does not support ' . $timeframe . ' $timeframe for ' . $market['type'] . ' markets');
-        }
-        if ($limit === null) {
-            $limit = 1000;
-        }
-        $request = array(
-            'symbol' => $market['id'],
-            'period' => $timeframeValue,
-            'size' => $limit,
-        );
-        if ($since !== null) {
-            $request['since'] = $since;
-        }
-        if ($limit !== null) {
-            $request['size'] = $limit;
-        }
-        $response = $this->contractV1PublicGetMarkKline (array_merge($request, $params));
+        // Mark
         //
         //     {
         //         "code" => 10000,
@@ -1549,34 +1595,7 @@ class zb extends Exchange {
         //         ]
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-    }
-
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market($symbol);
-        $options = $this->safe_value($this->options, 'timeframes', array());
-        $timeframes = $this->safe_value($options, $market['type'], array());
-        $timeframeValue = $this->safe_string($timeframes, $timeframe);
-        if ($timeframeValue === null) {
-            throw new NotSupported($this->id . ' fetchIndexOHLCV() does not support ' . $timeframe . ' $timeframe for ' . $market['type'] . ' markets');
-        }
-        if ($limit === null) {
-            $limit = 1000;
-        }
-        $request = array(
-            'symbol' => $market['id'],
-            'period' => $timeframeValue,
-            'size' => $limit,
-        );
-        if ($since !== null) {
-            $request['since'] = $since;
-        }
-        if ($limit !== null) {
-            $request['size'] = $limit;
-        }
-        $response = $this->contractV1PublicGetIndexKline (array_merge($request, $params));
+        // Index
         //
         //     {
         //         "code" => 10000,
@@ -1633,11 +1652,11 @@ class zb extends Exchange {
         } else {
             if ($side === '3') {
                 $side = 'sell'; // close long
-            } else if ($side === '4') {
+            } elseif ($side === '4') {
                 $side = 'buy'; // close short
-            } else if ($side === '1') {
+            } elseif ($side === '1') {
                 $side = 'buy'; // open long
-            } else if ($side === '2') {
+            } elseif ($side === '2') {
                 $side = 'sell'; // open short
             }
         }
@@ -1676,7 +1695,15 @@ class zb extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchTrades() requires a $symbol argument');
         }
@@ -1751,70 +1778,137 @@ class zb extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type must be 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @param {string} $params->marginMode 'cross' or 'isolated'
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
         $swap = $market['swap'];
         $spot = $market['spot'];
         $timeInForce = $this->safe_string($params, 'timeInForce');
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+        $isStopLoss = $stopLossPrice !== null;
+        $isTakeProfit = $takeProfitPrice !== null;
+        $isTriggerOrder = $triggerPrice !== null;
+        if ($this->sum($isStopLoss, $isTakeProfit, $isTriggerOrder)) {
+            throw new ExchangeError($this->id . ' createOrder() $stopLossPrice and $takeProfitPrice cannot both be defined');
+        }
+        $isStopOrder = $isStopLoss || $isTakeProfit || $isTriggerOrder;
+        if ($isStopOrder && $spot) {
+            throw new ExchangeError($this->id . ' createOrder() it is not possible to make a stop order on $spot markets');
+        }
         if ($type === 'market') {
             throw new InvalidOrder($this->id . ' createOrder() on ' . $market['type'] . ' markets does not allow $market orders');
         }
         $method = $this->get_supported_mapping($market['type'], array(
             'spot' => 'spotV1PrivateGetOrder',
+            'margin' => 'spotV1PrivateGetOrder',
             'swap' => 'contractV2PrivatePostTradeOrder',
         ));
         $request = array(
             'amount' => $this->amount_to_precision($symbol, $amount),
+            // 'symbol' => $market['id'],
             // 'acctType' => 0, // Spot, Margin 0/1/2 [Spot/Isolated/Cross] Optional, Default to => 0 Spot
             // 'customerOrderId' => '1f2g', // Spot, Margin
             // 'orderType' => 1, // Spot, Margin order $type 1/2 [PostOnly/IOC] Optional
+            // 'triggerPrice' => 30000.0, // Stop trigger $price
+            // 'algoPrice' => 29000.0, // Stop order $price
+            // 'priceType' => 1, // Stop Loss Take Profit, 1 => Mark $price, 2 => Last $price
+            // 'bizType' => 1, // Stop Loss Take Profit, 1 => TP, 2 => SL
         );
-        if ($price) {
-            $request['price'] = $this->price_to_precision($symbol, $price);
-        }
         if ($spot) {
-            $request['tradeType'] = ($side === 'buy') ? '1' : '0';
+            $exchangeSpecificParam = $this->safe_integer($params, 'orderType', $type) === 1;
+            $postOnly = $this->is_post_only(false, $exchangeSpecificParam, $params);
+            $request['tradeType'] = ($side === 'buy') ? 1 : 0;
             $request['currency'] = $market['id'];
-            if ($timeInForce !== null) {
-                if ($timeInForce === 'PO') {
-                    $request['orderType'] = 1;
-                } else if ($timeInForce === 'IOC') {
-                    $request['orderType'] = 2;
-                } else {
-                    throw new InvalidOrder($this->id . ' createOrder() on ' . $market['type'] . ' markets does not allow ' . $timeInForce . ' orders');
+            if ($postOnly) {
+                $request['orderType'] = 1;
+            } elseif ($timeInForce === 'IOC') {
+                $request['orderType'] = 2;
+            }
+            if ($price !== null) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+            if ($marginMode !== null) {
+                if ($marginMode === 'isolated') {
+                    $request['acctType'] = 1;
+                } elseif ($marginMode === 'cross') {
+                    $request['acctType'] = 2;
                 }
             }
-        } else if ($swap) {
-            $reduceOnly = $this->safe_value($params, 'reduceOnly');
-            $params = $this->omit($params, 'reduceOnly');
-            if ($side === 'sell' && $reduceOnly) {
-                $request['side'] = 3; // close long
-            } else if ($side === 'buy' && $reduceOnly) {
-                $request['side'] = 4; // close short
-            } else if ($side === 'buy') {
-                $request['side'] = 1; // open long
-            } else if ($side === 'sell') {
-                $request['side'] = 2; // open short
+        } elseif ($swap) {
+            $exchangeSpecificParam = $this->safe_integer($params, 'action', $type) === 4;
+            $postOnly = $this->is_post_only(false, $exchangeSpecificParam, $params);
+            // the default mode on zb is one way mode
+            // currently ccxt does not support hedge mode natively
+            if ($isStopLoss || $isTakeProfit) {
+                $reduceOnly = true;
             }
-            if ($type === 'limit') {
-                $request['action'] = 1;
-            } else if ($timeInForce === 'IOC') {
-                $request['action'] = 3;
-            } else if ($timeInForce === 'PO') {
-                $request['action'] = 4;
-            } else if ($timeInForce === 'FOK') {
-                $request['action'] = 5;
+            if ($reduceOnly) {
+                $request['side'] = 0;
             } else {
-                $request['action'] = $type;
+                $request['side'] = ($side === 'buy') ? 5 : 6;
+            }
+            if ($isStopOrder) {
+                $method = 'contractV2PrivatePostTradeOrderAlgo';
+                if ($isStopLoss) {
+                    $request['orderType'] = 2;
+                    $request['bizType'] = 2;
+                    $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
+                } elseif ($isTakeProfit) {
+                    $request['orderType'] = 2;
+                    $request['bizType'] = 1;
+                    $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
+                } elseif ($isTriggerOrder) {
+                    $request['orderType'] = 1;
+                    $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+                }
+                $request['algoPrice'] = $this->price_to_precision($symbol, $price);
+                $request['pricetype'] = 2;
+            } else {
+                if ($timeInForce === 'IOC') {
+                    $request['action'] = 3;
+                } elseif ($postOnly) {
+                    $request['action'] = 4;
+                } elseif ($timeInForce === 'FOK') {
+                    $request['action'] = 5;
+                } elseif ($type === 'limit') {
+                    $request['action'] = 1;
+                } else {
+                    $request['action'] = $type;
+                }
+            }
+            if ($price !== null) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
             }
             $request['symbol'] = $market['id'];
-            $request['clientOrderId'] = $params['clientOrderId']; // OPTIONAL '^[a-zA-Z0-9-_]array(1,36)$', // The user-defined order number
-            $request['extend'] = $params['extend']; // OPTIONAL array("orderAlgos":[array("bizType":1,"priceType":1,"triggerPrice":"70000"),array("bizType":2,"priceType":1,"triggerPrice":"40000")])
+            $clientOrderId = $this->safe_string($params, 'clientOrderId'); // OPTIONAL '^[a-zA-Z0-9-_]array(1,36)$', // The user-defined order number
+            if ($clientOrderId !== null) {
+                $request['clientOrderId'] = $clientOrderId;
+            }
+            // using extend $name causes issues in python
+            $extendOrderAlgos = $this->safe_value($params, 'extend', null); // OPTIONAL array("orderAlgos":[array("bizType":1,"priceType":1,"triggerPrice":"70000"),array("bizType":2,"priceType":1,"triggerPrice":"40000")])
+            if ($extendOrderAlgos !== null) {
+                $request['extend'] = $extendOrderAlgos;
+            }
         }
+        $params = $this->omit($query, array( 'takeProfitPrice', 'stopLossPrice', 'stopPrice', 'reduceOnly', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend' ));
         $response = $this->$method (array_merge($request, $params));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {
         //         "code" => 1000,
@@ -1833,17 +1927,29 @@ class zb extends Exchange {
         //         }
         //     }
         //
-        if ($swap) {
-            $response = $this->safe_value($response, 'data');
+        // Algo order
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => "6919884551305242624",
+        //         "desc" => "操作成功"
+        //     }
+        //
+        $result = $response;
+        if ($swap && !$isStopOrder) {
+            $result = $this->safe_value($response, 'data');
         }
-        $response['timeInForce'] = $timeInForce;
-        $response['type'] = $request['tradeType'];
-        $response['total_amount'] = $amount;
-        $response['price'] = $price;
-        return $this->parse_order($response, $market);
+        return $this->parse_order($result, $market);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
@@ -1884,34 +1990,66 @@ class zb extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders in a $market
+         * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
+        $stop = $this->safe_value($params, 'stop');
         if ($market['spot']) {
             throw new NotSupported($this->id . ' cancelAllOrders() is not supported on ' . $market['type'] . ' markets');
         }
         $request = array(
             'symbol' => $market['id'],
+            // 'ids' => array( 6904603200733782016, 6819506476072247297 ), // STOP
+            // 'side' => $params['side'], // STOP, for $stop orders => 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions => 5 Buy, 6 Sell, 0 Close Only
         );
-        return $this->contractV2PrivatePostTradeCancelAllOrders (array_merge($request, $params));
+        $method = 'contractV2PrivatePostTradeCancelAllOrders';
+        if ($stop) {
+            $method = 'contractV2PrivatePostTradeCancelAlgos';
+        }
+        $query = $this->omit($params, 'stop');
+        return $this->$method (array_merge($request, $query));
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
+        $orderType = $this->safe_integer($params, 'orderType');
+        if ($orderType !== null) {
+            throw new ExchangeError($this->id . ' fetchOrder() it is not possible to fetch a single conditional order, use fetchOrders() instead');
+        }
         $swap = $market['swap'];
         $request = array(
             // 'currency' => $this->market_id($symbol), // only applicable to SPOT
             // 'id' => (string) $id, // only applicable to SPOT
-            // 'symbol' => $this->market_id($symbol), // only applicable to SWAP
             // 'orderId' => (string) $id, // only applicable to SWAP
             // 'clientOrderId' => $params['clientOrderId'], // only applicable to SWAP
+            // 'symbol' => $market['id'], // STOP and SWAP
+            // 'side' => $params['side'], // STOP and SWAP, for stop orders => 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions => 5 Buy, 6 Sell, 0 Close Only
+            // 'orderType' => 1, // STOP, 1 => Plan order, 2 => SP/SL
+            // 'bizType' => 1, // Plan order, 1 => TP, 2 => SL
+            // 'status' => 1, // STOP, 1 => untriggered, 2 => cancelled, 3:triggered, 4:failed, 5:completed
+            // 'startTime' => since, // STOP and SWAP
+            // 'endTime' => $params['endTime'], // STOP and SWAP
+            // 'pageNum' => 1, // STOP and SWAP, default 1
+            // 'pageSize' => limit, // STOP, default 10
         );
         $marketIdField = $swap ? 'symbol' : 'currency';
         $request[$marketIdField] = $this->market_id($symbol);
@@ -1971,31 +2109,84 @@ class zb extends Exchange {
         //         "desc":"操作成功"
         //     }
         //
+        // Algo order
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             "list" => array(
+        //                 array(
+        //                     "action" => 1,
+        //                     "algoPrice" => "30000",
+        //                     "amount" => "0.003",
+        //                     "bizType" => 0,
+        //                     "canCancel" => true,
+        //                     "createTime" => "1649913941109",
+        //                     "errorCode" => 0,
+        //                     "id" => "6920240642849449984",
+        //                     "isLong" => false,
+        //                     "leverage" => 10,
+        //                     "marketId" => "100",
+        //                     "modifyTime" => "1649913941109",
+        //                     "orderType" => 1,
+        //                     "priceType" => 2,
+        //                     "side" => 5,
+        //                     "sourceType" => 4,
+        //                     "status" => 1,
+        //                     "submitPrice" => "41270.53",
+        //                     "symbol" => "BTC_USDT",
+        //                     "tradedAmount" => "0",
+        //                     "triggerCondition" => "<=",
+        //                     "triggerPrice" => "31000",
+        //                     "triggerTime" => "0",
+        //                     "userId" => "6896693805014120448"
+        //                 ),
+        //             ),
+        //             "pageNum" => 1,
+        //             "pageSize" => 10
+        //         ),
+        //         "desc" => "操作成功"
+        //     }
+        //
+        $result = $response;
         if ($swap) {
-            $response = $this->safe_value($response, 'data', array());
+            $result = $this->safe_value($response, 'data');
         }
-        return $this->parse_order($response, $market);
+        return $this->parse_order($result, $market);
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple orders made by the user
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . 'fetchOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
+        $orderType = $this->safe_integer($params, 'orderType');
         $swap = $market['swap'];
         $request = array(
             'pageSize' => $limit, // default pageSize is 50 for spot, 30 for $swap
             // 'currency' => $market['id'], // only applicable to SPOT
             // 'pageIndex' => 1, // only applicable to SPOT
-            // 'symbol' => $market['id'], // only applicable to SWAP
-            // 'pageNum' => 1, // only applicable to SWAP
             // 'type' => $params['type'], // only applicable to SWAP
-            // 'side' => $params['side'], // only applicable to SWAP
             // 'dateRange' => $params['dateRange'], // only applicable to SWAP
             // 'action' => $params['action'], // only applicable to SWAP
-            // 'endTime' => $params['endTime'], // only applicable to SWAP
-            // 'startTime' => $since, // only applicable to SWAP
+            // 'symbol' => $market['id'], // STOP and SWAP
+            // 'side' => $params['side'], // STOP and SWAP, for stop orders => 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions => 5 Buy, 6 Sell, 0 Close Only
+            // 'orderType' => 1, // STOP, 1 => Plan order, 2 => SP/SL
+            // 'bizType' => 1, // Plan order, 1 => TP, 2 => SL
+            // 'status' => 1, // STOP, 1 => untriggered, 2 => cancelled, 3:triggered, 4:failed, 5:completed
+            // 'startTime' => $since, // STOP and SWAP
+            // 'endTime' => $params['endTime'], // STOP and SWAP
+            // 'pageNum' => 1, // STOP and SWAP, default 1
+            // 'pageSize' => $limit, // STOP, default 10
         );
         $marketIdField = $market['swap'] ? 'symbol' : 'currency';
         $request[$marketIdField] = $market['id'];
@@ -2012,15 +2203,10 @@ class zb extends Exchange {
         if (is_array($params) && array_key_exists('tradeType', $params)) {
             $method = 'spotV1PrivateGetGetOrdersNew';
         }
-        $response = null;
-        try {
-            $response = $this->$method (array_merge($request, $params));
-        } catch (Exception $e) {
-            if ($e instanceof OrderNotFound) {
-                return array();
-            }
-            throw $e;
+        if ($orderType !== null) {
+            $method = 'contractV2PrivateGetTradeGetOrderAlgos';
         }
+        $response = $this->$method (array_merge($request, $params));
         // Spot
         //
         //     array(
@@ -2081,44 +2267,357 @@ class zb extends Exchange {
         //         "desc" => "操作成功"
         //     }
         //
+        // Algo order
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             "list" => array(
+        //                 array(
+        //                     "action" => 1,
+        //                     "algoPrice" => "30000",
+        //                     "amount" => "0.003",
+        //                     "bizType" => 0,
+        //                     "canCancel" => true,
+        //                     "createTime" => "1649913941109",
+        //                     "errorCode" => 0,
+        //                     "id" => "6920240642849449984",
+        //                     "isLong" => false,
+        //                     "leverage" => 10,
+        //                     "marketId" => "100",
+        //                     "modifyTime" => "1649913941109",
+        //                     "orderType" => 1,
+        //                     "priceType" => 2,
+        //                     "side" => 5,
+        //                     "sourceType" => 4,
+        //                     "status" => 1,
+        //                     "submitPrice" => "41270.53",
+        //                     "symbol" => "BTC_USDT",
+        //                     "tradedAmount" => "0",
+        //                     "triggerCondition" => "<=",
+        //                     "triggerPrice" => "31000",
+        //                     "triggerTime" => "0",
+        //                     "userId" => "6896693805014120448"
+        //                 ),
+        //             ),
+        //             "pageNum" => 1,
+        //             "pageSize" => 10
+        //         ),
+        //         "desc" => "操作成功"
+        //     }
+        //
+        $result = $response;
         if ($swap) {
             $data = $this->safe_value($response, 'data', array());
-            $response = $this->safe_value($data, 'list', array());
+            $result = $this->safe_value($data, 'list', array());
         }
-        return $this->parse_orders($response, $market, $since, $limit);
+        return $this->parse_orders($result, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = 10, $params = array ()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, $limit = 10, $params = array ()) {
+        /**
+         * fetches information on multiple canceled orders made by the user
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since timestamp in ms of the earliest order, default is null
+         * @param {int|null} $limit max number of orders to return, default is null
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . 'fetchClosedOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        $stop = $this->safe_value($params, 'stop');
         $request = array(
-            'currency' => $market['id'],
-            'pageIndex' => 1, // default pageIndex is 1
-            'pageSize' => $limit, // default pageSize is 10, doesn't work with other values now
+            'pageSize' => $limit, // SPOT and STOP, default pageSize is 10, doesn't work with other values now
+            // 'currency' => $market['id'], // SPOT
+            // 'pageIndex' => 1, // SPOT, default pageIndex is 1
+            // 'symbol' => $market['id'], // STOP
+            // 'side' => $params['side'], // STOP, for $stop orders => 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions => 5 Buy, 6 Sell, 0 Close Only
+            // 'orderType' => 1, // STOP, 1 => Plan order, 2 => SP/SL
+            // 'bizType' => 1, // Plan order, 1 => TP, 2 => SL
+            // 'status' => 1, // STOP, 1 => untriggered, 2 => cancelled, 3:triggered, 4:failed, 5:completed
+            // 'startTime' => $since, // STOP
+            // 'endTime' => $params['endTime'], // STOP
+            // 'pageNum' => 1, // STOP, default 1
         );
-        $response = $this->spotV1PrivateGetGetFinishedAndPartialOrders (array_merge($request, $params));
+        $marketIdField = $market['spot'] ? 'currency' : 'symbol';
+        $request[$marketIdField] = $market['id'];
+        $pageNumField = $market['spot'] ? 'pageIndex' : 'pageNum';
+        $request[$pageNumField] = 1;
+        $method = 'spotV1PrivateGetGetOrdersIgnoreTradeType';
+        if ($stop) {
+            $method = 'contractV2PrivateGetTradeGetOrderAlgos';
+            $orderType = $this->safe_integer($params, 'orderType');
+            if ($orderType === null) {
+                throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires an $orderType parameter for $stop orders');
+            }
+            $side = $this->safe_value($params, 'side');
+            $bizType = $this->safe_integer($params, 'bizType');
+            if ($side === 'sell' && $reduceOnly) {
+                $request['side'] = 3; // close long
+            } elseif ($side === 'buy' && $reduceOnly) {
+                $request['side'] = 4; // close short
+            } elseif ($side === 'buy') {
+                $request['side'] = 1; // open long
+            } elseif ($side === 'sell') {
+                $request['side'] = 2; // open short
+            } elseif ($side === 5) {
+                $request['side'] = 5; // one way position buy
+            } elseif ($side === 6) {
+                $request['side'] = 6; // one way position sell
+            } elseif ($side === 0) {
+                $request['side'] = 0; // one way position close only
+            }
+            if ($orderType === 1) {
+                $request['orderType'] = 1;
+            } elseif ($orderType === 2 || $bizType) {
+                $request['orderType'] = 2;
+                $request['bizType'] = $bizType;
+            }
+            $request['status'] = 2;
+        }
+        // tradeType 交易类型1/0[buy/sell]
+        if (is_array($params) && array_key_exists('tradeType', $params)) {
+            $method = 'spotV1PrivateGetGetOrdersNew';
+        }
+        $response = null;
+        try {
+            $response = $this->$method (array_merge($request, $params));
+        } catch (Exception $e) {
+            if ($e instanceof OrderNotFound) {
+                return array();
+            }
+            throw $e;
+        }
+        $query = $this->omit($params, array( 'reduceOnly', 'stop', 'side', 'orderType', 'bizType' ));
+        $response = $this->$method (array_merge($request, $query));
+        //
+        // Spot
+        //
+        //     array(
+        //         {
+        //             "acctType" => 0,
+        //             "currency" => "btc_usdt",
+        //             "fees" => 0,
+        //             "id" => "202202234857482656",
+        //             "price" => 30000.0,
+        //             "status" => 1,
+        //             "total_amount" => 0.0006,
+        //             "trade_amount" => 0.0000,
+        //             "trade_date" => 1645610254524,
+        //             "trade_money" => 0.000000,
+        //             "type" => 1,
+        //             "useZbFee" => false,
+        //             "webId" => 0
+        //         }
+        //     )
+        //
+        // Algo order
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             "list" => array(
+        //                 array(
+        //                     "action" => 1,
+        //                     "algoPrice" => "30000",
+        //                     "amount" => "0.003",
+        //                     "bizType" => 0,
+        //                     "canCancel" => true,
+        //                     "createTime" => "1649913941109",
+        //                     "errorCode" => 0,
+        //                     "id" => "6920240642849449984",
+        //                     "isLong" => false,
+        //                     "leverage" => 10,
+        //                     "marketId" => "100",
+        //                     "modifyTime" => "1649913941109",
+        //                     "orderType" => 1,
+        //                     "priceType" => 2,
+        //                     "side" => 5,
+        //                     "sourceType" => 4,
+        //                     "status" => 2,
+        //                     "submitPrice" => "41270.53",
+        //                     "symbol" => "BTC_USDT",
+        //                     "tradedAmount" => "0",
+        //                     "triggerCondition" => "<=",
+        //                     "triggerPrice" => "31000",
+        //                     "triggerTime" => "0",
+        //                     "userId" => "6896693805014120448"
+        //                 ),
+        //             ),
+        //             "pageNum" => 1,
+        //             "pageSize" => 10
+        //         ),
+        //         "desc" => "操作成功"
+        //     }
+        //
+        if ($stop) {
+            $data = $this->safe_value($response, 'data', array());
+            $response = $this->safe_value($data, 'list', array());
+        }
+        $result = array();
+        if ($market['type'] === 'spot') {
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $status = $this->safe_string($entry, 'status');
+                if ($status === '1') {
+                    $result[] = $entry;
+                }
+            }
+            $response = $result;
+        }
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, $limit = 10, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . 'fetchOpenOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
         $swap = $market['swap'];
+        $orderType = $this->safe_integer($params, 'orderType');
+        $request = array(
+            'pageSize' => $limit, // SPOT and STOP, default pageSize is 10, doesn't work with other values now
+            // 'currency' => $market['id'], // SPOT
+            // 'pageIndex' => 1, // SPOT, default pageIndex is 1
+            // 'symbol' => $market['id'], // STOP
+            // 'side' => $params['side'], // STOP, for stop orders => 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions => 5 Buy, 6 Sell, 0 Close Only
+            // 'orderType' => 1, // STOP, 1 => Plan order, 2 => SP/SL
+            // 'bizType' => 1, // Plan order, 1 => TP, 2 => SL
+            // 'status' => 1, // STOP, 1 => untriggered, 2 => cancelled, 3:triggered, 4:failed, 5:completed
+            // 'startTime' => $since, // STOP
+            // 'endTime' => $params['endTime'], // STOP
+            // 'pageNum' => 1, // STOP, default 1
+        );
+        $marketIdField = $market['spot'] ? 'currency' : 'symbol';
+        $request[$marketIdField] = $market['id'];
+        $pageNumField = $market['spot'] ? 'pageIndex' : 'pageNum';
+        $request[$pageNumField] = 1;
+        if ($swap && ($since !== null)) {
+            $request['startTime'] = $since;
+        }
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'spotV1PrivateGetGetFinishedAndPartialOrders',
+            'swap' => 'contractV2PrivateGetTradeGetOrderAlgos',
+        ));
+        if ($swap && ($orderType === null)) {
+            throw new ExchangeError($this->id . ' fetchClosedOrders() can not fetch $swap orders, use fetchOrders instead');
+        }
+        if ($swap) {
+            // a status of 2 would mean canceled and could also be valid
+            $request['status'] = 5; // complete
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // Spot
+        //
+        //     array(
+        //         array(
+        //             "acctType" => 0,
+        //             "currency" => "btc_usdt",
+        //             "fees" => 0.00823354,
+        //             "id" => "202204145086706337",
+        //             "price" => 41167.7,
+        //             "status" => 2,
+        //             "total_amount" => 0.0001,
+        //             "trade_amount" => 0.0001,
+        //             "trade_date" => 1649917867370,
+        //             "trade_money" => 4.116770,
+        //             "type" => 0,
+        //             "useZbFee" => false,
+        //             "webId" => 0
+        //         ),
+        //     )
+        //
+        // Algo order
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             "list" => array(
+        //                 array(
+        //                     "action" => 1,
+        //                     "algoPrice" => "30000",
+        //                     "amount" => "0.003",
+        //                     "bizType" => 0,
+        //                     "canCancel" => true,
+        //                     "createTime" => "1649913941109",
+        //                     "errorCode" => 0,
+        //                     "id" => "6920240642849449984",
+        //                     "isLong" => false,
+        //                     "leverage" => 10,
+        //                     "marketId" => "100",
+        //                     "modifyTime" => "1649913941109",
+        //                     "orderType" => 1,
+        //                     "priceType" => 2,
+        //                     "side" => 5,
+        //                     "sourceType" => 4,
+        //                     "status" => 1,
+        //                     "submitPrice" => "41270.53",
+        //                     "symbol" => "BTC_USDT",
+        //                     "tradedAmount" => "0",
+        //                     "triggerCondition" => "<=",
+        //                     "triggerPrice" => "31000",
+        //                     "triggerTime" => "0",
+        //                     "userId" => "6896693805014120448"
+        //                 ),
+        //             ),
+        //             "pageNum" => 1,
+        //             "pageSize" => 10
+        //         ),
+        //         "desc" => "操作成功"
+        //     }
+        //
+        $result = $response;
+        if ($swap) {
+            $data = $this->safe_value($response, 'data', array());
+            $result = $this->safe_value($data, 'list', array());
+        }
+        return $this->parse_orders($result, $market, $since, $limit);
+    }
+
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {string} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $orderType = $this->safe_integer($params, 'orderType');
+        $swap = $market['swap'];
         $request = array(
             // 'pageSize' => $limit, // default pageSize is 10 for spot, 30 for $swap
-            // 'currency' => $market['id'], // spot only
-            // 'pageIndex' => 1, // spot only
-            // 'symbol' => $market['id'], // $swap only
-            // 'pageNum' => 1, // $swap only
+            // 'currency' => $market['id'], // SPOT
+            // 'pageIndex' => 1, // SPOT
+            // 'symbol' => $market['id'], // SWAP and STOP
+            // 'pageNum' => 1, // SWAP and STOP, default 1
             // 'type' => $params['type'], // $swap only
-            // 'side' => $params['side'], // $swap only
-            // 'action' => $params['action'], // $swap only
+            // 'side' => $params['side'], // SWAP and STOP, for stop orders => 1 Open long (buy), 2 Open short (sell), 3 Close long (sell), 4 Close Short (Buy). One-Way Positions => 5 Buy, 6 Sell, 0 Close Only
+            // 'action' => $params['action'], // SWAP
+            // 'orderType' => 1, // STOP, 1 => Plan order, 2 => SP/SL
+            // 'bizType' => 1, // Plan order, 1 => TP, 2 => SL
+            // 'status' => 1, // STOP, 1 => untriggered, 2 => cancelled, 3:triggered, 4:failed, 5:completed
+            // 'startTime' => $since, // SWAP and STOP
+            // 'endTime' => $params['endTime'], // STOP
         );
         if ($limit !== null) {
             $request['pageSize'] = $limit; // default pageSize is 10 for spot, 30 for $swap
@@ -2134,19 +2633,16 @@ class zb extends Exchange {
             'spot' => 'spotV1PrivateGetGetUnfinishedOrdersIgnoreTradeType',
             'swap' => 'contractV2PrivateGetTradeGetUndoneOrders',
         ));
+        if ($orderType !== null) {
+            $method = 'contractV2PrivateGetTradeGetOrderAlgos';
+            // value 3 would mean triggered but still open orders
+            $request['status'] = 1; // untriggered
+        }
         // tradeType 交易类型1/0[buy/sell]
         if (is_array($params) && array_key_exists('tradeType', $params)) {
             $method = 'spotV1PrivateGetGetOrdersNew';
         }
-        $response = null;
-        try {
-            $response = $this->$method (array_merge($request, $params));
-        } catch (Exception $e) {
-            if ($e instanceof OrderNotFound) {
-                return array();
-            }
-            throw $e;
-        }
+        $response = $this->$method (array_merge($request, $params));
         //
         // Spot
         //
@@ -2206,16 +2702,56 @@ class zb extends Exchange {
         //         "desc" => "操作成功"
         //     }
         //
+        // Algo order
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             "list" => array(
+        //                 array(
+        //                     "action" => 1,
+        //                     "algoPrice" => "30000",
+        //                     "amount" => "0.003",
+        //                     "bizType" => 0,
+        //                     "canCancel" => true,
+        //                     "createTime" => "1649913941109",
+        //                     "errorCode" => 0,
+        //                     "id" => "6920240642849449984",
+        //                     "isLong" => false,
+        //                     "leverage" => 10,
+        //                     "marketId" => "100",
+        //                     "modifyTime" => "1649913941109",
+        //                     "orderType" => 1,
+        //                     "priceType" => 2,
+        //                     "side" => 5,
+        //                     "sourceType" => 4,
+        //                     "status" => 1,
+        //                     "submitPrice" => "41270.53",
+        //                     "symbol" => "BTC_USDT",
+        //                     "tradedAmount" => "0",
+        //                     "triggerCondition" => "<=",
+        //                     "triggerPrice" => "31000",
+        //                     "triggerTime" => "0",
+        //                     "userId" => "6896693805014120448"
+        //                 ),
+        //             ),
+        //             "pageNum" => 1,
+        //             "pageSize" => 10
+        //         ),
+        //         "desc" => "操作成功"
+        //     }
+        //
+        $result = $response;
         if ($swap) {
             $data = $this->safe_value($response, 'data', array());
-            $response = $this->safe_value($data, 'list', array());
+            $result = $this->safe_value($data, 'list', array());
         }
-        return $this->parse_orders($response, $market, $since, $limit);
+        return $this->parse_orders($result, $market, $since, $limit);
     }
 
     public function parse_order($order, $market = null) {
         //
-        // fetchOrder Spot
+        // Spot fetchOrder, fetchClosedOrders
         //
         //     array(
         //         acctType => 0,
@@ -2232,7 +2768,7 @@ class zb extends Exchange {
         //         useZbFee => false
         //     ),
         //
-        // fetchOrder Swap
+        // Swap fetchOrder
         //
         //     array(
         //         "action" => 1,
@@ -2262,7 +2798,36 @@ class zb extends Exchange {
         //         "value" => "60"
         //     ),
         //
-        // Spot
+        // Algo fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
+        //
+        //     array(
+        //         "action" => 1,
+        //         "algoPrice" => "30000",
+        //         "amount" => "0.003",
+        //         "bizType" => 0,
+        //         "canCancel" => true,
+        //         "createTime" => "1649913941109",
+        //         "errorCode" => 0,
+        //         "id" => "6920240642849449984",
+        //         "isLong" => false,
+        //         "leverage" => 10,
+        //         "marketId" => "100",
+        //         "modifyTime" => "1649913941109",
+        //         "orderType" => 1,
+        //         "priceType" => 2,
+        //         "side" => 5,
+        //         "sourceType" => 4,
+        //         "status" => 1,
+        //         "submitPrice" => "41270.53",
+        //         "symbol" => "BTC_USDT",
+        //         "tradedAmount" => "0",
+        //         "triggerCondition" => "<=",
+        //         "triggerPrice" => "31000",
+        //         "triggerTime" => "0",
+        //         "userId" => "6896693805014120448"
+        //     ),
+        //
+        // Spot createOrder
         //
         //     {
         //         code => '1000',
@@ -2273,7 +2838,7 @@ class zb extends Exchange {
         //         $price => 30000
         //     }
         //
-        // Swap
+        // Swap createOrder
         //
         //     {
         //         $orderId => '6901786759944937472',
@@ -2283,15 +2848,32 @@ class zb extends Exchange {
         //         $price => 30000
         //     }
         //
-        $orderId = $market['swap'] ? $this->safe_value($order, 'orderId') : $this->safe_value($order, 'id');
+        // Algo createOrder
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => "6919884551305242624",
+        //         "desc" => "操作成功"
+        //     }
+        //
+        $orderId = $market['swap'] ? $this->safe_string_2($order, 'orderId', 'data') : $this->safe_string($order, 'id');
         if ($orderId === null) {
             $orderId = $this->safe_value($order, 'id');
         }
-        $side = $this->safe_integer($order, 'type');
-        if ($side === null) {
-            $side = null;
-        } else {
-            $side = ($side === 1) ? 'buy' : 'sell';
+        $rawSide = $this->safe_integer_2($order, 'type', 'side');
+        $side = null;
+        if ($rawSide !== null) {
+            if ($market['spot']) {
+                $side = ($rawSide === 1) ? 'buy' : 'sell';
+            } elseif ($market['swap']) {
+                if ($rawSide === 0) {
+                    $side = null;
+                } elseif (($rawSide === 1) || ($rawSide === 4) || ($rawSide === 5)) {
+                    $side = 'buy';
+                } elseif (($rawSide === 2) || ($rawSide === 3) || ($rawSide === 6)) {
+                    $side = 'sell';
+                }
+            }
         }
         $timestamp = $this->safe_integer($order, 'trade_date');
         if ($timestamp === null) {
@@ -2299,14 +2881,14 @@ class zb extends Exchange {
         }
         $marketId = $this->safe_string($order, 'currency');
         $market = $this->safe_market($marketId, $market, '_');
-        $price = $this->safe_string($order, 'price');
+        $price = $this->safe_string_2($order, 'price', 'algoPrice');
         $filled = $market['swap'] ? $this->safe_string($order, 'tradeAmount') : $this->safe_string($order, 'trade_amount');
         $amount = $this->safe_string($order, 'total_amount');
         if ($amount === null) {
             $amount = $this->safe_string($order, 'amount');
         }
         $cost = $this->safe_string($order, 'trade_money');
-        $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $status = $this->parse_order_status($this->safe_string($order, 'status'), $market);
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = ($timeInForce === 'PO');
         $feeCost = $this->safe_number($order, 'fees');
@@ -2337,7 +2919,8 @@ class zb extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
+            'stopPrice' => $this->safe_number($order, 'triggerPrice'),
+            'triggerPrice' => $this->safe_number($order, 'triggerPrice'),
             'average' => $this->safe_string($order, 'avgPrice'),
             'cost' => $cost,
             'amount' => $amount,
@@ -2349,13 +2932,24 @@ class zb extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
-        $statuses = array(
-            '0' => 'open',
-            '1' => 'canceled',
-            '2' => 'closed',
-            '3' => 'open', // partial
-        );
+    public function parse_order_status($status, $market = null) {
+        $statuses = array();
+        if ($market['type'] === 'spot') {
+            $statuses = array(
+                '0' => 'open',
+                '1' => 'canceled',
+                '2' => 'closed',
+                '3' => 'open', // partial
+            );
+        } else {
+            $statuses = array(
+                '1' => 'open',
+                '2' => 'canceled',
+                '3' => 'open', // stop order triggered
+                '4' => 'rejected',
+                '5' => 'closed',
+            );
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -2458,13 +3052,20 @@ class zb extends Exchange {
         );
     }
 
-    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+        /**
+         * set the level of $leverage for a $market
+         * @param {float} $leverage the rate of $leverage
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} response from the exchange
+         */
         $this->load_markets();
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
         if (($leverage < 1) || ($leverage > 125)) {
-            throw new BadRequest($this->id . ' $leverage should be between 1 and 125');
+            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 125');
         }
         $market = $this->market($symbol);
         $accountType = null;
@@ -2481,12 +3082,21 @@ class zb extends Exchange {
         return $this->contractV2PrivatePostSettingSetLeverage (array_merge($request, $params));
     }
 
-    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding rate prices
+         * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
+         * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @param {int|null} $params->until $timestamp in ms of the latest funding rate to fetch
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         */
         $this->load_markets();
         $request = array(
             // 'symbol' => $market['id'],
             // 'startTime' => $since,
-            // 'endTime' => $endTime, // current time by default
+            // 'endTime' => endTime, // current time by default
             // 'limit' => $limit, // default 100, max 1000
         );
         if ($symbol !== null) {
@@ -2497,13 +3107,10 @@ class zb extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        $till = $this->safe_integer($params, 'till');
-        $endTime = $this->safe_string($params, 'endTime');
-        $params = $this->omit($params, array( 'endTime', 'till' ));
-        if ($till !== null) {
-            $request['endTime'] = $till;
-        } else if ($endTime !== null) {
-            $request['endTime'] = $endTime;
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
+        if ($until !== null) {
+            $request['endTime'] = $until;
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -2522,16 +3129,16 @@ class zb extends Exchange {
         //         "desc" => "操作成功"
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $rates = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             $marketId = $this->safe_string($entry, 'symbol');
-            $symbol = $this->safe_symbol($marketId);
-            $timestamp = $this->safe_string($entry, 'fundingTime');
+            $symbolInner = $this->safe_symbol($marketId);
+            $timestamp = $this->safe_integer($entry, 'fundingTime');
             $rates[] = array(
                 'info' => $entry,
-                'symbol' => $symbol,
+                'symbol' => $symbolInner,
                 'fundingRate' => $this->safe_number($entry, 'fundingRate'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
@@ -2541,7 +3148,13 @@ class zb extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function fetch_funding_rate($symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['swap']) {
@@ -2586,8 +3199,9 @@ class zb extends Exchange {
         //
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $fundingRate = $this->safe_number($contract, 'fundingRate');
-        $nextFundingDatetime = $this->safe_string($contract, 'nextCalculateTime');
+        $fundingRate = $this->safe_number_2($contract, 'fundingRate', 'lastFundingRate');
+        $nextFundingTimestamp = $this->parse8601($this->safe_string($contract, 'nextCalculateTime'));
+        $fundingTimestamp = $this->safe_integer($contract, 'nextFundingTime');
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -2598,19 +3212,26 @@ class zb extends Exchange {
             'timestamp' => null,
             'datetime' => null,
             'fundingRate' => $fundingRate,
-            'fundingTimestamp' => null,
-            'fundingDatetime' => null,
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
             'nextFundingRate' => null,
-            'nextFundingTimestamp' => $this->parse8601($nextFundingDatetime),
-            'nextFundingDatetime' => $nextFundingDatetime,
-            'previousFundingRate' => $this->safe_string($contract, 'lastFundingRate'),
+            'nextFundingTimestamp' => $nextFundingTimestamp,
+            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
+            'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
         );
     }
 
-    public function fetch_funding_rates($symbols, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+        /**
+         * fetch the funding rate for multiple markets
+         * @param {[string]|null} $symbols list of unified market $symbols
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
+         */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = $this->contractV2PublicGetPremiumIndex ($params);
         //
         //     {
@@ -2632,7 +3253,16 @@ class zb extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string|null} $tag
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transaction-structure $transaction structure~
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $password = $this->safe_string($params, 'safePwd', $this->password);
         if ($password === null) {
@@ -2674,7 +3304,15 @@ class zb extends Exchange {
         ));
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all $withdrawals made from an account
+         * @param {string|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch $withdrawals for
+         * @param {int|null} $limit the maximum number of $withdrawals structures to retrieve
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         */
         $this->load_markets();
         $request = array(
             // 'currency' => $currency['id'],
@@ -2722,7 +3360,15 @@ class zb extends Exchange {
         return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all $deposits made to an account
+         * @param {string|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch $deposits for
+         * @param {int|null} $limit the maximum number of $deposits structures to retrieve
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         */
         $this->load_markets();
         $request = array(
             // 'currency' => $currency['id'],
@@ -2772,7 +3418,13 @@ class zb extends Exchange {
         return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
-    public function fetch_position($symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array ()) {
+        /**
+         * fetch $data on a single open contract trade position
+         * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         */
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
@@ -2839,16 +3491,18 @@ class zb extends Exchange {
         return $this->parse_position($firstPosition, $market);
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
+        /**
+         * fetch all open positions
+         * @param {[string]|null} $symbols list of unified market $symbols
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         */
         $this->load_markets();
-        $market = null;
-        if ($symbols !== null) {
-            $market = $this->market($symbols);
-        }
         $request = array(
             'futuresAccountType' => 1, // 1 => USDT-M Perpetual Futures
-            // 'symbol' => $market['id'],
-            // 'marketId' => $market['id'],
+            // 'symbol' => market['id'],
+            // 'marketId' => market['id'],
             // 'side' => $params['side'],
         );
         $response = $this->contractV2PrivateGetPositionsGetPositions (array_merge($request, $params));
@@ -2902,7 +3556,7 @@ class zb extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_positions($data, $market);
+        return $this->parse_positions($data, $symbols);
     }
 
     public function parse_position($position, $market = null) {
@@ -2949,7 +3603,8 @@ class zb extends Exchange {
         //         "userId" => "6896693805014120448"
         //     }
         //
-        $market = $this->safe_market($this->safe_string($position, 'marketName'), $market);
+        $marketId = $this->safe_string($position, 'marketName');
+        $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $contracts = $this->safe_string($position, 'amount');
         $entryPrice = $this->safe_number($position, 'avgPrice');
@@ -2957,7 +3612,7 @@ class zb extends Exchange {
         $rawSide = $this->safe_string($position, 'side');
         $side = ($rawSide === '1') ? 'long' : 'short';
         $openType = $this->safe_string($position, 'marginMode');
-        $marginType = ($openType === '1') ? 'isolated' : 'cross';
+        $marginMode = ($openType === '1') ? 'isolated' : 'cross';
         $leverage = $this->safe_string($position, 'leverage');
         $liquidationPrice = $this->safe_number($position, 'liquidatePrice');
         $unrealizedProfit = $this->safe_number($position, 'unrealizedPnl');
@@ -2966,8 +3621,9 @@ class zb extends Exchange {
         $notional = $this->safe_number($position, 'nominalValue');
         $percentage = Precise::string_mul($this->safe_string($position, 'returnRate'), '100');
         $timestamp = $this->safe_number($position, 'createTime');
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'contracts' => $this->parse_number($contracts),
             'contractSize' => null,
@@ -2977,9 +3633,10 @@ class zb extends Exchange {
             'unrealizedProfit' => $unrealizedProfit,
             'leverage' => $this->parse_number($leverage),
             'percentage' => $percentage,
-            'marginType' => $marginType,
+            'marginMode' => $marginMode,
             'notional' => $notional,
             'markPrice' => null,
+            'lastPrice' => null,
             'liquidationPrice' => $liquidationPrice,
             'initialMargin' => $this->parse_number($initialMargin),
             'initialMarginPercentage' => null,
@@ -2988,15 +3645,8 @@ class zb extends Exchange {
             'marginRatio' => $marginRatio,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
-    }
-
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
+            'lastUpdateTimestamp' => null,
+        ));
     }
 
     public function parse_ledger_entry_type($type) {
@@ -3063,7 +3713,7 @@ class zb extends Exchange {
         //         ),
         //     ),
         //
-        $timestamp = $this->safe_string($item, 'createTime');
+        $timestamp = $this->safe_integer($item, 'createTime');
         $direction = null;
         $changeDirection = $this->safe_number($item, 'isIn');
         if ($changeDirection === 1) {
@@ -3098,7 +3748,15 @@ class zb extends Exchange {
         );
     }
 
-    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {string} $code unified $currency $code, default is null
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+         * @param {int|null} $limit max number of ledger entrys to return, default is null
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         */
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code argument');
         }
@@ -3149,23 +3807,35 @@ class zb extends Exchange {
         return $this->parse_ledger($list, $currency, $since, $limit);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {string} $fromAccount account to transfer from
+         * @param {string} $toAccount account to transfer to
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @param {string} $params->marginMode 'cross' or 'isolated'
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+         */
         $this->load_markets();
-        list($marketType, $query) = $this->handle_market_type_and_params('transfer', null, $params);
+        list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('transfer', null, $params);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('transfer', $marketTypeQuery);
         $currency = $this->currency($code);
-        $margin = ($marketType === 'margin');
         $swap = ($marketType === 'swap');
-        $side = null;
-        $marginMethod = null;
+        $amountToPrecision = $this->currency_to_precision($code, $amount);
         $request = array(
-            'amount' => $amount, // Swap, Cross Margin, Isolated Margin
+            'amount' => $amountToPrecision, // Swap, Cross Margin, Isolated Margin
             // 'coin' => $currency['id'], // Margin
             // 'currencyName' => $currency['id'], // Swap
             // 'clientId' => $this->safe_string($params, 'clientId'), // Swap "2sdfsdfsdf232342"
             // 'side' => $side, // Swap, 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
             // 'marketName' => $this->safe_string($params, 'marketName'), // Isolated Margin
         );
+        $method = null;
+        $side = null;
         if ($swap) {
+            $method = 'contractV2PrivatePostFundTransferFund';
             if ($fromAccount === 'spot' || $toAccount === 'future') {
                 $side = 1;
             } else {
@@ -3175,28 +3845,27 @@ class zb extends Exchange {
             $request['clientId'] = $this->safe_string($params, 'clientId');
             $request['side'] = $side;
         } else {
-            $defaultMargin = $margin ? 'isolated' : 'cross';
-            $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', $defaultMargin);
-            if ($marginType === 'isolated') {
+            if (($marginMode === 'isolated') || ($toAccount === 'isolated') || ($fromAccount === 'isolated')) {
                 if ($fromAccount === 'spot' || $toAccount === 'isolated') {
-                    $marginMethod = 'spotV1PrivateGetTransferInLever';
+                    $method = 'spotV1PrivateGetTransferInLever';
                 } else {
-                    $marginMethod = 'spotV1PrivateGetTransferOutLever';
+                    $method = 'spotV1PrivateGetTransferOutLever';
                 }
-                $request['marketName'] = $this->safe_string($params, 'marketName');
-            } else if ($marginType === 'cross') {
+                $symbol = $this->safe_string_2($params, 'marketName', 'symbol');
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' transfer() requires a $symbol argument for isolated margin');
+                }
+                $marketInner = $this->market($symbol);
+                $request['marketName'] = $this->safe_symbol($marketInner['id'], $marketInner, '_');
+            } elseif (($marginMode === 'cross') || ($toAccount === 'cross') || ($fromAccount === 'cross')) {
                 if ($fromAccount === 'spot' || $toAccount === 'cross') {
-                    $marginMethod = 'spotV1PrivateGetTransferInCross';
+                    $method = 'spotV1PrivateGetTransferInCross';
                 } else {
-                    $marginMethod = 'spotV1PrivateGetTransferOutCross';
+                    $method = 'spotV1PrivateGetTransferOutCross';
                 }
             }
             $request['coin'] = $currency['id'];
         }
-        $method = $this->get_supported_mapping($marketType, array(
-            'swap' => 'contractV2PrivatePostFundTransferFund',
-            'margin' => $marginMethod,
-        ));
         $response = $this->$method (array_merge($request, $query));
         //
         // Swap
@@ -3214,48 +3883,29 @@ class zb extends Exchange {
         //         "message" => "Success"
         //     }
         //
-        $timestamp = $this->milliseconds();
-        $transfer = array(
-            'id' => $this->safe_string($response, 'data'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'currency' => $code,
-            'amount' => $amount,
+        return array_merge($this->parse_transfer($response, $currency), array(
+            'amount' => $this->parse_number($amountToPrecision),
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
-            'status' => $this->safe_integer($response, 'code'),
-        );
-        return $this->parse_transfer($transfer, $code);
+        ));
     }
 
     public function parse_transfer($transfer, $currency = null) {
-        //
-        //     {
-        //         "id" => "2sdfsdfsdf232342",
-        //         "timestamp" => "",
-        //         "datetime" => "",
-        //         "currency" => "USDT",
-        //         "amount" => "10",
-        //         "fromAccount" => "futures account",
-        //         "toAccount" => "zb account",
-        //         "status" => 10000,
-        //     }
-        //
-        $currencyId = $this->safe_string($transfer, 'currency');
+        // response samples in 'transfer'
+        $timestamp = $this->milliseconds();
         return array(
-            'info' => $transfer,
-            'id' => $this->safe_string($transfer, 'id'),
-            'timestamp' => $this->safe_integer($transfer, 'timestamp'),
-            'datetime' => $this->safe_string($transfer, 'datetime'),
-            'currency' => $this->safe_currency_code($currencyId, $currency),
-            'amount' => $this->safe_number($transfer, 'amount'),
-            'fromAccount' => $this->safe_string($transfer, 'fromAccount'),
-            'toAccount' => $this->safe_string($transfer, 'toAccount'),
-            'status' => $this->safe_integer($transfer, 'status'),
+            'id' => $this->safe_string($transfer, 'data'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code(null, 'currency'),
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => null,
         );
     }
 
-    public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
         if ($params['positionsId'] === null) {
             throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a positionsId argument in the params');
         }
@@ -3310,35 +3960,62 @@ class zb extends Exchange {
         //         "desc":"操作成功"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $side = ($type === 1) ? 'add' : 'reduce';
-        $errorCode = $this->safe_integer($data, 'status');
-        $status = ($errorCode === 1) ? 'ok' : 'failed';
+        return array_merge($this->parse_margin_modification($response, $market), array(
+            'amount' => $this->parse_number($amount),
+        ));
+    }
+
+    public function parse_margin_modification($data, $market = null) {
+        $innerData = $this->safe_value($data, 'data', array());
+        $sideRaw = $this->safe_integer($innerData, 'side');
+        $side = ($sideRaw === 1) ? 'add' : 'reduce';
+        $statusCode = $this->safe_integer($innerData, 'status');
+        $status = ($statusCode === 1) ? 'ok' : 'failed';
         return array(
-            'info' => $response,
+            'info' => $data,
             'type' => $side,
-            'amount' => $amount,
+            'amount' => null,
             'code' => $market['quote'],
             'symbol' => $market['symbol'],
             'status' => $status,
         );
     }
 
-    public function reduce_margin($symbol, $amount, $params = array ()) {
-        if ($params['positionsId'] === null) {
-            throw new ArgumentsRequired($this->id . ' reduceMargin() requires a positionsId argument in the params');
-        }
-        return $this->modify_margin_helper($symbol, $amount, 0, $params);
-    }
-
-    public function add_margin($symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()) {
+        /**
+         * add margin
+         * @param {string} $symbol unified market $symbol
+         * @param {float} $amount amount of margin to add
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+         */
         if ($params['positionsId'] === null) {
             throw new ArgumentsRequired($this->id . ' addMargin() requires a positionsId argument in the params');
         }
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 
-    public function fetch_borrow_rate($code, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+        /**
+         * remove margin from a position
+         * @param {string} $symbol unified market $symbol
+         * @param {float} $amount the $amount of margin to remove
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
+         */
+        if ($params['positionsId'] === null) {
+            throw new ArgumentsRequired($this->id . ' reduceMargin() requires a positionsId argument in the params');
+        }
+        return $this->modify_margin_helper($symbol, $amount, 0, $params);
+    }
+
+    public function fetch_borrow_rate(string $code, $params = array ()) {
+        /**
+         * fetch the $rate of interest to borrow a $currency for margin trading
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=borrow-$rate-structure borrow $rate structure~
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -3376,6 +4053,11 @@ class zb extends Exchange {
     }
 
     public function fetch_borrow_rates($params = array ()) {
+        /**
+         * fetch the borrow interest $rates of all currencies
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~
+         */
         if ($params['coin'] === null) {
             throw new ArgumentsRequired($this->id . ' fetchBorrowRates() requires a coin argument in the params');
         }
@@ -3403,7 +4085,7 @@ class zb extends Exchange {
         //     }
         //
         $timestamp = $this->milliseconds();
-        $data = $this->safe_value($response, 'result');
+        $data = $this->safe_value($response, 'result', array());
         $rates = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
@@ -3419,23 +4101,149 @@ class zb extends Exchange {
         return $rates;
     }
 
+    public function set_position_mode($hedged, ?string $symbol = null, $params = array ()) {
+        /**
+         * set the level of leverage for a $market
+         * @param {float} leverage the rate of leverage
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} $response from the exchange
+         */
+        $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setPositionMode() requires a $symbol argument');
+        }
+        $market = $this->market($symbol);
+        $accountType = null;
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' setPositionMode() supports swap contracts only');
+        } else {
+            $accountType = 1;
+        }
+        $request = array(
+            'marketId' => $market['id'],
+            'positionMode' => $hedged ? 2 : 1,
+            'futuresAccountType' => $accountType, // 1 => USDT perpetual swaps, 2 => QC perpetual futures
+        );
+        $response = $this->contractV2PrivatePostSettingSetPositionsMode (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 10000,
+        //         "desc" => "success",
+        //         "data" => {
+        //             "userId" => 111,
+        //             "marketId" => 100,
+        //             "leverage" => 20,
+        //             "marginMode" => 1,
+        //             "positionsMode" => 2,
+        //             "enableAutoAppend" => 1,
+        //             "maxAppendAmount" => "11212",
+        //             "marginCoins" => "qc,usdt,eth",
+        //             "id" => 6737268451833817088,
+        //             "createTime" => 1606289971312,
+        //             "modifyTime" => 0,
+        //             "extend" => null
+        //         }
+        //     }
+        //
+        return $response;
+    }
+
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
+        /**
+         * create a loan to borrow margin
+         * @param {string} $code unified $currency $code of the $currency to borrow
+         * @param {float} $amount the $amount to borrow
+         * @param {string|null} $symbol unified $market $symbol, required for isolated margin
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @param {string} $params->safePwd $transaction $password, extra parameter required for cross margin
+         * @param {string} $params->marginMode 'cross' or 'isolated'
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
+         */
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+        }
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('borrowMargin', $params);
+        if ($marginMode === null) {
+            if ($symbol !== null) {
+                $marginMode = 'isolated'; // default to isolated if the $symbol is defined
+            } else {
+                $marginMode = 'cross'; // default to cross
+            }
+        }
+        $password = $this->safe_string($params, 'safePwd', $this->password);
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+            'safePwd' => $password, // $transaction $password
+        );
+        $method = null;
+        if ($marginMode === 'isolated') {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument for isolated margin');
+            }
+            $marketInner = $this->market($symbol);
+            $request['marketName'] = $this->safe_symbol($marketInner['id'], $marketInner, '_');
+            $method = 'spotV1PrivateGetBorrow';
+        } elseif ($marginMode === 'cross') {
+            $method = 'spotV1PrivateGetDoCrossLoan';
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "操作成功"
+        //     }
+        //
+        $transaction = $this->parse_margin_loan($response, $currency);
+        return array_merge($transaction, array(
+            'amount' => $amount,
+            'symbol' => $symbol,
+        ));
+    }
+
+    public function parse_margin_loan($info, $currency = null) {
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "操作成功"
+        //     }
+        //
+        return array(
+            'id' => null,
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'symbol' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $info,
+        );
+    }
+
     public function nonce() {
         return $this->milliseconds();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        list($section, $version, $access) = $api;
-        $url = $this->urls['api'][$section][$version][$access];
+        $section = $this->safe_string($api, 0);
+        $version = $this->safe_string($api, 1);
+        $access = $this->safe_string($api, 2);
+        $url = $this->implode_hostname($this->urls['api'][$section][$version][$access]);
         if ($access === 'public') {
             if ($path === 'getFeeInfo') {
-                $url = $this->urls['api'][$section][$version]['private'] . '/' . $path;
+                $url = $this->implode_hostname($this->urls['api'][$section][$version]['private']) . '/' . $path;
             } else {
                 $url .= '/' . $version . '/' . $path;
             }
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
-        } else if ($section === 'contract') {
+        } elseif ($section === 'contract') {
             $timestamp = $this->milliseconds();
             $iso8601 = $this->iso8601($timestamp);
             $signedString = $iso8601 . $method . '/Server/api/' . $version . '/' . $path;
@@ -3478,7 +4286,7 @@ class zb extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         if ($body[0] === '{') {
             $feedback = $this->id . ' ' . $body;
@@ -3503,5 +4311,6 @@ class zb extends Exchange {
                 }
             }
         }
+        return null;
     }
 }

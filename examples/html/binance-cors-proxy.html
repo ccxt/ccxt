@@ -1,0 +1,28 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>CCXT Basic example for the browser</title>
+    <script type="text/javascript" src="https://unpkg.com/ccxt"></script>
+    <script>
+
+        document.addEventListener ("DOMContentLoaded", function () {
+
+            async function main () {
+                const exchange = new ccxt.binance ({
+                    'apiKey': 'YOUR_API_KEY',
+                    'secret': 'YOUR_API_SECRET',
+                    'proxy': 'https://cors-anywhere.herokuapp.com/',
+                })
+                const response = await exchange.fetchBalance ()
+                console.log (response)
+            }
+
+            main ()
+        })
+    </script>
+</head>
+<body>
+<h1>Hello, CCXT!</h1>
+<pre id="content"></pre>
+</body>
+</html>

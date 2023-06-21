@@ -6,7 +6,6 @@ from pprint import pprint
 print('CCXT Version:', ccxt.__version__)
 
 exchange = ccxt.okex({
-    'enableRateLimit': True,  # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_API_SECRET',
     'password': 'YOUR_API_PASSWORD',
@@ -27,7 +26,7 @@ try:
     response = exchange.account_post_transfer({
         'currency': currency['id'],
         'amount': '0.1',
-        # 'type': '0',  # 0 transfer betwen accounts, 1 main to sub_account, 2 sub_account to main
+        # 'type': '0',  # 0 transfer between accounts, 1 main to sub_account, 2 sub_account to main
         'from': '6',  # 1 spot, 3 futures, 5 margin, 6 funding account, 9 swap, 12 option
         'to': '1',  # 1 spot, 3 futures, 5 margin, 6 funding account, 9 swap, 12 option
         # 'sub_account': 'name_of_sub_account',  # when type is 1 or 2 sub_account is required

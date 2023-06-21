@@ -23,7 +23,6 @@ async def loop(exchange):
 
 async def main():
     exchange = ccxt.okex({
-        'enableRateLimit': True,
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
         # okex requires this: https://github.com/ccxt/ccxt/wiki/Manual#authentication
@@ -36,5 +35,5 @@ async def main():
     await loop(exchange)
     await exchange.close()
 
-if __name__ == '__main__':
-    asyncio.get_event_loop().run_until_complete(main())
+
+asyncio.run(main())

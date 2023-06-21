@@ -1,6 +1,6 @@
 # Python
-import ccxtpro
-from asyncio import get_event_loop, gather
+import ccxt.pro
+from asyncio import run, gather
 from pprint import pprint
 
 
@@ -39,8 +39,8 @@ async def watch_balance_loop(exchange):
             print(e)
 
 
-async def main(loop):
-    exchange = ccxtpro.binanceusdm({
+async def main():
+    exchange = ccxt.pro.binanceusdm({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
     })
@@ -56,5 +56,4 @@ async def main(loop):
     await exchange.close()
 
 
-loop = get_event_loop()
-loop.run_until_complete(main(loop))
+run(main())

@@ -6,14 +6,16 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\Precise;
+use ccxt\async\abstract\btctradeua as Exchange;
+use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
+use ccxt\Precise;
+use React\Async;
 
 class btctradeua extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'btctradeua',
             'name' => 'BTC Trade UA',
             'countries' => array( 'UA' ), // Ukraine,
@@ -27,7 +29,7 @@ class btctradeua extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'createMarketOrder' => null,
+                'createMarketOrder' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
@@ -41,12 +43,14 @@ class btctradeua extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkOHLCV' => false,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -63,7 +67,9 @@ class btctradeua extends Exchange {
             'urls' => array(
                 'referral' => 'https://btc-trade.com.ua/registration/22689',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
-                'api' => 'https://btc-trade.com.ua/api',
+                'api' => array(
+                    'rest' => 'https://btc-trade.com.ua/api',
+                ),
                 'www' => 'https://btc-trade.com.ua',
                 'doc' => 'https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit',
             ),
@@ -90,9 +96,10 @@ class btctradeua extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'markets' => array(
                 'BCH/UAH' => array( 'id' => 'bch_uah', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'UAH', 'baseId' => 'bch', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true ),
-                'BTC/UAH' => array( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'baseId' => 'btc', 'quoteId' => 'uah', 'precision' => array( 'price' => 1 ), 'limits' => array( 'amount' => array( 'min' => 0.0000000001 )), 'type' => 'spot', 'spot' => true ),
+                'BTC/UAH' => array( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'baseId' => 'btc', 'quoteId' => 'uah', 'precision' => array( 'price' => $this->parse_number('1e-1') ), 'limits' => array( 'amount' => array( 'min' => $this->parse_number('1e-10') )), 'type' => 'spot', 'spot' => true ),
                 'DASH/BTC' => array( 'id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC', 'baseId' => 'dash', 'quoteId' => 'btc', 'type' => 'spot', 'spot' => true ),
                 'DASH/UAH' => array( 'id' => 'dash_uah', 'symbol' => 'DASH/UAH', 'base' => 'DASH', 'quote' => 'UAH', 'baseId' => 'dash', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true ),
                 'DOGE/BTC' => array( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC', 'baseId' => 'doge', 'quoteId' => 'btc', 'type' => 'spot', 'spot' => true ),
@@ -111,28 +118,27 @@ class btctradeua extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.1 / 100,
-                    'taker' => 0.1 / 100,
-                ),
-                'funding' => array(
-                    'withdraw' => array(
-                        'BTC' => 0.0006,
-                        'LTC' => 0.01,
-                        'NVC' => 0.01,
-                        'DOGE' => 10,
-                    ),
+                    'maker' => $this->parse_number('0.001'),
+                    'taker' => $this->parse_number('0.001'),
                 ),
             ),
         ));
     }
 
     public function sign_in($params = array ()) {
-        return yield $this->privatePostAuth ($params);
+        return Async\async(function () use ($params) {
+            /**
+             * sign in, must be called prior to using other authenticated methods
+             * @param {array} $params extra parameters specific to the btctradeua api endpoint
+             * @return response from exchange
+             */
+            return Async\await($this->privatePostAuth ($params));
+        }) ();
     }
 
     public function parse_balance($response) {
         $result = array( 'info' => $response );
-        $balances = $this->safe_value($response, 'accounts');
+        $balances = $this->safe_value($response, 'accounts', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
@@ -145,34 +151,50 @@ class btctradeua extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->privatePostBalance ($params);
-        return $this->parse_balance($response);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the btctradeua api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privatePostBalance ($params));
+            return $this->parse_balance($response);
+        }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $bids = yield $this->publicGetTradesBuySymbol (array_merge($request, $params));
-        $asks = yield $this->publicGetTradesSellSymbol (array_merge($request, $params));
-        $orderbook = array(
-            'bids' => array(),
-            'asks' => array(),
-        );
-        if ($bids) {
-            if (is_array($bids) && array_key_exists('list', $bids)) {
-                $orderbook['bids'] = $bids['list'];
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the btctradeua api endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $bids = Async\await($this->publicGetTradesBuySymbol (array_merge($request, $params)));
+            $asks = Async\await($this->publicGetTradesSellSymbol (array_merge($request, $params)));
+            $orderbook = array(
+                'bids' => array(),
+                'asks' => array(),
+            );
+            if ($bids) {
+                if (is_array($bids) && array_key_exists('list', $bids)) {
+                    $orderbook['bids'] = $bids['list'];
+                }
             }
-        }
-        if ($asks) {
-            if (is_array($asks) && array_key_exists('list', $asks)) {
-                $orderbook['asks'] = $asks['list'];
+            if ($asks) {
+                if (is_array($asks) && array_key_exists('list', $asks)) {
+                    $orderbook['asks'] = $asks['list'];
+                }
             }
-        }
-        return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price', 'currency_trade');
+            return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price', 'currency_trade');
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -206,7 +228,7 @@ class btctradeua extends Exchange {
             'quoteVolume' => null,
             'info' => $ticker,
         );
-        $tickerLength = is_array($ticker) ? count($ticker) : 0;
+        $tickerLength = count($ticker);
         if ($tickerLength > 0) {
             $start = max ($tickerLength - 48, 0);
             for ($i = $start; $i < count($ticker); $i++) {
@@ -233,44 +255,63 @@ class btctradeua extends Exchange {
             $result['last'] = $this->safe_string($ticker[$last], 4);
             $result['close'] = $result['last'];
         }
-        return $this->safe_ticker($result, $market, false);
+        return $this->safe_ticker($result, $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->publicGetJapanStatHighSymbol (array_merge($request, $params));
-        $ticker = $this->safe_value($response, 'trades');
-        //
-        // {
-        //     "status" => true,
-        //     "volume_trade" => "0.495703",
-        //     "trades" => [
-        //         [1640789101000, 1292663.0, 1311823.61303, 1295794.252, 1311823.61303, 0.030175],
-        //         [1640790902000, 1311823.61303, 1310820.96, 1290000.0, 1290000.0, 0.042533],
-        //     ],
-        // }
-        //
-        return $this->parse_ticker($ticker, $market);
+    public function fetch_ticker(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+             * @param {array} $params extra parameters specific to the btctradeua api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicGetJapanStatHighSymbol (array_merge($request, $params)));
+            $ticker = $this->safe_value($response, 'trades');
+            //
+            // {
+            //     "status" => true,
+            //     "volume_trade" => "0.495703",
+            //     "trades" => [
+            //         [1640789101000, 1292663.0, 1311823.61303, 1295794.252, 1311823.61303, 0.030175],
+            //         [1640790902000, 1311823.61303, 1310820.96, 1290000.0, 1290000.0, 0.042533],
+            //     ],
+            // }
+            //
+            return $this->parse_ticker($ticker, $market);
+        }) ();
     }
 
     public function convert_month_name_to_string($cyrillic) {
         $months = array(
             'Jan' => '01',
+            'January' => '01',
             'Feb' => '02',
+            'February' => '02',
             'Mar' => '03',
+            'March' => '03',
             'Apr' => '04',
+            'April' => '04',
             'May' => '05',
             'Jun' => '06',
+            'June' => '06',
             'Jul' => '07',
+            'July' => '07',
             'Aug' => '08',
+            'August' => '08',
             'Sept' => '09',
+            'September' => '09',
             'Oct' => '10',
+            'October' => '10',
             'Nov' => '11',
+            'November' => '11',
             'Dec' => '12',
+            'December' => '12',
         );
         return $this->safe_string($months, $cyrillic);
     }
@@ -352,46 +393,77 @@ class btctradeua extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->publicGetDealsSymbol (array_merge($request, $params));
-        // they report each trade twice (once for both of the two sides of the fill)
-        // deduplicate $trades for that reason
-        $trades = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $id = $this->safe_integer($response[$i], 'id');
-            if (fmod($id, 2)) {
-                $trades[] = $response[$i];
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of $trades to fetch
+             * @param {array} $params extra parameters specific to the btctradeua api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicGetDealsSymbol (array_merge($request, $params)));
+            // they report each trade twice (once for both of the two sides of the fill)
+            // deduplicate $trades for that reason
+            $trades = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $id = $this->safe_integer($response[$i], 'id');
+                if (fmod($id, 2)) {
+                    $trades[] = $response[$i];
+                }
             }
-        }
-        return $this->parse_trades($trades, $market, $since, $limit);
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type === 'market') {
-            throw new ExchangeError($this->id . ' allows limit orders only');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $method = 'privatePost' . $this->capitalize($side) . 'Id';
-        $request = array(
-            'count' => $amount,
-            'currency1' => $market['quoteId'],
-            'currency' => $market['baseId'],
-            'price' => $price,
-        );
-        return $this->$method (array_merge($request, $params));
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type must be 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the btctradeua api endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            if ($type === 'market') {
+                throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $method = 'privatePost' . $this->capitalize($side) . 'Id';
+            $request = array(
+                'count' => $amount,
+                'currency1' => $market['quoteId'],
+                'currency' => $market['baseId'],
+                'price' => $price,
+            );
+            return $this->$method (array_merge($request, $params));
+        }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
-        $request = array(
-            'id' => $id,
-        );
-        return yield $this->privatePostRemoveOrderId (array_merge($request, $params));
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string|null} $symbol not used by btctradeua cancelOrder ()
+             * @param {array} $params extra parameters specific to the btctradeua api endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            $request = array(
+                'id' => $id,
+            );
+            return Async\await($this->privatePostRemoveOrderId (array_merge($request, $params)));
+        }) ();
     }
 
     public function parse_order($order, $market = null) {
@@ -415,6 +487,7 @@ class btctradeua extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'filled' => null,
             'remaining' => $remaining,
@@ -426,18 +499,28 @@ class btctradeua extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->privatePostMyOrdersSymbol (array_merge($request, $params));
-        $orders = $this->safe_value($response, 'your_open_orders');
-        return $this->parse_orders($orders, $market, $since, $limit);
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open $orders
+             * @param {string} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open $orders for
+             * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+             * @param {array} $params extra parameters specific to the btctradeua api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->privatePostMyOrdersSymbol (array_merge($request, $params)));
+            $orders = $this->safe_value($response, 'your_open_orders');
+            return $this->parse_orders($orders, $market, $since, $limit);
+        }) ();
     }
 
     public function nonce() {
@@ -445,7 +528,7 @@ class btctradeua extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api']['rest'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {

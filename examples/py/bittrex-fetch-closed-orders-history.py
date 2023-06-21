@@ -18,7 +18,6 @@ def table(values):
 
 
 exchange = ccxt.bittrex({
-    'enableRateLimit': True,
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_API_SECRET',
 })

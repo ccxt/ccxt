@@ -6,26 +6,17 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InsufficientFunds;
-use \ccxt\InvalidAddress;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\CancelPending;
-use \ccxt\RateLimitExceeded;
-use \ccxt\ExchangeNotAvailable;
-use \ccxt\InvalidNonce;
+use ccxt\abstract\kraken as Exchange;
 
 class kraken extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'kraken',
             'name' => 'Kraken',
             'countries' => array( 'US' ),
             'version' => '0',
-            'rateLimit' => 3000,
+            'rateLimit' => 1000,
             'certified' => false,
             'pro' => true,
             'has' => array(
@@ -35,11 +26,18 @@ class kraken extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
+                'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
@@ -53,7 +51,6 @@ class kraken extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => true,
                 'fetchLeverageTiers' => false,
@@ -61,6 +58,7 @@ class kraken extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -78,7 +76,6 @@ class kraken extends Exchange {
                 'setMarginMode' => false, // Kraken only supports cross margin
                 'withdraw' => true,
             ),
-            'marketsByAltname' => array(),
             'timeframes' => array(
                 '1m' => 1,
                 '5m' => 5,
@@ -105,30 +102,30 @@ class kraken extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.26 / 100,
-                    'maker' => 0.16 / 100,
+                    'taker' => $this->parse_number('0.0026'),
+                    'maker' => $this->parse_number('0.0016'),
                     'tiers' => array(
                         'taker' => array(
-                            array( 0, 0.0026 ),
-                            array( 50000, 0.0024 ),
-                            array( 100000, 0.0022 ),
-                            array( 250000, 0.0020 ),
-                            array( 500000, 0.0018 ),
-                            array( 1000000, 0.0016 ),
-                            array( 2500000, 0.0014 ),
-                            array( 5000000, 0.0012 ),
-                            array( 10000000, 0.0001 ),
+                            array( $this->parse_number('0'), $this->parse_number('0.0026') ),
+                            array( $this->parse_number('50000'), $this->parse_number('0.0024') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0022') ),
+                            array( $this->parse_number('250000'), $this->parse_number('0.0020') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0018') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0016') ),
+                            array( $this->parse_number('2500000'), $this->parse_number('0.0014') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0001') ),
                         ),
                         'maker' => array(
-                            array( 0, 0.0016 ),
-                            array( 50000, 0.0014 ),
-                            array( 100000, 0.0012 ),
-                            array( 250000, 0.0010 ),
-                            array( 500000, 0.0008 ),
-                            array( 1000000, 0.0006 ),
-                            array( 2500000, 0.0004 ),
-                            array( 5000000, 0.0002 ),
-                            array( 10000000, 0.0 ),
+                            array( $this->parse_number('0'), $this->parse_number('0.0016') ),
+                            array( $this->parse_number('50000'), $this->parse_number('0.0014') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('250000'), $this->parse_number('0.0010') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('2500000'), $this->parse_number('0.0004') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0002') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0') ),
                         ),
                     ),
                 ),
@@ -145,61 +142,72 @@ class kraken extends Exchange {
                 ),
                 'public' => array(
                     'get' => array(
-                        'Assets',
-                        'AssetPairs',
-                        'Depth',
-                        'OHLC',
-                        'Spread',
-                        'Ticker',
-                        'Time',
-                        'Trades',
+                        // public endpoint rate-limits are described in article => https://support.kraken.com/hc/en-us/articles/206548367-What-are-the-API-rate-limits-#1
+                        'Assets' => 1,
+                        'AssetPairs' => 1,
+                        'Depth' => 1,
+                        'OHLC' => 1,
+                        'Spread' => 1,
+                        'Ticker' => 1,
+                        'Time' => 1,
+                        'Trades' => 1,
                     ),
                 ),
                 'private' => array(
                     'post' => array(
                         'AddOrder' => 0,
-                        'AddExport' => 1,
-                        'Balance' => 1,
-                        'CancelAll' => 1,
+                        'AddOrderBatch' => 0,
+                        'AddExport' => 3,
+                        'Balance' => 3,
+                        'CancelAll' => 3,
                         'CancelOrder' => 0,
-                        'ClosedOrders' => 2,
-                        'DepositAddresses' => 1,
-                        'DepositMethods' => 1,
-                        'DepositStatus' => 1,
-                        'ExportStatus' => 1,
-                        'GetWebSocketsToken' => 1,
-                        'Ledgers' => 2,
-                        'OpenOrders' => 1,
-                        'OpenPositions' => 1,
-                        'QueryLedgers' => 1,
-                        'QueryOrders' => 1,
-                        'QueryTrades' => 1,
-                        'RetrieveExport' => 1,
-                        'RemoveExport' => 1,
-                        'TradeBalance' => 1,
-                        'TradesHistory' => 2,
-                        'TradeVolume' => 1,
-                        'Withdraw' => 1,
-                        'WithdrawCancel' => 1,
-                        'WithdrawInfo' => 1,
-                        'WithdrawStatus' => 1,
+                        'CancelOrderBatch' => 0,
+                        'ClosedOrders' => 6,
+                        'DepositAddresses' => 3,
+                        'DepositMethods' => 3,
+                        'DepositStatus' => 3,
+                        'EditOrder' => 0,
+                        'ExportStatus' => 3,
+                        'GetWebSocketsToken' => 3,
+                        'Ledgers' => 6,
+                        'OpenOrders' => 3,
+                        'OpenPositions' => 3,
+                        'QueryLedgers' => 3,
+                        'QueryOrders' => 3,
+                        'QueryTrades' => 3,
+                        'RetrieveExport' => 3,
+                        'RemoveExport' => 3,
+                        'TradeBalance' => 3,
+                        'TradesHistory' => 6,
+                        'TradeVolume' => 3,
+                        'Withdraw' => 3,
+                        'WithdrawCancel' => 3,
+                        'WithdrawInfo' => 3,
+                        'WithdrawStatus' => 3,
                         // staking
-                        'Stake' => 1,
-                        'Unstake' => 1,
-                        'Staking/Assets' => 1,
-                        'Staking/Pending' => 1,
-                        'Staking/Transactions' => 1,
+                        'Stake' => 3,
+                        'Unstake' => 3,
+                        'Staking/Assets' => 3,
+                        'Staking/Pending' => 3,
+                        'Staking/Transactions' => 3,
+                        // sub accounts
+                        'CreateSubaccount' => 3,
+                        'AccountTransfer' => 3,
                     ),
                 ),
             ),
             'commonCurrencies' => array(
+                'LUNA' => 'LUNC',
+                'LUNA2' => 'LUNA',
+                'REPV2' => 'REP',
+                'REP' => 'REPV1',
+                'UST' => 'USTC',
                 'XBT' => 'BTC',
                 'XBT.M' => 'BTC.M', // https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
                 'XDG' => 'DOGE',
-                'REPV2' => 'REP',
-                'REP' => 'REPV1',
             ),
             'options' => array(
+                'marketsByAltname' => array(),
                 'delistedMarketsById' => array(),
                 // cannot withdraw/deposit these
                 'inactiveCurrencies' => array( 'CAD', 'USD', 'JPY', 'GBP' ),
@@ -304,6 +312,7 @@ class kraken extends Exchange {
                     'ZRX' => '0x (ZRX)',
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
                 'EAPI:Invalid key' => '\\ccxt\\AuthenticationError',
@@ -326,62 +335,65 @@ class kraken extends Exchange {
                 'EFunding:No funding method' => '\\ccxt\\BadRequest', // array("error":"EFunding:No funding method")
                 'EFunding:Unknown asset' => '\\ccxt\\BadSymbol', // array("error":["EFunding:Unknown asset"])
                 'EService:Market in post_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(post_only mode"]) && array_key_exists("error":["EService:Market, post_only mode"]))
+                'EGeneral:Too many requests' => '\\ccxt\\DDoSProtection', // array("error":["EGeneral:Too many requests"])
+                'ETrade:User Locked' => '\\ccxt\\AccountSuspended', // array("error":["ETrade:User Locked"])
             ),
         ));
     }
 
-    public function cost_to_precision($symbol, $cost) {
-        return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['price'], DECIMAL_PLACES);
-    }
-
     public function fee_to_precision($symbol, $fee) {
-        return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
+        return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['amount'], $this->precisionMode);
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for kraken
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {[array]} an array of objects representing $market data
+         */
         $response = $this->publicGetAssetPairs ($params);
         //
         //     {
-        //         "error":array(),
-        //         "result":{
-        //             "ADAETH":array(
-        //                 "altname":"ADAETH",
-        //                 "wsname":"ADA\/ETH",
-        //                 "aclass_base":"currency",
-        //                 "base":"ADA",
-        //                 "aclass_quote":"currency",
-        //                 "quote":"XETH",
-        //                 "lot":"unit",
-        //                 "pair_decimals":7,
-        //                 "lot_decimals":8,
-        //                 "lot_multiplier":1,
-        //                 "leverage_buy":array(),
-        //                 "leverage_sell":array(),
-        //                 "fees":[
-        //                     [0,0.26],
-        //                     [50000,0.24],
-        //                     [100000,0.22],
-        //                     [250000,0.2],
-        //                     [500000,0.18],
-        //                     [1000000,0.16],
-        //                     [2500000,0.14],
-        //                     [5000000,0.12],
-        //                     [10000000,0.1]
+        //         "error" => array(),
+        //         "result" => {
+        //             "ADAETH" => array(
+        //                 "altname" => "ADAETH",
+        //                 "wsname" => "ADA\/ETH",
+        //                 "aclass_base" => "currency",
+        //                 "base" => "ADA",
+        //                 "aclass_quote" => "currency",
+        //                 "quote" => "XETH",
+        //                 "lot" => "unit",
+        //                 "pair_decimals" => 7,
+        //                 "lot_decimals" => 8,
+        //                 "lot_multiplier" => 1,
+        //                 "leverage_buy" => array(),
+        //                 "leverage_sell" => array(),
+        //                 "fees" => [
+        //                     [0, 0.26],
+        //                     [50000, 0.24],
+        //                     [100000, 0.22],
+        //                     [250000, 0.2],
+        //                     [500000, 0.18],
+        //                     [1000000, 0.16],
+        //                     [2500000, 0.14],
+        //                     [5000000, 0.12],
+        //                     [10000000, 0.1]
         //                 ],
-        //                 "fees_maker":[
-        //                     [0,0.16],
-        //                     [50000,0.14],
-        //                     [100000,0.12],
-        //                     [250000,0.1],
-        //                     [500000,0.08],
-        //                     [1000000,0.06],
-        //                     [2500000,0.04],
-        //                     [5000000,0.02],
-        //                     [10000000,0]
+        //                 "fees_maker" => [
+        //                     [0, 0.16],
+        //                     [50000, 0.14],
+        //                     [100000, 0.12],
+        //                     [250000, 0.1],
+        //                     [500000, 0.08],
+        //                     [1000000, 0.06],
+        //                     [2500000, 0.04],
+        //                     [5000000, 0.02],
+        //                     [10000000, 0]
         //                 ],
-        //                 "fee_volume_currency":"ZUSD",
-        //                 "margin_call":80,
-        //                 "margin_stop":40,
+        //                 "fee_volume_currency" => "ZUSD",
+        //                 "margin_call" => 80,
+        //                 "margin_stop" => 40,
         //                 "ordermin" => "1"
         //             ),
         //         }
@@ -401,23 +413,24 @@ class kraken extends Exchange {
             $altname = $this->safe_string($market, 'altname');
             $makerFees = $this->safe_value($market, 'fees_maker', array());
             $firstMakerFee = $this->safe_value($makerFees, 0, array());
-            $firstMakerFeeRate = $this->safe_number($firstMakerFee, 1);
+            $firstMakerFeeRate = $this->safe_string($firstMakerFee, 1);
             $maker = null;
             if ($firstMakerFeeRate !== null) {
-                $maker = floatval($firstMakerFeeRate) / 100;
+                $maker = $this->parse_number(Precise::string_div($firstMakerFeeRate, '100'));
             }
             $takerFees = $this->safe_value($market, 'fees', array());
             $firstTakerFee = $this->safe_value($takerFees, 0, array());
-            $firstTakerFeeRate = $this->safe_number($firstTakerFee, 1);
+            $firstTakerFeeRate = $this->safe_string($firstTakerFee, 1);
             $taker = null;
             if ($firstTakerFeeRate !== null) {
-                $taker = floatval($firstTakerFeeRate) / 100;
+                $taker = $this->parse_number(Precise::string_div($firstTakerFeeRate, '100'));
             }
             $leverageBuy = $this->safe_value($market, 'leverage_buy', array());
-            $leverageBuyLength = is_array($leverageBuy) ? count($leverageBuy) : 0;
-            $precisionPrice = $this->safe_string($market, 'pair_decimals');
+            $leverageBuyLength = count($leverageBuy);
+            $precisionPrice = $this->parse_number($this->parse_precision($this->safe_string($market, 'pair_decimals')));
             $result[] = array(
                 'id' => $id,
+                'wsId' => $this->safe_string($market, 'wsname'),
                 'symbol' => $darkpool ? $altname : ($base . '/' . $quote),
                 'base' => $base,
                 'quote' => $quote,
@@ -445,8 +458,8 @@ class kraken extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'lot_decimals'),
-                    'price' => $this->safe_integer($market, 'pair_decimals'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'lot_decimals'))),
+                    'price' => $precisionPrice,
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -458,7 +471,7 @@ class kraken extends Exchange {
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $this->parse_number($this->parse_precision($precisionPrice)),
+                        'min' => $precisionPrice,
                         'max' => null,
                     ),
                     'cost' => array(
@@ -470,7 +483,7 @@ class kraken extends Exchange {
             );
         }
         $result = $this->append_inactive_markets($result);
-        $this->marketsByAltname = $this->index_by($result, 'altname');
+        $this->options['marketsByAltname'] = $this->index_by($result, 'altname');
         return $result;
     }
 
@@ -491,10 +504,13 @@ class kraken extends Exchange {
 
     public function append_inactive_markets($result) {
         // $result should be an array to append to
-        $precision = array( 'amount' => 8, 'price' => 8 );
-        $costLimits = array( 'min' => 0, 'max' => null );
-        $priceLimits = array( 'min' => pow(10, -$precision['price']), 'max' => null );
-        $amountLimits = array( 'min' => pow(10, -$precision['amount']), 'max' => pow(10, $precision['amount']) );
+        $precision = array(
+            'amount' => $this->parse_number('1e-8'),
+            'price' => $this->parse_number('1e-8'),
+        );
+        $costLimits = array( 'min' => null, 'max' => null );
+        $priceLimits = array( 'min' => $precision['price'], 'max' => null );
+        $amountLimits = array( 'min' => $precision['amount'], 'max' => null );
         $limits = array( 'amount' => $amountLimits, 'price' => $priceLimits, 'cost' => $costLimits );
         $defaults = array(
             'darkpool' => false,
@@ -515,6 +531,11 @@ class kraken extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {array} an associative dictionary of $currencies
+         */
         $response = $this->publicGetAssets ($params);
         //
         //     {
@@ -526,7 +547,7 @@ class kraken extends Exchange {
         //         ),
         //     }
         //
-        $currencies = $this->safe_value($response, 'result');
+        $currencies = $this->safe_value($response, 'result', array());
         $ids = is_array($currencies) ? array_keys($currencies) : array();
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -537,7 +558,7 @@ class kraken extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $code = $this->safe_currency_code($this->safe_string($currency, 'altname'));
-            $precision = $this->safe_integer($currency, 'decimals');
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
             // assumes all $currencies are $active except those listed above
             $active = !$this->in_array($code, $this->options['inactiveCurrencies']);
             $result[$code] = array(
@@ -552,20 +573,27 @@ class kraken extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'min' => $precision,
+                        'max' => null,
                     ),
                     'withdraw' => array(
                         'min' => null,
-                        'max' => pow(10, $precision),
+                        'max' => null,
                     ),
                 ),
+                'networks' => array(),
             );
         }
         return $result;
     }
 
-    public function fetch_trading_fee($symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()) {
+        /**
+         * fetch the trading fees for a $market
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -628,11 +656,18 @@ class kraken extends Exchange {
         return array( $price, $amount, $timestamp );
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         if ($market['darkpool']) {
-            throw new ExchangeError($this->id . ' does not provide an order book for darkpool $symbol ' . $symbol);
+            throw new ExchangeError($this->id . ' fetchOrderBook() does not provide an order book for darkpool $symbol ' . $symbol);
         }
         $request = array(
             'pair' => $market['id'],
@@ -720,32 +755,37 @@ class kraken extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
-        if ($symbols === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers() requires a $symbols argument, an array of symbols');
-        }
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=$ticker-structure $ticker structures~
+         */
         $this->load_markets();
-        $marketIds = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
-            $market = $this->markets[$symbol];
-            if ($market['active'] && !$market['darkpool']) {
-                $marketIds[] = $market['id'];
+        $request = array();
+        if ($symbols !== null) {
+            $symbols = $this->market_symbols($symbols);
+            $marketIds = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $market = $this->markets[$symbol];
+                if ($market['active'] && !$market['darkpool']) {
+                    $marketIds[] = $market['id'];
+                }
             }
+            $request['pair'] = implode(',', $marketIds);
         }
-        $request = array(
-            'pair' => implode(',', $marketIds),
-        );
         $response = $this->publicGetTicker (array_merge($request, $params));
         $tickers = $response['result'];
         $ids = is_array($tickers) ? array_keys($tickers) : array();
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            $market = $this->markets_by_id[$id];
+            $market = $this->safe_market($id);
             $symbol = $market['symbol'];
             $ticker = $tickers[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
@@ -753,11 +793,17 @@ class kraken extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+         */
         $this->load_markets();
         $darkpool = mb_strpos($symbol, '.d') !== false;
         if ($darkpool) {
-            throw new ExchangeError($this->id . ' does not provide a $ticker for $darkpool $symbol ' . $symbol);
+            throw new ExchangeError($this->id . ' fetchTicker() does not provide a $ticker for $darkpool $symbol ' . $symbol);
         }
         $market = $this->market($symbol);
         $request = array(
@@ -791,15 +837,29 @@ class kraken extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
+        $parsedTimeframe = $this->safe_integer($this->timeframes, $timeframe);
         $request = array(
             'pair' => $market['id'],
-            'interval' => $this->timeframes[$timeframe],
         );
+        if ($parsedTimeframe !== null) {
+            $request['interval'] = $parsedTimeframe;
+        } else {
+            $request['interval'] = $timeframe;
+        }
         if ($since !== null) {
-            $request['since'] = intval(($since - 1) / 1000);
+            $request['since'] = $this->parse_to_int(($since - 1) / 1000);
         }
         $response = $this->publicGetOHLC (array_merge($request, $params));
         //
@@ -841,7 +901,7 @@ class kraken extends Exchange {
         //             aclass => "currency",
         //             asset => "XETH",
         //             $amount => "0.1087194600",
-        //             $fee => "0.0000000000",
+        //             fee => "0.0000000000",
         //             balance => "0.2855851000"
         //         ),
         //         ...
@@ -854,25 +914,18 @@ class kraken extends Exchange {
         $referenceAccount = null;
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
         $code = $this->safe_currency_code($this->safe_string($item, 'asset'), $currency);
-        $amount = $this->safe_number($item, 'amount');
-        if ($amount < 0) {
+        $amount = $this->safe_string($item, 'amount');
+        if (Precise::string_lt($amount, '0')) {
             $direction = 'out';
-            $amount = abs($amount);
+            $amount = Precise::string_abs($amount);
         } else {
             $direction = 'in';
         }
         $time = $this->safe_number($item, 'time');
         $timestamp = null;
         if ($time !== null) {
-            $timestamp = intval($time * 1000);
+            $timestamp = $this->parse_to_int($time * 1000);
         }
-        $fee = array(
-            'cost' => $this->safe_number($item, 'fee'),
-            'currency' => $code,
-        );
-        $before = null;
-        $after = $this->safe_number($item, 'balance');
-        $status = 'ok';
         return array(
             'info' => $item,
             'id' => $id,
@@ -882,17 +935,28 @@ class kraken extends Exchange {
             'referenceAccount' => $referenceAccount,
             'type' => $type,
             'currency' => $code,
-            'amount' => $amount,
-            'before' => $before,
-            'after' => $after,
-            'status' => $status,
+            'amount' => $this->parse_number($amount),
+            'before' => null,
+            'after' => $this->safe_number($item, 'balance'),
+            'status' => 'ok',
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'fee' => $fee,
+            'fee' => array(
+                'cost' => $this->safe_number($item, 'fee'),
+                'currency' => $code,
+            ),
         );
     }
 
-    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {string|null} $code unified $currency $code, default is null
+         * @param {int|null} $since timestamp in ms of the earliest $ledger entry, default is null
+         * @param {int|null} $limit max number of $ledger entrys to return, default is null
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
+         */
         // https://www.kraken.com/features/api#get-ledgers-info
         $this->load_markets();
         $request = array();
@@ -902,7 +966,7 @@ class kraken extends Exchange {
             $request['asset'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['start'] = intval($since / 1000);
+            $request['start'] = $this->parse_to_int($since / 1000);
         }
         $response = $this->privatePostLedgers (array_merge($request, $params));
         // {  error => array(),
@@ -927,7 +991,7 @@ class kraken extends Exchange {
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
-    public function fetch_ledger_entries_by_ids($ids, $code = null, $params = array ()) {
+    public function fetch_ledger_entries_by_ids($ids, ?string $code = null, $params = array ()) {
         // https://www.kraken.com/features/api#query-ledgers
         $this->load_markets();
         $ids = implode(',', $ids);
@@ -956,7 +1020,7 @@ class kraken extends Exchange {
         return $this->parse_ledger($items);
     }
 
-    public function fetch_ledger_entry($id, $code = null, $params = array ()) {
+    public function fetch_ledger_entry(string $id, ?string $code = null, $params = array ()) {
         $items = $this->fetch_ledger_entries_by_ids(array( $id ), $code, $params);
         return $items[0];
     }
@@ -1001,24 +1065,24 @@ class kraken extends Exchange {
         $orderId = null;
         $fee = null;
         $symbol = null;
-        if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
+        if (gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade))) {
             $timestamp = $this->safe_timestamp($trade, 2);
             $side = ($trade[3] === 's') ? 'sell' : 'buy';
             $type = ($trade[4] === 'l') ? 'limit' : 'market';
             $price = $this->safe_string($trade, 0);
             $amount = $this->safe_string($trade, 1);
-            $tradeLength = is_array($trade) ? count($trade) : 0;
+            $tradeLength = count($trade);
             if ($tradeLength > 6) {
-                $id = $this->safe_string($trade, 6); // artificially added as per #1794
+                $id = $this->safe_string($trade, 6); // artificially added #1794
             }
-        } else if (gettype($trade) === 'string') {
+        } elseif (gettype($trade) === 'string') {
             $id = $trade;
-        } else if (is_array($trade) && array_key_exists('ordertxid', $trade)) {
+        } elseif (is_array($trade) && array_key_exists('ordertxid', $trade)) {
             $marketId = $this->safe_string($trade, 'pair');
             $foundMarket = $this->find_market_by_altname_or_id($marketId);
             if ($foundMarket !== null) {
                 $market = $foundMarket;
-            } else if ($marketId !== null) {
+            } elseif ($marketId !== null) {
                 // delisted $market ids go here
                 $market = $this->get_delisted_market_by_id($marketId);
             }
@@ -1061,7 +1125,15 @@ class kraken extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $id = $market['id'];
@@ -1098,7 +1170,7 @@ class kraken extends Exchange {
         $result = $response['result'];
         $trades = $result[$id];
         // $trades is a sorted array => last (most recent trade) goes last
-        $length = is_array($trades) ? count($trades) : 0;
+        $length = count($trades);
         if ($length <= 0) {
             return array();
         }
@@ -1127,6 +1199,11 @@ class kraken extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $response = $this->privatePostBalance ($params);
         //
@@ -1142,7 +1219,18 @@ class kraken extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        /**
+         * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/addOrder
+         * create a trade order
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1151,51 +1239,8 @@ class kraken extends Exchange {
             'ordertype' => $type,
             'volume' => $this->amount_to_precision($symbol, $amount),
         );
-        $clientOrderId = $this->safe_string_2($params, 'userref', 'clientOrderId');
-        $params = $this->omit($params, array( 'userref', 'clientOrderId' ));
-        if ($clientOrderId !== null) {
-            $request['userref'] = $clientOrderId;
-        }
-        //
-        //     $market
-        //     limit ($price = limit $price)
-        //     stop-loss ($price = stop loss $price)
-        //     take-profit ($price = take profit $price)
-        //     stop-loss-limit ($price = stop loss trigger $price, price2 = triggered limit $price)
-        //     take-profit-limit ($price = take profit trigger $price, price2 = triggered limit $price)
-        //     settle-position
-        //
-        if ($type === 'limit') {
-            $request['price'] = $this->price_to_precision($symbol, $price);
-        } else if (($type === 'stop-loss') || ($type === 'take-profit')) {
-            $stopPrice = $this->safe_number_2($params, 'price', 'stopPrice', $price);
-            if ($stopPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument or a price/stopPrice parameter for a ' . $type . ' order');
-            } else {
-                $request['price'] = $this->price_to_precision($symbol, $stopPrice);
-            }
-        } else if (($type === 'stop-loss-limit') || ($type === 'take-profit-limit')) {
-            $stopPrice = $this->safe_number_2($params, 'price', 'stopPrice');
-            $limitPrice = $this->safe_number($params, 'price2');
-            $stopPriceDefined = ($stopPrice !== null);
-            $limitPriceDefined = ($limitPrice !== null);
-            if ($stopPriceDefined && $limitPriceDefined) {
-                $request['price'] = $this->price_to_precision($symbol, $stopPrice);
-                $request['price2'] = $this->price_to_precision($symbol, $limitPrice);
-            } else if (($price === null) || (!($stopPriceDefined || $limitPriceDefined))) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument and/or price/stopPrice/price2 parameters for a ' . $type . ' order');
-            } else {
-                if ($stopPriceDefined) {
-                    $request['price'] = $this->price_to_precision($symbol, $stopPrice);
-                    $request['price2'] = $this->price_to_precision($symbol, $price);
-                } else if ($limitPriceDefined) {
-                    $request['price'] = $this->price_to_precision($symbol, $price);
-                    $request['price2'] = $this->price_to_precision($symbol, $limitPrice);
-                }
-            }
-        }
-        $params = $this->omit($params, array( 'price', 'stopPrice', 'price2' ));
-        $response = $this->privatePostAddOrder (array_merge($request, $params));
+        $orderRequest = $this->order_request('createOrder()', $symbol, $type, $request, $price, $params);
+        $response = $this->privatePostAddOrder (array_merge($orderRequest[0], $orderRequest[1]));
         //
         //     {
         //         error => array(),
@@ -1210,12 +1255,12 @@ class kraken extends Exchange {
     }
 
     public function find_market_by_altname_or_id($id) {
-        if (is_array($this->marketsByAltname) && array_key_exists($id, $this->marketsByAltname)) {
-            return $this->marketsByAltname[$id];
-        } else if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
-            return $this->markets_by_id[$id];
+        $marketsByAltname = $this->safe_value($this->options, 'marketsByAltname', array());
+        if (is_array($marketsByAltname) && array_key_exists($id, $marketsByAltname)) {
+            return $marketsByAltname[$id];
+        } else {
+            return $this->safe_market($id);
         }
-        return null;
     }
 
     public function get_delisted_market_by_id($id) {
@@ -1234,7 +1279,7 @@ class kraken extends Exchange {
             $baseIdEnd = 4;
             $quoteIdStart = 4;
             $quoteIdEnd = 8;
-        } else if (strlen($id) === 7) {
+        } elseif (strlen($id) === 7) {
             $baseIdEnd = 4;
             $quoteIdStart = 4;
             $quoteIdEnd = 7;
@@ -1293,8 +1338,39 @@ class kraken extends Exchange {
         //         "descr":array("order":"sell 0.00100000 ETHUSD @ stop loss 2677.00 -> limit 2577.00 with 5:1 leverage")
         //     }
         //
+        // editOrder
+        //
+        //     {
+        //         "status" => "ok",
+        //         "txid" => "OAW2BO-7RWEK-PZY5UO",
+        //         "originaltxid" => "OXL6SS-UPNMC-26WBE7",
+        //         "volume" => "0.00075000",
+        //         "price" => "13500.0",
+        //         "orders_cancelled" => 1,
+        //         "descr" => {
+        //             "order" => "buy 0.00075000 XBTUSDT @ limit 13500.0"
+        //         }
+        //     }
+        //  ws - createOrder
+        //    {
+        //        descr => 'sell 0.00010000 XBTUSDT @ market',
+        //        event => 'addOrderStatus',
+        //        reqid => 1,
+        //        $status => 'ok',
+        //        $txid => 'OAVXZH-XIE54-JCYYDG'
+        //    }
+        //  ws - editOrder
+        //    {
+        //        "descr" => "order edited $price = 9000.00000000",
+        //        "event" => "editOrderStatus",
+        //        "originaltxid" => "O65KZW-J4AW3-VFS74A",
+        //        "reqid" => 3,
+        //        "status" => "ok",
+        //        "txid" => "OTI672-HJFAO-XOIPPK"
+        //    }
+        //
         $description = $this->safe_value($order, 'descr', array());
-        $orderDescription = $this->safe_string($description, 'order');
+        $orderDescription = $this->safe_string($description, 'order', $description);
         $side = null;
         $type = null;
         $marketId = null;
@@ -1310,7 +1386,7 @@ class kraken extends Exchange {
             if ($type === 'stop') {
                 $stopPrice = $this->safe_string($parts, 6);
                 $price = $this->safe_string($parts, 9);
-            } else if ($type === 'limit') {
+            } elseif ($type === 'limit') {
                 $price = $this->safe_string($parts, 5);
             }
         }
@@ -1321,7 +1397,7 @@ class kraken extends Exchange {
         $symbol = null;
         if ($foundMarket !== null) {
             $market = $foundMarket;
-        } else if ($marketId !== null) {
+        } elseif ($marketId !== null) {
             // delisted $market ids go here
             $market = $this->get_delisted_market_by_id($marketId);
         }
@@ -1350,14 +1426,14 @@ class kraken extends Exchange {
                 );
                 if (mb_strpos($flags, 'fciq') !== false) {
                     $fee['currency'] = $market['quote'];
-                } else if (mb_strpos($flags, 'fcib') !== false) {
+                } elseif (mb_strpos($flags, 'fcib') !== false) {
                     $fee['currency'] = $market['base'];
                 }
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $id = $this->safe_string($order, 'id');
-        if ($id === null) {
+        $id = $this->safe_string_2($order, 'id', 'txid');
+        if (($id === null) || (mb_substr($id, 0, 1 - 0) === '[')) {
             $txid = $this->safe_value($order, 'txid');
             $id = $this->safe_string($txid, 0);
         }
@@ -1379,6 +1455,7 @@ class kraken extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'cost' => null,
             'amount' => $amount,
             'filled' => $filled,
@@ -1389,7 +1466,125 @@ class kraken extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function order_request($method, $symbol, $type, $request, $price = null, $params = array ()) {
+        $clientOrderId = $this->safe_string_2($params, 'userref', 'clientOrderId');
+        $params = $this->omit($params, array( 'userref', 'clientOrderId' ));
+        if ($clientOrderId !== null) {
+            $request['userref'] = $clientOrderId;
+        }
+        //
+        //     market
+        //     limit ($price = limit $price)
+        //     stop-loss ($price = stop loss $price)
+        //     take-profit ($price = take profit $price)
+        //     stop-loss-limit ($price = stop loss trigger $price, price2 = triggered limit $price)
+        //     take-profit-limit ($price = take profit trigger $price, price2 = triggered limit $price)
+        //     settle-position
+        //
+        if ($type === 'limit') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        } elseif (($type === 'stop-loss') || ($type === 'take-profit')) {
+            $stopPrice = $this->safe_number_2($params, 'price', 'stopPrice', $price);
+            if ($stopPrice === null) {
+                throw new ArgumentsRequired($this->id . $method . ' requires a $price argument or a price/stopPrice parameter for a ' . $type . ' order');
+            } else {
+                $request['price'] = $this->price_to_precision($symbol, $stopPrice);
+            }
+        } elseif (($type === 'stop-loss-limit') || ($type === 'take-profit-limit')) {
+            $stopPrice = $this->safe_number_2($params, 'price', 'stopPrice');
+            $limitPrice = $this->safe_number($params, 'price2');
+            $stopPriceDefined = ($stopPrice !== null);
+            $limitPriceDefined = ($limitPrice !== null);
+            if ($stopPriceDefined && $limitPriceDefined) {
+                $request['price'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['price2'] = $this->price_to_precision($symbol, $limitPrice);
+            } elseif (($price === null) || (!($stopPriceDefined || $limitPriceDefined))) {
+                throw new ArgumentsRequired($this->id . $method . ' requires a $price argument and/or price/stopPrice/price2 parameters for a ' . $type . ' order');
+            } else {
+                if ($stopPriceDefined) {
+                    $request['price'] = $this->price_to_precision($symbol, $stopPrice);
+                    $request['price2'] = $this->price_to_precision($symbol, $price);
+                } elseif ($limitPriceDefined) {
+                    $request['price'] = $this->price_to_precision($symbol, $price);
+                    $request['price2'] = $this->price_to_precision($symbol, $limitPrice);
+                }
+            }
+        }
+        $close = $this->safe_value($params, 'close');
+        if ($close !== null) {
+            $close = array_merge(array(), $close);
+            $closePrice = $this->safe_value($close, 'price');
+            if ($closePrice !== null) {
+                $close['price'] = $this->price_to_precision($symbol, $closePrice);
+            }
+            $closePrice2 = $this->safe_value($close, 'price2'); // $stopPrice
+            if ($closePrice2 !== null) {
+                $close['price2'] = $this->price_to_precision($symbol, $closePrice2);
+            }
+            $request['close'] = $close;
+        }
+        $timeInForce = $this->safe_string_2($params, 'timeInForce', 'timeinforce');
+        if ($timeInForce !== null) {
+            $request['timeinforce'] = $timeInForce;
+        }
+        $params = $this->omit($params, array( 'price', 'stopPrice', 'price2', 'close', 'timeInForce' ));
+        return array( $request, $params );
+    }
+
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+        /**
+         * edit a trade order
+         * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/editOrder
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of the currency you want to trade in units of the base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
+        }
+        $request = array(
+            'txid' => $id,
+            'pair' => $market['id'],
+        );
+        if ($amount !== null) {
+            $request['volume'] = $this->amount_to_precision($symbol, $amount);
+        }
+        $orderRequest = $this->order_request('editOrder()', $symbol, $type, $request, $price, $params);
+        $response = $this->privatePostEditOrder (array_merge($orderRequest[0], $orderRequest[1]));
+        //
+        //     {
+        //         "error" => array(),
+        //         "result" => {
+        //             "status" => "ok",
+        //             "txid" => "OAW2BO-7RWEK-PZY5UO",
+        //             "originaltxid" => "OXL6SS-UPNMC-26WBE7",
+        //             "volume" => "0.00075000",
+        //             "price" => "13500.0",
+        //             "orders_cancelled" => 1,
+        //             "descr" => {
+        //                 "order" => "buy 0.00075000 XBTUSDT @ limit 13500.0"
+        //             }
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'result', array());
+        return $this->parse_order($data, $market);
+    }
+
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an $order made by the user
+         * @param {string|null} $symbol not used by kraken fetchOrder
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         */
         $this->load_markets();
         $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
         $request = array(
@@ -1450,7 +1645,16 @@ class kraken extends Exchange {
         return array_merge(array( 'info' => $response ), $order);
     }
 
-    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all the $trades made from a single order
+         * @param {string} $id order $id
+         * @param {string|null} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch $trades for
+         * @param {int|null} $limit the maximum number of $trades to retrieve
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+         */
         $orderTrades = $this->safe_value($params, 'trades');
         $tradeIds = array();
         if ($orderTrades === null) {
@@ -1466,10 +1670,13 @@ class kraken extends Exchange {
             }
         }
         $this->load_markets();
+        if ($symbol !== null) {
+            $symbol = $this->symbol($symbol);
+        }
         $options = $this->safe_value($this->options, 'fetchOrderTrades', array());
         $batchSize = $this->safe_integer($options, 'batchSize', 20);
-        $numTradeIds = is_array($tradeIds) ? count($tradeIds) : 0;
-        $numBatches = intval($numTradeIds / $batchSize);
+        $numTradeIds = count($tradeIds);
+        $numBatches = $this->parse_to_int($numTradeIds / $batchSize);
         $numBatches = $this->sum($numBatches, 1);
         $result = array();
         for ($j = 0; $j < $numBatches; $j++) {
@@ -1517,7 +1724,7 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_orders_by_ids($ids, $symbol = null, $params = array ()) {
+    public function fetch_orders_by_ids($ids, ?string $symbol = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostQueryOrders (array_merge(array(
             'trades' => true, // whether or not to include trades in output (optional, default false)
@@ -1535,7 +1742,15 @@ class kraken extends Exchange {
         return $orders;
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all $trades made by the user
+         * @param {string|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch $trades for
+         * @param {int|null} $limit the maximum number of $trades structures to retrieve
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         */
         $this->load_markets();
         $request = array(
             // 'type' => 'all', // any position, closed position, closing position, no position
@@ -1545,7 +1760,7 @@ class kraken extends Exchange {
             // 'ofs' = result offset
         );
         if ($since !== null) {
-            $request['start'] = intval($since / 1000);
+            $request['start'] = $this->parse_to_int($since / 1000);
         }
         $response = $this->privatePostTradesHistory (array_merge($request, $params));
         //
@@ -1585,7 +1800,14 @@ class kraken extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {string} $id order $id
+         * @param {string|null} $symbol unified $symbol of the market the order was made in
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
         $this->load_markets();
         $response = null;
         $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId', $id);
@@ -1606,16 +1828,53 @@ class kraken extends Exchange {
         return $response;
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple orders
+         * @param {[string]} $ids open orders transaction ID (txid) or user reference (userref)
+         * @param {string} $symbol unified market $symbol
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        $request = array(
+            'orders' => $ids,
+        );
+        $response = $this->privatePostCancelOrderBatch (array_merge($request, $params));
+        //
+        //     {
+        //         "error" => array(),
+        //         "result" => {
+        //           "count" => 2
+        //         }
+        //     }
+        //
+        return $response;
+    }
+
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders
+         * @param {string|null} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
         $this->load_markets();
         return $this->privatePostCancelAll ($params);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open $orders
+         * @param {string|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open $orders for
+         * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
         $this->load_markets();
         $request = array();
         if ($since !== null) {
-            $request['start'] = intval($since / 1000);
+            $request['start'] = $this->parse_to_int($since / 1000);
         }
         $query = $params;
         $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
@@ -1633,11 +1892,19 @@ class kraken extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed $orders made by the user
+         * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
         $this->load_markets();
         $request = array();
         if ($since !== null) {
-            $request['start'] = intval($since / 1000);
+            $request['start'] = $this->parse_to_int($since / 1000);
         }
         $query = $params;
         $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
@@ -1711,17 +1978,18 @@ class kraken extends Exchange {
         //
         // fetchDeposits
         //
-        //     { method => "Ether (Hex)",
-        //       aclass => "currency",
-        //        asset => "XETH",
-        //        refid => "Q2CANKL-LBFVEE-U4Y2WQ",
+        //     {
+        //         method => "Ether (Hex)",
+        //         aclass => "currency",
+        //         asset => "XETH",
+        //         refid => "Q2CANKL-LBFVEE-U4Y2WQ",
         //         $txid => "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
         //         info => "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
-        //       $amount => "7.9999257900",
-        //          fee => "0.0000000000",
+        //         $amount => "7.9999257900",
+        //         fee => "0.0000000000",
         //         time =>  1529223212,
-        //       $status => "Success"                                                       }
-        //
+        //         $status => "Success"
+        //     }
         //
         // there can be an additional 'status-prop' field present
         // deposit pending review by exchange => 'on-hold'
@@ -1745,19 +2013,25 @@ class kraken extends Exchange {
         //
         // fetchWithdrawals
         //
-        //     { method => "Ether",
-        //       aclass => "currency",
-        //        asset => "XETH",
-        //        refid => "A2BF34S-O7LBNQ-UE4Y4O",
+        //     {
+        //         method => "Ether",
+        //         aclass => "currency",
+        //         asset => "XETH",
+        //         refid => "A2BF34S-O7LBNQ-UE4Y4O",
         //         $txid => "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
         //         info => "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
-        //       $amount => "9.9950000000",
-        //          fee => "0.0050000000",
+        //         $amount => "9.9950000000",
+        //         fee => "0.0050000000",
         //         time =>  1530481750,
-        //       $status => "Success"                                                             }
+        //         $status => "Success"
+        //         $status-prop => 'on-hold' // this field might not be present in some cases
+        //     }
         //
-        // withdrawals may also have an additional 'status-prop' field present
+        // withdraw
         //
+        //     {
+        //         "refid" => "AGBSO6T-UFMTTQ-I7KGS6"
+        //     }
         //
         $id = $this->safe_string($transaction, 'refid');
         $txid = $this->safe_string($transaction, 'txid');
@@ -1806,7 +2080,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function parse_transactions_by_type($type, $transactions, $code = null, $since = null, $limit = null) {
+    public function parse_transactions_by_type($type, $transactions, ?string $code = null, ?int $since = null, ?int $limit = null) {
         $result = array();
         for ($i = 0; $i < count($transactions); $i++) {
             $transaction = $this->parse_transaction(array_merge(array(
@@ -1817,7 +2091,15 @@ class kraken extends Exchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @param {string|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         */
         // https://www.kraken.com/en-us/help/api#deposit-status
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
@@ -1845,6 +2127,11 @@ class kraken extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         // https://www.kraken.com/en-us/features/api#get-server-time
         $response = $this->publicGetTime ($params);
         //
@@ -1860,7 +2147,15 @@ class kraken extends Exchange {
         return $this->safe_timestamp($result, 'unixtime');
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made from an account
+         * @param {string} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         */
         // https://www.kraken.com/en-us/help/api#withdraw-status
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
@@ -1887,14 +2182,20 @@ class kraken extends Exchange {
         return $this->parse_transactions_by_type('withdrawal', $response['result'], $code, $since, $limit);
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
+        /**
+         * create a currency deposit address
+         * @param {string} $code unified currency $code of the currency for the deposit address
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         */
         $request = array(
             'new' => 'true',
         );
         return $this->fetch_deposit_address($code, array_merge($request, $params));
     }
 
-    public function fetch_deposit_methods($code, $params = array ()) {
+    public function fetch_deposit_methods(string $code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1927,7 +2228,13 @@ class kraken extends Exchange {
         return $this->safe_value($response, 'result');
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
+        /**
+         * fetch the deposit address for a $currency associated with this account
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $network = $this->safe_string_upper($params, 'network');
@@ -1941,7 +2248,7 @@ class kraken extends Exchange {
         $defaultDepositMethod = $this->safe_string($defaultDepositMethods, $code);
         $depositMethod = $this->safe_string($params, 'method', $defaultDepositMethod);
         // if the user has specified an exchange-specific method in $params
-        // we pass it as is, otherwise we take the 'network' unified param
+        // we pass it, otherwise we take the 'network' unified param
         if ($depositMethod === null) {
             $depositMethods = $this->fetch_deposit_methods($code);
             if ($network !== null) {
@@ -2002,7 +2309,16 @@ class kraken extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string|null} $tag
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         if (is_array($params) && array_key_exists('key', $params)) {
@@ -2014,17 +2330,27 @@ class kraken extends Exchange {
                 // 'address' => $address, // they don't allow withdrawals to direct addresses
             );
             $response = $this->privatePostWithdraw (array_merge($request, $params));
+            //
+            //     {
+            //         "error" => array(),
+            //         "result" => {
+            //             "refid" => "AGBSO6T-UFMTTQ-I7KGS6"
+            //         }
+            //     }
+            //
             $result = $this->safe_value($response, 'result', array());
-            $id = $this->safe_string($result, 'refid');
-            return array(
-                'info' => $result,
-                'id' => $id,
-            );
+            return $this->parse_transaction($result, $currency);
         }
-        throw new ExchangeError($this->id . " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");
+        throw new ExchangeError($this->id . " withdraw() requires a 'key' parameter (withdrawal key name, up on your account)");
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
+        /**
+         * fetch all open positions
+         * @param {[string]|null} $symbols not used by kraken fetchPositions ()
+         * @param {array} $params extra parameters specific to the kraken api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         */
         $this->load_markets();
         $request = array(
             // 'txid' => 'comma delimited list of transaction ids to restrict output to',
@@ -2086,12 +2412,19 @@ class kraken extends Exchange {
         $url = '/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
             if ($params) {
-                $url .= '?' . $this->urlencode($params);
+                // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
+                $url .= '?' . $this->urlencode_nested($params);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
+            $isCancelOrderBatch = ($path === 'CancelOrderBatch');
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
-            $body = $this->urlencode(array_merge(array( 'nonce' => $nonce ), $params));
+            // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
+            if ($isCancelOrderBatch) {
+                $body = $this->json(array_merge(array( 'nonce' => $nonce ), $params));
+            } else {
+                $body = $this->urlencode_nested(array_merge(array( 'nonce' => $nonce ), $params));
+            }
             $auth = $this->encode($nonce . $body);
             $hash = $this->hash($auth, 'sha256', 'binary');
             $binary = $this->encode($url);
@@ -2101,8 +2434,13 @@ class kraken extends Exchange {
             $headers = array(
                 'API-Key' => $this->apiKey,
                 'API-Sign' => $signature,
-                'Content-Type' => 'application/x-www-form-urlencoded',
+                // 'Content-Type' => 'application/x-www-form-urlencoded',
             );
+            if ($isCancelOrderBatch) {
+                $headers['Content-Type'] = 'application/json';
+            } else {
+                $headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            }
         } else {
             $url = '/' . $path;
         }
@@ -2138,12 +2476,12 @@ class kraken extends Exchange {
             throw new RateLimitExceeded($this->id . ' ' . $body);
         }
         if ($response === null) {
-            return;
+            return null;
         }
         if ($body[0] === '{') {
             if (gettype($response) !== 'string') {
                 if (is_array($response) && array_key_exists('error', $response)) {
-                    $numErrors = is_array($response['error']) ? count($response['error']) : 0;
+                    $numErrors = count($response['error']);
                     if ($numErrors) {
                         $message = $this->id . ' ' . $body;
                         for ($i = 0; $i < count($response['error']); $i++) {
@@ -2155,5 +2493,6 @@ class kraken extends Exchange {
                 }
             }
         }
+        return null;
     }
 }

@@ -61,125 +61,110 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
 
-The CCXT library currently supports the following 115 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 100 cryptocurrency exchange markets and trading APIs:
 
-| logo                                                                                                                                                                                              | id                 | name                                                                                     | ver                                                                                                                                                | certified                                                                                                                   | pro                                                                          |
-|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| [![aax](https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg)](https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB)                     | aax                | [AAX](https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB)                     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.aaxpro.com/apidoc/index.html)                                             |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![ascendex](https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg)](https://ascendex.com/en-us/register?inviteCode=EL6BXBQM)                      | ascendex           | [AscendEX](https://ascendex.com/en-us/register?inviteCode=EL6BXBQM)                      | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation)       | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) |                                                                              |
-| [![bequant](https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg)](https://bequant.io)                                                             | bequant            | [Bequant](https://bequant.io)                                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.bequant.io/)                                                              |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![bibox](https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg)](https://w2.bibox365.com/login/register?invite_code=05Kj3I)                       | bibox              | [Bibox](https://w2.bibox365.com/login/register?invite_code=05Kj3I)                       | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://biboxcom.github.io/en/)                                                       |                                                                                                                             |                                                                              |
-| [![bigone](https://user-images.githubusercontent.com/1294454/69354403-1d532180-0c91-11ea-88ed-44c06cefdf87.jpg)](https://b1.run/users/new?code=D3LLBVFT)                                          | bigone             | [BigONE](https://b1.run/users/new?code=D3LLBVFT)                                         | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://open.big.one/docs/api.html)                                                   |                                                                                                                             |                                                                              |
-| [![binance](https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg)](https://www.binance.com/en/register?ref=D7YA7CLY)                               | binance            | [Binance](https://www.binance.com/en/register?ref=D7YA7CLY)                              | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://binance-docs.github.io/apidocs/spot/en)                                       | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![binancecoinm](https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg)](https://www.binance.com/en/register?ref=D7YA7CLY)                         | binancecoinm       | [Binance COIN-M](https://www.binance.com/en/register?ref=D7YA7CLY)                       | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://binance-docs.github.io/apidocs/delivery/en/)                                  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![binanceus](https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg)](https://www.binance.us/?ref=35005074)                                         | binanceus          | [Binance US](https://www.binance.us/?ref=35005074)                                       | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://github.com/binance-us/binance-official-api-docs)                              |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![binanceusdm](https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg)](https://www.binance.com/en/register?ref=D7YA7CLY)                          | binanceusdm        | [Binance USDⓈ-M](https://www.binance.com/en/register?ref=D7YA7CLY)                       | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://binance-docs.github.io/apidocs/futures/en/)                                   | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![bit2c](https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg)](https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf)                     | bit2c              | [Bit2C](https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf)                    | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://www.bit2c.co.il/home/api)                                                     |                                                                                                                             |                                                                              |
-| [![bitbank](https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg)](https://bitbank.cc/)                                                            | bitbank            | [bitbank](https://bitbank.cc/)                                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.bitbank.cc/)                                                             |                                                                                                                             |                                                                              |
-| [![bitbns](https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg)](https://ref.bitbns.com/1090961)                                                 | bitbns             | [Bitbns](https://ref.bitbns.com/1090961)                                                 | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://bitbns.com/trade/#/api-trading/)                                              |                                                                                                                             |                                                                              |
-| [![bitcoincom](https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg)](https://fmfw.io/referral/da948b21d6c92d69)                                   | bitcoincom         | [FMFW.io](https://fmfw.io/referral/da948b21d6c92d69)                                     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.fmfw.io/api/2/explore/)                                                   |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![bitfinex](https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg)](https://www.bitfinex.com/?refcode=P61eYxFL)                                    | bitfinex           | [Bitfinex](https://www.bitfinex.com/?refcode=P61eYxFL)                                   | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.bitfinex.com/v1/docs)                                                    |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![bitfinex2](https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg)](https://www.bitfinex.com/?refcode=P61eYxFL)                                   | bitfinex2          | [Bitfinex](https://www.bitfinex.com/?refcode=P61eYxFL)                                   | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.bitfinex.com/v2/docs/)                                                   |                                                                                                                             |                                                                              |
-| [![bitflyer](https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg)](https://bitflyer.com)                                                          | bitflyer           | [bitFlyer](https://bitflyer.com)                                                         | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://lightning.bitflyer.com/docs?lang=en)                                          |                                                                                                                             |                                                                              |
-| [![bitforex](https://user-images.githubusercontent.com/51840849/87295553-1160ec00-c50e-11ea-8ea0-df79276a9646.jpg)](https://www.bitforex.com/en/invitationRegister?inviterId=1867438)             | bitforex           | [Bitforex](https://www.bitforex.com/en/invitationRegister?inviterId=1867438)             | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/githubdev2020/API_Doc_en/wiki)                                     |                                                                                                                             |                                                                              |
-| [![bitget](https://user-images.githubusercontent.com/51840849/88317935-a8a21c80-cd22-11ea-8e2b-4b9fac5975eb.jpg)](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j)  | bitget             | [Bitget](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j)  | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://bitgetlimited.github.io/apidoc/en/swap)                                       |                                                                                                                             |                                                                              |
-| [![bithumb](https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg)](https://www.bithumb.com)                                                        | bithumb            | [Bithumb](https://www.bithumb.com)                                                       | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://apidocs.bithumb.com)                                                          |                                                                                                                             |                                                                              |
-| [![bitmart](https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg)](http://www.bitmart.com/?r=rQCFLh)                                              | bitmart            | [BitMart](http://www.bitmart.com/?r=rQCFLh)                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://developer-pro.bitmart.com/)                                                   | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![bitmex](https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg)](https://www.bitmex.com/register/upZpOX)                                          | bitmex             | [BitMEX](https://www.bitmex.com/register/upZpOX)                                         | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.bitmex.com/app/apiOverview)                                               |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![bitopro](https://user-images.githubusercontent.com/1294454/158227251-3a92a220-9222-453c-9277-977c6677fe71.jpg)](https://www.bitopro.com)                                                       | bitopro            | [BitoPro](https://www.bitopro.com)                                                       | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/rest.md)   |                                                                                                                             |                                                                              |
-| [![bitpanda](https://user-images.githubusercontent.com/51840849/87591171-9a377d80-c6f0-11ea-94ac-97a126eac3bc.jpg)](https://www.bitpanda.com/en/pro)                                              | bitpanda           | [Bitpanda Pro](https://www.bitpanda.com/en/pro)                                          | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://developers.bitpanda.com/exchange/)                                            |                                                                                                                             |                                                                              |
-| [![bitrue](https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg)](https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000) | bitrue             | [Bitrue](https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000) | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/Bitrue-exchange/bitrue-official-api-docs)                          |                                                                                                                             |                                                                              |
-| [![bitso](https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg)](https://bitso.com/?ref=itej)                                                     | bitso              | [Bitso](https://bitso.com/?ref=itej)                                                     | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://bitso.com/api_info)                                                           |                                                                                                                             |                                                                              |
-| [![bitstamp](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)](https://www.bitstamp.net)                                                      | bitstamp           | [Bitstamp](https://www.bitstamp.net)                                                     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.bitstamp.net/api)                                                         |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![bitstamp1](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)](https://www.bitstamp.net)                                                     | bitstamp1          | [Bitstamp](https://www.bitstamp.net)                                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.bitstamp.net/api)                                                         |                                                                                                                             |                                                                              |
-| [![bittrex](https://user-images.githubusercontent.com/51840849/87153921-edf53180-c2c0-11ea-96b9-f2a9a95a455b.jpg)](https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B)                 | bittrex            | [Bittrex](https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B)                 | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://bittrex.github.io/api/v3)                                                     |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![bitvavo](https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg)](https://bitvavo.com/?a=24F34952F7)                                              | bitvavo            | [Bitvavo](https://bitvavo.com/?a=24F34952F7)                                             | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.bitvavo.com/)                                                            | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![bkex](https://user-images.githubusercontent.com/1294454/158043180-bb079a65-69e8-45a2-b393-f094d334e610.jpg)](https://www.bkex.com/)                                                            | bkex               | [BKEX](https://www.bkex.com/)                                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://bkexapi.github.io/docs/api_en.htm)                                            |                                                                                                                             |                                                                              |
-| [![bl3p](https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg)](https://bl3p.eu)                                                                   | bl3p               | [BL3P](https://bl3p.eu)                                                                  | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/BitonicNL/bl3p-api/tree/master/docs)                               |                                                                                                                             |                                                                              |
-| [![blockchaincom](https://user-images.githubusercontent.com/1294454/147515585-1296e91b-7398-45e5-9d32-f6121538533f.jpeg)](https://blockchain.com)                                                 | blockchaincom      | [Blockchain.com](https://blockchain.com)                                                 | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.blockchain.com/v3)                                                        |                                                                                                                             |                                                                              |
-| [![btcalpha](https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg)](https://btc-alpha.com/?r=123788)                                               | btcalpha           | [BTC-Alpha](https://btc-alpha.com/?r=123788)                                             | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://btc-alpha.github.io/api-docs)                                                 |                                                                                                                             |                                                                              |
-| [![btcbox](https://user-images.githubusercontent.com/51840849/87327317-98c55400-c53c-11ea-9a11-81f7d951cc74.jpg)](https://www.btcbox.co.jp/)                                                      | btcbox             | [BtcBox](https://www.btcbox.co.jp/)                                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://blog.btcbox.jp/en/archives/8762)                                              |                                                                                                                             |                                                                              |
-| [![btcmarkets](https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg)](https://btcmarkets.net)                                                     | btcmarkets         | [BTC Markets](https://btcmarkets.net)                                                    | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.btcmarkets.net/doc/v3)                                                    |                                                                                                                             |                                                                              |
-| [![btctradeua](https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg)](https://btc-trade.com.ua/registration/22689)                                 | btctradeua         | [BTC Trade UA](https://btc-trade.com.ua/registration/22689)                              | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit) |                                                                                                                             |                                                                              |
-| [![btcturk](https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg)](https://www.btcturk.com)                                                       | btcturk            | [BTCTurk](https://www.btcturk.com)                                                       | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://github.com/BTCTrader/broker-api-docs)                                         |                                                                                                                             |                                                                              |
-| [![buda](https://user-images.githubusercontent.com/1294454/47380619-8a029200-d706-11e8-91e0-8a391fe48de3.jpg)](https://www.buda.com)                                                              | buda               | [Buda](https://www.buda.com)                                                             | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.buda.com)                                                                 |                                                                                                                             |                                                                              |
-| [![bw](https://user-images.githubusercontent.com/1294454/69436317-31128c80-0d52-11ea-91d1-eb7bb5818812.jpg)](https://www.bw.com/regGetCommission/N3JuT1R3bWxKTE0)                                 | bw                 | [BW](https://www.bw.com/regGetCommission/N3JuT1R3bWxKTE0)                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/bw-exchange/api_docs_en/wiki)                                      |                                                                                                                             |                                                                              |
-| [![bybit](https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg)](https://www.bybit.com/app/register?ref=X7Prm)                                    | bybit              | [Bybit](https://www.bybit.com/app/register?ref=X7Prm)                                    | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://bybit-exchange.github.io/docs/inverse/)                                       |                                                                                                                             |                                                                              |
-| [![bytetrade](https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg)](https://www.byte-trade.com)                                                   | bytetrade          | [ByteTrade](https://www.byte-trade.com)                                                  | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.byte-trade.com/#description)                                             |                                                                                                                             |                                                                              |
-| [![cdax](https://user-images.githubusercontent.com/1294454/102157692-fd406280-3e90-11eb-8d46-4511b617cd17.jpg)](https://cdax.io/invite?invite_code=esc74)                                         | cdax               | [CDAX](https://cdax.io/invite?invite_code=esc74)                                         | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/cloudapidoc/API_Docs)                                              |                                                                                                                             |                                                                              |
-| [![cex](https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg)](https://cex.io/r/0/up105393824/0/)                                                  | cex                | [CEX.IO](https://cex.io/r/0/up105393824/0/)                                              | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://cex.io/cex-api)                                                               |                                                                                                                             |                                                                              |
-| [![coinbase](https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg)](https://www.coinbase.com/join/58cbe25a355148797479dbd2)                        | coinbase           | [Coinbase](https://www.coinbase.com/join/58cbe25a355148797479dbd2)                       | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://developers.coinbase.com/api/v2)                                               |                                                                                                                             |                                                                              |
-| [![coinbaseprime](https://user-images.githubusercontent.com/1294454/44539184-29f26e00-a70c-11e8-868f-e907fc236a7c.jpg)](https://exchange.coinbase.com)                                            | coinbaseprime      | [Coinbase Prime](https://exchange.coinbase.com)                                          | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.exchange.coinbase.com)                                                   |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![coinbasepro](https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg)](https://pro.coinbase.com/)                                                  | coinbasepro        | [Coinbase Pro](https://pro.coinbase.com/)                                                | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.pro.coinbase.com)                                                        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![coincheck](https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg)](https://coincheck.com)                                                       | coincheck          | [coincheck](https://coincheck.com)                                                       | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://coincheck.com/documents/exchange/api)                                         |                                                                                                                             |                                                                              |
-| [![coinex](https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg)](https://www.coinex.com/register?refer_code=yw5fz)                               | coinex             | [CoinEx](https://www.coinex.com/register?refer_code=yw5fz)                               | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/coinexcom/coinex_exchange_api/wiki)                                |                                                                                                                             |                                                                              |
-| [![coinfalcon](https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg)](https://coinfalcon.com/?ref=CFJSVGTUPASB)                                    | coinfalcon         | [CoinFalcon](https://coinfalcon.com/?ref=CFJSVGTUPASB)                                   | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.coinfalcon.com)                                                          |                                                                                                                             |                                                                              |
-| [![coinmate](https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg)](https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0)     | coinmate           | [CoinMate](https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0)     | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://coinmate.docs.apiary.io)                                                      |                                                                                                                             |                                                                              |
-| [![coinone](https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg)](https://coinone.co.kr)                                                          | coinone            | [CoinOne](https://coinone.co.kr)                                                         | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://doc.coinone.co.kr)                                                            |                                                                                                                             |                                                                              |
-| [![coinspot](https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg)](https://www.coinspot.com.au/register?code=PJURCU)                              | coinspot           | [CoinSpot](https://www.coinspot.com.au/register?code=PJURCU)                             | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://www.coinspot.com.au/api)                                                      |                                                                                                                             |                                                                              |
-| [![crex24](https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg)](https://crex24.com/?refid=slxsjsjtil8xexl9hksr)                                  | crex24             | [CREX24](https://crex24.com/?refid=slxsjsjtil8xexl9hksr)                                 | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.crex24.com/trade-api/v2)                                                 |                                                                                                                             |                                                                              |
-| [![cryptocom](https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg)](https://crypto.com/exch/5835vstech)                                         | cryptocom          | [Crypto.com](https://crypto.com/exch/5835vstech)                                         | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://exchange-docs.crypto.com/)                                                    |                                                                                                                             |                                                                              |
-| [![currencycom](https://user-images.githubusercontent.com/1294454/83718672-36745c00-a63e-11ea-81a9-677b1f789a4d.jpg)](https://currency.com/trading/signup?c=362jaimv&pid=referral)                | currencycom        | [Currency.com](https://currency.com/trading/signup?c=362jaimv&pid=referral)              | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://currency.com/api)                                                             | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![delta](https://user-images.githubusercontent.com/1294454/99450025-3be60a00-2931-11eb-9302-f4fd8d8589aa.jpg)](https://www.delta.exchange/app/signup/?code=IULYNB)                               | delta              | [Delta Exchange](https://www.delta.exchange/app/signup/?code=IULYNB)                     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.delta.exchange)                                                          |                                                                                                                             |                                                                              |
-| [![deribit](https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg)](https://www.deribit.com/reg-1189.4038)                                          | deribit            | [Deribit](https://www.deribit.com/reg-1189.4038)                                         | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.deribit.com/v2)                                                          |                                                                                                                             |                                                                              |
-| [![digifinex](https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg)](https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp)              | digifinex          | [DigiFinex](https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp)              | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://docs.digifinex.com)                                                           |                                                                                                                             |                                                                              |
-| [![eqonex](https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg)](https://eqonex.com?referredByCode=zpa8kij4ouvBFup3)                            | eqonex             | [EQONEX](https://eqonex.com?referredByCode=zpa8kij4ouvBFup3)                             | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://developer.eqonex.com)                                                         |                                                                                                                             |                                                                              |
-| [![equos](https://user-images.githubusercontent.com/1294454/107758499-05edd180-6d38-11eb-9e09-0b69602a7a15.jpg)](https://eqonex.com?referredByCode=zpa8kij4ouvBFup3)                              | equos              | [EQUOS](https://eqonex.com?referredByCode=zpa8kij4ouvBFup3)                              | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://developer.eqonex.com)                                                         |                                                                                                                             |                                                                              |
-| [![exmo](https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg)](https://exmo.me/?ref=131685)                                                       | exmo               | [EXMO](https://exmo.me/?ref=131685)                                                      | [![API Version 1.1](https://img.shields.io/badge/1.1-lightgray)](https://exmo.me/en/api_doc?ref=131685)                                            |                                                                                                                             |                                                                              |
-| [![flowbtc](https://user-images.githubusercontent.com/51840849/87443317-01c0d080-c5fe-11ea-95c2-9ebe1a8fafd9.jpg)](https://one.ndax.io/bfQiSL)                                                    | flowbtc            | [flowBTC](https://one.ndax.io/bfQiSL)                                                    | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://www.flowbtc.com.br/api.html)                                                  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![fmfwio](https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg)](https://fmfw.io/referral/da948b21d6c92d69)                                       | fmfwio             | [FMFW.io](https://fmfw.io/referral/da948b21d6c92d69)                                     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.fmfw.io/api/2/explore/)                                                   |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![ftx](https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg)](https://ftx.com/#a=ccxt)                                                            | ftx                | [FTX](https://ftx.com/#a=ccxt)                                                           | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://github.com/ftexchange/ftx)                                                    | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![ftxus](https://user-images.githubusercontent.com/1294454/141506670-12f6115f-f425-4cd8-b892-b51d157ca01f.jpg)](https://ftx.com/#a=ccxt)                                                         | ftxus              | [FTX US](https://ftx.com/#a=ccxt)                                                        | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://github.com/ftexchange/ftx)                                                    |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![gateio](https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg)](https://www.gate.io/ref/2436035)                                                 | gateio             | [Gate.io](https://www.gate.io/ref/2436035)                                               | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://www.gate.io/docs/apiv4/en/index.html)                                         | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![gemini](https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg)](https://gemini.com/)                                                             | gemini             | [Gemini](https://gemini.com/)                                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.gemini.com/rest-api)                                                     |                                                                                                                             |                                                                              |
-| [![hitbtc](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                        | hitbtc             | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                       | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.hitbtc.com/v2)                                                            |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![hitbtc3](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                       | hitbtc3            | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                       | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.hitbtc.com)                                                               |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![hollaex](https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg)](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                         | hollaex            | [HollaEx](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://apidocs.hollaex.com)                                                          |                                                                                                                             |                                                                              |
-| [![huobi](https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg)](https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223)            | huobi              | [Huobi](https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223)           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://huobiapi.github.io/docs/spot/v1/cn/)                                          | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![huobijp](https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg)](https://www.huobi.co.jp/register/?invite_code=znnq3)                            | huobijp            | [Huobi Japan](https://www.huobi.co.jp/register/?invite_code=znnq3)                       | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api-doc.huobi.co.jp)                                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![idex](https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg)](https://idex.io)                                                                  | idex               | [IDEX](https://idex.io)                                                                  | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.idex.io/)                                                                | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![independentreserve](https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg)](https://www.independentreserve.com)                                 | independentreserve | [Independent Reserve](https://www.independentreserve.com)                                | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://www.independentreserve.com/API)                                               |                                                                                                                             |                                                                              |
-| [![indodax](https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg)](https://indodax.com/ref/testbitcoincoid/1)                                     | indodax            | [INDODAX](https://indodax.com/ref/testbitcoincoid/1)                                     | [![API Version 2.0](https://img.shields.io/badge/2.0-lightgray)](https://github.com/btcid/indodax-official-api-docs)                               |                                                                                                                             |                                                                              |
-| [![itbit](https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg)](https://www.itbit.com)                                                            | itbit              | [itBit](https://www.itbit.com)                                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api.itbit.com/docs)                                                           |                                                                                                                             |                                                                              |
-| [![kraken](https://user-images.githubusercontent.com/51840849/76173629-fc67fb00-61b1-11ea-84fe-f2de582f58a3.jpg)](https://www.kraken.com)                                                         | kraken             | [Kraken](https://www.kraken.com)                                                         | [![API Version 0](https://img.shields.io/badge/0-lightgray)](https://www.kraken.com/features/api)                                                  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![kucoin](https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg)](https://www.kucoin.com/?rcode=E5wkqe)                                           | kucoin             | [KuCoin](https://www.kucoin.com/?rcode=E5wkqe)                                           | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.kucoin.com)                                                              |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![kucoinfutures](https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg)](https://futures.kucoin.com/?rcode=E5wkqe)                                | kucoinfutures      | [KuCoin Futures](https://futures.kucoin.com/?rcode=E5wkqe)                               | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.kucoin.com/futures)                                                      |                                                                                                                             |                                                                              |
-| [![kuna](https://user-images.githubusercontent.com/51840849/87153927-f0578b80-c2c0-11ea-84b6-74612568e9e1.jpg)](https://kuna.io?r=kunaid-gvfihe8az7o4)                                            | kuna               | [Kuna](https://kuna.io?r=kunaid-gvfihe8az7o4)                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://kuna.io/documents/api)                                                        |                                                                                                                             |                                                                              |
-| [![latoken](https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg)](https://latoken.com/invite?r=mvgp2djk)                                          | latoken            | [Latoken](https://latoken.com/invite?r=mvgp2djk)                                         | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.latoken.com)                                                              |                                                                                                                             |                                                                              |
-| [![lbank](https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg)](https://www.lbex.io/invite?icode=7QCY)                                            | lbank              | [LBank](https://www.lbex.io/invite?icode=7QCY)                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/LBank-exchange/lbank-official-api-docs)                            |                                                                                                                             |                                                                              |
-| [![liquid](https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg)](https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976)                         | liquid             | [Liquid](https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976)                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://developers.liquid.com)                                                        |                                                                                                                             |                                                                              |
-| [![luno](https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg)](https://www.luno.com/invite/44893A)                                                | luno               | [luno](https://www.luno.com/invite/44893A)                                               | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.luno.com/en/api)                                                          |                                                                                                                             |                                                                              |
-| [![lykke](https://user-images.githubusercontent.com/1294454/155840500-1ea4fdf0-47c0-4daa-9597-c6c1cd51b9ec.jpg)](https://www.lykke.com)                                                           | lykke              | [Lykke](https://www.lykke.com)                                                           | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://hft-apiv2.lykke.com/swagger/ui/index.html)                                    |                                                                                                                             |                                                                              |
-| [![mercado](https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg)](https://www.mercadobitcoin.com.br)                                              | mercado            | [Mercado Bitcoin](https://www.mercadobitcoin.com.br)                                     | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.mercadobitcoin.com.br/api-doc)                                            |                                                                                                                             |                                                                              |
-| [![mexc](https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg)](https://m.mexc.com/auth/signup?inviteCode=1FQ1G)                                  | mexc               | [MEXC Global](https://m.mexc.com/auth/signup?inviteCode=1FQ1G)                           | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://mxcdevelop.github.io/APIDoc/)                                                 | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) |                                                                              |
-| [![ndax](https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg)](https://one.ndax.io/bfQiSL)                                                       | ndax               | [NDAX](https://one.ndax.io/bfQiSL)                                                       | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://apidoc.ndax.io/)                                                              |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![novadax](https://user-images.githubusercontent.com/1294454/92337550-2b085500-f0b3-11ea-98e7-5794fb07dd3b.jpg)](https://www.novadax.com.br/?s=ccxt)                                             | novadax            | [NovaDAX](https://www.novadax.com.br/?s=ccxt)                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://doc.novadax.com/pt-BR/)                                                       |                                                                                                                             |                                                                              |
-| [![oceanex](https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg)](https://oceanex.pro/signup?referral=VE24QX)                                     | oceanex            | [OceanEx](https://oceanex.pro/signup?referral=VE24QX)                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api.oceanex.pro/doc/v1)                                                       |                                                                                                                             |                                                                              |
-| [![okcoin](https://user-images.githubusercontent.com/51840849/87295551-102fbf00-c50e-11ea-90a9-462eebba5829.jpg)](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)      | okcoin             | [OKCoin](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)      | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.okcoin.com/docs/en/)                                                      |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![okx](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.okx.com/join/1888677)                                                  | okx                | [OKX](https://www.okx.com/join/1888677)                                                  | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okx.com/docs-v5/en/)                                                      | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![paymium](https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg)](https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj)            | paymium            | [Paymium](https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj)            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/Paymium/api-documentation)                                         |                                                                                                                             |                                                                              |
-| [![phemex](https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg)](https://phemex.com/register?referralCode=EDNVJ)                                  | phemex             | [Phemex](https://phemex.com/register?referralCode=EDNVJ)                                 | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/phemex/phemex-api-docs)                                            |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://poloniex.com/signup?c=UBFZJRPJ)                                        | poloniex           | [Poloniex](https://poloniex.com/signup?c=UBFZJRPJ)                                       | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.poloniex.com)                                                            |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![probit](https://user-images.githubusercontent.com/51840849/79268032-c4379480-7ea2-11ea-80b3-dd96bb29fd0d.jpg)](https://www.probit.com/r/34608773)                                              | probit             | [ProBit](https://www.probit.com/r/34608773)                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs-en.probit.com)                                                           |                                                                                                                             |                                                                              |
-| [![qtrade](https://user-images.githubusercontent.com/51840849/80491487-74a99c00-896b-11ea-821e-d307e832f13e.jpg)](https://qtrade.io/?ref=BKOQWVFGRH2C)                                            | qtrade             | [qTrade](https://qtrade.io/?ref=BKOQWVFGRH2C)                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://qtrade-exchange.github.io/qtrade-docs)                                        |                                                                                                                             |                                                                              |
-| [![ripio](https://user-images.githubusercontent.com/1294454/94507548-a83d6a80-0218-11eb-9998-28b9cec54165.jpg)](https://exchange.ripio.com)                                                       | ripio              | [Ripio](https://exchange.ripio.com)                                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://exchange.ripio.com/en/api/)                                                   |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![stex](https://user-images.githubusercontent.com/1294454/69680782-03fd0b80-10bd-11ea-909e-7f603500e9cc.jpg)](https://app.stex.com?ref=36416021)                                                 | stex               | [STEX](https://app.stex.com?ref=36416021)                                                | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://help.stex.com/en/collections/1593608-api-v3-documentation)                    |                                                                                                                             |                                                                              |
-| [![therock](https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg)](https://therocktrading.com)                                                     | therock            | [TheRockTrading](https://therocktrading.com)                                             | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api.therocktrading.com/doc/v1/index.html)                                     |                                                                                                                             |                                                                              |
-| [![tidebit](https://user-images.githubusercontent.com/51840849/87460811-1e690280-c616-11ea-8652-69f187305add.jpg)](http://bit.ly/2IX0LrM)                                                         | tidebit            | [TideBit](http://bit.ly/2IX0LrM)                                                         | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.tidebit.com/documents/api/guide)                                          |                                                                                                                             |                                                                              |
-| [![tidex](https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg)](https://tidex.com/exchange/?ref=57f5638d9cd7)                                     | tidex              | [Tidex](https://tidex.com/exchange/?ref=57f5638d9cd7)                                    | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://tidex.com/exchange/public-api)                                                |                                                                                                                             |                                                                              |
-| [![timex](https://user-images.githubusercontent.com/1294454/70423869-6839ab00-1a7f-11ea-8f94-13ae72c31115.jpg)](https://timex.io/?refcode=1x27vNkTbP1uwkCck)                                      | timex              | [TimeX](https://timex.io/?refcode=1x27vNkTbP1uwkCck)                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.timex.io)                                                                |                                                                                                                             |                                                                              |
-| [![upbit](https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg)](https://upbit.com)                                                                | upbit              | [Upbit](https://upbit.com)                                                               | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C)          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![vcc](https://user-images.githubusercontent.com/1294454/100545356-8427f500-326c-11eb-9539-7d338242d61b.jpg)](https://vcc.exchange?ref=l4xhrH)                                                   | vcc                | [VCC Exchange](https://vcc.exchange?ref=l4xhrH)                                          | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://vcc.exchange/api)                                                             |                                                                                                                             |                                                                              |
-| [![wavesexchange](https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg)](https://waves.exchange)                                                   | wavesexchange      | [Waves.Exchange](https://waves.exchange)                                                 | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.waves.exchange)                                                          | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) |                                                                              |
-| [![wazirx](https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg)](https://wazirx.com/invite/k7rrnks5)                                            | wazirx             | [WazirX](https://wazirx.com/invite/k7rrnks5)                                             | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.wazirx.com/#public-rest-api-for-wazirx)                                  |                                                                                                                             |                                                                              |
-| [![whitebit](https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg)](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)            | whitebit           | [WhiteBit](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)           | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://github.com/whitebit-exchange/api-docs)                                        |                                                                                                                             |                                                                              |
-| [![woo](https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg)](https://referral.woo.org/BAJS6oNmZb3vi3RGA)                                        | woo                | [WOO X](https://referral.woo.org/BAJS6oNmZb3vi3RGA)                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.woo.org/)                                                                |                                                                                                                             |                                                                              |
-| [![xena](https://user-images.githubusercontent.com/51840849/87489843-bb469280-c64c-11ea-91aa-69c6326506af.jpg)](https://xena.exchange)                                                            | xena               | [Xena Exchange](https://xena.exchange)                                                   | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://support.xena.exchange/support/solutions/44000808700)                          |                                                                                                                             |                                                                              |
-| [![yobit](https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg)](https://www.yobit.net)                                                            | yobit              | [YoBit](https://www.yobit.net)                                                           | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.yobit.net/en/api/)                                                        |                                                                                                                             |                                                                              |
-| [![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)](https://zaif.jp)                                                                   | zaif               | [Zaif](https://zaif.jp)                                                                  | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://techbureau-api-document.readthedocs.io/ja/latest/index.html)                  |                                                                                                                             |                                                                              |
-| [![zb](https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg)](https://www.zbex.club/en/register?ref=4301lera)                                      | zb                 | [ZB](https://www.zbex.club/en/register?ref=4301lera)                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.zb.com/i/developer)                                                       | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![zipmex](https://user-images.githubusercontent.com/1294454/146103275-c39a34d9-68a4-4cd2-b1f1-c684548d311b.jpg)](https://trade.zipmex.com/global/accounts/sign-up?aff=KLm7HyCsvN)                | zipmex             | [Zipmex](https://trade.zipmex.com/global/accounts/sign-up?aff=KLm7HyCsvN)                | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://apidoc.ndax.io/)                                                              |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![zonda](https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg)](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                    | zonda              | [Zonda](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                   | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.zonda.exchange/)                                                         |                                                                                                                             |                                                                              |
+| logo                                                                                                                                                                                                            | id                 | name                                                                                                    | ver                                                                                                                                                | certified                                                                                                                   | pro                                                                          |
+|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|---------------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| [![ace](https://user-images.githubusercontent.com/1294454/216908003-fb314cf6-e66e-471c-b91d-1d86e4baaa90.jpg)](https://ace.io/)                                                                                 | ace                | [ACE](https://ace.io/)                                                                                  | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://github.com/ace-exchange/ace-offical-api-docs)                                 |                                                                                                                             |                                                                              |
+| [![alpaca](https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg)](https://alpaca.markets)                                                                       | alpaca             | [Alpaca](https://alpaca.markets)                                                                        | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://alpaca.markets/docs/)                                                         |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![ascendex](https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg)](https://ascendex.com/en-us/register?inviteCode=EL6BXBQM)                                    | ascendex           | [AscendEX](https://ascendex.com/en-us/register?inviteCode=EL6BXBQM)                                     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation)          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![bequant](https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg)](https://bequant.io)                                                                           | bequant            | [Bequant](https://bequant.io)                                                                           | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.bequant.io/)                                                              |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![bigone](https://user-images.githubusercontent.com/1294454/69354403-1d532180-0c91-11ea-88ed-44c06cefdf87.jpg)](https://b1.run/users/new?code=D3LLBVFT)                                                        | bigone             | [BigONE](https://b1.run/users/new?code=D3LLBVFT)                                                        | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://open.big.one/docs/api.html)                                                   |                                                                                                                             |                                                                              |
+| [![binance](https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg)](https://accounts.binance.com/en/register?ref=D7YA7CLY)                                        | binance            | [Binance](https://accounts.binance.com/en/register?ref=D7YA7CLY)                                        | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://binance-docs.github.io/apidocs/spot/en)                                       | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![binancecoinm](https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg)](https://accounts.binance.com/en/register?ref=D7YA7CLY)                                  | binancecoinm       | [Binance COIN-M](https://accounts.binance.com/en/register?ref=D7YA7CLY)                                 | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://binance-docs.github.io/apidocs/delivery/en/)                                  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![binanceus](https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg)](https://www.binance.us/?ref=35005074)                                                       | binanceus          | [Binance US](https://www.binance.us/?ref=35005074)                                                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://github.com/binance-us/binance-official-api-docs)                              |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![binanceusdm](https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg)](https://accounts.binance.com/en/register?ref=D7YA7CLY)                                   | binanceusdm        | [Binance USDⓈ-M](https://accounts.binance.com/en/register?ref=D7YA7CLY)                                 | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://binance-docs.github.io/apidocs/futures/en/)                                   | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![bit2c](https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg)](https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf)                                   | bit2c              | [Bit2C](https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf)                                   | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://www.bit2c.co.il/home/api)                                                     |                                                                                                                             |                                                                              |
+| [![bitbank](https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg)](https://bitbank.cc/)                                                                          | bitbank            | [bitbank](https://bitbank.cc/)                                                                          | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.bitbank.cc/)                                                             |                                                                                                                             |                                                                              |
+| [![bitbns](https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg)](https://ref.bitbns.com/1090961)                                                               | bitbns             | [Bitbns](https://ref.bitbns.com/1090961)                                                                | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://bitbns.com/trade/#/api-trading/)                                              |                                                                                                                             |                                                                              |
+| [![bitfinex](https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg)](https://www.bitfinex.com/?refcode=P61eYxFL)                                                  | bitfinex           | [Bitfinex](https://www.bitfinex.com/?refcode=P61eYxFL)                                                  | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.bitfinex.com/v1/docs)                                                    |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![bitfinex2](https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg)](https://www.bitfinex.com)                                                                   | bitfinex2          | [Bitfinex](https://www.bitfinex.com)                                                                    | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.bitfinex.com/v2/docs/)                                                   |                                                                                                                             |                                                                              |
+| [![bitflyer](https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg)](https://bitflyer.com)                                                                        | bitflyer           | [bitFlyer](https://bitflyer.com)                                                                        | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://lightning.bitflyer.com/docs?lang=en)                                          |                                                                                                                             |                                                                              |
+| [![bitforex](https://user-images.githubusercontent.com/51840849/87295553-1160ec00-c50e-11ea-8ea0-df79276a9646.jpg)](https://www.bitforex.com/en/invitationRegister?inviterId=1867438)                           | bitforex           | [Bitforex](https://www.bitforex.com/en/invitationRegister?inviterId=1867438)                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/githubdev2020/API_Doc_en/wiki)                                     |                                                                                                                             |                                                                              |
+| [![bitget](https://user-images.githubusercontent.com/1294454/195989417-4253ddb0-afbe-4a1c-9dea-9dbcd121fa5d.jpg)](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j)                | bitget             | [Bitget](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j)                 | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://bitgetlimited.github.io/apidoc/en/mix)                                        | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![bithumb](https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg)](https://www.bithumb.com)                                                                      | bithumb            | [Bithumb](https://www.bithumb.com)                                                                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://apidocs.bithumb.com)                                                          |                                                                                                                             |                                                                              |
+| [![bitmart](https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg)](http://www.bitmart.com/?r=rQCFLh)                                                            | bitmart            | [BitMart](http://www.bitmart.com/?r=rQCFLh)                                                             | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://developer-pro.bitmart.com/)                                                   | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![bitmex](https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg)](https://www.bitmex.com/register/upZpOX)                                                        | bitmex             | [BitMEX](https://www.bitmex.com/register/upZpOX)                                                        | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.bitmex.com/app/apiOverview)                                               | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![bitopro](https://user-images.githubusercontent.com/1294454/158227251-3a92a220-9222-453c-9277-977c6677fe71.jpg)](https://www.bitopro.com)                                                                     | bitopro            | [BitoPro](https://www.bitopro.com)                                                                      | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/rest.md)   |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![bitpanda](https://user-images.githubusercontent.com/51840849/87591171-9a377d80-c6f0-11ea-94ac-97a126eac3bc.jpg)](https://www.bitpanda.com/en/pro)                                                            | bitpanda           | [Bitpanda Pro](https://www.bitpanda.com/en/pro)                                                         | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://developers.bitpanda.com/exchange/)                                            |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![bitrue](https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg)](https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000)               | bitrue             | [Bitrue](https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000)                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/Bitrue-exchange/bitrue-official-api-docs)                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![bitso](https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg)](https://bitso.com/?ref=itej)                                                                   | bitso              | [Bitso](https://bitso.com/?ref=itej)                                                                    | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://bitso.com/api_info)                                                           |                                                                                                                             |                                                                              |
+| [![bitstamp](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)](https://www.bitstamp.net)                                                                    | bitstamp           | [Bitstamp](https://www.bitstamp.net)                                                                    | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.bitstamp.net/api)                                                         |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![bitstamp1](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)](https://www.bitstamp.net)                                                                   | bitstamp1          | [Bitstamp](https://www.bitstamp.net)                                                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.bitstamp.net/api)                                                         |                                                                                                                             |                                                                              |
+| [![bittrex](https://user-images.githubusercontent.com/51840849/87153921-edf53180-c2c0-11ea-96b9-f2a9a95a455b.jpg)](https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B)                               | bittrex            | [Bittrex](https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B)                                | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://bittrex.github.io/api/v3)                                                     |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![bitvavo](https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg)](https://bitvavo.com/?a=24F34952F7)                                                           | bitvavo            | [Bitvavo](https://bitvavo.com/?a=24F34952F7)                                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.bitvavo.com/)                                                            | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![bkex](https://user-images.githubusercontent.com/1294454/158043180-bb079a65-69e8-45a2-b393-f094d334e610.jpg)](https://www.bkex.com/)                                                                          | bkex               | [BKEX](https://www.bkex.com/)                                                                           | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://bkexapi.github.io/docs/api_en.htm)                                            |                                                                                                                             |                                                                              |
+| [![bl3p](https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg)](https://bl3p.eu)                                                                                 | bl3p               | [BL3P](https://bl3p.eu)                                                                                 | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/BitonicNL/bl3p-api/tree/master/docs)                               |                                                                                                                             |                                                                              |
+| [![blockchaincom](https://user-images.githubusercontent.com/1294454/147515585-1296e91b-7398-45e5-9d32-f6121538533f.jpeg)](https://blockchain.com)                                                               | blockchaincom      | [Blockchain.com](https://blockchain.com)                                                                | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.blockchain.com/v3)                                                        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![btcalpha](https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg)](https://btc-alpha.com/?r=123788)                                                             | btcalpha           | [BTC-Alpha](https://btc-alpha.com/?r=123788)                                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://btc-alpha.github.io/api-docs)                                                 |                                                                                                                             |                                                                              |
+| [![btcbox](https://user-images.githubusercontent.com/51840849/87327317-98c55400-c53c-11ea-9a11-81f7d951cc74.jpg)](https://www.btcbox.co.jp/)                                                                    | btcbox             | [BtcBox](https://www.btcbox.co.jp/)                                                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://blog.btcbox.jp/en/archives/8762)                                              |                                                                                                                             |                                                                              |
+| [![btcex](https://user-images.githubusercontent.com/1294454/173489620-d49807a4-55cd-4f4e-aca9-534921298bbf.jpg)](https://www.btcex.com/en-us/register?i=48biatg1)                                               | btcex              | [BTCEX](https://www.btcex.com/en-us/register?i=48biatg1)                                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.btcex.com/)                                                              |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![btcmarkets](https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg)](https://btcmarkets.net)                                                                   | btcmarkets         | [BTC Markets](https://btcmarkets.net)                                                                   | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.btcmarkets.net/doc/v3)                                                    |                                                                                                                             |                                                                              |
+| [![btctradeua](https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg)](https://btc-trade.com.ua/registration/22689)                                               | btctradeua         | [BTC Trade UA](https://btc-trade.com.ua/registration/22689)                                             | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit) |                                                                                                                             |                                                                              |
+| [![btcturk](https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg)](https://www.btcturk.com)                                                                     | btcturk            | [BTCTurk](https://www.btcturk.com)                                                                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://github.com/BTCTrader/broker-api-docs)                                         |                                                                                                                             |                                                                              |
+| [![bybit](https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg)](https://www.bybit.com/register?affiliate_id=35953)                                             | bybit              | [Bybit](https://www.bybit.com/register?affiliate_id=35953)                                              | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://bybit-exchange.github.io/docs/inverse/)                                       | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![cex](https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg)](https://cex.io/r/0/up105393824/0/)                                                                | cex                | [CEX.IO](https://cex.io/r/0/up105393824/0/)                                                             | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://cex.io/cex-api)                                                               |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![coinbase](https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg)](https://www.coinbase.com/join/58cbe25a355148797479dbd2)                                      | coinbase           | [Coinbase](https://www.coinbase.com/join/58cbe25a355148797479dbd2)                                      | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://developers.coinbase.com/api/v2)                                               |                                                                                                                             |                                                                              |
+| [![coinbaseprime](https://user-images.githubusercontent.com/1294454/44539184-29f26e00-a70c-11e8-868f-e907fc236a7c.jpg)](https://exchange.coinbase.com)                                                          | coinbaseprime      | [Coinbase Prime](https://exchange.coinbase.com)                                                         | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.exchange.coinbase.com)                                                   |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![coinbasepro](https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg)](https://pro.coinbase.com/)                                                                | coinbasepro        | [Coinbase Pro](https://pro.coinbase.com/)                                                               | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.pro.coinbase.com)                                                        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![coincheck](https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg)](https://coincheck.com)                                                                     | coincheck          | [coincheck](https://coincheck.com)                                                                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://coincheck.com/documents/exchange/api)                                         |                                                                                                                             |                                                                              |
+| [![coinex](https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg)](https://www.coinex.com/register?refer_code=yw5fz)                                             | coinex             | [CoinEx](https://www.coinex.com/register?refer_code=yw5fz)                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/coinexcom/coinex_exchange_api/wiki)                                |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![coinfalcon](https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg)](https://coinfalcon.com/?ref=CFJSVGTUPASB)                                                  | coinfalcon         | [CoinFalcon](https://coinfalcon.com/?ref=CFJSVGTUPASB)                                                  | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.coinfalcon.com)                                                          |                                                                                                                             |                                                                              |
+| [![coinmate](https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg)](https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0)                   | coinmate           | [CoinMate](https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0)                    | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://coinmate.docs.apiary.io)                                                      |                                                                                                                             |                                                                              |
+| [![coinone](https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg)](https://coinone.co.kr)                                                                        | coinone            | [CoinOne](https://coinone.co.kr)                                                                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://doc.coinone.co.kr)                                                            |                                                                                                                             |                                                                              |
+| [![coinsph](https://user-images.githubusercontent.com/1294454/225719995-48ab2026-4ddb-496c-9da7-0d7566617c9b.jpg)](https://coins.ph/)                                                                           | coinsph            | [Coins.ph](https://coins.ph/)                                                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://coins-docs.github.io/rest-api)                                                |                                                                                                                             |                                                                              |
+| [![coinspot](https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg)](https://www.coinspot.com.au/register?code=PJURCU)                                            | coinspot           | [CoinSpot](https://www.coinspot.com.au/register?code=PJURCU)                                            | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://www.coinspot.com.au/api)                                                      |                                                                                                                             |                                                                              |
+| [![cryptocom](https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg)](https://crypto.com/exch/5835vstech)                                                       | cryptocom          | [Crypto.com](https://crypto.com/exch/5835vstech)                                                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html)                      | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![currencycom](https://user-images.githubusercontent.com/1294454/83718672-36745c00-a63e-11ea-81a9-677b1f789a4d.jpg)](https://currency.com/trading/signup?c=362jaimv&pid=referral)                              | currencycom        | [Currency.com](https://currency.com/trading/signup?c=362jaimv&pid=referral)                             | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://currency.com/api)                                                             |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![delta](https://user-images.githubusercontent.com/1294454/99450025-3be60a00-2931-11eb-9302-f4fd8d8589aa.jpg)](https://www.delta.exchange/app/signup/?code=IULYNB)                                             | delta              | [Delta Exchange](https://www.delta.exchange/app/signup/?code=IULYNB)                                    | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.delta.exchange)                                                          |                                                                                                                             |                                                                              |
+| [![deribit](https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg)](https://www.deribit.com/reg-1189.4038)                                                        | deribit            | [Deribit](https://www.deribit.com/reg-1189.4038)                                                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.deribit.com/v2)                                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![digifinex](https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg)](https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp)                            | digifinex          | [DigiFinex](https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp)                             | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://docs.digifinex.com)                                                           |                                                                                                                             |                                                                              |
+| [![exmo](https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg)](https://exmo.me/?ref=131685)                                                                     | exmo               | [EXMO](https://exmo.me/?ref=131685)                                                                     | [![API Version 1.1](https://img.shields.io/badge/1.1-lightgray)](https://exmo.me/en/api_doc?ref=131685)                                            |                                                                                                                             |                                                                              |
+| [![fmfwio](https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg)](https://fmfw.io/referral/da948b21d6c92d69)                                                    | fmfwio             | [FMFW.io](https://fmfw.io/referral/da948b21d6c92d69)                                                    | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.fmfw.io/api/2/explore/)                                                   |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![gate](https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg)](https://www.gate.io/ref/2436035)                                                                 | gate               | [Gate.io](https://www.gate.io/ref/2436035)                                                              | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://www.gate.io/docs/developers/apiv4/en/)                                        | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![gemini](https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg)](https://gemini.com/)                                                                           | gemini             | [Gemini](https://gemini.com/)                                                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.gemini.com/rest-api)                                                     |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![hitbtc](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                                      | hitbtc             | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                                      | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.hitbtc.com/v2)                                                            |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![hitbtc3](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                                     | hitbtc3            | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                                      | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.hitbtc.com)                                                               |                                                                                                                             |                                                                              |
+| [![hollaex](https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg)](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                                       | hollaex            | [HollaEx](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                                       | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://apidocs.hollaex.com)                                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![huobi](https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg)](https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223) | huobi              | [Huobi](https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223) | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://huobiapi.github.io/docs/spot/v1/en/)                                          | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![huobijp](https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg)](https://www.huobi.co.jp/register/?invite_code=znnq3)                                          | huobijp            | [Huobi Japan](https://www.huobi.co.jp/register/?invite_code=znnq3)                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api-doc.huobi.co.jp)                                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![idex](https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg)](https://idex.io)                                                                                | idex               | [IDEX](https://idex.io)                                                                                 | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://docs.idex.io/)                                                                |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![independentreserve](https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg)](https://www.independentreserve.com)                                               | independentreserve | [Independent Reserve](https://www.independentreserve.com)                                               | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://www.independentreserve.com/API)                                               |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![indodax](https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg)](https://indodax.com/ref/testbitcoincoid/1)                                                   | indodax            | [INDODAX](https://indodax.com/ref/testbitcoincoid/1)                                                    | [![API Version 2.0](https://img.shields.io/badge/2.0-lightgray)](https://github.com/btcid/indodax-official-api-docs)                               |                                                                                                                             |                                                                              |
+| [![kraken](https://user-images.githubusercontent.com/51840849/76173629-fc67fb00-61b1-11ea-84fe-f2de582f58a3.jpg)](https://www.kraken.com)                                                                       | kraken             | [Kraken](https://www.kraken.com)                                                                        | [![API Version 0](https://img.shields.io/badge/0-lightgray)](https://www.kraken.com/features/api)                                                  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![krakenfutures](https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg)](https://futures.kraken.com/)                                                           | krakenfutures      | [Kraken Futures](https://futures.kraken.com/)                                                           | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://support.kraken.com/hc/en-us/categories/360001806372-Futures-API)              |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![kucoin](https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg)](https://www.kucoin.com/ucenter/signup?rcode=E5wkqe)                                           | kucoin             | [KuCoin](https://www.kucoin.com/ucenter/signup?rcode=E5wkqe)                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.kucoin.com)                                                              | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![kucoinfutures](https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg)](https://futures.kucoin.com/?rcode=E5wkqe)                                              | kucoinfutures      | [KuCoin Futures](https://futures.kucoin.com/?rcode=E5wkqe)                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.kucoin.com/futures)                                                      |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![kuna](https://user-images.githubusercontent.com/51840849/87153927-f0578b80-c2c0-11ea-84b6-74612568e9e1.jpg)](https://kuna.io?r=kunaid-gvfihe8az7o4)                                                          | kuna               | [Kuna](https://kuna.io?r=kunaid-gvfihe8az7o4)                                                           | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://kuna.io/documents/api)                                                        |                                                                                                                             |                                                                              |
+| [![latoken](https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg)](https://latoken.com/invite?r=mvgp2djk)                                                        | latoken            | [Latoken](https://latoken.com/invite?r=mvgp2djk)                                                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.latoken.com)                                                              |                                                                                                                             |                                                                              |
+| [![lbank](https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg)](https://www.lbank.info/invitevip?icode=7QCY)                                                    | lbank              | [LBank](https://www.lbank.info/invitevip?icode=7QCY)                                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/LBank-exchange/lbank-official-api-docs)                            |                                                                                                                             |                                                                              |
+| [![lbank2](https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg)](https://www.lbank.info/invitevip?icode=7QCY)                                                   | lbank2             | [LBank](https://www.lbank.info/invitevip?icode=7QCY)                                                    | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.lbank.info/en-US/docs/index.html)                                         |                                                                                                                             |                                                                              |
+| [![luno](https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg)](https://www.luno.com/invite/44893A)                                                              | luno               | [luno](https://www.luno.com/invite/44893A)                                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.luno.com/en/api)                                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![lykke](https://user-images.githubusercontent.com/1294454/155840500-1ea4fdf0-47c0-4daa-9597-c6c1cd51b9ec.jpg)](https://www.lykke.com)                                                                         | lykke              | [Lykke](https://www.lykke.com)                                                                          | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://hft-apiv2.lykke.com/swagger/ui/index.html)                                    |                                                                                                                             |                                                                              |
+| [![mercado](https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg)](https://www.mercadobitcoin.com.br)                                                            | mercado            | [Mercado Bitcoin](https://www.mercadobitcoin.com.br)                                                    | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.mercadobitcoin.com.br/api-doc)                                            |                                                                                                                             |                                                                              |
+| [![mexc](https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg)](https://m.mexc.com/auth/signup?inviteCode=1FQ1G)                                                | mexc               | [MEXC Global](https://m.mexc.com/auth/signup?inviteCode=1FQ1G)                                          | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://mxcdevelop.github.io/apidocs/spot_v3_en/)                                     | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![ndax](https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg)](https://one.ndax.io/bfQiSL)                                                                     | ndax               | [NDAX](https://one.ndax.io/bfQiSL)                                                                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://apidoc.ndax.io/)                                                              |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![novadax](https://user-images.githubusercontent.com/1294454/92337550-2b085500-f0b3-11ea-98e7-5794fb07dd3b.jpg)](https://www.novadax.com.br/?s=ccxt)                                                           | novadax            | [NovaDAX](https://www.novadax.com.br/?s=ccxt)                                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://doc.novadax.com/pt-BR/)                                                       |                                                                                                                             |                                                                              |
+| [![oceanex](https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg)](https://oceanex.pro/signup?referral=VE24QX)                                                   | oceanex            | [OceanEx](https://oceanex.pro/signup?referral=VE24QX)                                                   | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api.oceanex.pro/doc/v1)                                                       |                                                                                                                             |                                                                              |
+| [![okcoin](https://user-images.githubusercontent.com/51840849/87295551-102fbf00-c50e-11ea-90a9-462eebba5829.jpg)](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                    | okcoin             | [OKCoin](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                     | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.okcoin.com/docs/en/)                                                      |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![okx](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.okx.com/join/1888677)                                                                | okx                | [OKX](https://www.okx.com/join/1888677)                                                                 | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okx.com/docs-v5/en/)                                                      | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![paymium](https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg)](https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj)                          | paymium            | [Paymium](https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj)                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/Paymium/api-documentation)                                         |                                                                                                                             |                                                                              |
+| [![phemex](https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg)](https://phemex.com/register?referralCode=EDNVJ)                                                | phemex             | [Phemex](https://phemex.com/register?referralCode=EDNVJ)                                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/phemex/phemex-api-docs)                                            |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://poloniex.com/signup?c=UBFZJRPJ)                                                      | poloniex           | [Poloniex](https://poloniex.com/signup?c=UBFZJRPJ)                                                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.poloniex.com)                                                            |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![poloniexfutures](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://poloniex.com/signup?c=UBFZJRPJ)                                               | poloniexfutures    | [Poloniex Futures](https://poloniex.com/signup?c=UBFZJRPJ)                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://futures-docs.poloniex.com)                                                    |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![probit](https://user-images.githubusercontent.com/51840849/79268032-c4379480-7ea2-11ea-80b3-dd96bb29fd0d.jpg)](https://www.probit.com/r/34608773)                                                            | probit             | [ProBit](https://www.probit.com/r/34608773)                                                             | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs-en.probit.com)                                                           |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![tidex](https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg)](https://tidex.com/exchange)                                                                     | tidex              | [Tidex](https://tidex.com/exchange)                                                                     | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://tidex.com/exchange/public-api)                                                |                                                                                                                             |                                                                              |
+| [![timex](https://user-images.githubusercontent.com/1294454/70423869-6839ab00-1a7f-11ea-8f94-13ae72c31115.jpg)](https://timex.io/?refcode=1x27vNkTbP1uwkCck)                                                    | timex              | [TimeX](https://timex.io/?refcode=1x27vNkTbP1uwkCck)                                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.timex.io)                                                                |                                                                                                                             |                                                                              |
+| [![tokocrypto](https://user-images.githubusercontent.com/1294454/183870484-d3398d0c-f6a1-4cce-91b8-d58792308716.jpg)](https://tokocrypto.com)                                                                   | tokocrypto         | [Tokocrypto](https://tokocrypto.com)                                                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.tokocrypto.com/apidocs/)                                                  |                                                                                                                             |                                                                              |
+| [![upbit](https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg)](https://upbit.com)                                                                              | upbit              | [Upbit](https://upbit.com)                                                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C)          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![wavesexchange](https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg)](https://waves.exchange)                                                                 | wavesexchange      | [Waves.Exchange](https://waves.exchange)                                                                | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.waves.exchange)                                                          | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) |                                                                              |
+| [![wazirx](https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg)](https://wazirx.com/invite/k7rrnks5)                                                          | wazirx             | [WazirX](https://wazirx.com/invite/k7rrnks5)                                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.wazirx.com/#public-rest-api-for-wazirx)                                  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![whitebit](https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg)](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                          | whitebit           | [WhiteBit](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                          | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://github.com/whitebit-exchange/api-docs)                                        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![woo](https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg)](https://referral.woo.org/BAJS6oNmZb3vi3RGA)                                                      | woo                | [WOO X](https://referral.woo.org/BAJS6oNmZb3vi3RGA)                                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.woo.org/)                                                                |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![xt](https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg)](https://www.xt.com/en/accounts/register?ref=9PTM9VW)                                             | xt                 | [XT](https://www.xt.com/en/accounts/register?ref=9PTM9VW)                                               | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://doc.xt.com/)                                                                  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) |                                                                              |
+| [![yobit](https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg)](https://www.yobit.net)                                                                          | yobit              | [YoBit](https://www.yobit.net)                                                                          | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.yobit.net/en/api/)                                                        |                                                                                                                             |                                                                              |
+| [![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)](https://zaif.jp)                                                                                 | zaif               | [Zaif](https://zaif.jp)                                                                                 | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://techbureau-api-document.readthedocs.io/ja/latest/index.html)                  |                                                                                                                             |                                                                              |
+| [![zonda](https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg)](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                                 | zonda              | [Zonda](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                                  | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.zonda.exchange/)                                                         |                                                                                                                             |                                                                              |
 
 Besides making basic market and limit orders, some exchanges offer margin trading (leverage), various derivatives (like futures contracts and options) and also have [dark pools](https://en.wikipedia.org/wiki/Dark_pool), [OTC](https://en.wikipedia.org/wiki/Over-the-counter_(finance)) (over-the-counter trading), merchant APIs and much more.
 
@@ -189,19 +174,19 @@ To connect to an exchange and start trading you need to instantiate an exchange 
 
 To get the full list of ids of supported exchanges programmatically:
 
-```JavaScript
+```javascript
 // JavaScript
 const ccxt = require ('ccxt')
 console.log (ccxt.exchanges)
 ```
 
-```Python
+```python
 # Python
 import ccxt
 print (ccxt.exchanges)
 ```
 
-```PHP
+```php
 // PHP
 include 'ccxt.php';
 var_dump (\ccxt\Exchange::$exchanges);
@@ -209,7 +194,7 @@ var_dump (\ccxt\Exchange::$exchanges);
 
 An exchange can be instantiated like shown in the examples below:
 
-```JavaScript
+```javascript
 // JavaScript
 const ccxt = require ('ccxt')
 let exchange = new ccxt.kraken () // default id
@@ -227,7 +212,7 @@ const exchangeId = 'binance'
     })
 ```
 
-```Python
+```python
 # Python
 import ccxt
 exchange = ccxt.okcoinusd () # default id
@@ -248,7 +233,7 @@ exchange = exchange_class({
 
 The ccxt library in PHP uses builtin UTC/GMT time functions, therefore you are required to set date.timezone in your php.ini or call [date_default_timezone_set()](http://php.net/manual/en/function.date-default-timezone-set.php) function before using the PHP version of the library. The recommended timezone setting is `"UTC"`.
 
-```PHP
+```php
 // PHP
 date_default_timezone_set('UTC');
 include 'ccxt.php';
@@ -272,7 +257,7 @@ $exchange = new $exchange_class(array(
 
 Most of exchange properties as well as specific options can be overrided upon exchange class instantiation or afterwards, like shown below:
 
-```JavaScript
+```javascript
 // JavaScript
 const exchange = new ccxt.binance ({
     'rateLimit': 10000, // unified exchange property
@@ -286,7 +271,7 @@ const exchange = new ccxt.binance ({
 exchange.options['adjustForTimeDifference'] = false
 ```
 
-```Python
+```python
 # Python
 exchange = ccxt.binance ({
     'rateLimit': 10000,  # unified exchange property
@@ -300,7 +285,7 @@ exchange = ccxt.binance ({
 exchange.options['adjustForTimeDifference'] = False
 ```
 
-```PHP
+```php
 // PHP
 $exchange_id = 'binance';
 $exchange_class = "\\ccxt\\$exchange_id";
@@ -323,19 +308,19 @@ Some exchanges also offer separate APIs for testing purposes that allows develop
 CCXT unifies that aspect and allows the user to switch to the exchange's sandbox (if supported by the underlying exchange).
 To switch to the sandbox one has to call the `exchange.setSandboxMode (true)` or `exchange.set_sandbox_mode(true)` **immediately after creating the exchange before any other call**!
 
-```JavaScript
+```javascript
 // JavaScript
 const exchange = new ccxt.binance (config)
 exchange.setSandboxMode (true) // enable sandbox mode
 ```
 
-```Python
+```python
 # Python
 exchange = ccxt.binance(config)
 exchange.set_sandbox_mode(True)  # enable sandbox mode
 ```
 
-```PHP
+```php
 // PHP
 $exchange = new \ccxt\binance($config);
 $exchange->set_sandbox_mode(true); // enable sandbox mode
@@ -351,7 +336,7 @@ Every exchange has a set of properties and methods, most of which you can overri
 
 Here's an overview of generic exchange properties with values added for example:
 
-```JavaScript
+```javascript
 {
     'id':   'exchange'                   // lowercase string exchange id
     'name': 'Exchange'                   // human-readable string
@@ -365,19 +350,19 @@ Here's an overview of generic exchange properties with values added for example:
     'api':             { ... },          // dictionary of api endpoints
     'has': {                             // exchange capabilities
         'CORS': false,
-        'publicAPI': true,
-        'privateAPI': true,
         'cancelOrder': true,
         'createDepositAddress': false,
         'createOrder': true,
-        'deposit': false,
         'fetchBalance': true,
+        'fetchCanceledOrders': false,
+        'fetchClosedOrder': false,
         'fetchClosedOrders': false,
         'fetchCurrencies': false,
         'fetchDepositAddress': false,
         'fetchMarkets': true,
         'fetchMyTrades': false,
         'fetchOHLCV': false,
+        'fetchOpenOrder': false,
         'fetchOpenOrders': false,
         'fetchOrder': false,
         'fetchOrderBook': true,
@@ -403,7 +388,7 @@ Here's an overview of generic exchange properties with values added for example:
     'markets':          { ... }          // dictionary of markets/pairs by symbol
     'symbols':          [ ... ]          // sorted list of string symbols (traded pairs)
     'currencies':       { ... }          // dictionary of currencies by currency code
-    'markets_by_id':    { ... },         // dictionary of dictionaries (markets) by id
+    'markets_by_id':    { ... },         // dictionary of array of dictionaries (markets) by id
     'currencies_by_id': { ... },         // dictionary of dictionaries (markets) by id
     'apiKey':   '92560ffae9b8a0421...',  // string public apiKey (ASCII, hex, Base64, ...)
     'secret':   '9aHjPmW+EtRRKN/Oi...'   // string private secret key
@@ -449,7 +434,7 @@ Below is a detailed description of each of the base exchange properties:
 - `headers`: An associative array of HTTP headers and their values. Default value is empty `{}`. All headers will be prepended to all requests. If the `User-Agent` header is set within `headers`, it will override whatever value is set in the `userAgent` property above.
 
 - `verbose`: A boolean flag indicating whether to log HTTP requests to stdout (verbose flag is false by default). Python people have an alternative way of DEBUG logging with a standard pythonic logger, which is enabled by adding these two lines to the beginning of their code:
-  ```Python
+  ```python
   import logging
   logging.basicConfig(level=logging.DEBUG)
   ```
@@ -460,9 +445,9 @@ Below is a detailed description of each of the base exchange properties:
 
 - `currencies`: An associative array (a dict) of currencies by codes (usually 3 or 4 letters) available with an exchange. Currencies are loaded and reloaded from markets.
 
-- `markets_by_id`: An associative array of markets indexed by exchange-specific ids. Markets should be loaded prior to accessing this property.
+- `markets_by_id`: An associative array of arrays of markets indexed by exchange-specific ids. Typically a length one array unless there are multiple markets with the same marketId. Markets should be loaded prior to accessing this property.
 
-- `proxy`: A string literal containing base URL of http(s) proxy, `''` by default. For use with web browsers and from blocked locations. An example of a proxy string is `'http://crossorigin.me/'`. The absolute exchange endpoint URL is appended to this string before sending the HTTP request.
+- `proxy`: A string literal containing base URL of http(s) proxy, `''` by default. For use with web browsers and from blocked locations. An example of a proxy string is `'http://cors-anywhere.herokuapp.com/'`. The absolute exchange endpoint URL is appended to this string before sending the HTTP request.
 
 - `apiKey`: This is your public API key string literal. Most exchanges require [API keys setup](#api-keys-setup).
 
@@ -484,27 +469,26 @@ See this section on [Overriding exchange properties](#overriding-exchange-proper
 
 - `has`: An assoc-array containing flags for exchange capabilities, including the following:
 
-    ```JavaScript
+    ```javascript
     'has': {
 
         'CORS': false,  // has Cross-Origin Resource Sharing enabled (works from browser) or not
-
-        'publicAPI': true,  // has public API available and implemented, true/false
-        'privateAPI': true, // has private API available and implemented, true/false
 
         // unified methods availability flags (can be true, false, or 'emulated'):
 
         'cancelOrder': true,
         'createDepositAddress': false,
         'createOrder': true,
-        'deposit': false,
         'fetchBalance': true,
+        'fetchCanceledOrders': false,
+        'fetchClosedOrder': false,
         'fetchClosedOrders': false,
         'fetchCurrencies': false,
         'fetchDepositAddress': false,
         'fetchMarkets': true,
         'fetchMyTrades': false,
         'fetchOHLCV': false,
+        'fetchOpenOrder': false,
         'fetchOpenOrders': false,
         'fetchOrder': false,
         'fetchOrderBook': true,
@@ -542,12 +526,12 @@ The CCXT library has a built-in experimental rate-limiter that will do the neces
 
 Turn on/off the built-in rate-limiter with `.enableRateLimit` property, like so:
 
-```JavaScript
+```javascript
 // JavaScript
 
 // enable built-in rate limiting upon instantiation of the exchange
 const exchange = new ccxt.bitfinex ({
-    'enableRateLimit': true,
+    // 'enableRateLimit': true, // enabled by default
 })
 
 // or switch the built-in rate-limiter on or off later after instantiation
@@ -555,12 +539,12 @@ exchange.enableRateLimit = true // enable
 exchange.enableRateLimit = false // disable
 ```
 
-```Python
+```python
 # Python
 
 # enable built-in rate limiting upon instantiation of the exchange
 exchange = ccxt.bitfinex({
-    'enableRateLimit': True,
+    # 'enableRateLimit': True,  # enabled by default
 })
 
 # or switch the built-in rate-limiter on or off later after instantiation
@@ -568,12 +552,12 @@ exchange.enableRateLimit = True  # enable
 exchange.enableRateLimit = False  # disable
 ```
 
-```PHP
+```php
 // PHP
 
 // enable built-in rate limiting upon instantiation of the exchange
 $exchange = new \ccxt\bitfinex (array (
-    'enableRateLimit' => true,
+    // 'enableRateLimit' => true, // enabled by default
 ));
 
 // or switch the built-in rate-limiter on or off later after instantiation
@@ -594,7 +578,7 @@ A later retry is usually enough to handle that.
 
 The rate limiter is a property of the exchange instance, in other words, each exchange instance has its own rate limiter that is not aware of the other instances. In many cases the user should reuse the same exchange instance throughout the program. Do not use multiple instances of the same exchange with the same API keypair from the same IP address.
 
-```JavaScript
+```javascript
 // DO NOT DO THIS!
 
 const binance1 = new ccxt.binance ({ enableRateLimit: true })
@@ -613,7 +597,7 @@ while (true) {
 
 Reuse the exchange instance as much as possible as shown below:
 
-```JavaScript
+```javascript
 // DO THIS INSTEAD:
 
 const binance = new ccxt.binance ({ enableRateLimit: true })
@@ -628,9 +612,9 @@ while (true) {
 }
 ```
 
-Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits. If you are recreating the exchange instance every time instead of reusing it, CCXT will try to load the markets every time you call a unified method like fetchOrderBook, fetchBalance, etc. This, you will force-load the markets over and over as explained in the [Loading Markets](https://docs.ccxt.com/en/latest/manual.html#loading-markets) section. Abusing the markets endpoint will eventually break the rate limiter as well.
+Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits. If you are recreating the exchange instance every time instead of reusing it, CCXT will try to load the markets every time. Therefore, you will force-load the markets over and over as explained in the [Loading Markets](https://docs.ccxt.com/#/?id=loading-markets) section. Abusing the markets endpoint will eventually break the rate limiter as well.
 
-```JavaScript
+```javascript
 // DO NOT DO THIS!
 
 async function tick () {
@@ -648,7 +632,7 @@ while (true) {
 
 Do not break this rule unless you really understand the inner workings of the rate-limiter and you are 100% sure you know what you're doing. In order to stay safe always reuse the exchange instance throughout your functions and methods callchain like shown below:
 
-```JavaScript
+```javascript
 // DO THIS INSTEAD:
 
 async function tick (exchange) {
@@ -698,7 +682,7 @@ In terms of the ccxt library, every exchange offers multiple **markets** within 
 
 ## Currency Structure
 
-```JavaScript
+```javascript
 {
     'id':       'btc',       // string literal for referencing within an exchange
     'code':     'BTC',       // uppercase unified string literal code the currency
@@ -706,14 +690,18 @@ In terms of the ccxt library, every exchange offers multiple **markets** within 
     'active':    true,       // boolean, currency status (tradeable and withdrawable)
     'fee':       0.123,      // withdrawal fee, flat
     'precision': 8,          // number of decimal digits "after the dot" (depends on exchange.precisionMode)
+    'deposit':   true        // boolean, deposits are available
+    'withdraw':  true        // boolean, withdraws are available
     'limits': {              // value limits when placing orders on this market
         'amount': {
             'min': 0.01,     // order amount should be > min
             'max': 1000,     // order amount should be < max
         },
         'withdraw': { ... }, // withdrawal limits
+        'deposit': {...},
     },
-    'info': { ... }, // the original unparsed currency info from the exchange
+    'networks': {...}        // network structures indexed by unified network identifiers (ERC20, TRC20, BSC, etc)
+    'info': { ... },         // the original unparsed currency info from the exchange
 }
 ```
 
@@ -726,11 +714,46 @@ Each currency is an associative array (aka dictionary) with the following keys:
 - `active`. A boolean indicating whether trading or funding (depositing or withdrawing) for this currency is currently possible, more about it here: [`active` status](#active-status).
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. Precision accepted in values by exchanges upon referencing this currency. The value of this property depends on [`exchange.precisionMode`](#precision-mode).
-- `limits`. The minimums and maximums for amounts (volumes) and withdrawals.
+- `limits`. The minimums and maximums for amounts (volumes), withdrawals and deposits.
+
+## Network structure
+
+```javascript
+{
+    'id':       'tron',         // string literal for referencing within an exchange
+    'network':  'TRC20'         // unified network
+    'name':     'Tron Network', // string, human-readable name, if specified
+    'active':    true,          // boolean, currency status (tradeable and withdrawable)
+    'fee':       0.123,         // withdrawal fee, flat
+    'precision': 8,             // number of decimal digits "after the dot" (depends on exchange.precisionMode)
+    'deposit':   true           // boolean, deposits are available
+    'withdraw':  true           // boolean, withdraws are available
+    'limits': {                 // value limits when placing orders on this market
+        'amount': {
+            'min': 0.01,        // order amount should be > min
+            'max': 1000,        // order amount should be < max
+        },
+        'withdraw': { ... },    // withdrawal limits
+        'deposit': {...},       // deposit limits
+    },
+    'info': { ... },            // the original unparsed currency info from the exchange
+}
+```
+
+Each network is an associative array (aka dictionary) with the following keys:
+
+- `id`. The string or numeric ID of the network within the exchange. Network ids are used inside exchanges internally to identify networks during the request/response process.
+- `network`. An uppercase string representation of a particular network. Networks are used to reference networks within the ccxt library.
+- `name`. A human-readable name of the network (can be a mix of uppercase & lowercase characters).
+- `fee`. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the `fee` can be `undefined/None/null` or missing.
+- `active`. A boolean indicating whether trading or funding (depositing or withdrawing) for this currency is currently possible, more about it here: [`active` status](#active-status).
+- `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
+- `precision`. Precision accepted in values by exchanges upon referencing this currency. The value of this property depends on [`exchange.precisionMode`](#precision-mode).
+- `limits`. The minimums and maximums for amounts (volumes), withdrawals and deposits.
 
 ## Market Structure
 
-```JavaScript
+```javascript
 {
     'id':      'btcusd',      // string literal for referencing within an exchange
     'symbol':  'BTC/USD',     // uppercase string literal of a pair of currencies
@@ -905,18 +928,18 @@ Most of the time the user does not have to take care of precision formatting, si
 
 The exchange base class contains the `decimalToPrecision` method to help format values to the required decimal precision with support for different rounding, counting and padding modes.
 
-```JavaScript
+```javascript
 // JavaScript
 function decimalToPrecision (x, roundingMode, numPrecisionDigits, countingMode = DECIMAL_PLACES, paddingMode = NO_PADDING)
 ```
 
-```Python
+```python
 # Python
 # WARNING! The `decimal_to_precision` method is susceptible to getcontext().prec!
 def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
 ```
 
-```PHP
+```php
 // PHP
 function decimalToPrecision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING)
 ```
@@ -931,7 +954,7 @@ For examples of how to use the `decimalToPrecision` to format strings and floats
 
 For users' convenience CCXT base exchange class also implements the following methods:
 
-```JavaScript
+```javascript
 // JavaScript
 function amountToPrecision (symbol, amount)
 function priceToPrecision (symbol, price)
@@ -939,7 +962,7 @@ function costToPrecision (symbol, cost)
 function currencyToPrecision (code, amount)
 ```
 
-```Python
+```python
 # Python
 def amount_to_precision (symbol, amount):
 def price_to_precision (symbol, price):
@@ -947,7 +970,7 @@ def cost_to_precision (symbol, cost):
 def currency_to_precision (code, amount):
 ```
 
-```PHP
+```php
 // PHP
 function amount_to_precision($symbol, $amount)
 function price_to_precision($symbol, $price)
@@ -961,7 +984,7 @@ Every exchange has its own precision settings, the above methods will help forma
 
 For example:
 
-```JavaScript
+```javascript
 // JavaScript
 await exchange.loadMarkets ()
 const symbol = 'BTC/USDT'
@@ -972,7 +995,7 @@ const formattedPrice = exchange.priceToPrecision (symbol, price)
 console.log (formattedAmount, formattedPrice)
 ```
 
-```Python
+```python
 # Python
 exchange.load_markets()
 symbol = 'BTC/USDT'
@@ -983,7 +1006,7 @@ formatted_price = exchange.price_to_precision(symbol, price)
 print(formatted_amount, formatted_price)
 ```
 
-```PHP
+```php
 // PHP
 $exchange->load_markets();
 $symbol = 'BTC/USDT';
@@ -996,7 +1019,7 @@ echo $formatted_amount, " ", $formatted_price, "\n";
 
 More practical examples that describe the behavior of `exchange.precisionMode`:
 
-```JavaScript
+```javascript
 // case A
 exchange.precisionMode = ccxt.DECIMAL_PLACES
 market = exchange.market (symbol)
@@ -1005,7 +1028,7 @@ exchange.amountToPrecision (symbol, 0.123456789) === 0.12345678
 exchange.amountToPrecision (symbol, 0.0000000000123456789) === 0.0000000 === 0.0
 ```
 
-```JavaScript
+```javascript
 // case B
 exchange.precisionMode = ccxt.TICK_SIZE
 market = exchange.market (symbol)
@@ -1014,7 +1037,7 @@ exchange.amountToPrecision (symbol, 0.123456789) === 0.12345678
 exchange.amountToPrecision (symbol, 0.0000000000123456789) === 0.00000000 === 0.0
 ```
 
-```JavaScript
+```javascript
 // case C
 exchange.precisionMode = ccxt.SIGNIFICANT_DIGITS
 market = exchange.market (symbol)
@@ -1025,27 +1048,27 @@ exchange.amountToPrecision (symbol, 123.4567890123456789) === 123.45678
 
 ## Loading Markets
 
-In most cases you are required to load the list of markets and trading symbols for a particular exchange prior to accessing other API methods. If you forget to load markets the ccxt library will do that automatically upon your first call to the unified API. It will send two HTTP requests, first for markets and then the second one for other data, sequentially. For that reason, your first call to a unified CCXT API method like fetchTicker, fetchBalance, etc will take more time, than the consequent calls, since it has to do more work loading the market information from the exchange API. See [Notes On Rate Limiter](https://docs.ccxt.com/en/latest/manual.html#notes-on-rate-limiter) for more details.
+In most cases you are required to load the list of markets and trading symbols for a particular exchange prior to accessing other API methods. If you forget to load markets the ccxt library will do that automatically upon your first call to the unified API. It will send two HTTP requests, first for markets and then the second one for other data, sequentially. For that reason, your first call to a unified CCXT API method like fetchTicker, fetchBalance, etc will take more time, than the consequent calls, since it has to do more work loading the market information from the exchange API. See [Notes On Rate Limiter](https://docs.ccxt.com/#/?id=notes-on-rate-limiter) for more details.
 
 In order to load markets manually beforehand call the `loadMarkets ()` / `load_markets ()` method on an exchange instance. It returns an associative array of markets indexed by trading symbol. If you want more control over the execution of your logic, preloading markets by hand is recommended.
 
-```JavaScript
+```javascript
 // JavaScript
 (async () => {
     let kraken = new ccxt.kraken ()
-    let markets = await kraken.load_markets ()
+    let markets = await kraken.loadMarkets ()
     console.log (kraken.id, markets)
 }) ()
 ```
 
-```Python
+```python
 # Python
 okcoin = ccxt.okcoinusd()
 markets = okcoin.load_markets()
 print(okcoin.id, markets)
 ```
 
-```PHP
+```php
 // PHP
 $id = 'huobipro';
 $exchange = '\\ccxt\\' . $id;
@@ -1076,7 +1099,7 @@ Most of the time users will be working with market symbols. You will get a stand
 
 ### Methods For Markets And Currencies
 
-```JavaScript
+```javascript
 // JavaScript
 
 (async () => {
@@ -1099,68 +1122,68 @@ Most of the time users will be working with market symbols. You will get a stand
     await bitfinex.loadMarkets ()
 
     bitfinex.markets['BTC/USD']                   // symbol → market (get market by symbol)
-    bitfinex.markets_by_id['XRPBTC']              // id → market (get market by id)
+    bitfinex.markets_by_id['XRPBTC'][0]           // id → market (get market by id)
 
     bitfinex.markets['BTC/USD']['id']             // symbol → id (get id by symbol)
-    bitfinex.markets_by_id['XRPBTC']['symbol']    // id → symbol (get symbol by id)
+    bitfinex.markets_by_id['XRPBTC'][0]['symbol'] // id → symbol (get symbol by id)
 
 }) ()
 ```
 
-```Python
+```python
 # Python
 
 print(exchange.load_markets())
 
-etheur1 = exchange.markets['ETH/EUR']      # get market structure by symbol
-etheur2 = exchange.market('ETH/EUR')       # same result in a slightly different way
+etheur1 = exchange.markets['ETH/EUR']         # get market structure by symbol
+etheur2 = exchange.market('ETH/EUR')          # same result in a slightly different way
 
-etheurId = exchange.market_id('ETH/EUR')   # get market id by symbol
+etheurId = exchange.market_id('ETH/EUR')      # get market id by symbol
 
-symbols = exchange.symbols                 # get a list of symbols
-symbols2 = list(exchange.markets.keys())   # same as previous line
+symbols = exchange.symbols                    # get a list of symbols
+symbols2 = list(exchange.markets.keys())      # same as previous line
 
-print(exchange.id, symbols)                # print all symbols
+print(exchange.id, symbols)                   # print all symbols
 
-currencies = exchange.currencies           # a dictionary of currencies
+currencies = exchange.currencies              # a dictionary of currencies
 
 kraken = ccxt.kraken()
 kraken.load_markets()
 
-kraken.markets['BTC/USD']                  # symbol → market (get market by symbol)
-kraken.markets_by_id['XXRPZUSD']           # id → market (get market by id)
+kraken.markets['BTC/USD']                     # symbol → market (get market by symbol)
+kraken.markets_by_id['XXRPZUSD'][0]           # id → market (get market by id)
 
-kraken.markets['BTC/USD']['id']            # symbol → id (get id by symbol)
-kraken.markets_by_id['XXRPZUSD']['symbol'] # id → symbol (get symbol by id)
+kraken.markets['BTC/USD']['id']               # symbol → id (get id by symbol)
+kraken.markets_by_id['XXRPZUSD'][0]['symbol'] # id → symbol (get symbol by id)
 ```
 
-```PHP
+```php
 // PHP
 
 $var_dump($exchange->load_markets());
 
-$dashcny1 = $exchange->markets['DASH/CNY'];     // get market structure by symbol
-$dashcny2 = $exchange->market('DASH/CNY');      // same result in a slightly different way
+$dashcny1 = $exchange->markets['DASH/CNY'];        // get market structure by symbol
+$dashcny2 = $exchange->market('DASH/CNY');         // same result in a slightly different way
 
-$dashcnyId = $exchange->market_id('DASH/CNY');  // get market id by symbol
+$dashcnyId = $exchange->market_id('DASH/CNY');     // get market id by symbol
 
-$symbols = $exchange->symbols;                  // get an array of symbols
-$symbols2 = array_keys($exchange->markets);     // same as previous line
+$symbols = $exchange->symbols;                     // get an array of symbols
+$symbols2 = array_keys($exchange->markets);        // same as previous line
 
-var_dump($exchange->id, $symbols);              // print all symbols
+var_dump($exchange->id, $symbols);                 // print all symbols
 
-$currencies = $exchange->currencies;            // an associative array of currencies
+$currencies = $exchange->currencies;               // an associative array of currencies
 
 $okcoinusd = '\\ccxt\\okcoinusd';
 $okcoinusd = new $okcoinusd();
 
 $okcoinusd->load_markets();
 
-$okcoinusd->markets['BTC/USD'];                 // symbol → market (get market by symbol)
-$okcoinusd->markets_by_id['btc_usd'];           // id → market (get market by id)
+$okcoinusd->markets['BTC/USD'];                    // symbol → market (get market by symbol)
+$okcoinusd->markets_by_id['btc_usd'][0];              // id → market (get market by id)
 
-$okcoinusd->markets['BTC/USD']['id'];           // symbol → id (get id by symbol)
-$okcoinusd->markets_by_id['btc_usd']['symbol']; // id → symbol (get symbol by id)
+$okcoinusd->markets['BTC/USD']['id'];              // symbol → id (get id by symbol)
+$okcoinusd->markets_by_id['btc_usd'][0]['symbol']; // id → symbol (get symbol by id)
 ```
 
 ### Naming Consistency
@@ -1233,7 +1256,7 @@ CCXT supports the following types of derivative contracts:
 
 A future market symbol consists of the underlying currency, the quoting currency, the settlement currency and an arbitrary identifier. Most often the identifier is the settlement date of the future contract in `YYMMDD` format:
 
-```JavaScript
+```javascript
 //
 // base asset or currency
 // ↓
@@ -1252,7 +1275,7 @@ A future market symbol consists of the underlying currency, the quoting currency
 
 ##### Perpetual Swap (Perpetual Future)
 
-```JavaScript
+```javascript
 // base asset or currency
 // ↓
 // ↓  quote asset or currency
@@ -1268,7 +1291,7 @@ A future market symbol consists of the underlying currency, the quoting currency
 
 ##### Option
 
-```JavaScript
+```javascript
 //
 // base asset or currency
 // ↓
@@ -1294,21 +1317,21 @@ The `loadMarkets () / load_markets ()` is also a dirty method with a side effect
 
 When exchange markets are loaded, you can then access market information any time via the `markets` property. This property contains an associative array of markets indexed by symbol. If you need to force reload the list of markets after you have them loaded already, pass the reload = true flag to the same method again.
 
-```JavaScript
+```javascript
 // JavaScript
 (async () => {
     let kraken = new ccxt.kraken ({ verbose: true }) // log HTTP requests
-    await kraken.load_markets () // request markets
+    await kraken.loadMarkets () // request markets
     console.log (kraken.id, kraken.markets)    // output a full list of all loaded markets
     console.log (Object.keys (kraken.markets)) // output a short list of market symbols
     console.log (kraken.markets['BTC/USD'])    // output single market details
-    await kraken.load_markets () // return a locally cached version, no reload
-    let reloadedMarkets = await kraken.load_markets (true) // force HTTP reload = true
+    await kraken.loadMarkets () // return a locally cached version, no reload
+    let reloadedMarkets = await kraken.loadMarkets (true) // force HTTP reload = true
     console.log (reloadedMarkets['ETH/BTC'])
 }) ()
 ```
 
-```Python
+```python
 # Python
 poloniex = ccxt.poloniex({'verbose': True}) # log HTTP requests
 poloniex.load_markets() # request markets
@@ -1320,7 +1343,7 @@ reloadedMarkets = poloniex.load_markets(True) # force HTTP reload = True
 print(reloadedMarkets['ETH/ZEC'])
 ```
 
-```PHP
+```php
 // PHP
 $bitfinex = new \ccxt\bitfinex(array('verbose' => true)); // log HTTP requests
 $bitfinex.load_markets(); // request markets
@@ -1416,13 +1439,18 @@ print(dir(ccxt.kraken()))           # Python
 var_dump (new \ccxt\kraken ()); // PHP
 ```
 
+**contract only and margin only**
+
+- methods in this documentation that are documented as **contract only** or **margin only** are only intended to be used for contract trading and margin trading respectively. They may work when trading in other types of markets but will most likely return irrelevant information.
+
+
 ## Synchronous vs Asynchronous Calls
 
 ### JavaScript
 
 In the JavaScript version of CCXT all methods are asynchronous and return [Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that resolve with a decoded JSON object. In CCXT we use the modern *async/await* syntax to work with Promises. If you're not familiar with that syntax, you can read more about it [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function).
 
-```JavaScript
+```javascript
 // JavaScript
 
 (async () => {
@@ -1438,7 +1466,7 @@ In the JavaScript version of CCXT all methods are asynchronous and return [Promi
 
 The ccxt library supports asynchronous concurrency mode in Python 3.5+ with async/await syntax. The asynchronous Python version uses pure [asyncio](https://docs.python.org/3/library/asyncio.html) with [aiohttp](http://aiohttp.readthedocs.io). In async mode you have all the same properties and methods, but most methods are decorated with an async keyword. If you want to use async mode, you should link against the `ccxt.async_support` subpackage, like in the following example:
 
-```Python
+```python
 # Python
 
 import asyncio
@@ -1457,19 +1485,18 @@ In the PHP 5-compatible version all API methods are synchronous, but with PHP 7.
 
 To use the async version of the library, use the `ccxt_async` namespace, as in the following example:
 
-```PHP
+```php
 // PHP
 <?php
-include 'ccxt.php';
+include 'vendor/autoload.php';
 
-$loop = \React\EventLoop\Factory::create();
-$kernel = \Recoil\React\ReactKernel::create($loop);
-$kernel->execute(function() use ($loop, $kernel) {
-    $poloniex = new \ccxt\async\poloniex(array('loop' => $loop, 'kernel' => $kernel, 'enableRateLimit' => true));
-    $result = yield $poloniex->fetch_ticker('ETH/BTC');
+use function React\Async\await;
+
+$okx = new \ccxt\async\okx();
+while (true) {
+    $result = await($okx->fetch_ticker('ETH/BTC'));
     var_dump($result);
-}, $loop);
-$kernel->run();
+}
 ```
 
 See further examples in the `examples/php` directory; look for filenames that include the `async` word. Also, make sure you have installed the required dependencies using `composer require recoil/recoil clue/buzz-react react/event-loop recoil/react react/http`. Lastly, [this article](https://sergeyzhuk.me/2018/10/26/from-promise-to-coroutines/) provides a good introduction to the methods used here. While syntactically the change is simple (i.e., just using a `yield` keyword before relevant methods), concurrency has significant implications for the overall design of your code.
@@ -1490,7 +1517,7 @@ $luno->public_get_ticker (array ('pair' => 'XBTIDR'));      // PHP
 
 The unified methods of exchanges might expect and will accept various `params` which affect their functionality, like:
 
-```Python
+```python
 params = {'type':'margin', 'isIsolated': 'TRUE'}  # --------------┑
 # params will go as the last argument to the unified method       |
 #                                                                 v
@@ -1560,19 +1587,21 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchOrder (id[, symbol[, params]])`
 - `fetchOrders ([symbol[, since[, limit[, params]]]])`
 - `fetchOpenOrders ([symbol[, since, limit, params]]]])`
+- `fetchCanceledOrders ([symbol[, since[, limit[, params]]]])`
 - `fetchClosedOrders ([symbol[, since[, limit[, params]]]])`
 - `fetchMyTrades ([symbol[, since[, limit[, params]]]])`
+- `fetchOpenInterest ([symbol[, params]])`
 - ...
 
 ```text
-TODO: ADD LINKS ABOVE
+TODO: better formatting
 ```
 
 ## Overriding Unified API Params
 
 Note, that most of methods of the unified API accept an optional `params` argument. It is an associative array (a dictionary, empty by default) containing the params you want to override. The contents of `params` are exchange-specific, consult the exchanges' API documentation for supported fields and values. Use the `params` dictionary if you need to pass a custom setting or an optional parameter to your unified query.
 
-```JavaScript
+```javascript
 // JavaScript
 (async () => {
 
@@ -1586,7 +1615,7 @@ Note, that most of methods of the unified API accept an optional `params` argume
 }) ()
 ```
 
-```Python
+```python
 # Python
 params = {
     'foo': 'bar',       # exchange-specific overrides in unified queries
@@ -1597,7 +1626,7 @@ params = {
 result = exchange.fetch_order_book(symbol, length, params)
 ```
 
-```PHP
+```php
 // PHP
 $params = array (
     'foo' => 'bar',       // exchange-specific overrides in unified queries
@@ -1619,10 +1648,14 @@ In most cases users are **required to use at least some type of pagination** in 
 - `fetchTrades()`
 - `fetchOHLCV()`
 - `fetchOrders()`
-- `fetchOpenOrders()`
+- `fetchCanceledOrders()`
+- `fetchClosedOrder()`
 - `fetchClosedOrders()`
+- `fetchOpenOrder()`
+- `fetchOpenOrders()`
 - `fetchMyTrades()`
 - `fetchTransactions()`
+- `fetchDeposit()`
 - `fetchDeposits()`
 - `fetchWithdrawals()`
 
@@ -1632,7 +1665,7 @@ With methods returning lists of objects, exchanges may offer one or more types o
 
 The set of methods for working with UTC dates and timestamps and for converting between them:
 
-```JavaScript
+```javascript
 exchange.parse8601 ('2018-01-01T00:00:00Z') == 1514764800000 // integer, Z = UTC
 exchange.iso8601 (1514764800000) == '2018-01-01T00:00:00Z'   // iso8601 string
 exchange.seconds ()      // integer UTC timestamp in seconds
@@ -1643,7 +1676,7 @@ exchange.milliseconds () // integer UTC timestamp in milliseconds
 
 This is the type of pagination currently used throughout the CCXT Unified API. The user supplies a `since` timestamp **in milliseconds** (!) and a number to `limit` results. To traverse the objects of interest page by page, the user runs the following (below is pseudocode, it may require overriding some exchange-specific params, depending on the exchange in question):
 
-```JavaScript
+```javascript
 // JavaScript
 if (exchange.has['fetchTrades']) {
     let since = exchange.milliseconds () - 86400000 // -1 day from now
@@ -1664,7 +1697,7 @@ if (exchange.has['fetchTrades']) {
 }
 ```
 
-```Python
+```python
 # Python
 if exchange.has['fetchOrders']:
     since = exchange.milliseconds () - 86400000  # -1 day from now
@@ -1682,7 +1715,7 @@ if exchange.has['fetchOrders']:
             break
 ```
 
-```PHP
+```php
 // PHP
 if ($exchange->has['fetchMyTrades']) {
     $since = exchange->milliseconds () - 86400000; // -1 day from now
@@ -1707,7 +1740,7 @@ if ($exchange->has['fetchMyTrades']) {
 
 The user supplies a `from_id` of the object, from where the query should continue returning results, and a number to `limit` results. This is the default with some exchanges, however, this type is not unified (yet). To paginate objects based on their ids, the user would run the following:
 
-```JavaScript
+```javascript
 // JavaScript
 if (exchange.has['fetchTrades']) {
     let from_id = 'abc123' // all ids are strings
@@ -1730,7 +1763,7 @@ if (exchange.has['fetchTrades']) {
 }
 ```
 
-```Python
+```python
 # Python
 if exchange.has['fetchOrders']:
     from_id = 'abc123'  # all ids are strings
@@ -1750,7 +1783,7 @@ if exchange.has['fetchOrders']:
             break
 ```
 
-```PHP
+```php
 // PHP
 if ($exchange->has['fetchMyTrades']) {
     $from_id = 'abc123' // all ids are strings
@@ -1781,7 +1814,7 @@ See an example implementation here: https://github.com/ccxt/ccxt/blob/master/exa
 
 Upon each iteration of the loop the user has to take the next cursor and put it into the overrided params for the next query (on the following iteration):
 
-```JavaScript
+```javascript
 // JavaScript
 if (exchange.has['fetchTrades']) {
     let page = 0  // exchange-specific type and value
@@ -1805,7 +1838,7 @@ if (exchange.has['fetchTrades']) {
 }
 ```
 
-```Python
+```python
 # Python
 if exchange.has['fetchOrders']:
     cursor = 0  # exchange-specific type and value
@@ -1826,7 +1859,7 @@ if exchange.has['fetchOrders']:
             break
 ```
 
-```PHP
+```php
 // PHP
 if ($exchange->has['fetchMyTrades']) {
     $start = '0' // exchange-specific type and value
@@ -1858,14 +1891,55 @@ if ($exchange->has['fetchMyTrades']) {
 - [Public Trades](#public-trades)
 - [Exchange Time](#exchange-time)
 - [Exchange Status](#exchange-status)
+- [Borrow Rates](#borrow-rates)
+- [Borrow Rate History](#borrow-rate-history)
+- [Leverage Tiers](#leverage-tiers)
+- [Funding Rate](#funding-rate)
+- [Funding Rate History](#funding-rate-history)
+- [Open Interest History](#open-interest-history)
 
 ## Order Book
 
 Exchanges expose information on open orders with bid (buy) and ask (sell) prices, volumes and other data. Usually there is a separate endpoint for querying current state (stack frame) of the *order book* for a particular market. An order book is also often called *market depth*. The order book information is used in the trading decision making process.
 
-The method for fetching an order book for a particular symbol is named `fetchOrderBook` or `fetch_order_book`. It accepts a symbol and an optional dictionary with extra params (if supported by a particular exchange). The method for fetching the order book is called like shown below:
+To get data on order books, you can use
 
-```JavaScript
+- `fetchOrderBook ()` // for a single markets order books
+- `fetchOrderBooks ( symbols )` // for multiple markets order books
+- `fetchOrderBooks ()` // for the order books of all markets
+
+```javascript
+async fetchOrderBook (symbol, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) *required* Unified CCXT symbol (e.g. `"BTC/USDT"`)
+- **limit** (Integer) The number of orders to return in the order book (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An [order book structure](#order-book-structure)
+
+
+```javascript
+async fetchOrderBooks (symbols = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbols** (\[String\]) Unified CCXT symbols (e.g. `["BTC/USDT", "ETH/USDT"]`)
+- **limit** (Integer) The number of orders to return in the order book (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- A dictionary of [order book structures](#order-book-structure) indexed by market symbols
+
+### fetchOrderBook Examples
+
+```javascript
 // JavaScript
 delay = 2000 // milliseconds = seconds * 1000
 (async () => {
@@ -1876,7 +1950,7 @@ delay = 2000 // milliseconds = seconds * 1000
 }) ()
 ```
 
-```Python
+```python
 # Python
 import time
 delay = 2 # seconds
@@ -1885,7 +1959,7 @@ for symbol in exchange.markets:
     time.sleep (delay) # rate limit
 ```
 
-```PHP
+```php
 // PHP
 $delay = 2000000; // microseconds = seconds * 1000000
 foreach ($exchange->markets as $symbol => $market) {
@@ -1896,9 +1970,7 @@ foreach ($exchange->markets as $symbol => $market) {
 
 ### Order Book Structure
 
-The structure of a returned order book is as follows:
-
-```JavaScript
+```javascript
 {
     'bids': [
         [ price, amount ], // [ float, float ]
@@ -1934,7 +2006,7 @@ Exchanges may return the stack of orders in various levels of details for analys
 
 Some exchanges accept a dictionary of extra parameters to the `fetchOrderBook () / fetch_order_book ()` function. **All extra `params` are exchange-specific (non-unified)**. You will need to consult exchanges docs if you want to override a particular param, like the depth of the order book. You can get a limited count of returned orders or a desired level of aggregation (aka *market depth*) by specifying an limit argument and exchange-specific extra `params` like so:
 
-```JavaScript
+```javascript
 // JavaScript
 
 (async function test () {
@@ -1948,7 +2020,7 @@ Some exchanges accept a dictionary of extra parameters to the `fetchOrderBook ()
 }) ()
 ```
 
-```Python
+```python
 # Python
 
 import ccxt
@@ -1957,7 +2029,7 @@ limit = 10
 ccxt.cex().fetch_order_book('BTC/USD', limit)
 ```
 
-```PHP
+```php
 // PHP
 
 // instantiate the exchange by id
@@ -1982,16 +2054,16 @@ The `limit` argument does not guarantee that the number of bids or asks will alw
 
 In order to get current best price (query market price) and calculate bidask spread take first elements from bid and ask, like so:
 
-```JavaScript
+```javascript
 // JavaScript
-let orderbook = exchange.fetchOrderBook (exchange.symbols[0])
+let orderbook = await exchange.fetchOrderBook (exchange.symbols[0])
 let bid = orderbook.bids.length ? orderbook.bids[0][0] : undefined
 let ask = orderbook.asks.length ? orderbook.asks[0][0] : undefined
 let spread = (bid && ask) ? ask - bid : undefined
 console.log (exchange.id, 'market price', { bid, ask, spread })
 ```
 
-```Python
+```python
 # Python
 orderbook = exchange.fetch_order_book (exchange.symbols[0])
 bid = orderbook['bids'][0][0] if len (orderbook['bids']) > 0 else None
@@ -2000,7 +2072,7 @@ spread = (ask - bid) if (bid and ask) else None
 print (exchange.id, 'market price', { 'bid': bid, 'ask': ask, 'spread': spread })
 ```
 
-```PHP
+```php
 // PHP
 $orderbook = $exchange->fetch_order_book ($exchange->symbols[0]);
 $bid = count ($orderbook['bids']) ? $orderbook['bids'][0][0] : null;
@@ -2016,7 +2088,7 @@ A price ticker contains statistics for a particular market/symbol for some perio
 
 ### A Single Ticker For One Symbol
 
-```JavaScript
+```javascript
 // one ticker
 fetchTicker (symbol, params = {})
 
@@ -2027,7 +2099,7 @@ fetchTicker ('BTC/USDT')
 
 ### Multiple Tickers For All Or Many Symbols
 
-```JavaScript
+```javascript
 // multiple tickers
 fetchTickers (symbols = undefined, params = {})  // for all tickers at once
 
@@ -2046,7 +2118,7 @@ A ticker is a statistical calculation with the information calculated over the p
 
 The structure of a ticker is as follows:
 
-```JavaScript
+```javascript
 {
     'symbol':        string symbol of the market ('BTC/USD', 'ETH/BTC', ...)
     'info':        { the original non-modified unparsed reply from exchange API },
@@ -2110,7 +2182,7 @@ Methods for fetching tickers:
 
 To get the individual ticker data from an exchange for a particular trading pair or a specific symbol – call the `fetchTicker (symbol)`:
 
-```JavaScript
+```javascript
 // JavaScript
 if (exchange.has['fetchTicker']) {
     console.log (await (exchange.fetchTicker ('BTC/USD'))) // ticker for BTC/USD
@@ -2120,7 +2192,7 @@ if (exchange.has['fetchTicker']) {
 }
 ```
 
-```Python
+```python
 # Python
 import random
 if (exchange.has['fetchTicker']):
@@ -2129,7 +2201,7 @@ if (exchange.has['fetchTicker']):
     print(exchange.fetch_ticker(random.choice(symbols))) # ticker for a random symbol
 ```
 
-```PHP
+```php
 // PHP (don't forget to set your timezone properly!)
 if ($exchange->has['fetchTicker']) {
     var_dump ($exchange->fetch_ticker ('ETH/CNY')); // ticker for ETH/CNY
@@ -2143,20 +2215,20 @@ if ($exchange->has['fetchTicker']) {
 
 Some exchanges (not all of them) also support fetching all tickers at once. See [their docs](#exchanges) for details. You can fetch all tickers with a single call like so:
 
-```JavaScript
+```javascript
 // JavaScript
 if (exchange.has['fetchTickers']) {
     console.log (await (exchange.fetchTickers ())) // all tickers indexed by their symbols
 }
 ```
 
-```Python
+```python
 # Python
 if (exchange.has['fetchTickers']):
     print(exchange.fetch_tickers()) # all tickers indexed by their symbols
 ```
 
-```PHP
+```php
 // PHP
 if ($exchange->has['fetchTickers']) {
     var_dump ($exchange->fetch_tickers ()); // all tickers indexed by their symbols
@@ -2167,20 +2239,20 @@ Fetching all tickers requires more traffic than fetching a single ticker. Also, 
 
 Also, some exchanges may impose additional requirements on the `fetchTickers()` call, sometimes you can't fetch the tickers for all symbols because of the API limitations of the exchange in question. Some exchanges accept a list of symbols in HTTP URL query params, however, because URL length is limited, and in extreme cases exchanges can have thousands of markets – a list of all their symbols simply would not fit in the URL, so it has to be a limited subset of their symbols. Sometimes, there are other reasons for requiring a list of symbols, and there may be a limit on the number of symbols you can fetch at once, but whatever the limitation, please, blame the exchange. To pass the symbols of interest to the exchange, you can supply a list of strings as the first argument to fetchTickers:
 
-```JavaScript
+```javascript
 //JavaScript
 if (exchange.has['fetchTickers']) {
     console.log (await (exchange.fetchTickers ([ 'ETH/BTC', 'LTC/BTC' ]))) // listed tickers indexed by their symbols
 }
 ```
 
-```Python
+```python
 # Python
 if (exchange.has['fetchTickers']):
     print(exchange.fetch_tickers(['ETH/BTC', 'LTC/BTC'])) # listed tickers indexed by their symbols
 ```
 
-```PHP
+```php
 // PHP
 if ($exchange->has['fetchTickers']) {
     var_dump ($exchange->fetch_tickers (array ('ETH/BTC', 'LTC/BTC'))); // listed tickers indexed by their symbols
@@ -2193,7 +2265,7 @@ Like most methods of the Unified CCXT API, the last argument to fetchTickers is 
 
 The structure of the returned value is as follows:
 
-```JavaScript
+```javascript
 {
     'info':    { ... }, // the original JSON response from the exchange as is
     'BTC/USD': { ... }, // a single ticker for BTC/USD
@@ -2218,13 +2290,13 @@ Most exchanges have endpoints for fetching OHLCV data, but some of them don't. T
 
 The `fetchOHLCV` method is declared in the following way:
 
-```JavaScript
+```javascript
 fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {})
 ```
 
 You can call the unified `fetchOHLCV` / `fetch_ohlcv` method to get the list of OHLCV candles for a particular symbol like so:
 
-```JavaScript
+```javascript
 // JavaScript
 let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
 if (exchange.has.fetchOHLCV) {
@@ -2235,7 +2307,7 @@ if (exchange.has.fetchOHLCV) {
 }
 ```
 
-```Python
+```python
 # Python
 import time
 if exchange.has['fetchOHLCV']:
@@ -2244,7 +2316,7 @@ if exchange.has['fetchOHLCV']:
         print (symbol, exchange.fetch_ohlcv (symbol, '1d')) # one day
 ```
 
-```PHP
+```php
 // PHP
 if ($exchange->has['fetchOHLCV']) {
     foreach ($exchange->markets as $symbol => $market) {
@@ -2268,12 +2340,40 @@ The `since` argument is an integer UTC timestamp **in milliseconds** (everywhere
 
 If `since` is not specified the `fetchOHLCV` method will return the time range as is the default from the exchange itself.  This is not a bug. Some exchanges will return candles from the beginning of time, others will return most recent candles only, the exchanges' default behaviour is expected. Thus, without specifying `since` the range of returned candles will be exchange-specific. One should pass  the `since` argument to ensure getting precisely the history range needed.
 
+### Notes On Latency
+
+Trading strategies require fresh up-to-date information for technical analysis, indicators and signals. Building a speculative trading strategy based on the OHLCV candles received from the exchange may have critical drawbacks. Developers should account for the details explained in this section to build successful bots.
+
+First and foremost, when using CCXT you're talking to the exchanges directly. CCXT is not a server, nor a service, it's a software library. All data that you are getting with CCXT is received directly from the exchanges first-hand.
+
+The exchanges usually provide two categories of public market data:
+
+1. Fast primary first-order data that includes real time orderbooks and trades or fills
+2. Slow second-order data that includes secondary tickers and kline OHLCV candles, that are calculated from the first-order data
+
+The primary first-order data is updated by the exchanges APIs in pseudo real time, or as close to real time as possible, as fast as possible. The second-order data requires time for the exchange to calculate it. For example, a ticker is nothing more than a rolling 24-hour statistical cut of orderbooks and trades. OHLCV candles and volumes are also calculated from first-order trades and represent fixed statistical cuts of specific periods. The volume traded within an hour is just a sum of traded volumes of the corresponding trades that happened within that hour.
+
+Obviously, it takes some time for the exchange to collect the first-order data and calculate the secondary statistical data from it. That literally means that **tickers and OHLCVs are always slower than orderbooks and trades**. In other words, there is always some latency in the exchange API between the moment when a trade happens and the moment when a corresponding OHLCV candle is updated or published by the exchange API.
+
+The latency (or how much time is needed by the exchange API for calculating the secondary data) depends on how fast the exchange engine is, so it is exchange-specific. Top exchange engines will usually return and update fresh last-minute OHLCV candles and tickers at a very fast rate. Some exchanges might do it in regular intervals like once a second or once in a few seconds. Slow exchange engines might take minutes to update the secondary statistical information, their APIs might return the current most recent OHLCV candle a few minutes late.
+
+If your strategy depends on the fresh last-minute most recent data you don't want to build it based on tickers or OHLCVs received from the exchange. Tickers and exchanges' OHLCVs are only suitable for display purposes, or for simple trading strategies for hour-timeframes or day-timeframes that are less susceptible to latency.
+
+Thankfully, the developers of time-critical trading strategies don't have to rely on secondary data from the exchanges and can calculate the OHLCVs and tickers in the userland. That may be faster and more efficient than waiting for the exchanges to update the info on their end. One can aggregate the public trade history by polling it frequently and calculate candles by walking over the list of trades. CCXT offers a `buildOHLCVC/build_ohlcvc` base method for that:
+
+- JavaScript: https://github.com/ccxt/ccxt/blob/master/js/base/functions/misc.js#L43
+- Python: https://github.com/ccxt/ccxt/blob/master/python/ccxt/base/exchange.py#L1933
+- PHP: https://github.com/ccxt/ccxt/blob/master/php/Exchange.php#L631
+
+Due to the differences in their internal implementations the exchanges may be faster to update their primary and secondary market data over WebSockets (see https://ccxt.pro). The latency remains exchange-specific, cause the exchange engine still needs time to calculate the secondary data, regardless of whether you're polling it over the RESTful API with CCXT or getting updates via WebSockets with CCXT Pro. WebSockets can improve the networking latency, so a fast exchange will work even better, but adding the support for WS subscriptions will not make a slow exchange engine work much faster.
+
+If you want to stay on top of the second-order data latency, then you will have to calculate it on your side and beat the exchange engine in speed of doing so. Depending on the needs of your application, it may be tricky, since you will need to handle redundancy, "data holes" in the history, exchange downtimes, and other aspects of data aggregation which is a whole universe in itself that is impossible to fully cover in this Manual.
 
 ### OHLCV Structure
 
 The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles represented by the following structure:
 
-```JavaScript
+```javascript
 [
     [
         1504541580000, // UTC timestamp in milliseconds, integer
@@ -2281,7 +2381,7 @@ The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles
         4240.6,        // (H)ighest price, float
         4230.0,        // (L)owest price, float
         4230.7,        // (C)losing price, float
-        37.72941911    // (V)olume (in terms of the base currency), float
+        37.72941911    // (V)olume float (usually in terms of the base currency, the exchanges docstring may list whether quote or base units are used)
     ],
     ...
 ]
@@ -2297,7 +2397,7 @@ To obtain historical Mark, Index Price and Premium Index candlesticks pass the `
 - `'index'`
 - `'premiumIndex'`
 
-```JavaScript
+```javascript
 // JavaScript
 async function main () {
     const exchange = new ccxt.binanceusdm ()
@@ -2312,7 +2412,7 @@ main ()
 
 There are also convenience methods `fetchMarkOHLCV`, `fetchIndexOHLCV` and `fetchPremiumIndexOHLCV`
 
-```JavaScript
+```javascript
 // JavaScript
 async function main () {
     const exchange = new ccxt.binanceusdm ()
@@ -2325,7 +2425,7 @@ async function main () {
 main ()
 ```
 
-```Python
+```python
 # Python
 exchange = ccxt.binance()
 response = exchange.fetch_ohlcv('ADA/USDT', '1h', params={'price':'index'})
@@ -2355,13 +2455,13 @@ UNDER CONSTRUCTION
 
 You can call the unified `fetchTrades` / `fetch_trades` method to get the list of most recent trades for a particular symbol. The `fetchTrades` method is declared in the following way:
 
-```JavaScript
+```javascript
 async fetchTrades (symbol, since = undefined, limit = undefined, params = {})
 ```
 
 For example, if you want to print recent trades for all symbols one by one sequentially (mind the rateLimit!) you would do it like so:
 
-```JavaScript
+```javascript
 // JavaScript
 if (exchange.has['fetchTrades']) {
     let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
@@ -2371,7 +2471,7 @@ if (exchange.has['fetchTrades']) {
 }
 ```
 
-```Python
+```python
 # Python
 import time
 if exchange.has['fetchTrades']:
@@ -2379,7 +2479,7 @@ if exchange.has['fetchTrades']:
         print (symbol, exchange.fetch_trades (symbol))
 ```
 
-```PHP
+```php
 // PHP
 if ($exchange->has['fetchTrades']) {
     foreach ($exchange->markets as $symbol => $market) {
@@ -2388,21 +2488,35 @@ if ($exchange->has['fetchTrades']) {
 }
 ```
 
-The fetchTrades method shown above returns an ordered list of trades (a flat array, sorted by timestamp in ascending order, oldest trade first, most recent trade last). A list of trades is represented by the following structure:
+The fetchTrades method shown above returns an ordered list of trades (a flat array, sorted by timestamp in ascending order, oldest trade first, most recent trade last). A list of trades is represented by the [trade structure](#trade-structure).
 
-```JavaScript
+```javascript
 [
     {
-        'info':       { ... },                  // the original decoded JSON as is
-        'id':        '12345-67890:09876/54321', // string trade id
-        'timestamp':  1502962946216,            // Unix timestamp in milliseconds
-        'datetime':  '2017-08-17 12:42:48.000', // ISO8601 datetime with milliseconds
-        'symbol':    'ETH/BTC',                 // symbol
-        'order':     '12345-67890:09876/54321', // string order id or undefined/None/null
-        'type':      'limit',                   // order type, 'market', 'limit' or undefined/None/null
-        'side':      'buy',                     // direction of the trade, 'buy' or 'sell'
-        'price':      0.06917684,               // float price in quote currency
-        'amount':     1.5,                      // amount of base currency
+        'info':          { ... },                  // the original decoded JSON as is
+        'id':           '12345-67890:09876/54321', // string trade id
+        'timestamp':     1502962946216,            // Unix timestamp in milliseconds
+        'datetime':     '2017-08-17 12:42:48.000', // ISO8601 datetime with milliseconds
+        'symbol':       'ETH/BTC',                 // symbol
+        'order':        '12345-67890:09876/54321', // string order id or undefined/None/null
+        'type':         'limit',                   // order type, 'market', 'limit' or undefined/None/null
+        'side':         'buy',                     // direction of the trade, 'buy' or 'sell'
+        'takerOrMaker': 'taker',                   // string, 'taker' or 'maker'
+        'price':         0.06917684,               // float price in quote currency
+        'amount':        1.5,                      // amount of base currency
+        'cost':          0.10376526,               // total cost, `price * amount`,
+        'fee':           {                         // if provided by exchange or calculated by ccxt
+            'cost':  0.0015,                       // float
+            'currency': 'ETH',                     // usually base currency for buys, quote currency for sells
+            'rate': 0.002,                         // the fee rate (if available)
+        },
+        'fees': [                                  // an array of fees if paid in multiple currencies
+            {                                      // if provided by exchange or calculated by ccxt
+                'cost':  0.0015,                   // float
+                'currency': 'ETH',                 // usually base currency for buys, quote currency for sells
+                'rate': 0.002,                     // the fee rate (if available)
+            },
+        ]
     },
     ...
 ]
@@ -2428,7 +2542,7 @@ The `fetchTrades ()` / `fetch_trades()` method also accepts an optional `params`
 
 The `fetchTime()` method (if available) returns the current integer timestamp in milliseconds from the exchange server.
 
-```JavaScript
+```javascript
 fetchTime(params = {})
 ```
 
@@ -2440,7 +2554,7 @@ The exchange status describes the latest known information on the availability o
 - Updated using the exchange ping or `fetchTime` endpoint to see if its alive
 - Updated using the dedicated exchange API status endpoint.
 
-```Javascript
+```javascript
 fetchStatus(params = {})
 ```
 
@@ -2448,7 +2562,7 @@ fetchStatus(params = {})
 
 The `fetchStatus()` method will return a status structure like shown below:
 
-```Javascript
+```javascript
 {
     'status': 'ok', // 'ok', 'shutdown', 'error', 'maintenance'
     'updated': undefined, // integer, last updated timestamp in milliseconds if updated via the API
@@ -2464,67 +2578,151 @@ The possible values in the `status` field are:
 - `'error'` means that either the exchange API is broken, or the implementation of the exchange in CCXT is broken
 - `'maintenance'` means regular maintenance, and the `eta` field should contain the datetime when the exchange is expected to be operational again
 
-## Leverage Tiers and Market Leverage Tiers
+## Borrow Rates
 
-* These are private methods on **Binance**
+*margin only*
 
-You can obtain the absolute maximum leverage for a market by accessing `market['limits']['leverage']['max']`.
-For many contracts, the maximum leverage will depend on the size of your position.
-You can access those limits via the `fetchLeverageTiers()` (multiple symbols) and `fetchMarketLeverageTiers()` (single symbol) methods.
+When short trading or trading with leverage on a spot market, currency must be borrowed. Interest is accrued for the borrowed currency.
 
-```Javascript
-fetchLeverageTiers(symbols = undefined, params = {})
+Data on the borrow rate for a currency can be retrieved using
+
+- `fetchBorrowRate ()` for a single currencies borrow rate
+- `fetchBorrowRates ()` for all currencies borrow rates
+- `fetchBorrowRatesPerSymbol ()` for the borrow rates of currencies in individual markets
+
+```javascript
+fetchBorrowRate (code, params = {})
 ```
 
-```Javascript
-fetchMarketLeverageTiers(symbol, params = {})
+Parameters
+
+- **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+
+Returns
+
+- A [transaction structure](#transaction-structure)
+
+```javascript
+fetchBorrowRates (params = {})
 ```
 
-The `fetchLeverageTiers()` method can be used to obtain the maximum leverage for a market at varying position sizes. It can also be used to obtain the maintenance margin rate, and the max tradeable amount for a market when that information is not available from the market object:
+Parameters
 
-### Leverage Tiers Structure
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
 
-The `fetchLeverageTiers()` method will return a structure like shown below:
+Returns
 
-```JavaScript
+- A dictionary of [borrow rate structures](#borrow-rate-structure) with unified currency codes as keys
+
+```javascript
+fetchBorrowRatesPerSymbol (params = {})
+```
+
+Parameters
+
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+
+Returns
+
+- A dictionary of [borrow rate structures](#borrow-rate-structure) with unified market symbols as keys
+
+
+### Borrow Rate Structure
+
+```javascript
 {
-    'BNB/USDT': [
-        {
-            "tier": 1,                       // tier index
-            "notionalCurrency": "USDT",      // the currency that notionalFloor and notionalCap are in
-            "notionalFloor": 0,              // the lowest amount of this tier // stake = 0.0
-            "notionalCap": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
-            "maintenanceMarginRate": 0.0065, // maintenance margin rate
-            "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > notionalFloor and < notionalCap
-            "info": { ... }                  // Response from exchange
-        },
-        ...
-    ]
-    ...
-  ],
+  currency: 'USDT',  // Unified currency code
+  rate: 0.0006,  // A ratio of the rate that interest is accrued at
+  period: 86400000,  // The amount of time in milliseconds that is required to accrue the interest amount specified by rate
+  timestamp: 1646956800000,  // Timestamp for when the currency had this rate
+  datetime: '2022-03-11T00:00:00.000Z',  // Datetime for when the currency had this rate
+  info: [ ... ]
 }
 ```
 
-### Market Leverage Tiers Structure
+## Borrow Rate History
 
-The `fetchMarketLeverageTiers()` method will return a structure like shown below:
+*margin only*
 
-```JavaScript
+The `fetchBorrowRateHistory` method retrieves a history of a currencies borrow interest rate at specific time slots
+
+```javascript
+fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
+- **since** (Integer) Timestamp for the earliest borrow rate (e.g. `1645807945000`)
+- **limit** (Integer) The maximum number of [borrow rate structures](#borrow-rate-structure) to retrieve (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [borrow rate structures](#borrow-rate-structure)
+
+
+## Leverage Tiers
+
+*contract only*
+
+- Leverage Tier methods are private on **binance**
+
+The `fetchLeverageTiers()` method can be used to obtain the maximum leverage for a market at varying position sizes. It can also be used to obtain the maintenance margin rate, and the max tradeable amount for a market when that information is not available from the market object
+
+While you can obtain the absolute maximum leverage for a market by accessing `market['limits']['leverage']['max']`, for many contract markets, the maximum leverage will depend on the size of your position.
+
+You can access those limits by using
+
+- `fetchMarketLeverageTiers()` (single symbol)
+- `fetchLeverageTiers([symbol1, symbol2, ...])` (multiple symbols)
+- `fetchLeverageTiers()` (all market symbols)
+
+```javascript
+fetchMarketLeverageTiers(symbol, params = {})
+```
+
+Parameters
+
+- **symbol** (String) *required* Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
+
+Returns
+
+- a [leverage-tiers-structure](#leverage-tiers-structure)
+
+```javascript
+fetchLeverageTiers(symbols = undefined, params = {})
+```
+
+Parameters
+
+- **symbols** (\[String\]) Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
+
+Returns
+
+- an array of [leverage-tiers-structures](#leverage-tiers-structure)
+
+### Leverage Tiers Structure
+
+```javascript
 [
     {
         "tier": 1,                       // tier index
-        "notionalCurrency": "USDT",      // the currency that notionalFloor and notionalCap are in
-        "notionalFloor": 0,              // the lowest amount of this tier // stake = 0.0
-        "notionalCap": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
+        "notionalCurrency": "USDT",      // the currency that minNotional and maxNotional are in
+        "minNotional": 0,                // the lowest amount of this tier // stake = 0.0
+        "maxNotional": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
         "maintenanceMarginRate": 0.0065, // maintenance margin rate
-        "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > notionalFloor and < notionalCap
+        "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > minNotional and < maxNotional
         "info": { ... }                  // Response from exchange
     },
     {
         "tier": 2,
         "notionalCurrency": "USDT",
-        "notionalFloor": 10000,          // min stake amount at 50x leverage = 200.0
-        "notionalCap": 50000,            // max stake amount at 50x leverage = 1000.0
+        "minNotional": 10000,            // min stake amount at 50x leverage = 200.0
+        "maxNotional": 50000,            // max stake amount at 50x leverage = 1000.0
         "maintenanceMarginRate": 0.01,
         "maxLeverage": 50,
         "info": { ... },
@@ -2533,8 +2731,8 @@ The `fetchMarketLeverageTiers()` method will return a structure like shown below
     {
         "tier": 9,
         "notionalCurrency": "USDT",
-        "notionalFloor": 20000000,
-        "notionalCap": 50000000,
+        "minNotional": 20000000,
+        "maxNotional": 50000000,
         "maintenanceMarginRate": 0.5,
         "maxLeverage": 1,
         "info": { ... },
@@ -2551,9 +2749,9 @@ In the example above:
 
 **Note for Huobi users:** Huobi uses both leverage and amount to determine maintenance margin rates: https://www.huobi.com/support/en-us/detail/900000089903
 
-## Funding Rate and Funding Rates
+## Funding Rate
 
-- contract only
+*contract only*
 
 Data on the current, most recent, and next funding rates can be obtained using the methods
 
@@ -2561,26 +2759,36 @@ Data on the current, most recent, and next funding rates can be obtained using t
 - `fetchFundingRates ([ symbol1, symbol2, ... ])` for multiple market symbols
 - `fetchFundingRate (symbol)` for a single market symbol
 
-```Javascript
+```javascript
 fetchFundingRate (symbol, params = {})
 ```
 
-- **symbol** (String) Unified CCXT symbol, required (e.g. `"BTC/USDT:USDT"`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+Parameters
 
-```Javascript
+- **symbol** (String) *required* Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- a [funding rate structure](#funding-rate-structure)
+
+```javascript
 fetchFundingRates (symbols = undefined, params = {})
 ```
 
-- **symbols** (Array[String]) An optional array/list of unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
-- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+Parameters
+
+- **symbols** (\[String\]) An optional array/list of unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- a dictionary of [funding rate structures](#funding-rate-structure) indexed by market symbols
 
 
 ### Funding Rate Structure
 
-The `fetchFundingRate()` method will return a structure like shown below:
-
-```Javascript
+```javascript
 {
     info: { ... },
     symbol: 'BTC/USDT:USDT',
@@ -2602,88 +2810,130 @@ The `fetchFundingRate()` method will return a structure like shown below:
 }
 ```
 
-### Funding Rates Structure
-
-The `fetchFundingRates()` method will return a structure like shown below:
-
-```Javascript
-{
-    'BTC/USDT:USDT': {
-        info: { ... },
-        symbol: 'BTC/USDT:USDT',
-        markPrice: 39294.43,
-        indexPrice: 39291.78,
-        interestRate: 0.0003,
-        estimatedSettlePrice: undefined,
-        timestamp: undefined,
-        datetime: undefined,
-        fundingRate: 0.000072,
-        fundingTimestamp: 1645833600000,
-        fundingDatetime: '2022-02-26T00:00:00.000Z',
-        nextFundingRate: -0.000018,
-        nextFundingTimestamp: undefined,
-        nextFundingDatetime: undefined,
-        previousFundingRate: undefined,
-        previousFundingTimestamp: undefined,
-        previousFundingDatetime: undefined
-    },
-    ...
-}
-```
-
 ## Funding Rate History
 
-- contract only
+*contract only*
 
-```Javascript
+```javascript
 fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
+
+Parameters
 
 - **symbol** (String) Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
 - **since** (Integer) Timestamp for the earliest funding rate (e.g. `1645807945000`)
 - **limit** (Integer) The maximum number of funding rates to retrieve (e.g. `10`)
 - **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
+Returns
+
+- An array of [funding rate history structures](#funding-rate-history-structure)
+
 ### Funding Rate History Structure
 
-The `fetchFundingRateHistory()` method will return a structure like shown below:
+```javascript
+{
+    info: { ... },
+    symbol: "BTC/USDT:USDT",
+    fundingRate: -0.000068,
+    timestamp: 1642953600000,
+    datetime: "2022-01-23T16:00:00.000Z"
+}
+```
 
-```Javascript
-[
-    {
-        info: { ... },
-        symbol: "BTC/USDT:USDT",
-        fundingRate: -0.000068,
-        timestamp: 1642953600000,
-        datetime: "2022-01-23T16:00:00.000Z"
-    },
-    ...
-]
+## Open Interest
+
+*contract only*
+
+Use the `fetchOpenInterest` method to get the current open interest for a symbol from the exchange.
+
+```javascript
+fetchOpenInterest (symbol, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- A dictionary of [open interest structures](#open-interest-structure)
+
+## Open Interest History
+
+*contract only*
+
+Use the `fetchOpenInterestHistory` method to get a history of open interest for a symbol from the exchange.
+
+```javascript
+fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **timeframe** (String) Check exchange.timeframes for available values
+- **since** (Integer) Timestamp for the earliest open interest record (e.g. `1645807945000`)
+- **limit** (Integer) The maximum number of [open interest structures](#open-interest-structures) to retrieve (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+**Note for OKX users:** instead of a unified symbol okx.fetchOpenInterestHistory expects a unified currency code in the **symbol** argument (e.g. `'BTC'`).
+
+Returns
+
+- An array of [open interest structures](#open-interest-structure)
+
+### Open Interest Structure
+
+```javascript
+{
+    symbol: 'BTC/USDT',
+    baseVolume: 80872.801, // deprecated
+    quoteVolume: 3508262107.38, // deprecated
+    openInterestAmount: 80872.801,
+    openInterestValue: 3508262107.38,
+    timestamp: 1649379000000,
+    datetime: '2022-04-08T00:50:00.000Z',
+    info: {
+        symbol: 'BTCUSDT',
+        sumOpenInterest: '80872.80100000',
+        sumOpenInterestValue: '3508262107.38000000',
+        timestamp: '1649379000000'
+    }
+}
 ```
 
 # Private API
 
 - [Authentication](#authentication)
+- [Sign In](#sign-in)
 - [API Keys Setup](#api-keys-setup)
+- [Accounts](#accounts)
 - [Account Balance](#account-balance)
 - [Orders](#orders)
 - [My Trades](#my-trades)
-- [Positions](#positions)
+- [Ledger](#ledger)
 - [Deposit](#deposit)
 - [Withdraw](#withdraw)
 - [Transactions](#transactions)
+- [Transfers](#transfers)
 - [Fees](#fees)
-- [Ledger](#ledger)
+- [Margin](#Margin)
+- [Margin Mode](#margin-mode)
+- [Leverage](#leverage)
+- [Positions](#positions)
+- [Funding History](#funding-history)
 
 In order to be able to access your user account, perform algorithmic trading by placing market and limit orders, query balances, deposit and withdraw funds and so on, you need to obtain your API keys for authentication from each exchange you want to trade with. They usually have it available on a separate tab or page within your user account settings. API keys are exchange-specific and cannnot be interchanged under any circumstances.
 
 The exchanges' private APIs will usually allow the following types of interaction:
 
 - the current state of the user's account balance can be obtained with the `fetchBalance()` method as described in the [Account Balance](#account-balance) section
-- the user can place and cancel orders with `createOrder()`, `cancelOrder()`, as well as fetch current open orders and the past order history with methods like `fetchOrder`, `fetchOrders()`, `fetchOpenOrders()`, `fetchClosedOrders`, as described in the section on [Orders](#orders)
-- the user can query the history of past trades executed with his account using `fetchMyTrades`, as described in the [My Trades](#my-trades) section, also see [How Orders Are Related To Trades](https://docs.ccxt.com/en/latest/manual.html#how-orders-are-related-to-trades)
-- the user can query his positions with `fetchPositions()` as described in the [Positions](#positions) section
-- the user can fetch the history of his transactions (on-chain _transactions_ which are either _deposits_ to the exchange account or _withdrawals_ from the exchange account) with `fetchTransactions()`, or with `fetchDeposits()` and `fetchWithdrawals()` separately, depending on what is available from the exchange API
+- the user can place and cancel orders with `createOrder()`, `cancelOrder()`, as well as fetch current open orders and the past order history with methods like `fetchOrder`, `fetchOrders()`, `fetchOpenOrder()`, `fetchOpenOrders()`, `fetchCanceledOrders`, `fetchClosedOrder`, `fetchClosedOrders`, as described in the section on [Orders](#orders)
+- the user can query the history of past trades executed with their account using `fetchMyTrades`, as described in the [My Trades](#my-trades) section, also see [How Orders Are Related To Trades](https://docs.ccxt.com/#/?id=how-orders-are-related-to-trades)
+- the user can query their positions with `fetchPositions()` and `fetchPosition()` as described in the [Positions](#positions) section
+- the user can fetch the history of their transactions (on-chain _transactions_ which are either _deposits_ to the exchange account or _withdrawals_ from the exchange account) with `fetchTransactions()`, or with `fetchDeposit()`, `fetchDeposits()` `fetchWithdrawal()`, and `fetchWithdrawals()` separately, depending on what is available from the exchange API
 - if the exchange API provides a ledger endpoint, the user can fetch a history of all money movements that somehow affected the balance, with `fetchLedger` that will return all accounting ledger entries such as trades, deposits, withdrawals, internal transfers between accounts, rebates, bonuses, fees, staking profits and so on, as described in the [Ledger](#ledger) section.
 
 ## Authentication
@@ -2722,7 +2972,7 @@ In order to create API keys find the API tab or button in your user settings on 
 
 For checking if the user has supplied all the required credentials the `Exchange` base class has a method called `exchange.checkRequiredCredentials()` or `exchange.check_required_credentials()`. Calling that method will throw an `AuthenticationError`, if some of the credentials are missing or empty. The `Exchange` base class also has  property `exchange.requiredCredentials` that allows a user to see which credentials are required for this or that exchange, as shown below:
 
-```JavaScript
+```javascript
 // JavaScript
 const ccxt = require ('ccxt')
 const exchange = new ccxt.binance()
@@ -2730,15 +2980,15 @@ console.log (exchange.requiredCredentials) // prints required credentials
 exchange.checkRequiredCredentials() // throw AuthenticationError
 ```
 
-```Python
+```python
 # Python
 import ccxt
 exchange = ccxt.coinbasepro()
 print(exchange.requiredCredentials)  # prints required credentials
-exchange.checkRequiredCredentials()  # raises AuthenticationError
+exchange.check_required_credentials()  # raises AuthenticationError
 ```
 
-```PHP
+```php
 // PHP
 include 'ccxt.php';
 $exchange = new \ccxt\bittrex ();
@@ -2750,7 +3000,7 @@ $exchange->check_required_credentials(); // throws AuthenticationError
 
 To set up an exchange for trading just assign the API credentials to an existing exchange instance or pass them to exchange constructor upon instantiation, like so:
 
-```JavaScript
+```javascript
 // JavaScript
 
 const ccxt = require ('ccxt')
@@ -2775,7 +3025,7 @@ const exchangeId = 'binance'
     })
 ```
 
-```Python
+```python
 # Python
 
 import ccxt
@@ -2800,7 +3050,7 @@ exchange = exchange_class({
 })
 ```
 
-```PHP
+```php
 // PHP
 
 include 'ccxt.php'
@@ -2827,6 +3077,22 @@ $exchange = new $exchange_class (array (
 
 Note that your private requests will fail with an exception or error if you don't set up your API credentials before you start trading. To avoid character escaping **always write your credentials in single quotes**, not double quotes (`'VERY_GOOD'`, `"VERY_BAD"`).
 
+### Sign In
+
+Some exchanges required you to sign in prior to calling private methods, which can be done using the `signIn` method
+
+```javascript
+signIn (params = {})
+```
+
+Parameters
+
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"2fa": "329293"}`)
+
+Returns
+
+- response from the exchange
+
 ### Overriding The Nonce
 
 **The default nonce is defined by the underlying exchange. You can override it with a milliseconds-nonce if you want to make private requests more frequently than once per second! Most exchanges will throttle your requests if you hit their rate limits, read [API docs for your exchange](https://github.com/ccxt/ccxt/wiki/Exchanges) carefully!**
@@ -2841,7 +3107,7 @@ In some cases you are unable to create new keys due to lack of permissions or wh
 
 There are exchanges that confuse milliseconds with microseconds in their API docs, let's all forgive them for that, folks. You can use methods listed above to override the nonce value. If you need to use the same keypair from multiple instances simultaneously use closures or a common function to avoid nonce conflicts. In Javascript you can override the nonce by providing a `nonce` parameter to the exchange constructor or by setting it explicitly on exchange object:
 
-```JavaScript
+```javascript
 // JavaScript
 
 // 1: custom nonce redefined in constructor parameters
@@ -2865,7 +3131,7 @@ let kraken4 = new ccxt.kraken ({
 
 In Python and PHP you can do the same by subclassing and overriding nonce function of a particular exchange class:
 
-```Python
+```python
 # Python
 
 # 1: the shortest
@@ -2891,7 +3157,7 @@ hitbtc = ccxt.hitbtc({
 acx = ccxt.acx({'nonce': lambda: ccxt.Exchange.milliseconds()})
 ```
 
-```PHP
+```php
 // PHP
 
 // 1: custom nonce value
@@ -2915,19 +3181,66 @@ class MyZaif extends \ccxt\zaif {
 }
 ```
 
+## Accounts
+
+You can get all the accounts associated with a profile by using the `fetchAccounts()` method
+
+```javascript
+fetchAccounts (params = {})
+```
+
+### Accounts Structure
+
+The `fetchAccounts()` method will return a structure like shown below:
+
+```javascript
+[
+    {
+        id: "s32kj302lasli3930",
+        type: "main",
+        name: "main",
+        code: "USDT",
+        info: { ... }
+    },
+    {
+        id: "20f0sdlri34lf90",
+        name: "customAccount",
+        type: "margin",
+        code: "USDT",
+        info: { ... }
+    },
+    {
+        id: "4oidfk40dadeg4328",
+        type: "spot",
+        name: "spotAccount32",
+        code: "BTC",
+        info: { ... }
+    },
+    ...
+]
+```
+
+Types of account is one of the [unified account types](####Account-Balance) or `subaccount`
+
 ## Account Balance
 
 To query for balance and get the amount of funds available for trading or funds locked in orders, use the `fetchBalance` method:
 
-```JavaScript
+```javascript
 fetchBalance (params = {})
 ```
 
+Parameters
+
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"currency": "usdt"}`)
+
+Returns
+
+- A [balance structure](#balance-structure)
+
 ### Balance Structure
 
-The returned balance structure is as follows:
-
-```JavaScript
+```javascript
 {
     'info':  { ... },    // the original untouched non-parsed reply with details
     'timestamp': 1499280391811, // Unix Timestamp in milliseconds (seconds * 1000)
@@ -2969,19 +3282,19 @@ The `timestamp` and `datetime` values may be undefined or missing if the underly
 
 Some exchanges may not return full balance info. Many exchanges do not return balances for your empty or unused accounts. In that case some currencies may be missing in returned balance structure.
 
-```JavaScript
+```javascript
 // JavaScript
 (async () => {
     console.log (await exchange.fetchBalance ())
 }) ()
 ```
 
-```Python
+```python
 # Python
 print (exchange.fetch_balance ())
 ```
 
-```PHP
+```php
 // PHP
 var_dump ($exchange->fetch_balance ());
 ```
@@ -3000,10 +3313,13 @@ Most of the time you can query orders by an id or by a symbol, though not all ex
 
 The list of methods for querying orders consists of the following:
 
+- `fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
+- `fetchClosedOrder (id, symbol = undefined, params = {})`
+- `fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
+- `fetchOpenOrder (id, symbol = undefined, params = {})`
+- `fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
 - `fetchOrder (id, symbol = undefined, params = {})`
 - `fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
-- `fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
-- `fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
 
 Note that the naming of those methods indicates if the method returns a single order or multiple orders (an array/list of orders). The `fetchOrder()` method requires a mandatory order id argument (a string). Some exchanges also require a symbol to fetch an order by id, where order ids can intersect with various trading pairs. Also, note that all other methods above return an array (a list) of orders. Most of them will require a symbol argument as well, however, some exchanges allow querying with a symbol unspecified (meaning *all symbols*).
 
@@ -3011,7 +3327,7 @@ The library will throw a NotSupported exception if a user calls a method that is
 
 To check if any of the above methods are available, look into the `.has` property of the exchange:
 
-```JavaScript
+```javascript
 // JavaScript
 'use strict';
 
@@ -3021,7 +3337,7 @@ exchange = new ccxt[id] ()
 console.log (exchange.has)
 ```
 
-```Python
+```python
 # Python
 import ccxt
 id = 'binance'
@@ -3029,7 +3345,7 @@ exchange = getattr(ccxt, id)()
 print(exchange.has)
 ```
 
-```PHP
+```php
 // PHP
 $exchange = new \ccxt\bitfinex();
 print_r ($exchange->has); // or var_dump
@@ -3037,7 +3353,7 @@ print_r ($exchange->has); // or var_dump
 
 A typical structure of the `.has` property usually contains the following flags corresponding to order API methods for querying orders:
 
-```JavaScript
+```javascript
 exchange.has = {
 
     // ... other flags ...
@@ -3058,17 +3374,22 @@ The meanings of boolean `true` and `false` are obvious. A string value of `emula
 
 The exchanges' order management APIs differ by design. The user has to understand the purpose of each specific method and how they're combined together into a complete order API:
 
-- `fetchOrder()` – fetches a single order (open or closed) by order `id`.
-- `fetchOpenOrders()` – fetches a list of open orders.
+- `fetchCanceledOrders()`- fetches a list of canceled orders
+- `fetchClosedOrder()`- fetches a single closed order by order id
 - `fetchClosedOrders()` – fetches a list of closed (or canceled) orders.
-- `fetchOrders()` – fetches a list of all orders (either open or closed/canceled).
 - `fetchMyTrades()` – though not a part of the orders' API, it is closely related, since it provides the history of settled trades.
+- `fetchOpenOrder()`- fetches a single open order by order id
+- `fetchOpenOrders()` – fetches a list of open orders.
+- `fetchOrder()` – fetches a single order (open or closed) by order `id`.
+- `fetchOrders()` – fetches a list of all orders (either open or closed/canceled).
+- `createOrder()` – used for placing orders
+- `cancelOrder()` – used for canceling orders
 
 The majority of the exchanges will have a way of fetching currently-open orders. Thus, the `exchange.has['fetchOpenOrders']`. If that method is not available, then most likely the `exchange.has['fetchOrders']` that will provide a list of all orders. The exchange will return a list of open orders either from `fetchOpenOrders()` or from `fetchOrders()`. One of the two methods is usually available from any exchange.
 
 Some exchanges will provide the order history, other exchanges will not. If the underlying exchange provides the order history, then the `exchange.has['fetchClosedOrders']` or the `exchange.has['fetchOrders']`. If the underlying exchange does not provide the order history, then `fetchClosedOrders()` and `fetchOrders()` are not available. In the latter case, the user is required to build a local cache of orders and track the open orders using `fetchOpenOrders()` and `fetchOrder()` for order statuses and for marking them as closed locally in the userland (when they're not open anymore).
 
-If the underlying exchange does not have methods for order history (`fetchClosedOrders()` and `fetchOrders()`), then it will provide `fetchOpenOrders` + the trade history with `fetchMyTrades` (see [How Orders Are Related To Trades](https://docs.ccxt.com/en/latest/manual.html#how-orders-are-related-to-trades)). That set of information is in many cases enough for tracking in a live-trading robot. If there's no order history – you have to track your live orders and restore historical info from open orders and historical trades.
+If the underlying exchange does not have methods for order history (`fetchClosedOrders()` and `fetchOrders()`), then it will provide `fetchOpenOrders` + the trade history with `fetchMyTrades` (see [How Orders Are Related To Trades](https://docs.ccxt.com/#/?id=how-orders-are-related-to-trades)). That set of information is in many cases enough for tracking in a live-trading robot. If there's no order history – you have to track your live orders and restore historical info from open orders and historical trades.
 
 In general, the underlying exchanges will usually provide one or more of the following types of historical data:
 
@@ -3076,7 +3397,7 @@ In general, the underlying exchanges will usually provide one or more of the fol
 - `fetchOrders()`
 - `fetchMyTrades()`
 
-Any of the above three methods may be missing, if any other of the three methods is present.
+Any of the above three methods may be missing, but the exchanges APIs will usually provide at least one of the three methods.
 
 If the underlying exchange does not provide historical orders, the CCXT library will not emulate the missing functionality – it has to be added on the user side where necessary.
 
@@ -3091,6 +3412,7 @@ All methods returning lists of trades and lists of orders, accept the second `si
 - `fetchOrders()`
 - `fetchOpenOrders()`
 - `fetchClosedOrders()`
+- `fetchCanceledOrders()`
 
 The second  argument `since` reduces the array by timestamp, the third `limit` argument reduces by number (count) of returned items.
 
@@ -3106,7 +3428,7 @@ To get the details of a particular order by its id, use the `fetchOrder()` / `fe
 
 The signature of the fetchOrder/fetch_order method is as follows:
 
-```JavaScript
+```javascript
 if (exchange.has['fetchOrder']) {
     //  you can use the params argument for custom overrides
     let order = await exchange.fetchOrder (id, symbol = undefined, params = {})
@@ -3119,7 +3441,7 @@ You can pass custom overrided key-values in the additional params argument to su
 
 Below are examples of using the fetchOrder method to get order info from an authenticated exchange instance:
 
-```JavaScript
+```javascript
 // JavaScript
 (async function () {
     const order = await exchange.fetchOrder (id)
@@ -3127,7 +3449,7 @@ Below are examples of using the fetchOrder method to get order info from an auth
 }) ()
 ```
 
-```Python
+```python
 # Python 3 (synchronous)
 if exchange.has['fetchOrder']:
     order = exchange.fetch_order(id)
@@ -3141,7 +3463,7 @@ if exchange.has['fetchOrder']:
     print(order)
 ```
 
-```PHP
+```php
 // PHP
 if ($exchange->has['fetchOrder']) {
     $order = $exchange->fetch_order($id);
@@ -3151,7 +3473,7 @@ if ($exchange->has['fetchOrder']) {
 
 #### All Orders
 
-```JavaScript
+```javascript
 if (exchange.has['fetchOrders'])
     exchange.fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
@@ -3160,7 +3482,7 @@ if (exchange.has['fetchOrders'])
 
 #### Open Orders
 
-```JavaScript
+```javascript
 if (exchange.has['fetchOpenOrders'])
     exchange.fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
@@ -3171,16 +3493,16 @@ Do not confuse *closed orders* with *trades* aka *fills* ! An order can be close
 
 **Some exchanges don't have an endpoint for fetching closed orders, ccxt will emulate it where possible.** For now it may still be missing here and there, as this is a work in progress.
 
-```JavaScript
+```javascript
 if (exchange.has['fetchClosedOrders'])
     exchange.fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
 
 ### Order Structure
 
-Most of methods returning orders within ccxt unified API will usually yield an order structure as described below:
+Most of methods returning orders within ccxt unified API will yield an order structure as described below:
 
-```JavaScript
+```javascript
 {
     'id':                '12345-67890:09876/54321', // string
     'clientOrderId':     'abcdef-ghijklmnop-qrstuvwxyz', // a user-defined clientOrderId, if any
@@ -3222,73 +3544,147 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 
 #### timeInForce
 
-The `timeInForce` field may be `undefined/None/null` if not specified by the exchange. The unification of `timeInForce` is a work in progress. Possible values for the`timeInForce` field:
-    - `'GTC'` = _Good Till Cancel(ed)_, the order stays on the orderbook until it is matched or canceled.
-    - `'IOC'` = _Immediate Or Cancel_, the order has to be matched immediately and filled either partially or completely, the unfilled remainder is canceled (or the entire order is canceled).
-    - `'FOK'` = _Fill Or Kill_, the order has to get fully filled and closed immediately, otherwise the entire order is canceled.
-    - `'PO'` = _Post Only_, the order has to land on the orderbook and spend at least some time there in an unfilled state, this makes it a maker order by definition, otherwise it is not placed. The post only `timeInForce` is not too common across the exchanges, since orders are allowed to be both `GTC` and `PO` at the same time, therefore the post only mode is often returned as a separate flag. The unification of `timeInForce` and `postOnly` is a work in progress.
+The `timeInForce` field may be `undefined/None/null` if not specified by the exchange. The unification of `timeInForce` is a work in progress.
+
+Possible values for the`timeInForce` field:
+
+- `'GTC'` = _Good Till Cancel(ed)_, the order stays on the orderbook until it is matched or canceled.
+- `'IOC'` = _Immediate Or Cancel_, the order has to be matched immediately and filled either partially or completely, the unfilled remainder is canceled (or the entire order is canceled).
+- `'FOK'` = _Fill Or Kill_, the order has to get fully filled and closed immediately, otherwise the entire order is canceled.
+- `'PO'` = _Post Only_, the order is either placed as a maker order, or it is canceled. This means the order must be placed on orderbook for at at least time in an unfilled state. The unification of `PO` as a `timeInForce` option is a work in progress with unified exchanges having `exchange.has['postOnly'] == True`.
 
 ### Placing Orders
 
-To place an order you will need the following information:
+There are different types of orders that a user can send to the exchange, regular orders eventually land in the orderbook of a corresponding symbol, others orders may be more advanced. Here is a list outlining various types of orders:
 
-- `symbol`, a string literal symbol of the market you wish to trade on, like `BTC/USD`, `ZEC/ETH`, `DOGE/DASH`, etc... Make sure the symbol in question exists with the target exchange and is available for trading.
-- `side`, a string literal for the direction of your order, `buy` or `sell`. When you place a buy order you give quote currency and receive base currency. For example, buying `BTC/USD` means that you will receive bitcoins for your dollars. When you are selling `BTC/USD` the outcome is the opposite and you receive dollars for your bitcoins.
-- `type`, a string literal type of order, **ccxt currently unifies `market` and `limit` orders only**, see #custom-order-params and #other-order-types
-- `amount`, how much of currency you want to trade. This usually refers to base currency of the trading pair symbol, though some exchanges require the amount in quote currency and a few of them require base or quote amount depending on the side of the order. See their API docs for details.
-- `price`, how much quote currency you are willing to pay for a trade lot of base currency (for limit orders only)
+- [Limit Orders](#limit-orders) – regular orders having an `amount` in base currency (how much you want to buy or sell) and a `price` in quote currency (for which price you want to buy or sell).
+- [Market Orders](#market-orders) – regular orders having an `amount` in base currency (how much you want to buy or sell)
+  - [Market Buys](#market-buys) – some exchanges require market buy orders with an `amount` in quote currency (how much you want to spend for buying)
+- [Trigger Orders](#trigger-orders) – an advanced type of order used to wait for a certain condition on a market and then react automatically: when a `triggerPrice` is reached, the trigger order gets triggered and then a regular limit `price` or market price order is placed, that eventually results in entering a position or exiting a position
+- [Stop Loss Orders](#stop-loss-orders) – almost the same as trigger orders, but used to close a position to stop further losses on that position: when the price eaches `triggerPrice` then the stop loss order is triggered that results in placing another regular limit or market order to close a position at a specific limit `price` or at market price (a position with a stop loss order attached to it).
+- [Take Profit Orders](#take-profit-orders) – a counterpart to stop loss orders, this type of order is used to close a position to take existing profits on that position: when the price reaches `triggerPrice` then the take profit order is triggered that results in placing another regular limit or market order to close a position at a specific limit `price` or at market price (a position with a take profit order attached to it).
+- [StopLoss And TakeProfit Orders Attached To A Position](#stoploss-and-takeprofit-orders-attached-to-a-position) – advanced orders, consisting of three orders of types listed above: a regular limit or market order placed to enter a position with stop loss and/or take profit orders that will be placed upon opening that position and will be used to close that position later (when a stop loss is reached, it will close the position and will cancel its take profit counterpart, and vice versa, when a take profit is reached, it will close the position and will cancel its stop loss counterpart, these two counterparts are also known as "OCO orders – one cancels the other), apart from the `amount` (and `price` for the limit order) to open a position it will also require a `triggerPrice` for a stop loss order (with a limit `price` if it's a stop loss limit order) and/or a `triggerPrice` for a take profit order (with a limit `price` if it's a take profit limit order).
 
-A successful call to a unified method for placing market or limit orders returns the unified [order structure](#order-structure).
+Placing an order always requires a `symbol` that the user has to specify (which market you want to trade).
 
-Note, that some fields from the order structure returned from `createOrder` may be `undefined / None / null` if the underlying exchange API does not return that information in the response. In general, the user is guaranteed that the `createOrder` method will return a unified [order structure](#order-structure) that will contain at least the order `id` and the `info` (a raw response from the exchange "as is"):
+To place an order use the `createOrder` method. You can use the `id` from the returned unified [order structure](#order-structure) to query the status and the state of the order later.
 
-```JavaScript
+```javascript
+createOrder (symbol, type, side, amount, price = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) *required* Unified CCXT market symbol
+  - Make sure the symbol in question exists with the target exchange and is available for trading.
+- **side** *required* a string literal for the direction of your order.
+  **Unified sides:**
+  - `buy` give quote currency and receive base currency; for example, buying `BTC/USD` means that you will receive bitcoins for your dollars.
+  - `sell` give base currency and receive quote currency; for example, buying `BTC/USD` means that you will receive dollars for your bitcoins.
+- **type** a string literal type of order
+  **Unified types:**
+  - [market](market-orders) not allowed by some exchanges, see [their docs](#exchanges) for details
+  - [limit](limit-orders)
+  - see #custom-order-params and #other-order-types for non-unified types
+- **amount**, how much of currency you want to trade usually, but not always, in units of the base currency of the trading pair symbol (the units for some exchanges are dependent on the side of the order: see their API docs for details.)
+- **price** the price at which the order is to be fullfilled at in units of the quote currency (ignored in market orders)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
+
+Returns
+
+- A successful order call returns a [order structure](#order-structure)
+
+**Notes on createOrder**
+
+- Some exchanges will allow to trade with limit orders only.
+
+Some fields from the returned order structure may be `undefined / None / null` if that information is not returned from the exchange API's response. The user is guaranteed that the `createOrder` method will return a unified [order structure](#order-structure) that will contain at least the order `id` and the `info` (a raw response from the exchange "as is"):
+
+```javascript
 {
     'id': 'string',  // order id
     'info': { ... }, // decoded original JSON response from the exchange as is
 }
 ```
 
-You can use the `id` from the returned unified [order structure](#order-structure) to query the status and the state of the order later.
+#### Limit Orders
 
-- **Some exchanges will allow to trade with limit orders only.** See [their docs](#exchanges) for details.
+Limit orders placed on the order book of the exchange for a price specified by the trader. They are fullfilled(closed) when there are no orders in the same market at a better price, and another trader creates a [market order](market-orders) or an opposite order for a price that matches or exceeds the price of the limit order.
+
+Limit orders may not be fully filled. This happens when the filling order is for a smaller amount than the amount specified by the limit order.
+
+```javascript
+// camelCaseNotation
+exchange.createLimitSellOrder (symbol, amount, price, params)
+exchange.createLimitBuyOrder (symbol, amount, price, params)
+
+// underscore_notation
+exchange.create_limit_sell_order (symbol, amount, price, params)
+exchange.create_limit_buy_order (symbol, amount, price, params)
+
+// using general createLimitOrder and side = 'buy' or 'sell'
+exchange.createLimitOrder (symbol, side, amount, price, params)
+exchange.create_limit_order (symbol, side, amount, price, params)
+
+// using general createOrder, type = 'limit' and side = 'buy' or 'sell'
+exchange.createOrder (symbol, 'limit', side, amount, price, params)
+exchange.create_order (symbol, 'limit', side, amount, price, params)
+```
 
 #### Market Orders
 
-Market price orders are also known as *spot price orders*, *instant orders* or simply *market orders*. A market order gets executed immediately. The matching engine of the exchange closes the order (fulfills it) with one or more transactions from the top of the order book stack.
+*also known as*
 
-The exchange will close your market order for the best price available. You are not guaranteed though, that the order will be executed for the price you observe prior to placing your order. There can be a slight change of the price for the traded market while your order is being executed, also known as *price slippage*. The price can slip because of networking roundtrip latency, high loads on the exchange, price volatility and other factors. When placing a market order you don't need to specify the price of the order.
+- market price orders
+- spot price orders
+- instant orders
 
-```JavaScript
+Market orders are executed immediately by fulfilling one of more already existing orders from the ask side of the exchanges order book. The orders that your market order fulfills are chosen from th top of the order book stack, meaning your market order is fulfilled at the best price available. When placing a market order you don't need to specify the price of the order, and if the price is specified, it will be ignored.
+
+You are not guaranteed that the order will be executed for the price you observe prior to placing your order. There are multiple reasons for this, including:
+
+- **price slippage** a slight change of the price for the traded market while your order is being executed. Reasons for price slippage include, but are not limited to
+
+    - networking roundtrip latency
+    - high loads on the exchange
+    - price volatility
+
+- **unequivocal order sizes** if a market order is for an amount that is larger than the size of the top order on the order book, then after the top order is filled, the market order will proceed to fill the next order in the order book, which means the market order is filled at multiple prices
+
+```javascript
 // camelCaseNotation
-exchange.createMarketSellOrder (symbol, amount[, params])
-exchange.createMarketBuyOrder (symbol, amount[, params])
+exchange.createMarketSellOrder (symbol, amount, params)
+exchange.createMarketBuyOrder (symbol, amount, params)
 
 // underscore_notation
-exchange.create_market_sell_order (symbol, amount[, params])
-exchange.create_market_buy_order (symbol, amount[, params])
+exchange.create_market_sell_order (symbol, amount, params)
+exchange.create_market_buy_order (symbol, amount, params)
+
+// using general createMarketOrder and side = 'buy' or 'sell'
+exchange.createMarketOrder (symbol, side, amount, params)
+exchange.create_market_order (symbol, side, amount, params)
 
 // using general createOrder, type = 'market' and side = 'buy' or 'sell'
-exchange.createOrder (symbol, 'market', 'sell', amount, ...)
-exchange.create_order (symbol, 'market', 'buy', amount, ...)
+exchange.createOrder (symbol, 'market', side, amount, ...)
+exchange.create_order (symbol, 'market', side, amount, ...)
 ```
 
 **Note, that some exchanges will not accept market orders (they allow limit orders only).** In order to detect programmatically if the exchange in question does support market orders or not, you can use the `.has['createMarketOrder']` exchange property:
 
-```JavaScript
+```javascript
 // JavaScript
 if (exchange.has['createMarketOrder']) {
     ...
 }
 ```
 
-```Python
+```python
 # Python
 if exchange.has['createMarketOrder']:
     ...
 ```
 
-```PHP
+```php
 // PHP
 if ($exchange->has['createMarketOrder']) {
     ...
@@ -3307,7 +3703,7 @@ To place a market buy order with those exchanges you would not specify an amount
 
 The first is the default and if you specify the `price` along with the `amount` the total cost of the order would be calculated inside the lib from those two values with a simple multiplication (`cost = amount * price`). The resulting `cost` would be the amount in USD quote currency that will be spent on this particular market buy order.
 
-```JavaScript
+```javascript
 // this example is oversimplified and doesn't show all the code that is
 // required to handle the errors and exchange metadata properly
 // it shows just the concept of placing a market buy order
@@ -3315,7 +3711,6 @@ The first is the default and if you specify the `price` along with the `amount` 
 const exchange = new ccxt.cex ({
     'apiKey': YOUR_API_KEY,
     'secret': 'YOUR_SECRET',
-    'enableRateLimit': true,
     // 'options': {
     //     'createMarketBuyOrderRequiresPrice': true, // default
     // },
@@ -3343,11 +3738,10 @@ const exchange = new ccxt.cex ({
 
 The second alternative is useful in cases when the user wants to calculate and specify the resulting total cost of the order himself. That can be done by setting the `createMarketBuyOrderRequiresPrice` option to `false` to switch it off:
 
-```JavaScript
+```javascript
 const exchange = new ccxt.cex ({
     'apiKey': YOUR_API_KEY,
     'secret': 'YOUR_SECRET',
-    'enableRateLimit': true,
     'options': {
         'createMarketBuyOrderRequiresPrice': false, // switch off
     },
@@ -3394,7 +3788,7 @@ However, you should never rely on that entirely, **ALWAYS test it with a small a
 
 Limit price orders are also known as *limit orders*. Some exchanges accept limit orders only. Limit orders require a price (rate per unit) to be submitted with the order. The exchange will close limit orders if and only if market price reaches the desired level.
 
-```JavaScript
+```javascript
 // camelCaseStyle
 exchange.createLimitBuyOrder (symbol, amount, price[, params])
 exchange.createLimitSellOrder (symbol, amount, price[, params])
@@ -3404,23 +3798,281 @@ exchange.create_limit_buy_order (symbol, amount, price[, params])
 exchange.create_limit_sell_order (symbol, amount, price[, params])
 ```
 
+#### Stop Orders
+
+Stop orders, are placed onto the order book when the price of the underlying asset reaches the trigger price.
+
+* They can be used to close positions when a certain profit level is reached, or to mitigate a large loss.
+* They can be stand-alone orders ([Trigger](#trigger-order), [Stop Loss](#stop-loss-orders), [Take Profit](#take-profit-orders)).
+* Or they can be attached to a primary order ([Conditional Stop Orders](#stopLoss-and-takeProfit-orders-attached-to-a-position)).
+* Stop Orders can be limit or market orders
+
+
+##### Trigger Orders
+
+Traditional "stop" order (which you might see across exchanges' websites) is now called "trigger" order across CCXT library. Implemented by adding a `triggerPrice` parameter. They are independent basic trigger orders that can open and close a position.
+
+* Activated when price of the underlying asset/contract crosses the `triggerPrice` from **any direction**
+
+```javascript
+// JavaScript
+const symbol = 'ETH/BTC'
+const type = 'limit' // or 'market'
+const side = 'sell'
+const amount = 123.45 // your amount
+const price = 54.321 // your price
+const params = {
+    'triggerPrice': 123.45, // your stop price
+}
+const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+```
+
+```python
+# Python
+symbol = 'ETH/BTC'
+type = 'limit'  # or 'market'
+side = 'sell'
+amount = 123.45  # your amount
+price = 54.321  # your price
+params = {
+    'triggerPrice': 123.45,  # your stop price
+}
+order = exchange.create_order(symbol, type, side, amount, price, params)
+```
+
+```php
+// PHP
+$symbol = 'ETH/BTC';
+$type = 'limit'; // or 'market'
+$side = 'sell';
+$amount = 123.45; // your amount
+$price = 54.321; // your price
+$params = {
+    'triggerPrice': 123.45, // your stop price
+}
+$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+```
+
+##### Stop Loss Orders
+
+The same as Trigger Orders, but the direction matters. Implemented by specifying a `stopLossPrice` parameter.
+
+Suppose you entered a long position (you bought) at 1000 and want to protect yourself from losses from a possible a price drop below 700. You would place a stop loss order with triggerPrice at 700. For that stop loss order either you would specify a limit price or it will be executed at market price.
+
+```
+    | price  | amount
+----|----------------
+    |  1500 | 200
+    |  1400 | 300
+  a |  1300 | 100
+  s |  1200 | 200
+  k |  1100 | 300
+    |  1000 | 100 <--- you bought to enter a long position here at 1000
+    |   900 | 100
+----|---------------- last price is 900
+    |   800 | 100
+    |   700 | 200 <------- you place a stop loss order here at 700 <---------+
+  b |   600 | 100        when a stopLossPrice is reached from above          |
+  i |   500 | 300   it will close your position at market price around 700 --+
+  d |   400 | 200 <----- or it will be executed at your limit price lower
+    |   300 | 100
+    |   200 | 100
+```
+
+Suppose you entered a short position (you sold) at 700 and want to protect yourself from losses from a possible a price pump above 1300. You would place a stop loss order with triggerPrice at 1300. For that stop loss order either you would specify a limit price or it will be executed at market price.
+
+```
+    | price  | amount
+----|----------------
+    |  1500 | 200
+    |  1400 | 300 <-------------------------------------------------------------+
+  a |  1300 | 100 <------ you place a stop loss order here at 1300 <----------+ |
+  s |  1200 | 200        when a stopLossPrice is reached from below           | |
+  k |  1100 | 300   it will close your position at market price around 1300 --+ |
+    |  1000 | 100      or it will be executed at your limit price higher -------+
+    |   900 | 100
+----|---------------- last price is 900 (you sold at 700)
+    |   800 | 100
+    |   700 | 200 <--- you sold to enter a short position here at 700
+  b |   600 | 100
+  i |   500 | 300
+  d |   400 | 200
+    |   300 | 100
+    |   200 | 100
+```
+
+Stop Loss orders are activated when the price of the underlying asset/contract:
+
+* drops below the `stopLossPrice` from above, for sell orders. (eg: to close a long position, and avoid further losses)
+* rises above the `stopLossPrice` from below, for buy orders (eg: to close a short position, and avoid further losses)
+
+```javascript
+// JavaScript
+
+// for a stop loss order
+const params = {
+    'stopLossPrice': 55.45, // your stop loss price
+}
+
+const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+```
+
+```python
+# Python
+
+# for a stop loss order
+params = {
+    'stopLossPrice': 55.45,  # your stop loss price
+}
+
+order = exchange.create_order (symbol, type, side, amount, price, params)
+```
+
+```php
+// PHP
+
+// for a stop loss order
+$params = {
+    'stopLossPrice': 55.45, // your stop loss price
+}
+
+$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+```
+
+##### Take Profit Orders
+
+The same as Trigger Orders, but the direction matters. Implemented by specifying a `takeProfitPrice` parameter.
+Take Profit orders are activated when the price of the underlying:
+
+* rises above the `takeProfitPrice` from below, for sell orders (eg: to close a long position, at a profit)
+* drops below the `takeProfitPrice` from above, for buy orders (eg: to close a short position, at a profit)
+
+```javascript
+// JavaScript
+
+// for a take profit order
+const params = {
+    'takeProfitPrice': 120.45, // your take profit price
+}
+
+const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+```
+
+```python
+# Python
+
+# for a take profit order
+params = {
+    'takeProfitPrice': 120.45,  # your take profit price
+}
+
+order = exchange.create_order (symbol, type, side, amount, price, params)
+```
+
+```php
+// PHP
+
+// for a take profit order
+$params = {
+    'takeProfitPrice': 120.45, // your take profit price
+}
+
+$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+```
+
+#### StopLoss And TakeProfit Orders Attached To A Position
+
+**Take Profit** / **Stop Loss** Orders which are tied to a position-opening primary order. Implemented by supplying a dictionary parameters for `stopLoss` and `takeProfit` describing each respectively.
+
+* By default stopLoss and takeProfit orders will be the same magnitude as primary order but in the opposite direction.
+* Attached stop orders are conditional on the primary order being executed.
+* Not supported by all exchanges.
+* Both `stopLoss` and `takeProfit` or either can be supplied, this depends on exchange.
+
+*Note: This is still under unification and is work in progress*
+
+```javascript
+// JavaScript
+
+const params = {
+    'stopLoss': {
+        'type': 'limit', // or 'market', this field is not necessary if limit price is specified
+        'price': 100.33, // limit price for a limit stop loss order
+        'triggerPrice': 101.25,
+    },
+    'takeProfit': {
+        'type': 'market', // or 'limit', this field is not necessary if limit price is specified
+        // no limit price for a market take profit order
+        // 'price': 160.33, // this field is not necessary for a market take profit order
+        'triggerPrice': 150.75,
+    }
+}
+const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+```
+
+```python
+# Python
+symbol = 'ETH/BTC'
+type = 'limit'  # or 'market'
+side = 'buy'
+amount = 123.45  # your amount
+price = 115.321  # your price
+params = {
+    'stopLoss': {
+        'type': 'limit',  # or 'market', this field is not necessary if limit price is specified
+        'price': 100.33,  # limit price for a limit stop loss order
+        'triggerPrice': 101.25,
+    },
+    'takeProfit': {
+        'type': 'market',  # or 'limit', this field is not necessary if limit price is specified
+        # no limit price for a market take profit order
+        # 'price': 160.33,  # this field is not necessary for a market take profit order
+        'triggerPrice': 150.75,
+    }
+}
+order = exchange.create_order (symbol, type, side, amount, price, params)
+```
+
+```php
+// PHP
+$symbol = 'ETH/BTC';
+$type = 'limit'; // or 'market'
+$side = 'buy';
+$amount = 123.45; // your amount
+$price = 115.321; // your price
+$params = {
+    'stopLoss': {
+        'type': 'limit', // or 'market', this field is not necessary if limit price is specified
+        'price': 100.33, // limit price for a limit stop loss order
+        'triggerPrice': 101.25,
+    },
+    'takeProfit': {
+        'type': 'market', // or 'limit', this field is not necessary if limit price is specified
+        // no limit price for a market take profit order
+        // 'price': 160.33, // this field is not necessary for a market take profit order
+        'triggerPrice': 150.75,
+    }
+}
+$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+```
+
 #### Custom Order Params
 
 Some exchanges allow you to specify optional parameters for your order. You can pass your optional parameters and override your query with an associative array using the `params` argument to your unified API call. All custom params are exchange-specific, of course, and aren't interchangeable, do not expect those custom params for one exchange to work with another exchange.
 
-```JavaScript
+```javascript
 // JavaScript
 // use a custom order type
 bitfinex.createLimitSellOrder ('BTC/USD', 1, 10, { 'type': 'trailing-stop' })
 ```
 
-```Python
+```python
 # Python
 # add a custom order flag
 kraken.create_market_buy_order('BTC/USD', 1, {'trading_agreement': 'agree'})
 ```
 
-```PHP
+```php
 // PHP
 // add custom user id to your order
 $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
@@ -3436,90 +4088,105 @@ $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId
 
 The user can specify a custom `clientOrderId` field can be set upon placing orders with the `params`. Using the `clientOrderId` one can later distinguish between own orders. This is only available for the exchanges that do support `clientOrderId` at this time. For the exchanges that don't support it will either throw an error upon supplying the `clientOrderId` or will ignore it setting the `clientOrderId` to `undefined/None/null`.
 
-```JavaScript
+```javascript
 exchange.createOrder (symbol, type, side, amount, price, {
     'clientOrderId': 'Hello',
 })
 ```
 
-```Python
+```python
 exchange.create_order(symbol, type, side, amount, price, {
     'clientOrderId': 'World',
 })
 ```
 
-```PHP
+```php
 $exchange->create_order($symbol, $type, $side, $amount, $price, array(
     'clientOrderId' => 'Foobar',
 ))
 ```
 
-#### Other Order Types
 
-The `type` can be either `limit` or `market`, if you want a `stopLimit` type, use [params overrides](#overriding-unified-api-params).
 
-The following is a generic example for overriding the order type, however, you must read the docs for the exchange in question in order to specify proper arguments and values. Order types other than `limit` or `market` are currently not unified, therefore for other order types one has to override the unified params as shown below.
+## Editing Orders
 
-```JavaScript
-const symbol = 'ETH/BTC'
-const type = 'limit' // or 'market', other types aren't unified yet
-const side = 'sell'
-const amount = 123.45 // your amount
-const price = 54.321 // your price
-// overrides
-const params = {
-    'stopPrice': 123.45, // your stop price
-    'type': 'stopLimit',
-}
-const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+To edit an order, you can use the `editOrder` method
+
+```javascript
+editOrder (id, symbol, type, side, amount, price = undefined, params = {})
 ```
 
-```Python
-symbol = 'ETH/BTC'
-type = 'limit'  # or 'market', other types aren't unified yet
-side = 'sell'
-amount = 123.45  # your amount
-price = 54.321  # your price
-# overrides
-params = {
-    'stopPrice': 123.45,  # your stop price
-    'type': 'stopLimit',
-}
-order = exchange.create_order(symbol, type, side, amount, price, params)
-```
+Parameters
 
-```PHP
-$symbol = 'ETH/BTC';
-$type = 'limit'; // or 'market', other types aren't unified yet
-$side = 'sell';
-$amount = 123.45; // your amount
-$price = 54.321; // your price
-// overrides
-$params = {
-    'stopPrice': 123.45, // your stop price
-    'type': 'stopLimit',
-}
-$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
-```
+- **id** (String) *required* Order id (e.g. `1645807945000`)
+- **symbol** (String) *required* Unified CCXT market symbol
+- **side** (String) *required* the direction of your order.
+  **Unified sides:**
+  - `buy` give quote currency and receive base currency; for example, buying `BTC/USD` means that you will receive bitcoins for your dollars.
+  - `sell` give base currency and receive quote currency; for example, buying `BTC/USD` means that you will receive dollars for your bitcoins.
+- **type** (String) *required* type of order
+  **Unified types:**
+  - [`market`](market-orders) not allowed by some exchanges, see [their docs](#exchanges) for details
+  - [`limit`](limit-orders)
+  - see #custom-order-params and #other-order-types for non-unified types
+- **amount** (Number) *required* how much of currency you want to trade usually, but not always, in units of the base currency of the trading pair symbol (the units for some exchanges are dependent on the side of the order: see their API docs for details.)
+- **price** (Float) the price at which the order is to be fullfilled at in units of the quote currency (ignored in market orders)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
+
+Returns
+
+- An [order structure](#order-structure)
 
 ### Canceling Orders
 
-To cancel an existing order pass the order id to `cancelOrder (id, symbol, params) / cancel_order (id, symbol, params)` method. Note, that some exchanges require a second symbol parameter even to cancel a known order by id. The usage is shown in the following examples:
+To cancel an existing use
 
-```JavaScript
-// JavaScript
-exchange.cancelOrder ('1234567890') // replace with your order id here (a string)
+- `cancelOrder ()` for a single order
+- `cancelOrders ()` for multiple orders
+- `cancelAllOrders ()` for all open orders
+
+```javascript
+cancelOrder (id, symbol = undefined, params = {})
 ```
 
-```Python
-# Python
-exchange.cancel_order ('1234567890') # replace with your order id here (a string)
+Parameters
+
+- **id** (String) *required* Order id (e.g. `1645807945000`)
+- **symbol** (String) Unified CCXT market symbol **required** on some exchanges (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
+
+Returns
+
+- An [order structure](#order-structure)
+
+
+```javascript
+cancelOrders (ids, symbol = undefined, params = {})
 ```
 
-```PHP
-// PHP
-$exchange->cancel_order ('1234567890'); // replace with your order id here (a string)
+Parameters
+
+- **ids** (\[String\]) *required* Order ids (e.g. `1645807945000`)
+- **symbol** (String) Unified CCXT market symbol **required** on some exchanges (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
+
+Returns
+
+- An array of [order structures](#order-structure)
+
+
+```javascript
+async cancelAllOrders (symbol = undefined, params = {})
 ```
+
+Parameters
+
+- **symbol** (String) Unified CCXT market symbol **required** on some exchanges (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
+
+Returns
+
+- An array of [order structures](#order-structure)
 
 #### Exceptions on order canceling
 
@@ -3578,7 +4245,7 @@ A seller decides to place a sell limit order on the ask side for a price of 0.70
 
 As the price and amount of the incoming sell (ask) order cover more than one bid order (orders `b` and `i`), the following sequence of events usually happens within an exchange engine very quickly, but not immediately:
 
-1. Order `b` is matched against the incoming sell because their prices intersect. Their volumes *"mutually annihilate"* each other, so, the bidder gets 100 for a price of 0.800. The seller (asker) will have his sell order partially filled by bid volume 100 for a price of 0.800. Note that for the filled part of the order the seller gets a better price than he asked for initially. He asked for 0.7 at least but got 0.8 instead which is even better for the seller. Most conventional exchanges fill orders for the best price available.
+1. Order `b` is matched against the incoming sell because their prices intersect. Their volumes *"mutually annihilate"* each other, so, the bidder gets 100 for a price of 0.800. The seller (asker) will have their sell order partially filled by bid volume 100 for a price of 0.800. Note that for the filled part of the order the seller gets a better price than he asked for initially. He asked for 0.7 at least but got 0.8 instead which is even better for the seller. Most conventional exchanges fill orders for the best price available.
 
 2. A trade is generated for the order `b` against the incoming sell order. That trade *"fills"* the entire order `b` and most of the sell order. One trade is generated per each pair of matched orders, whether the amount was filled completely or partially. In this example the seller amount (100) fills order `b` completely (closes the order `b`) and also fills the selling order partially (leaves it open in the orderbook).
 
@@ -3632,7 +4299,7 @@ In many cases a `symbol` argument is required by the exchanges' APIs, therefore 
 
 In most cases users are **required to use at least some type of [pagination](#pagination)** in order to get the expected results consistently.
 
-```JavaScript
+```javascript
 // JavaScript
 // fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
 
@@ -3641,7 +4308,7 @@ if (exchange.has['fetchMyTrades']) {
 }
 ```
 
-```Python
+```python
 # Python
 # fetch_my_trades(symbol=None, since=None, limit=None, params={})
 
@@ -3649,7 +4316,7 @@ if exchange.has['fetchMyTrades']:
     exchange.fetch_my_trades(symbol=None, since=None, limit=None, params={})
 ```
 
-```PHP
+```php
 // PHP
 // fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array())
 
@@ -3662,7 +4329,7 @@ Returns ordered array `[]` of trades (most recent trade last).
 
 #### Trade structure
 
-```JavaScript
+```javascript
 {
     'info':         { ... },                    // the original decoded JSON as is
     'id':           '12345-67890:09876/54321',  // string trade id
@@ -3681,17 +4348,24 @@ Returns ordered array `[]` of trades (most recent trade last).
         'currency': 'ETH',                      // usually base currency for buys, quote currency for sells
         'rate': 0.002,                          // the fee rate (if available)
     },
+    'fees': [                                   // an array of fees if paid in multiple currencies
+        {                                       // if provided by exchange or calculated by ccxt
+            'cost':  0.0015,                    // float
+            'currency': 'ETH',                  // usually base currency for buys, quote currency for sells
+            'rate': 0.002,                      // the fee rate (if available)
+        },
+    ],
 }
 ```
 
-- The work on `'fee'` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
+- The work on `'fee'` and `'fees'` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
 - The `fee` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).
 - The `cost` of the trade means `amount * price`. It is the total *quote* volume of the trade (whereas `amount` is the *base* volume). The cost field itself is there mostly for convenience and can be deduced from other fields.
 - The `cost` of the trade is a _"gross"_ value. That is the value pre-fee, and the fee has to be applied afterwards.
 
 ### Trades By Order Id
 
-```JavaScript
+```javascript
 // JavaScript
 // fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {})
 
@@ -3700,7 +4374,7 @@ if (exchange.has['fetchOrderTrades']) {
 }
 ```
 
-```Python
+```python
 # Python
 # fetch_order_trades(id, symbol=None, since=None, limit=None, params={})
 
@@ -3708,7 +4382,7 @@ if exchange.has['fetchOrderTrades']:
     exchange.fetch_order_trades(order_id, symbol=None, since=None, limit=None, params={})
 ```
 
-```PHP
+```php
 // PHP
 // fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array())
 
@@ -3716,179 +4390,226 @@ if ($exchange->has['fetchOrderTrades']) {
     $trades = $exchange->fetch_order_trades($order_id, $symbol, $since, $limit, $params);
 }
 ```
-## Positions
-```diff
-- this part of the unified API is currenty a work in progress
-- there may be some issues and missing implementations here and there
-- contributions, pull requests and feedback appreciated
+
+
+
+## Ledger
+
+The ledger is simply the history of changes, actions done by the user or operations that altered the user's balance in any way, that is, the history of movements of all funds from/to all accounts of the user which includes
+
+- deposits and withdrawals (funding)
+- amounts incoming and outcoming in result of a trade or an order
+- trading fees
+- transfers between accounts
+- rebates, cashbacks and other types of events that are subject to accounting.
+
+Data on ledger entries can be retrieved using
+
+- `fetchLedgerEntry ()` for a ledger entry
+- `fetchLedger ( code )` for multiple ledger entries of the same currency
+- `fetchLedger ()` for all ledger entries
+
+```javascript
+fetchLedgerEntry (id, code = undefined, params = {})
 ```
 
-Derivative trading has become increasingly popular within the crypto ecosystem. This can include futures with a set expiry date, perpetual swaps with funding payments, and inverse futures or swaps.
+Parameters
 
-We present a unified structure for the positions returned by exchanges.
+- **id** (String) *required* Ledger entry id
+- **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"type": "deposit"}`)
 
-### Position Structure
+Returns
 
-```Javascript
+- A [ledger entry structure](#ledger-entry-structure)
+
+```javascript
+async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **code** (String) Unified CCXT currency code; *required* if fetching all ledger entries for all assets at once is not supported (e.g. `"USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve withdrawals for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [ledger entry structures](#ledger-entry-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [ledger entry structures](#ledger-entry-structure)
+
+### Ledger Entry Structure
+
+```javascript
 {
-   'info': { ... },             // json response returned from the exchange as is
-   'id': '1234323',             // string, position id to reference the position, similar to an order id
-   'symbol': 'BTC/USD',         // uppercase string literal of a pair of currencies
-   'timestamp': 1607723554607,  // integer unix time since 1st Jan 1970 in milliseconds
-   'datetime': '2020-12-11T21:52:34.607Z',  // ISO8601 representation of the unix time above
-   'isolated': true,            // boolean, whether or not the position is isolated, as opposed to cross where margin is added automatically
-   'hedged': false,             // boolean, whether or not the position is hedged, i.e. if trading in the opposite direction will close this position or make a new one
-   'side': 'long',              // string, long or short
-   'contracts': 5,              // float, number of contracts bought, aka the amount or size of the position
-   'contractSize': 100,         // float, the size of one contract in quote units
-   'entryPrice': 20000,         // float, the average entry price of the position
-   'markPrice': 20050,          // float, a price that is used for funding calculations
-   'notional': 100000,          // float, the value of the position in the settlement currency
-   'leverage': 100,             // float, the leverage of the position, related to how many contracts you can buy with a given amount of collateral
-   'collateral': 5300,          // float, the maximum amount of collateral that can be lost, affected by pnl
-   'initialMargin': 5000,       // float, the amount of collateral that is locked up in this position
-   'maintenanceMargin': 1000,   // float, the mininum amount of collateral needed to avoid being liquidated
-   'initialMarginPercentage': 0.05,      // float, the initialMargin as a percentage of the notional
-   'maintenanceMarginPercentage': 0.01,  // float, the maintenanceMargin as a percentage of the notional
-   'unrealizedPnl': 300,        // float, the difference between the market price and the entry price times the number of contracts, can be negative
-   'liquidationPrice': 19850,   // float, the price at which collateral becomes less than maintenanceMargin
-   'marginType': 'cross',       // string, can be cross or isolated
-   'percentage': 3.32,          // float, represents unrealizedPnl / initialMargin * 100
+    'id': 'hqfl-f125f9l2c9',                // string id of the ledger entry, e.g. an order id
+    'direction': 'out',                     // or 'in'
+    'account': '06d4ab58-dfcd-468a',        // string id of the account if any
+    'referenceId': 'bf7a-d4441fb3fd31',     // string id of the trade, transaction, etc...
+    'referenceAccount': '3146-4286-bb71',   // string id of the opposite account (if any)
+    'type': 'trade',                        // string, reference type, see below
+    'currency': 'BTC',                      // string, unified currency code, 'ETH', 'USDT'...
+    'amount': 123.45,                       // absolute number, float (does not include the fee)
+    'timestamp': 1544582941735,             // milliseconds since epoch time in UTC
+    'datetime': "2018-12-12T02:49:01.735Z", // string of timestamp, ISO8601
+    'before': 0,                            // amount of currency on balance before
+    'after': 0,                             // amount of currency on balance after
+    'status': 'ok',                         // 'ok, 'pending', 'canceled'
+    'fee': {                                // object or or undefined
+        'cost': 54.321,                     // absolute number on top of the amount
+        'currency': 'ETH',                  // string, unified currency code, 'ETH', 'USDT'...
+    },
+    'info': { ... },                        // raw ledger entry as is from the exchange
 }
 ```
-Positions allow you to borrow money from an exchange to go long or short on an market. Some exchanges require you to pay a funding fee to keep the position open.
 
-When you go long on a position you are betting that the price will be higher in the future and that the price will never be less than the `liquidationPrice`.
+#### Notes on Ledger Entry Structure
 
-As the price of the underlying index changes so does the unrealisedPnl and as a consequence the amount of collateral you have left in the position (since you can only close it at market price or worse). At some price you will have zero collateral left, this is called the "bust" or "zero" price. Beyond this point, if the price goes in the opposite direction far enough, the collateral of the position will drop below the `maintenanceMargin`. The maintenanceMargin acts as a safety buffer between your position and negative collateral, a scenario where the exchange incurs losses on your behalf. To protect itself the exchange will swiftly liquidate your position if and when this happens. Even if the price returns back above the liquidationPrice you will not get your money back since the exchange sold all the `contracts` you bought at market. In other words the maintenanceMargin is a hidden fee to borrow money.
+The type of the ledger entry is the type of the operation associated with it. If the amount comes due to a sell order, then it is associated with a corresponding trade type ledger entry, and the referenceId will contain associated trade id (if the exchange in question provides it). If the amount comes out due to a withdrawal, then is is associated with a corresponding transaction.
 
-It is recommended to use the `maintenanceMargin` and `initialMargin` instead of the `maintenanceMarginPercentage` and `initialMarginPercentage` since these tend to be more accurate. The maintenanceMargin might be calculated from other factors outside of the maintenanceMarginPercentage including the funding rate and taker fees, for example on [kucoin](https://futures.kucoin.com/contract/detail).
+- `trade`
+- `transaction`
+- `fee`
+- `rebate`
+- `cashback`
+- `referral`
+- `transfer`
+- `airdrop`
+- `whatever`
+- ...
 
-An inverse contract will allow you to go long or short on BTC/USD by putting up BTC as collateral. Our API for inverse contracts is the same as for linear contracts. The amounts in an inverse contracts are quoted as if they were traded USD/BTC, however the price is still quoted terms of BTC/USD.  The formula for the profit and loss of a inverse contract is `(1/markPrice - 1/price) * contracts`. The profit and loss and collateral will now be quoted in BTC, and the number of contracts are quoted in USD.
+The `referenceId` field holds the id of the corresponding event that was registered by adding a new item to the ledger.
 
-### Liquidation price
+The `status` field is there to support for exchanges that include pending and canceled changes in the ledger. The ledger naturally represents the actual changes that have taken place, therefore the status is `'ok'` in most cases.
 
-It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin collateral left and if it goes any further the position will have negative collateral.
-
-```JavaScript
-// if long
-(liquidationPrice - price) * contracts = maintenanceMargin
-
-// if short
-(price - liquidationPrice) * contracts = maintenanceMargin
-// if inverse long
-(1/liquidationPrice - 1/price) * contracts = maintenanceMargin
-
-// if inverse short
-(1/price - 1/liquidationPrice) * contracts = maintenanceMargin
-```
-
-### Using fetchPositions
-
-Information about the positions can be served from different endpoints depending on the exchange. In the case that there are multiple endpoints serving different types of derivatives CCXT will default to just loading the "linear" (as oppose to the "inverse") contracts or the "swap" (as oppose to the "future") contracts. If you want to get the position information of the inverse contracts you can set:
-
-```Javascript
-await binanceusdm.fetchPositions ()
-
-// for inverse positions
-await binancecoinm.fetchPositions ()
-
-// for isolated positions
-await binancecoinm.fetchIsolatedPositions ()
-```
+The ledger entry type can be associated with a regular trade or a funding transaction (deposit or withdrawal) or an internal `transfer` between two accounts of the same user. If the ledger entry is associated with an internal transfer, the `account` field will contain the id of the account that is being altered with the ledger entry in question. The `referenceAccount` field will contain the id of the opposite account the funds are transferred to/from, depending on the `direction` (`'in'` or `'out'`).
 
 ## Deposit
 
-In order to deposit funds to an exchange you must get an address from the exchange for the currency you want to deposit there. Most of exchanges will create and manage those addresses for the user. Some exchanges will also allow the user to create new addresses for deposits. Some of exchanges require a new deposit address to be created for each new deposit.
+In order to deposit funds to an exchange you must get an address from the exchange for the currency you want to deposit there. Most of exchanges will create and manage those addresses for the user.
 
-The address for depositing can be either an already existing address that was created previously with the exchange or it can be created upon request. In order to see which of the two methods are supported, check the `exchange.has['fetchDepositAddress']` and `exchange.has['createDepositAddress']` properties. Both methods return an [address structure](#address-structure)
+Data on deposits made to an account can be retrieved using
 
-```JavaScript
-fetchDepositAddress (code, params = {})
-createDepositAddress (code, params = {})
+- `fetchDeposit ()` for a single deposit
+- `fetchDeposits ( code )` for multiple deposits of the same currency
+- `fetchDeposits ()` for all deposits to an account
+
+```javascript
+fetchDeposit (id, code = undefined, params = {})
 ```
 
-- `code` is the unified currency code (uppercase string)
-- `params` contains optional extra overrides
+Parameters
 
-Some exchanges may also have a method for fetching multiple deposit addresses at once or all of them at once:
+- **id** (String) *required* Deposit id
+- **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
 
-```JavaScript
-fetchDepositAddresses (codes = undefined, params = {})
+Returns
+
+- A [transaction structure](#transaction-structure)
+
+```javascript
+fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {})
 ```
 
-Depending on the exchange it may or may not require a list of unified currency `codes` in the first argument.
-The `fetchDepositAddresses` method returns an array of address structures.
+Parameters
 
-#### Address structure
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve deposits for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [transaction structures](#transaction-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
-The address structures returned from `fetchDepositAddress`, `fetchDepositAddresses` and `createDepositAddress` look like this:
+Returns
 
-```JavaScript
-{
-    'currency': currency, // currency code
-    'network': network,   // a list of deposit/withdraw networks, ERC20, TRC20, BSC20 (see below)
-    'address': address,   // address in terms of requested currency
-    'tag': tag,           // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
-    'info': response,     // raw unparsed data as returned from the exchange
-}
-```
+- An array of [transaction structures](#transaction-structure)
 
-With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument `tag` is usually required by exchanges. Other currencies will have the `tag` set to `undefined / None / null`. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction. The tag is mandatory for those currencies and it identifies the recipient user account.
 
-Be careful when specifying the `tag` and the `address`. The `tag` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the `tag`. The purpose of the `tag` field is to address your wallet properly, so it must be correct. You should only use the `tag` received from the exchange you're working with, otherwise your transaction might never arrive to its destination.
+## Withdrawal
 
-**The `network` field is relatively new, it may be `undefined / None / null` or missing entirely in certain cases (with some exchanges), but will be added everywhere eventually. It is still in the process of unification.**
-
-## Withdraw
-
-```JavaScript
-// JavaScript
-exchange.withdraw (code, amount, address, tag = undefined, params = {})
-```
-
-```Python
-# Python
-exchange.withdraw(code, amount, address, tag=None, params={})
-```
-
-```PHP
-// PHP
-$exchange->withdraw ($code, $amount, $address, $tag = null, $params = array ())
-```
-
-The `code` is the currency code (usually three or more uppercase letters, but can be different in some cases).
-
-The withdraw method returns a dictionary containing the withdrawal id, which is usually the txid of the onchain transaction itself, or an internal *withdrawal request id* registered within the exchange. The returned value looks as follows:
-
-```JavaScript
-{
-    'info' { ... },      // unparsed reply from the exchange, as is
-    'id': '12345567890', // string withdrawal id, if any
-}
-```
+The `withdraw` method can be used to withdraw funds from an account
 
 Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
 
 In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See [their docs](#exchanges) for details.
 
-## Deposit And Withdrawal Networks
+
+```javascript
+// JavaScript
+withdraw (code, amount, address, tag = undefined, params = {})
+```
+
+```python
+# Python
+withdraw(code, amount, address, tag=None, params={})
+```
+
+```php
+// PHP
+withdraw ($code, $amount, $address, $tag = null, $params = array ())
+```
+
+Parameters
+
+- **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
+- **amount** (Float) *required* The amount of currency to withdraw (e.g. `20`)
+- **address** (String) *required* The recipient address of the withdrawal (e.g. `"TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp"`)
+- **tag** (String) Required for some networks (e.g. `"52055"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
+
+Returns
+
+- A [transaction structure](#transaction-structure)
+
+---
+
+Data on withdrawals made to an account can be retrieved using
+
+- `fetchWithdrawal ()` for a single withdrawal
+- `fetchWithdrawals ( code )` for multiple withdrawals of the same currency
+- `fetchWithdrawals ()` for all withdrawals from an account
+
+```javascript
+fetchWithdrawal (id, code = undefined, params = {})
+```
+
+Parameters
+
+- **id** (String) *required* Withdrawal id
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
+
+```javascript
+fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve withdrawals for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [transaction structures](#transaction-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [transaction structures](#transaction-structure)
+
+### Deposit And Withdrawal Networks
 
 It is also possible to pass the parameters as the fourth argument with or without a specified tag
 
-```JavaScript
+```javascript
 // JavaScript
-exchange.withdraw (code, amount, address, { tag, network: 'ETH' })
+withdraw (code, amount, address, { tag, network: 'ETH' })
 ```
 
-```Python
+```python
 # Python
-exchange.withdraw(code, amount, address, { 'tag': tag, 'network': 'ETH' })
+withdraw(code, amount, address, { 'tag': tag, 'network': 'ETH' })
 ```
 
-```PHP
+```php
 // PHP
-$exchange->withdraw ($code, $amount, $address, array( 'tag' => tag, 'network' -> 'ETH' ));
+withdraw ($code, $amount, $address, array( 'tag' => tag, 'network' -> 'ETH' ));
 ```
 
 The following aliases of `network` allow for withdrawing crypto on multiple chains
@@ -3904,11 +4625,12 @@ The following aliases of `network` allow for withdrawing crypto on multiple chai
 
 You may set the value of `exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km95sDFN9jhLxJ2D', { 'network': 'TRX' })` in order to withdraw USDT on the TRON chain, or 'BSC' to withdraw USDT on Binance Smart Chain. In the table above BSC and BEP20 are equivalent aliases, so it doesn't matter which one you use as they both will achieve the same effect.
 
-## Transactions
+### Transaction Structure
 
-#### Transaction Structure
+- *deposit structure*
+- *withdrawal structure*
 
-```JavaScript
+```javascript
 {
     'info':      { ... },    // the JSON response from the exchange as is
     'id':       '123456',    // exchange-specific transaction id, string
@@ -3935,7 +4657,7 @@ You may set the value of `exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km9
 }
 ```
 
-##### Notes On Transaction Structure
+#### Notes On Transaction Structure
 
 - `addressFrom` or `addressTo` may be `undefined/None/null`, if the exchange in question does not specify all sides of the transaction
 - The semantics of the `address` field is exchange-specific. In some cases it can contain the address of the sender, in other cases it may contain the address of the receiver. The actual value depends on the exchange.
@@ -3945,9 +4667,9 @@ You may set the value of `exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km9
 - The `comment` field may be `undefined/None/null`, otherwise it will contain a message or note defined by the user upon creating the transaction.
 - Be careful when handling the `tag` and the `address`. The `tag` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the `tag`. The purpose of the `tag` field is to address your wallet properly, so it must be correct. You should only use the `tag` received from the exchange you're working with, otherwise your transaction might never arrive to its destination.
 
-### Deposits
+### fetchDeposits Examples
 
-```JavaScript
+```javascript
 // JavaScript
 // fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {})
 
@@ -3958,7 +4680,7 @@ if (exchange.has['fetchDeposits']) {
 }
 ```
 
-```Python
+```python
 # Python
 # fetch_deposits(code = None, since = None, limit = None, params = {})
 
@@ -3968,7 +4690,7 @@ else:
     raise Exception (exchange.id + ' does not have the fetch_deposits method')
 ```
 
-```PHP
+```php
 // PHP
 // fetch_deposits ($code = null, $since = null, $limit = null, $params = {})
 
@@ -3979,9 +4701,9 @@ if ($exchange->has['fetchDeposits']) {
 }
 ```
 
-### Withdrawals
+### fetchWithdrawals Examples
 
-```JavaScript
+```javascript
 // JavaScript
 // fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {})
 
@@ -3992,7 +4714,7 @@ if (exchange.has['fetchWithdrawals']) {
 }
 ```
 
-```Python
+```python
 # Python
 # fetch_withdrawals(code = None, since = None, limit = None, params = {})
 
@@ -4002,7 +4724,7 @@ else:
     raise Exception (exchange.id + ' does not have the fetch_withdrawals method')
 ```
 
-```PHP
+```php
 // PHP
 // fetch_withdrawals ($code = null, $since = null, $limit = null, $params = {})
 
@@ -4013,9 +4735,9 @@ if ($exchange->has['fetchWithdrawals']) {
 }
 ```
 
-### All Transactions
+### fetchTransactions Examples
 
-```JavaScript
+```javascript
 // JavaScript
 // fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {})
 
@@ -4026,7 +4748,7 @@ if (exchange.has['fetchTransactions']) {
 }
 ```
 
-```Python
+```python
 # Python
 # fetch_transactions(code = None, since = None, limit = None, params = {})
 
@@ -4036,7 +4758,7 @@ else:
     raise Exception (exchange.id + ' does not have the fetch_transactions method')
 ```
 
-```PHP
+```php
 // PHP
 // fetch_transactions ($code = null, $since = null, $limit = null, $params = {})
 
@@ -4047,6 +4769,171 @@ if ($exchange->has['fetchTransactions']) {
 }
 ```
 
+## Deposit Addresses
+
+The address for depositing can be either an already existing address that was created previously with the exchange or it can be created upon request. In order to see which of the two methods are supported, check the `exchange.has['fetchDepositAddress']` and `exchange.has['createDepositAddress']` properties.
+
+```javascript
+fetchDepositAddress (code, params = {})
+createDepositAddress (code, params = {})
+```
+
+Parameters
+
+- **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- an [address structure](#address-structure)
+
+---
+
+Some exchanges may also have a method for fetching multiple deposit addresses at once or all of them at once.
+
+```javascript
+fetchDepositAddresses (codes = undefined, params = {})
+```
+
+Parameters
+
+- **code** (\[String\]) Array of unified CCXT currency codes. May or may not be required depending on the exchange (e.g. `["USDT", "BTC"]`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- an array of [address structures](#address-structure)
+
+```javascript
+fetchDepositAddressesByNetwork (code, params = {})
+```
+
+Parameters
+
+- **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- an array of [address structures](#address-structure)
+
+#### Address structure
+
+The address structures returned from `fetchDepositAddress`, `fetchDepositAddresses`, `fetchDepositAddressesByNetwork` and `createDepositAddress` look like this:
+
+```javascript
+{
+    'currency': currency, // currency code
+    'network': network,   // a list of deposit/withdraw networks, ERC20, TRC20, BSC20 (see below)
+    'address': address,   // address in terms of requested currency
+    'tag': tag,           // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
+    'info': response,     // raw unparsed data as returned from the exchange
+}
+```
+
+With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument `tag` is usually required by exchanges. Other currencies will have the `tag` set to `undefined / None / null`. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction. The tag is mandatory for those currencies and it identifies the recipient user account.
+
+Be careful when specifying the `tag` and the `address`. The `tag` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the `tag`. The purpose of the `tag` field is to address your wallet properly, so it must be correct. You should only use the `tag` received from the exchange you're working with, otherwise your transaction might never arrive to its destination.
+
+**The `network` field is relatively new, it may be `undefined / None / null` or missing entirely in certain cases (with some exchanges), but will be added everywhere eventually. It is still in the process of unification.**
+
+## Transfers
+
+The `transfer` method makes internal transfers of funds between accounts on the same exchange. This can include subaccounts or accounts of different types (`spot`, `margin`, `future`, ...). If an exchange is separated on CCXT into a spot and futures class (e.g. `binanceusdm`, `kucoinfutures`, ...), then the method `transferIn` may be available to transfer funds into the futures account, and the method `transferOut` may be available to transfer funds out of the futures account
+
+```javascript
+transfer (code, amount, fromAccount, toAccount, params = {})
+```
+
+Parameters
+
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **amount** (Float) The amount of currency to transfer (e.g. `10.5`)
+- **fromAccount** (String) The account to transfer funds from.
+- **toAccount** (String) The account to transfer funds to.
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+- **params.symbol** (String) Market symbol when transfering to or from a margin account (e.g. `'BTC/USDT'`)
+
+### Account Types
+
+`fromAccount` and `toAccount` can accept the exchange account id or one of the following unified values:
+
+- `funding` *for some exchanges `funding` and `spot` are the same account*
+- `main` *for some exchanges that allow for subaccounts*
+- `spot`
+- `margin`
+- `future`
+- `swap`
+- `lending`
+
+You can retrieve all the account types by selecting the keys from `exchange.options['accountsByType']
+
+Some exchanges allow transfers to email addresses, phone numbers or to other users by user id.
+
+Returns
+
+- A [transfer structure](#transfer-structure)
+
+```javascript
+transferIn (code, amount, params = {})
+transferOut (code, amount, params = {})
+```
+
+Parameters
+
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **amount** (Float) The amount of currency to transfer (e.g. `10.5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- A [transfer structure](#transfer-structure)
+
+```javascript
+fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **code** (String) Unified CCXT currency code (e.g. `"USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve transfers for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [transfer structures](#transfer-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [transfer structures](#transfer-structure)
+
+```javascript
+fetchTransfer (id, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **id** (String) tranfer id (e.g. `"12345"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve transfers for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [transfer structures](#transfer-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- A [transfer structure](#transfer-structure)
+
+### Transfer Structure
+
+```javascript
+{
+    info: { ... },
+    id: "93920432048",
+    timestamp: 1646764072000,
+    datetime: "2022-03-08T18:27:52.000Z",
+    currency: "USDT",
+    amount: 11.31,
+    fromAccount: "spot",
+    toAccount: "future",
+    status: "ok"
+}
+```
 ## Fees
 
 **This section of the Unified CCXT API is under development.**
@@ -4054,14 +4941,16 @@ if ($exchange->has['fetchTransactions']) {
 Fees are often grouped into two categories:
 
 - Trading fees. Trading fee is the amount payable to the exchange, usually a percentage of volume traded (filled)).
-- Funding fees. The amount payable to the exchange upon depositing and withdrawing as well as the underlying crypto transaction fees (tx fees).
+- Transaction fees. The amount payable to the exchange upon depositing and withdrawing as well as the underlying crypto transaction fees (tx fees).
 
 Because the fee structure can depend on the actual volume of currencies traded by the user, the fees can be account-specific. Methods to work with account-specific fees:
 
-```Javascript
+```javascript
 fetchFees (params = {})
+fetchTradingFee (symbol, params = {})
 fetchTradingFees (params = {})
-fetchFundingFees (params = {})
+fetchTransactionFee (code, params = {})
+fetchTransactionFees (codes  = undefined, params = {})
 ```
 
 The fee methods will return a unified fee structure, which is often present with orders and trades as well. The fee structure is a common format for representing the fee info throughout the library. Fee structures are usually indexed by market or currency.
@@ -4070,13 +4959,13 @@ Because this is still a work in progress, some or all of methods and info descri
 
 **DO NOT use the `.fees` property of the exchange instance as most often it contains the predefined/hardcoded info. Actual fees should only be accessed from markets and currencies.**
 
-`fetchFees` will automatically call both `fetchFundingFees` and `fetchTradingFees` to get all the fee information. You can call fetchFundingFees or fetchTradingFees for more precise control over what endpoint on the exchange is requested.
+`fetchFees` will automatically call both `fetchTradingFees` and `fetchTransactionFees` to get all the fee information. You can call `fetchTradingFees` or `fetchTransactionFees` for more precise control over what endpoint on the exchange is requested.
 
 ### Fee Structure
 
 Orders, private trades, transactions and ledger entries may define the following info in their `fee` field:
 
-```Javascript
+```javascript
 {
     'currency': 'BTC', // the unified fee currency code
     'rate': percentage, // the fee rate, 0.05% = 0.0005, 1% = 0.01, ...
@@ -4086,11 +4975,11 @@ Orders, private trades, transactions and ledger entries may define the following
 
 ### Fee Schedule
 
-```Javascript
+```javascript
 fetchFees (params = {})
 ```
 
-```Javascript
+```javascript
 {
     'funding': {
         'withdraw': {
@@ -4105,16 +4994,16 @@ fetchFees (params = {})
     },
     'trading': {
         'ETH/BTC': {
-             'maker': 0.001,
-             'taker': 0.002,
-             'info': { ... },
-             'symbol': 'ETH/BTC',
+            'maker': 0.001,
+            'taker': 0.002,
+            'info': { ... },
+            'symbol': 'ETH/BTC',
         },
         'LTC/BTC': {
-             'maker': 0.001,
-             'taker': 0.002,
-             'info': { ... },
-             'symbol': 'LTC/BTC',
+            'maker': 0.001,
+            'taker': 0.002,
+            'info': { ... },
+            'symbol': 'LTC/BTC',
         },
     },
 }
@@ -4126,7 +5015,7 @@ Trading fees are properties of markets. Most often trading fees are loaded into 
 
 The `calculateFee` method can be used to precalculate trading fees that will be paid. **WARNING! This method is experimental, unstable and may produce incorrect results in certain cases.** You should only use it with caution. Actual fees may be different from the values returned from `calculateFee`, this is just for precalculation.  Do not rely on precalculated values, because market conditions change frequently. It is difficult to know in advance whether your order will be a market taker or maker.
 
-```Javascript
+```javascript
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {})
 ```
 
@@ -4134,14 +5023,14 @@ The `calculateFee` method will return a unified fee structure with precalculated
 
 Accessing trading fee rates should be done via the `.markets` property, like so:
 
-```Javascript
+```javascript
 exchange.markets['ETH/BTC']['taker'] // taker fee rate for ETH/BTC
 exchange.markets['BTC/USD']['maker'] // maker fee rate for BTC/USD
 ```
 
 The markets stored under the `.markets` property may contain additional fee related information:
 
-```Javascript
+```javascript
 {
     'taker': 0.002,   // taker fee rate, 0.002 = 0.2%
     'maker': 0.0016,  // maker fee rate, 0.0016 = 0.16%
@@ -4173,13 +5062,37 @@ Also, some exchanges might not specify fees as percentage of volume, check the `
 
 #### Trading Fee Schedule
 
-Some exchanges have an endpoint for fetching the trading fee schedule, this is mapped to the unified method `fetchTradingFees`:
+Some exchanges have an endpoint for fetching the trading fee schedule, this is mapped to the unified methods `fetchTradingFees`, and `fetchTradingFee`
 
-```Javascript
+```javascript
+fetchTradingFee (symbol, params = {})
+```
+
+Parameters
+
+- **symbol** (String) *required* Unified market symbol (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"currency": "quote"}`)
+
+Returns
+
+- A [trading fee structure](#trading-fee-structure)
+
+```javascript
 fetchTradingFees (params = {})
 ```
 
-```JavaScript
+Parameters
+
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"currency": "quote"}`)
+
+Returns
+
+- An array of [trading fee structures](#trading-fee-structure)
+
+
+##### Trading Fee Structure
+
+```javascript
 {
     'ETH/BTC': {
         'maker': 0.001,
@@ -4196,26 +5109,53 @@ fetchTradingFees (params = {})
 }
 ```
 
-### Funding Fees
+### Transaction Fees
 
-Funding fees are properties of currencies (account balance).
+Transaction fees are properties of currencies (account balance).
 
-Accessing funding fee rates should be done via the `.currencies` property. This aspect is not unified yet and is subject to change.
+Accessing transaction fee rates should be done via the `.currencies` property. This aspect is not unified yet and is subject to change.
 
-```Javascript
+```javascript
 exchange.currencies['ETH']['fee'] // tx/withdrawal fee rate for ETH
 exchange.currencies['BTC']['fee'] // tx/withdrawal fee rate for BTC
 ```
 
-#### Funding Fee Schedule
+#### Transaction Fee Schedule
 
-Some exchanges have an endpoint for fetching the funding fee schedule, this is mapped to the unified method `fetchFundingFees`:
+Some exchanges have an endpoint for fetching the transaction fee schedule, this is mapped to the unified methods
 
-```Javascript
-fetchFundingFees (params = {})
+- `fetchTransactionFee ()` for a single transaction fee schedule
+- `fetchTransactionFees ()` for all transaction fee schedules
+
+```javascript
+fetchTransactionFee (code, params = {})
 ```
 
-```JavaScript
+Parameters
+
+- **code** (String) *required* Unified CCXT currency code, required (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"type": "deposit"}`)
+- **params.network** (String) Specify unified CCXT network (e.g. `{"network": "TRC20"}`)
+
+Returns
+
+- A [transaction fee structure](#transaction-fee-structure)
+
+```javascript
+fetchTransactionFees (codes = undefined, params = {})
+```
+
+Parameters
+
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"type": "deposit"}`)
+
+Returns
+
+- An array of [transaction fee structures](#transaction-fee-structure)
+
+##### Transaction Fee Structure
+
+```javascript
 {
     'withdraw': {
         'BTC': 0.00001,
@@ -4229,63 +5169,326 @@ fetchFundingFees (params = {})
 }
 ```
 
-## Ledger
+## Borrow Interest
 
-```UNDER CONSTRUCTION```
+* margin only
 
-Some exchanges provide additional endpoints for fetching the all-in-one ledger history. The ledger is simply the history of changes, actions done by the user or operations that altered the user's balance in any way, that is, the history of movements of all funds from/to all accounts of the user. That includes deposits and withdrawals (funding), amounts incoming and outcoming in result of a trade or an order, trading fees, transfers between accounts, rebates, cashbacks and other types of events that are subject to accounting.
+To trade with leverage in spot or margin markets, currency must be borrowed as a loan. This borrowed currency must be payed back with interest. To obtain the amount of interest that has accrued you can use the `fetchBorrowInterest` method
 
-```JavaScript
-async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {})
+```javascript
+fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
 
-Some exchanges don't allow to fetch all ledger entries for all assets at once, those require the `code` argument to be supplied to `fetchLedger` method.
+Parameters
 
-### Ledger Entry Structure
+- **code** (String) The unified currency code for the currency of the interest (e.g. `"USDT"`)
+- **symbol** (String) The market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned (e.g. `"BTC/USDT:USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to receive interest records for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [borrow interest structures](#borrow-interest-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
-```JavaScript
+Returns
+
+- An array of [borrow interest structures](#borrow-interest-structure)
+
+### Borrow Interest Structure
+
+```javascript
 {
-    'id': 'hqfl-f125f9l2c9',                // string id of the ledger entry, e.g. an order id
-    'direction': 'out',                     // or 'in'
-    'account': '06d4ab58-dfcd-468a',        // string id of the account if any
-    'referenceId': 'bf7a-d4441fb3fd31',     // string id of the trade, transaction, etc...
-    'referenceAccount': '3146-4286-bb71',   // string id of the opposite account (if any)
-    'type': 'trade',                        // string, reference type, see below
-    'currency': 'BTC',                      // string, unified currency code, 'ETH', 'USDT'...
-    'amount': 123.45,                       // absolute number, float (does not include the fee)
-    'timestamp': 1544582941735,             // milliseconds since epoch time in UTC
-    'datetime': "2018-12-12T02:49:01.735Z", // string of timestamp, ISO8601
-    'before': 0,                            // amount of currency on balance before
-    'after': 0,                             // amount of currency on balance after
-    'status': 'ok',                         // 'ok, 'pending', 'canceled'
-    'fee': {                                // object or or undefined
-        'cost': 54.321,                     // absolute number on top of the amount
-        'currency': 'ETH',                  // string, unified currency code, 'ETH', 'USDT'...
-    },
-    'info': { ... },                        // raw ledger entry as is from the exchange
+    account: 'BTC/USDT',                    // The market that the interest was accrued in
+    currency: 'USDT',                       // The currency of the interest
+    interest: 0.00004842,                   // The amount of interest that was charged
+    interestRate: 0.0002,                   // The borrow interest rate
+    amountBorrowed: 5.81,                   // The amount of currency that was borrowed
+    timestamp: 1648699200000,               // The timestamp that the interest was charged
+    datetime: '2022-03-31T04:00:00.000Z',   // The datetime that the interest was charged
+    info: { ... }                           // Unparsed exchange response
 }
 ```
 
-### Notes on Ledger Entry Structure
+## Borrow and Repay Margin
 
-The type of the ledger entry is the type of the operation associated with it. If the amount comes due to a sell order, then it is associated with a corresponding trade type ledger entry, and the referenceId will contain associated trade id (if the exchange in question provides it). If the amount comes out due to a withdrawal, then is is associated with a corresponding transaction.
+*margin only*
 
-- `trade`
-- `transaction`
-- `fee`
-- `rebate`
-- `cashback`
-- `referral`
-- `transfer`
-- `airdrop`
-- `whatever`
-- ...
+To borrow and repay currency as a margin loan use `borrowMargin` and `repayMargin`.
 
-The `referenceId` field holds the id of the corresponding event that was registered by adding a new item to the ledger.
+```javascript
+borrowMargin (code, amount, symbol = undefined, params = {})
+repayMargin (code, amount, symbol = undefined, params = {})
+```
+Parameters
 
-The `status` field is there to support for exchanges that include pending and canceled changes in the ledger. The ledger naturally represents the actual changes that have taken place, therefore the status is `'ok'` in most cases.
+- **code** (String) *required* The unified currency code for the currency to be borrowed or repaid (e.g. `"USDT"`)
+- **amount** (Float) *required* The amount of margin to borrow or repay (e.g. `20.92`)
+- **symbol** (String) The unified CCXT market symbol of an isolated margin market (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"rate": 0.002}`)
 
-The ledger entry type can be associated with a regular trade or a funding transaction (deposit or withdrawal) or an internal `transfer` between two accounts of the same user. If the ledger entry is associated with an internal transfer, the `account` field will contain the id of the account that is being altered with the ledger entry in question. The `referenceAccount` field will contain the id of the opposite account the funds are transferred to/from, depending on the `direction` (`'in'` or `'out'`).
+Returns
+
+- A [margin loan structure](#margin-loan-structure)
+
+### Margin Loan Structure
+
+```javascript
+{
+    id: '1234323',                          // integer, the transaction id
+    currency: 'USDT',                       // string, the currency that is borrowed or repaid
+    amount: 5.81,                           // float, the amount of currency that was borrowed or repaid
+    symbol: 'BTC/USDT:USDT',                // string, unified market symbol
+    timestamp: 1648699200000,               // integer, the timestamp of when the transaction was made
+    datetime: '2022-03-31T04:00:00.000Z',   // string, the datetime of when the transaction was made
+    info: { ... }                           // Unparsed exchange response
+}
+```
+
+## Margin
+
+*margin and contract only*
+
+To increase, reduce or set your margin balance (collateral) in an open leveraged position, use `addMargin`, `reduceMargin` and `setMargin` respectively. This is kind of like adjusting the amount of leverage you're using with a position that's already open.
+
+Some scenarios to use these methods include
+- if the trade is going against you, you can add margin to, reducing the risk of liquidation
+- if your trade is going well you can reduce your position's margin balance and take profits
+
+```javascript
+addMargin (symbol, amount, params = {})
+reduceMargin (symbol, amount, params = {})
+setMargin (symbol, amount, params = {})
+```
+
+Parameters
+
+- **symbol** (String) *required* Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **amount** (String) *required* Amount of margin to add or reduce (e.g. `20`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"leverage": 5}`)
+
+Returns
+
+- a [margin structure](#margin-structure)
+
+### Margin Structure
+
+```javascript
+{
+    info: { ... },
+    type: 'add', // 'add', 'reduce', 'set'
+    amount: 1, // amount added, reduced, or set
+    total: 2,  // total margin or undefined if not specified by the exchange
+    code: 'USDT',
+    symbol: 'XRP/USDT:USDT',
+    status: 'ok'
+}
+```
+
+## Margin Mode
+
+*margin and contract only*
+
+Updates the type of margin used to be either
+
+- `cross` One account is used to share collateral between markets. Margin is taken from total account balance to avoid liquidation when needed.
+- `isolated` Each market, keeps collateral in a separate account
+
+```javascript
+setMarginMode (marginMode, symbol = undefined, params = {})
+```
+
+Parameters
+
+- **marginMode** (String) *required* the type of margin used
+    **Unified margin types:**
+    - `"cross"`
+    - `"isolated"`
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`) *required* on most exchanges. Is not required when the margin mode is not specific to a market
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"leverage": 5}`)
+
+Returns
+
+- response from the exchange
+
+### Exchanges without setMarginMode
+
+Common reasons for why an exchange might have
+
+```javascript
+exchange.has['setMarginMode'] == false
+```
+
+include
+
+- the exchange does not offer leveraged trading
+- the exchange only offers one of `cross` or `isolated` margin modes, but does not offer both
+- margin mode must be set using an exchange specific parameter within `params` when using `createOrder`
+### Notes on suppressed errors for setMarginMode
+
+Some exchange apis return an error response when a request is sent to set the margin mode to the mode that it is already set to (e.g. Sending a request to set the margin mode to `cross` for the market `BTC/USDT:USDT` when the account already has `BTC/USDT:USDT` set to use cross margin). CCXT doesn't see this as an error because the end result is what the user wanted, so the error is suppressed and the error result is returned as an object.
+
+e.g.
+
+```javascript
+{ code: -4046, msg: 'No need to change margin type.' }
+```
+
+## Leverage
+
+*margin and contract only*
+
+```javascript
+setLeverage (leverage, symbol = undefined, params = {})
+```
+
+Parameters
+
+- **leverage** (Integer) *required* The desired leverage
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`) *required* on most exchanges. Is not required when leverage is not specific to a market (e.g. Not required on **FTX** because leverage is set for the account and not per market)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+
+Returns
+
+- response from the exchange
+
+## Contract trading
+
+This can include futures with a set expiry date, perpetual swaps with funding payments, and inverse futures or swaps.
+Information about the positions can be served from different endpoints depending on the exchange.
+In the case that there are multiple endpoints serving different types of derivatives CCXT will default to just loading the "linear" (as oppose to the "inverse") contracts or the "swap" (as opposed to the "future") contracts.
+
+## Positions
+
+*contract only*
+
+To get information about positions currently held in contract markets, use
+
+- fetchPosition ()            // for a single market
+- fetchPositions ()           // for all positions
+- fetchAccountPositions ()    // TODO
+
+```javascript
+fetchPosition (symbol, params = {})                         // for a single market
+```
+
+Parameters
+
+- **symbol** (String) *required* Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- A [position structure](#position-structure)
+
+```javascript
+fetchPositions (symbols = undefined, params = {})
+fetchAccountPositions (symbols = undefined, params = {})
+```
+
+Parameters
+
+- **symbols** (\[String\]) Unified CCXT market symbols, do not set to retrieve all positions (e.g. `["BTC/USDT:USDT"]`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [position structures](#position-structure)
+
+### Position Structure
+
+```javascript
+{
+   'info': { ... },             // json response returned from the exchange as is
+   'id': '1234323',             // string, position id to reference the position, similar to an order id
+   'symbol': 'BTC/USD',         // uppercase string literal of a pair of currencies
+   'timestamp': 1607723554607,  // integer unix time since 1st Jan 1970 in milliseconds
+   'datetime': '2020-12-11T21:52:34.607Z',  // ISO8601 representation of the unix time above
+   'isolated': true,            // boolean, whether or not the position is isolated, as opposed to cross where margin is added automatically
+   'hedged': false,             // boolean, whether or not the position is hedged, i.e. if trading in the opposite direction will close this position or make a new one
+   'side': 'long',              // string, long or short
+   'contracts': 5,              // float, number of contracts bought, aka the amount or size of the position
+   'contractSize': 100,         // float, the size of one contract in quote units
+   'entryPrice': 20000,         // float, the average entry price of the position
+   'markPrice': 20050,          // float, a price that is used for funding calculations
+   'notional': 100000,          // float, the value of the position in the settlement currency
+   'leverage': 100,             // float, the leverage of the position, related to how many contracts you can buy with a given amount of collateral
+   'collateral': 5300,          // float, the maximum amount of collateral that can be lost, affected by pnl
+   'initialMargin': 5000,       // float, the amount of collateral that is locked up in this position
+   'maintenanceMargin': 1000,   // float, the mininum amount of collateral needed to avoid being liquidated
+   'initialMarginPercentage': 0.05,      // float, the initialMargin as a percentage of the notional
+   'maintenanceMarginPercentage': 0.01,  // float, the maintenanceMargin as a percentage of the notional
+   'unrealizedPnl': 300,        // float, the difference between the market price and the entry price times the number of contracts, can be negative
+   'liquidationPrice': 19850,   // float, the price at which collateral becomes less than maintenanceMargin
+   'marginMode': 'cross',       // string, can be cross or isolated
+   'percentage': 3.32,          // float, represents unrealizedPnl / initialMargin * 100
+}
+```
+Positions allow you to borrow money from an exchange to go long or short on an market. Some exchanges require you to pay a funding fee to keep the position open.
+
+When you go long on a position you are betting that the price will be higher in the future and that the price will never be less than the `liquidationPrice`.
+
+As the price of the underlying index changes so does the unrealisedPnl and as a consequence the amount of collateral you have left in the position (since you can only close it at market price or worse). At some price you will have zero collateral left, this is called the "bust" or "zero" price. Beyond this point, if the price goes in the opposite direction far enough, the collateral of the position will drop below the `maintenanceMargin`. The maintenanceMargin acts as a safety buffer between your position and negative collateral, a scenario where the exchange incurs losses on your behalf. To protect itself the exchange will swiftly liquidate your position if and when this happens. Even if the price returns back above the liquidationPrice you will not get your money back since the exchange sold all the `contracts` you bought at market. In other words the maintenanceMargin is a hidden fee to borrow money.
+
+It is recommended to use the `maintenanceMargin` and `initialMargin` instead of the `maintenanceMarginPercentage` and `initialMarginPercentage` since these tend to be more accurate. The maintenanceMargin might be calculated from other factors outside of the maintenanceMarginPercentage including the funding rate and taker fees, for example on [kucoin](https://futures.kucoin.com/contract/detail).
+
+An inverse contract will allow you to go long or short on BTC/USD by putting up BTC as collateral. Our API for inverse contracts is the same as for linear contracts. The amounts in an inverse contracts are quoted as if they were traded USD/BTC, however the price is still quoted terms of BTC/USD.  The formula for the profit and loss of a inverse contract is `(1/markPrice - 1/price) * contracts`. The profit and loss and collateral will now be quoted in BTC, and the number of contracts are quoted in USD.
+
+### Liquidation price
+
+It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin collateral left and if it goes any further the position will have negative collateral.
+
+```javascript
+// if long
+(liquidationPrice - price) * contracts = maintenanceMargin
+
+// if short
+(price - liquidationPrice) * contracts = maintenanceMargin
+// if inverse long
+(1/liquidationPrice - 1/price) * contracts = maintenanceMargin
+
+// if inverse short
+(1/price - 1/liquidationPrice) * contracts = maintenanceMargin
+```
+
+## Funding History
+
+*contract only*
+
+Perpetual swap (also known as perpetual future) contracts maintain a market price that mirrors the price of the asset they are based on because funding fees are exchanged between traders who hold positions in perpetual swap markets.
+
+If the contract is being traded at a price that is higher than the price of the asset they represent, then traders in long positions pay a funding fee to traders in short positions at specific times of day, which encourages more traders to enter short positions prior to these times.
+
+If the contract is being traded at a price that is lower than the price of the asset they represent, then traders in short positions pay a funding fee to traders in long positions at specific times of day, which encourages more traders to enter long positions prior to these times.
+
+These fees are usually exchanged between traders with no commission going to the exchange
+
+The `fetchFundingHistory` method can be used to retrieve an accounts history of funding fees paid or received
+
+```javascript
+fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve funding history for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [funding history structures](#funding-history-structure) to retrieve (e.g. `5`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [funding history structures](#funding-history-structure)
+
+### Funding History Structure
+
+```javascript
+{
+    info: { ... },
+    symbol: "XRP/USDT:USDT",
+    code: "USDT",
+    timestamp: 1646954920000,
+    datetime: "2022-03-08T16:00:00.000Z",
+    id: "1520286109858180",
+    amount: -0.027722
+}
+```
 
 # Error Handling
 
@@ -4301,7 +5504,7 @@ The error handling with CCXT is done with the exception mechanism that is native
 
 To handle the errors you should add a `try` block around the call to a unified method and catch the exceptions like you would normally do with your language:
 
-```JavaScript
+```javascript
 // JavaScript
 
 // try to call a unified method
@@ -4315,20 +5518,17 @@ try {
     if (e instanceof ccxt.NetworkError) {
         console.log (exchange.id, 'fetchTicker failed due to a network error:', e.message)
         // retry or whatever
-        // ...
     } else if (e instanceof ccxt.ExchangeError) {
         console.log (exchange.id, 'fetchTicker failed due to exchange error:', e.message)
         // retry or whatever
-        // ...
     } else {
         console.log (exchange.id, 'fetchTicker failed with:', e.message)
         // retry or whatever
-        // ...
     }
 }
 ```
 
-```Python
+```python
 # Python
 
 # try to call a unified method
@@ -4338,18 +5538,15 @@ try:
 except ccxt.NetworkError as e:
     print(exchange.id, 'fetch_order_book failed due to a network error:', str(e))
     # retry or whatever
-    # ...
 except ccxt.ExchangeError as e:
     print(exchange.id, 'fetch_order_book failed due to exchange error:', str(e))
     # retry or whatever
-    # ...
 except Exception as e:
     print(exchange.id, 'fetch_order_book failed with:', str(e))
     # retry or whatever
-    # ...
 ```
 
-```PHP
+```php
 // PHP
 
 // try to call a unified method
@@ -4359,15 +5556,12 @@ try {
 } catch (\ccxt\NetworkError $e) {
     echo $exchange->id . ' fetch_trades failed due to a network error: ' . $e->getMessage () . "\n";
     // retry or whatever
-    // ...
 } catch (\ccxt\ExchangeError $e) {
     echo $exchange->id . ' fetch_trades failed due to exchange error: ' . $e->getMessage () . "\n";
     // retry or whatever
-    // ...
 } catch (Exception $e) {
     echo $exchange->id . ' fetch_trades failed with: ' . $e->getMessage () . "\n";
     // retry or whatever
-    // ...
 }
 ```
 
@@ -4375,7 +5569,7 @@ try {
 
 All exceptions are derived from the base BaseError exception, which, in its turn, is defined in the ccxt library like so:
 
-```JavaScript
+```javascript
 // JavaScript
 class BaseError extends Error {
     constructor () {
@@ -4387,13 +5581,13 @@ class BaseError extends Error {
 }
 ```
 
-```Python
+```python
 # Python
 class BaseError (Exception):
     pass
 ```
 
-```PHP
+```php
 // PHP
 class BaseError extends \Exception {}
 ```
@@ -4471,7 +5665,7 @@ In contrast, the `ExchangeError` is a critical error indeed, and it differs from
 
 The distinction between the two families of exceptions is such that one family is recoverable and the other family is unrecoverable. `NetworkError` means you can retry later and it can magically go away by itself, so a subsequent retry may succeed and the user may be able to recover from a `NetworkError` just by waiting. An `ExchangeError` is a fatal error, so, it means, something went bad and it will go bad every time, unless you change the input.
 
-## ExchangeError
+### ExchangeError
 
 This exception is thrown when an exchange server replies with an error in JSON. Possible reasons:
 
@@ -4491,25 +5685,18 @@ Other exceptions derived from `ExchangeError`:
   - `InvalidOrder`: This exception is the base class for all exceptions related to the unified order API.
   - `OrderNotFound`: Raised when you are trying to fetch or cancel a non-existent order.
 
-## NetworkError
+### NetworkError
 
 All errors related to networking are usually recoverable, meaning that networking problems, traffic congestion, unavailability is usually time-dependent. Making a retry later is usually enough to recover from a NetworkError, but if it doesn't go away, then it may indicate some persistent problem with the exchange or with your connection.
 
-## DDoSProtection
+#### DDoSProtection
 
 This exception is thrown in either of two cases:
 
 - when Cloudflare or Incapsula rate limiter restrictions are enforced per user or region/location
 - when the exchange restricts user access for requesting the endpoints in question too frequently
 
-In addition to default error handling, the ccxt library does a case-insensitive search in the response received from the exchange for one of the following keywords:
-
-  - `cloudflare`
-  - `incapsula`
-  - `overload`
-  - `ddos`
-
-## RequestTimeout
+#### RequestTimeout
 
 This exception is raised when the connection with the exchange fails or data is not fully received in a specified amount of time. This is controlled by the `timeout` option. When a `RequestTimeout` is raised, the user doesn't know the outcome of a request (whether it was accepted by the exchange server or not).
 
@@ -4523,7 +5710,7 @@ Thus it's advised to handle this type of exception in the following manner:
   - call `fetchOrders()`, `fetchOpenOrders()`, `fetchClosedOrders()` to check if the request to place the order has succeeded and the order is now open
   - if the order is not `'open'` the user should `fetchBalance()` to check if the balance has changed since the order was created on the first run and then was filled and closed by the time of the second check.
 
-## ExchangeNotAvailable
+#### ExchangeNotAvailable
 
 This type of exception is thrown when the underlying exchange is unreachable.
 
@@ -4538,7 +5725,7 @@ The ccxt library also throws this error if it detects any of the following keywo
   - `maintenance`
   - `maintenancing`
 
-## InvalidNonce
+#### InvalidNonce
 
 Raised when your nonce is less than the previous nonce used with your keypair, as described in the [Authentication](#authentication) section. This type of exception is thrown in these cases (in order of precedence for checking):
 
@@ -4553,27 +5740,27 @@ In case you experience any difficulty connecting to a particular exchange, do th
 
 - Make sure that you have the most recent version of ccxt.
   Never trust your package installer (whether it is `npm`, `pip` or `composer`), instead always check your **actual (real) runtime version number** by running this code in your environment:
-  ```JavaScript
+  ```javascript
   console.log (ccxt.version) // JavaScript
   ```
-  ```Python
+  ```python
   print('CCXT version:', ccxt.__version__)  # Python
   ```
-  ```PHP
+  ```php
   echo "CCXT v." . \ccxt\Exchange::VERSION . "\n"; // PHP
   ```
 - Check the [Issues](https://github.com/ccxt/ccxt/issues) for recent updates.
 - Make sure you have [rate-limiter enabled with `enableRateLimit: true`](#rate-limit) (either the built-in rate-limiter or your own custom rate-limiter).
 - Turn `verbose = true` to get more detail about it!
-  ```Python
+  ```python
   import ccxt
-  exchange = ccxt.binance({'enableRateLimit': True})
+  exchange = ccxt.binance()
   exchange.load_markets()
   exchange.verbose = True  # enable verbose mode after loading the markets
   ```
   Your [code to reproduce the issue + verbose output is required](https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help) in order to get help.
 - Python people can turn on DEBUG logging level with a standard pythonic logger, by adding these two lines to the beginning of their code:
-  ```Python
+  ```python
   import logging
   logging.basicConfig(level=logging.DEBUG)
   ```

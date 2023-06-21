@@ -1,23 +1,22 @@
 <?php
 
-$root = dirname (dirname (dirname (__FILE__)));
+$root = dirname(dirname(dirname(__FILE__)));
 
 include $root . '/ccxt.php';
 
-date_default_timezone_set ('UTC');
+date_default_timezone_set('UTC');
 
-$exchange = new \ccxt\indodax (array (
+$exchange = new \ccxt\indodax(array(
     'apiKey' => 'YOUR_API_KEY', // ←------------ replace with your keys
     'secret' => 'YOUR_SECRET',
-    'enableRateLimit' => true,
 ));
 
 //-----------------------------------------------------------------------------
 // querying balance
 
-$balance = $exchange->fetch_balance ();
+$balance = $exchange->fetch_balance();
 
-print_r ($balance);
+print_r($balance);
 
 // do whatever you need here with your balance...
 
@@ -31,31 +30,31 @@ $amount = 1.0;
 $price = 6500.0; // or None
 
 // extra params and overrides if necessary
-$params = array (
+$params = array(
     // ...
 );
 
 // buying
 
-$buy_order1 = $exchange->create_limit_buy_order ($symbol, $amount, $price, $params);
+$buy_order1 = $exchange->create_limit_buy_order($symbol, $amount, $price, $params);
 echo "Buy order 1:\n";
-print_r ($buy_order1);
+print_r($buy_order1);
 
-$buy_order2 = $exchange->create_order ($symbol, $type, 'buy', $amount, $price, $params);
+$buy_order2 = $exchange->create_order($symbol, $type, 'buy', $amount, $price, $params);
 //                             order side hardcoded here ↑ for example
 echo "Buy order 2:\n";
-print_r ($buy_order2);
+print_r($buy_order2);
 
 // selling
 
-$sell_order1 = $exchange->create_limit_sell_order ($symbol, $amount, $price, $params);
+$sell_order1 = $exchange->create_limit_sell_order($symbol, $amount, $price, $params);
 echo "Sell order 1:\n";
-print_r ($sell_order1);
+print_r($sell_order1);
 
 $sell_order2 = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 //                         order side from a variable here ↑ for example
 echo "Sell order 2:\n";
-print_r ($sell_order2);
+print_r($sell_order2);
 
 // canceling
 

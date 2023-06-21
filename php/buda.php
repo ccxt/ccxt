@@ -6,15 +6,12 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\AddressPending;
-use \ccxt\NotSupported;
+use ccxt\abstract\buda as Exchange;
 
 class buda extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'buda',
             'name' => 'Buda',
             'countries' => array( 'AR', 'CL', 'CO', 'PE' ),
@@ -42,23 +39,24 @@ class buda extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
-                'fetchMyTrades' => null,
+                'fetchMyTrades' => false,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -66,16 +64,23 @@ class buda extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransactionFees' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/47380619-8a029200-d706-11e8-91e0-8a391fe48de3.jpg',
-                'api' => 'https://www.buda.com/api',
+                'api' => array(
+                    'rest' => 'https://www.buda.com/api',
+                ),
                 'www' => 'https://www.buda.com',
                 'doc' => 'https://api.buda.com',
                 'fees' => 'https://www.buda.com/comisiones',
@@ -169,6 +174,7 @@ class buda extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'not_authorized' => '\\ccxt\\AuthenticationError',  // array( message => 'Invalid credentials', code => 'not_authorized' )
                 'forbidden' => '\\ccxt\\PermissionDenied',  // array( message => 'You dont have access to this resource', code => 'forbidden' )
@@ -216,8 +222,37 @@ class buda extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for buda
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {[array]} an array of objects representing $market data
+         */
         $marketsResponse = $this->publicGetMarkets ($params);
-        $markets = $this->safe_value($marketsResponse, 'markets');
+        //
+        //     {
+        //         "markets" => array(
+        //           array(
+        //             "id" => "BTC-CLP",
+        //             "name" => "btc-clp",
+        //             "base_currency" => "BTC",
+        //             "quote_currency" => "CLP",
+        //             "minimum_order_amount" => array(
+        //               "0.00002",
+        //               "BTC"
+        //             ),
+        //             "disabled" => false,
+        //             "illiquid" => false,
+        //             "rpo_disabled" => null,
+        //             "taker_fee" => "0.8",
+        //             "maker_fee" => "0.4",
+        //             "max_orders_per_minute" => 50,
+        //             "maker_discount_percentage" => "0.0",
+        //             "taker_discount_percentage" => "0.0"
+        //           ),
+        //         )
+        //     }
+        //
+        $markets = $this->safe_value($marketsResponse, 'markets', array());
         $currenciesResponse = $this->publicGetCurrencies ();
         $currencies = $this->safe_value($currenciesResponse, 'currencies');
         $result = array();
@@ -229,8 +264,9 @@ class buda extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $baseInfo = $this->fetch_currency_info($baseId, $currencies);
             $quoteInfo = $this->fetch_currency_info($quoteId, $currencies);
-            $pricePrecisionString = $this->safe_string($quoteInfo, 'input_decimals');
             $minimumOrderAmount = $this->safe_value($market, 'minimum_order_amount', array());
+            $taker_fee = $this->safe_string($market, 'taker_fee');
+            $maker_fee = $this->safe_string($market, 'maker_fee');
             $result[] = array(
                 'id' => $this->safe_string($market, 'id'),
                 'symbol' => $base . '/' . $quote,
@@ -255,9 +291,11 @@ class buda extends Exchange {
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
+                'taker' => $this->parse_number(Precise::string_div($taker_fee, '1000')),
+                'maker' => $this->parse_number(Precise::string_div($maker_fee, '1000')),
                 'precision' => array(
-                    'amount' => $this->safe_integer($baseInfo, 'input_decimals'),
-                    'price' => intval($pricePrecisionString),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($baseInfo, 'input_decimals'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($quoteInfo, 'input_decimals'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -284,6 +322,11 @@ class buda extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {array} $params extra parameters specific to the buda api endpoint
+         * @return {array} an associative dictionary of $currencies
+         */
         $response = $this->publicGetCurrencies ();
         //
         //     {
@@ -316,8 +359,7 @@ class buda extends Exchange {
             }
             $id = $this->safe_string($currency, 'id');
             $code = $this->safe_currency_code($id);
-            $precision = $this->safe_number($currency, 'input_decimals');
-            $minimum = pow(10, -$precision);
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'input_decimals')));
             $depositMinimum = $this->safe_value($currency, 'deposit_minimum', array());
             $withdrawalMinimum = $this->safe_value($currency, 'withdrawal_minimum', array());
             $minDeposit = $this->safe_number($depositMinimum, 0);
@@ -334,7 +376,7 @@ class buda extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $minimum,
+                        'min' => $precision,
                         'max' => null,
                     ),
                     'deposit' => array(
@@ -350,7 +392,13 @@ class buda extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_fees($codes = null, $params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
+        /**
+         * fetch transaction fees
+         * @param {[string]|null} $codes list of unified $currency $codes
+         * @param {array} $params extra parameters specific to the buda api endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
+         */
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define $codes = array( 'ETH', 'BTC' ) in args it will only load those
         $this->load_markets();
@@ -366,8 +414,8 @@ class buda extends Exchange {
             $request = array( 'currency' => $currency['id'] );
             $withdrawResponse = $this->publicGetCurrenciesCurrencyFeesWithdrawal ($request);
             $depositResponse = $this->publicGetCurrenciesCurrencyFeesDeposit ($request);
-            $withdrawFees[$code] = $this->parse_funding_fee($withdrawResponse['fee']);
-            $depositFees[$code] = $this->parse_funding_fee($depositResponse['fee']);
+            $withdrawFees[$code] = $this->parse_transaction_fee($withdrawResponse['fee']);
+            $depositFees[$code] = $this->parse_transaction_fee($depositResponse['fee']);
             $info[$code] = array(
                 'withdraw' => $withdrawResponse,
                 'deposit' => $depositResponse,
@@ -380,7 +428,7 @@ class buda extends Exchange {
         );
     }
 
-    public function parse_funding_fee($fee, $type = null) {
+    public function parse_transaction_fee($fee, $type = null) {
         if ($type === null) {
             $type = $fee['name'];
         }
@@ -395,7 +443,13 @@ class buda extends Exchange {
         );
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {array} $params extra parameters specific to the buda api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -464,10 +518,18 @@ class buda extends Exchange {
             'baseVolume' => $this->safe_string($baseVolume, 0),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {array} $params extra parameters specific to the buda api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -510,7 +572,7 @@ class buda extends Exchange {
         if ($market) {
             $symbol = $market['symbol'];
         }
-        if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
+        if (gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade))) {
             $timestamp = $this->safe_integer($trade, 0);
             $priceString = $this->safe_string($trade, 1);
             $amountString = $this->safe_string($trade, 2);
@@ -534,7 +596,14 @@ class buda extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {array} $params extra parameters specific to the buda api endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -542,10 +611,19 @@ class buda extends Exchange {
         );
         $response = $this->publicGetMarketsMarketOrderBook (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'order_book');
-        return $this->parse_order_book($orderbook, $symbol);
+        return $this->parse_order_book($orderbook, $market['symbol']);
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {array} $params extra parameters specific to the buda api endpoint
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         if ($since === null) {
@@ -553,7 +631,7 @@ class buda extends Exchange {
         }
         $request = array(
             'symbol' => $market['id'],
-            'resolution' => $this->timeframes[$timeframe],
+            'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'from' => $since / 1000,
             'to' => $this->seconds(),
         );
@@ -563,7 +641,7 @@ class buda extends Exchange {
 
     public function parse_balance($response) {
         $result = array( 'info' => $response );
-        $balances = $this->safe_value($response, 'balances');
+        $balances = $this->safe_value($response, 'balances', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'id');
@@ -577,12 +655,23 @@ class buda extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {array} $params extra parameters specific to the buda api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $response = $this->privateGetBalances ($params);
         return $this->parse_balance($response);
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an $order made by the user
+         * @param {string|null} $symbol not used by buda fetchOrder
+         * @param {array} $params extra parameters specific to the buda api endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         */
         $this->load_markets();
         $request = array(
             'id' => intval($id),
@@ -592,7 +681,15 @@ class buda extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple $orders made by the user
+         * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {array} $params extra parameters specific to the buda api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
@@ -607,27 +704,54 @@ class buda extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {string|null} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {array} $params extra parameters specific to the buda api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
         $request = array(
             'state' => 'pending',
         );
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {string|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {array} $params extra parameters specific to the buda api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
         $request = array(
             'state' => 'traded',
         );
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade $order
+         * @param {string} $symbol unified $symbol of the $market to create an $order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the buda api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+         */
         $this->load_markets();
-        $side = ($side === 'buy') ? 'Bid' : 'Ask';
+        $requestSide = ($side === 'buy') ? 'Bid' : 'Ask';
+        $market = $this->market($symbol);
         $request = array(
-            'market' => $this->market_id($symbol),
+            'market' => $market['id'],
             'price_type' => $type,
-            'type' => $side,
+            'type' => $requestSide,
             'amount' => $this->amount_to_precision($symbol, $amount),
         );
         if ($type === 'limit') {
@@ -638,7 +762,14 @@ class buda extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+        /**
+         * cancels an open $order
+         * @param {string} $id $order $id
+         * @param {string|null} $symbol not used by buda cancelOrder ()
+         * @param {array} $params extra parameters specific to the buda api endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         */
         $this->load_markets();
         $request = array(
             'id' => intval($id),
@@ -693,7 +824,7 @@ class buda extends Exchange {
         $remaining = $this->safe_string($remainingAmount, 0);
         $tradedAmount = $this->safe_value($order, 'traded_amount', array());
         $filled = $this->safe_string($tradedAmount, 0);
-        $totalExchanged = $this->safe_value($order, 'totalExchanged', array());
+        $totalExchanged = $this->safe_value($order, 'total_exchanged', array());
         $cost = $this->safe_string($totalExchanged, 0);
         $limitPrice = $this->safe_value($order, 'limit', array());
         $price = $this->safe_string($limitPrice, 0);
@@ -710,7 +841,8 @@ class buda extends Exchange {
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
                 'cost' => $feeCost,
-                'code' => $feeCurrencyCode,
+                'code' => $feeCurrencyCode, // kept here for backward-compatibility, but will be removed soon
+                'currency' => $feeCurrencyCode,
             );
         }
         return $this->safe_order(array(
@@ -728,6 +860,7 @@ class buda extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'average' => null,
             'cost' => $cost,
             'amount' => $amount,
@@ -748,7 +881,13 @@ class buda extends Exchange {
         return $this->safe_value($fiats, $code, false);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
+        /**
+         * fetch the deposit $address for a $currency associated with this account
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the buda api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         if ($this->is_fiat($code)) {
@@ -763,12 +902,12 @@ class buda extends Exchange {
         for ($i = 1; $i < count($receiveAddresses); $i++) {
             $receiveAddress = $receiveAddresses[$i];
             if ($receiveAddress['ready']) {
-                $address = $receiveAddress['address'];
-                $this->check_address($address);
-                $addressPool[] = $address;
+                $addressInner = $receiveAddress['address'];
+                $this->check_address($addressInner);
+                $addressPool[] = $addressInner;
             }
         }
-        $addressPoolLength = is_array($addressPool) ? count($addressPool) : 0;
+        $addressPoolLength = count($addressPool);
         if ($addressPoolLength < 1) {
             throw new AddressPending($this->id . ' => there are no addresses ready for receiving ' . $code . ', retry again later)');
         }
@@ -782,11 +921,17 @@ class buda extends Exchange {
         );
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
+        /**
+         * create a $currency deposit $address
+         * @param {string} $code unified $currency $code of the $currency for the deposit $address
+         * @param {array} $params extra parameters specific to the buda api endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         if ($this->is_fiat($code)) {
-            throw new NotSupported($this->id . ' => fiat fetchDepositAddress() for ' . $code . ' is not supported');
+            throw new NotSupported($this->id . ' createDepositAddress() of fiat for ' . $code . ' is not supported');
         }
         $request = array(
             'currency' => $currency['id'],
@@ -851,10 +996,18 @@ class buda extends Exchange {
         );
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all $deposits made to an account
+         * @param {string} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch $deposits for
+         * @param {int|null} $limit the maximum number of $deposits structures to retrieve
+         * @param {array} $params extra parameters specific to the buda api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         */
         $this->load_markets();
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' => fetchDeposits() requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
         }
         $currency = $this->currency($code);
         $request = array(
@@ -866,10 +1019,18 @@ class buda extends Exchange {
         return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all $withdrawals made from an account
+         * @param {string} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch $withdrawals for
+         * @param {int|null} $limit the maximum number of $withdrawals structures to retrieve
+         * @param {array} $params extra parameters specific to the buda api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         */
         $this->load_markets();
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' => fetchDeposits() requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
         }
         $currency = $this->currency($code);
         $request = array(
@@ -881,7 +1042,16 @@ class buda extends Exchange {
         return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a $withdrawal
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string|null} $tag
+         * @param {array} $params extra parameters specific to the buda api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
@@ -912,14 +1082,14 @@ class buda extends Exchange {
                 $body = $this->json($query);
             }
         }
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
+        $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $request;
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             $components = array( $method, '/api/' . $this->version . '/' . $request );
             if ($body) {
                 $base64Body = base64_encode($body);
-                $components[] = $this->decode($base64Body);
+                $components[] = $base64Body;
             }
             $components[] = $nonce;
             $message = implode(' ', $components);
@@ -936,7 +1106,7 @@ class buda extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         if ($code >= 400) {
             $errorCode = $this->safe_string($response, 'code');
@@ -947,5 +1117,6 @@ class buda extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+        return null;
     }
 }

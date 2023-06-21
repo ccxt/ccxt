@@ -1,16 +1,13 @@
-'use strict';
+import ccxt from '../../js/ccxt.js';
+import { writeFileSync } from 'fs';
+import path from 'path';
 
-const ccxt = require ('../../ccxt.js')
-    , { writeFileSync } = require ('fs')
-    , path = require ('path')
-    , enableRateLimit = true
-    , exchanges = {}
-    , tickers = {}
+const enableRateLimit = true, exchanges = {}, tickers = {};
 
 
 ccxt.exchanges.forEach (id => {
     try {
-        const exchange = new ccxt[id] ({ enableRateLimit })
+        const exchange = new ccxt[id] ()
         if (exchange.has['fetchTickers']) {
             exchanges[id] = exchange
         }

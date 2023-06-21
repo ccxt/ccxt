@@ -12,7 +12,7 @@ sys.path.append(root + '/python')
 
 
 async def async_client(exchange, symbol):
-    client = getattr(ccxta, exchange)({'enableRateLimit': True})
+    client = getattr(ccxta, exchange)()
     await client.load_markets()
     if symbol not in client.symbols:
         raise Exception(exchange + ' does not support symbol ' + symbol)
@@ -40,4 +40,4 @@ if __name__ == '__main__':
     exchanges = ["bittrex", "bitfinex", "poloniex"]
     symbol = 'ETH/BTC'
 
-    asyncio.get_event_loop().run_until_complete(multi_orderbooks(exchanges, symbol))
+    asyncio.run(multi_orderbooks(exchanges, symbol))

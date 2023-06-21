@@ -13,7 +13,6 @@ $exchange_class = "\\ccxt\\$exchange_id";
 $exchange = new $exchange_class(array(
     'apiKey' => 'YOUR_API_KEY',
     'secret' => 'YOUR_SECRET',
-    'enableRateLimit' => true,
     'options' => array(
         'defaultType' => 'future'
     ),

@@ -4,9 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import math
+from ccxt.abstract.delta import ImplicitAPI
+import hashlib
+from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -14,10 +18,12 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
-class delta(Exchange):
+class delta(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(delta, self).describe(), {
@@ -41,9 +47,12 @@ class delta(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposit': None,
                 'fetchDepositAddress': True,
+                'fetchDeposits': None,
                 'fetchLedger': True,
                 'fetchLeverageTiers': False,  # An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
+                'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -51,12 +60,19 @@ class delta(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchPosition': True,
+                'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTransfer': None,
+                'fetchTransfers': None,
+                'fetchWithdrawal': None,
+                'fetchWithdrawals': None,
+                'transfer': False,
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '1m',
@@ -141,46 +157,58 @@ class delta(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.15 / 100,
-                    'maker': 0.10 / 100,
+                    'taker': self.parse_number('0.0015'),
+                    'maker': self.parse_number('0.0010'),
                     'tiers': {
                         'taker': [
-                            [0, 0.15 / 100],
-                            [100, 0.13 / 100],
-                            [250, 0.13 / 100],
-                            [1000, 0.1 / 100],
-                            [5000, 0.09 / 100],
-                            [10000, 0.075 / 100],
-                            [20000, 0.065 / 100],
+                            [self.parse_number('0'), self.parse_number('0.0015')],
+                            [self.parse_number('100'), self.parse_number('0.0013')],
+                            [self.parse_number('250'), self.parse_number('0.0013')],
+                            [self.parse_number('1000'), self.parse_number('0.001')],
+                            [self.parse_number('5000'), self.parse_number('0.0009')],
+                            [self.parse_number('10000'), self.parse_number('0.00075')],
+                            [self.parse_number('20000'), self.parse_number('0.00065')],
                         ],
                         'maker': [
-                            [0, 0.1 / 100],
-                            [100, 0.1 / 100],
-                            [250, 0.09 / 100],
-                            [1000, 0.075 / 100],
-                            [5000, 0.06 / 100],
-                            [10000, 0.05 / 100],
-                            [20000, 0.05 / 100],
+                            [self.parse_number('0'), self.parse_number('0.001')],
+                            [self.parse_number('100'), self.parse_number('0.001')],
+                            [self.parse_number('250'), self.parse_number('0.0009')],
+                            [self.parse_number('1000'), self.parse_number('0.00075')],
+                            [self.parse_number('5000'), self.parse_number('0.0006')],
+                            [self.parse_number('10000'), self.parse_number('0.0005')],
+                            [self.parse_number('20000'), self.parse_number('0.0005')],
                         ],
                     },
+                },
+            },
+            'options': {
+                'networks': {
+                    'TRC20': 'TRC20(TRON)',
+                    'TRX': 'TRC20(TRON)',
+                    'BEP20': 'BEP20(BSC)',
+                    'BSC': 'BEP20(BSC)',
+                },
+                'networksById': {
+                    'BEP20(BSC)': 'BSC',
+                    'TRC20(TRON)': 'TRC20',
                 },
             },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': True,
-                'secret': False,
+                'secret': True,
             },
             'exceptions': {
                 'exact': {
                     # Margin required to place order with selected leverage and quantity is insufficient.
                     'insufficient_margin': InsufficientFunds,  # {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
                     'order_size_exceed_available': InvalidOrder,  # The order book doesn't have sufficient liquidity, hence the order couldnt be filled, for example, ioc orders
-                    'risk_limits_breached': BadRequest,  # orders couldn't be placed as it will breach allowed risk limits.
+                    'risk_limits_breached': BadRequest,  # orders couldn't be placed will breach allowed risk limits.
                     'invalid_contract': BadSymbol,  # The contract/product is either doesn't exist or has already expired.
                     'immediate_liquidation': InvalidOrder,  # Order will cause immediate liquidation.
                     'out_of_bankruptcy': InvalidOrder,  # Order prices are out of position bankruptcy limits.
                     'self_matching_disrupted_post_only': InvalidOrder,  # Self matching is not allowed during auction.
-                    'immediate_execution_post_only': InvalidOrder,  # orders couldn't be placed as it includes post only orders which will be immediately executed
+                    'immediate_execution_post_only': InvalidOrder,  # orders couldn't be placed includes post only orders which will be immediately executed
                     'bad_schema': BadRequest,  # {"error":{"code":"bad_schema","context":{"schema_errors":[{"code":"validation_error","message":"id is required","param":""}]}},"success":false}
                     'invalid_api_key': AuthenticationError,  # {"success":false,"error":{"code":"invalid_api_key"}}
                     'invalid_signature': AuthenticationError,  # {"success":false,"error":{"code":"invalid_signature"}}
@@ -193,37 +221,94 @@ class delta(Exchange):
         })
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetSettings(params)
-        #
-        #     {
-        #         "result":{
-        #             "server_time":1605472733766141,
-        #             "deto_referral_mining_daily_reward":"25000",
-        #             "deto_total_reward_pool":"100000000",
-        #             "deto_trade_mining_daily_reward":"75000",
-        #             "kyc_deposit_limit":"20",
-        #             "kyc_withdrawal_limit":"2",
-        #             "under_maintenance":"false"
-        #         },
-        #         "success":true
-        #     }
-        #
+        # full response sample under `fetchStatus`
         result = self.safe_value(response, 'result', {})
         return self.safe_integer_product(result, 'server_time', 0.001)
 
     def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        """
         response = self.publicGetSettings(params)
+        #
+        #     {
+        #         "result": {
+        #           "deto_liquidity_mining_daily_reward": "40775",
+        #           "deto_msp": "1.0",
+        #           "deto_staking_daily_reward": "23764.08",
+        #           "enabled_wallets": [
+        #             "BTC",
+        #             ...
+        #           ],
+        #           "portfolio_margin_params": {
+        #             "enabled_portfolios": {
+        #               ".DEAVAXUSDT": {
+        #                 "asset_id": 5,
+        #                 "futures_contingency_margin_percent": "1",
+        #                 "interest_rate": "0",
+        #                 "maintenance_margin_multiplier": "0.8",
+        #                 "max_price_shock": "20",
+        #                 "max_short_notional_limit": "2000",
+        #                 "options_contingency_margin_percent": "1",
+        #                 "options_discount_range": "10",
+        #                 "options_liq_band_range_percentage": "25",
+        #                 "settling_asset": "USDT",
+        #                 "sort_priority": 5,
+        #                 "underlying_asset": "AVAX",
+        #                 "volatility_down_shock": "30",
+        #                 "volatility_up_shock": "45"
+        #               },
+        #               ...
+        #             },
+        #             "portfolio_enabled_contracts": [
+        #               "futures",
+        #               "perpetual_futures",
+        #               "call_options",
+        #               "put_options"
+        #             ]
+        #           },
+        #           "server_time": 1650640673500273,
+        #           "trade_farming_daily_reward": "100000",
+        #           "circulating_supply": "140000000",
+        #           "circulating_supply_update_time": "1636752800",
+        #           "deto_referral_mining_daily_reward": "0",
+        #           "deto_total_reward_pool": "100000000",
+        #           "deto_trade_mining_daily_reward": "0",
+        #           "kyc_deposit_limit": "20",
+        #           "kyc_withdrawal_limit": "10000",
+        #           "maintenance_start_time": "1650387600000000",
+        #           "msp_deto_commission_percent": "25",
+        #           "under_maintenance": "false"
+        #         },
+        #         "success": True
+        #     }
+        #
         result = self.safe_value(response, 'result', {})
-        underMaintenance = self.safe_value(result, 'under_maintenance')
+        underMaintenance = self.safe_string(result, 'under_maintenance')
         status = 'maintenance' if (underMaintenance == 'true') else 'ok'
-        updated = self.safe_integer_product(result, 'server_time', 0.001)
-        self.status = self.extend(self.status, {
+        updated = self.safe_integer_product(result, 'server_time', 0.001, self.milliseconds())
+        return {
             'status': status,
             'updated': updated,
-        })
-        return self.status
+            'eta': None,
+            'url': None,
+            'info': response,
+        }
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.publicGetAssets(params)
         #
         #     {
@@ -267,7 +352,6 @@ class delta(Exchange):
             depositsEnabled = (depositStatus == 'enabled')
             withdrawalsEnabled = (withdrawalStatus == 'enabled')
             active = depositsEnabled and withdrawalsEnabled
-            precision = self.safe_integer(currency, 'precision')
             result[code] = {
                 'id': id,
                 'numericId': numericId,
@@ -278,7 +362,7 @@ class delta(Exchange):
                 'deposit': depositsEnabled,
                 'withdraw': withdrawalsEnabled,
                 'fee': self.safe_number(currency, 'base_withdrawal_fee'),
-                'precision': 1 / math.pow(10, precision),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
                 'limits': {
                     'amount': {'min': None, 'max': None},
                     'withdraw': {
@@ -286,6 +370,7 @@ class delta(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 
@@ -300,16 +385,17 @@ class delta(Exchange):
         return markets
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for delta
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetProducts(params)
         #
         #     {
-        #         "meta":{
-        #             "after":null,
-        #             "before":null,
-        #             "limit":100,
-        #             "total_count":81
-        #         },
+        #         "meta":{"after":null, "before":null, "limit":100, "total_count":81},
         #         "result":[
+        #             # the below response represents item from perpetual market
         #             {
         #                 "annualized_funding":"5.475000000000000000",
         #                 "is_quanto":false,
@@ -368,6 +454,117 @@ class delta(Exchange):
         #                 "funding_method":"mark_price",
         #                 "max_leverage_notional":"20000"
         #             },
+        #             # the below response represents item from spot market
+        #             {
+        #                 "position_size_limit": 10000000,
+        #                 "settlement_price": null,
+        #                 "funding_method": "mark_price",
+        #                 "settling_asset": null,
+        #                 "impact_size": 10,
+        #                 "id": 32258,
+        #                 "auction_finish_time": null,
+        #                 "description": "Solana tether spot market",
+        #                 "trading_status": "operational",
+        #                 "tick_size": "0.01",
+        #                 "liquidation_penalty_factor": "1",
+        #                 "spot_index": {
+        #                     "config": {"quoting_asset": "USDT", "service_id": 8, "underlying_asset": "SOL"},
+        #                     "constituent_exchanges": [
+        #                         {"exchange": "binance", "health_interval": 60, "health_priority": 1, "weight": 1},
+        #                         {"exchange": "huobi", "health_interval": 60, "health_priority": 2, "weight": 1}
+        #                     ],
+        #                     "constituent_indices": null,
+        #                     "description": "Solana index from binance and huobi",
+        #                     "health_interval": 300,
+        #                     "id": 105,
+        #                     "impact_size": "40.000000000000000000",
+        #                     "index_type": "spot_pair",
+        #                     "is_composite": False,
+        #                     "price_method": "ltp",
+        #                     "quoting_asset_id": 5,
+        #                     "symbol": ".DESOLUSDT",
+        #                     "tick_size": "0.000100000000000000",
+        #                     "underlying_asset_id": 66
+        #                 },
+        #                 "contract_type": "spot",
+        #                 "launch_time": "2022-02-03T10:18:11Z",
+        #                 "symbol": "SOL_USDT",
+        #                 "disruption_reason": null,
+        #                 "settlement_time": null,
+        #                 "insurance_fund_margin_contribution": "1",
+        #                 "is_quanto": False,
+        #                 "maintenance_margin": "5",
+        #                 "taker_commission_rate": "0.0005",
+        #                 "auction_start_time": null,
+        #                 "max_leverage_notional": "10000000",
+        #                 "state": "live",
+        #                 "annualized_funding": "0",
+        #                 "notional_type": "vanilla",
+        #                 "price_band": "100",
+        #                 "product_specs": {"kyc_required": False, "max_order_size": 2000, "min_order_size": 0.01, "quoting_precision": 4, "underlying_precision": 2},
+        #                 "default_leverage": "1.000000000000000000",
+        #                 "initial_margin": "10",
+        #                 "maintenance_margin_scaling_factor": "1",
+        #                 "ui_config": {
+        #                     "default_trading_view_candle": "1d",
+        #                     "leverage_slider_values": [],
+        #                     "price_clubbing_values": [0.01, 0.05, 0.1, 0.5, 1, 2.5, 5],
+        #                     "show_bracket_orders": False,
+        #                     "sort_priority": 2,
+        #                     "tags": []
+        #                 },
+        #                 "basis_factor_max_limit": "10000",
+        #                 "contract_unit_currency": "SOL",
+        #                 "strike_price": null,
+        #                 "quoting_asset": {
+        #                     "base_withdrawal_fee": "10.000000000000000000",
+        #                     "deposit_status": "enabled",
+        #                     "id": 5,
+        #                     "interest_credit": False,
+        #                     "interest_slabs": null,
+        #                     "kyc_deposit_limit": "100000.000000000000000000",
+        #                     "kyc_withdrawal_limit": "10000.000000000000000000",
+        #                     "min_withdrawal_amount": "30.000000000000000000",
+        #                     "minimum_precision": 2,
+        #                     "name": "Tether",
+        #                     "networks": [
+        #                         {"base_withdrawal_fee": "25", "deposit_status": "enabled", "memo_required": False, "network": "ERC20", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled"},
+        #                         {"base_withdrawal_fee": "1", "deposit_status": "enabled", "memo_required": False, "network": "BEP20(BSC)", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled"},
+        #                         {"base_withdrawal_fee": "1", "deposit_status": "disabled", "memo_required": False, "network": "TRC20(TRON)", "variable_withdrawal_fee": "0", "withdrawal_status": "disabled"}
+        #                     ],
+        #                     "precision": 8,
+        #                     "sort_priority": 1,
+        #                     "symbol": "USDT",
+        #                     "variable_withdrawal_fee": "0.000000000000000000",
+        #                     "withdrawal_status": "enabled"
+        #                 },
+        #                 "maker_commission_rate": "0.0005",
+        #                 "initial_margin_scaling_factor": "2",
+        #                 "underlying_asset": {
+        #                     "base_withdrawal_fee": "0.000000000000000000",
+        #                     "deposit_status": "enabled",
+        #                     "id": 66,
+        #                     "interest_credit": False,
+        #                     "interest_slabs": null,
+        #                     "kyc_deposit_limit": "0.000000000000000000",
+        #                     "kyc_withdrawal_limit": "0.000000000000000000",
+        #                     "min_withdrawal_amount": "0.020000000000000000",
+        #                     "minimum_precision": 4,
+        #                     "name": "Solana",
+        #                     "networks": [
+        #                         {"base_withdrawal_fee": "0.01", "deposit_status": "enabled", "memo_required": False, "network": "SOLANA", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled"},
+        #                         {"base_withdrawal_fee": "0.01", "deposit_status": "enabled", "memo_required": False, "network": "BEP20(BSC)", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled"}
+        #                     ],
+        #                     "precision": 8,
+        #                     "sort_priority": 7,
+        #                     "symbol": "SOL",
+        #                     "variable_withdrawal_fee": "0.000000000000000000",
+        #                     "withdrawal_status": "enabled"
+        #                 },
+        #                 "barrier_price": null,
+        #                 "contract_value": "1",
+        #                 "short_description": "SOL-USDT spot market"
+        #             },
         #         ],
         #         "success":true
         #     }
@@ -381,6 +578,7 @@ class delta(Exchange):
             quotingAsset = self.safe_value(market, 'quoting_asset', {})
             underlyingAsset = self.safe_value(market, 'underlying_asset', {})
             settlingAsset = self.safe_value(market, 'settling_asset')
+            productSpecs = self.safe_value(market, 'product_specs', {})
             baseId = self.safe_string(underlyingAsset, 'symbol')
             quoteId = self.safe_string(quotingAsset, 'symbol')
             settleId = self.safe_string(settlingAsset, 'symbol')
@@ -400,6 +598,12 @@ class delta(Exchange):
             expiryDatetime = self.safe_string(market, 'settlement_time')
             expiry = self.parse8601(expiryDatetime)
             contractSize = self.safe_number(market, 'contract_value')
+            amountPrecision = None
+            if spot:
+                amountPrecision = self.parse_number(self.parse_precision(self.safe_string(productSpecs, 'underlying_precision')))  # seems inverse of 'impact_size'
+            else:
+                # other markets(swap, futures, move, spread, irs) seem to use the step of '1' contract
+                amountPrecision = self.parse_number('1')
             linear = (settle == base)
             optionType = None
             symbol = base + '/' + quote
@@ -453,7 +657,7 @@ class delta(Exchange):
                 'strike': self.parse_number(strike),
                 'optionType': optionType,
                 'precision': {
-                    'amount': self.parse_number('1'),  # number of contracts
+                    'amount': amountPrecision,
                     'price': self.safe_number(market, 'tick_size'),
                 },
                 'limits': {
@@ -527,9 +731,15 @@ class delta(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -560,8 +770,15 @@ class delta(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_ticker(result, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetTickers(params)
         #
         #     {
@@ -594,10 +811,18 @@ class delta(Exchange):
             result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         if limit is not None:
             request['depth'] = limit
@@ -621,7 +846,7 @@ class delta(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return self.parse_order_book(result, symbol, None, 'buy', 'sell', 'price', 'size')
+        return self.parse_order_book(result, market['symbol'], None, 'buy', 'sell', 'price', 'size')
 
     def parse_trade(self, trade, market=None):
         #
@@ -718,7 +943,15 @@ class delta(Exchange):
             'info': trade,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -763,12 +996,21 @@ class delta(Exchange):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe)
         limit = limit if limit else 2000  # max 2000
@@ -777,7 +1019,7 @@ class delta(Exchange):
             request['end'] = end
             request['start'] = end - limit * duration
         else:
-            start = int(since / 1000)
+            start = self.parse_to_int(since / 1000)
             request['start'] = start
             request['end'] = self.sum(start, limit * duration)
         response = self.publicGetHistoryCandles(self.extend(request, params))
@@ -810,6 +1052,11 @@ class delta(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         response = self.privateGetWalletBalances(params)
         #
@@ -835,7 +1082,13 @@ class delta(Exchange):
         #
         return self.parse_balance(response)
 
-    def fetch_position(self, symbol, params={}):
+    def fetch_position(self, symbol: str, params={}):
+        """
+        fetch data on a single open contract trade position
+        :param str symbol: unified market symbol of the market the position is held in, default is None
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -853,30 +1106,105 @@ class delta(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return result
+        return self.parse_position(result, market)
 
-    def fetch_positions(self, symbols=None, params={}):
+    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        fetch all open positions
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        """
         self.load_markets()
         response = self.privateGetPositionsMargined(params)
         #
         #     {
         #         "success": True,
         #         "result": [
-        #             {
-        #                 "user_id": 0,
-        #                 "size": 0,
-        #                 "entry_price": "string",
-        #                 "margin": "string",
-        #                 "liquidation_price": "string",
-        #                 "bankruptcy_price": "string",
-        #                 "adl_level": 0,
-        #                 "product_id": 0
-        #             }
+        #           {
+        #             "user_id": 0,
+        #             "size": 0,
+        #             "entry_price": "string",
+        #             "margin": "string",
+        #             "liquidation_price": "string",
+        #             "bankruptcy_price": "string",
+        #             "adl_level": 0,
+        #             "product_id": 0,
+        #             "product_symbol": "string",
+        #             "commission": "string",
+        #             "realized_pnl": "string",
+        #             "realized_funding": "string"
+        #           }
         #         ]
         #     }
         #
         result = self.safe_value(response, 'result', [])
-        return result
+        return self.parse_positions(result, symbols)
+
+    def parse_position(self, position, market=None):
+        #
+        # fetchPosition
+        #
+        #     {
+        #         "entry_price":null,
+        #         "size":0,
+        #         "timestamp":1605454074268079
+        #     }
+        #
+        #
+        # fetchPositions
+        #
+        #     {
+        #         "user_id": 0,
+        #         "size": 0,
+        #         "entry_price": "string",
+        #         "margin": "string",
+        #         "liquidation_price": "string",
+        #         "bankruptcy_price": "string",
+        #         "adl_level": 0,
+        #         "product_id": 0,
+        #         "product_symbol": "string",
+        #         "commission": "string",
+        #         "realized_pnl": "string",
+        #         "realized_funding": "string"
+        #     }
+        #
+        marketId = self.safe_string(position, 'product_symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        timestamp = self.safe_integer_product(position, 'timestamp', 0.001)
+        sizeString = self.safe_string(position, 'size')
+        side = None
+        if sizeString is not None:
+            if Precise.string_gt(sizeString, '0'):
+                side = 'buy'
+            elif Precise.string_lt(sizeString, '0'):
+                side = 'sell'
+        return {
+            'info': position,
+            'id': None,
+            'symbol': symbol,
+            'notional': None,
+            'marginMode': None,
+            'liquidationPrice': self.safe_number(position, 'liquidation_price'),
+            'entryPrice': self.safe_number(position, 'entry_price'),
+            'unrealizedPnl': None,  # todo - realized_pnl ?
+            'percentage': None,
+            'contracts': self.parse_number(sizeString),
+            'contractSize': self.safe_number(market, 'contractSize'),
+            'markPrice': None,
+            'side': side,
+            'hedged': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': None,
+            'collateral': None,
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'leverage': None,
+            'marginRatio': None,
+        }
 
     def parse_order_status(self, status):
         statuses = {
@@ -971,14 +1299,24 @@ class delta(Exchange):
             'trades': None,
         }, market)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         self.load_markets()
         orderType = type + '_order'
         market = self.market(symbol)
         request = {
             'product_id': market['numericId'],
-            # 'limit_price': self.price_to_precision(symbol, price),
-            'size': self.amount_to_precision(symbol, amount),
+            # 'limit_price': self.price_to_precision(market['symbol'], price),
+            'size': self.amount_to_precision(market['symbol'], amount),
             'side': side,
             'order_type': orderType,
             # 'client_order_id': 'string',
@@ -987,7 +1325,7 @@ class delta(Exchange):
             # 'reduce_only': 'false',  # 'true',
         }
         if type == 'limit':
-            request['limit_price'] = self.price_to_precision(symbol, price)
+            request['limit_price'] = self.price_to_precision(market['symbol'], price)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         params = self.omit(params, ['clientOrderId', 'client_order_id'])
         if clientOrderId is not None:
@@ -1032,7 +1370,7 @@ class delta(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1066,7 +1404,14 @@ class delta(Exchange):
         result = self.safe_value(response, 'result')
         return self.parse_order(result, market)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
@@ -1115,7 +1460,13 @@ class delta(Exchange):
         result = self.safe_value(response, 'result')
         return self.parse_order(result, market)
 
-    def cancel_all_orders(self, symbol=None, params={}):
+    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+        """
+        cancel all open orders in a market
+        :param str symbol: unified market symbol of the market to cancel orders in
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         self.load_markets()
@@ -1134,13 +1485,29 @@ class delta(Exchange):
         #
         return response
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         return self.fetch_orders_with_method('privateGetOrders', symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         return self.fetch_orders_with_method('privateGetOrdersHistory', symbol, since, limit, params)
 
-    def fetch_orders_with_method(self, method, symbol=None, since=None, limit=None, params={}):
+    def fetch_orders_with_method(self, method, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
         request = {
             # 'product_ids': market['id'],  # comma-separated
@@ -1148,8 +1515,8 @@ class delta(Exchange):
             # 'order_types': types,  # comma-separated, market, limit, stop_market, stop_limit, all_stop
             # 'start_time': since * 1000,
             # 'end_time': self.microseconds(),
-            # 'after': string,  # after cursor for pagination
-            # 'before': string,  # before cursor for pagination
+            # 'after',  # after cursor for pagination
+            # 'before',  # before cursor for pagination
             # 'page_size': limit,  # number of records per page
         }
         market = None
@@ -1187,15 +1554,23 @@ class delta(Exchange):
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        """
         self.load_markets()
         request = {
             # 'product_ids': market['id'],  # comma-separated
             # 'contract_types': types,  # comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
             # 'start_time': since * 1000,
             # 'end_time': self.microseconds(),
-            # 'after': string,  # after cursor for pagination
-            # 'before': string,  # before cursor for pagination
+            # 'after',  # after cursor for pagination
+            # 'before',  # before cursor for pagination
             # 'page_size': limit,  # number of records per page
         }
         market = None
@@ -1255,7 +1630,15 @@ class delta(Exchange):
         result = self.safe_value(response, 'result', [])
         return self.parse_trades(result, market, since, limit)
 
-    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str|None code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the delta api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        """
         self.load_markets()
         request = {
             # 'asset_id': currency['numericId'],
@@ -1342,10 +1725,10 @@ class delta(Exchange):
         currenciesByNumericId = self.safe_value(self.options, 'currenciesByNumericId')
         currency = self.safe_value(currenciesByNumericId, currencyId, currency)
         code = None if (currency is None) else currency['code']
-        amount = self.safe_number(item, 'amount')
+        amount = self.safe_string(item, 'amount')
         timestamp = self.parse8601(self.safe_string(item, 'created_at'))
-        after = self.safe_number(item, 'balance')
-        before = max(0, after - amount)
+        after = self.safe_string(item, 'balance')
+        before = Precise.string_max('0', Precise.string_sub(after, amount))
         status = 'ok'
         return {
             'info': item,
@@ -1356,46 +1739,78 @@ class delta(Exchange):
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': amount,
-            'before': before,
-            'after': after,
+            'amount': self.parse_number(amount),
+            'before': self.parse_number(before),
+            'after': self.parse_number(after),
             'status': status,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'fee': None,
         }
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the delta api endpoint
+        :param str params['network']: unified network code
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
             'asset_symbol': currency['id'],
         }
+        networkCode = self.safe_string_upper(params, 'network')
+        if networkCode is not None:
+            request['network'] = self.network_code_to_id(networkCode, code)
+            params = self.omit(params, 'network')
         response = self.privateGetDepositsAddress(self.extend(request, params))
         #
-        #     {
-        #         "success":true,
-        #         "result":{
-        #             "id":19628,
-        #             "user_id":22142,
-        #             "address":"0x0eda26523397534f814d553a065d8e46b4188e9a",
-        #             "status":"active",
-        #             "updated_at":"2020-11-15T20:25:53.000Z",
-        #             "created_at":"2020-11-15T20:25:53.000Z",
-        #             "asset_symbol":"USDT",
-        #             "custodian":"onc"
-        #         }
-        #     }
+        #    {
+        #        "success": True,
+        #        "result": {
+        #            "id": 1915615,
+        #            "user_id": 27854758,
+        #            "address": "TXYB4GdKsXKEWbeSNPsmGZu4ZVCkhVh1Zz",
+        #            "memo": "",
+        #            "status": "active",
+        #            "updated_at": "2023-01-12T06:03:46.000Z",
+        #            "created_at": "2023-01-12T06:03:46.000Z",
+        #            "asset_symbol": "USDT",
+        #            "network": "TRC20(TRON)",
+        #            "custodian": "fireblocks"
+        #        }
+        #    }
         #
         result = self.safe_value(response, 'result', {})
-        address = self.safe_string(result, 'address')
+        return self.parse_deposit_address(result, currency)
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #    {
+        #        "id": 1915615,
+        #        "user_id": 27854758,
+        #        "address": "TXYB4GdKsXKEWbeSNPsmGZu4ZVCkhVh1Zz",
+        #        "memo": "",
+        #        "status": "active",
+        #        "updated_at": "2023-01-12T06:03:46.000Z",
+        #        "created_at": "2023-01-12T06:03:46.000Z",
+        #        "asset_symbol": "USDT",
+        #        "network": "TRC20(TRON)",
+        #        "custodian": "fireblocks"
+        #    }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        marketId = self.safe_string(depositAddress, 'asset_symbol')
+        networkId = self.safe_string(depositAddress, 'network')
         self.check_address(address)
         return {
-            'currency': code,
+            'currency': self.safe_currency_code(marketId, currency),
             'address': address,
-            'tag': None,
-            'network': None,
-            'info': response,
+            'tag': self.safe_string(depositAddress, 'memo'),
+            'network': self.network_id_to_code(networkId),
+            'info': depositAddress,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -1422,13 +1837,13 @@ class delta(Exchange):
                 body = self.json(query)
                 auth += body
                 headers['Content-Type'] = 'application/json'
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             headers['signature'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         # {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
         #
@@ -1439,3 +1854,4 @@ class delta(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

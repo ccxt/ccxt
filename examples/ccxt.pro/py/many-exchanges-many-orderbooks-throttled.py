@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import ccxtpro
-from asyncio import get_event_loop, gather, sleep
+import ccxt.pro
+from asyncio import run, gather, sleep
 
 
 orderbooks = {}
@@ -12,7 +12,7 @@ def handle_all_orderbooks(orderbooks):
     for exchange_id, orderbooks_by_symbol in orderbooks.items():
         for symbol in orderbooks_by_symbol.keys():
             orderbook = orderbooks_by_symbol[symbol]
-            print(ccxtpro.Exchange.iso8601(orderbook['timestamp']), exchange_id, symbol, orderbook['asks'][0], orderbook['bids'][0])
+            print(ccxt.pro.Exchange.iso8601(orderbook['timestamp']), exchange_id, symbol, orderbook['asks'][0], orderbook['bids'][0])
 
 
 async def handling_loop(orderbooks):
@@ -34,28 +34,23 @@ async def symbol_loop(exchange, symbol):
             break  # you can break just this one loop if it fails
 
 
-async def exchange_loop(asyncio_loop, exchange_id, symbols):
-    exchange = getattr(ccxtpro, exchange_id)({
-        'enableRateLimit': True,
-        'asyncio_loop': asyncio_loop,
-    })
+async def exchange_loop(exchange_id, symbols):
+    exchange = getattr(ccxt.pro, exchange_id)()
     loops = [symbol_loop(exchange, symbol) for symbol in symbols]
     await gather(*loops)
     await exchange.close()
 
 
-async def main(asyncio_loop):
+async def main():
     symbols = ['BTC/USDT', 'ETH/BTC']
     # symbols = []
     exchanges = {
         'okex': symbols + ['ETH/USDT'],
         'binance': symbols,
     }
-    loops = [exchange_loop(asyncio_loop, exchange_id, symbols) for exchange_id, symbols in exchanges.items()]
-    loops += [ handling_loop(orderbooks) ]
+    loops = [exchange_loop(exchange_id, symbols) for exchange_id, symbols in exchanges.items()]
+    loops += [handling_loop(orderbooks)]
     await gather(*loops)
 
 
-if __name__ == '__main__':
-    asyncio_loop = get_event_loop()
-    asyncio_loop.run_until_complete(main(asyncio_loop))
+run(main())

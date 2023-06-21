@@ -9,7 +9,7 @@ If your question is formulated in a short manner like the above, we won't help. 
 When asking a question:
 
 - Use the search button for duplicates first!
-- **Post your request and response in `verbose` mode!** Add `exchange.verbose = true` right before the line you're having issues with, and copypaste what you see on your screen. It's written and mentioned everywhere, in the [Troubleshooting](https://docs.ccxt.com/en/latest/manual.html#troubleshooting) section, in the [README](https://github.com/ccxt/ccxt/blob/master/README.md) and in many answers to similar questions among [previous issues](https://github.com/ccxt/ccxt/issues) and [pull requests](https://github.com/ccxt/ccxt/pulls). No excuses. The verbose output should include both the request and response from the exchange.
+- **Post your request and response in `verbose` mode!** Add `exchange.verbose = true` right before the line you're having issues with, and copypaste what you see on your screen. It's written and mentioned everywhere, in the [Troubleshooting](https://docs.ccxt.com/#/?id=troubleshooting) section, in the [README](https://github.com/ccxt/ccxt/blob/master/README.md) and in many answers to similar questions among [previous issues](https://github.com/ccxt/ccxt/issues) and [pull requests](https://github.com/ccxt/ccxt/pulls). No excuses. The verbose output should include both the request and response from the exchange.
 - Include the full error callstack!
 - Write your programming language **and language version number**
 - Write the CCXT / CCXT Pro library version number
@@ -66,13 +66,13 @@ If it is not merged, it means that the PR contains errors, that should be fixed 
 
 Unfortunately, we don't always have the time to quickly list out each and every single error in the code that prevents it from merging. It is often easier and faster to just go and fix the error rather than explain what one should do to fix it. Most of them are already outlined in the [CONTRIBUTING guidelines](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#derived-exchange-classes). The main rule of thumb is to follow **all guidelines literally**.
 
-## Hey! The fix you've uploaded is in JS, would you fix Python / PHP as well, please?
+## Hey! The fix you've uploaded is in TypeScript, would you fix JavaScript / Python / PHP as well, please?
 
-Our build system generates exchange-specific Python and PHP code for us automatically, so it is transpiled from JS, and there's no need to fix all languages separately one by one.
+Our build system generates exchange-specific JavaScript, Python and PHP code for us automatically, so it is transpiled from TypeScript, and there's no need to fix all languages separately one by one.
 
-Thus, if it is fixed in JS, it is fixed in Python pip and PHP Composer as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `pip` or `composer` **after the new version arrives** and you'll be fine.
+Thus, if it is fixed in TypeScript, it is fixed in JavaScript NPM, Python pip and PHP Composer as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `npm`, `pip` or `composer` **after the new version arrives** and you'll be fine.
 
 More about it here:
 
-- https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support
-- https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files
+- https://docs.ccxt.com/#/CONTRIBUTING?id=multilanguage-support
+- https://docs.ccxt.com/#/CONTRIBUTING?id=transpiled-generated-files

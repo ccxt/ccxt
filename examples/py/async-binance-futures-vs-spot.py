@@ -34,7 +34,6 @@ async def run():
     exchange = ccxt.binance({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
-        'enableRateLimit': True
     })
     symbol = 'BTC/USDT'
     everything = {
@@ -45,5 +44,4 @@ async def run():
     return everything
 
 
-if __name__ == '__main__':
-    pprint(asyncio.get_event_loop().run_until_complete(run()))
+asyncio.run(run())

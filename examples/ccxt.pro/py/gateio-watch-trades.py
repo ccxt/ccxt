@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
-import ccxtpro
+import ccxt.pro
 
 from datetime import datetime
 
@@ -16,10 +16,10 @@ async def loop(exchange, symbol):
 
 
 async def main():
-    exchange = ccxtpro.gateio()
+    exchange = ccxt.pro.gateio()
     await loop(exchange, 'BTC/USDT')
     await exchange.close()
 
 
 if __name__ == '__main__':
-    asyncio.get_event_loop().run_until_complete(main())
+    asyncio.run(main())

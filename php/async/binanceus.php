@@ -6,11 +6,12 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\binanceus as binance;
 
 class binanceus extends binance {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'binanceus',
             'name' => 'Binance US',
             'countries' => array( 'US' ), // US
@@ -34,13 +35,22 @@ class binanceus extends binance {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => $this->parse_number('0.001'), // 0.1% trading fee, zero fees for all trading pairs before November 1
-                    'maker' => $this->parse_number('0.001'), // 0.1% trading fee, zero fees for all trading pairs before November 1
+                    'taker' => $this->parse_number('0.001'), // 0.1% trading fee, zero fees for all trading pairs before November 1.
+                    'maker' => $this->parse_number('0.001'), // 0.1% trading fee, zero fees for all trading pairs before November 1.
                 ),
             ),
             'options' => array(
-                'fetchCurrencies' => false,
+                'fetchMarkets' => array( 'spot' ),
+                'defaultType' => 'spot',
                 'quoteOrderQty' => false,
+            ),
+            'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
             ),
         ));
     }

@@ -4,12 +4,19 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitflyer import ImplicitAPI
+import hashlib
+from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class bitflyer(Exchange):
+class bitflyer(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitflyer, self).describe(), {
@@ -31,23 +38,30 @@ class bitflyer(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',
                 'fetchDeposits': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': 'emulated',
                 'fetchOrder': 'emulated',
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchTicker': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawals': True,
+                'transfer': False,
                 'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
-                'api': 'https://api.{hostname}',
+                'api': {
+                    'rest': 'https://api.{hostname}',
+                },
                 'www': 'https://bitflyer.com',
                 'doc': 'https://lightning.bitflyer.com/docs?lang=en',
             },
@@ -103,6 +117,7 @@ class bitflyer(Exchange):
                     'taker': self.parse_number('0.002'),
                 },
             },
+            'precisionMode': TICK_SIZE,
         })
 
     def parse_expiry_date(self, expiry):
@@ -126,7 +141,18 @@ class bitflyer(Exchange):
         month = self.safe_string(months, monthName)
         return self.parse8601(year + '-' + month + '-' + day + 'T00:00:00Z')
 
+    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+        # Bitflyer has a different type of conflict in markets, because
+        # some of their ids(ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.
+        # Since they're the same we just need to return one
+        return super(bitflyer, self).safe_market(marketId, market, delimiter, 'spot')
+
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bitflyer
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         jp_markets = self.publicGetGetmarkets(params)
         #
         #     [
@@ -278,6 +304,11 @@ class bitflyer(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bitflyer api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         response = self.privateGetGetbalance(params)
         #
@@ -301,13 +332,21 @@ class bitflyer(Exchange):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitflyer api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'product_code': self.market_id(symbol),
+            'product_code': market['id'],
         }
         orderbook = self.publicGetGetboard(self.extend(request, params))
-        return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price', 'size')
+        return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'size')
 
     def parse_ticker(self, ticker, market=None):
         symbol = self.safe_symbol(None, market)
@@ -334,9 +373,15 @@ class bitflyer(Exchange):
             'baseVolume': self.safe_string(ticker, 'volume_by_product'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bitflyer api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -376,9 +421,9 @@ class bitflyer(Exchange):
                 side = None
         order = None
         if side is not None:
-            id = side + '_child_order_acceptance_id'
-            if id in trade:
-                order = trade[id]
+            idInner = side + '_child_order_acceptance_id'
+            if idInner in trade:
+                order = trade[idInner]
         if order is None:
             order = self.safe_string(trade, 'child_order_acceptance_id')
         timestamp = self.parse8601(self.safe_string(trade, 'exec_date'))
@@ -402,16 +447,32 @@ class bitflyer(Exchange):
             'fee': None,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitflyer api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
             'product_code': market['id'],
         }
+        if limit is not None:
+            request['count'] = limit
         response = self.publicGetGetexecutions(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_trading_fee(self, symbol, params={}):
+    def fetch_trading_fee(self, symbol: str, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitflyer api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -426,12 +487,22 @@ class bitflyer(Exchange):
         fee = self.safe_number(response, 'commission_rate')
         return {
             'info': response,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': fee,
             'taker': fee,
         }
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bitflyer api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         self.load_markets()
         request = {
             'product_code': self.market_id(symbol),
@@ -443,12 +514,19 @@ class bitflyer(Exchange):
         result = self.privatePostSendchildorder(self.extend(request, params))
         # {"status": - 200, "error_message": "Insufficient funds", "data": null}
         id = self.safe_string(result, 'child_order_acceptance_id')
-        return {
-            'info': result,
+        return self.safe_order({
             'id': id,
-        }
+            'info': result,
+        })
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitflyer api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a `symbol` argument')
         self.load_markets()
@@ -503,6 +581,7 @@ class bitflyer(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'amount': amount,
             'filled': filled,
@@ -512,7 +591,15 @@ class bitflyer(Exchange):
             'trades': None,
         }, market)
 
-    def fetch_orders(self, symbol=None, since=None, limit=100, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=100, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bitflyer api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a `symbol` argument')
         self.load_markets()
@@ -527,19 +614,41 @@ class bitflyer(Exchange):
             orders = self.filter_by(orders, 'symbol', symbol)
         return orders
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=100, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=100, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the bitflyer api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         request = {
             'child_order_state': 'ACTIVE',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol=None, since=None, limit=100, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=100, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bitflyer api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         request = {
             'child_order_state': 'COMPLETED',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitflyer api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a `symbol` argument')
         orders = self.fetch_orders(symbol)
@@ -548,7 +657,15 @@ class bitflyer(Exchange):
             return ordersById[id]
         raise OrderNotFound(self.id + ' No order found with id ' + id)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the bitflyer api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a `symbol` argument')
         self.load_markets()
@@ -561,14 +678,20 @@ class bitflyer(Exchange):
         response = self.privateGetGetexecutions(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_positions(self, symbols=None, params={}):
+    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        fetch all open positions
+        :param [str] symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the bitflyer api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        """
         if symbols is None:
             raise ArgumentsRequired(self.id + ' fetchPositions() requires a `symbols` argument, exactly one symbol in an array')
         self.load_markets()
         request = {
             'product_code': self.market_ids(symbols),
         }
-        response = self.privateGetpositions(self.extend(request, params))
+        response = self.privateGetGetpositions(self.extend(request, params))
         #
         #     [
         #         {
@@ -589,7 +712,16 @@ class bitflyer(Exchange):
         # todo unify parsePosition/parsePositions
         return response
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the bitflyer api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
         self.check_address(address)
         self.load_markets()
         if code != 'JPY' and code != 'USD' and code != 'EUR':
@@ -601,13 +733,22 @@ class bitflyer(Exchange):
             # 'bank_account_id': 1234,
         }
         response = self.privatePostWithdraw(self.extend(request, params))
-        id = self.safe_string(response, 'message_id')
-        return {
-            'info': response,
-            'id': id,
-        }
+        #
+        #     {
+        #         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
+        #     }
+        #
+        return self.parse_transaction(response, currency)
 
-    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the bitflyer api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
         self.load_markets()
         currency = None
         request = {}
@@ -616,21 +757,31 @@ class bitflyer(Exchange):
         if limit is not None:
             request['count'] = limit  # default 100
         response = self.privateGetGetcoinins(self.extend(request, params))
-        # [
-        #   {
-        #     "id": 100,
-        #     "order_id": "CDP20151227-024141-055555",
-        #     "currency_code": "BTC",
-        #     "amount": 0.00002,
-        #     "address": "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
-        #     "tx_hash": "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
-        #     "status": "COMPLETED",
-        #     "event_date": "2015-11-27T08:59:20.301"
-        #   }
-        # ]
+        #
+        #     [
+        #         {
+        #             "id": 100,
+        #             "order_id": "CDP20151227-024141-055555",
+        #             "currency_code": "BTC",
+        #             "amount": 0.00002,
+        #             "address": "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
+        #             "tx_hash": "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
+        #             "status": "COMPLETED",
+        #             "event_date": "2015-11-27T08:59:20.301"
+        #         }
+        #     ]
+        #
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the bitflyer api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
         self.load_markets()
         currency = None
         request = {}
@@ -640,20 +791,20 @@ class bitflyer(Exchange):
             request['count'] = limit  # default 100
         response = self.privateGetGetcoinouts(self.extend(request, params))
         #
-        # [
-        #   {
-        #     "id": 500,
-        #     "order_id": "CWD20151224-014040-077777",
-        #     "currency_code": "BTC",
-        #     "amount": 0.1234,
-        #     "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
-        #     "tx_hash": "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
-        #     "fee": 0.0005,
-        #     "additional_fee": 0.0001,
-        #     "status": "COMPLETED",
-        #     "event_date": "2015-12-24T01:40:40.397"
-        #   }
-        # ]
+        #     [
+        #         {
+        #             "id": 500,
+        #             "order_id": "CWD20151224-014040-077777",
+        #             "currency_code": "BTC",
+        #             "amount": 0.1234,
+        #             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+        #             "tx_hash": "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
+        #             "fee": 0.0005,
+        #             "additional_fee": 0.0001,
+        #             "status": "COMPLETED",
+        #             "event_date": "2015-12-24T01:40:40.397"
+        #         }
+        #     ]
         #
         return self.parse_transactions(response, currency, since, limit)
 
@@ -675,33 +826,39 @@ class bitflyer(Exchange):
         #
         # fetchDeposits
         #
-        #   {
-        #     "id": 100,
-        #     "order_id": "CDP20151227-024141-055555",
-        #     "currency_code": "BTC",
-        #     "amount": 0.00002,
-        #     "address": "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
-        #     "tx_hash": "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
-        #     "status": "COMPLETED",
-        #     "event_date": "2015-11-27T08:59:20.301"
-        #   }
+        #     {
+        #         "id": 100,
+        #         "order_id": "CDP20151227-024141-055555",
+        #         "currency_code": "BTC",
+        #         "amount": 0.00002,
+        #         "address": "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
+        #         "tx_hash": "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
+        #         "status": "COMPLETED",
+        #         "event_date": "2015-11-27T08:59:20.301"
+        #     }
         #
         # fetchWithdrawals
         #
-        #   {
-        #     "id": 500,
-        #     "order_id": "CWD20151224-014040-077777",
-        #     "currency_code": "BTC",
-        #     "amount": 0.1234,
-        #     "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
-        #     "tx_hash": "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
-        #     "fee": 0.0005,
-        #     "additional_fee": 0.0001,
-        #     "status": "COMPLETED",
-        #     "event_date": "2015-12-24T01:40:40.397"
-        #   }
+        #     {
+        #         "id": 500,
+        #         "order_id": "CWD20151224-014040-077777",
+        #         "currency_code": "BTC",
+        #         "amount": 0.1234,
+        #         "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+        #         "tx_hash": "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
+        #         "fee": 0.0005,
+        #         "additional_fee": 0.0001,
+        #         "status": "COMPLETED",
+        #         "event_date": "2015-12-24T01:40:40.397"
+        #     }
         #
-        id = self.safe_string(transaction, 'id')
+        # withdraw
+        #
+        #     {
+        #         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
+        #     }
+        #
+        id = self.safe_string_2(transaction, 'id', 'message_id')
         address = self.safe_string(transaction, 'address')
         currencyId = self.safe_string(transaction, 'currency_code')
         code = self.safe_currency_code(currencyId, currency)
@@ -751,7 +908,7 @@ class bitflyer(Exchange):
         if method == 'GET':
             if params:
                 request += '?' + self.urlencode(params)
-        baseUrl = self.implode_hostname(self.urls['api'])
+        baseUrl = self.implode_hostname(self.urls['api']['rest'])
         url = baseUrl + request
         if api == 'private':
             self.check_required_credentials()
@@ -764,7 +921,7 @@ class bitflyer(Exchange):
             headers = {
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
-                'ACCESS-SIGN': self.hmac(self.encode(auth), self.encode(self.secret)),
+                'ACCESS-SIGN': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

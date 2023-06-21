@@ -18,9 +18,6 @@ $exchange = new $exchange_class(array(
     'apiKey' => 'YOUR_API_KEY', // edit this line
     'secret' => 'YOUR_SECRET', // edit this line
 
-    // this is required!
-    'enableRateLimit' => true, // https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
-
     // this is not required! uncomment only if you want to debug it
     // 'verbose' => true,
 
@@ -76,18 +73,18 @@ if ($exchange->has['fetchOrder'] === true) {
         // the behavior or a recover-and-retry strategy, because networking
         // errors are temporary and occasionally happen with all exchanges
         // a retry after a while may be enough, depending on the error
-        echo get_class ($e) . ': ' . $e->getMessage () . "\n";
+        echo get_class ($e) . ': ' . $e->getMessage() . "\n";
 
     } catch (\ccxt\ExchangeError $e) {
 
         // in case of an exchange error the application should stop and signal
         // the error to the developer or to the user, human interference is
         // required to resolve an exchange error in each specific case
-        echo get_class ($e) . ': ' . $e->getMessage () . "\n";
+        echo get_class($e) . ': ' . $e->getMessage() . "\n";
 
     } catch (Exception $e) {
 
-        echo get_class ($e) . ': ' . $e->getMessage () . "\n";
+        echo get_class($e) . ': ' . $e->getMessage() . "\n";
 
     }
 

@@ -1,8 +1,8 @@
 'use strict';
 
-const ccxtpro = require ('./ccxt.pro')
+const ccxt = require ('../../../ccxt')
 
-console.log ('CCXT Pro Version:', ccxtpro.version)
+console.log ('CCXT Version:', ccxt.version)
 
 // This example will run silent and will return your balance only when the balance is updated.
 //
@@ -38,16 +38,16 @@ async function watchBalance (exchange) {
 
 async function main() {
 
-    const exchange = new ccxtpro.binance ({
+     const exchange = new ccxt.pro.binance ({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
     })
 
-    await exchange.loadMarkets () // await here
+    await exchange.loadMarkets ()
 
     // exchange.verbose = true // uncomment for debugging purposes if necessary
 
-    watchBalance (exchange) // no await
+    await watchBalance (exchange)
 
     await exchange.close ()
 }

@@ -3,7 +3,7 @@
 require dirname(__FILE__).'/../vendor/autoload.php';
 include dirname(__FILE__) ."/../vendor/ccxt/ccxt/ccxt.php";
 
-date_default_timezone_set ('UTC');
+date_default_timezone_set('UTC');
 
 use TomWright\Database\ExtendedPDO\ExtendedPDO as ExtendedPDO;
 use TomWright\Database\QueryBuilder\SqlQueryBuilder as SqlQueryBuilder;

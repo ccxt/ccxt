@@ -1,6 +1,6 @@
-"use strict";
 
-const ccxt = require ('../../ccxt.js')
+
+import ccxt from '../../js/ccxt.js';
 
 async function fetchTickers (exchange) {
     let tickers = undefined
@@ -13,11 +13,10 @@ async function fetchTickers (exchange) {
     return tickers
 }
 
-;(async () => {
+(async () => {
 
-    const enableRateLimit = true
-    const future   = new ccxt.binance ({ enableRateLimit, options: { defaultType: 'future' }})
-    const delivery = new ccxt.binance ({ enableRateLimit, options: { defaultType: 'delivery' }})
+    const future   = new ccxt.binance ({ options: { defaultType: 'future' }})
+    const delivery = new ccxt.binance ({ options: { defaultType: 'delivery' }})
 
     // ...
 

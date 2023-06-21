@@ -8,7 +8,7 @@ sys.path.append(root + '/python')
 
 
 import ccxt.async_support as ccxt
-from asyncio import get_event_loop, gather
+from asyncio import run, gather
 
 print('CCXT Version:', ccxt.__version__)
 
@@ -48,5 +48,5 @@ async def main():
     print(results[2])
     await exchange.close()
 
-loop = get_event_loop()
-loop.run_until_complete(main())
+
+run(main())
