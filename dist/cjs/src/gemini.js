@@ -42,6 +42,7 @@ class gemini extends gemini$1 {
                 'fetchClosedOrders': false,
                 'fetchDepositAddress': undefined,
                 'fetchDepositAddressesByNetwork': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -1425,7 +1426,7 @@ class gemini extends gemini$1 {
         /**
          * @method
          * @name gemini#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
          * @param {string|undefined} code not used by gemini.fetchTransactions
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined

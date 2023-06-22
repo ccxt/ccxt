@@ -3166,13 +3166,15 @@ class xt(Exchange, ImplicitAPI):
         amount = quantity if (marketType == 'spot') else Precise.string_mul(self.number_to_string(quantity), self.number_to_string(market['contractSize']))
         filledQuantity = self.safe_number(order, 'executedQty')
         filled = filledQuantity if (marketType == 'spot') else Precise.string_mul(self.number_to_string(filledQuantity), self.number_to_string(market['contractSize']))
+        lastUpdatedTimestamp = self.safe_integer(order, 'updatedTime')
         return self.safe_order({
             'info': order,
             'id': self.safe_string_n(order, ['orderId', 'result', 'cancelId', 'entrustId', 'profitId']),
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': self.safe_integer(order, 'updatedTime'),
+            'lastTradeTimestamp': lastUpdatedTimestamp,
+            'lastUpdateTimestamp': lastUpdatedTimestamp,
             'symbol': symbol,
             'type': self.safe_string_lower_2(order, 'type', 'orderType'),
             'timeInForce': self.safe_string(order, 'timeInForce'),

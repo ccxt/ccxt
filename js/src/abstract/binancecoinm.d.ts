@@ -182,6 +182,13 @@ interface binance {
     sapiGetStakingPosition(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingStakingRecord(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingPersonalLeftQuota(params?: {}): Promise<implicitReturnType>;
+    sapiGetLendingAutoInvestTargetAssetList(params?: {}): Promise<implicitReturnType>;
+    sapiGetLendingAutoInvestTargetAssetRoiList(params?: {}): Promise<implicitReturnType>;
+    sapiGetLendingAutoInvestAllAsset(params?: {}): Promise<implicitReturnType>;
+    sapiGetLendingAutoInvestSourceAssetList(params?: {}): Promise<implicitReturnType>;
+    sapiGetLendingAutoInvestPlanList(params?: {}): Promise<implicitReturnType>;
+    sapiGetLendingAutoInvestPlanId(params?: {}): Promise<implicitReturnType>;
+    sapiGetLendingAutoInvestHistoryList(params?: {}): Promise<implicitReturnType>;
     sapiPostAssetDust(params?: {}): Promise<implicitReturnType>;
     sapiPostAssetDustBtc(params?: {}): Promise<implicitReturnType>;
     sapiPostAssetTransfer(params?: {}): Promise<implicitReturnType>;
@@ -265,6 +272,9 @@ interface binance {
     sapiPostConvertAcceptQuote(params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioAutoCollection(params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioBnbTransfer(params?: {}): Promise<implicitReturnType>;
+    sapiPostLendingAutoInvestPlanAdd(params?: {}): Promise<implicitReturnType>;
+    sapiPostLendingAutoInvestPlanEdit(params?: {}): Promise<implicitReturnType>;
+    sapiPostLendingAutoInvestPlanEditStatus(params?: {}): Promise<implicitReturnType>;
     sapiPutUserDataStream(params?: {}): Promise<implicitReturnType>;
     sapiPutUserDataStreamIsolated(params?: {}): Promise<implicitReturnType>;
     sapiDeleteMarginOpenOrders(params?: {}): Promise<implicitReturnType>;

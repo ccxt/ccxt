@@ -1693,6 +1693,7 @@ export default class kucoinfutures extends kucoin {
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeNumber (order, 'stopPrice');
         const postOnly = this.safeValue (order, 'postOnly');
+        const lastUpdateTimestamp = this.safeInteger (order, 'updatedAt');
         return this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1714,6 +1715,7 @@ export default class kucoinfutures extends kucoin {
             'status': status,
             'info': order,
             'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'average': average,
             'trades': undefined,
         }, market);

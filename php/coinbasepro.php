@@ -38,6 +38,7 @@ class coinbasepro extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => false, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => true,
                 'fetchLedger' => true,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
@@ -1456,7 +1457,7 @@ class coinbasepro extends Exchange {
 
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * fetch history of deposits and withdrawals
+         * *DEPRECATED* use fetchDepositsWithdrawals instead
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
          * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null

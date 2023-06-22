@@ -83,6 +83,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': False,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
@@ -277,6 +278,7 @@ class okx(Exchange, ImplicitAPI):
                         'account/subaccount/balances': 10,
                         'account/subaccount/interest-limits': 4,
                         'asset/subaccount/bills': 5 / 3,
+                        'asset/subaccount/managed-subaccount-bills': 5 / 3,
                         'users/subaccount/list': 10,
                         'users/subaccount/apikey': 10,
                         'users/entrust-subaccount-list': 10,
@@ -2180,6 +2182,14 @@ class okx(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the okx api endpoint
         :param bool|None params['reduceOnly']: MARGIN orders only, or swap/future orders in net mode
         :param bool|None params['postOnly']: True to place a post only order
+        :param dict|None params['takeProfit']: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
+        :param float|None params.takeProfit.triggerPrice: take profit trigger price
+        :param float|None params.takeProfit.price: used for take profit limit orders, not used for take profit market price orders
+        :param str|None params.takeProfit.type: 'market' or 'limit' used to specify the take profit price type
+        :param dict|None params['stopLoss']: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
+        :param float|None params.stopLoss.triggerPrice: stop loss trigger price
+        :param float|None params.stopLoss.price: used for stop loss limit orders, not used for stop loss market price orders
+        :param str|None params.stopLoss.type: 'market' or 'limit' used to specify the stop loss price type
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -2695,6 +2705,7 @@ class okx(Exchange, ImplicitAPI):
         #
         id = self.safe_string_2(order, 'algoId', 'ordId')
         timestamp = self.safe_integer(order, 'cTime')
+        lastUpdateTimestamp = self.safe_integer(order, 'uTime')
         lastTradeTimestamp = self.safe_integer(order, 'fillTime')
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'ordType')
@@ -2756,6 +2767,7 @@ class okx(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,

@@ -67,6 +67,7 @@ class okx extends Exchange {
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => false,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
@@ -261,6 +262,7 @@ class okx extends Exchange {
                         'account/subaccount/balances' => 10,
                         'account/subaccount/interest-limits' => 4,
                         'asset/subaccount/bills' => 5 / 3,
+                        'asset/subaccount/managed-subaccount-bills' => 5 / 3,
                         'users/subaccount/list' => 10,
                         'users/subaccount/apikey' => 10,
                         'users/entrust-subaccount-list' => 10,
@@ -2274,6 +2276,14 @@ class okx extends Exchange {
              * @param {array} $params extra parameters specific to the okx api endpoint
              * @param {bool|null} $params->reduceOnly MARGIN orders only, or swap/future orders in net mode
              * @param {bool|null} $params->postOnly true to place a post only $order
+             * @param {array|null} $params->takeProfit *$takeProfit object in $params* containing the $triggerPrice at which the attached take profit $order will be triggered (perpetual swap markets only)
+             * @param {float|null} $params->takeProfit.triggerPrice take profit $trigger $price
+             * @param {float|null} $params->takeProfit.price used for take profit limit orders, not used for take profit $market $price orders
+             * @param {string|null} $params->takeProfit.type 'market' or 'limit' used to specify the take profit $price $type
+             * @param {array|null} $params->stopLoss *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss $order will be triggered (perpetual swap markets only)
+             * @param {float|null} $params->stopLoss.triggerPrice stop loss $trigger $price
+             * @param {float|null} $params->stopLoss.price used for stop loss limit orders, not used for stop loss $market $price orders
+             * @param {string|null} $params->stopLoss.type 'market' or 'limit' used to specify the stop loss $price $type
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -2853,6 +2863,7 @@ class okx extends Exchange {
         //
         $id = $this->safe_string_2($order, 'algoId', 'ordId');
         $timestamp = $this->safe_integer($order, 'cTime');
+        $lastUpdateTimestamp = $this->safe_integer($order, 'uTime');
         $lastTradeTimestamp = $this->safe_integer($order, 'fillTime');
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'ordType');
@@ -2919,6 +2930,7 @@ class okx extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,

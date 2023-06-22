@@ -338,6 +338,11 @@ export default class Exchange {
                 'createStopOrder': undefined,
                 'createStopLimitOrder': undefined,
                 'createStopMarketOrder': undefined,
+                'createOrderWs': undefined,
+                'editOrderWs': undefined,
+                'cancelOrderWs': undefined,
+                'cancelOrdersWs': undefined,
+                'cancelAllOrdersWs': undefined,
                 'editOrder': 'emulated',
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -356,6 +361,7 @@ export default class Exchange {
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': undefined,
                 'fetchDeposits': undefined,
+                'fetchDepositsWithdrawals': undefined,
                 'fetchTransactionFee': undefined,
                 'fetchTransactionFees': undefined,
                 'fetchFundingHistory': undefined,
@@ -1704,11 +1710,14 @@ export default class Exchange {
             postOnly = timeInForce === 'PO';
         }
         const timestamp = this.safeInteger(order, 'timestamp');
+        const lastUpdateTimestamp = this.safeInteger(order, 'lastUpdateTimestamp');
         let datetime = this.safeString(order, 'datetime');
         if (datetime === undefined) {
             datetime = this.iso8601(timestamp);
         }
         const triggerPrice = this.parseNumber(this.safeString2(order, 'triggerPrice', 'stopPrice'));
+        const takeProfitPrice = this.parseNumber(this.safeString(order, 'takeProfitPrice'));
+        const stopLossPrice = this.parseNumber(this.safeString(order, 'stopLossPrice'));
         return this.extend(order, {
             'id': this.safeString(order, 'id'),
             'clientOrderId': this.safeString(order, 'clientOrderId'),
@@ -1718,6 +1727,7 @@ export default class Exchange {
             'type': this.safeString(order, 'type'),
             'side': side,
             'lastTradeTimestamp': lastTradeTimeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'price': this.parseNumber(price),
             'amount': this.parseNumber(amount),
             'cost': this.parseNumber(cost),
@@ -1730,6 +1740,8 @@ export default class Exchange {
             'reduceOnly': this.safeValue(order, 'reduceOnly'),
             'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'status': this.safeString(order, 'status'),
             'fee': this.safeValue(order, 'fee'),
         });
@@ -2580,6 +2592,10 @@ export default class Exchange {
         await this.cancelOrder(id, symbol);
         return await this.createOrder(symbol, type, side, amount, price, params);
     }
+    async editOrderWs(id, symbol, type, side, amount, price = undefined, params = {}) {
+        await this.cancelOrderWs(id, symbol);
+        return await this.createOrderWs(symbol, type, side, amount, price, params);
+    }
     async fetchPermissions(params = {}) {
         throw new NotSupported(this.id + ' fetchPermissions() is not supported yet');
     }
@@ -2969,10 +2985,22 @@ export default class Exchange {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         throw new NotSupported(this.id + ' createOrder() is not supported yet');
     }
+    async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
+        throw new NotSupported(this.id + ' createOrderWs() is not supported yet');
+    }
     async cancelOrder(id, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelOrder() is not supported yet');
     }
+    async cancelOrderWs(id, symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' cancelOrderWs() is not supported yet');
+    }
+    async cancelOrdersWs(ids, symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' cancelOrdersWs() is not supported yet');
+    }
     async cancelAllOrders(symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' cancelAllOrders() is not supported yet');
+    }
+    async cancelAllOrderWs(symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelAllOrders() is not supported yet');
     }
     async cancelUnifiedOrder(order, params = {}) {
@@ -3745,6 +3773,24 @@ export default class Exchange {
         const firstMarket = this.safeString(symbols, 0);
         const market = this.market(firstMarket);
         return market;
+    }
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @param {string|undefined} code unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int|undefined} limit max number of deposit/withdrawals to return, default is undefined
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        if (this.has['fetchTransactions']) {
+            return await this.fetchTransactions(code, since, limit, params);
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchDepositsWithdrawals () is not supported yet');
+        }
     }
 }
 export { Exchange, };

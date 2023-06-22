@@ -1412,6 +1412,7 @@ export default class binance extends binanceRest {
         else if (executionType === 'TRADE') {
             lastTradeTimestamp = T;
         }
+        const lastUpdateTimestamp = T;
         let fee = undefined;
         const feeCost = this.safeString(order, 'n');
         if ((feeCost !== undefined) && (Precise.stringGt(feeCost, '0'))) {
@@ -1450,6 +1451,7 @@ export default class binance extends binanceRest {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': undefined,

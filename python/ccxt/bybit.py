@@ -411,6 +411,7 @@ class bybit(Exchange, ImplicitAPI):
                         # user
                         'v5/user/query-sub-members': 10,
                         'v5/user/query-api': 10,
+                        'v5/user/get-member-type': 1,
                         'v5/user/aff-customer-info': 10,
                         'v5/customer/info': 10,
                         'v5/spot-cross-margin-trade/loan-info': 1,  # 50/s => cost = 50 / 50 = 1
@@ -419,6 +420,13 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-cross-margin-trade/repay-history': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/ins-loan/ltv-convert': 1,
                         'v5/broker/earning-record': 1,
+                        # pre-upgrade
+                        'v5/pre-upgrade/order/history': 1,
+                        'v5/pre-upgrade/execution/list': 1,
+                        'v5/pre-upgrade/position/closed-pnl': 1,
+                        'v5/pre-upgrade/account/transaction-log': 1,
+                        'v5/pre-upgrade/asset/delivery-record': 1,
+                        'v5/pre-upgrade/asset/settlement-record': 1,
                     },
                     'post': {
                         # inverse swap
@@ -3210,6 +3218,7 @@ class bybit(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
@@ -3281,12 +3290,14 @@ class bybit(Exchange, ImplicitAPI):
             amount = filled
         else:
             amount = self.safe_string(order, 'orderQty')
+        updatedTime = self.safe_integer(order, 'updateTime')
         return self.safe_order({
             'id': self.safe_string(order, 'orderId'),
             'clientOrderId': self.safe_string(order, 'orderLinkId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': self.safe_integer(order, 'updateTime'),
+            'lastTradeTimestamp': updatedTime,
+            'lastUpdateTimestamp': updatedTime,
             'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,

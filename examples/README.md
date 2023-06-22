@@ -47,8 +47,6 @@ php -f path/to/example.php # substitute for actual filename here
 
 ## See Also
 
-[CCXT Pro](https://ccxt.pro) – a professional addon to CCXT with support for WebSocket streams.
-
 [Freqtrade](https://www.freqtrade.io) – leading opensource cryptocurrency algorithmic trading software based on CCXT!
 
 [Blockpit](https://www.blockpit.io) – Tax reporting and portfolio tracking for Cryptocurrencies, Cryptoderivates and DeFi.
@@ -184,6 +182,10 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Avoiding Bear Traps in Options Trading: How to Safeguard Your Investments with a Python Bot](https://medium.com/coinmonks/avoiding-bear-traps-in-options-trading-how-to-safeguard-your-investments-with-a-python-bot-6289eecb3048) – An article by Coinmonks on risk management with options trading using CCXT and Python.
 
+[Building a Trading Bot in Python : Step-by-Step Guide with Examples](https://medium.com/@kritjunsree/building-a-trading-bot-in-python-a-step-by-step-guide-with-examples-6898244016cd) – An article @ Medium explaining automated trading strategies in Python.
+
+[ByBit API Tutorial with CCXT: Functions Explained](https://medium.com/@yussf_26476/bybit-api-tutorial-with-ccxt-functions-explained-a7e1b4579b4a) – An article @ Medium explaining trading functions from CCXT for Bybit.
+
 [비트코인 해외 거래소 API - 바이낸스 CCXT설치](https://www.youtube.com/watch?v=7dMGbjwZwlU) – Using CCXT to trade with Binance API, a video overview of CCXT in Korean.
 
 [ccxt_라이브러리](https://www.youtube.com/watch?v=ifkJ5FtMpKY) – A quick short demo of CCXT on YouTube.
@@ -259,11 +261,13 @@ https://www.youtube.com/watch?v=K-EZ9QXezZM
 
 [ربات آربیتراژ با CCXT و پایتون - آموزش ساخت ربات آربیتراژ ارز دیجیتال - ویژه مبتدیان](https://www.youtube.com/watch?v=GmIrL0btU-4) – A CCXT Tutorial On Quick Arbs In Persian language
 
-[برمجة روبوت تداول الجزء الاول "ccxt"](https://www.youtube.com/watch?v=8y41lRidGzY) – A video tutorial on trading bot programming with CCXT in Arabic.
+[برمجة روبوت تداول الجزء الاول "ccxt"](https://www.youtube.com/watch?v=8y41lRidGzY) – A video tutorial on trading bot programming with CCXT in Arabic, part 1.
+
+["ccxt" تداول ألي الجزء الثاني](https://www.youtube.com/watch?v=vcAom-RS-6U) – A video tutorial on trading bot programming with CCXT in Arabic, part 2.
 
 [Simple trading bot in JavaScript using ~40 lines of code](https://www.tuicool.com/articles/vqymAj3) – A demo of how to make a trading bot with CCXT.
 
-[CCXT Python: Exploring Cryptocurrency Trading on Binance, Kucoin, and Bitmex](https://awstip.com/ccxt-python-exploring-cryptocurrency-trading-on-binance-kucoin-and-bitmex-b2bae06ce79c) – An article @ Medium on programming a trading script for Binance, Kucoin, and Bitmex.
+[CCXT Python: Exploring Cryptocurrency Trading on Binance, Kucoin, and Bitmex](https://awstip.com/ccxt-python-exploring-cryptocurrency-trading-on-binance-kucoin-and-bitmex-b2bae06ce79c) – An article @ Medium on programming a trading script for Binance, Kucoin, and BitMEX.
 
 [Using ccxt and technicalindicators to calculate MACD for BTC/USDT with Node.js](https://runkit.com/dhilipb/macd-for-btc-usdt) – A runkit sample showing how to fetch data and run statistical calculations.
 

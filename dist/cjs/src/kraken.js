@@ -430,6 +430,7 @@ class kraken extends kraken$1 {
             const precisionPrice = this.parseNumber(this.parsePrecision(this.safeString(market, 'pair_decimals')));
             result.push({
                 'id': id,
+                'wsId': this.safeString(market, 'wsname'),
                 'symbol': darkpool ? altname : (base + '/' + quote),
                 'base': base,
                 'quote': quote,
@@ -1224,6 +1225,7 @@ class kraken extends kraken$1 {
         /**
          * @method
          * @name kraken#createOrder
+         * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/addOrder
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1351,9 +1353,26 @@ class kraken extends kraken$1 {
         //             "order": "buy 0.00075000 XBTUSDT @ limit 13500.0"
         //         }
         //     }
+        //  ws - createOrder
+        //    {
+        //        descr: 'sell 0.00010000 XBTUSDT @ market',
+        //        event: 'addOrderStatus',
+        //        reqid: 1,
+        //        status: 'ok',
+        //        txid: 'OAVXZH-XIE54-JCYYDG'
+        //    }
+        //  ws - editOrder
+        //    {
+        //        "descr": "order edited price = 9000.00000000",
+        //        "event": "editOrderStatus",
+        //        "originaltxid": "O65KZW-J4AW3-VFS74A",
+        //        "reqid": 3,
+        //        "status": "ok",
+        //        "txid": "OTI672-HJFAO-XOIPPK"
+        //    }
         //
         const description = this.safeValue(order, 'descr', {});
-        const orderDescription = this.safeString(description, 'order');
+        const orderDescription = this.safeString(description, 'order', description);
         let side = undefined;
         let type = undefined;
         let marketId = undefined;
@@ -1514,7 +1533,11 @@ class kraken extends kraken$1 {
             }
             request['close'] = close;
         }
-        params = this.omit(params, ['price', 'stopPrice', 'price2', 'close']);
+        const timeInForce = this.safeString2(params, 'timeInForce', 'timeinforce');
+        if (timeInForce !== undefined) {
+            request['timeinforce'] = timeInForce;
+        }
+        params = this.omit(params, ['price', 'stopPrice', 'price2', 'close', 'timeInForce']);
         return [request, params];
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {

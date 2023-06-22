@@ -55,6 +55,7 @@ class coinbasepro(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': False,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': True,
                 'fetchLedger': True,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
@@ -1394,7 +1395,7 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        fetch history of deposits and withdrawals
+        *DEPRECATED* use fetchDepositsWithdrawals instead
         see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
         see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
         :param str|None code: unified currency code for the currency of the transactions, default is None
