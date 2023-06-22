@@ -1506,7 +1506,7 @@ export default class bigone extends Exchange {
         return this.safeString (statuses, status, 'failed');
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bigone#withdraw
@@ -1516,7 +1516,7 @@ export default class bigone extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the bigone api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
@@ -1528,6 +1528,11 @@ export default class bigone extends Exchange {
         };
         if (tag !== undefined) {
             request['memo'] = tag;
+        }
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['gateway_name'] = this.networkCodeToId (networkCode);
         }
         // requires write permission on the wallet
         const response = await this.privatePostWithdrawals (this.extend (request, params));
