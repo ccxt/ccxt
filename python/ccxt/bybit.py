@@ -69,6 +69,8 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingRate': True,  # emulated in exchange
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
@@ -7894,6 +7896,101 @@ class bybit(Exchange, ImplicitAPI):
             symbol = fee['symbol']
             result[symbol] = fee
         return result
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    {
+        #        "name": "BTC",
+        #        "coin": "BTC",
+        #        "remainAmount": "150",
+        #        "chains": [
+        #            {
+        #                "chainType": "BTC",
+        #                "confirmation": "10000",
+        #                "withdrawFee": "0.0005",
+        #                "depositMin": "0.0005",
+        #                "withdrawMin": "0.001",
+        #                "chain": "BTC",
+        #                "chainDeposit": "1",
+        #                "chainWithdraw": "1",
+        #                "minAccuracy": "8"
+        #            }
+        #        ]
+        #    }
+        #
+        chains = self.safe_value(fee, 'chains', [])
+        chainsLength = len(chains)
+        result = {
+            'info': fee,
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+        if chainsLength != 0:
+            for i in range(0, chainsLength):
+                chain = chains[i]
+                networkId = self.safe_string(chain, 'chain')
+                currencyCode = self.safe_string(currency, 'code')
+                networkCode = self.network_id_to_code(networkId, currencyCode)
+                result['networks'][networkCode] = {
+                    'deposit': {'fee': None, 'percentage': None},
+                    'withdraw': {'fee': self.safe_number(chain, 'withdrawFee'), 'percentage': False},
+                }
+                if chainsLength == 1:
+                    result['withdraw']['fee'] = self.safe_number(chain, 'withdrawFee')
+                    result['withdraw']['percentage'] = False
+        return result
+
+    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://bybit-exchange.github.io/docs/v5/asset/coin-info
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.check_required_credentials()
+        self.load_markets()
+        response = self.privateGetV5AssetCoinQueryInfo(params)
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "",
+        #         "result": {
+        #             "rows": [
+        #                 {
+        #                     "name": "BTC",
+        #                     "coin": "BTC",
+        #                     "remainAmount": "150",
+        #                     "chains": [
+        #                         {
+        #                             "chainType": "BTC",
+        #                             "confirmation": "10000",
+        #                             "withdrawFee": "0.0005",
+        #                             "depositMin": "0.0005",
+        #                             "withdrawMin": "0.001",
+        #                             "chain": "BTC",
+        #                             "chainDeposit": "1",
+        #                             "chainWithdraw": "1",
+        #                             "minAccuracy": "8"
+        #                         }
+        #                     ]
+        #                 }
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1672194582264
+        #     }
+        #
+        data = self.safe_value(response, 'result', {})
+        rows = self.safe_value(data, 'rows', [])
+        return self.parse_deposit_withdraw_fees(rows, codes, 'coin')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path

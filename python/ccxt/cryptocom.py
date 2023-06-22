@@ -67,6 +67,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRates': False,
+                'fetchLedger': True,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -2198,6 +2199,141 @@ class cryptocom(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'result')
         currencyMap = self.safe_value(data, 'currency_map')
         return self.parse_deposit_withdraw_fees(currencyMap, codes, 'full_name')
+
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions
+        :param str|None code: unified currency code
+        :param int|None since: timestamp in ms of the earliest ledger entry
+        :param int|None limit: max number of ledger entries to return
+        :param dict params: extra parameters specific to the cryptocom api endpoint
+        :param int|None params['until']: timestamp in ms for the ending date filter, default is the current time
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
+        self.load_markets()
+        request = {}
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        if since is not None:
+            request['start_time'] = since
+        if limit is not None:
+            request['limit'] = limit
+        until = self.safe_integer_2(params, 'until', 'till')
+        params = self.omit(params, ['until', 'till'])
+        if until is not None:
+            request['end_time'] = until
+        response = self.v1PrivatePostPrivateGetTransactions(self.extend(request, params))
+        #
+        #     {
+        #         "id": 1686813195698,
+        #         "method": "private/get-transactions",
+        #         "code": 0,
+        #         "result": {
+        #             "data": [
+        #                 {
+        #                     "account_id": "ce075cef-1234-4321-bd6e-gf9007351e64",
+        #                     "event_date": "2023-06-15",
+        #                     "journal_type": "TRADING",
+        #                     "journal_id": "6530219460124075091",
+        #                     "transaction_qty": "6.0091224",
+        #                     "transaction_cost": "6.0091224",
+        #                     "realized_pnl": "0",
+        #                     "order_id": "6530219477766741833",
+        #                     "trade_id": "6530219495775954765",
+        #                     "trade_match_id": "4611686018455865176",
+        #                     "event_timestamp_ms": 1686804665013,
+        #                     "event_timestamp_ns": "1686804665013642422",
+        #                     "client_oid": "CCXT_d6ea7c5db6c1495aa8b758",
+        #                     "taker_side": "",
+        #                     "side": "BUY",
+        #                     "instrument_name": "USD"
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        ledger = self.safe_value(result, 'data', [])
+        return self.parse_ledger(ledger, currency, since, limit)
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        #     {
+        #         "account_id": "ce075cef-1234-4321-bd6e-gf9007351e64",
+        #         "event_date": "2023-06-15",
+        #         "journal_type": "TRADING",
+        #         "journal_id": "6530219460124075091",
+        #         "transaction_qty": "6.0091224",
+        #         "transaction_cost": "6.0091224",
+        #         "realized_pnl": "0",
+        #         "order_id": "6530219477766741833",
+        #         "trade_id": "6530219495775954765",
+        #         "trade_match_id": "4611686018455865176",
+        #         "event_timestamp_ms": 1686804665013,
+        #         "event_timestamp_ns": "1686804665013642422",
+        #         "client_oid": "CCXT_d6ea7c5db6c1495aa8b758",
+        #         "taker_side": "",
+        #         "side": "BUY",
+        #         "instrument_name": "USD"
+        #     }
+        #
+        timestamp = self.safe_integer(item, 'event_timestamp_ms')
+        currencyId = self.safe_string(item, 'instrument_name')
+        amount = self.safe_string(item, 'transaction_qty')
+        direction = None
+        if Precise.string_lt(amount, '0'):
+            direction = 'out'
+            amount = Precise.string_abs(amount)
+        else:
+            direction = 'in'
+        return {
+            'id': self.safe_string(item, 'order_id'),
+            'direction': direction,
+            'account': self.safe_string(item, 'account_id'),
+            'referenceId': self.safe_string(item, 'trade_id'),
+            'referenceAccount': self.safe_string(item, 'trade_match_id'),
+            'type': self.parse_ledger_entry_type(self.safe_string(item, 'journal_type')),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.parse_number(amount),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'before': None,
+            'after': None,
+            'status': None,
+            'fee': {
+                'currency': None,
+                'cost': None,
+            },
+            'info': item,
+        }
+
+    def parse_ledger_entry_type(self, type):
+        ledgerType = {
+            'TRADING': 'trade',
+            'TRADE_FEE': 'fee',
+            'WITHDRAW_FEE': 'fee',
+            'WITHDRAW': 'withdrawal',
+            'DEPOSIT': 'deposit',
+            'ROLLBACK_WITHDRAW': 'rollback',
+            'ROLLBACK_DEPOSIT': 'rollback',
+            'FUNDING': 'fee',
+            'REALIZED_PNL': 'trade',
+            'INSURANCE_FUND': 'insurance',
+            'SOCIALIZED_LOSS': 'trade',
+            'LIQUIDATION_FEE': 'fee',
+            'SESSION_RESET': 'reset',
+            'ADJUSTMENT': 'adjustment',
+            'SESSION_SETTLE': 'settlement',
+            'UNCOVERED_LOSS': 'trade',
+            'ADMIN_ADJUSTMENT': 'adjustment',
+            'DELIST': 'delist',
+            'SETTLEMENT_FEE': 'fee',
+            'AUTO_CONVERSION': 'conversion',
+            'MANUAL_CONVERSION': 'conversion',
+        }
+        return self.safe_string(ledgerType, type, type)
 
     def nonce(self):
         return self.milliseconds()
