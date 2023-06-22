@@ -552,38 +552,50 @@ class cryptocom extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
-         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the cryptocom api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
-        $symbols = $this->market_symbols($symbols);
         $market = null;
+        $request = array();
         if ($symbols !== null) {
-            $symbol = $this->safe_value($symbols, 0);
+            $symbol = null;
+            if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
+                $symbolsLength = count($symbols);
+                if ($symbolsLength > 1) {
+                    throw new BadRequest($this->id . ' fetchTickers() $symbols argument cannot contain more than 1 symbol');
+                }
+                $symbol = $symbols[0];
+            } else {
+                $symbol = $symbols;
+            }
             $market = $this->market($symbol);
+            $request['instrument_name'] = $market['id'];
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'v2PublicGetPublicGetTicker',
-            'future' => 'derivativesPublicGetPublicGetTickers',
-            'swap' => 'derivativesPublicGetPublicGetTickers',
-        ));
-        $response = $this->$method ($query);
+        $response = $this->v1PublicGetPublicGetTickers (array_merge($request, $params));
         //
         //     {
-        //         "code":0,
-        //         "method":"public/get-ticker",
-        //         "result":{
-        //         "data" => array(
-        //             array("i":"CRO_BTC","b":0.00000890,"k":0.00001179,"a":0.00001042,"t":1591770793901,"v":14905879.59,"h":0.00,"l":0.00,"c":0.00),
-        //             array("i":"EOS_USDT","b":2.7676,"k":2.7776,"a":2.7693,"t":1591770798500,"v":774.51,"h":0.05,"l":0.05,"c":0.00),
-        //             array("i":"BCH_USDT","b":247.49,"k":251.73,"a":251.67,"t":1591770797601,"v":1.01693,"h":0.01292,"l":0.01231,"c":-0.00047),
-        //             array("i":"ETH_USDT","b":239.92,"k":242.59,"a":240.30,"t":1591770798701,"v":0.97575,"h":0.01236,"l":0.01199,"c":-0.00018),
-        //             array("i":"ETH_CRO","b":2693.11,"k":2699.84,"a":2699.55,"t":1591770795053,"v":95.680,"h":8.218,"l":7.853,"c":-0.050)
-        //         )
+        //         "id" => -1,
+        //         "method" => "public/get-tickers",
+        //         "code" => 0,
+        //         "result" => {
+        //             "data" => array(
+        //                 array(
+        //                     "i" => "AVAXUSD-PERP",
+        //                     "h" => "13.209",
+        //                     "l" => "12.148",
+        //                     "a" => "13.209",
+        //                     "v" => "1109.8",
+        //                     "vv" => "14017.33",
+        //                     "c" => "0.0732",
+        //                     "b" => "13.210",
+        //                     "k" => "13.230",
+        //                     "oi" => "10888.9",
+        //                     "t" => 1687402657575
+        //                 ),
+        //             )
         //         }
         //     }
         //
@@ -594,36 +606,16 @@ class cryptocom extends Exchange {
 
     public function fetch_ticker(string $symbol, $params = array ()) {
         /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-$tickers
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
          * @param {array} $params extra parameters specific to the cryptocom api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'instrument_name' => $market['id'],
-        );
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchTicker', $market, $params);
-        if ($marketType !== 'spot') {
-            throw new NotSupported($this->id . ' fetchTicker() only supports spot markets');
-        }
-        $response = $this->v2PublicGetPublicGetTicker (array_merge($request, $query));
-        //
-        //   {
-        //       "id":"-1",
-        //       "method":"public/get-tickers",
-        //       "code":"0",
-        //       "result":{
-        //          "data":array(
-        //             array( "i":"BTC_USDT", "h":"20567.16", "l":"20341.39", "a":"20394.23", "v":"2236.3762", "vv":"45739074.30", "c":"-0.0036", "b":"20394.01", "k":"20394.02", "t":"1667406085934" )
-        //          )
-        //   }
-        //
-        $resultResponse = $this->safe_value($response, 'result', array());
-        $data = $this->safe_value($resultResponse, 'data', array());
-        $first = $this->safe_value($data, 0, array());
-        return $this->parse_ticker($first, $market);
+        $symbol = $this->symbol($symbol);
+        $tickers = $this->fetch_tickers(array( $symbol ), $params);
+        return $this->safe_value($tickers, $symbol);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -1640,43 +1632,62 @@ class cryptocom extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
-        // {
-        //     "i":"CRO_BTC",
-        //     "b":0.00000890,
-        //     "k":0.00001179,
-        //     "a":0.00001042,
-        //     "t":1591770793901,
-        //     "v":14905879.59,
-        //     "h":0.00,
-        //     "l":0.00,
-        //     "c":0.00
-        // }
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "i" => "BTC_USD",
+        //         "h" => "30821.45",
+        //         "l" => "28685.11",
+        //         "a" => "30446.00",
+        //         "v" => "1767.8734",
+        //         "vv" => "52436726.42",
+        //         "c" => "0.0583",
+        //         "b" => "30442.00",
+        //         "k" => "30447.66",
+        //         "t" => 1687403045415
+        //     }
+        //
+        // fetchTickers
+        //
+        //     {
+        //         "i" => "AVAXUSD-PERP",
+        //         "h" => "13.209",
+        //         "l" => "12.148",
+        //         "a" => "13.209",
+        //         "v" => "1109.8",
+        //         "vv" => "14017.33",
+        //         "c" => "0.0732",
+        //         "b" => "13.210",
+        //         "k" => "13.230",
+        //         "oi" => "10888.9",
+        //         "t" => 1687402657575
+        //     }
+        //
         $timestamp = $this->safe_integer($ticker, 't');
         $marketId = $this->safe_string($ticker, 'i');
         $market = $this->safe_market($marketId, $market, '_');
-        $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'a');
-        $relativeChange = $this->safe_string($ticker, 'c');
         return $this->safe_ticker(array(
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_string($ticker, 'h'),
-            'low' => $this->safe_string($ticker, 'l'),
-            'bid' => $this->safe_string($ticker, 'b'),
+            'high' => $this->safe_number($ticker, 'h'),
+            'low' => $this->safe_number($ticker, 'l'),
+            'bid' => $this->safe_number($ticker, 'b'),
             'bidVolume' => null,
-            'ask' => $this->safe_string($ticker, 'k'),
+            'ask' => $this->safe_number($ticker, 'k'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $relativeChange,
+            'change' => $this->safe_string($ticker, 'c'),
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'v'),
-            'quoteVolume' => null,
+            'quoteVolume' => $this->safe_string($ticker, 'vv'),
             'info' => $ticker,
         ), $market);
     }

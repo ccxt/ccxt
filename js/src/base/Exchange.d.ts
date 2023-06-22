@@ -620,7 +620,7 @@ export default class Exchange {
     fetchPosition(symbol: string, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     fetchPositionsRisk(symbols?: string[], params?: {}): Promise<void>;
-    fetchBidsAsks(symbols?: string[], params?: {}): Promise<void>;
+    fetchBidsAsks(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
     parseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType): number[];
     safeCurrency(currencyId?: string, currency?: any): any;
     safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): any;
@@ -713,7 +713,7 @@ export default class Exchange {
     filterBySymbolSinceLimit(array: any, symbol?: string, since?: Int, limit?: Int, tail?: boolean): any;
     filterByCurrencySinceLimit(array: any, code?: any, since?: Int, limit?: Int, tail?: boolean): any;
     parseLastPrices(pricesData: any, symbols?: string[], params?: {}): any;
-    parseTickers(tickers: any, symbols?: string[], params?: {}): any;
+    parseTickers(tickers: any, symbols?: string[], params?: {}): Dictionary<Ticker>;
     parseDepositAddresses(addresses: any, codes?: string[], indexed?: boolean, params?: {}): {};
     parseBorrowInterests(response: any, market?: any): any[];
     parseFundingRateHistories(response: any, market?: any, since?: Int, limit?: Int): any;

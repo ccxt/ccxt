@@ -567,37 +567,47 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
-        see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the cryptocom api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        symbols = self.market_symbols(symbols)
         market = None
+        request = {}
         if symbols is not None:
-            symbol = self.safe_value(symbols, 0)
+            symbol = None
+            if isinstance(symbols, list):
+                symbolsLength = len(symbols)
+                if symbolsLength > 1:
+                    raise BadRequest(self.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol')
+                symbol = symbols[0]
+            else:
+                symbol = symbols
             market = self.market(symbol)
-        marketType, query = self.handle_market_type_and_params('fetchTickers', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'v2PublicGetPublicGetTicker',
-            'future': 'derivativesPublicGetPublicGetTickers',
-            'swap': 'derivativesPublicGetPublicGetTickers',
-        })
-        response = await getattr(self, method)(query)
+            request['instrument_name'] = market['id']
+        response = await self.v1PublicGetPublicGetTickers(self.extend(request, params))
         #
         #     {
-        #         "code":0,
-        #         "method":"public/get-ticker",
-        #         "result":{
-        #         "data": [
-        #             {"i":"CRO_BTC","b":0.00000890,"k":0.00001179,"a":0.00001042,"t":1591770793901,"v":14905879.59,"h":0.00,"l":0.00,"c":0.00},
-        #             {"i":"EOS_USDT","b":2.7676,"k":2.7776,"a":2.7693,"t":1591770798500,"v":774.51,"h":0.05,"l":0.05,"c":0.00},
-        #             {"i":"BCH_USDT","b":247.49,"k":251.73,"a":251.67,"t":1591770797601,"v":1.01693,"h":0.01292,"l":0.01231,"c":-0.00047},
-        #             {"i":"ETH_USDT","b":239.92,"k":242.59,"a":240.30,"t":1591770798701,"v":0.97575,"h":0.01236,"l":0.01199,"c":-0.00018},
-        #             {"i":"ETH_CRO","b":2693.11,"k":2699.84,"a":2699.55,"t":1591770795053,"v":95.680,"h":8.218,"l":7.853,"c":-0.050}
-        #         ]
+        #         "id": -1,
+        #         "method": "public/get-tickers",
+        #         "code": 0,
+        #         "result": {
+        #             "data": [
+        #                 {
+        #                     "i": "AVAXUSD-PERP",
+        #                     "h": "13.209",
+        #                     "l": "12.148",
+        #                     "a": "13.209",
+        #                     "v": "1109.8",
+        #                     "vv": "14017.33",
+        #                     "c": "0.0732",
+        #                     "b": "13.210",
+        #                     "k": "13.230",
+        #                     "oi": "10888.9",
+        #                     "t": 1687402657575
+        #                 },
+        #             ]
         #         }
         #     }
         #
@@ -607,35 +617,16 @@ class cryptocom(Exchange, ImplicitAPI):
 
     async def fetch_ticker(self, symbol: str, params={}):
         """
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the cryptocom api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'instrument_name': market['id'],
-        }
-        marketType, query = self.handle_market_type_and_params('fetchTicker', market, params)
-        if marketType != 'spot':
-            raise NotSupported(self.id + ' fetchTicker() only supports spot markets')
-        response = await self.v2PublicGetPublicGetTicker(self.extend(request, query))
-        #
-        #   {
-        #       "id":"-1",
-        #       "method":"public/get-tickers",
-        #       "code":"0",
-        #       "result":{
-        #          "data":[
-        #             {"i":"BTC_USDT", "h":"20567.16", "l":"20341.39", "a":"20394.23", "v":"2236.3762", "vv":"45739074.30", "c":"-0.0036", "b":"20394.01", "k":"20394.02", "t":"1667406085934"}
-        #          ]
-        #   }
-        #
-        resultResponse = self.safe_value(response, 'result', {})
-        data = self.safe_value(resultResponse, 'data', {})
-        first = self.safe_value(data, 0, {})
-        return self.parse_ticker(first, market)
+        symbol = self.symbol(symbol)
+        tickers = await self.fetch_tickers([symbol], params)
+        return self.safe_value(tickers, symbol)
 
     async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -1582,43 +1573,62 @@ class cryptocom(Exchange, ImplicitAPI):
         }
 
     def parse_ticker(self, ticker, market=None):
-        # {
-        #     "i":"CRO_BTC",
-        #     "b":0.00000890,
-        #     "k":0.00001179,
-        #     "a":0.00001042,
-        #     "t":1591770793901,
-        #     "v":14905879.59,
-        #     "h":0.00,
-        #     "l":0.00,
-        #     "c":0.00
-        # }
+        #
+        # fetchTicker
+        #
+        #     {
+        #         "i": "BTC_USD",
+        #         "h": "30821.45",
+        #         "l": "28685.11",
+        #         "a": "30446.00",
+        #         "v": "1767.8734",
+        #         "vv": "52436726.42",
+        #         "c": "0.0583",
+        #         "b": "30442.00",
+        #         "k": "30447.66",
+        #         "t": 1687403045415
+        #     }
+        #
+        # fetchTickers
+        #
+        #     {
+        #         "i": "AVAXUSD-PERP",
+        #         "h": "13.209",
+        #         "l": "12.148",
+        #         "a": "13.209",
+        #         "v": "1109.8",
+        #         "vv": "14017.33",
+        #         "c": "0.0732",
+        #         "b": "13.210",
+        #         "k": "13.230",
+        #         "oi": "10888.9",
+        #         "t": 1687402657575
+        #     }
+        #
         timestamp = self.safe_integer(ticker, 't')
         marketId = self.safe_string(ticker, 'i')
         market = self.safe_market(marketId, market, '_')
-        symbol = market['symbol']
         last = self.safe_string(ticker, 'a')
-        relativeChange = self.safe_string(ticker, 'c')
         return self.safe_ticker({
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(ticker, 'h'),
-            'low': self.safe_string(ticker, 'l'),
-            'bid': self.safe_string(ticker, 'b'),
+            'high': self.safe_number(ticker, 'h'),
+            'low': self.safe_number(ticker, 'l'),
+            'bid': self.safe_number(ticker, 'b'),
             'bidVolume': None,
-            'ask': self.safe_string(ticker, 'k'),
+            'ask': self.safe_number(ticker, 'k'),
             'askVolume': None,
             'vwap': None,
             'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': relativeChange,
+            'change': self.safe_string(ticker, 'c'),
             'percentage': None,
             'average': None,
             'baseVolume': self.safe_string(ticker, 'v'),
-            'quoteVolume': None,
+            'quoteVolume': self.safe_string(ticker, 'vv'),
             'info': ticker,
         }, market)
 
