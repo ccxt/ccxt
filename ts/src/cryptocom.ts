@@ -555,38 +555,50 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
-         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
         let market = undefined;
+        const request = {};
         if (symbols !== undefined) {
-            const symbol = this.safeValue (symbols, 0);
+            let symbol = undefined;
+            if (Array.isArray (symbols)) {
+                const symbolsLength = symbols.length;
+                if (symbolsLength > 1) {
+                    throw new BadRequest (this.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol');
+                }
+                symbol = symbols[0];
+            } else {
+                symbol = symbols;
+            }
             market = this.market (symbol);
+            request['instrument_name'] = market['id'];
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'v2PublicGetPublicGetTicker',
-            'future': 'derivativesPublicGetPublicGetTickers',
-            'swap': 'derivativesPublicGetPublicGetTickers',
-        });
-        const response = await this[method] (query);
+        const response = await this.v1PublicGetPublicGetTickers (this.extend (request, params));
         //
         //     {
-        //         "code":0,
-        //         "method":"public/get-ticker",
-        //         "result":{
-        //         "data": [
-        //             {"i":"CRO_BTC","b":0.00000890,"k":0.00001179,"a":0.00001042,"t":1591770793901,"v":14905879.59,"h":0.00,"l":0.00,"c":0.00},
-        //             {"i":"EOS_USDT","b":2.7676,"k":2.7776,"a":2.7693,"t":1591770798500,"v":774.51,"h":0.05,"l":0.05,"c":0.00},
-        //             {"i":"BCH_USDT","b":247.49,"k":251.73,"a":251.67,"t":1591770797601,"v":1.01693,"h":0.01292,"l":0.01231,"c":-0.00047},
-        //             {"i":"ETH_USDT","b":239.92,"k":242.59,"a":240.30,"t":1591770798701,"v":0.97575,"h":0.01236,"l":0.01199,"c":-0.00018},
-        //             {"i":"ETH_CRO","b":2693.11,"k":2699.84,"a":2699.55,"t":1591770795053,"v":95.680,"h":8.218,"l":7.853,"c":-0.050}
-        //         ]
+        //         "id": -1,
+        //         "method": "public/get-tickers",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "i": "AVAXUSD-PERP",
+        //                     "h": "13.209",
+        //                     "l": "12.148",
+        //                     "a": "13.209",
+        //                     "v": "1109.8",
+        //                     "vv": "14017.33",
+        //                     "c": "0.0732",
+        //                     "b": "13.210",
+        //                     "k": "13.230",
+        //                     "oi": "10888.9",
+        //                     "t": 1687402657575
+        //                 },
+        //             ]
         //         }
         //     }
         //
@@ -1681,43 +1693,62 @@ export default class cryptocom extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        // {
-        //     "i":"CRO_BTC",
-        //     "b":0.00000890,
-        //     "k":0.00001179,
-        //     "a":0.00001042,
-        //     "t":1591770793901,
-        //     "v":14905879.59,
-        //     "h":0.00,
-        //     "l":0.00,
-        //     "c":0.00
-        // }
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "i": "BTC_USD",
+        //         "h": "30821.45",
+        //         "l": "28685.11",
+        //         "a": "30446.00",
+        //         "v": "1767.8734",
+        //         "vv": "52436726.42",
+        //         "c": "0.0583",
+        //         "b": "30442.00",
+        //         "k": "30447.66",
+        //         "t": 1687403045415
+        //     }
+        //
+        // fetchTickers
+        //
+        //     {
+        //         "i": "AVAXUSD-PERP",
+        //         "h": "13.209",
+        //         "l": "12.148",
+        //         "a": "13.209",
+        //         "v": "1109.8",
+        //         "vv": "14017.33",
+        //         "c": "0.0732",
+        //         "b": "13.210",
+        //         "k": "13.230",
+        //         "oi": "10888.9",
+        //         "t": 1687402657575
+        //     }
+        //
         const timestamp = this.safeInteger (ticker, 't');
         const marketId = this.safeString (ticker, 'i');
         market = this.safeMarket (marketId, market, '_');
-        const symbol = market['symbol'];
         const last = this.safeString (ticker, 'a');
-        const relativeChange = this.safeString (ticker, 'c');
         return this.safeTicker ({
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'h'),
-            'low': this.safeString (ticker, 'l'),
-            'bid': this.safeString (ticker, 'b'),
+            'high': this.safeNumber (ticker, 'h'),
+            'low': this.safeNumber (ticker, 'l'),
+            'bid': this.safeNumber (ticker, 'b'),
             'bidVolume': undefined,
-            'ask': this.safeString (ticker, 'k'),
+            'ask': this.safeNumber (ticker, 'k'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': relativeChange,
+            'change': this.safeString (ticker, 'c'),
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'v'),
-            'quoteVolume': undefined,
+            'quoteVolume': this.safeString (ticker, 'vv'),
             'info': ticker,
         }, market);
     }
