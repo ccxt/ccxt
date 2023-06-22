@@ -2930,7 +2930,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPositionsRisk() is not supported yet');
     }
 
-    async fetchBidsAsks (symbols: string[] = undefined, params = {}) {
+    async fetchBidsAsks (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
         throw new NotSupported (this.id + ' fetchBidsAsks() is not supported yet');
     }
 
@@ -3715,7 +3715,7 @@ export default class Exchange {
         return this.filterByArray (results, 'symbol', symbols);
     }
 
-    parseTickers (tickers, symbols: string[] = undefined, params = {}) {
+    parseTickers (tickers, symbols: string[] = undefined, params = {}): Dictionary<Ticker> {
         //
         // the value of tickers is either a dict or a list
         //
