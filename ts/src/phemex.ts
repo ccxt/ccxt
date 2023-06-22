@@ -2225,13 +2225,15 @@ export default class phemex extends Exchange {
             lastTradeTimestamp = undefined;
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
-        const stopPrice = this.safeNumber2 (order, 'stopPx', 'stopPxRp');
+        const stopPrice = this.omitZero (this.safeNumber2 (order, 'stopPx', 'stopPxRp'));
         const postOnly = (timeInForce === 'PO');
         let reduceOnly = this.safeValue (order, 'reduceOnly');
         const execInst = this.safeString (order, 'execInst');
         if (execInst === 'ReduceOnly') {
             reduceOnly = true;
         }
+        const takeProfit = this.safeString (order, 'takeProfitRp');
+        const stopLoss = this.safeString (order, 'stopLossRp');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -2248,6 +2250,8 @@ export default class phemex extends Exchange {
             'price': price,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfit,
+            'stopLossPrice': stopLoss,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
