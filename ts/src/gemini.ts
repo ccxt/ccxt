@@ -1567,20 +1567,18 @@ export default class gemini extends Exchange {
     async fetchDepositAddressesByNetwork (code: string, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const network = this.safeString (params, 'network');
-        if (network === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDepositAddressesByNetwork() requires a network parameter');
+        code = currency['code'];
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddresses() requires a network parameter');
         }
-        params = this.omit (params, 'network');
-        const networks = this.safeValue (this.options, 'networks', {});
-        const networkId = this.safeString (networks, network, network);
-        const networkIds = this.safeValue (this.options, 'networkIds', {});
-        const networkCode = this.safeString (networkIds, networkId, network);
+        const networkId = this.networkCodeToId (networkCode);
         const request = {
             'network': networkId,
         };
         const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
-        const results = this.parseDepositAddresses (response, [ currency['code'] ], false, { 'network': networkCode, 'currency': code });
+        const results = this.parseDepositAddresses (response, [ code ], false, { 'network': networkCode, 'currency': code });
         return this.groupBy (results, 'network');
     }
 
