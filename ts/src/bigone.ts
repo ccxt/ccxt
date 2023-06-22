@@ -1178,21 +1178,22 @@ export default class bigone extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code, params = {}) {
         /**
          * @method
          * @name bigone#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the bigone api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'asset_symbol': currency['id'],
         };
-        const response = await this.privateGetAssetsAssetSymbolAddress (this.extend (request, params));
+        const [ networkCode, paramsOmitted ] = this.handleNetworkCodeAndParams (params);
+        const response = await this.privateGetAssetsAssetSymbolAddress (this.extend (request, paramsOmitted));
         //
         // the actual response format is not the same as the documented one
         // the data key contains an array in the actual response
@@ -1215,15 +1216,17 @@ export default class bigone extends Exchange {
         if (dataLength < 1) {
             throw new ExchangeError (this.id + ' fetchDepositAddress() returned empty address response');
         }
-        const firstElement = data[0];
-        const address = this.safeString (firstElement, 'value');
-        const tag = this.safeString (firstElement, 'memo');
+        const chainsIndexedById = this.indexBy (data, 'chain');
+        const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
+        const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
+        const address = this.safeString (addressObject, 'value');
+        const tag = this.safeString (addressObject, 'memo');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': undefined,
+            'network': this.networkIdToCode (selectedNetworkId),
             'info': response,
         };
     }
