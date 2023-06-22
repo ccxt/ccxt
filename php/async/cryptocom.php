@@ -47,6 +47,7 @@ class cryptocom extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => false,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
@@ -769,14 +770,14 @@ class cryptocom extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-candlestick
-             * @see https://exchange-docs.crypto.com/spot/index.html#public-get-candlestick
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @param {int|null} $params->until timestamp in ms for the ending date filter, default is the current time
              * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -785,43 +786,41 @@ class cryptocom extends Exchange {
                 'instrument_name' => $market['id'],
                 'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
-            if (!$market['spot']) {
-                $reqLimit = 100;
-                if ($limit !== null) {
-                    $reqLimit = $limit;
-                }
-                $request['count'] = $reqLimit;
-            }
             if ($since !== null) {
                 $request['start_ts'] = $since;
+            }
+            if ($limit !== null) {
+                $request['count'] = $limit;
             }
             $until = $this->safe_integer_2($params, 'until', 'till');
             $params = $this->omit($params, array( 'until', 'till' ));
             if ($until !== null) {
                 $request['end_ts'] = $until;
             }
-            $response = null;
-            if ($market['spot']) {
-                $response = Async\await($this->v2PublicGetPublicGetCandlestick (array_merge($request, $params)));
-            } elseif ($market['contract']) {
-                $response = Async\await($this->derivativesPublicGetPublicGetCandlestick (array_merge($request, $params)));
-            }
-            // {
-            //     "code":0,
-            //     "method":"public/get-candlestick",
-            //     "result":{
-            //       "instrument_name":"BTC_USDT",
-            //       "interval":"5m",
-            //       "data":array(
-            //         array("t":1596944700000,"o":11752.38,"h":11754.77,"l":11746.65,"c":11753.64,"v":3.694583),
-            //         array("t":1596945000000,"o":11753.63,"h":11754.77,"l":11739.83,"c":11746.17,"v":2.073019),
-            //         array("t":1596945300000,"o":11746.16,"h":11753.24,"l":11738.1,"c":11740.65,"v":0.867247),
-            //         ...
-            //       )
+            $response = Async\await($this->v1PublicGetPublicGetCandlestick (array_merge($request, $params)));
+            //
+            //     {
+            //         "id" => -1,
+            //         "method" => "public/get-candlestick",
+            //         "code" => 0,
+            //         "result" => {
+            //             "interval" => "1m",
+            //             "data" => array(
+            //                 array(
+            //                     "o" => "26949.89",
+            //                     "h" => "26957.64",
+            //                     "l" => "26948.24",
+            //                     "c" => "26950.00",
+            //                     "v" => "0.0670",
+            //                     "t" => 1687237080000
+            //                 ),
+            //             ),
+            //             "instrument_name" => "BTC_USD"
+            //         }
             //     }
-            // }
-            $resultResponse = $this->safe_value($response, 'result', array());
-            $data = $this->safe_value($resultResponse, 'data', array());
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $data = $this->safe_value($result, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -867,34 +866,18 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function parse_swap_balance($response) {
+    public function parse_balance($response) {
         $responseResult = $this->safe_value($response, 'result', array());
         $data = $this->safe_value($responseResult, 'data', array());
+        $positionBalances = $this->safe_value($data[0], 'position_balances', array());
         $result = array( 'info' => $response );
-        for ($i = 0; $i < count($data); $i++) {
-            $balance = $data[$i];
+        for ($i = 0; $i < count($positionBalances); $i++) {
+            $balance = $positionBalances[$i];
             $currencyId = $this->safe_string($balance, 'instrument_name');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_string($balance, 'total_cash_balance');
-            $account['free'] = $this->safe_string($balance, 'total_available_balance');
-            $result[$code] = $account;
-        }
-        return $this->safe_balance($result);
-    }
-
-    public function parse_spot_balance($response) {
-        $data = $this->safe_value($response, 'result', array());
-        $coinList = $this->safe_value($data, 'accounts', array());
-        $result = array( 'info' => $response );
-        for ($i = 0; $i < count($coinList); $i++) {
-            $balance = $coinList[$i];
-            $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['total'] = $this->safe_string($balance, 'balance');
-            $account['free'] = $this->safe_string($balance, 'available');
-            $account['used'] = $this->safe_string($balance, 'order');
+            $account['total'] = $this->safe_string($balance, 'quantity');
+            $account['used'] = $this->safe_string($balance, 'reserved_qty');
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
@@ -903,117 +886,57 @@ class cryptocom extends Exchange {
     public function fetch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * $query for balance and get the amount of funds available for trading or funds locked in orders
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance
              * @param {array} $params extra parameters specific to the cryptocom api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'v2PrivatePostPrivateGetAccountSummary',
-                'margin' => 'v2PrivatePostPrivateMarginGetAccountSummary',
-                'future' => 'derivativesPrivatePostPrivateUserBalance',
-                'swap' => 'derivativesPrivatePostPrivateUserBalance',
-            ));
-            list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('fetchBalance', $marketTypeQuery);
-            if ($marginMode !== null) {
-                $method = 'v2PrivatePostPrivateMarginGetAccountSummary';
-            }
-            $response = Async\await($this->$method ($query));
-            // spot
+            $response = Async\await($this->v1PrivatePostPrivateUserBalance ($params));
+            //
             //     {
-            //         "id" => 11,
-            //         "method" => "private/get-account-summary",
+            //         "id" => 1687300499018,
+            //         "method" => "private/user-balance",
             //         "code" => 0,
             //         "result" => {
-            //             "accounts" => array(
+            //             "data" => array(
             //                 {
-            //                     "balance" => 99999999.905000000000000000,
-            //                     "available" => 99999996.905000000000000000,
-            //                     "order" => 3.000000000000000000,
-            //                     "stake" => 0,
-            //                     "currency" => "CRO"
+            //                     "total_available_balance" => "5.84684368",
+            //                     "total_margin_balance" => "5.84684368",
+            //                     "total_initial_margin" => "0",
+            //                     "total_maintenance_margin" => "0",
+            //                     "total_position_cost" => "0",
+            //                     "total_cash_balance" => "6.44412101",
+            //                     "total_collateral_value" => "5.846843685",
+            //                     "total_session_unrealized_pnl" => "0",
+            //                     "instrument_name" => "USD",
+            //                     "total_session_realized_pnl" => "0",
+            //                     "position_balances" => array(
+            //                         array(
+            //                             "quantity" => "0.0002119875",
+            //                             "reserved_qty" => "0",
+            //                             "collateral_weight" => "0.9",
+            //                             "collateral_amount" => "5.37549592",
+            //                             "market_value" => "5.97277325",
+            //                             "max_withdrawal_balance" => "0.00021198",
+            //                             "instrument_name" => "BTC",
+            //                             "hourly_interest_rate" => "0"
+            //                         ),
+            //                     ),
+            //                     "total_effective_leverage" => "0",
+            //                     "position_limit" => "3000000",
+            //                     "used_position_limit" => "0",
+            //                     "total_borrow" => "0",
+            //                     "margin_score" => "0",
+            //                     "is_liquidating" => false,
+            //                     "has_risk" => false,
+            //                     "terminatable" => true
             //                 }
             //             )
             //         }
             //     }
             //
-            // margin
-            //     {
-            //         "id" => 1656529728178,
-            //         "method" => "private/margin/get-account-summary",
-            //         "code" => 0,
-            //         "result" => {
-            //             "accounts" => array(
-            //                 array(
-            //                     "balance" => 0,
-            //                     "available" => 0,
-            //                     "order" => 0,
-            //                     "borrowed" => 0,
-            //                     "position" => 0,
-            //                     "positionHomeCurrency" => 0,
-            //                     "positionBtc" => 0,
-            //                     "lastPriceHomeCurrency" => 20111.38,
-            //                     "lastPriceBtc" => 1,
-            //                     "currency" => "BTC",
-            //                     "accrued_interest" => 0,
-            //                     "liquidation_price" => 0
-            //                 ),
-            //             ),
-            //             "is_liquidating" => false,
-            //             "total_balance" => 16,
-            //             "total_balance_btc" => 0.00079556,
-            //             "equity_value" => 16,
-            //             "equity_value_btc" => 0.00079556,
-            //             "total_borrowed" => 0,
-            //             "total_borrowed_btc" => 0,
-            //             "total_accrued_interest" => 0,
-            //             "total_accrued_interest_btc" => 0,
-            //             "margin_score" => "GOOD",
-            //             "currency" => "USDT"
-            //         }
-            //     }
-            //
-            // swap
-            //     {
-            //       "id" : 1641025392400,
-            //       "method" : "private/user-balance",
-            //       "code" : 0,
-            //       "result" : {
-            //         "data" : array( {
-            //           "total_available_balance" : "109.56000000",
-            //           "total_margin_balance" : "109.56000000",
-            //           "total_initial_margin" : "0.00000000",
-            //           "total_maintenance_margin" : "0.00000000",
-            //           "total_position_cost" : "0.00000000",
-            //           "total_cash_balance" : "109.56000000",
-            //           "total_collateral_value" : "109.56000000",
-            //           "total_session_unrealized_pnl" : "0.00000000",
-            //           "instrument_name" : "USD_Stable_Coin",
-            //           "total_session_realized_pnl" : "0.00000000",
-            //           "position_balances" : array( {
-            //             "quantity" : "109.56000000",
-            //             "collateral_weight" : "1.000000",
-            //             "collateral_amount" : "109.56000000",
-            //             "market_value" : "109.56000000",
-            //             "max_withdrawal_balance" : "109.56000000",
-            //             "instrument_name" : "USD_Stable_Coin"
-            //           } ),
-            //           "total_effective_leverage" : "0.000000",
-            //           "position_limit" : "3000000.00000000",
-            //           "used_position_limit" : "0.00000000",
-            //           "is_liquidating" : false
-            //         } )
-            //       }
-            //     }
-            //
-            $parser = $this->get_supported_mapping($marketType, array(
-                'spot' => 'parseSpotBalance',
-                'margin' => 'parseSpotBalance',
-                'future' => 'parseSwapBalance',
-                'swap' => 'parseSwapBalance',
-            ));
-            return $this->$parser ($response);
+            return $this->parse_balance($response);
         }) ();
     }
 
@@ -1865,7 +1788,16 @@ class cryptocom extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
-        //      array("t":1596944700000,"o":11752.38,"h":11754.77,"l":11746.65,"c":11753.64,"v":3.694583)
+        //
+        //     {
+        //         "o" => "26949.89",
+        //         "h" => "26957.64",
+        //         "l" => "26948.24",
+        //         "c" => "26950.00",
+        //         "v" => "0.0670",
+        //         "t" => 1687237080000
+        //     }
+        //
         return array(
             $this->safe_integer($ohlcv, 't'),
             $this->safe_number($ohlcv, 'o'),

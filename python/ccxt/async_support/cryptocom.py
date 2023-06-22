@@ -61,6 +61,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': False,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
@@ -755,14 +756,14 @@ class cryptocom(Exchange, ImplicitAPI):
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://exchange-docs.crypto.com/derivatives/index.html#public-get-candlestick
-        see https://exchange-docs.crypto.com/spot/index.html#public-get-candlestick
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the cryptocom api endpoint
+        :param int|None params['until']: timestamp in ms for the ending date filter, default is the current time
         :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -771,38 +772,38 @@ class cryptocom(Exchange, ImplicitAPI):
             'instrument_name': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        if not market['spot']:
-            reqLimit = 100
-            if limit is not None:
-                reqLimit = limit
-            request['count'] = reqLimit
         if since is not None:
             request['start_ts'] = since
+        if limit is not None:
+            request['count'] = limit
         until = self.safe_integer_2(params, 'until', 'till')
         params = self.omit(params, ['until', 'till'])
         if until is not None:
             request['end_ts'] = until
-        response = None
-        if market['spot']:
-            response = await self.v2PublicGetPublicGetCandlestick(self.extend(request, params))
-        elif market['contract']:
-            response = await self.derivativesPublicGetPublicGetCandlestick(self.extend(request, params))
-        # {
-        #     "code":0,
-        #     "method":"public/get-candlestick",
-        #     "result":{
-        #       "instrument_name":"BTC_USDT",
-        #       "interval":"5m",
-        #       "data":[
-        #         {"t":1596944700000,"o":11752.38,"h":11754.77,"l":11746.65,"c":11753.64,"v":3.694583},
-        #         {"t":1596945000000,"o":11753.63,"h":11754.77,"l":11739.83,"c":11746.17,"v":2.073019},
-        #         {"t":1596945300000,"o":11746.16,"h":11753.24,"l":11738.1,"c":11740.65,"v":0.867247},
-        #         ...
-        #       ]
+        response = await self.v1PublicGetPublicGetCandlestick(self.extend(request, params))
+        #
+        #     {
+        #         "id": -1,
+        #         "method": "public/get-candlestick",
+        #         "code": 0,
+        #         "result": {
+        #             "interval": "1m",
+        #             "data": [
+        #                 {
+        #                     "o": "26949.89",
+        #                     "h": "26957.64",
+        #                     "l": "26948.24",
+        #                     "c": "26950.00",
+        #                     "v": "0.0670",
+        #                     "t": 1687237080000
+        #                 },
+        #             ],
+        #             "instrument_name": "BTC_USD"
+        #         }
         #     }
-        # }
-        resultResponse = self.safe_value(response, 'result', {})
-        data = self.safe_value(resultResponse, 'data', [])
+        #
+        result = self.safe_value(response, 'result', {})
+        data = self.safe_value(result, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
@@ -842,147 +843,74 @@ class cryptocom(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(orderBook, 't')
         return self.parse_order_book(orderBook, symbol, timestamp)
 
-    def parse_swap_balance(self, response):
+    def parse_balance(self, response):
         responseResult = self.safe_value(response, 'result', {})
         data = self.safe_value(responseResult, 'data', [])
+        positionBalances = self.safe_value(data[0], 'position_balances', [])
         result = {'info': response}
-        for i in range(0, len(data)):
-            balance = data[i]
+        for i in range(0, len(positionBalances)):
+            balance = positionBalances[i]
             currencyId = self.safe_string(balance, 'instrument_name')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_string(balance, 'total_cash_balance')
-            account['free'] = self.safe_string(balance, 'total_available_balance')
-            result[code] = account
-        return self.safe_balance(result)
-
-    def parse_spot_balance(self, response):
-        data = self.safe_value(response, 'result', {})
-        coinList = self.safe_value(data, 'accounts', [])
-        result = {'info': response}
-        for i in range(0, len(coinList)):
-            balance = coinList[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['total'] = self.safe_string(balance, 'balance')
-            account['free'] = self.safe_string(balance, 'available')
-            account['used'] = self.safe_string(balance, 'order')
+            account['total'] = self.safe_string(balance, 'quantity')
+            account['used'] = self.safe_string(balance, 'reserved_qty')
             result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance
         :param dict params: extra parameters specific to the cryptocom api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         await self.load_markets()
-        marketType, marketTypeQuery = self.handle_market_type_and_params('fetchBalance', None, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'v2PrivatePostPrivateGetAccountSummary',
-            'margin': 'v2PrivatePostPrivateMarginGetAccountSummary',
-            'future': 'derivativesPrivatePostPrivateUserBalance',
-            'swap': 'derivativesPrivatePostPrivateUserBalance',
-        })
-        marginMode, query = self.custom_handle_margin_mode_and_params('fetchBalance', marketTypeQuery)
-        if marginMode is not None:
-            method = 'v2PrivatePostPrivateMarginGetAccountSummary'
-        response = await getattr(self, method)(query)
-        # spot
+        response = await self.v1PrivatePostPrivateUserBalance(params)
+        #
         #     {
-        #         "id": 11,
-        #         "method": "private/get-account-summary",
+        #         "id": 1687300499018,
+        #         "method": "private/user-balance",
         #         "code": 0,
         #         "result": {
-        #             "accounts": [
+        #             "data": [
         #                 {
-        #                     "balance": 99999999.905000000000000000,
-        #                     "available": 99999996.905000000000000000,
-        #                     "order": 3.000000000000000000,
-        #                     "stake": 0,
-        #                     "currency": "CRO"
+        #                     "total_available_balance": "5.84684368",
+        #                     "total_margin_balance": "5.84684368",
+        #                     "total_initial_margin": "0",
+        #                     "total_maintenance_margin": "0",
+        #                     "total_position_cost": "0",
+        #                     "total_cash_balance": "6.44412101",
+        #                     "total_collateral_value": "5.846843685",
+        #                     "total_session_unrealized_pnl": "0",
+        #                     "instrument_name": "USD",
+        #                     "total_session_realized_pnl": "0",
+        #                     "position_balances": [
+        #                         {
+        #                             "quantity": "0.0002119875",
+        #                             "reserved_qty": "0",
+        #                             "collateral_weight": "0.9",
+        #                             "collateral_amount": "5.37549592",
+        #                             "market_value": "5.97277325",
+        #                             "max_withdrawal_balance": "0.00021198",
+        #                             "instrument_name": "BTC",
+        #                             "hourly_interest_rate": "0"
+        #                         },
+        #                     ],
+        #                     "total_effective_leverage": "0",
+        #                     "position_limit": "3000000",
+        #                     "used_position_limit": "0",
+        #                     "total_borrow": "0",
+        #                     "margin_score": "0",
+        #                     "is_liquidating": False,
+        #                     "has_risk": False,
+        #                     "terminatable": True
         #                 }
         #             ]
         #         }
         #     }
         #
-        # margin
-        #     {
-        #         "id": 1656529728178,
-        #         "method": "private/margin/get-account-summary",
-        #         "code": 0,
-        #         "result": {
-        #             "accounts": [
-        #                 {
-        #                     "balance": 0,
-        #                     "available": 0,
-        #                     "order": 0,
-        #                     "borrowed": 0,
-        #                     "position": 0,
-        #                     "positionHomeCurrency": 0,
-        #                     "positionBtc": 0,
-        #                     "lastPriceHomeCurrency": 20111.38,
-        #                     "lastPriceBtc": 1,
-        #                     "currency": "BTC",
-        #                     "accrued_interest": 0,
-        #                     "liquidation_price": 0
-        #                 },
-        #             ],
-        #             "is_liquidating": False,
-        #             "total_balance": 16,
-        #             "total_balance_btc": 0.00079556,
-        #             "equity_value": 16,
-        #             "equity_value_btc": 0.00079556,
-        #             "total_borrowed": 0,
-        #             "total_borrowed_btc": 0,
-        #             "total_accrued_interest": 0,
-        #             "total_accrued_interest_btc": 0,
-        #             "margin_score": "GOOD",
-        #             "currency": "USDT"
-        #         }
-        #     }
-        #
-        # swap
-        #     {
-        #       "id" : 1641025392400,
-        #       "method" : "private/user-balance",
-        #       "code" : 0,
-        #       "result" : {
-        #         "data" : [{
-        #           "total_available_balance" : "109.56000000",
-        #           "total_margin_balance" : "109.56000000",
-        #           "total_initial_margin" : "0.00000000",
-        #           "total_maintenance_margin" : "0.00000000",
-        #           "total_position_cost" : "0.00000000",
-        #           "total_cash_balance" : "109.56000000",
-        #           "total_collateral_value" : "109.56000000",
-        #           "total_session_unrealized_pnl" : "0.00000000",
-        #           "instrument_name" : "USD_Stable_Coin",
-        #           "total_session_realized_pnl" : "0.00000000",
-        #           "position_balances" : [{
-        #             "quantity" : "109.56000000",
-        #             "collateral_weight" : "1.000000",
-        #             "collateral_amount" : "109.56000000",
-        #             "market_value" : "109.56000000",
-        #             "max_withdrawal_balance" : "109.56000000",
-        #             "instrument_name" : "USD_Stable_Coin"
-        #           }],
-        #           "total_effective_leverage" : "0.000000",
-        #           "position_limit" : "3000000.00000000",
-        #           "used_position_limit" : "0.00000000",
-        #           "is_liquidating" : False
-        #         }]
-        #       }
-        #     }
-        #
-        parser = self.get_supported_mapping(marketType, {
-            'spot': 'parseSpotBalance',
-            'margin': 'parseSpotBalance',
-            'future': 'parseSwapBalance',
-            'swap': 'parseSwapBalance',
-        })
-        return getattr(self, parser)(response)
+        return self.parse_balance(response)
 
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
@@ -1753,7 +1681,16 @@ class cryptocom(Exchange, ImplicitAPI):
         }, market)
 
     def parse_ohlcv(self, ohlcv, market=None):
-        #      {"t":1596944700000,"o":11752.38,"h":11754.77,"l":11746.65,"c":11753.64,"v":3.694583}
+        #
+        #     {
+        #         "o": "26949.89",
+        #         "h": "26957.64",
+        #         "l": "26948.24",
+        #         "c": "26950.00",
+        #         "v": "0.0670",
+        #         "t": 1687237080000
+        #     }
+        #
         return [
             self.safe_integer(ohlcv, 't'),
             self.safe_number(ohlcv, 'o'),

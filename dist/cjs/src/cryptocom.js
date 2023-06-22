@@ -40,6 +40,7 @@ class cryptocom extends cryptocom$1 {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
@@ -760,14 +761,14 @@ class cryptocom extends cryptocom$1 {
         /**
          * @method
          * @name cryptocom#fetchOHLCV
-         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-candlestick
-         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-candlestick
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -776,44 +777,41 @@ class cryptocom extends cryptocom$1 {
             'instrument_name': market['id'],
             'timeframe': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        if (!market['spot']) {
-            let reqLimit = 100;
-            if (limit !== undefined) {
-                reqLimit = limit;
-            }
-            request['count'] = reqLimit;
-        }
         if (since !== undefined) {
             request['start_ts'] = since;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
         }
         const until = this.safeInteger2(params, 'until', 'till');
         params = this.omit(params, ['until', 'till']);
         if (until !== undefined) {
             request['end_ts'] = until;
         }
-        let response = undefined;
-        if (market['spot']) {
-            response = await this.v2PublicGetPublicGetCandlestick(this.extend(request, params));
-        }
-        else if (market['contract']) {
-            response = await this.derivativesPublicGetPublicGetCandlestick(this.extend(request, params));
-        }
-        // {
-        //     "code":0,
-        //     "method":"public/get-candlestick",
-        //     "result":{
-        //       "instrument_name":"BTC_USDT",
-        //       "interval":"5m",
-        //       "data":[
-        //         {"t":1596944700000,"o":11752.38,"h":11754.77,"l":11746.65,"c":11753.64,"v":3.694583},
-        //         {"t":1596945000000,"o":11753.63,"h":11754.77,"l":11739.83,"c":11746.17,"v":2.073019},
-        //         {"t":1596945300000,"o":11746.16,"h":11753.24,"l":11738.1,"c":11740.65,"v":0.867247},
-        //         ...
-        //       ]
+        const response = await this.v1PublicGetPublicGetCandlestick(this.extend(request, params));
+        //
+        //     {
+        //         "id": -1,
+        //         "method": "public/get-candlestick",
+        //         "code": 0,
+        //         "result": {
+        //             "interval": "1m",
+        //             "data": [
+        //                 {
+        //                     "o": "26949.89",
+        //                     "h": "26957.64",
+        //                     "l": "26948.24",
+        //                     "c": "26950.00",
+        //                     "v": "0.0670",
+        //                     "t": 1687237080000
+        //                 },
+        //             ],
+        //             "instrument_name": "BTC_USD"
+        //         }
         //     }
-        // }
-        const resultResponse = this.safeValue(response, 'result', {});
-        const data = this.safeValue(resultResponse, 'data', []);
+        //
+        const result = this.safeValue(response, 'result', {});
+        const data = this.safeValue(result, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -856,33 +854,18 @@ class cryptocom extends cryptocom$1 {
         const timestamp = this.safeInteger(orderBook, 't');
         return this.parseOrderBook(orderBook, symbol, timestamp);
     }
-    parseSwapBalance(response) {
+    parseBalance(response) {
         const responseResult = this.safeValue(response, 'result', {});
         const data = this.safeValue(responseResult, 'data', []);
+        const positionBalances = this.safeValue(data[0], 'position_balances', []);
         const result = { 'info': response };
-        for (let i = 0; i < data.length; i++) {
-            const balance = data[i];
+        for (let i = 0; i < positionBalances.length; i++) {
+            const balance = positionBalances[i];
             const currencyId = this.safeString(balance, 'instrument_name');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
-            account['total'] = this.safeString(balance, 'total_cash_balance');
-            account['free'] = this.safeString(balance, 'total_available_balance');
-            result[code] = account;
-        }
-        return this.safeBalance(result);
-    }
-    parseSpotBalance(response) {
-        const data = this.safeValue(response, 'result', {});
-        const coinList = this.safeValue(data, 'accounts', []);
-        const result = { 'info': response };
-        for (let i = 0; i < coinList.length; i++) {
-            const balance = coinList[i];
-            const currencyId = this.safeString(balance, 'currency');
-            const code = this.safeCurrencyCode(currencyId);
-            const account = this.account();
-            account['total'] = this.safeString(balance, 'balance');
-            account['free'] = this.safeString(balance, 'available');
-            account['used'] = this.safeString(balance, 'order');
+            account['total'] = this.safeString(balance, 'quantity');
+            account['used'] = this.safeString(balance, 'reserved_qty');
             result[code] = account;
         }
         return this.safeBalance(result);
@@ -892,116 +875,56 @@ class cryptocom extends cryptocom$1 {
          * @method
          * @name cryptocom#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets();
-        const [marketType, marketTypeQuery] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'v2PrivatePostPrivateGetAccountSummary',
-            'margin': 'v2PrivatePostPrivateMarginGetAccountSummary',
-            'future': 'derivativesPrivatePostPrivateUserBalance',
-            'swap': 'derivativesPrivatePostPrivateUserBalance',
-        });
-        const [marginMode, query] = this.customHandleMarginModeAndParams('fetchBalance', marketTypeQuery);
-        if (marginMode !== undefined) {
-            method = 'v2PrivatePostPrivateMarginGetAccountSummary';
-        }
-        const response = await this[method](query);
-        // spot
+        const response = await this.v1PrivatePostPrivateUserBalance(params);
+        //
         //     {
-        //         "id": 11,
-        //         "method": "private/get-account-summary",
+        //         "id": 1687300499018,
+        //         "method": "private/user-balance",
         //         "code": 0,
         //         "result": {
-        //             "accounts": [
+        //             "data": [
         //                 {
-        //                     "balance": 99999999.905000000000000000,
-        //                     "available": 99999996.905000000000000000,
-        //                     "order": 3.000000000000000000,
-        //                     "stake": 0,
-        //                     "currency": "CRO"
+        //                     "total_available_balance": "5.84684368",
+        //                     "total_margin_balance": "5.84684368",
+        //                     "total_initial_margin": "0",
+        //                     "total_maintenance_margin": "0",
+        //                     "total_position_cost": "0",
+        //                     "total_cash_balance": "6.44412101",
+        //                     "total_collateral_value": "5.846843685",
+        //                     "total_session_unrealized_pnl": "0",
+        //                     "instrument_name": "USD",
+        //                     "total_session_realized_pnl": "0",
+        //                     "position_balances": [
+        //                         {
+        //                             "quantity": "0.0002119875",
+        //                             "reserved_qty": "0",
+        //                             "collateral_weight": "0.9",
+        //                             "collateral_amount": "5.37549592",
+        //                             "market_value": "5.97277325",
+        //                             "max_withdrawal_balance": "0.00021198",
+        //                             "instrument_name": "BTC",
+        //                             "hourly_interest_rate": "0"
+        //                         },
+        //                     ],
+        //                     "total_effective_leverage": "0",
+        //                     "position_limit": "3000000",
+        //                     "used_position_limit": "0",
+        //                     "total_borrow": "0",
+        //                     "margin_score": "0",
+        //                     "is_liquidating": false,
+        //                     "has_risk": false,
+        //                     "terminatable": true
         //                 }
         //             ]
         //         }
         //     }
         //
-        // margin
-        //     {
-        //         "id": 1656529728178,
-        //         "method": "private/margin/get-account-summary",
-        //         "code": 0,
-        //         "result": {
-        //             "accounts": [
-        //                 {
-        //                     "balance": 0,
-        //                     "available": 0,
-        //                     "order": 0,
-        //                     "borrowed": 0,
-        //                     "position": 0,
-        //                     "positionHomeCurrency": 0,
-        //                     "positionBtc": 0,
-        //                     "lastPriceHomeCurrency": 20111.38,
-        //                     "lastPriceBtc": 1,
-        //                     "currency": "BTC",
-        //                     "accrued_interest": 0,
-        //                     "liquidation_price": 0
-        //                 },
-        //             ],
-        //             "is_liquidating": false,
-        //             "total_balance": 16,
-        //             "total_balance_btc": 0.00079556,
-        //             "equity_value": 16,
-        //             "equity_value_btc": 0.00079556,
-        //             "total_borrowed": 0,
-        //             "total_borrowed_btc": 0,
-        //             "total_accrued_interest": 0,
-        //             "total_accrued_interest_btc": 0,
-        //             "margin_score": "GOOD",
-        //             "currency": "USDT"
-        //         }
-        //     }
-        //
-        // swap
-        //     {
-        //       "id" : 1641025392400,
-        //       "method" : "private/user-balance",
-        //       "code" : 0,
-        //       "result" : {
-        //         "data" : [ {
-        //           "total_available_balance" : "109.56000000",
-        //           "total_margin_balance" : "109.56000000",
-        //           "total_initial_margin" : "0.00000000",
-        //           "total_maintenance_margin" : "0.00000000",
-        //           "total_position_cost" : "0.00000000",
-        //           "total_cash_balance" : "109.56000000",
-        //           "total_collateral_value" : "109.56000000",
-        //           "total_session_unrealized_pnl" : "0.00000000",
-        //           "instrument_name" : "USD_Stable_Coin",
-        //           "total_session_realized_pnl" : "0.00000000",
-        //           "position_balances" : [ {
-        //             "quantity" : "109.56000000",
-        //             "collateral_weight" : "1.000000",
-        //             "collateral_amount" : "109.56000000",
-        //             "market_value" : "109.56000000",
-        //             "max_withdrawal_balance" : "109.56000000",
-        //             "instrument_name" : "USD_Stable_Coin"
-        //           } ],
-        //           "total_effective_leverage" : "0.000000",
-        //           "position_limit" : "3000000.00000000",
-        //           "used_position_limit" : "0.00000000",
-        //           "is_liquidating" : false
-        //         } ]
-        //       }
-        //     }
-        //
-        const parser = this.getSupportedMapping(marketType, {
-            'spot': 'parseSpotBalance',
-            'margin': 'parseSpotBalance',
-            'future': 'parseSwapBalance',
-            'swap': 'parseSwapBalance',
-        });
-        return this[parser](response);
+        return this.parseBalance(response);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
@@ -1837,7 +1760,16 @@ class cryptocom extends cryptocom$1 {
         }, market);
     }
     parseOHLCV(ohlcv, market = undefined) {
-        //      {"t":1596944700000,"o":11752.38,"h":11754.77,"l":11746.65,"c":11753.64,"v":3.694583}
+        //
+        //     {
+        //         "o": "26949.89",
+        //         "h": "26957.64",
+        //         "l": "26948.24",
+        //         "c": "26950.00",
+        //         "v": "0.0670",
+        //         "t": 1687237080000
+        //     }
+        //
         return [
             this.safeInteger(ohlcv, 't'),
             this.safeNumber(ohlcv, 'o'),

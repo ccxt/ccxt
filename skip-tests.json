@@ -612,7 +612,8 @@
         "skipMethods": {
             "loadMarkets": {
                 "limits":"max is below min",
-                "active":"is undefined"
+                "active":"is undefined",
+                "currencyIdAndCode": "from travis location (USA) these webapi endpoints cant be loaded"
             },
             "fetchTickers": "timestamp might be of 1970-01-01T00:00:00.000Z",
             "fetchTicker": "same"
@@ -692,6 +693,9 @@
     },
     "hitbtc": {
         "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "messed codes"
+            },
             "fetchCurrencies": {
                 "fee": "not provided"
             },
@@ -704,7 +708,8 @@
     "hitbtc3": {
         "skipMethods": {
             "loadMarkets": {
-                "limits": "messed min max"
+                "limits": "messed min max",
+                "currencyIdAndCode": "messed codes"
             },
             "fetchCurrencies": {
                 "fee": "not provided"
@@ -1136,6 +1141,14 @@
             },
             "fetchTrades": {
                 "side": "side is not buy/sell"
+            },
+            "fetchTicker": {
+                "quoteVolume": "quoteVolume <= baseVolume * high | https://app.travis-ci.com/github/ccxt/ccxt/builds/263884643#L2462",
+                "baseVolume": "same"
+            },
+            "fetchTickers": {
+                "quoteVolume": "same",
+                "baseVolume": "same"
             }
         }
     },

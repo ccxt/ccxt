@@ -1423,6 +1423,7 @@ class binance extends \ccxt\async\binance {
         } elseif ($executionType === 'TRADE') {
             $lastTradeTimestamp = $T;
         }
+        $lastUpdateTimestamp = $T;
         $fee = null;
         $feeCost = $this->safe_string($order, 'n');
         if (($feeCost !== null) && (Precise::string_gt($feeCost, '0'))) {
@@ -1461,6 +1462,7 @@ class binance extends \ccxt\async\binance {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'type' => $type,
             'timeInForce' => $timeInForce,
             'postOnly' => null,
