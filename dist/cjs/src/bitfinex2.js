@@ -40,6 +40,7 @@ class bitfinex2 extends bitfinex2$1 {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchMarginMode': false,
@@ -58,7 +59,6 @@ class bitfinex2 extends bitfinex2$1 {
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
                 'fetchTransactions': true,
-                'fetchDepositsWithdrawals': true,
                 'withdraw': true,
             },
             'timeframes': {

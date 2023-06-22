@@ -48,6 +48,8 @@ class bitvavo extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -262,6 +264,14 @@ class bitvavo extends Exchange {
                 'BITVAVO-ACCESS-WINDOW' => 10000, // default 10 sec
                 'fetchCurrencies' => array(
                     'expires' => 1000, // 1 second
+                ),
+                'networks' => array(
+                    'ERC20' => 'ETH',
+                    'TRC20' => 'TRX',
+                ),
+                'networksById' => array(
+                    'TRX' => 'TRC20',
+                    'ETH' => 'ERC20',
                 ),
             ),
             'precisionMode' => SIGNIFICANT_DIGITS,
@@ -1737,6 +1747,84 @@ class bitvavo extends Exchange {
             'updated' => null,
             'fee' => $fee,
         );
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //   {
+        //       "symbol" => "1INCH",
+        //       "name" => "1inch",
+        //       "decimals" => 8,
+        //       "depositFee" => "0",
+        //       "depositConfirmations" => 64,
+        //       "depositStatus" => "OK",
+        //       "withdrawalFee" => "6.1",
+        //       "withdrawalMinAmount" => "6.1",
+        //       "withdrawalStatus" => "OK",
+        //       "networks" => array(
+        //         "ETH"
+        //       ),
+        //       "message" => ""
+        //   }
+        //
+        $result = array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => $this->safe_number($fee, 'withdrawalFee'),
+                'percentage' => false,
+            ),
+            'deposit' => array(
+                'fee' => $this->safe_number($fee, 'depositFee'),
+                'percentage' => false,
+            ),
+            'networks' => array(),
+        );
+        $networks = $this->safe_value($fee, 'networks');
+        $networkId = $this->safe_value($networks, 0); // Bitvavo currently only supports one network per $currency
+        $currencyCode = $this->safe_string($currency, 'code');
+        if ($networkId === 'Mainnet') {
+            $networkId = $currencyCode;
+        }
+        $networkCode = $this->network_id_to_code($networkId, $currencyCode);
+        $result['networks'][$networkCode] = array(
+            'deposit' => $result['deposit'],
+            'withdraw' => $result['withdraw'],
+        );
+        return $result;
+    }
+
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {array} $params extra parameters specific to the bitrue api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetAssets ($params));
+            //
+            //   array(
+            //       array(
+            //           "symbol" => "1INCH",
+            //           "name" => "1inch",
+            //           "decimals" => 8,
+            //           "depositFee" => "0",
+            //           "depositConfirmations" => 64,
+            //           "depositStatus" => "OK",
+            //           "withdrawalFee" => "6.1",
+            //           "withdrawalMinAmount" => "6.1",
+            //           "withdrawalStatus" => "OK",
+            //           "networks" => array(
+            //             "ETH"
+            //           ),
+            //           "message" => ""
+            //       ),
+            //   )
+            //
+            return $this->parse_deposit_withdraw_fees($response, $codes, 'symbol');
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

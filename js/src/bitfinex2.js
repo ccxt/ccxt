@@ -43,6 +43,7 @@ export default class bitfinex2 extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchMarginMode': false,
@@ -61,7 +62,6 @@ export default class bitfinex2 extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
                 'fetchTransactions': true,
-                'fetchDepositsWithdrawals': true,
                 'withdraw': true,
             },
             'timeframes': {

@@ -3342,13 +3342,15 @@ class xt extends Exchange {
         $amount = ($marketType === 'spot') ? $quantity : Precise::string_mul($this->number_to_string($quantity), $this->number_to_string($market['contractSize']));
         $filledQuantity = $this->safe_number($order, 'executedQty');
         $filled = ($marketType === 'spot') ? $filledQuantity : Precise::string_mul($this->number_to_string($filledQuantity), $this->number_to_string($market['contractSize']));
+        $lastUpdatedTimestamp = $this->safe_integer($order, 'updatedTime');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string_n($order, array( 'orderId', 'result', 'cancelId', 'entrustId', 'profitId' )),
             'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $this->safe_integer($order, 'updatedTime'),
+            'lastTradeTimestamp' => $lastUpdatedTimestamp,
+            'lastUpdateTimestamp' => $lastUpdatedTimestamp,
             'symbol' => $symbol,
             'type' => $this->safe_string_lower_2($order, 'type', 'orderType'),
             'timeInForce' => $this->safe_string($order, 'timeInForce'),
