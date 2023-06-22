@@ -42,7 +42,7 @@ export default class gemini extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': false,
-                'fetchDepositAddress': undefined, // TODO
+                'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -1545,6 +1545,23 @@ export default class gemini extends Exchange {
             'tag': undefined,
             'info': depositAddress,
         };
+    }
+
+    async fetchDepositAddress (code: string, params = {}) {
+        /**
+         * @method
+         * @name gemini#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        const groupedByNetwork = await this.fetchDepositAddressesByNetwork (code, params);
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const networkGroup = this.indexBy (this.safeValue (groupedByNetwork, networkCode), 'currency');
+        return this.safeValue (networkGroup, code);
     }
 
     async fetchDepositAddressesByNetwork (code: string, params = {}) {
