@@ -156,20 +156,20 @@ export default class Exchange {
 
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
     proxy: any; // maintained for backwards compatibility, no-one should use it from now on
-    proxyUrl: any;
-    proxy_url: any;
+    proxyUrl: string;
+    proxy_url: string;
     proxyUrlCallback: any;
     proxy_url_callback: any;
-    httpProxy: any;
-    http_proxy: any;
+    httpProxy: string;
+    http_proxy: string;
     httpProxyCallback: any;
     http_proxy_callback: any;
-    httpsProxy: any;
-    https_proxy: any;
+    httpsProxy: string;
+    https_proxy: string;
     httpsProxyCallback: any;
     https_proxy_callback: any;
-    socksProxy: any;
-    socks_proxy: any;
+    socksProxy: string;
+    socks_proxy: string;
     socksProxyCallback: any;
     socks_proxy_callback: any;
     userAgent: { 'User-Agent': string } | false = undefined;
