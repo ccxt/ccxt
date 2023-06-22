@@ -1096,7 +1096,7 @@ export default class cryptocom extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const broker = this.safeString (this.options, 'broker', 'CCXT_');
-        let clientOrderId = this.safeString (params, 'clientOrderId');
+        let clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_oid');
         if (clientOrderId === undefined) {
             clientOrderId = broker + this.uuid22 ();
         }
