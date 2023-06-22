@@ -1178,7 +1178,7 @@ export default class bigone extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bigone#fetchDepositAddress
@@ -1506,7 +1506,7 @@ export default class bigone extends Exchange {
         return this.safeString (statuses, status, 'failed');
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bigone#withdraw
