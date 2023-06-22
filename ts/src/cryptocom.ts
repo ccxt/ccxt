@@ -611,36 +611,16 @@ export default class cryptocom extends Exchange {
         /**
          * @method
          * @name cryptocom#fetchTicker
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'instrument_name': market['id'],
-        };
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
-        if (marketType !== 'spot') {
-            throw new NotSupported (this.id + ' fetchTicker() only supports spot markets');
-        }
-        const response = await this.v2PublicGetPublicGetTicker (this.extend (request, query));
-        //
-        //   {
-        //       "id":"-1",
-        //       "method":"public/get-tickers",
-        //       "code":"0",
-        //       "result":{
-        //          "data":[
-        //             { "i":"BTC_USDT", "h":"20567.16", "l":"20341.39", "a":"20394.23", "v":"2236.3762", "vv":"45739074.30", "c":"-0.0036", "b":"20394.01", "k":"20394.02", "t":"1667406085934" }
-        //          ]
-        //   }
-        //
-        const resultResponse = this.safeValue (response, 'result', {});
-        const data = this.safeValue (resultResponse, 'data', {});
-        const first = this.safeValue (data, 0, {});
-        return this.parseTicker (first, market);
+        symbol = this.symbol (symbol);
+        const tickers = await this.fetchTickers ([ symbol ], params);
+        return this.safeValue (tickers, symbol);
     }
 
     async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
