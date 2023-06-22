@@ -2235,6 +2235,14 @@ class okx extends Exchange {
          * @param {array} $params extra parameters specific to the okx api endpoint
          * @param {bool|null} $params->reduceOnly MARGIN orders only, or swap/future orders in net mode
          * @param {bool|null} $params->postOnly true to place a post only $order
+         * @param {array|null} $params->takeProfit *$takeProfit object in $params* containing the $triggerPrice at which the attached take profit $order will be triggered (perpetual swap markets only)
+         * @param {float|null} $params->takeProfit.triggerPrice take profit $trigger $price
+         * @param {float|null} $params->takeProfit.price used for take profit limit orders, not used for take profit $market $price orders
+         * @param {string|null} $params->takeProfit.type 'market' or 'limit' used to specify the take profit $price $type
+         * @param {array|null} $params->stopLoss *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss $order will be triggered (perpetual swap markets only)
+         * @param {float|null} $params->stopLoss.triggerPrice stop loss $trigger $price
+         * @param {float|null} $params->stopLoss.price used for stop loss limit orders, not used for stop loss $market $price orders
+         * @param {string|null} $params->stopLoss.type 'market' or 'limit' used to specify the stop loss $price $type
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
