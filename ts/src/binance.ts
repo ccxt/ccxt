@@ -5939,7 +5939,7 @@ export default class binance extends Exchange {
         };
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchDepositWithdrawFees

@@ -429,7 +429,7 @@ export default class bitfinex extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#fetchDepositWithdrawFees

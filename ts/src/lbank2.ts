@@ -2061,7 +2061,7 @@ export default class lbank2 extends Exchange {
         };
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchDepositWithdrawFees

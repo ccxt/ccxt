@@ -1948,7 +1948,7 @@ export default class bitrue extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchDepositWithdrawFees
