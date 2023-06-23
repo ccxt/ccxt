@@ -1434,10 +1434,6 @@ export default class binance extends binanceRest {
         const rawStatus = this.safeString (order, 'X');
         const status = this.parseOrderStatus (rawStatus);
         const trades = undefined;
-        let clientOrderId = this.safeString (order, 'C');
-        if ((clientOrderId === undefined) || (clientOrderId.length === 0)) {
-            clientOrderId = this.safeString (order, 'c');
-        }
         const stopPrice = this.safeString2 (order, 'P', 'sp');
         let timeInForce = this.safeString (order, 'f');
         if (timeInForce === 'GTX') {
@@ -1448,7 +1444,8 @@ export default class binance extends binanceRest {
             'info': order,
             'symbol': symbol,
             'id': orderId,
-            'clientOrderId': clientOrderId,
+            'clientOrderId': this.safeString (order, 'c'),
+            'origClientOrderId': this.safeString (order, 'C'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

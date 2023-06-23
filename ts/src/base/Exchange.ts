@@ -2105,6 +2105,7 @@ export default class Exchange {
         return this.extend (order, {
             'id': this.safeString (order, 'id'),
             'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'origClientOrderId': this.safeString (order, 'origClientOrderId'),
             'timestamp': timestamp,
             'datetime': datetime,
             'symbol': symbol,

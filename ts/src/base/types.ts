@@ -77,6 +77,7 @@ export interface Trade {
 export interface Order {
     id: string;
     clientOrderId: string;
+    origClientOrderId?: string;
     datetime: string;
     timestamp: number;
     lastTradeTimestamp: number;

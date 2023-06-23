@@ -3979,6 +3979,7 @@ export default class binance extends Exchange {
         //         "symbol": "LTCBTC",
         //         "orderId": 1,
         //         "clientOrderId": "myOrder1",
+        //         "origClientOrderId": "cancelMyOrder1" -> only for canceled order
         //         "price": "0.1",
         //         "origQty": "1.0",
         //         "executedQty": "0.0",
@@ -4185,6 +4186,7 @@ export default class binance extends Exchange {
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
+            'origClientOrderId': this.safeString (order, 'origClientOrderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
