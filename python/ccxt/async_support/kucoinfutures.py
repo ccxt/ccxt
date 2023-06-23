@@ -1615,6 +1615,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_number(order, 'stopPrice')
         postOnly = self.safe_value(order, 'postOnly')
+        lastUpdateTimestamp = self.safe_integer(order, 'updatedAt')
         return self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1636,6 +1637,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'status': status,
             'info': order,
             'lastTradeTimestamp': None,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'average': average,
             'trades': None,
         }, market)

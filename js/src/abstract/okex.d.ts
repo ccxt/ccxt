@@ -75,6 +75,7 @@ interface okx {
     privateGetAssetDepositAddress(params?: {}): Promise<implicitReturnType>;
     privateGetAssetBalances(params?: {}): Promise<implicitReturnType>;
     privateGetAssetTransferState(params?: {}): Promise<implicitReturnType>;
+    privateGetAssetTransferRecord(params?: {}): Promise<implicitReturnType>;
     privateGetAssetDepositHistory(params?: {}): Promise<implicitReturnType>;
     privateGetAssetWithdrawalHistory(params?: {}): Promise<implicitReturnType>;
     privateGetAssetDepositWithdrawStatus(params?: {}): Promise<implicitReturnType>;
@@ -95,6 +96,7 @@ interface okx {
     privateGetAccountSubaccountBalances(params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubaccountInterestLimits(params?: {}): Promise<implicitReturnType>;
     privateGetAssetSubaccountBills(params?: {}): Promise<implicitReturnType>;
+    privateGetAssetSubaccountManagedSubaccountBills(params?: {}): Promise<implicitReturnType>;
     privateGetUsersSubaccountList(params?: {}): Promise<implicitReturnType>;
     privateGetUsersSubaccountApikey(params?: {}): Promise<implicitReturnType>;
     privateGetUsersEntrustSubaccountList(params?: {}): Promise<implicitReturnType>;

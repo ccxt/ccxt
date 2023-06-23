@@ -2225,13 +2225,15 @@ export default class phemex extends Exchange {
             lastTradeTimestamp = undefined;
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
-        const stopPrice = this.safeNumber2 (order, 'stopPx', 'stopPxRp');
+        const stopPrice = this.omitZero (this.safeNumber2 (order, 'stopPx', 'stopPxRp'));
         const postOnly = (timeInForce === 'PO');
         let reduceOnly = this.safeValue (order, 'reduceOnly');
         const execInst = this.safeString (order, 'execInst');
         if (execInst === 'ReduceOnly') {
             reduceOnly = true;
         }
+        const takeProfit = this.safeString (order, 'takeProfitRp');
+        const stopLoss = this.safeString (order, 'stopLossRp');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -2248,6 +2250,8 @@ export default class phemex extends Exchange {
             'price': price,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfit,
+            'stopLossPrice': stopLoss,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -2280,6 +2284,10 @@ export default class phemex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the phemex api endpoint
+         * @param {object|undefined} params.takeProfit *swap only* *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {float|undefined} params.takeProfit.triggerPrice take profit trigger price
+         * @param {object|undefined} params.stopLoss *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {float|undefined} params.stopLoss.triggerPrice stop loss trigger price
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2316,6 +2324,10 @@ export default class phemex extends Exchange {
             // 'posSide': Position direction - "Merged" for oneway mode , "Long" / "Short" for hedge mode
         };
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+        const stopLoss = this.safeValue (params, 'stopLoss');
+        const stopLossDefined = (stopLoss !== undefined);
+        const takeProfit = this.safeValue (params, 'takeProfit');
+        const takeProfitDefined = (takeProfit !== undefined);
         if (clientOrderId === undefined) {
             const brokerId = this.safeString (this.options, 'brokerId');
             if (brokerId !== undefined) {
@@ -2333,7 +2345,7 @@ export default class phemex extends Exchange {
                 request['stopPxEp'] = this.toEp (stopPrice, market);
             }
         }
-        params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
+        params = this.omit (params, [ 'stopPx', 'stopPrice', 'stopLoss', 'takeProfit' ]);
         if (market['spot']) {
             let qtyType = this.safeValue (params, 'qtyType', 'ByBase');
             if ((type === 'Market') || (type === 'Stop') || (type === 'MarketIfTouched')) {
@@ -2380,6 +2392,56 @@ export default class phemex extends Exchange {
             if (stopPrice !== undefined) {
                 const triggerType = this.safeString (params, 'triggerType', 'ByMarkPrice');
                 request['triggerType'] = triggerType;
+            }
+            if (stopLossDefined || takeProfitDefined) {
+                if (stopLossDefined) {
+                    const stopLossTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice');
+                    if (stopLossTriggerPrice === undefined) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"] for a stop loss order');
+                    }
+                    if (market['settle'] === 'USDT') {
+                        request['stopLossRp'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+                    } else {
+                        request['stopLossEp'] = this.toEp (stopLossTriggerPrice, market);
+                    }
+                    const stopLossTriggerPriceType = this.safeString2 (stopLoss, 'triggerPriceType', 'slTrigger');
+                    if (stopLossTriggerPriceType !== undefined) {
+                        if (market['settle'] === 'USDT') {
+                            if ((stopLossTriggerPriceType !== 'ByMarkPrice') && (stopLossTriggerPriceType !== 'ByLastPrice') && (stopLossTriggerPriceType !== 'ByIndexPrice') && (stopLossTriggerPriceType !== 'ByAskPrice') && (stopLossTriggerPriceType !== 'ByBidPrice') && (stopLossTriggerPriceType !== 'ByMarkPriceLimit') && (stopLossTriggerPriceType !== 'ByLastPriceLimit')) {
+                                throw new InvalidOrder (this.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", "ByIndexPrice", "ByAskPrice", "ByBidPrice", "ByMarkPriceLimit", "ByLastPriceLimit" or "ByLastPrice"');
+                            }
+                        } else {
+                            if ((stopLossTriggerPriceType !== 'ByMarkPrice') && (stopLossTriggerPriceType !== 'ByLastPrice')) {
+                                throw new InvalidOrder (this.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", or "ByLastPrice"');
+                            }
+                        }
+                        request['slTrigger'] = stopLossTriggerPriceType;
+                    }
+                }
+                if (takeProfitDefined) {
+                    const takeProfitTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice');
+                    if (takeProfitTriggerPrice === undefined) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"] for a take profit order');
+                    }
+                    if (market['settle'] === 'USDT') {
+                        request['takeProfitRp'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+                    } else {
+                        request['takeProfitEp'] = this.toEp (takeProfitTriggerPrice, market);
+                    }
+                    const takeProfitTriggerPriceType = this.safeString2 (stopLoss, 'triggerPriceType', 'tpTrigger');
+                    if (takeProfitTriggerPriceType !== undefined) {
+                        if (market['settle'] === 'USDT') {
+                            if ((takeProfitTriggerPriceType !== 'ByMarkPrice') && (takeProfitTriggerPriceType !== 'ByLastPrice') && (takeProfitTriggerPriceType !== 'ByIndexPrice') && (takeProfitTriggerPriceType !== 'ByAskPrice') && (takeProfitTriggerPriceType !== 'ByBidPrice') && (takeProfitTriggerPriceType !== 'ByMarkPriceLimit') && (takeProfitTriggerPriceType !== 'ByLastPriceLimit')) {
+                                throw new InvalidOrder (this.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", "ByIndexPrice", "ByAskPrice", "ByBidPrice", "ByMarkPriceLimit", "ByLastPriceLimit" or "ByLastPrice"');
+                            }
+                        } else {
+                            if ((takeProfitTriggerPriceType !== 'ByMarkPrice') && (takeProfitTriggerPriceType !== 'ByLastPrice')) {
+                                throw new InvalidOrder (this.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", or "ByLastPrice"');
+                            }
+                        }
+                        request['tpTrigger'] = takeProfitTriggerPriceType;
+                    }
+                }
             }
         }
         if ((type === 'Limit') || (type === 'StopLimit') || (type === 'LimitIfTouched')) {

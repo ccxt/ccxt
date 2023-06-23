@@ -51,6 +51,8 @@ class bybit extends bybit$1 {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
@@ -393,6 +395,7 @@ class bybit extends bybit$1 {
                         // user
                         'v5/user/query-sub-members': 10,
                         'v5/user/query-api': 10,
+                        'v5/user/get-member-type': 1,
                         'v5/user/aff-customer-info': 10,
                         'v5/customer/info': 10,
                         'v5/spot-cross-margin-trade/loan-info': 1,
@@ -401,6 +404,13 @@ class bybit extends bybit$1 {
                         'v5/spot-cross-margin-trade/repay-history': 1,
                         'v5/ins-loan/ltv-convert': 1,
                         'v5/broker/earning-record': 1,
+                        // pre-upgrade
+                        'v5/pre-upgrade/order/history': 1,
+                        'v5/pre-upgrade/execution/list': 1,
+                        'v5/pre-upgrade/position/closed-pnl': 1,
+                        'v5/pre-upgrade/account/transaction-log': 1,
+                        'v5/pre-upgrade/asset/delivery-record': 1,
+                        'v5/pre-upgrade/asset/settlement-record': 1,
                     },
                     'post': {
                         // inverse swap
@@ -3339,6 +3349,7 @@ class bybit extends bybit$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
@@ -3413,12 +3424,14 @@ class bybit extends bybit$1 {
         else {
             amount = this.safeString(order, 'orderQty');
         }
+        const updatedTime = this.safeInteger(order, 'updateTime');
         return this.safeOrder({
             'id': this.safeString(order, 'orderId'),
             'clientOrderId': this.safeString(order, 'orderLinkId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'lastTradeTimestamp': this.safeInteger(order, 'updateTime'),
+            'lastTradeTimestamp': updatedTime,
+            'lastUpdateTimestamp': updatedTime,
             'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,
@@ -8492,6 +8505,106 @@ class bybit extends bybit$1 {
             result[symbol] = fee;
         }
         return result;
+    }
+    parseDepositWithdrawFee(fee, currency = undefined) {
+        //
+        //    {
+        //        "name": "BTC",
+        //        "coin": "BTC",
+        //        "remainAmount": "150",
+        //        "chains": [
+        //            {
+        //                "chainType": "BTC",
+        //                "confirmation": "10000",
+        //                "withdrawFee": "0.0005",
+        //                "depositMin": "0.0005",
+        //                "withdrawMin": "0.001",
+        //                "chain": "BTC",
+        //                "chainDeposit": "1",
+        //                "chainWithdraw": "1",
+        //                "minAccuracy": "8"
+        //            }
+        //        ]
+        //    }
+        //
+        const chains = this.safeValue(fee, 'chains', []);
+        const chainsLength = chains.length;
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+        if (chainsLength !== 0) {
+            for (let i = 0; i < chainsLength; i++) {
+                const chain = chains[i];
+                const networkId = this.safeString(chain, 'chain');
+                const currencyCode = this.safeString(currency, 'code');
+                const networkCode = this.networkIdToCode(networkId, currencyCode);
+                result['networks'][networkCode] = {
+                    'deposit': { 'fee': undefined, 'percentage': undefined },
+                    'withdraw': { 'fee': this.safeNumber(chain, 'withdrawFee'), 'percentage': false },
+                };
+                if (chainsLength === 1) {
+                    result['withdraw']['fee'] = this.safeNumber(chain, 'withdrawFee');
+                    result['withdraw']['percentage'] = false;
+                }
+            }
+        }
+        return result;
+    }
+    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        this.checkRequiredCredentials();
+        await this.loadMarkets();
+        const response = await this.privateGetV5AssetCoinQueryInfo(params);
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "",
+        //         "result": {
+        //             "rows": [
+        //                 {
+        //                     "name": "BTC",
+        //                     "coin": "BTC",
+        //                     "remainAmount": "150",
+        //                     "chains": [
+        //                         {
+        //                             "chainType": "BTC",
+        //                             "confirmation": "10000",
+        //                             "withdrawFee": "0.0005",
+        //                             "depositMin": "0.0005",
+        //                             "withdrawMin": "0.001",
+        //                             "chain": "BTC",
+        //                             "chainDeposit": "1",
+        //                             "chainWithdraw": "1",
+        //                             "minAccuracy": "8"
+        //                         }
+        //                     ]
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1672194582264
+        //     }
+        //
+        const data = this.safeValue(response, 'result', {});
+        const rows = this.safeValue(data, 'rows', []);
+        return this.parseDepositWithdrawFees(rows, codes, 'coin');
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname(this.urls['api'][api]) + '/' + path;

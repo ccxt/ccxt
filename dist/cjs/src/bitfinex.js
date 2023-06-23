@@ -35,6 +35,7 @@ class bitfinex extends bitfinex$1 {
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': false,
+                'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchIndexOHLCV': false,
@@ -58,7 +59,6 @@ class bitfinex extends bitfinex$1 {
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
                 'fetchTransactions': true,
-                'fetchWithdrawals': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -1378,7 +1378,7 @@ class bitfinex extends bitfinex$1 {
         /**
          * @method
          * @name bitfinex#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined

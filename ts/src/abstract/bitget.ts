@@ -48,6 +48,7 @@ interface Exchange {
     privateSpotGetWalletDepositList (params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccountGetInfo (params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccountAssets (params?: {}): Promise<implicitReturnType>;
+    privateSpotGetAccountAssetsLite (params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccountTransferRecords (params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletTransfer (params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletTransferV2 (params?: {}): Promise<implicitReturnType>;
@@ -161,9 +162,17 @@ interface Exchange {
     privateMixPostTraceMyFollowerList (params?: {}): Promise<implicitReturnType>;
     privateMixPostTraceRemoveFollower (params?: {}): Promise<implicitReturnType>;
     privateMixPostTracePublicGetFollowerConfig (params?: {}): Promise<implicitReturnType>;
+    privateMixPostTraceReportOrderHistoryList (params?: {}): Promise<implicitReturnType>;
+    privateMixPostTraceReportOrderCurrentList (params?: {}): Promise<implicitReturnType>;
+    privateMixPostTraceQueryTraderTpslRatioConfig (params?: {}): Promise<implicitReturnType>;
+    privateMixPostTraceTraderUpdateTpslRatioConfig (params?: {}): Promise<implicitReturnType>;
     privateUserGetFeeQuery (params?: {}): Promise<implicitReturnType>;
     privateUserGetSubVirtualList (params?: {}): Promise<implicitReturnType>;
     privateUserGetSubVirtualApiList (params?: {}): Promise<implicitReturnType>;
+    privateUserGetTaxSpotRecord (params?: {}): Promise<implicitReturnType>;
+    privateUserGetTaxFutureRecord (params?: {}): Promise<implicitReturnType>;
+    privateUserGetTaxMarginRecord (params?: {}): Promise<implicitReturnType>;
+    privateUserGetTaxP2pRecord (params?: {}): Promise<implicitReturnType>;
     privateUserPostSubVirtualCreate (params?: {}): Promise<implicitReturnType>;
     privateUserPostSubVirtualModify (params?: {}): Promise<implicitReturnType>;
     privateUserPostSubVirtualApiBatchCreate (params?: {}): Promise<implicitReturnType>;

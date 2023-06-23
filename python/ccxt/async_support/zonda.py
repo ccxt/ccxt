@@ -13,6 +13,7 @@ from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -261,6 +262,8 @@ class zonda(Exchange, ImplicitAPI):
                 },
             },
             'options': {
+                'fetchTickerMethod': 'v1_01PublicGetTradingTickerSymbol',  # or v1_01PublicGetTradingStatsSymbol
+                'fetchTickersMethod': 'v1_01PublicGetTradingTicker',       # or v1_01PublicGetTradingStats
                 'fiatCurrencies': ['EUR', 'USD', 'GBP', 'PLN'],
                 'transfer': {
                     'fillResponseFromRequest': True,
@@ -581,50 +584,77 @@ class zonda(Exchange, ImplicitAPI):
 
     def parse_ticker(self, ticker, market=None):
         #
-        #     {
-        #         m: 'ETH-PLN',
-        #         h: '13485.13',
-        #         l: '13100.01',
-        #         v: '126.10710939',
-        #         r24h: '13332.72'
-        #       }
+        # version 1
         #
-        open = self.safe_string(ticker, 'r24h')
-        high = self.safe_string(ticker, 'h')
-        low = self.safe_string(ticker, 'l')
-        volume = self.safe_string(ticker, 'v')
-        marketId = self.safe_string(ticker, 'm')
-        market = self.safe_market(marketId, market, '-')
-        symbol = market['symbol']
+        #    {
+        #        m: 'ETH-PLN',
+        #        h: '13485.13',
+        #        l: '13100.01',
+        #        v: '126.10710939',
+        #        r24h: '13332.72'
+        #    }
+        #
+        # version 2
+        #
+        #    {
+        #        market: {
+        #            code: 'ADA-USDT',
+        #            first: {
+        #                currency: 'ADA',
+        #                minOffer: '0.2',
+        #                scale: '6'
+        #            },
+        #            second: {
+        #                currency: 'USDT',
+        #                minOffer: '0.099',
+        #                scale: '6'
+        #            },
+        #            amountPrecision: '6',
+        #            pricePrecision: '6',
+        #            ratePrecision: '6'
+        #        },
+        #        time: '1655812661202',
+        #        highestBid: '0.492',
+        #        lowestAsk: '0.499389',
+        #        rate: '0.50588',
+        #        previousRate: '0.504981'
+        #    }
+        #
+        tickerMarket = self.safe_value(ticker, 'market')
+        marketId = self.safe_string_2(tickerMarket, 'code', 'm')
+        market = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(ticker, 'time')
+        rate = self.safe_value(ticker, 'rate')
         return self.safe_ticker({
-            'symbol': symbol,
-            'timestamp': None,
-            'datetime': None,
-            'high': high,
-            'low': low,
-            'bid': None,
+            'symbol': self.safe_symbol(marketId, market),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(ticker, 'h'),
+            'low': self.safe_string(ticker, 'l'),
+            'bid': self.safe_number(ticker, 'highestBid'),
             'bidVolume': None,
-            'ask': None,
+            'ask': self.safe_number(ticker, 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
-            'open': open,
-            'close': None,
-            'last': None,
-            'previousClose': None,
+            'open': self.safe_string(ticker, 'r24h'),
+            'close': rate,
+            'last': rate,
+            'previousClose': self.safe_value(ticker, 'previousRate'),
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': volume,
+            'baseVolume': self.safe_string(ticker, 'v'),
             'quoteVolume': None,
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol, params={}):
         """
+        v1_01PublicGetTradingTickerSymbol retrieves timestamp, datetime, bid, ask, close, last, previousClose, v1_01PublicGetTradingStatsSymbol retrieves high, low, volume and opening price of an asset
         see https://docs.zonda.exchange/reference/market-statistics
-        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the zonda api endpoint
+        :param str params['method']: v1_01PublicGetTradingTickerSymbol(default) or v1_01PublicGetTradingStatsSymbol
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -632,46 +662,126 @@ class zonda(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        response = await self.v1_01PublicGetTradingStatsSymbol(self.extend(request, params))
-        #
-        #     {
-        #       status: 'Ok',
-        #       stats: {
-        #         m: 'ETH-PLN',
-        #         h: '13485.13',
-        #         l: '13100.01',
-        #         v: '126.10710939',
-        #         r24h: '13332.72'
-        #       }
-        #     }
-        #
-        stats = self.safe_value(response, 'stats')
+        method = 'v1_01PublicGetTradingTickerSymbol'
+        defaultMethod = self.safe_string(self.options, 'fetchTickerMethod', method)
+        fetchTickerMethod = self.safe_string_2(params, 'method', 'fetchTickerMethod', defaultMethod)
+        response = None
+        if fetchTickerMethod == method:
+            response = await self.v1_01PublicGetTradingTickerSymbol(self.extend(request, params))
+            #
+            #    {
+            #        "status": "Ok",
+            #        "ticker": {
+            #            "market": {
+            #                "code": "ADA-USDT",
+            #                "first": {
+            #                    "currency": "ADA",
+            #                    "minOffer": "0.21",
+            #                    "scale": 6
+            #                },
+            #                "second": {
+            #                    "currency": "USDT",
+            #                    "minOffer": "0.099",
+            #                    "scale": 6
+            #                },
+            #                "amountPrecision": 6,
+            #                "pricePrecision": 6,
+            #                "ratePrecision": 6
+            #            },
+            #            "time": "1655810976780",
+            #            "highestBid": "0.498543",
+            #            "lowestAsk": "0.50684",
+            #            "rate": "0.50588",
+            #            "previousRate": "0.504981"
+            #        }
+            #    }
+            #
+        elif fetchTickerMethod == 'v1_01PublicGetTradingStatsSymbol':
+            response = await self.v1_01PublicGetTradingStatsSymbol(self.extend(request, params))
+            #
+            #    {
+            #        "status": "Ok",
+            #        "stats": {
+            #            "m": "BTC-USDT",
+            #            "h": "28800",
+            #            "l": "26703.950101",
+            #            "v": "6.72932396",
+            #            "r24h": "27122.2"
+            #        }
+            #    }
+            #
+        else:
+            raise BadRequest(self.id + ' fetchTicker params["method"] must be "v1_01PublicGetTradingTickerSymbol" or "v1_01PublicGetTradingStatsSymbol"')
+        stats = self.safe_value_2(response, 'ticker', 'stats')
         return self.parse_ticker(stats, market)
 
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
+         * @ignore
+        v1_01PublicGetTradingTicker retrieves timestamp, datetime, bid, ask, close, last, previousClose for each market, v1_01PublicGetTradingStats retrieves high, low, volume and opening price of each market
         see https://docs.zonda.exchange/reference/market-statistics
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the zonda api endpoint
+        :param str params['method']: v1_01PublicGetTradingTicker(default) or v1_01PublicGetTradingStats
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        response = await self.v1_01PublicGetTradingStats(params)
-        #
-        #     {
-        #         status: 'Ok',
-        #         items: {
-        #             'DAI-PLN': {
-        #                 m: 'DAI-PLN',
-        #                 h: '4.41',
-        #                 l: '4.37',
-        #                 v: '8.71068087',
-        #                 r24h: '4.36'
-        #             }
-        #         }
-        #     }
-        #
+        method = 'v1_01PublicGetTradingTicker'
+        defaultMethod = self.safe_string(self.options, 'fetchTickersMethod', method)
+        fetchTickersMethod = self.safe_string_2(params, 'method', 'fetchTickersMethod', defaultMethod)
+        response = None
+        if fetchTickersMethod == method:
+            response = await self.v1_01PublicGetTradingTicker(params)
+            #
+            #    {
+            #        "status": "Ok",
+            #        "items": {
+            #            "DAI-PLN": {
+            #                "market": {
+            #                    "code": "DAI-PLN",
+            #                    "first": {
+            #                        "currency": "DAI",
+            #                        "minOffer": "0.99",
+            #                        "scale": 8
+            #                    },
+            #                    "second": {
+            #                        "currency": "PLN",
+            #                        "minOffer": "5",
+            #                        "scale": 2
+            #                    },
+            #                    "amountPrecision": 8,
+            #                    "pricePrecision": 2,
+            #                    "ratePrecision": 2
+            #                },
+            #                "time": "1655810825137",
+            #                "highestBid": "4.42",
+            #                "lowestAsk": "4.44",
+            #                "rate": "4.44",
+            #                "previousRate": "4.43"
+            #            },
+            #            ...
+            #        }
+            #    }
+            #
+        elif fetchTickersMethod == 'v1_01PublicGetTradingStats':
+            response = await self.v1_01PublicGetTradingStats(params)
+            #
+            #     {
+            #         status: 'Ok',
+            #         items: {
+            #             'DAI-PLN': {
+            #                 m: 'DAI-PLN',
+            #                 h: '4.41',
+            #                 l: '4.37',
+            #                 v: '8.71068087',
+            #                 r24h: '4.36'
+            #             },
+            #             ...
+            #         }
+            #     }
+            #
+        else:
+            raise BadRequest(self.id + ' fetchTickers params["method"] must be "v1_01PublicGetTradingTicker" or "v1_01PublicGetTradingStats"')
         items = self.safe_value(response, 'items')
         return self.parse_tickers(items, symbols)
 

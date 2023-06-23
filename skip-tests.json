@@ -44,9 +44,8 @@
         }
     },
     "binance": {
-        "httpProxy": "http://51.83.140.52:11230",
+        "httpsProxy": "http://51.83.140.52:11230",
         "skipWs": true,
-		"skipPhpAsync":true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. binance does not have currency code BCC",
@@ -60,7 +59,6 @@
         }
     },
     "binanceus": {
-		"skipPhpAsync":true,
         "skipMethods": {
             "loadMarkets": {
                 "expiry": "expiry not set for future markets",
@@ -77,8 +75,7 @@
         }
     },
     "binancecoinm": {
-        "httpProxy": "http://51.83.140.52:11230",
-		"skipPhpAsync":true,
+        "httpsProxy": "http://51.83.140.52:11230",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -96,8 +93,7 @@
         }
     },
     "binanceusdm": {
-        "httpProxy": "http://51.83.140.52:11230",
-		"skipPhpAsync":true,
+        "httpsProxy": "http://51.83.140.52:11230",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": {
@@ -120,8 +116,7 @@
         }
     },
     "tokocrypto": {
-        "httpProxy": "http://51.83.140.52:11230",
-		"skipPhpAsync":true,
+        "httpsProxy": "http://51.83.140.52:11230",
         "skipWs": true
     },
     "bitbank": {
@@ -482,7 +477,7 @@
         }
     },
     "bybit": {
-        "httpProxy": "http://51.83.140.52:11230",
+        "httpsProxy": "http://51.83.140.52:11230",
         "skipPhpAsync": "missing php async proxy",
         "skipMethods": {
             "fetchTickers": {
@@ -612,13 +607,15 @@
         "skipMethods": {
             "loadMarkets": {
                 "limits":"max is below min",
-                "active":"is undefined"
+                "active":"is undefined",
+                "currencyIdAndCode": "from travis location (USA) these webapi endpoints cant be loaded"
             },
             "fetchTickers": "timestamp might be of 1970-01-01T00:00:00.000Z",
             "fetchTicker": "same"
         }
     },
     "currencycom": {
+        "skip": "17/06 exchange not available 503",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -691,6 +688,9 @@
     },
     "hitbtc": {
         "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "messed codes"
+            },
             "fetchCurrencies": {
                 "fee": "not provided"
             },
@@ -703,7 +703,8 @@
     "hitbtc3": {
         "skipMethods": {
             "loadMarkets": {
-                "limits": "messed min max"
+                "limits": "messed min max",
+                "currencyIdAndCode": "messed codes"
             },
             "fetchCurrencies": {
                 "fee": "not provided"
@@ -1135,6 +1136,14 @@
             },
             "fetchTrades": {
                 "side": "side is not buy/sell"
+            },
+            "fetchTicker": {
+                "quoteVolume": "quoteVolume <= baseVolume * high | https://app.travis-ci.com/github/ccxt/ccxt/builds/263884643#L2462",
+                "baseVolume": "same"
+            },
+            "fetchTickers": {
+                "quoteVolume": "same",
+                "baseVolume": "same"
             }
         }
     },

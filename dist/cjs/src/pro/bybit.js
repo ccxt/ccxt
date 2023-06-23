@@ -388,7 +388,7 @@ class bybit extends bybit$1 {
         const messageHash = 'kline' + ':' + timeframeId + ':' + symbol;
         client.resolve(stored, messageHash);
     }
-    parseWsOHLCV(ohlcv) {
+    parseWsOHLCV(ohlcv, market = undefined) {
         //
         //     {
         //         "start": 1670363160000,

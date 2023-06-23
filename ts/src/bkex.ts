@@ -1730,7 +1730,7 @@ export default class bkex extends Exchange {
         return this.safeNumber (transaction, 'withdrawFee');
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchDepositWithdrawFees

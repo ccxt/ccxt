@@ -3,7 +3,6 @@
 import fs from 'fs';
 import assert from 'assert';
 import { Agent } from 'https';
-import HttpsProxyAgent from 'https-proxy-agent';
 import { fileURLToPath, pathToFileURL } from 'url';
 import ccxt from '../../ccxt.js';
 import errorsHierarchy from '../base/errorHierarchy.js';
@@ -37,7 +36,6 @@ const rootDir = __dirname + '/../../../';
 const rootDirForSkips = __dirname + '/../../../';
 const envVars = process.env;
 const ext = import.meta.url.split ('.')[1];
-const httpsAgent = new Agent ({ 'ecdhCurve': 'auto' });
 
 function dump (...args) {
     console.log (...args);
@@ -66,11 +64,6 @@ async function callMethod (testFiles, methodName, exchange, skippedProperties, a
 
 function exceptionMessage (exc) {
     return '[' + exc.constructor.name + '] ' + exc.message.slice (0, 500);
-}
-
-function addProxy (exchange, httpProxy) {
-    // add real proxy agent
-    exchange.agent = HttpsProxyAgent (httpProxy);
 }
 
 function exitScript () {
@@ -140,7 +133,6 @@ export default class testMainClass extends baseMainTestClass {
         const exchangeArgs = {
             'verbose': this.verbose,
             'debug': this.debug,
-            'httpsAgent': httpsAgent,
             'enableRateLimit': true,
             'timeout': 30000,
         };
@@ -218,10 +210,7 @@ export default class testMainClass extends baseMainTestClass {
             dump ('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
             exitScript ();
         }
-        const proxy = exchange.safeString (skippedSettingsForExchange, 'httpProxy');
-        if (proxy !== undefined) {
-            addProxy (exchange, proxy);
-        }
+        exchange.httpsProxy = exchange.safeString (skippedSettingsForExchange, 'httpsProxy');
         this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
     }

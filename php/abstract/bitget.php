@@ -124,6 +124,9 @@ abstract class bitget extends \ccxt\Exchange {
     public function private_spot_get_account_assets($params = array()) {
         return $this->request('account/assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function private_spot_get_account_assets_lite($params = array()) {
+        return $this->request('account/assets-lite', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_spot_get_account_transferrecords($params = array()) {
         return $this->request('account/transferRecords', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -463,6 +466,18 @@ abstract class bitget extends \ccxt\Exchange {
     public function private_mix_post_trace_public_getfollowerconfig($params = array()) {
         return $this->request('trace/public/getFollowerConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function private_mix_post_trace_report_order_historylist($params = array()) {
+        return $this->request('trace/report/order/historyList', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_trace_report_order_currentlist($params = array()) {
+        return $this->request('trace/report/order/currentList', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_trace_querytradertpslratioconfig($params = array()) {
+        return $this->request('trace/queryTraderTpslRatioConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_mix_post_trace_traderupdatetpslratioconfig($params = array()) {
+        return $this->request('trace/traderUpdateTpslRatioConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function private_user_get_fee_query($params = array()) {
         return $this->request('fee/query', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -471,6 +486,18 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function private_user_get_sub_virtual_api_list($params = array()) {
         return $this->request('sub/virtual-api-list', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_user_get_tax_spot_record($params = array()) {
+        return $this->request('tax/spot-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_user_get_tax_future_record($params = array()) {
+        return $this->request('tax/future-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_user_get_tax_margin_record($params = array()) {
+        return $this->request('tax/margin-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_user_get_tax_p2p_record($params = array()) {
+        return $this->request('tax/p2p-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_user_post_sub_virtual_create($params = array()) {
         return $this->request('sub/virtual-create', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));
@@ -759,6 +786,9 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function privateSpotGetAccountAssets($params = array()) {
         return $this->request('account/assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotGetAccountAssetsLite($params = array()) {
+        return $this->request('account/assets-lite', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateSpotGetAccountTransferRecords($params = array()) {
         return $this->request('account/transferRecords', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -1099,6 +1129,18 @@ abstract class bitget extends \ccxt\Exchange {
     public function privateMixPostTracePublicGetFollowerConfig($params = array()) {
         return $this->request('trace/public/getFollowerConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function privateMixPostTraceReportOrderHistoryList($params = array()) {
+        return $this->request('trace/report/order/historyList', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostTraceReportOrderCurrentList($params = array()) {
+        return $this->request('trace/report/order/currentList', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostTraceQueryTraderTpslRatioConfig($params = array()) {
+        return $this->request('trace/queryTraderTpslRatioConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateMixPostTraceTraderUpdateTpslRatioConfig($params = array()) {
+        return $this->request('trace/traderUpdateTpslRatioConfig', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function privateUserGetFeeQuery($params = array()) {
         return $this->request('fee/query', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -1107,6 +1149,18 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function privateUserGetSubVirtualApiList($params = array()) {
         return $this->request('sub/virtual-api-list', array('private', 'user'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateUserGetTaxSpotRecord($params = array()) {
+        return $this->request('tax/spot-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUserGetTaxFutureRecord($params = array()) {
+        return $this->request('tax/future-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUserGetTaxMarginRecord($params = array()) {
+        return $this->request('tax/margin-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUserGetTaxP2pRecord($params = array()) {
+        return $this->request('tax/p2p-record', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateUserPostSubVirtualCreate($params = array()) {
         return $this->request('sub/virtual-create', array('private', 'user'), 'POST', $params, null, null, array("cost" => 4));

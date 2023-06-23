@@ -1292,6 +1292,7 @@ class binance(ccxt.async_support.binance):
                 timestamp = T
         elif executionType == 'TRADE':
             lastTradeTimestamp = T
+        lastUpdateTimestamp = T
         fee = None
         feeCost = self.safe_string(order, 'n')
         if (feeCost is not None) and (Precise.string_gt(feeCost, '0')):
@@ -1327,6 +1328,7 @@ class binance(ccxt.async_support.binance):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': None,

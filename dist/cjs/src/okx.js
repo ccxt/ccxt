@@ -56,6 +56,7 @@ class okx extends okx$1 {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
@@ -100,7 +101,7 @@ class okx extends okx$1 {
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfer': true,
-                'fetchTransfers': false,
+                'fetchTransfers': true,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
@@ -229,6 +230,7 @@ class okx extends okx$1 {
                         'asset/deposit-address': 5 / 3,
                         'asset/balances': 5 / 3,
                         'asset/transfer-state': 10,
+                        'asset/transfer-record': 10,
                         'asset/deposit-history': 5 / 3,
                         'asset/withdrawal-history': 5 / 3,
                         'asset/deposit-withdraw-status': 20,
@@ -249,6 +251,7 @@ class okx extends okx$1 {
                         'account/subaccount/balances': 10,
                         'account/subaccount/interest-limits': 4,
                         'asset/subaccount/bills': 5 / 3,
+                        'asset/subaccount/managed-subaccount-bills': 5 / 3,
                         'users/subaccount/list': 10,
                         'users/subaccount/apikey': 10,
                         'users/entrust-subaccount-list': 10,
@@ -477,6 +480,8 @@ class okx extends okx$1 {
                     '51028': errors.BadSymbol,
                     '51029': errors.BadSymbol,
                     '51030': errors.BadSymbol,
+                    '51046': errors.InvalidOrder,
+                    '51047': errors.InvalidOrder,
                     '51031': errors.InvalidOrder,
                     '51100': errors.InvalidOrder,
                     '51101': errors.InvalidOrder,
@@ -765,7 +770,7 @@ class okx extends okx$1 {
                 //     'type': 'spot', // 'funding', 'trading', 'spot'
                 // },
                 'fetchLedger': {
-                    'method': 'privateGetAccountBills', // privateGetAccountBillsArchive, privateGetAssetBills
+                    'method': 'privateGetAccountBills', // privateGetAccountBills, privateGetAccountBillsArchive, privateGetAssetBills
                 },
                 // 6: Funding account, 18: Trading account
                 'fetchOrder': {
@@ -2240,6 +2245,14 @@ class okx extends okx$1 {
          * @param {object} params extra parameters specific to the okx api endpoint
          * @param {bool|undefined} params.reduceOnly MARGIN orders only, or swap/future orders in net mode
          * @param {bool|undefined} params.postOnly true to place a post only order
+         * @param {object|undefined} params.takeProfit *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {float|undefined} params.takeProfit.triggerPrice take profit trigger price
+         * @param {float|undefined} params.takeProfit.price used for take profit limit orders, not used for take profit market price orders
+         * @param {string|undefined} params.takeProfit.type 'market' or 'limit' used to specify the take profit price type
+         * @param {object|undefined} params.stopLoss *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {float|undefined} params.stopLoss.triggerPrice stop loss trigger price
+         * @param {float|undefined} params.stopLoss.price used for stop loss limit orders, not used for stop loss market price orders
+         * @param {string|undefined} params.stopLoss.type 'market' or 'limit' used to specify the stop loss price type
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2281,6 +2294,10 @@ class okx extends okx$1 {
         const slOrdPx = this.safeValue(params, 'slOrdPx', price);
         const slTriggerPxType = this.safeString(params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
+        const stopLoss = this.safeValue(params, 'stopLoss');
+        const stopLossDefined = (stopLoss !== undefined);
+        const takeProfit = this.safeValue(params, 'takeProfit');
+        const takeProfitDefined = (takeProfit !== undefined);
         const defaultMarginMode = this.safeString2(this.options, 'defaultMarginMode', 'marginMode', 'cross');
         let marginMode = this.safeString2(params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so as to be extended into the request
         let margin = false;
@@ -2306,7 +2323,7 @@ class okx extends okx$1 {
         const isMarketOrder = type === 'market';
         let postOnly = false;
         [postOnly, params] = this.handlePostOnly(isMarketOrder, type === 'post_only', params);
-        params = this.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin']);
+        params = this.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit']);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
         const fok = (timeInForce === 'FOK') || (type === 'fok');
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
@@ -2358,16 +2375,95 @@ class okx extends okx$1 {
             }
         }
         if (postOnly) {
-            method = defaultMethod;
             request['ordType'] = 'post_only';
         }
         else if (ioc && !marketIOC) {
-            method = defaultMethod;
             request['ordType'] = 'ioc';
         }
         else if (fok) {
-            method = defaultMethod;
             request['ordType'] = 'fok';
+        }
+        else if (stopLossDefined || takeProfitDefined) {
+            if (stopLossDefined) {
+                const stopLossTriggerPrice = this.safeValueN(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx']);
+                if (stopLossTriggerPrice === undefined) {
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order');
+                }
+                request['slTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                const stopLossLimitPrice = this.safeValueN(stopLoss, ['price', 'stopLossPrice', 'slOrdPx']);
+                const stopLossOrderType = this.safeString(stopLoss, 'type');
+                if (stopLossOrderType !== undefined) {
+                    const stopLossLimitOrderType = (stopLossOrderType === 'limit');
+                    const stopLossMarketOrderType = (stopLossOrderType === 'market');
+                    if ((!stopLossLimitOrderType) && (!stopLossMarketOrderType)) {
+                        throw new errors.InvalidOrder(this.id + ' createOrder() params["stopLoss"]["type"] must be either "limit" or "market"');
+                    }
+                    else if (stopLossLimitOrderType) {
+                        if (stopLossLimitPrice === undefined) {
+                            throw new errors.InvalidOrder(this.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] or params["stopLoss"]["slOrdPx"] for a stop loss limit order');
+                        }
+                        else {
+                            request['slOrdPx'] = this.priceToPrecision(symbol, stopLossLimitPrice);
+                        }
+                    }
+                    else if (stopLossOrderType === 'market') {
+                        request['slOrdPx'] = '-1';
+                    }
+                }
+                else if (stopLossLimitPrice !== undefined) {
+                    request['slOrdPx'] = this.priceToPrecision(symbol, stopLossLimitPrice); // limit sl order
+                }
+                else {
+                    request['slOrdPx'] = '-1'; // market sl order
+                }
+                const stopLossTriggerPriceType = this.safeString2(stopLoss, 'triggerPriceType', 'slTriggerPxType');
+                if (stopLossTriggerPriceType !== undefined) {
+                    if ((stopLossTriggerPriceType !== 'last') && (stopLossTriggerPriceType !== 'index') && (stopLossTriggerPriceType !== 'mark')) {
+                        throw new errors.InvalidOrder(this.id + ' createOrder() stop loss trigger price type must be one of "last", "index" or "mark"');
+                    }
+                    request['slTriggerPxType'] = stopLossTriggerPriceType;
+                }
+            }
+            if (takeProfitDefined) {
+                const takeProfitTriggerPrice = this.safeValueN(takeProfit, ['triggerPrice', 'stopPrice', 'tpTriggerPx']);
+                if (takeProfitTriggerPrice === undefined) {
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order');
+                }
+                request['tpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                const takeProfitLimitPrice = this.safeValueN(takeProfit, ['price', 'takeProfitPrice', 'tpOrdPx']);
+                const takeProfitOrderType = this.safeString(takeProfit, 'type');
+                if (takeProfitOrderType !== undefined) {
+                    const takeProfitLimitOrderType = (takeProfitOrderType === 'limit');
+                    const takeProfitMarketOrderType = (takeProfitOrderType === 'market');
+                    if ((!takeProfitLimitOrderType) && (!takeProfitMarketOrderType)) {
+                        throw new errors.InvalidOrder(this.id + ' createOrder() params["takeProfit"]["type"] must be either "limit" or "market"');
+                    }
+                    else if (takeProfitLimitOrderType) {
+                        if (takeProfitLimitPrice === undefined) {
+                            throw new errors.InvalidOrder(this.id + ' createOrder() requires a limit price in params["takeProfit"]["price"] or params["takeProfit"]["tpOrdPx"] for a take profit limit order');
+                        }
+                        else {
+                            request['tpOrdPx'] = this.priceToPrecision(symbol, takeProfitLimitPrice);
+                        }
+                    }
+                    else if (takeProfitOrderType === 'market') {
+                        request['tpOrdPx'] = '-1';
+                    }
+                }
+                else if (takeProfitLimitPrice !== undefined) {
+                    request['tpOrdPx'] = this.priceToPrecision(symbol, takeProfitLimitPrice); // limit tp order
+                }
+                else {
+                    request['tpOrdPx'] = '-1'; // market tp order
+                }
+                const takeProfitTriggerPriceType = this.safeString2(stopLoss, 'triggerPriceType', 'tpTriggerPxType');
+                if (takeProfitTriggerPriceType !== undefined) {
+                    if ((takeProfitTriggerPriceType !== 'last') && (takeProfitTriggerPriceType !== 'index') && (takeProfitTriggerPriceType !== 'mark')) {
+                        throw new errors.InvalidOrder(this.id + ' createOrder() take profit trigger price type must be one of "last", "index" or "mark"');
+                    }
+                    request['tpTriggerPxType'] = takeProfitTriggerPriceType;
+                }
+            }
         }
         else if (trigger) {
             method = 'privatePostTradeOrderAlgo';
@@ -2759,6 +2855,7 @@ class okx extends okx$1 {
         //
         const id = this.safeString2(order, 'algoId', 'ordId');
         const timestamp = this.safeInteger(order, 'cTime');
+        const lastUpdateTimestamp = this.safeInteger(order, 'uTime');
         const lastTradeTimestamp = this.safeInteger(order, 'fillTime');
         const side = this.safeString(order, 'side');
         let type = this.safeString(order, 'ordType');
@@ -2828,6 +2925,7 @@ class okx extends okx$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
@@ -3588,58 +3686,10 @@ class okx extends okx$1 {
         // 'ccy': undefined, // currency['id'],
         // 'mgnMode': undefined, // 'isolated', 'cross'
         // 'ctType': undefined, // 'linear', 'inverse', only applicable to FUTURES/SWAP
-        // 'type': undefined,
-        //     1 Transfer,
-        //     2 Trade,
-        //     3 Delivery,
-        //     4 Auto token conversion,
-        //     5 Liquidation,
-        //     6 Margin transfer,
-        //     7 Interest deduction,
-        //     8 Funding rate,
-        //     9 ADL,
-        //     10 Clawback,
-        //     11 System token conversion
-        // 'subType': undefined,
-        //     1 Buy
-        //     2 Sell
-        //     3 Open long
-        //     4 Open short
-        //     5 Close long
-        //     6 Close short
-        //     9 Interest deduction
-        //     11 Transfer in
-        //     12 Transfer out
-        //     160 Manual margin increase
-        //     161 Manual margin decrease
-        //     162 Auto margin increase
-        //     110 Auto buy
-        //     111 Auto sell
-        //     118 System token conversion transfer in
-        //     119 System token conversion transfer out
-        //     100 Partial liquidation close long
-        //     101 Partial liquidation close short
-        //     102 Partial liquidation buy
-        //     103 Partial liquidation sell
-        //     104 Liquidation long
-        //     105 Liquidation short
-        //     106 Liquidation buy
-        //     107 Liquidation sell
-        //     110 Liquidation transfer in
-        //     111 Liquidation transfer out
-        //     125 ADL close long
-        //     126 ADL close short
-        //     127 ADL buy
-        //     128 ADL sell
-        //     170 Exercised
-        //     171 Counterparty exercised
-        //     172 Expired OTM
-        //     112 Delivery long
-        //     113 Delivery short
-        //     117 Delivery/Exercise clawback
-        //     173 Funding fee expense
-        //     174 Funding fee income
-        //
+        // 'type': varies depending the 'method' endpoint :
+        //     - https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+        //     - https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
+        //     - https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
         // 'after': 'id', // return records earlier than the requested bill id
         // 'before': 'id', // return records newer than the requested bill id
         // 'limit': 100, // default 100, max 100
@@ -4840,17 +4890,44 @@ class okx extends okx$1 {
         //         "type": "0"
         //     }
         //
-        const id = this.safeString(transfer, 'transId');
+        // fetchTransfers
+        //
+        //     {
+        //         "bal": "70.6874353780312913",
+        //         "balChg": "-4.0000000000000000", // negative means "to funding", positive meand "from funding"
+        //         "billId": "588900695232225299",
+        //         "ccy": "USDT",
+        //         "execType": "",
+        //         "fee": "",
+        //         "from": "18",
+        //         "instId": "",
+        //         "instType": "",
+        //         "mgnMode": "",
+        //         "notes": "To Funding Account",
+        //         "ordId": "",
+        //         "pnl": "",
+        //         "posBal": "",
+        //         "posBalChg": "",
+        //         "price": "0",
+        //         "subType": "12",
+        //         "sz": "-4",
+        //         "to": "6",
+        //         "ts": "1686676866989",
+        //         "type": "1"
+        //     }
+        //
+        const id = this.safeString2(transfer, 'transId', 'billId');
         const currencyId = this.safeString(transfer, 'ccy');
         const code = this.safeCurrencyCode(currencyId, currency);
-        const amount = this.safeNumber(transfer, 'amt');
+        let amount = this.safeNumber(transfer, 'amt');
         const fromAccountId = this.safeString(transfer, 'from');
         const toAccountId = this.safeString(transfer, 'to');
         const accountsById = this.safeValue(this.options, 'accountsById', {});
-        const fromAccount = this.safeString(accountsById, fromAccountId);
-        const toAccount = this.safeString(accountsById, toAccountId);
-        const timestamp = this.milliseconds();
-        const status = this.safeString(transfer, 'state');
+        const timestamp = this.safeInteger(transfer, 'ts', this.milliseconds());
+        const balanceChange = this.safeString(transfer, 'sz');
+        if (balanceChange !== undefined) {
+            amount = this.parseNumber(Precise["default"].stringAbs(balanceChange));
+        }
         return {
             'info': transfer,
             'id': id,
@@ -4858,10 +4935,16 @@ class okx extends okx$1 {
             'datetime': this.iso8601(timestamp),
             'currency': code,
             'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'status': status,
+            'fromAccount': this.safeString(accountsById, fromAccountId),
+            'toAccount': this.safeString(accountsById, toAccountId),
+            'status': this.parseTransferStatus(this.safeString(transfer, 'state')),
         };
+    }
+    parseTransferStatus(status) {
+        const statuses = {
+            'success': 'ok',
+        };
+        return this.safeString(statuses, status, status);
     }
     async fetchTransfer(id, code = undefined, params = {}) {
         await this.loadMarkets();
@@ -4893,6 +4976,68 @@ class okx extends okx$1 {
         const data = this.safeValue(response, 'data', []);
         const transfer = this.safeValue(data, 0);
         return this.parseTransfer(transfer);
+    }
+    async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchTransfers
+         * @description fetch a history of internal transfers made on an account
+         * @param {string|undefined} code unified currency code of the currency transferred
+         * @param {int|undefined} since the earliest time in ms to fetch transfers for
+         * @param {int|undefined} limit the maximum number of transfers structures to retrieve
+         * @param {object} params extra parameters specific to the okx api endpoint
+         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        await this.loadMarkets();
+        let currency = undefined;
+        const request = {
+            'type': '1', // https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+        };
+        if (code !== undefined) {
+            currency = this.currency(code);
+            request['ccy'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetAccountBillsArchive(this.extend(request, params));
+        //
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "bal": "70.6874353780312913",
+        //                "balChg": "-4.0000000000000000",
+        //                "billId": "588900695232225299",
+        //                "ccy": "USDT",
+        //                "execType": "",
+        //                "fee": "",
+        //                "from": "18",
+        //                "instId": "",
+        //                "instType": "",
+        //                "mgnMode": "",
+        //                "notes": "To Funding Account",
+        //                "ordId": "",
+        //                "pnl": "",
+        //                "posBal": "",
+        //                "posBalChg": "",
+        //                "price": "0",
+        //                "subType": "12",
+        //                "sz": "-4",
+        //                "to": "6",
+        //                "ts": "1686676866989",
+        //                "type": "1"
+        //            },
+        //            ...
+        //        ],
+        //        "msg": ""
+        //    }
+        //
+        const transfers = this.safeValue(response, 'data', []);
+        return this.parseTransfers(transfers, currency, since, limit, params);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const isArray = Array.isArray(params);

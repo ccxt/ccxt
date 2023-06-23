@@ -377,7 +377,7 @@ class bybit(ccxt.async_support.bybit):
         messageHash = 'kline' + ':' + timeframeId + ':' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv):
+    def parse_ws_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "start": 1670363160000,
