@@ -56,6 +56,7 @@ async function example () {
         // note that some exchanges might require some exchange specific parameter when opening a position, i.e.:
         // 'posSide': 'long',  // for phemex hedge-mode api
     };
+
     const position_amount = market['contractSize'] * amount;
     const position_value = position_amount * last_price;
     // log
