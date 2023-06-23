@@ -45,13 +45,15 @@ async function example () {
     const params = {
         'stopLoss': {
             'triggerPrice': stop_loss_trigger_price,
-            // set a 'price' to act as limit order or leave commented for a market order
-            // 'price': stop_loss_trigger_price * 0.98,
+            'triggerPriceType': 'mark', // mark, last, index, bid, ask (if supported by exchange)
+            // set 'price' to act as limit order (don't set it for market order)
+            'price': stop_loss_trigger_price * 0.98, // i.e. 2% from trigger price
         },
         'takeProfit': {
             'triggerPrice': take_profit_trigger_price,
-            // set a 'price' to act as limit order or leave commented for a market order
-            // 'price': take_profit_limit_price * 0.98,
+            'triggerPriceType': 'mark', // mark, last, index, bid, ask (if supported by exchange)
+            // set 'price' to act as limit order (don't set it for market order)
+            'price': take_profit_trigger_price * 0.98, // i.e. 2% from trigger price
         },
     };
 
