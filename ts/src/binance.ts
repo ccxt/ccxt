@@ -393,6 +393,24 @@ export default class binance extends Exchange {
                         'lending/auto-invest/plan/list': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/id': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/history/list': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        // simple earn
+                        'simple-earn/flexible/list': 15,
+                        'simple-earn/locked/list': 15,
+                        'simple-earn/flexible/personalLeftQuota': 15,
+                        'simple-earn/locked/personalLeftQuota': 15,
+                        'simple-earn/flexible/subscriptionPreview': 15,
+                        'simple-earn/locked/subscriptionPreview': 15,
+                        'simple-earn/flexible/history/rateHistory': 15,
+                        'simple-earn/flexible/position': 15,
+                        'simple-earn/locked/position': 15,
+                        'simple-earn/account': 15,
+                        'simple-earn/flexible/history/subscriptionRecord': 15,
+                        'simple-earn/locked/history/subscriptionRecord': 15,
+                        'simple-earn/flexible/history/redemptionRecord': 15,
+                        'simple-earn/locked/history/redemptionRecord': 15,
+                        'simple-earn/flexible/history/rewardsRecord': 15,
+                        'simple-earn/locked/history/rewardsRecord': 15,
+                        'simple-earn/flexible/history/collateralRecord': 0.1,
                     },
                     'post': {
                         'asset/dust': 1,
@@ -493,6 +511,13 @@ export default class binance extends Exchange {
                         'lending/auto-invest/plan/add': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit-status': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        // simple earn
+                        'simple-earn/flexible/subscribe': 0.1,
+                        'simple-earn/locked/subscribe': 0.1,
+                        'simple-earn/flexible/redeem': 0.1,
+                        'simple-earn/locked/redeem': 0.1,
+                        'simple-earn/flexible/setAutoSubscribe': 15,
+                        'simple-earn/locked/setAutoSubscribe': 15,
                     },
                     'put': {
                         'userDataStream': 0.1,
