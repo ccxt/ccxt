@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.49'
+__version__ = '3.1.50'
 
 # -----------------------------------------------------------------------------
 
@@ -623,6 +623,25 @@ class Exchange(BaseExchange):
         if tail:
             return result[-limit:]
         return self.filter_by_limit(result, limit, key)
+
+    def set_sandbox_mode(self, enabled):
+        if enabled:
+            if 'test' in self.urls:
+                if isinstance(self.urls['api'], str):
+                    self.urls['apiBackup'] = self.urls['api']
+                    self.urls['api'] = self.urls['test']
+                else:
+                    self.urls['apiBackup'] = self.clone(self.urls['api'])
+                    self.urls['api'] = self.clone(self.urls['test'])
+            else:
+                raise NotSupported(self.id + ' does not have a sandbox URL')
+        elif 'apiBackup' in self.urls:
+            if isinstance(self.urls['api'], str):
+                self.urls['api'] = self.urls['apiBackup']
+            else:
+                self.urls['api'] = self.clone(self.urls['apiBackup'])
+            newUrls = self.omit(self.urls, 'apiBackup')
+            self.urls = newUrls
 
     def sign(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None):
         return {}
