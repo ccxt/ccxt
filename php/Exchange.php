@@ -74,9 +74,39 @@ class Exchange {
     public $validateClientSsl = false;
     public $curlopt_interface = null;
     public $timeout = 10000; // in milliseconds
-    public $proxy = '';
-    public $origin = '*'; // CORS origin
+
+
+    // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
+    public $proxy = null; // maintained for backwards compatibility, no-one should use it from now on
+    public $proxyUrl = null;
+    public $proxy_url = null;
+    public $proxyUrlCallback = null;
+    public $proxy_url_callback = null;
+    public $httpProxy = null;
+    public $http_proxy = null;
+    public $httpProxyCallback = null;
+    public $http_proxy_callback = null;
+    public $httpsProxy = null;
+    public $https_proxy = null;
+    public $httpsProxyCallback = null;
+    public $https_proxy_callback = null;
+    public $socksProxy = null;
+    public $socks_proxy = null;
+    public $socksProxyCallback = null;
+    public $socks_proxy_callback = null;
+    public $userAgent = null; // 'ccxt/' . $this::VERSION . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
+    public $user_agent = null;
+    //
+    public $userAgents = array(
+        'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
+        'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
+        'chrome100' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
+    );
     public $headers = array();
+    public $origin = '*'; // CORS origin
+    //
+
+
     public $hostname = null; // in case of inaccessibility of the "main" domain
 
     public $options = array(); // exchange-specific options if any
@@ -174,12 +204,6 @@ class Exchange {
     public $twofa = null;
     public $markets_by_id = null;
     public $currencies_by_id = null;
-    public $userAgent = null; // 'ccxt/' . $this::VERSION . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
-    public $userAgents = array(
-        'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
-        'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
-        'chrome100' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
-    );
     public $minFundingAddressLength = 1; // used in check_address
     public $substituteCommonCurrencyCodes = true;
 
@@ -1306,30 +1330,6 @@ class Exchange {
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
 
-        $headers = array_merge($this->headers, $headers ? $headers : array());
-
-        if (strlen($this->proxy)) {
-            $headers['Origin'] = $this->origin;
-        }
-
-        $headers = $this->set_headers($headers);
-
-        $verbose_headers = $headers;
-
-        if (!$headers) {
-            $headers = array();
-        } elseif (is_array($headers)) {
-            $tmp = $headers;
-            $headers = array();
-            foreach ($tmp as $key => $value) {
-                $headers[] = $key . ': ' . $value;
-            }
-        }
-
-        // this name for the proxy string is deprecated
-        // we should rename it to $this->cors everywhere
-        $url = $this->proxy . $url;
-
         // https://github.com/ccxt/ccxt/issues/5914
         if ($this->curl) {
             if ($this->curl_close) {
@@ -1342,7 +1342,53 @@ class Exchange {
             $this->curl = curl_init();
         }
 
-        curl_setopt($this->curl, CURLOPT_URL, $url);
+
+        // ##### PROXY & HEADERS #####
+        $headers = array_merge($this->headers, $headers ? $headers : array());
+
+        [ $proxyUrl, $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
+        if ($proxyUrl !== null) {
+            $headers['Origin'] = $this->origin;
+            $url = $proxyUrl . $url;
+        } else if ($httpProxy !== null) {
+            curl_setopt($this->curl, CURLOPT_PROXY, $httpProxy);
+            curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
+        }  else if ($httpsProxy !== null) {
+            curl_setopt($this->curl, CURLOPT_PROXY, $httpsProxy);
+            curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTPS);
+            // atm we don't make as tunnel
+            // curl_setopt($this->curl, CURLOPT_TUNNEL, 1);
+            // curl_setopt($this->curl, CURLOPT_SUPPRESS_CONNECT_HEADERS, 1);
+        } else if ($socksProxy !== null) {
+            curl_setopt($this->curl, CURLOPT_PROXY, $socksProxy);
+            curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
+        }
+
+        $verboseAgentHeaders = array ();
+        $userAgent = ($this->userAgent !== null) ? $this->userAgent : $this->user_agent;
+        if ($userAgent) {
+            if (gettype($userAgent) == 'string') {
+                curl_setopt($this->curl, CURLOPT_USERAGENT, $userAgent);
+                $verboseAgentHeaders = array('User-Agent' => $userAgent);
+            } elseif ((gettype($userAgent) == 'array') && array_key_exists('User-Agent', $userAgent)) {
+                curl_setopt($this->curl, CURLOPT_USERAGENT, $userAgent['User-Agent']);
+                $verboseAgentHeaders = $userAgent;
+            }
+        }
+
+        $headers = $this->set_headers($headers);
+        // ######## end of proxies ########
+
+        $verbose_headers = array_merge($headers, $verboseAgentHeaders);
+
+        // reorganize headers for curl
+        if (is_array($headers)) {
+            $tmp = $headers;
+            $headers = array();
+            foreach ($tmp as $key => $value) {
+                $headers[] = $key . ': ' . $value;
+            }
+        }
 
         if ($this->timeout) {
             curl_setopt($this->curl, CURLOPT_CONNECTTIMEOUT_MS, (int) ($this->timeout));
@@ -1355,16 +1401,6 @@ class Exchange {
         }
         if (!$this->validateServerSsl) {
             curl_setopt($this->curl, CURLOPT_SSL_VERIFYHOST, false);
-        }
-
-        if ($this->userAgent) {
-            if (gettype($this->userAgent) == 'string') {
-                curl_setopt($this->curl, CURLOPT_USERAGENT, $this->userAgent);
-                $verbose_headers = array_merge($verbose_headers, array('User-Agent' => $this->userAgent));
-            } elseif ((gettype($this->userAgent) == 'array') && array_key_exists('User-Agent', $this->userAgent)) {
-                curl_setopt($this->curl, CURLOPT_USERAGENT, $this->userAgent['User-Agent']);
-                $verbose_headers = array_merge($verbose_headers, $this->userAgent);
-            }
         }
 
         curl_setopt($this->curl, CURLOPT_ENCODING, '');
@@ -1401,14 +1437,8 @@ class Exchange {
             curl_setopt($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
         }
 
-        /*
-
-        // this is currently not integrated, reserved for future
-        if ($this->proxy) {
-            curl_setopt ($this->curl, CURLOPT_PROXY, $this->proxy);
-        }
-
-        */
+        curl_setopt($this->curl, CURLOPT_URL, $url);
+        // end of proxy settings
 
         curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($this->curl, CURLOPT_FAILONERROR, false);
@@ -2050,6 +2080,14 @@ class Exchange {
         } else {
             return array_slice($array, $first, $second);
         }
+    }
+
+    function get_property($obj, $property, $defaultValue = null){
+        return (property_exists($obj, $property) ? $obj->$property : $defaultValue);
+    }
+
+    function un_camel_case($str){
+        return self::underscore($str);
     }
 
     // ########################################################################
@@ -3902,7 +3940,7 @@ class Exchange {
             // check if exchange has properties for this method
             $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
             if ($exchangeWideMethodOptions !== null) {
-                // check if the option is defined in this method's props
+                // check if the option is defined inside this method's props
                 $value = $this->safe_value_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
             }
             if ($value === null) {

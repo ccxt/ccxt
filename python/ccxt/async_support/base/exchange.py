@@ -39,6 +39,14 @@ from ccxt.async_support.base.ws.fast_client import FastClient
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 
+
+# -----------------------------------------------------------------------------
+
+try:
+    from aiohttp_socks import ProxyConnector
+except ImportError:
+    ProxyConnector = None
+
 # -----------------------------------------------------------------------------
 
 __all__ = [
@@ -116,7 +124,40 @@ class Exchange(BaseExchange):
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         request_headers = self.prepare_request_headers(headers)
-        url = self.proxy + url
+
+        # ##### PROXY & HEADERS #####
+        final_proxy = None  # set default
+        final_session = None
+        proxyUrl, httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
+        if proxyUrl:
+            request_headers.update({'Origin': self.origin})
+            url = proxyUrl + url
+        elif httpProxy:
+            final_proxy = httpProxy
+        elif httpsProxy:
+            final_proxy = httpsProxy
+        elif socksProxy:
+            if ProxyConnector is None:
+                raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you need "aiohttp_socks" module that can be installed by "pip install aiohttp_socks"')
+            # Create our SSL context object with our CA cert file
+            context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
+            connector = ProxyConnector.from_url(
+                socksProxy,
+                # extra args copied from self.open()
+                ssl=context,
+                loop=self.asyncio_loop,
+                enable_cleanup_closed=True
+            )
+            # override session
+            final_session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
+        # add aiohttp_proxy for python as exclusion
+        elif self.aiohttp_proxy:
+            final_proxy = self.aiohttp_proxy
+
+        # avoid old proxies mixing
+        if (self.aiohttp_proxy is not None) and (proxyUrl is not None or httpProxy is not None or httpsProxy is not None or socksProxy is not None):
+            raise NotSupported(self.id + ' you have set multiple proxies, please use one or another')
+        # ######## end of proxies ########
 
         if self.verbose:
             self.log("\nfetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body)
@@ -125,7 +166,7 @@ class Exchange(BaseExchange):
         request_body = body
         encoded_body = body.encode() if body else None
         self.open()
-        session_method = getattr(self.session, method.lower())
+        session_method = getattr(final_session if final_session is not None else self.session, method.lower())
 
         http_response = None
         http_status_code = None
@@ -136,7 +177,7 @@ class Exchange(BaseExchange):
                                       data=encoded_body,
                                       headers=request_headers,
                                       timeout=(self.timeout / 1000),
-                                      proxy=self.aiohttp_proxy) as response:
+                                      proxy=final_proxy) as response:
                 http_response = await response.text(errors='replace')
                 # CIMultiDictProxy
                 raw_headers = response.headers
@@ -1974,7 +2015,7 @@ class Exchange(BaseExchange):
             # check if exchange has properties for self method
             exchangeWideMethodOptions = self.safe_value(self.options, methodName)
             if exchangeWideMethodOptions is not None:
-                # check if the option is defined in self method's props
+                # check if the option is defined inside self method's props
                 value = self.safe_value_2(exchangeWideMethodOptions, optionName, defaultOptionName)
             if value is None:
                 # if it's still None, check if global exchange-wide option exists

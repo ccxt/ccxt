@@ -53,17 +53,21 @@ class Exchange extends \ccxt\Exchange {
         'maxPingPongMisses' => 2.0,
     );
 
+    public $proxy_files_dir = __DIR__ . '/../static_dependencies/proxies/';
+
     use \ccxt\pro\ClientTrait;
 
     public function __construct($options = array()) {
         parent::__construct($options);
-        $connector = new React\Socket\Connector(Loop::get(), array(
-            'timeout' => $this->timeout,
-        ));
-        if ($this->browser === null) {
-            $this->browser = (new React\Http\Browser(Loop::get(), $connector))->withRejectErrorResponse(false);
-        }
+        $this->set_request_browser();
         $this->throttle = new Throttle($this->tokenBucket);
+    }
+
+    public function set_request_browser($connector_options = array()) {
+        $connector = new React\Socket\Connector(array_merge(array(
+            'timeout' => $this->timeout,
+        ), $connector_options), Loop::get());
+        $this->browser = (new React\Http\Browser($connector, Loop::get()))->withRejectErrorResponse(false);
     }
 
     public static function execute_and_run($closure) {
@@ -75,26 +79,40 @@ class Exchange extends \ccxt\Exchange {
         // wrap this in as a promise so it executes asynchronously
         return React\Async\async(function () use ($url, $method, $headers, $body) {
 
+            // ##### PROXY & HEADERS #####
             $headers = array_merge($this->headers, $headers ? $headers : array());
-            if (!$headers) {
-                $headers = array();
-            }
 
-            if (strlen($this->proxy)) {
+            [ $proxyUrl, $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
+            if ($proxyUrl !== null) {
+                $url = $proxyUrl . $url;
                 $headers['Origin'] = $this->origin;
+            } else if ($httpProxy !== null) {
+                include_once ($this->proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
+                $proxy = new \Clue\React\HttpProxy\ProxyConnector($httpProxy);
+                $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
+            }  else if ($httpsProxy !== null) {
+                include_once ($this->proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
+                $proxy = new \Clue\React\HttpProxy\ProxyConnector($httpsProxy);
+                $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
+                $this->set_request_browser($request_browser_options);
+            } else if ($socksProxy !== null) {
+                if (!class_exists('\Clue\React\Socks\Client')) {
+                    throw new NotSupported($this->id . ' - to use SOCKS proxy with ccxt, at first you need install module "composer require clue/socks-react"');
+                }
+                $proxy = new \Clue\React\Socks\Client($socksProxy);
+                $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
+                $this->set_request_browser($request_browser_options);
             }
 
-            if ($this->userAgent) {
-                if (gettype($this->userAgent) == 'string') {
-                    $headers['User-Agent'] = $this->userAgent;
-                } elseif ((gettype($this->userAgent) == 'array') && array_key_exists('User-Agent', $this->userAgent)) {
-                    $headers['User-Agent'] = $this->userAgent['User-Agent'];
+            $userAgent = ($this->userAgent !== null) ? $this->userAgent : $this->user_agent;
+            if ($userAgent) {
+                if (gettype($userAgent) === 'string') {
+                    $headers['User-Agent'] = $userAgent;
+                } elseif ((gettype($userAgent) === 'array') && array_key_exists('User-Agent', $userAgent)) {
+                    $headers['User-Agent'] = $userAgent['User-Agent'];
                 }
             }
-
-            // this name for the proxy string is deprecated
-            // we should rename it to $this->cors everywhere
-            $url = $this->proxy . $url;
+            // ######## end of proxies ########
 
             if ($this->verbose) {
                 print_r(array('fetch Request:', $this->id, $method, $url, 'RequestHeaders:', $headers, 'RequestBody:', $body));
@@ -2121,7 +2139,7 @@ class Exchange extends \ccxt\Exchange {
             // check if exchange has properties for this method
             $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
             if ($exchangeWideMethodOptions !== null) {
-                // check if the option is defined in this method's props
+                // check if the option is defined inside this method's props
                 $value = $this->safe_value_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
             }
             if ($value === null) {
