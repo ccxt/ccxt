@@ -2324,10 +2324,34 @@ export default class phemex extends Exchange {
             // 'posSide': Position direction - "Merged" for oneway mode , "Long" / "Short" for hedge mode
         };
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
-        const stopLoss = this.safeValue (params, 'stopLoss');
-        const stopLossDefined = (stopLoss !== undefined);
-        const takeProfit = this.safeValue (params, 'takeProfit');
-        const takeProfitDefined = (takeProfit !== undefined);
+        let stopLoss = this.safeValue (params, 'stopLoss');
+        let stopLossDefined = (stopLoss !== undefined);
+        let takeProfit = this.safeValue (params, 'takeProfit');
+        let takeProfitDefined = (takeProfit !== undefined);
+        // backwards compatibility support for sl/tp
+        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        if (stopLossPrice !== undefined) {
+            if (stopLossDefined) {
+                throw new InvalidOrder (this.id + ' createOrder() - you have conflicting settings, please use either "stopLoss" unified param or old "stopLossPrice" param');
+            }
+            params = this.omit (params, 'stopLossPrice');
+            stopLoss = {
+                'triggerPrice': stopLossPrice,
+            };
+            stopLossDefined = true;
+        }
+        if (takeProfitPrice !== undefined) {
+            if (takeProfitDefined) {
+                throw new InvalidOrder (this.id + ' createOrder() - you have conflicting settings, please use either "takeProfit" unified param or old "takeProfitPrice" param');
+            }
+            params = this.omit (params, 'takeProfitPrice');
+            takeProfit = {
+                'triggerPrice': takeProfitPrice,
+            };
+            takeProfitDefined = true;
+        }
+        // end of support sl/tp
         if (clientOrderId === undefined) {
             const brokerId = this.safeString (this.options, 'brokerId');
             if (brokerId !== undefined) {
@@ -2397,7 +2421,7 @@ export default class phemex extends Exchange {
                 if (stopLossDefined) {
                     const stopLossTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice');
                     if (stopLossTriggerPrice === undefined) {
-                        throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"] for a stop loss order');
+                        throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"] for a stop loss order');
                     }
                     if (market['settle'] === 'USDT') {
                         request['stopLossRp'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
@@ -2421,7 +2445,7 @@ export default class phemex extends Exchange {
                 if (takeProfitDefined) {
                     const takeProfitTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice');
                     if (takeProfitTriggerPrice === undefined) {
-                        throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"] for a take profit order');
+                        throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"] for a take profit order');
                     }
                     if (market['settle'] === 'USDT') {
                         request['takeProfitRp'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
@@ -2451,24 +2475,6 @@ export default class phemex extends Exchange {
                 const priceString = this.numberToString (price);
                 request['priceEp'] = this.toEp (priceString, market);
             }
-        }
-        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
-        if (takeProfitPrice !== undefined) {
-            if (market['settle'] === 'USDT') {
-                request['takeProfitRp'] = this.priceToPrecision (symbol, takeProfitPrice);
-            } else {
-                request['takeProfitEp'] = this.toEp (takeProfitPrice, market);
-            }
-            params = this.omit (params, 'takeProfitPrice');
-        }
-        const stopLossPrice = this.safeString (params, 'stopLossPrice');
-        if (stopLossPrice !== undefined) {
-            if (market['settle'] === 'USDT') {
-                request['stopLossRp'] = this.priceToPrecision (symbol, stopLossPrice);
-            } else {
-                request['stopLossEp'] = this.toEp (stopLossPrice, market);
-            }
-            params = this.omit (params, 'stopLossPrice');
         }
         let method = 'privatePostSpotOrders';
         if (market['settle'] === 'USDT') {
