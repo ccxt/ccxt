@@ -389,7 +389,6 @@ export default class bigone extends Exchange {
          * @returns {dict} an associative dictionary of currencies
          */
         // we use undocumented link (possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
-        // @ts-ignore
         const data = await this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGetUcV2Assets', true);
         if (data === undefined) {
             return undefined;
