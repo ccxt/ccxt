@@ -16,9 +16,9 @@ async function example () {
     });
 
     const symbol = 'DOGE/USDT:USDT';
-    const side = 'buy'; // 'buy' for a long position | 'sell' for a short position
+    const side = 'buy'; // 'buy' | 'sell'
     const order_type = 'limit'; // 'market' | 'limit'
-    const amount = 1; // how many contracts (see `market(symbol).contractSize` to find out coin amount for 1 contract)
+    const amount = 1; // how many contracts (see `market(symbol).contractSize` to find out coin portion per one contract)
 
     await exchange.loadMarkets ();
     const market = exchange.market (symbol);
