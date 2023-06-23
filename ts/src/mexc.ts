@@ -4891,7 +4891,7 @@ export default class mexc extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchDepositWithdrawFees

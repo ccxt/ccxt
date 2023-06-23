@@ -6245,7 +6245,7 @@ export default class okx extends Exchange {
         }
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchDepositWithdrawFees

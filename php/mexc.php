@@ -1906,7 +1906,7 @@ class mexc extends Exchange {
             //
             'type' => $type,
             'openType' => $openType, // 1 isolated, 2 cross
-            // 'positionId' => 1394650, // long, filling in this parameter when closing a position is recommended
+            // 'positionId' => 1394650, // long, property_exists($this, filling) parameter when closing a position is recommended
             // 'externalOid' => $clientOrderId,
             // 'triggerPrice' => 10.0, // Required for trigger order
             // 'triggerType' => 1, // Required for trigger order 1 => more than or equal, 2 => less than or equal

@@ -169,6 +169,10 @@ interface Exchange {
     privateUserGetFeeQuery (params?: {}): Promise<implicitReturnType>;
     privateUserGetSubVirtualList (params?: {}): Promise<implicitReturnType>;
     privateUserGetSubVirtualApiList (params?: {}): Promise<implicitReturnType>;
+    privateUserGetTaxSpotRecord (params?: {}): Promise<implicitReturnType>;
+    privateUserGetTaxFutureRecord (params?: {}): Promise<implicitReturnType>;
+    privateUserGetTaxMarginRecord (params?: {}): Promise<implicitReturnType>;
+    privateUserGetTaxP2pRecord (params?: {}): Promise<implicitReturnType>;
     privateUserPostSubVirtualCreate (params?: {}): Promise<implicitReturnType>;
     privateUserPostSubVirtualModify (params?: {}): Promise<implicitReturnType>;
     privateUserPostSubVirtualApiBatchCreate (params?: {}): Promise<implicitReturnType>;

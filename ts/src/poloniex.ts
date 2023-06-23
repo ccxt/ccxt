@@ -1939,7 +1939,7 @@ export default class poloniex extends Exchange {
         return this.filterByCurrencySinceLimit (transactions, code, since, limit);
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchDepositWithdrawFees

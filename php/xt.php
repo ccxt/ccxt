@@ -461,7 +461,7 @@ class xt extends Exchange {
                     'WITHDRAW_005' => '\\ccxt\\BadRequest', // The withdrawal address cannot be empty
                     'WITHDRAW_006' => '\\ccxt\\BadRequest', // Memo cannot be empty
                     'WITHDRAW_008' => '\\ccxt\\PermissionDenied', // Risk control is triggered, withdraw of this currency is not currently supported
-                    'WITHDRAW_009' => '\\ccxt\\PermissionDenied', // Withdraw failed, some assets in this withdraw are restricted by T+1 withdraw
+                    'WITHDRAW_009' => '\\ccxt\\PermissionDenied', // Withdraw failed, some property_exists($this, assets) withdraw are restricted by T+1 withdraw
                     'WITHDRAW_010' => '\\ccxt\\BadRequest', // The precision of withdrawal is invalid
                     'WITHDRAW_011' => '\\ccxt\\InsufficientFunds', // free balance is not enough
                     'WITHDRAW_012' => '\\ccxt\\PermissionDenied', // Withdraw failed, your remaining withdrawal limit today is not enough
