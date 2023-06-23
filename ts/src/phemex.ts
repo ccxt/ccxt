@@ -444,7 +444,7 @@ export default class phemex extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
-                'triggerPriceByMap': {
+                'triggerPriceTypesMap': {
                     'mark': 'ByMarkPrice',
                     'ByMarkPrice': 'ByMarkPrice',
                     'last': 'ByLastPrice',
@@ -2443,11 +2443,12 @@ export default class phemex extends Exchange {
                         request['stopLossEp'] = this.toEp (stopLossTriggerPrice, market);
                     }
                     let stopLossTriggerPriceType = this.safeString2 (stopLoss, 'triggerPriceType', 'slTrigger');
-                    stopLossTriggerPriceType = this.safeString (this.options['triggerPriceByMap'], stopLossTriggerPriceType, stopLossTriggerPriceType); // support for unified values
+                    stopLossTriggerPriceType = this.safeString (this.options['triggerPriceTypesMap'], stopLossTriggerPriceType, stopLossTriggerPriceType); // support for unified values
                     if (stopLossTriggerPriceType !== undefined) {
                         if (market['settle'] === 'USDT') {
-                            if (!(stopLossTriggerPriceType in this.options['triggerPriceByMap'])) {
-                                throw new InvalidOrder (this.id + ' createOrder() stop-loss trigger price type must be one of ' + this.json (Object.keys (this.options['triggerPriceByMap'])));
+                            if (!(stopLossTriggerPriceType in this.options['triggerPriceTypesMap'])) {
+                                const priceTypes = Object.keys (this.options['triggerPriceTypesMap']);
+                                throw new InvalidOrder (this.id + ' createOrder() stop-loss trigger price type must be one of ' + this.json (priceTypes));
                             }
                         } else {
                             if ((stopLossTriggerPriceType !== 'ByMarkPrice') && (stopLossTriggerPriceType !== 'ByLastPrice')) {
@@ -2468,11 +2469,12 @@ export default class phemex extends Exchange {
                         request['takeProfitEp'] = this.toEp (takeProfitTriggerPrice, market);
                     }
                     let takeProfitTriggerPriceType = this.safeString2 (stopLoss, 'triggerPriceType', 'tpTrigger');
-                    takeProfitTriggerPriceType = this.safeString (this.options['triggerPriceByMap'], takeProfitTriggerPriceType, takeProfitTriggerPriceType); // support for unified values
+                    takeProfitTriggerPriceType = this.safeString (this.options['triggerPriceTypesMap'], takeProfitTriggerPriceType, takeProfitTriggerPriceType); // support for unified values
                     if (takeProfitTriggerPriceType !== undefined) {
                         if (market['settle'] === 'USDT') {
-                            if (!(takeProfitTriggerPriceType in this.options['triggerPriceByMap'])) {
-                                throw new InvalidOrder (this.id + ' createOrder() take-profit trigger price type must be one of ' + this.json (Object.keys (this.options['triggerPriceByMap'])));
+                            if (!(takeProfitTriggerPriceType in this.options['triggerPriceTypesMap'])) {
+                                const priceTypes = Object.keys (this.options['triggerPriceTypesMap']);
+                                throw new InvalidOrder (this.id + ' createOrder() take-profit trigger price type must be one of ' + this.json (priceTypes));
                             }
                         } else {
                             if ((takeProfitTriggerPriceType !== 'ByMarkPrice') && (takeProfitTriggerPriceType !== 'ByLastPrice')) {
