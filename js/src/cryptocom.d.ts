@@ -158,6 +158,13 @@ export default class cryptocom extends Exchange {
         info: any;
     };
     parseLedgerEntryType(type: any): string;
+    fetchAccounts(params?: {}): Promise<any[]>;
+    parseAccount(account: any): {
+        id: string;
+        type: string;
+        code: any;
+        info: any;
+    };
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

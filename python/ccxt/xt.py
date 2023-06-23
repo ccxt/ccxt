@@ -477,7 +477,7 @@ class xt(Exchange, ImplicitAPI):
                     'WITHDRAW_005': BadRequest,  # The withdrawal address cannot be empty
                     'WITHDRAW_006': BadRequest,  # Memo cannot be empty
                     'WITHDRAW_008': PermissionDenied,  # Risk control is triggered, withdraw of self currency is not currently supported
-                    'WITHDRAW_009': PermissionDenied,  # Withdraw failed, some assets in self withdraw are restricted by T+1 withdraw
+                    'WITHDRAW_009': PermissionDenied,  # Withdraw failed, some hasattr(self, assets) withdraw are restricted by T+1 withdraw
                     'WITHDRAW_010': BadRequest,  # The precision of withdrawal is invalid
                     'WITHDRAW_011': InsufficientFunds,  # free balance is not enough
                     'WITHDRAW_012': PermissionDenied,  # Withdraw failed, your remaining withdrawal limit today is not enough

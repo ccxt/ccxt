@@ -10,14 +10,34 @@ export default class Exchange {
     options: {
         [key: string]: any;
     };
+    api: any;
+    proxy: any;
+    proxyUrl: string;
+    proxy_url: string;
+    proxyUrlCallback: any;
+    proxy_url_callback: any;
+    httpProxy: string;
+    http_proxy: string;
+    httpProxyCallback: any;
+    http_proxy_callback: any;
+    httpsProxy: string;
+    https_proxy: string;
+    httpsProxyCallback: any;
+    https_proxy_callback: any;
+    socksProxy: string;
+    socks_proxy: string;
+    socksProxyCallback: any;
+    socks_proxy_callback: any;
+    userAgent: {
+        'User-Agent': string;
+    } | false;
+    user_agent: {
+        'User-Agent': string;
+    } | false;
     userAgents: any;
     headers: any;
-    httpAgent: any;
-    httpsAgent: any;
-    agent: any;
-    api: any;
-    proxy: string;
     origin: string;
+    agent: any;
     minFundingAddressLength: number;
     substituteCommonCurrencyCodes: boolean;
     quoteJsonNumbers: boolean;
@@ -31,10 +51,6 @@ export default class Exchange {
     validateClientSsl: boolean;
     timeout: number;
     verbose: boolean;
-    debug: boolean;
-    userAgent: {
-        'User-Agent': string;
-    } | false;
     twofa: any;
     apiKey: string;
     secret: string;
@@ -488,6 +504,8 @@ export default class Exchange {
     convertToBigInt(value: string): bigint;
     valueIsDefined(value: any): boolean;
     arraySlice(array: any, first: any, second?: any): any;
+    getProperty(obj: any, property: any, defaultValue?: any): any;
+    checkProxySettings(url: any, method: any, headers: any, body: any): string[];
     findMessageHashes(client: any, element: string): string[];
     filterByLimit(array: object[], limit?: Int, key?: IndexType): any;
     filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any;

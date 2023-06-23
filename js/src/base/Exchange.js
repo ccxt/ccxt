@@ -20,13 +20,19 @@ import totp from './functions/totp.js';
 // ----------------------------------------------------------------------------
 export default class Exchange {
     constructor(userConfig = {}) {
-        this.httpAgent = undefined;
-        this.httpsAgent = undefined;
-        this.agent = undefined;
         this.api = undefined;
-        // prepended to URL, like https://proxy.com/https://exchange.com/api...
-        this.proxy = '';
+        this.userAgent = undefined;
+        this.user_agent = undefined;
+        //
+        this.userAgents = {
+            'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
+            'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
+            'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
+        };
+        this.headers = {};
         this.origin = '*'; // CORS origin
+        //
+        this.agent = undefined; // maintained for backwards compatibility
         this.minFundingAddressLength = 1; // used in checkAddress
         this.substituteCommonCurrencyCodes = true; // reserved
         this.quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
@@ -38,8 +44,6 @@ export default class Exchange {
         this.validateClientSsl = false;
         this.timeout = 10000; // milliseconds
         this.verbose = false;
-        this.debug = false;
-        this.userAgent = undefined;
         this.twofa = undefined; // two-factor authentication (2FA)
         this.balance = {};
         this.orderbooks = {};
@@ -200,14 +204,7 @@ export default class Exchange {
         this.options = this.getDefaultOptions(); // exchange-specific options, if any
         // fetch implementation options (JS only)
         // http properties
-        this.userAgents = {
-            'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
-            'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
-            'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
-        };
         this.headers = {};
-        // prepended to URL, like https://proxy.com/https://exchange.com/api...
-        this.proxy = '';
         this.origin = '*'; // CORS origin
         // underlying properties
         this.minFundingAddressLength = 1; // used in checkAddress
@@ -224,8 +221,6 @@ export default class Exchange {
         // default property values
         this.timeout = 10000; // milliseconds
         this.verbose = false;
-        this.debug = false;
-        this.userAgent = undefined;
         this.twofa = undefined; // two-factor authentication (2FA)
         // default credentials
         this.apiKey = undefined;
@@ -637,28 +632,49 @@ export default class Exchange {
         console.log(...args);
     }
     async fetch(url, method = 'GET', headers = undefined, body = undefined) {
-        if (isNode && this.userAgent) {
-            if (typeof this.userAgent === 'string') {
-                headers = this.extend({ 'User-Agent': this.userAgent }, headers);
-            }
-            else if ((typeof this.userAgent === 'object') && ('User-Agent' in this.userAgent)) {
-                headers = this.extend(this.userAgent, headers);
-            }
-        }
-        if (typeof this.proxy === 'function') {
-            url = this.proxy(url);
+        // ##### PROXY & HEADERS #####
+        headers = this.extend(this.headers, headers);
+        const [proxyUrl, httpProxy, httpsProxy, socksProxy] = this.checkProxySettings(url, method, headers, body);
+        if (proxyUrl !== undefined) {
+            // in node we need to set header to *
             if (isNode) {
                 headers = this.extend({ 'Origin': this.origin }, headers);
             }
+            url = proxyUrl + url;
         }
-        else if (typeof this.proxy === 'string') {
-            if (this.proxy.length && isNode) {
-                headers = this.extend({ 'Origin': this.origin }, headers);
+        else if (httpProxy !== undefined) {
+            const module = await import(/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
+            const proxyAgent = new module.HttpProxyAgent(httpProxy);
+            this.agent = proxyAgent;
+        }
+        else if (httpsProxy !== undefined) {
+            const module = await import(/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
+            const proxyAgent = new module.HttpsProxyAgent(httpsProxy);
+            proxyAgent.keepAlive = true;
+            this.agent = proxyAgent;
+        }
+        else if (socksProxy !== undefined) {
+            let module = undefined;
+            try {
+                // @ts-ignore
+                module = await import(/* webpackIgnore: true */ 'socks-proxy-agent');
             }
-            url = this.proxy + url;
+            catch (e) {
+                throw new NotSupported(this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" ');
+            }
+            this.agent = new module.SocksProxyAgent(socksProxy);
         }
-        headers = this.extend(this.headers, headers);
+        const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
+        if (userAgent && isNode) {
+            if (typeof userAgent === 'string') {
+                headers = this.extend({ 'User-Agent': userAgent }, headers);
+            }
+            else if ((typeof userAgent === 'object') && ('User-Agent' in userAgent)) {
+                headers = this.extend(userAgent, headers);
+            }
+        }
         headers = this.setHeaders(headers);
+        // ######## end of proxies ########
         if (this.verbose) {
             this.log("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n");
         }
@@ -1071,6 +1087,9 @@ export default class Exchange {
         }
         return array.slice(first, second);
     }
+    getProperty(obj, property, defaultValue = undefined) {
+        return (property in obj ? obj[property] : defaultValue);
+    }
     /* eslint-enable */
     // ------------------------------------------------------------------------
     // ########################################################################
@@ -1111,6 +1130,69 @@ export default class Exchange {
     // ########################################################################
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    checkProxySettings(url, method, headers, body) {
+        let proxyUrl = (this.proxyUrl !== undefined) ? this.proxyUrl : this.proxy_url;
+        const proxyUrlCallback = (this.proxyUrlCallback !== undefined) ? this.proxyUrlCallback : this.proxy_url_callback;
+        if (proxyUrlCallback !== undefined) {
+            proxyUrl = proxyUrlCallback(url, method, headers, body);
+        }
+        // backwards-compatibility
+        if (this.proxy !== undefined) {
+            if (typeof this.proxy === 'function') {
+                proxyUrl = this.proxy(url, method, headers, body);
+            }
+            else {
+                proxyUrl = this.proxy;
+            }
+        }
+        let httpProxy = (this.httpProxy !== undefined) ? this.httpProxy : this.http_proxy;
+        const httpProxyCallback = (this.httpProxyCallback !== undefined) ? this.httpProxyCallback : this.http_proxy_callback;
+        if (httpProxyCallback !== undefined) {
+            httpProxy = httpProxyCallback(url, method, headers, body);
+        }
+        let httpsProxy = (this.httpsProxy !== undefined) ? this.httpsProxy : this.https_proxy;
+        const httpsProxyCallback = (this.httpsProxyCallback !== undefined) ? this.httpsProxyCallback : this.https_proxy_callback;
+        if (httpsProxyCallback !== undefined) {
+            httpsProxy = httpsProxyCallback(url, method, headers, body);
+        }
+        let socksProxy = (this.socksProxy !== undefined) ? this.socksProxy : this.socks_proxy;
+        const socksProxyCallback = (this.socksProxyCallback !== undefined) ? this.socksProxyCallback : this.socks_proxy_callback;
+        if (socksProxyCallback !== undefined) {
+            socksProxy = socksProxyCallback(url, method, headers, body);
+        }
+        let val = 0;
+        if (proxyUrl !== undefined) {
+            val = val + 1;
+        }
+        if (proxyUrlCallback !== undefined) {
+            val = val + 1;
+        }
+        if (httpProxy !== undefined) {
+            val = val + 1;
+        }
+        if (httpProxyCallback !== undefined) {
+            val = val + 1;
+        }
+        if (httpsProxy !== undefined) {
+            val = val + 1;
+        }
+        if (httpsProxyCallback !== undefined) {
+            val = val + 1;
+        }
+        if (socksProxy !== undefined) {
+            val = val + 1;
+        }
+        if (socksProxyCallback !== undefined) {
+            val = val + 1;
+        }
+        if (val > 1) {
+            throw new ExchangeError(this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy, userAgent');
+        }
+        if ((val === 1) && (this.proxy !== undefined)) {
+            throw new ExchangeError(this.id + ' you have multiple conflicting proxy settings, instead of deprecated .proxy please use from: proxyUrl, httpProxy, httpsProxy, socksProxy');
+        }
+        return [proxyUrl, httpProxy, httpsProxy, socksProxy];
+    }
     findMessageHashes(client, element) {
         const result = [];
         const messageHashes = Object.keys(client.futures);
@@ -2841,7 +2923,7 @@ export default class Exchange {
             // check if exchange has properties for this method
             const exchangeWideMethodOptions = this.safeValue(this.options, methodName);
             if (exchangeWideMethodOptions !== undefined) {
-                // check if the option is defined in this method's props
+                // check if the option is defined inside this method's props
                 value = this.safeValue2(exchangeWideMethodOptions, optionName, defaultOptionName);
             }
             if (value === undefined) {

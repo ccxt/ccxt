@@ -900,7 +900,7 @@ class bybit extends Exchange {
                     '170199' => '\\ccxt\\InvalidOrder', // Your order quantity to buy is too large. The filled price may deviate significantly from the nav. Please try again.
                     '170200' => '\\ccxt\\InvalidOrder', // Your order quantity to sell is too large. The filled price may deviate significantly from the nav. Please try again.
                     '170221' => '\\ccxt\\BadRequest', // This coin does not exist.
-                    '170222' => '\\ccxt\\RateLimitExceeded', // Too many requests in this time frame.
+                    '170222' => '\\ccxt\\RateLimitExceeded', // Too many property_exists($this, requests) time frame.
                     '170223' => '\\ccxt\\InsufficientFunds', // Your Spot Account with Institutional Lending triggers an alert or liquidation.
                     '170224' => '\\ccxt\\PermissionDenied', // You're not a user of the Innovation Zone.
                     '170226' => '\\ccxt\\InsufficientFunds', // Your Spot Account for Margin Trading is being liquidated.

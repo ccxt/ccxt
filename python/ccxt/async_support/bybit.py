@@ -910,7 +910,7 @@ class bybit(Exchange, ImplicitAPI):
                     '170199': InvalidOrder,  # Your order quantity to buy is too large. The filled price may deviate significantly from the nav. Please try again.
                     '170200': InvalidOrder,  # Your order quantity to sell is too large. The filled price may deviate significantly from the nav. Please try again.
                     '170221': BadRequest,  # This coin does not exist.
-                    '170222': RateLimitExceeded,  # Too many requests in self time frame.
+                    '170222': RateLimitExceeded,  # Too many hasattr(self, requests) time frame.
                     '170223': InsufficientFunds,  # Your Spot Account with Institutional Lending triggers an alert or liquidation.
                     '170224': PermissionDenied,  # You're not a user of the Innovation Zone.
                     '170226': InsufficientFunds,  # Your Spot Account for Margin Trading is being liquidated.

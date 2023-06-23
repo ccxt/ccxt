@@ -30,6 +30,7 @@ class cryptocom extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => false,
                 'fetchBorrowInterest' => true,
@@ -804,8 +805,9 @@ class cryptocom extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {int|null} $limit the number of order book entries to return, max 50
          * @param {array} $params extra parameters specific to the cryptocom api endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
@@ -817,24 +819,27 @@ class cryptocom extends Exchange {
         if ($limit) {
             $request['depth'] = $limit;
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderBook', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'v2PublicGetPublicGetBook',
-            'future' => 'derivativesPublicGetPublicGetBook',
-            'swap' => 'derivativesPublicGetPublicGetBook',
-        ));
-        $response = $this->$method (array_merge($request, $query));
-        // {
-        //     "code":0,
-        //     "method":"public/get-book",
-        //     "result":{
-        //       "bids":[[9668.44,0.006325,1.0],[9659.75,0.006776,1.0],[9653.14,0.011795,1.0],[9647.13,0.019434,1.0],[9634.62,0.013765,1.0],[9633.81,0.021395,1.0],[9628.46,0.037834,1.0],[9627.6,0.020909,1.0],[9621.51,0.026235,1.0],[9620.83,0.026701,1.0]],
-        //       "asks":[[9697.0,0.68251,1.0],[9697.6,1.722864,2.0],[9699.2,1.664177,2.0],[9700.8,1.824953,2.0],[9702.4,0.85778,1.0],[9704.0,0.935792,1.0],[9713.32,0.002926,1.0],[9716.42,0.78923,1.0],[9732.19,0.00645,1.0],[9737.88,0.020216,1.0]],
-        //       "t":1591704180270
+        $response = $this->v1PublicGetPublicGetBook (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => -1,
+        //         "method" => "public/get-book",
+        //         "code" => 0,
+        //         "result" => {
+        //             "depth" => 3,
+        //             "data" => array(
+        //                 {
+        //                     "bids" => array( array( "30025.00", "0.00004", "1" ), array( "30020.15", "0.02498", "1" ), array( "30020.00", "0.00004", "1" ) ),
+        //                     "asks" => array( array( "30025.01", "0.04090", "1" ), array( "30025.70", "0.01000", "1" ), array( "30026.94", "0.02681", "1" ) ),
+        //                     "t" => 1687491287380
+        //                 }
+        //             ),
+        //             "instrument_name" => "BTC_USD"
+        //         }
         //     }
-        // }
-        $result = $this->safe_value($response, 'result');
-        $data = $this->safe_value($result, 'data');
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $data = $this->safe_value($result, 'data', array());
         $orderBook = $this->safe_value($data, 0);
         $timestamp = $this->safe_integer($orderBook, 't');
         return $this->parse_order_book($orderBook, $symbol, $timestamp);
@@ -969,12 +974,18 @@ class cryptocom extends Exchange {
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
          * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
+         * @param {string} $type 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
          * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $amount how much you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the cryptocom api endpoint
+         * @param {string|null} $params->timeInForce 'GTC', 'IOC', 'FOK' or 'PO'
+         * @param {string|null} $params->ref_price_type 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger $price $type to use, default is MARK_PRICE
+         * @param {float|null} $params->stopPrice $price to trigger a stop order
+         * @param {float|null} $params->stopLossPrice $price to trigger a stop-loss trigger order
+         * @param {float|null} $params->takeProfitPrice $price to trigger a take-profit trigger order
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -983,43 +994,111 @@ class cryptocom extends Exchange {
         $request = array(
             'instrument_name' => $market['id'],
             'side' => strtoupper($side),
-            'type' => $uppercaseType,
             'quantity' => $this->amount_to_precision($symbol, $amount),
         );
-        if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
+        if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $broker = $this->safe_string($this->options, 'broker', 'CCXT_');
-        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
         if ($clientOrderId === null) {
             $clientOrderId = $broker . $this->uuid22();
         }
         $request['client_oid'] = $clientOrderId;
+        $marketType = null;
+        $marginMode = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
+        list($marginMode, $params) = $this->custom_handle_margin_mode_and_params('createOrder', $params);
+        if (($marketType === 'margin') || ($marginMode !== null)) {
+            $request['spot_margin'] = 'MARGIN';
+        } elseif ($marketType === 'spot') {
+            $request['spot_margin'] = 'SPOT';
+        }
+        $timeInForce = $this->safe_string_upper_2($params, 'timeInForce', 'time_in_force');
+        if ($timeInForce !== null) {
+            if ($timeInForce === 'GTC') {
+                $request['time_in_force'] = 'GOOD_TILL_CANCEL';
+            } elseif ($timeInForce === 'IOC') {
+                $request['time_in_force'] = 'IMMEDIATE_OR_CANCEL';
+            } elseif ($timeInForce === 'FOK') {
+                $request['time_in_force'] = 'FILL_OR_KILL';
+            } else {
+                $request['time_in_force'] = $timeInForce;
+            }
+        }
         $postOnly = $this->safe_value($params, 'postOnly', false);
-        if ($postOnly) {
+        if (($postOnly) || ($timeInForce === 'PO')) {
             $request['exec_inst'] = 'POST_ONLY';
+            $request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
-        $params = $this->omit($params, array( 'postOnly', 'clientOrderId' ));
-        list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('createOrder', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'v2PrivatePostPrivateCreateOrder',
-            'margin' => 'v2PrivatePostPrivateMarginCreateOrder',
-            'future' => 'derivativesPrivatePostPrivateCreateOrder',
-            'swap' => 'derivativesPrivatePostPrivateCreateOrder',
-        ));
-        list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('createOrder', $marketTypeQuery);
-        if ($marginMode !== null) {
-            $method = 'v2PrivatePostPrivateMarginCreateOrder';
+        $triggerPrice = $this->safe_string_n($params, array( 'stopPrice', 'triggerPrice', 'ref_price' ));
+        $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
+        $isTrigger = ($triggerPrice !== null);
+        $isStopLossTrigger = ($stopLossPrice !== null);
+        $isTakeProfitTrigger = ($takeProfitPrice !== null);
+        if ($isTrigger) {
+            $request['ref_price'] = $this->price_to_precision($symbol, $triggerPrice);
+            $price = (string) $price;
+            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                if ($side === 'buy') {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'TAKE_PROFIT_LIMIT';
+                    } else {
+                        $request['type'] = 'STOP_LIMIT';
+                    }
+                } else {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'STOP_LIMIT';
+                    } else {
+                        $request['type'] = 'TAKE_PROFIT_LIMIT';
+                    }
+                }
+            } else {
+                if ($side === 'buy') {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'TAKE_PROFIT';
+                    } else {
+                        $request['type'] = 'STOP_LOSS';
+                    }
+                } else {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'STOP_LOSS';
+                    } else {
+                        $request['type'] = 'TAKE_PROFIT';
+                    }
+                }
+            }
+        } elseif ($isStopLossTrigger) {
+            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
+                $request['type'] = 'STOP_LIMIT';
+            } else {
+                $request['type'] = 'STOP_LOSS';
+            }
+            $request['ref_price'] = $this->price_to_precision($symbol, $stopLossPrice);
+        } elseif ($isTakeProfitTrigger) {
+            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                $request['type'] = 'TAKE_PROFIT_LIMIT';
+            } else {
+                $request['type'] = 'TAKE_PROFIT';
+            }
+            $request['ref_price'] = $this->price_to_precision($symbol, $takeProfitPrice);
+        } else {
+            $request['type'] = $uppercaseType;
         }
-        $response = $this->$method (array_merge($request, $query));
-        // {
-        //     "id" => 11,
-        //     "method" => "private/create-order",
-        //     "result" => {
-        //       "order_id" => "337843775021233500",
-        //       "client_oid" => "my_order_0002"
+        $params = $this->omit($params, array( 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        $response = $this->v1PrivatePostPrivateCreateOrder (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => 1686804664362,
+        //         "method" => "private/create-order",
+        //         "code" : 0,
+        //         "result" => {
+        //             "order_id" => "6540219377766741832",
+        //             "client_oid" => "CCXT_d6ef7c3db6c1495aa8b757"
+        //         }
         //     }
-        // }
+        //
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_order($result, $market);
     }
@@ -2435,6 +2514,87 @@ class cryptocom extends Exchange {
             'MANUAL_CONVERSION' => 'conversion',
         );
         return $this->safe_string($ledgerType, $type, $type);
+    }
+
+    public function fetch_accounts($params = array ()) {
+        /**
+         * fetch all the $accounts associated with a profile
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-$accounts
+         * @param {array} $params extra parameters specific to the cryptocom api endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
+         */
+        $this->load_markets();
+        $response = $this->v1PrivatePostPrivateGetAccounts ($params);
+        //
+        //     {
+        //         "id" => 1234567894321,
+        //         "method" => "private/get-$accounts",
+        //         "code" => 0,
+        //         "result" => {
+        //             "master_account" => array(
+        //                 "uuid" => "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //                 "user_uuid" => "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //                 "enabled" => true,
+        //                 "tradable" => true,
+        //                 "name" => "YOUR_NAME",
+        //                 "country_code" => "CAN",
+        //                 "phone_country_code" => "CAN",
+        //                 "incorp_country_code" => "",
+        //                 "margin_access" => "DEFAULT",
+        //                 "derivatives_access" => "DEFAULT",
+        //                 "create_time" => 1656445188000,
+        //                 "update_time" => 1660794567262,
+        //                 "two_fa_enabled" => true,
+        //                 "kyc_level" => "ADVANCED",
+        //                 "suspended" => false,
+        //                 "terminated" => false,
+        //                 "spot_enabled" => false,
+        //                 "margin_enabled" => false,
+        //                 "derivatives_enabled" => false
+        //             ),
+        //             "sub_account_list" => array()
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $masterAccount = $this->safe_value($result, 'master_account', array());
+        $accounts = $this->safe_value($result, 'sub_account_list', array());
+        $accounts[] = $masterAccount;
+        return $this->parse_accounts($accounts, $params);
+    }
+
+    public function parse_account($account) {
+        //
+        //     {
+        //         "uuid" => "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //         "user_uuid" => "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //         "master_account_uuid" => "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //         "label" => "FORMER_MASTER_MARGIN",
+        //         "enabled" => true,
+        //         "tradable" => true,
+        //         "name" => "YOUR_NAME",
+        //         "country_code" => "YOUR_COUNTRY_CODE",
+        //         "incorp_country_code" => "",
+        //         "margin_access" => "DEFAULT",
+        //         "derivatives_access" => "DEFAULT",
+        //         "create_time" => 1656481992000,
+        //         "update_time" => 1667272884594,
+        //         "two_fa_enabled" => false,
+        //         "kyc_level" => "ADVANCED",
+        //         "suspended" => false,
+        //         "terminated" => false,
+        //         "spot_enabled" => false,
+        //         "margin_enabled" => false,
+        //         "derivatives_enabled" => false,
+        //         "system_label" => "FORMER_MASTER_MARGIN"
+        //     }
+        //
+        return array(
+            'id' => $this->safe_string($account, 'uuid'),
+            'type' => $this->safe_string($account, 'label'),
+            'code' => null,
+            'info' => $account,
+        );
     }
 
     public function nonce() {

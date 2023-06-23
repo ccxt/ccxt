@@ -8563,7 +8563,7 @@ class binance extends Exchange {
         $id = $this->safe_string($interest, 'symbol');
         $amount = $this->safe_number_2($interest, 'sumOpenInterest', 'openInterest');
         $value = $this->safe_number_2($interest, 'sumOpenInterestValue', 'sumOpenInterestUsd');
-        // Inverse returns the number of contracts different from the base or quote volume in this case
+        // Inverse returns the number of contracts different from the base or quote property_exists($this, volume) case
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
         return array(
             'symbol' => $this->safe_symbol($id, $market, null, 'contract'),

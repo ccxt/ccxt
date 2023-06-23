@@ -288,6 +288,69 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function check_proxy_settings($url, $method, $headers, $body) {
+        $proxyUrl = ($this->proxyUrl !== null) ? $this->proxyUrl : $this->proxy_url;
+        $proxyUrlCallback = ($this->proxyUrlCallback !== null) ? $this->proxyUrlCallback : $this->proxy_url_callback;
+        if ($proxyUrlCallback !== null) {
+            $proxyUrl = $proxyUrlCallback ($url, $method, $headers, $body);
+        }
+        // backwards-compatibility
+        if ($this->proxy !== null) {
+            if (is_callable($this->proxy)) {
+                $proxyUrl = $this->proxy ($url, $method, $headers, $body);
+            } else {
+                $proxyUrl = $this->proxy;
+            }
+        }
+        $httpProxy = ($this->httpProxy !== null) ? $this->httpProxy : $this->http_proxy;
+        $httpProxyCallback = ($this->httpProxyCallback !== null) ? $this->httpProxyCallback : $this->http_proxy_callback;
+        if ($httpProxyCallback !== null) {
+            $httpProxy = $httpProxyCallback ($url, $method, $headers, $body);
+        }
+        $httpsProxy = ($this->httpsProxy !== null) ? $this->httpsProxy : $this->https_proxy;
+        $httpsProxyCallback = ($this->httpsProxyCallback !== null) ? $this->httpsProxyCallback : $this->https_proxy_callback;
+        if ($httpsProxyCallback !== null) {
+            $httpsProxy = $httpsProxyCallback ($url, $method, $headers, $body);
+        }
+        $socksProxy = ($this->socksProxy !== null) ? $this->socksProxy : $this->socks_proxy;
+        $socksProxyCallback = ($this->socksProxyCallback !== null) ? $this->socksProxyCallback : $this->socks_proxy_callback;
+        if ($socksProxyCallback !== null) {
+            $socksProxy = $socksProxyCallback ($url, $method, $headers, $body);
+        }
+        $val = 0;
+        if ($proxyUrl !== null) {
+            $val = $val + 1;
+        }
+        if ($proxyUrlCallback !== null) {
+            $val = $val + 1;
+        }
+        if ($httpProxy !== null) {
+            $val = $val + 1;
+        }
+        if ($httpProxyCallback !== null) {
+            $val = $val + 1;
+        }
+        if ($httpsProxy !== null) {
+            $val = $val + 1;
+        }
+        if ($httpsProxyCallback !== null) {
+            $val = $val + 1;
+        }
+        if ($socksProxy !== null) {
+            $val = $val + 1;
+        }
+        if ($socksProxyCallback !== null) {
+            $val = $val + 1;
+        }
+        if ($val > 1) {
+            throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : $proxyUrl, $httpProxy, $httpsProxy, $socksProxy, userAgent');
+        }
+        if (($val === 1) && ($this->proxy !== null)) {
+            throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, instead of deprecated .proxy please use from => $proxyUrl, $httpProxy, $httpsProxy, socksProxy');
+        }
+        return array( $proxyUrl, $httpProxy, $httpsProxy, $socksProxy );
+    }
+
     public function find_message_hashes($client, string $element) {
         $result = array();
         $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();

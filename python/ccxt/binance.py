@@ -7933,7 +7933,7 @@ class binance(Exchange, ImplicitAPI):
         id = self.safe_string(interest, 'symbol')
         amount = self.safe_number_2(interest, 'sumOpenInterest', 'openInterest')
         value = self.safe_number_2(interest, 'sumOpenInterestValue', 'sumOpenInterestUsd')
-        # Inverse returns the number of contracts different from the base or quote volume in self case
+        # Inverse returns the number of contracts different from the base or quote hasattr(self, volume) case
         # compared with https://www.binance.com/en/futures/funding-history/quarterly/4
         return {
             'symbol': self.safe_symbol(id, market, None, 'contract'),

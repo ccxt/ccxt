@@ -522,6 +522,52 @@ class Exchange(BaseExchange):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    def check_proxy_settings(self, url, method, headers, body):
+        proxyUrl = self.proxyUrl if (self.proxyUrl is not None) else self.proxy_url
+        proxyUrlCallback = self.proxyUrlCallback if (self.proxyUrlCallback is not None) else self.proxy_url_callback
+        if proxyUrlCallback is not None:
+            proxyUrl = proxyUrlCallback(url, method, headers, body)
+        # backwards-compatibility
+        if self.proxy is not None:
+            if callable(self.proxy):
+                proxyUrl = self.proxy(url, method, headers, body)
+            else:
+                proxyUrl = self.proxy
+        httpProxy = self.httpProxy if (self.httpProxy is not None) else self.http_proxy
+        httpProxyCallback = self.httpProxyCallback if (self.httpProxyCallback is not None) else self.http_proxy_callback
+        if httpProxyCallback is not None:
+            httpProxy = httpProxyCallback(url, method, headers, body)
+        httpsProxy = self.httpsProxy if (self.httpsProxy is not None) else self.https_proxy
+        httpsProxyCallback = self.httpsProxyCallback if (self.httpsProxyCallback is not None) else self.https_proxy_callback
+        if httpsProxyCallback is not None:
+            httpsProxy = httpsProxyCallback(url, method, headers, body)
+        socksProxy = self.socksProxy if (self.socksProxy is not None) else self.socks_proxy
+        socksProxyCallback = self.socksProxyCallback if (self.socksProxyCallback is not None) else self.socks_proxy_callback
+        if socksProxyCallback is not None:
+            socksProxy = socksProxyCallback(url, method, headers, body)
+        val = 0
+        if proxyUrl is not None:
+            val = val + 1
+        if proxyUrlCallback is not None:
+            val = val + 1
+        if httpProxy is not None:
+            val = val + 1
+        if httpProxyCallback is not None:
+            val = val + 1
+        if httpsProxy is not None:
+            val = val + 1
+        if httpsProxyCallback is not None:
+            val = val + 1
+        if socksProxy is not None:
+            val = val + 1
+        if socksProxyCallback is not None:
+            val = val + 1
+        if val > 1:
+            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy, userAgent')
+        if (val == 1) and (self.proxy is not None):
+            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, instead of deprecated .proxy please use from: proxyUrl, httpProxy, httpsProxy, socksProxy')
+        return [proxyUrl, httpProxy, httpsProxy, socksProxy]
+
     def find_message_hashes(self, client, element: str):
         result = []
         messageHashes = list(client.futures.keys())

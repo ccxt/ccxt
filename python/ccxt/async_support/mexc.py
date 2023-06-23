@@ -1842,7 +1842,7 @@ class mexc(Exchange, ImplicitAPI):
             #
             'type': type,
             'openType': openType,  # 1 isolated, 2 cross
-            # 'positionId': 1394650,  # long, filling in self parameter when closing a position is recommended
+            # 'positionId': 1394650,  # long, hasattr(self, filling) parameter when closing a position is recommended
             # 'externalOid': clientOrderId,
             # 'triggerPrice': 10.0,  # Required for trigger order
             # 'triggerType': 1,  # Required for trigger order 1: more than or equal, 2: less than or equal

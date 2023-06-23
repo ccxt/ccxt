@@ -970,7 +970,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'insufficientAvailableFunds': 'rejected',  # the order was not placed because available funds are insufficient
             'selfFill': 'rejected',  # the order was not placed because it would be filled against an existing order belonging to the same account
             'tooManySmallOrders': 'rejected',  # the order was not placed because the number of small open orders would exceed the permissible limit
-            'maxPositionViolation': 'rejected',  # Order would cause you to exceed your maximum position in self contract.
+            'maxPositionViolation': 'rejected',  # Order would cause you to exceed your maximum hasattr(self, position) contract.
             'marketSuspended': 'rejected',  # the order was not placed because the market is suspended
             'marketInactive': 'rejected',  # the order was not placed because the market is inactive
             'clientOrderIdAlreadyExist': 'rejected',  # the specified client id already exist
