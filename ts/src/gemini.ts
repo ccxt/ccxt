@@ -329,7 +329,7 @@ export default class gemini extends Exchange {
         //            ...
         //        ],
         //        "currencies": [
-        //            [ "ORCA", "Orca", 204, 6, 0, 6, 8, false, null, "solana" ],
+        //            [ "ORCA", "Orca", 204, 6, 0, 6, 8, false, null, "solana" ], // as confirmed, allmost all (except FIAT) have precision 8
         //            [ "ATOM", "Cosmos", 44, 6, 0, 6, 8, false, null, "cosmos" ],
         //            [ "ETH", "Ether", 2, 6, 0, 18, 8, false, null, "ethereum" ],
         //            [ "GBP", "Pound Sterling", 22, 2, 2, 2, 2, true, '£', null ],
@@ -352,7 +352,7 @@ export default class gemini extends Exchange {
             const id = this.safeString (currency, 0);
             const code = this.safeCurrencyCode (id);
             const type = this.safeString (currency, 7) ? 'fiat' : 'crypto';
-            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 3)));
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 6)));
             const networks = {};
             const networkId = this.safeString (currency, 9);
             const networkCode = this.networkIdToCode (networkId);
