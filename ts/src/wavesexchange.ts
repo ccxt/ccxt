@@ -2208,6 +2208,124 @@ export default class wavesexchange extends Exchange {
         }, market);
     }
 
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    {
+        //      "type": "deposit_currency",
+        //      "id": "WEST",
+        //      "platform_id": "WEST",
+        //      "waves_asset_id": "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8",
+        //      "platform_asset_id": "WEST",
+        //      "decimals": 8,
+        //      "status": "active",
+        //      "allowed_amount": {
+        //        "min": 0.1,
+        //        "max": 2000000
+        //      },
+        //      "fees": {
+        //        "flat": 0,
+        //        "rate": 0
+        //      }
+        //    }
+        //
+        //
+        //    {
+        //      "type": "withdrawal_currency",
+        //      "id": "BTC",
+        //      "platform_id": "BTC",
+        //      "waves_asset_id": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        //      "platform_asset_id": "BTC",
+        //      "decimals": 8,
+        //      "status": "inactive",
+        //      "allowed_amount": {
+        //        "min": 0.001,
+        //        "max": 10
+        //      },
+        //      "fees": {
+        //        "flat": 0.001,
+        //        "rate": 0
+        //      }
+        //    }
+        //
+    }
+
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://docs.waves.exchange/en/api/gateways/deposit/currencies
+         * @see https://docs.waves.exchange/en/api/gateways/deposit/currencies
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const responseDeposit = await this.privateGetDepositCurrencies (params);
+        const responseWithdraw = await this.privateGetWithdrawCurrencies (params);
+        //
+        //    {
+        //        "type": "list",
+        //        "page_info": {
+        //          "has_next_page": false,
+        //          "last_cursor": null
+        //        },
+        //        "items": [
+        //          {
+        //            "type": "deposit_currency",
+        //            "id": "WEST",
+        //            "platform_id": "WEST",
+        //            "waves_asset_id": "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8",
+        //            "platform_asset_id": "WEST",
+        //            "decimals": 8,
+        //            "status": "active",
+        //            "allowed_amount": {
+        //              "min": 0.1,
+        //              "max": 2000000
+        //            },
+        //            "fees": {
+        //              "flat": 0,
+        //              "rate": 0
+        //            }
+        //          },
+        //        ]
+        //    }
+        //
+        //
+        //    {
+        //        "type": "list",
+        //        "page_info": {
+        //          "has_next_page": false,
+        //          "last_cursor": null
+        //        },
+        //        "items": [
+        //          {
+        //            "type": "withdrawal_currency",
+        //            "id": "BTC",
+        //            "platform_id": "BTC",
+        //            "waves_asset_id": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        //            "platform_asset_id": "BTC",
+        //            "decimals": 8,
+        //            "status": "inactive",
+        //            "allowed_amount": {
+        //              "min": 0.001,
+        //              "max": 10
+        //            },
+        //            "fees": {
+        //              "flat": 0.001,
+        //              "rate": 0
+        //            }
+        //          },
+        //        ]
+        //    }
+        //
+        const itemsDeposit = this.safeValue (responseDeposit, 'items', {});
+        const itemsWithdraw = this.safeValue (responseWithdraw, 'items', {});
+        const items = itemsDeposit.concat(itemsWithdraw);
+        return this.parseDepositWithdrawFees (items, codes, 'id');
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString (response, 'error');
         const success = this.safeValue (response, 'success', true);
