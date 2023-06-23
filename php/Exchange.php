@@ -1184,20 +1184,6 @@ class Exchange {
         }
     }
 
-    public function set_sandbox_mode($enabled) {
-        if ($enabled) {
-            if (array_key_exists('test', $this->urls)) {
-                $this->urls['apiBackup'] = $this->urls['api'];
-                $this->urls['api'] = $this->urls['test'];
-            } else {
-                throw new NotSupported($this->id . ' does not have a sandbox URL');
-            }
-        } elseif (array_key_exists('apiBackup', $this->urls)) {
-            $this->urls['api'] = $this->urls['apiBackup'];
-            unset($this->urls['apiBackup']);
-        }
-    }
-
     public static function underscore($camelcase) {
         // conversion fooBar10OHLCV2Candles → foo_bar10_ohlcv2_candles
         $underscore = preg_replace_callback('/[a-z0-9][A-Z]/m', function ($x) {
@@ -2064,6 +2050,18 @@ class Exchange {
             }
         }
         return null;
+    }
+
+    function clone($obj) {
+        return is_array($obj) ? $obj : $this->extend($obj);
+    }
+
+    function deleteKeyFromDictionary ($dictionary, $key) {
+        unset($dictionary[$key]);
+    }
+
+    function setObjectProperty ($obj, $prop, $value) {
+        $obj->prop = $value;
     }
 
     function parse_to_big_int($value) {

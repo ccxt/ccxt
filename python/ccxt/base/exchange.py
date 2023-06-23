@@ -475,17 +475,6 @@ class Exchange(object):
     def describe(self):
         return {}
 
-    def set_sandbox_mode(self, enabled):
-        if enabled:
-            if 'test' in self.urls:
-                self.urls['apiBackup'] = self.urls['api']
-                self.urls['api'] = self.urls['test']
-            else:
-                raise NotSupported(self.id + ' does not have a sandbox URL')
-        elif 'apiBackup' in self.urls:
-            self.urls['api'] = self.urls['apiBackup']
-            del self.urls['apiBackup']
-
     def throttle(self, cost=None):
         now = float(self.milliseconds())
         elapsed = now - self.lastRestRequestTimestamp
@@ -1631,6 +1620,17 @@ class Exchange(object):
             if value == timeframe:
                 return key
         return None
+
+    def clone(self, obj):
+        return obj if isinstance(obj, list) else self.extend(obj)
+
+    def deleteKeyFromDictionary (self, dictionary, key):
+        newDictionary = self.clone(dictionary)
+        del newDictionary[key]
+        return newDictionary
+
+    def setObjectProperty (obj, prop, value):
+        obj[prop] = value
 
     def convert_to_big_int(self, value):
         return int(value) if isinstance(value, str) else value

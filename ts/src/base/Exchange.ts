@@ -793,28 +793,6 @@ export default class Exchange {
         return this.throttler.throttle (cost)
     }
 
-    setSandboxMode (enabled) {
-        if (!!enabled) { // eslint-disable-line no-extra-boolean-cast
-            if ('test' in this.urls) {
-                if (typeof this.urls['api'] === 'string') {
-                    this.urls['apiBackup'] = this.urls['api']
-                    this.urls['api'] = this.urls['test']
-                } else {
-                    this.urls['apiBackup'] = clone (this.urls['api'])
-                    this.urls['api'] = clone (this.urls['test'])
-                }
-            } else {
-                throw new NotSupported (this.id + ' does not have a sandbox URL')
-            }
-        } else if ('apiBackup' in this.urls) {
-            if (typeof this.urls['api'] === 'string') {
-                this.urls['api'] = this.urls['apiBackup'] as any
-            } else {
-                this.urls['api'] = clone (this.urls['apiBackup'])
-            }
-        }
-    }
-
     defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
         const splitPath = path.split (/[^a-zA-Z0-9]/)
         const camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
@@ -1337,6 +1315,16 @@ export default class Exchange {
         return -1;
     }
 
+    deleteKeyFromDictionary (dictionary, key) {
+        const newDictionary = this.clone (dictionary);
+        delete newDictionary[key];
+        return newDictionary;
+    }
+
+    setObjectProperty (obj, prop, value) {
+        obj[prop] = value;
+    }
+
     convertToBigInt(value: string) {
         return BigInt(value); // used on XT
     }
@@ -1534,6 +1522,30 @@ export default class Exchange {
             return result.slice (-limit);
         }
         return this.filterByLimit (result, limit, key);
+    }
+
+    setSandboxMode (enabled) {
+        if (enabled) {
+            if ('test' in this.urls) {
+                if (typeof this.urls['api'] === 'string') {
+                    this.urls['apiBackup'] = this.urls['api'];
+                    this.urls['api'] = this.urls['test'];
+                } else {
+                    this.urls['apiBackup'] = this.clone (this.urls['api']);
+                    this.urls['api'] = this.clone (this.urls['test']);
+                }
+            } else {
+                throw new NotSupported (this.id + ' does not have a sandbox URL');
+            }
+        } else if ('apiBackup' in this.urls) {
+            if (typeof this.urls['api'] === 'string') {
+                this.urls['api'] = this.urls['apiBackup'] as any;
+            } else {
+                this.urls['api'] = this.clone (this.urls['apiBackup']);
+            }
+            const newUrls = this.deleteKeyFromDictionary (this.urls, 'apiBackup');
+            this.setObjectProperty (this, 'urls', newUrls);
+        }
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
