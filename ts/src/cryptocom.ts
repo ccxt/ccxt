@@ -29,6 +29,7 @@ export default class cryptocom extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': true,
@@ -2487,6 +2488,89 @@ export default class cryptocom extends Exchange {
             'MANUAL_CONVERSION': 'conversion',
         };
         return this.safeString (ledgerType, type, type);
+    }
+
+    async fetchAccounts (params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchAccounts
+         * @description fetch all the accounts associated with a profile
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-accounts
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+         */
+        await this.loadMarkets ();
+        const response = await this.v1PrivatePostPrivateGetAccounts (params);
+        //
+        //     {
+        //         "id": 1234567894321,
+        //         "method": "private/get-accounts",
+        //         "code": 0,
+        //         "result": {
+        //             "master_account": {
+        //                 "uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //                 "user_uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //                 "enabled": true,
+        //                 "tradable": true,
+        //                 "name": "YOUR_NAME",
+        //                 "country_code": "CAN",
+        //                 "phone_country_code": "CAN",
+        //                 "incorp_country_code": "",
+        //                 "margin_access": "DEFAULT",
+        //                 "derivatives_access": "DEFAULT",
+        //                 "create_time": 1656445188000,
+        //                 "update_time": 1660794567262,
+        //                 "two_fa_enabled": true,
+        //                 "kyc_level": "ADVANCED",
+        //                 "suspended": false,
+        //                 "terminated": false,
+        //                 "spot_enabled": false,
+        //                 "margin_enabled": false,
+        //                 "derivatives_enabled": false
+        //             },
+        //             "sub_account_list": []
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const masterAccount = this.safeValue (result, 'master_account', {});
+        const accounts = this.safeValue (result, 'sub_account_list', []);
+        accounts.push (masterAccount);
+        return this.parseAccounts (accounts, params);
+    }
+
+    parseAccount (account) {
+        //
+        //     {
+        //         "uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //         "user_uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //         "master_account_uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //         "label": "FORMER_MASTER_MARGIN",
+        //         "enabled": true,
+        //         "tradable": true,
+        //         "name": "YOUR_NAME",
+        //         "country_code": "YOUR_COUNTRY_CODE",
+        //         "incorp_country_code": "",
+        //         "margin_access": "DEFAULT",
+        //         "derivatives_access": "DEFAULT",
+        //         "create_time": 1656481992000,
+        //         "update_time": 1667272884594,
+        //         "two_fa_enabled": false,
+        //         "kyc_level": "ADVANCED",
+        //         "suspended": false,
+        //         "terminated": false,
+        //         "spot_enabled": false,
+        //         "margin_enabled": false,
+        //         "derivatives_enabled": false,
+        //         "system_label": "FORMER_MASTER_MARGIN"
+        //     }
+        //
+        return {
+            'id': this.safeString (account, 'uuid'),
+            'type': this.safeString (account, 'label'),
+            'code': undefined,
+            'info': account,
+        };
     }
 
     nonce () {
