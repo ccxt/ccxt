@@ -124,7 +124,7 @@ const {
     , NetworkError
     , ExchangeNotAvailable
     , ArgumentsRequired
-    , RateLimitExceeded, 
+    , RateLimitExceeded,
     BadRequest} from "./errors.js"
 
 import { Precise } from './Precise.js'
@@ -875,7 +875,7 @@ export default class Exchange {
                 // @ts-ignore
                 module = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
             } catch (e) {
-                throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" '); 
+                throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" ');
             }
             this.agent = new module.SocksProxyAgent(socksProxy);
         }
@@ -1315,16 +1315,6 @@ export default class Exchange {
         return -1;
     }
 
-    deleteKeyFromDictionary (dictionary, key) {
-        const newDictionary = this.clone (dictionary);
-        delete newDictionary[key];
-        return newDictionary;
-    }
-
-    setObjectProperty (obj, prop, value) {
-        obj[prop] = value;
-    }
-
     convertToBigInt(value: string) {
         return BigInt(value); // used on XT
     }
@@ -1543,8 +1533,8 @@ export default class Exchange {
             } else {
                 this.urls['api'] = this.clone (this.urls['apiBackup']);
             }
-            const newUrls = this.deleteKeyFromDictionary (this.urls, 'apiBackup');
-            this.setObjectProperty (this, 'urls', newUrls);
+            const newUrls = this.omit (this.urls, 'apiBackup');
+            this.urls = newUrls;
         }
     }
 

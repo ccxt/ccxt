@@ -1624,13 +1624,13 @@ class Exchange(object):
     def clone(self, obj):
         return obj if isinstance(obj, list) else self.extend(obj)
 
-    def deleteKeyFromDictionary (self, dictionary, key):
-        newDictionary = self.clone(dictionary)
-        del newDictionary[key]
-        return newDictionary
+    # def delete_key_from_dictionary(self, dictionary, key):
+    #     newDictionary = self.clone(dictionary)
+    #     del newDictionary[key]
+    #     return newDictionary
 
-    def setObjectProperty (obj, prop, value):
-        obj[prop] = value
+    # def set_object_property(obj, prop, value):
+    #     obj[prop] = value
 
     def convert_to_big_int(self, value):
         return int(value) if isinstance(value, str) else value
@@ -1787,6 +1787,25 @@ class Exchange(object):
         if tail:
             return result[-limit:]
         return self.filter_by_limit(result, limit, key)
+
+    def set_sandbox_mode(self, enabled):
+        if enabled:
+            if 'test' in self.urls:
+                if isinstance(self.urls['api'], str):
+                    self.urls['apiBackup'] = self.urls['api']
+                    self.urls['api'] = self.urls['test']
+                else:
+                    self.urls['apiBackup'] = self.clone(self.urls['api'])
+                    self.urls['api'] = self.clone(self.urls['test'])
+            else:
+                raise NotSupported(self.id + ' does not have a sandbox URL')
+        elif 'apiBackup' in self.urls:
+            if isinstance(self.urls['api'], str):
+                self.urls['api'] = self.urls['apiBackup']
+            else:
+                self.urls['api'] = self.clone(self.urls['apiBackup'])
+            newUrls = self.omit(self.urls, 'apiBackup')
+            self.urls = newUrls
 
     def sign(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None):
         return {}
