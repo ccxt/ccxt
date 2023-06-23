@@ -2381,7 +2381,7 @@ export default class Exchange {
         } catch (e) {
             errorMessage = e.toString ();
         }
-        throw new NotSupported (this.id + ' ' + method + '() failed to fetch correct data from website. Probably HTML markup has been changed, breaking the parser. ' + errorMessage);
+        throw new NotSupported (this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.' + errorMessage);
     }
 
     marketIds (symbols) {
