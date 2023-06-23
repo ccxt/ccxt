@@ -55,7 +55,7 @@ export default class kucoin extends Exchange {
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': true,
-                'fetchDepositWithdrawFees': false,
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -745,6 +745,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://docs.kucoin.com/#get-currencies
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -918,10 +919,10 @@ export default class kucoin extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        return this.parseDepositWithdrawFee (data, currency);
+        return this.parseDepositWithdrawSingleFee (data, currency);
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawSingleFee (fee, currency = undefined) {
         //
         //    {
         //        "currency": "USDT",
@@ -954,6 +955,43 @@ export default class kucoin extends Exchange {
             };
         }
         return this.assignDefaultDepositWithdrawFees (result);
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //   {
+        //       currency: 'ETH',
+        //       name: 'ETH',
+        //       fullName: 'Ethereum',
+        //       precision: 8,
+        //       confirms: 64,
+        //       contractAddress: '',
+        //       withdrawalMinSize: '0.01',
+        //       withdrawalMinFee: '0.005',
+        //       isWithdrawEnabled: true,
+        //       isDepositEnabled: true,
+        //       isMarginEnabled: true,
+        //       isDebitEnabled: true
+        //   }
+        //
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+        const isWithdrawEnabled = this.safeValue (fee, 'isWithdrawEnabled');
+        if (isWithdrawEnabled) {
+            result['withdraw']['fee'] = this.safeNumber (fee, 'withdrawalMinFee');
+            result['withdraw']['percentage'] = false;
+        }
+        return result;
     }
 
     isFuturesMethod (methodName, params) {
@@ -3731,6 +3769,40 @@ export default class kucoin extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': info,
         };
+    }
+
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get more in-depth info
+         * @see https://docs.kucoin.com/#get-currencies
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetCurrencies (params);
+        //
+        //  [
+        //      {
+        //        "currency": "CSP",
+        //        "name": "CSP",
+        //        "fullName": "Caspian",
+        //        "precision": 8,
+        //        "confirms": 12,
+        //        "contractAddress": "0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
+        //        "withdrawalMinSize": "2000",
+        //        "withdrawalMinFee": "1000",
+        //        "isWithdrawEnabled": true,
+        //        "isDepositEnabled": true,
+        //        "isMarginEnabled": false,
+        //        "isDebitEnabled": false
+        //      },
+        //  ]
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
