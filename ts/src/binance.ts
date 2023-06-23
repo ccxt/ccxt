@@ -295,6 +295,7 @@ export default class binance extends Exchange {
                         'managed-subaccount/marginAsset': 0.1,
                         'managed-subaccount/info': 0.4,
                         'managed-subaccount/deposit/address': 0.1,
+                        'managed-subaccount/query-trans-log': 0.40002,
                         // lending endpoints
                         'lending/daily/product/list': 0.1,
                         'lending/daily/userLeftQuota': 0.1,
@@ -425,6 +426,7 @@ export default class binance extends Exchange {
                         'sub-account/transfer/subToSub': 0.1,
                         'sub-account/transfer/subToMaster': 0.1,
                         'sub-account/universalTransfer': 0.1,
+                        'sub-account/options/enable': 0.1,
                         // v2 not supported yet
                         // 'sub-account/subAccountApi/ipRestriction': 20,
                         'managed-subaccount/deposit': 0.1,
