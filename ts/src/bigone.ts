@@ -536,7 +536,7 @@ export default class bigone extends Exchange {
                 // fill global values
                 currencyDepositEnabled = (currencyDepositEnabled === undefined) || deposit ? deposit : currencyDepositEnabled;
                 currencyWithdrawEnabled = (currencyWithdrawEnabled === undefined) || withdraw ? withdraw : currencyWithdrawEnabled;
-                currencyMaxPrecision = (currencyMaxPrecision === undefined || Precise.stringGt (currencyMaxPrecision, precision)) ? precision : currencyMaxPrecision;
+                currencyMaxPrecision = (currencyMaxPrecision === undefined) || Precise.stringGt (currencyMaxPrecision, precision) ? precision : currencyMaxPrecision;
             }
             result[code] = {
                 'id': id,
