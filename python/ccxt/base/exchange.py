@@ -1624,14 +1624,6 @@ class Exchange(object):
     def clone(self, obj):
         return obj if isinstance(obj, list) else self.extend(obj)
 
-    # def delete_key_from_dictionary(self, dictionary, key):
-    #     newDictionary = self.clone(dictionary)
-    #     del newDictionary[key]
-    #     return newDictionary
-
-    # def set_object_property(obj, prop, value):
-    #     obj[prop] = value
-
     def convert_to_big_int(self, value):
         return int(value) if isinstance(value, str) else value
 
