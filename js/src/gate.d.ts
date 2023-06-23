@@ -162,7 +162,7 @@ export default class gate extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     parseBalanceHelper(entry: any): import("./base/types.js").Balance;
     fetchBalance(params?: {}): Promise<{
         info: any;

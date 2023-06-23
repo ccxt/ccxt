@@ -57,6 +57,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchMarginMode': False,
@@ -1786,7 +1787,7 @@ class poloniex(Exchange, ImplicitAPI):
 
     def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        fetch history of deposits and withdrawals
+        *DEPRECATED* use fetchDepositsWithdrawals instead
         see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
         :param str|None code: unified currency code for the currency of the transactions, default is None
         :param int|None since: timestamp in ms of the earliest transaction, default is None

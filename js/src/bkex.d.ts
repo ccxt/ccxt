@@ -15,7 +15,7 @@ export default class bkex extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;

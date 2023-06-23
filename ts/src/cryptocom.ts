@@ -29,6 +29,7 @@ export default class cryptocom extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': true,
@@ -41,11 +42,13 @@ export default class cryptocom extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRates': false,
+                'fetchLedger': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -554,38 +557,50 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
-         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
         let market = undefined;
+        const request = {};
         if (symbols !== undefined) {
-            const symbol = this.safeValue (symbols, 0);
+            let symbol = undefined;
+            if (Array.isArray (symbols)) {
+                const symbolsLength = symbols.length;
+                if (symbolsLength > 1) {
+                    throw new BadRequest (this.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol');
+                }
+                symbol = symbols[0];
+            } else {
+                symbol = symbols;
+            }
             market = this.market (symbol);
+            request['instrument_name'] = market['id'];
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'v2PublicGetPublicGetTicker',
-            'future': 'derivativesPublicGetPublicGetTickers',
-            'swap': 'derivativesPublicGetPublicGetTickers',
-        });
-        const response = await this[method] (query);
+        const response = await this.v1PublicGetPublicGetTickers (this.extend (request, params));
         //
         //     {
-        //         "code":0,
-        //         "method":"public/get-ticker",
-        //         "result":{
-        //         "data": [
-        //             {"i":"CRO_BTC","b":0.00000890,"k":0.00001179,"a":0.00001042,"t":1591770793901,"v":14905879.59,"h":0.00,"l":0.00,"c":0.00},
-        //             {"i":"EOS_USDT","b":2.7676,"k":2.7776,"a":2.7693,"t":1591770798500,"v":774.51,"h":0.05,"l":0.05,"c":0.00},
-        //             {"i":"BCH_USDT","b":247.49,"k":251.73,"a":251.67,"t":1591770797601,"v":1.01693,"h":0.01292,"l":0.01231,"c":-0.00047},
-        //             {"i":"ETH_USDT","b":239.92,"k":242.59,"a":240.30,"t":1591770798701,"v":0.97575,"h":0.01236,"l":0.01199,"c":-0.00018},
-        //             {"i":"ETH_CRO","b":2693.11,"k":2699.84,"a":2699.55,"t":1591770795053,"v":95.680,"h":8.218,"l":7.853,"c":-0.050}
-        //         ]
+        //         "id": -1,
+        //         "method": "public/get-tickers",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "i": "AVAXUSD-PERP",
+        //                     "h": "13.209",
+        //                     "l": "12.148",
+        //                     "a": "13.209",
+        //                     "v": "1109.8",
+        //                     "vv": "14017.33",
+        //                     "c": "0.0732",
+        //                     "b": "13.210",
+        //                     "k": "13.230",
+        //                     "oi": "10888.9",
+        //                     "t": 1687402657575
+        //                 },
+        //             ]
         //         }
         //     }
         //
@@ -598,36 +613,16 @@ export default class cryptocom extends Exchange {
         /**
          * @method
          * @name cryptocom#fetchTicker
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'instrument_name': market['id'],
-        };
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
-        if (marketType !== 'spot') {
-            throw new NotSupported (this.id + ' fetchTicker() only supports spot markets');
-        }
-        const response = await this.v2PublicGetPublicGetTicker (this.extend (request, query));
-        //
-        //   {
-        //       "id":"-1",
-        //       "method":"public/get-tickers",
-        //       "code":"0",
-        //       "result":{
-        //          "data":[
-        //             { "i":"BTC_USDT", "h":"20567.16", "l":"20341.39", "a":"20394.23", "v":"2236.3762", "vv":"45739074.30", "c":"-0.0036", "b":"20394.01", "k":"20394.02", "t":"1667406085934" }
-        //          ]
-        //   }
-        //
-        const resultResponse = this.safeValue (response, 'result', {});
-        const data = this.safeValue (resultResponse, 'data', {});
-        const first = this.safeValue (data, 0, {});
-        return this.parseTicker (first, market);
+        symbol = this.symbol (symbol);
+        const tickers = await this.fetchTickers ([ symbol ], params);
+        return this.safeValue (tickers, symbol);
     }
 
     async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -823,8 +818,9 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {int|undefined} limit the number of order book entries to return, max 50
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
@@ -836,24 +832,27 @@ export default class cryptocom extends Exchange {
         if (limit) {
             request['depth'] = limit;
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'v2PublicGetPublicGetBook',
-            'future': 'derivativesPublicGetPublicGetBook',
-            'swap': 'derivativesPublicGetPublicGetBook',
-        });
-        const response = await this[method] (this.extend (request, query));
-        // {
-        //     "code":0,
-        //     "method":"public/get-book",
-        //     "result":{
-        //       "bids":[[9668.44,0.006325,1.0],[9659.75,0.006776,1.0],[9653.14,0.011795,1.0],[9647.13,0.019434,1.0],[9634.62,0.013765,1.0],[9633.81,0.021395,1.0],[9628.46,0.037834,1.0],[9627.6,0.020909,1.0],[9621.51,0.026235,1.0],[9620.83,0.026701,1.0]],
-        //       "asks":[[9697.0,0.68251,1.0],[9697.6,1.722864,2.0],[9699.2,1.664177,2.0],[9700.8,1.824953,2.0],[9702.4,0.85778,1.0],[9704.0,0.935792,1.0],[9713.32,0.002926,1.0],[9716.42,0.78923,1.0],[9732.19,0.00645,1.0],[9737.88,0.020216,1.0]],
-        //       "t":1591704180270
+        const response = await this.v1PublicGetPublicGetBook (this.extend (request, params));
+        //
+        //     {
+        //         "id": -1,
+        //         "method": "public/get-book",
+        //         "code": 0,
+        //         "result": {
+        //             "depth": 3,
+        //             "data": [
+        //                 {
+        //                     "bids": [ [ "30025.00", "0.00004", "1" ], [ "30020.15", "0.02498", "1" ], [ "30020.00", "0.00004", "1" ] ],
+        //                     "asks": [ [ "30025.01", "0.04090", "1" ], [ "30025.70", "0.01000", "1" ], [ "30026.94", "0.02681", "1" ] ],
+        //                     "t": 1687491287380
+        //                 }
+        //             ],
+        //             "instrument_name": "BTC_USD"
+        //         }
         //     }
-        // }
-        const result = this.safeValue (response, 'result');
-        const data = this.safeValue (result, 'data');
+        //
+        const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'data', []);
         const orderBook = this.safeValue (data, 0);
         const timestamp = this.safeInteger (orderBook, 't');
         return this.parseOrderBook (orderBook, symbol, timestamp);
@@ -994,12 +993,18 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#createOrder
          * @description create a trade order
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {string|undefined} params.timeInForce 'GTC', 'IOC', 'FOK' or 'PO'
+         * @param {string|undefined} params.ref_price_type 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
+         * @param {float|undefined} params.stopPrice price to trigger a stop order
+         * @param {float|undefined} params.stopLossPrice price to trigger a stop-loss trigger order
+         * @param {float|undefined} params.takeProfitPrice price to trigger a take-profit trigger order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1008,43 +1013,111 @@ export default class cryptocom extends Exchange {
         const request = {
             'instrument_name': market['id'],
             'side': side.toUpperCase (),
-            'type': uppercaseType,
             'quantity': this.amountToPrecision (symbol, amount),
         };
-        if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
+        if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const broker = this.safeString (this.options, 'broker', 'CCXT_');
-        let clientOrderId = this.safeString (params, 'clientOrderId');
+        let clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_oid');
         if (clientOrderId === undefined) {
             clientOrderId = broker + this.uuid22 ();
         }
         request['client_oid'] = clientOrderId;
+        let marketType = undefined;
+        let marginMode = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        [ marginMode, params ] = this.customHandleMarginModeAndParams ('createOrder', params);
+        if ((marketType === 'margin') || (marginMode !== undefined)) {
+            request['spot_margin'] = 'MARGIN';
+        } else if (marketType === 'spot') {
+            request['spot_margin'] = 'SPOT';
+        }
+        const timeInForce = this.safeStringUpper2 (params, 'timeInForce', 'time_in_force');
+        if (timeInForce !== undefined) {
+            if (timeInForce === 'GTC') {
+                request['time_in_force'] = 'GOOD_TILL_CANCEL';
+            } else if (timeInForce === 'IOC') {
+                request['time_in_force'] = 'IMMEDIATE_OR_CANCEL';
+            } else if (timeInForce === 'FOK') {
+                request['time_in_force'] = 'FILL_OR_KILL';
+            } else {
+                request['time_in_force'] = timeInForce;
+            }
+        }
         const postOnly = this.safeValue (params, 'postOnly', false);
-        if (postOnly) {
+        if ((postOnly) || (timeInForce === 'PO')) {
             request['exec_inst'] = 'POST_ONLY';
+            request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
-        params = this.omit (params, [ 'postOnly', 'clientOrderId' ]);
-        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'v2PrivatePostPrivateCreateOrder',
-            'margin': 'v2PrivatePostPrivateMarginCreateOrder',
-            'future': 'derivativesPrivatePostPrivateCreateOrder',
-            'swap': 'derivativesPrivatePostPrivateCreateOrder',
-        });
-        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('createOrder', marketTypeQuery);
-        if (marginMode !== undefined) {
-            method = 'v2PrivatePostPrivateMarginCreateOrder';
+        const triggerPrice = this.safeStringN (params, [ 'stopPrice', 'triggerPrice', 'ref_price' ]);
+        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
+        const isTrigger = (triggerPrice !== undefined);
+        const isStopLossTrigger = (stopLossPrice !== undefined);
+        const isTakeProfitTrigger = (takeProfitPrice !== undefined);
+        if (isTrigger) {
+            request['ref_price'] = this.priceToPrecision (symbol, triggerPrice);
+            price = price.toString ();
+            if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                if (side === 'buy') {
+                    if (Precise.stringLt (price, triggerPrice)) {
+                        request['type'] = 'TAKE_PROFIT_LIMIT';
+                    } else {
+                        request['type'] = 'STOP_LIMIT';
+                    }
+                } else {
+                    if (Precise.stringLt (price, triggerPrice)) {
+                        request['type'] = 'STOP_LIMIT';
+                    } else {
+                        request['type'] = 'TAKE_PROFIT_LIMIT';
+                    }
+                }
+            } else {
+                if (side === 'buy') {
+                    if (Precise.stringLt (price, triggerPrice)) {
+                        request['type'] = 'TAKE_PROFIT';
+                    } else {
+                        request['type'] = 'STOP_LOSS';
+                    }
+                } else {
+                    if (Precise.stringLt (price, triggerPrice)) {
+                        request['type'] = 'STOP_LOSS';
+                    } else {
+                        request['type'] = 'TAKE_PROFIT';
+                    }
+                }
+            }
+        } else if (isStopLossTrigger) {
+            if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
+                request['type'] = 'STOP_LIMIT';
+            } else {
+                request['type'] = 'STOP_LOSS';
+            }
+            request['ref_price'] = this.priceToPrecision (symbol, stopLossPrice);
+        } else if (isTakeProfitTrigger) {
+            if ((uppercaseType === 'LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                request['type'] = 'TAKE_PROFIT_LIMIT';
+            } else {
+                request['type'] = 'TAKE_PROFIT';
+            }
+            request['ref_price'] = this.priceToPrecision (symbol, takeProfitPrice);
+        } else {
+            request['type'] = uppercaseType;
         }
-        const response = await this[method] (this.extend (request, query));
-        // {
-        //     "id": 11,
-        //     "method": "private/create-order",
-        //     "result": {
-        //       "order_id": "337843775021233500",
-        //       "client_oid": "my_order_0002"
+        params = this.omit (params, [ 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const response = await this.v1PrivatePostPrivateCreateOrder (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1686804664362,
+        //         "method": "private/create-order",
+        //         "code" : 0,
+        //         "result": {
+        //             "order_id": "6540219377766741832",
+        //             "client_oid": "CCXT_d6ef7c3db6c1495aa8b757"
+        //         }
         //     }
-        // }
+        //
         const result = this.safeValue (response, 'result', {});
         return this.parseOrder (result, market);
     }
@@ -1680,43 +1753,62 @@ export default class cryptocom extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        // {
-        //     "i":"CRO_BTC",
-        //     "b":0.00000890,
-        //     "k":0.00001179,
-        //     "a":0.00001042,
-        //     "t":1591770793901,
-        //     "v":14905879.59,
-        //     "h":0.00,
-        //     "l":0.00,
-        //     "c":0.00
-        // }
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "i": "BTC_USD",
+        //         "h": "30821.45",
+        //         "l": "28685.11",
+        //         "a": "30446.00",
+        //         "v": "1767.8734",
+        //         "vv": "52436726.42",
+        //         "c": "0.0583",
+        //         "b": "30442.00",
+        //         "k": "30447.66",
+        //         "t": 1687403045415
+        //     }
+        //
+        // fetchTickers
+        //
+        //     {
+        //         "i": "AVAXUSD-PERP",
+        //         "h": "13.209",
+        //         "l": "12.148",
+        //         "a": "13.209",
+        //         "v": "1109.8",
+        //         "vv": "14017.33",
+        //         "c": "0.0732",
+        //         "b": "13.210",
+        //         "k": "13.230",
+        //         "oi": "10888.9",
+        //         "t": 1687402657575
+        //     }
+        //
         const timestamp = this.safeInteger (ticker, 't');
         const marketId = this.safeString (ticker, 'i');
         market = this.safeMarket (marketId, market, '_');
-        const symbol = market['symbol'];
         const last = this.safeString (ticker, 'a');
-        const relativeChange = this.safeString (ticker, 'c');
         return this.safeTicker ({
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'h'),
-            'low': this.safeString (ticker, 'l'),
-            'bid': this.safeString (ticker, 'b'),
+            'high': this.safeNumber (ticker, 'h'),
+            'low': this.safeNumber (ticker, 'l'),
+            'bid': this.safeNumber (ticker, 'b'),
             'bidVolume': undefined,
-            'ask': this.safeString (ticker, 'k'),
+            'ask': this.safeNumber (ticker, 'k'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': relativeChange,
+            'change': this.safeString (ticker, 'c'),
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'v'),
-            'quoteVolume': undefined,
+            'quoteVolume': this.safeString (ticker, 'vv'),
             'info': ticker,
         }, market);
     }
@@ -2314,7 +2406,7 @@ export default class cryptocom extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchDepositWithdrawFees
@@ -2329,6 +2421,234 @@ export default class cryptocom extends Exchange {
         const data = this.safeValue (response, 'result');
         const currencyMap = this.safeValue (data, 'currency_map');
         return this.parseDepositWithdrawFees (currencyMap, codes, 'full_name');
+    }
+
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry
+         * @param {int|undefined} limit max number of ledger entries to return
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {int|undefined} params.until timestamp in ms for the ending date filter, default is the current time
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
+        if (until !== undefined) {
+            request['end_time'] = until;
+        }
+        const response = await this.v1PrivatePostPrivateGetTransactions (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1686813195698,
+        //         "method": "private/get-transactions",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "account_id": "ce075cef-1234-4321-bd6e-gf9007351e64",
+        //                     "event_date": "2023-06-15",
+        //                     "journal_type": "TRADING",
+        //                     "journal_id": "6530219460124075091",
+        //                     "transaction_qty": "6.0091224",
+        //                     "transaction_cost": "6.0091224",
+        //                     "realized_pnl": "0",
+        //                     "order_id": "6530219477766741833",
+        //                     "trade_id": "6530219495775954765",
+        //                     "trade_match_id": "4611686018455865176",
+        //                     "event_timestamp_ms": 1686804665013,
+        //                     "event_timestamp_ns": "1686804665013642422",
+        //                     "client_oid": "CCXT_d6ea7c5db6c1495aa8b758",
+        //                     "taker_side": "",
+        //                     "side": "BUY",
+        //                     "instrument_name": "USD"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const ledger = this.safeValue (result, 'data', []);
+        return this.parseLedger (ledger, currency, since, limit);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //     {
+        //         "account_id": "ce075cef-1234-4321-bd6e-gf9007351e64",
+        //         "event_date": "2023-06-15",
+        //         "journal_type": "TRADING",
+        //         "journal_id": "6530219460124075091",
+        //         "transaction_qty": "6.0091224",
+        //         "transaction_cost": "6.0091224",
+        //         "realized_pnl": "0",
+        //         "order_id": "6530219477766741833",
+        //         "trade_id": "6530219495775954765",
+        //         "trade_match_id": "4611686018455865176",
+        //         "event_timestamp_ms": 1686804665013,
+        //         "event_timestamp_ns": "1686804665013642422",
+        //         "client_oid": "CCXT_d6ea7c5db6c1495aa8b758",
+        //         "taker_side": "",
+        //         "side": "BUY",
+        //         "instrument_name": "USD"
+        //     }
+        //
+        const timestamp = this.safeInteger (item, 'event_timestamp_ms');
+        const currencyId = this.safeString (item, 'instrument_name');
+        let amount = this.safeString (item, 'transaction_qty');
+        let direction = undefined;
+        if (Precise.stringLt (amount, '0')) {
+            direction = 'out';
+            amount = Precise.stringAbs (amount);
+        } else {
+            direction = 'in';
+        }
+        return {
+            'id': this.safeString (item, 'order_id'),
+            'direction': direction,
+            'account': this.safeString (item, 'account_id'),
+            'referenceId': this.safeString (item, 'trade_id'),
+            'referenceAccount': this.safeString (item, 'trade_match_id'),
+            'type': this.parseLedgerEntryType (this.safeString (item, 'journal_type')),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.parseNumber (amount),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'before': undefined,
+            'after': undefined,
+            'status': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': undefined,
+            },
+            'info': item,
+        };
+    }
+
+    parseLedgerEntryType (type) {
+        const ledgerType = {
+            'TRADING': 'trade',
+            'TRADE_FEE': 'fee',
+            'WITHDRAW_FEE': 'fee',
+            'WITHDRAW': 'withdrawal',
+            'DEPOSIT': 'deposit',
+            'ROLLBACK_WITHDRAW': 'rollback',
+            'ROLLBACK_DEPOSIT': 'rollback',
+            'FUNDING': 'fee',
+            'REALIZED_PNL': 'trade',
+            'INSURANCE_FUND': 'insurance',
+            'SOCIALIZED_LOSS': 'trade',
+            'LIQUIDATION_FEE': 'fee',
+            'SESSION_RESET': 'reset',
+            'ADJUSTMENT': 'adjustment',
+            'SESSION_SETTLE': 'settlement',
+            'UNCOVERED_LOSS': 'trade',
+            'ADMIN_ADJUSTMENT': 'adjustment',
+            'DELIST': 'delist',
+            'SETTLEMENT_FEE': 'fee',
+            'AUTO_CONVERSION': 'conversion',
+            'MANUAL_CONVERSION': 'conversion',
+        };
+        return this.safeString (ledgerType, type, type);
+    }
+
+    async fetchAccounts (params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchAccounts
+         * @description fetch all the accounts associated with a profile
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-accounts
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+         */
+        await this.loadMarkets ();
+        const response = await this.v1PrivatePostPrivateGetAccounts (params);
+        //
+        //     {
+        //         "id": 1234567894321,
+        //         "method": "private/get-accounts",
+        //         "code": 0,
+        //         "result": {
+        //             "master_account": {
+        //                 "uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //                 "user_uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //                 "enabled": true,
+        //                 "tradable": true,
+        //                 "name": "YOUR_NAME",
+        //                 "country_code": "CAN",
+        //                 "phone_country_code": "CAN",
+        //                 "incorp_country_code": "",
+        //                 "margin_access": "DEFAULT",
+        //                 "derivatives_access": "DEFAULT",
+        //                 "create_time": 1656445188000,
+        //                 "update_time": 1660794567262,
+        //                 "two_fa_enabled": true,
+        //                 "kyc_level": "ADVANCED",
+        //                 "suspended": false,
+        //                 "terminated": false,
+        //                 "spot_enabled": false,
+        //                 "margin_enabled": false,
+        //                 "derivatives_enabled": false
+        //             },
+        //             "sub_account_list": []
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const masterAccount = this.safeValue (result, 'master_account', {});
+        const accounts = this.safeValue (result, 'sub_account_list', []);
+        accounts.push (masterAccount);
+        return this.parseAccounts (accounts, params);
+    }
+
+    parseAccount (account) {
+        //
+        //     {
+        //         "uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //         "user_uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //         "master_account_uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //         "label": "FORMER_MASTER_MARGIN",
+        //         "enabled": true,
+        //         "tradable": true,
+        //         "name": "YOUR_NAME",
+        //         "country_code": "YOUR_COUNTRY_CODE",
+        //         "incorp_country_code": "",
+        //         "margin_access": "DEFAULT",
+        //         "derivatives_access": "DEFAULT",
+        //         "create_time": 1656481992000,
+        //         "update_time": 1667272884594,
+        //         "two_fa_enabled": false,
+        //         "kyc_level": "ADVANCED",
+        //         "suspended": false,
+        //         "terminated": false,
+        //         "spot_enabled": false,
+        //         "margin_enabled": false,
+        //         "derivatives_enabled": false,
+        //         "system_label": "FORMER_MASTER_MARGIN"
+        //     }
+        //
+        return {
+            'id': this.safeString (account, 'uuid'),
+            'type': this.safeString (account, 'label'),
+            'code': undefined,
+            'info': account,
+        };
     }
 
     nonce () {

@@ -41,6 +41,7 @@ class poloniex extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchMarginMode' => false,
@@ -1903,7 +1904,7 @@ class poloniex extends Exchange {
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch history of $deposits and $withdrawals
+             * *DEPRECATED* use fetchDepositsWithdrawals instead
              * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
              * @param {string|null} $code unified $currency $code for the $currency of the $transactions, default is null
              * @param {int|null} $since timestamp in ms of the earliest transaction, default is null

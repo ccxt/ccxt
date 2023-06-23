@@ -461,7 +461,7 @@ class xt extends Exchange {
                     'WITHDRAW_005' => '\\ccxt\\BadRequest', // The withdrawal address cannot be empty
                     'WITHDRAW_006' => '\\ccxt\\BadRequest', // Memo cannot be empty
                     'WITHDRAW_008' => '\\ccxt\\PermissionDenied', // Risk control is triggered, withdraw of this currency is not currently supported
-                    'WITHDRAW_009' => '\\ccxt\\PermissionDenied', // Withdraw failed, some assets in this withdraw are restricted by T+1 withdraw
+                    'WITHDRAW_009' => '\\ccxt\\PermissionDenied', // Withdraw failed, some property_exists($this, assets) withdraw are restricted by T+1 withdraw
                     'WITHDRAW_010' => '\\ccxt\\BadRequest', // The precision of withdrawal is invalid
                     'WITHDRAW_011' => '\\ccxt\\InsufficientFunds', // free balance is not enough
                     'WITHDRAW_012' => '\\ccxt\\PermissionDenied', // Withdraw failed, your remaining withdrawal limit today is not enough
@@ -3284,13 +3284,15 @@ class xt extends Exchange {
         $amount = ($marketType === 'spot') ? $quantity : Precise::string_mul($this->number_to_string($quantity), $this->number_to_string($market['contractSize']));
         $filledQuantity = $this->safe_number($order, 'executedQty');
         $filled = ($marketType === 'spot') ? $filledQuantity : Precise::string_mul($this->number_to_string($filledQuantity), $this->number_to_string($market['contractSize']));
+        $lastUpdatedTimestamp = $this->safe_integer($order, 'updatedTime');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string_n($order, array( 'orderId', 'result', 'cancelId', 'entrustId', 'profitId' )),
             'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $this->safe_integer($order, 'updatedTime'),
+            'lastTradeTimestamp' => $lastUpdatedTimestamp,
+            'lastUpdateTimestamp' => $lastUpdatedTimestamp,
             'symbol' => $symbol,
             'type' => $this->safe_string_lower_2($order, 'type', 'orderType'),
             'timeInForce' => $this->safe_string($order, 'timeInForce'),

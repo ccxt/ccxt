@@ -61,6 +61,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
@@ -1401,7 +1402,7 @@ class bitstamp(Exchange, ImplicitAPI):
 
     def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        fetch history of deposits and withdrawals
+        *DEPRECATED* use fetchDepositsWithdrawals instead
         :param str|None code: unified currency code for the currency of the transactions, default is None
         :param int|None since: timestamp in ms of the earliest transaction, default is None
         :param int|None limit: max number of transactions to return, default is None

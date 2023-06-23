@@ -3734,7 +3734,7 @@ export default class digifinex extends Exchange {
         return [ marginMode, params ];
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchDepositWithdrawFees

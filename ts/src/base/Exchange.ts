@@ -124,7 +124,7 @@ const {
     , NetworkError
     , ExchangeNotAvailable
     , ArgumentsRequired
-    , RateLimitExceeded, 
+    , RateLimitExceeded,
     BadRequest} from "./errors.js"
 
 import { Precise } from './Precise.js'
@@ -151,18 +151,39 @@ export default class Exchange {
     options: {
         [key: string]: any;
     }
-    userAgents: any;
-    headers: any;
-
-    httpAgent = undefined
-    httpsAgent = undefined
-    agent = undefined
 
     api = undefined
 
-    // prepended to URL, like https://proxy.com/https://exchange.com/api...
-    proxy = ''
+    // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
+    proxy: any; // maintained for backwards compatibility, no-one should use it from now on
+    proxyUrl: string;
+    proxy_url: string;
+    proxyUrlCallback: any;
+    proxy_url_callback: any;
+    httpProxy: string;
+    http_proxy: string;
+    httpProxyCallback: any;
+    http_proxy_callback: any;
+    httpsProxy: string;
+    https_proxy: string;
+    httpsProxyCallback: any;
+    https_proxy_callback: any;
+    socksProxy: string;
+    socks_proxy: string;
+    socksProxyCallback: any;
+    socks_proxy_callback: any;
+    userAgent: { 'User-Agent': string } | false = undefined;
+    user_agent: { 'User-Agent': string } | false = undefined;
+    //
+    userAgents: any = {
+        'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
+        'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
+        'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
+    };
+    headers: any = {};
     origin = '*' // CORS origin
+    //
+    agent = undefined; // maintained for backwards compatibility
 
     minFundingAddressLength = 1 // used in checkAddress
     substituteCommonCurrencyCodes = true  // reserved
@@ -183,8 +204,6 @@ export default class Exchange {
 
     timeout       = 10000 // milliseconds
     verbose       = false
-    debug         = false
-    userAgent: { 'User-Agent': string } | false = undefined;
     twofa         = undefined // two-factor authentication (2FA)
 
     apiKey: string;
@@ -457,6 +476,7 @@ export default class Exchange {
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': undefined,
                 'fetchDeposits': undefined,
+                'fetchDepositsWithdrawals': undefined,
                 'fetchTransactionFee': undefined,
                 'fetchTransactionFees': undefined,
                 'fetchFundingHistory': undefined,
@@ -612,14 +632,7 @@ export default class Exchange {
         this.options = this.getDefaultOptions(); // exchange-specific options, if any
         // fetch implementation options (JS only)
         // http properties
-        this.userAgents = {
-            'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
-            'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
-            'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
-        }
         this.headers = {}
-        // prepended to URL, like https://proxy.com/https://exchange.com/api...
-        this.proxy = ''
         this.origin = '*' // CORS origin
         // underlying properties
         this.minFundingAddressLength = 1 // used in checkAddress
@@ -636,8 +649,6 @@ export default class Exchange {
         // default property values
         this.timeout       = 10000 // milliseconds
         this.verbose       = false
-        this.debug         = false
-        this.userAgent     = undefined
         this.twofa         = undefined // two-factor authentication (2FA)
         // default credentials
         this.apiKey        = undefined
@@ -782,28 +793,6 @@ export default class Exchange {
         return this.throttler.throttle (cost)
     }
 
-    setSandboxMode (enabled) {
-        if (!!enabled) { // eslint-disable-line no-extra-boolean-cast
-            if ('test' in this.urls) {
-                if (typeof this.urls['api'] === 'string') {
-                    this.urls['apiBackup'] = this.urls['api']
-                    this.urls['api'] = this.urls['test']
-                } else {
-                    this.urls['apiBackup'] = clone (this.urls['api'])
-                    this.urls['api'] = clone (this.urls['test'])
-                }
-            } else {
-                throw new NotSupported (this.id + ' does not have a sandbox URL')
-            }
-        } else if ('apiBackup' in this.urls) {
-            if (typeof this.urls['api'] === 'string') {
-                this.urls['api'] = this.urls['apiBackup'] as any
-            } else {
-                this.urls['api'] = clone (this.urls['apiBackup'])
-            }
-        }
-    }
-
     defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
         const splitPath = path.split (/[^a-zA-Z0-9]/)
         const camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
@@ -860,26 +849,48 @@ export default class Exchange {
     }
 
     async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
-        if (isNode && this.userAgent) {
-            if (typeof this.userAgent === 'string') {
-                headers = this.extend ({ 'User-Agent': this.userAgent }, headers)
-            } else if ((typeof this.userAgent === 'object') && ('User-Agent' in this.userAgent)) {
-                headers = this.extend (this.userAgent, headers)
-            }
-        }
-        if (typeof this.proxy === 'function') {
-            url = (this as any).proxy (url)
+
+
+        // ##### PROXY & HEADERS #####
+        headers = this.extend (this.headers, headers);
+        const [ proxyUrl, httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
+        if (proxyUrl !== undefined) {
+            // in node we need to set header to *
             if (isNode) {
                 headers = this.extend ({ 'Origin': this.origin }, headers)
             }
-        } else if (typeof this.proxy === 'string') {
-            if (this.proxy.length && isNode) {
-                headers = this.extend ({ 'Origin': this.origin }, headers)
+            url = proxyUrl + url;
+        } else if (httpProxy !== undefined) {
+            const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js')
+            const proxyAgent = new module.HttpProxyAgent(httpProxy);
+            this.agent = proxyAgent;
+        }  else if (httpsProxy !== undefined) {
+            const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js')
+            const proxyAgent = new module.HttpsProxyAgent(httpsProxy);
+            proxyAgent.keepAlive = true;
+            this.agent = proxyAgent;
+        } else if (socksProxy !== undefined) {
+            let module = undefined;
+            try {
+                // @ts-ignore
+                module = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
+            } catch (e) {
+                throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" ');
             }
-            url = this.proxy + url
+            this.agent = new module.SocksProxyAgent(socksProxy);
         }
-        headers = this.extend (this.headers, headers)
+
+        const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
+        if (userAgent && isNode) {
+            if (typeof userAgent === 'string') {
+                headers = this.extend ({ 'User-Agent': userAgent }, headers)
+            } else if ((typeof userAgent === 'object') && ('User-Agent' in userAgent)) {
+                headers = this.extend (userAgent, headers)
+            }
+        }
         headers = this.setHeaders (headers)
+        // ######## end of proxies ########
+
         if (this.verbose) {
             this.log ("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n")
         }
@@ -1319,6 +1330,10 @@ export default class Exchange {
         return array.slice(first, second);
     }
 
+    getProperty (obj, property, defaultValue = undefined) {
+        return (property in obj ? obj[property] : defaultValue);
+    }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 
@@ -1361,6 +1376,69 @@ export default class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    checkProxySettings (url, method, headers, body) {
+        let proxyUrl = (this.proxyUrl !== undefined) ? this.proxyUrl : this.proxy_url;
+        const proxyUrlCallback = (this.proxyUrlCallback !== undefined) ? this.proxyUrlCallback : this.proxy_url_callback;
+        if (proxyUrlCallback !== undefined) {
+            proxyUrl = proxyUrlCallback (url, method, headers, body);
+        }
+        // backwards-compatibility
+        if (this.proxy !== undefined) {
+            if (typeof this.proxy === 'function') {
+                proxyUrl = this.proxy (url, method, headers, body);
+            } else {
+                proxyUrl = this.proxy;
+            }
+        }
+        let httpProxy = (this.httpProxy !== undefined) ? this.httpProxy : this.http_proxy;
+        const httpProxyCallback = (this.httpProxyCallback !== undefined) ? this.httpProxyCallback : this.http_proxy_callback;
+        if (httpProxyCallback !== undefined) {
+            httpProxy = httpProxyCallback (url, method, headers, body);
+        }
+        let httpsProxy = (this.httpsProxy !== undefined) ? this.httpsProxy : this.https_proxy;
+        const httpsProxyCallback = (this.httpsProxyCallback !== undefined) ? this.httpsProxyCallback : this.https_proxy_callback;
+        if (httpsProxyCallback !== undefined) {
+            httpsProxy = httpsProxyCallback (url, method, headers, body);
+        }
+        let socksProxy = (this.socksProxy !== undefined) ? this.socksProxy : this.socks_proxy;
+        const socksProxyCallback = (this.socksProxyCallback !== undefined) ? this.socksProxyCallback : this.socks_proxy_callback;
+        if (socksProxyCallback !== undefined) {
+            socksProxy = socksProxyCallback (url, method, headers, body);
+        }
+        let val = 0;
+        if (proxyUrl !== undefined) {
+            val = val + 1;
+        }
+        if (proxyUrlCallback !== undefined) {
+            val = val + 1;
+        }
+        if (httpProxy !== undefined) {
+            val = val + 1;
+        }
+        if (httpProxyCallback !== undefined) {
+            val = val + 1;
+        }
+        if (httpsProxy !== undefined) {
+            val = val + 1;
+        }
+        if (httpsProxyCallback !== undefined) {
+            val = val + 1;
+        }
+        if (socksProxy !== undefined) {
+            val = val + 1;
+        }
+        if (socksProxyCallback !== undefined) {
+            val = val + 1;
+        }
+        if (val > 1) {
+            throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy, userAgent');
+        }
+        if ((val === 1) && (this.proxy !== undefined)) {
+            throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, instead of deprecated .proxy please use from: proxyUrl, httpProxy, httpsProxy, socksProxy');
+        }
+        return [ proxyUrl, httpProxy, httpsProxy, socksProxy ];
+    }
 
     findMessageHashes (client, element: string): string[] {
         const result = [];
@@ -1434,6 +1512,30 @@ export default class Exchange {
             return result.slice (-limit);
         }
         return this.filterByLimit (result, limit, key);
+    }
+
+    setSandboxMode (enabled) {
+        if (enabled) {
+            if ('test' in this.urls) {
+                if (typeof this.urls['api'] === 'string') {
+                    this.urls['apiBackup'] = this.urls['api'];
+                    this.urls['api'] = this.urls['test'];
+                } else {
+                    this.urls['apiBackup'] = this.clone (this.urls['api']);
+                    this.urls['api'] = this.clone (this.urls['test']);
+                }
+            } else {
+                throw new NotSupported (this.id + ' does not have a sandbox URL');
+            }
+        } else if ('apiBackup' in this.urls) {
+            if (typeof this.urls['api'] === 'string') {
+                this.urls['api'] = this.urls['apiBackup'] as any;
+            } else {
+                this.urls['api'] = this.clone (this.urls['apiBackup']);
+            }
+            const newUrls = this.omit (this.urls, 'apiBackup');
+            this.urls = newUrls;
+        }
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
@@ -1998,6 +2100,8 @@ export default class Exchange {
             datetime = this.iso8601 (timestamp);
         }
         const triggerPrice = this.parseNumber (this.safeString2 (order, 'triggerPrice', 'stopPrice'));
+        const takeProfitPrice = this.parseNumber (this.safeString (order, 'takeProfitPrice'));
+        const stopLossPrice = this.parseNumber (this.safeString (order, 'stopLossPrice'));
         return this.extend (order, {
             'id': this.safeString (order, 'id'),
             'clientOrderId': this.safeString (order, 'clientOrderId'),
@@ -2020,6 +2124,8 @@ export default class Exchange {
             'reduceOnly': this.safeValue (order, 'reduceOnly'),
             'stopPrice': triggerPrice,  // ! deprecated, use triggerPrice instead
             'triggerPrice': triggerPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'status': this.safeString (order, 'status'),
             'fee': this.safeValue (order, 'fee'),
         });
@@ -2404,7 +2510,7 @@ export default class Exchange {
         } catch (e) {
             errorMessage = e.toString ();
         }
-        throw new NotSupported (this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser. ' + errorMessage);
+        throw new NotSupported (this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.' + errorMessage);
     }
 
     marketIds (symbols) {
@@ -2970,7 +3076,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPositionsRisk() is not supported yet');
     }
 
-    async fetchBidsAsks (symbols: string[] = undefined, params = {}) {
+    async fetchBidsAsks (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
         throw new NotSupported (this.id + ' fetchBidsAsks() is not supported yet');
     }
 
@@ -3218,7 +3324,7 @@ export default class Exchange {
             // check if exchange has properties for this method
             const exchangeWideMethodOptions = this.safeValue (this.options, methodName);
             if (exchangeWideMethodOptions !== undefined) {
-                // check if the option is defined in this method's props
+                // check if the option is defined inside this method's props
                 value = this.safeValue2 (exchangeWideMethodOptions, optionName, defaultOptionName);
             }
             if (value === undefined) {
@@ -3755,7 +3861,7 @@ export default class Exchange {
         return this.filterByArray (results, 'symbol', symbols);
     }
 
-    parseTickers (tickers, symbols: string[] = undefined, params = {}) {
+    parseTickers (tickers, symbols: string[] = undefined, params = {}): Dictionary<Ticker> {
         //
         // the value of tickers is either a dict or a list
         //
@@ -4225,6 +4331,24 @@ export default class Exchange {
         const firstMarket = this.safeString (symbols, 0);
         const market = this.market (firstMarket);
         return market;
+    }
+
+    async fetchDepositsWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @param {string|undefined} code unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int|undefined} limit max number of deposit/withdrawals to return, default is undefined
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        if (this.has['fetchTransactions']) {
+            return await this.fetchTransactions (code, since, limit, params);
+        } else {
+            throw new NotSupported (this.id + ' fetchDepositsWithdrawals () is not supported yet');
+        }
     }
 }
 

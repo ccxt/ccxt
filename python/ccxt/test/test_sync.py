@@ -89,7 +89,6 @@ rootDir = current_dir + '/../../../'
 rootDirForSkips = current_dir + '/../../../'
 envVars = os.environ
 ext = 'py'
-httpsAgent = None
 
 
 def dump(*args):
@@ -131,11 +130,6 @@ def call_method(testFiles, methodName, exchange, skippedProperties, args):
 
 def exception_message(exc):
     return '[' + type(exc).__name__ + '] ' + str(exc)[0:500]
-
-
-def add_proxy(exchange, http_proxy):
-    # just add a simple redirect through proxy
-    exchange.aiohttp_proxy = http_proxy  # todo: needs to be same a js/php with redirect proxy prop
 
 
 def exit_script():
@@ -201,7 +195,6 @@ class testMainClass(baseMainTestClass):
         exchangeArgs = {
             'verbose': self.verbose,
             'debug': self.debug,
-            'httpsAgent': httpsAgent,
             'enableRateLimit': True,
             'timeout': 30000,
         }
@@ -267,9 +260,7 @@ class testMainClass(baseMainTestClass):
         if exchange.alias:
             dump('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
-        proxy = exchange.safe_string(skippedSettingsForExchange, 'httpProxy')
-        if proxy is not None:
-            add_proxy(exchange, proxy)
+        exchange.httpsProxy = exchange.safe_string(skippedSettingsForExchange, 'httpsProxy')
         self.skippedMethods = exchange.safe_value(skippedSettingsForExchange, 'skipMethods', {})
         self.checkedPublicTests = {}
 

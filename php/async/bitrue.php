@@ -50,6 +50,7 @@ class bitrue extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => false,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => false,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchMarginMode' => false,

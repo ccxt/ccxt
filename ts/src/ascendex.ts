@@ -46,6 +46,7 @@ export default class ascendex extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
@@ -2380,7 +2381,7 @@ export default class ascendex extends Exchange {
         /**
          * @method
          * @name ascendex#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED*, use fetchDepositsWithdrawals instead
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined
@@ -2995,7 +2996,7 @@ export default class ascendex extends Exchange {
          * @description fetch deposit and withdraw fees
          * @see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
          * @param {[string]|undefined} codes list of unified currency codes
-         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @param {object} params extra parameters specific to the ascendex api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();

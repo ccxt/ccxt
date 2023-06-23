@@ -6592,7 +6592,7 @@ class huobi(Exchange, ImplicitAPI):
             # 'endTime': 1546272000000,
             # 'sort': asc,  # asc, desc
             # 'limit': 100,  # range 1-500
-            # 'fromId': 323  # first record ID in self query for pagination
+            # 'fromId': 323  # first record hasattr(self, ID) query for pagination
         }
         currency = None
         if code is not None:

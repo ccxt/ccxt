@@ -327,6 +327,10 @@ class bitget extends Exchange {
                             'fee/query' => 2,
                             'sub/virtual-list' => 2,
                             'sub/virtual-api-list' => 2,
+                            'tax/spot-record' => 1,
+                            'tax/future-record' => 1,
+                            'tax/margin-record' => 1,
+                            'tax/p2p-record' => 1,
                         ),
                         'post' => array(
                             'sub/virtual-create' => 4,
@@ -472,7 +476,7 @@ class bitget extends Exchange {
                     '30032' => '\\ccxt\\BadSymbol', // array( "code" => 30032, "message" => "pair does not exist" )
                     '30033' => '\\ccxt\\BadRequest', // array( "code" => 30033, "message" => "exchange domain does not exist" )
                     '30034' => '\\ccxt\\ExchangeError', // array( "code" => 30034, "message" => "exchange ID does not exist" )
-                    '30035' => '\\ccxt\\ExchangeError', // array( "code" => 30035, "message" => "trading is not supported in this website" )
+                    '30035' => '\\ccxt\\ExchangeError', // array( "code" => 30035, "message" => "trading is not property_exists($this, supported) website" )
                     '30036' => '\\ccxt\\ExchangeError', // array( "code" => 30036, "message" => "no relevant data" )
                     '30037' => '\\ccxt\\ExchangeNotAvailable', // array( "code" => 30037, "message" => "endpoint is offline or unavailable" )
                     // '30038' => '\\ccxt\\AuthenticationError', // array( "code" => 30038, "message" => "user does not exist" )
@@ -534,8 +538,8 @@ class bitget extends Exchange {
                     '32064' => '\\ccxt\\ExchangeError', // Time Stringerval of orders should set between 5-120s
                     '32065' => '\\ccxt\\ExchangeError', // Close amount exceeds the limit of Market-close-all (999 for BTC, and 9999 for the rest tokens)
                     '32066' => '\\ccxt\\ExchangeError', // You have open orders. Please cancel all open orders before changing your leverage level.
-                    '32067' => '\\ccxt\\ExchangeError', // Account equity < required margin in this setting. Please adjust your leverage level again.
-                    '32068' => '\\ccxt\\ExchangeError', // The margin for this position will fall short of the required margin in this setting. Please adjust your leverage level or increase your margin to proceed.
+                    '32067' => '\\ccxt\\ExchangeError', // Account equity < required property_exists($this, margin) setting. Please adjust your leverage level again.
+                    '32068' => '\\ccxt\\ExchangeError', // The margin for this position will fall short of the required property_exists($this, margin) setting. Please adjust your leverage level or increase your margin to proceed.
                     '32069' => '\\ccxt\\ExchangeError', // Target leverage level too low. Your account balance is insufficient to cover the margin required. Please adjust the leverage level again.
                     '32070' => '\\ccxt\\ExchangeError', // Please check open position or unfilled order
                     '32071' => '\\ccxt\\ExchangeError', // Your current liquidation mode does not support this action.
@@ -851,7 +855,7 @@ class bitget extends Exchange {
                     '40706' => '\\ccxt\\InvalidOrder', // Wrong order price
                     '40707' => '\\ccxt\\BadRequest', // Start time is greater than end time
                     '40708' => '\\ccxt\\BadRequest', // Parameter verification is abnormal
-                    '40709' => '\\ccxt\\ExchangeError', // There is no position in this position, and no automatic margin call can be set
+                    '40709' => '\\ccxt\\ExchangeError', // There is no property_exists($this, position) position, and no automatic margin call can be set
                     '40710' => '\\ccxt\\ExchangeError', // Abnormal account status
                     '40711' => '\\ccxt\\InsufficientFunds', // Insufficient contract account balance
                     '40712' => '\\ccxt\\InsufficientFunds', // Insufficient margin

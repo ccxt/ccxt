@@ -81,7 +81,7 @@ export default class binance extends Exchange {
         info: any;
     }>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchBidsAsks(symbols?: string[], params?: {}): Promise<any>;
+    fetchBidsAsks(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     fetchLastPrices(symbols?: string[], params?: {}): Promise<any>;
     parseLastPrice(info: any, market?: any): {
         symbol: any;
@@ -91,7 +91,7 @@ export default class binance extends Exchange {
         side: any;
         info: any;
     };
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade | {

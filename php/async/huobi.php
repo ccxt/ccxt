@@ -7059,7 +7059,7 @@ class huobi extends Exchange {
                 // 'endTime' => 1546272000000,
                 // 'sort' => asc, // asc, desc
                 // 'limit' => 100, // range 1-500
-                // 'fromId' => 323 // first record ID in this query for pagination
+                // 'fromId' => 323 // first record property_exists($this, ID) query for pagination
             );
             $currency = null;
             if ($code !== null) {

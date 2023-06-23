@@ -48,6 +48,7 @@ export default class novadax extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -1271,7 +1272,7 @@ export default class novadax extends Exchange {
         /**
          * @method
          * @name novadax#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined

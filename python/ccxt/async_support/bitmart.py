@@ -291,7 +291,7 @@ class bitmart(Exchange, ImplicitAPI):
                     '60009': ExchangeError,  # 400, Beyond the limit
                     '60010': ExchangeError,  # 400, Withdraw id or deposit id not found
                     '60011': InvalidAddress,  # 400, Address is not valid
-                    '60012': ExchangeError,  # 400, This action is not supported in self currency(If IOTA, HLX recharge and withdraw calls are prohibited)
+                    '60012': ExchangeError,  # 400, This action is not hasattr(self, supported) currency(If IOTA, HLX recharge and withdraw calls are prohibited)
                     '60020': PermissionDenied,  # 403, Your account is not allowed to recharge
                     '60021': PermissionDenied,  # 403, Your account is not allowed to withdraw
                     '60022': PermissionDenied,  # 403, No withdrawals for 24 hours

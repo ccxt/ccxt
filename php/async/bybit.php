@@ -60,6 +60,8 @@ class bybit extends Exchange {
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingRate' => true, // emulated in exchange
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
@@ -402,6 +404,7 @@ class bybit extends Exchange {
                         // user
                         'v5/user/query-sub-members' => 10,
                         'v5/user/query-api' => 10,
+                        'v5/user/get-member-type' => 1,
                         'v5/user/aff-customer-info' => 10,
                         'v5/customer/info' => 10,
                         'v5/spot-cross-margin-trade/loan-info' => 1, // 50/s => cost = 50 / 50 = 1
@@ -410,6 +413,13 @@ class bybit extends Exchange {
                         'v5/spot-cross-margin-trade/repay-history' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/ins-loan/ltv-convert' => 1,
                         'v5/broker/earning-record' => 1,
+                        // pre-upgrade
+                        'v5/pre-upgrade/order/history' => 1,
+                        'v5/pre-upgrade/execution/list' => 1,
+                        'v5/pre-upgrade/position/closed-pnl' => 1,
+                        'v5/pre-upgrade/account/transaction-log' => 1,
+                        'v5/pre-upgrade/asset/delivery-record' => 1,
+                        'v5/pre-upgrade/asset/settlement-record' => 1,
                     ),
                     'post' => array(
                         // inverse swap
@@ -890,7 +900,7 @@ class bybit extends Exchange {
                     '170199' => '\\ccxt\\InvalidOrder', // Your order quantity to buy is too large. The filled price may deviate significantly from the nav. Please try again.
                     '170200' => '\\ccxt\\InvalidOrder', // Your order quantity to sell is too large. The filled price may deviate significantly from the nav. Please try again.
                     '170221' => '\\ccxt\\BadRequest', // This coin does not exist.
-                    '170222' => '\\ccxt\\RateLimitExceeded', // Too many requests in this time frame.
+                    '170222' => '\\ccxt\\RateLimitExceeded', // Too many property_exists($this, requests) time frame.
                     '170223' => '\\ccxt\\InsufficientFunds', // Your Spot Account with Institutional Lending triggers an alert or liquidation.
                     '170224' => '\\ccxt\\PermissionDenied', // You're not a user of the Innovation Zone.
                     '170226' => '\\ccxt\\InsufficientFunds', // Your Spot Account for Margin Trading is being liquidated.
@@ -8542,6 +8552,108 @@ class bybit extends Exchange {
                 $result[$symbol] = $fee;
             }
             return $result;
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //    {
+        //        "name" => "BTC",
+        //        "coin" => "BTC",
+        //        "remainAmount" => "150",
+        //        "chains" => array(
+        //            {
+        //                "chainType" => "BTC",
+        //                "confirmation" => "10000",
+        //                "withdrawFee" => "0.0005",
+        //                "depositMin" => "0.0005",
+        //                "withdrawMin" => "0.001",
+        //                "chain" => "BTC",
+        //                "chainDeposit" => "1",
+        //                "chainWithdraw" => "1",
+        //                "minAccuracy" => "8"
+        //            }
+        //        )
+        //    }
+        //
+        $chains = $this->safe_value($fee, 'chains', array());
+        $chainsLength = count($chains);
+        $result = array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+        if ($chainsLength !== 0) {
+            for ($i = 0; $i < $chainsLength; $i++) {
+                $chain = $chains[$i];
+                $networkId = $this->safe_string($chain, 'chain');
+                $currencyCode = $this->safe_string($currency, 'code');
+                $networkCode = $this->network_id_to_code($networkId, $currencyCode);
+                $result['networks'][$networkCode] = array(
+                    'deposit' => array( 'fee' => null, 'percentage' => null ),
+                    'withdraw' => array( 'fee' => $this->safe_number($chain, 'withdrawFee'), 'percentage' => false ),
+                );
+                if ($chainsLength === 1) {
+                    $result['withdraw']['fee'] = $this->safe_number($chain, 'withdrawFee');
+                    $result['withdraw']['percentage'] = false;
+                }
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
+             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {array} $params extra parameters specific to the bitrue api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             */
+            $this->check_required_credentials();
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetV5AssetCoinQueryInfo ($params));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "",
+            //         "result" => {
+            //             "rows" => array(
+            //                 {
+            //                     "name" => "BTC",
+            //                     "coin" => "BTC",
+            //                     "remainAmount" => "150",
+            //                     "chains" => array(
+            //                         array(
+            //                             "chainType" => "BTC",
+            //                             "confirmation" => "10000",
+            //                             "withdrawFee" => "0.0005",
+            //                             "depositMin" => "0.0005",
+            //                             "withdrawMin" => "0.001",
+            //                             "chain" => "BTC",
+            //                             "chainDeposit" => "1",
+            //                             "chainWithdraw" => "1",
+            //                             "minAccuracy" => "8"
+            //                         }
+            //                     )
+            //                 }
+            //             )
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => 1672194582264
+            //     }
+            //
+            $data = $this->safe_value($response, 'result', array());
+            $rows = $this->safe_value($data, 'rows', array());
+            return $this->parse_deposit_withdraw_fees($rows, $codes, 'coin');
         }) ();
     }
 

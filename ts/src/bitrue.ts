@@ -45,6 +45,7 @@ export default class bitrue extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchMarginMode': false,
@@ -1947,7 +1948,7 @@ export default class bitrue extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchDepositWithdrawFees

@@ -3855,9 +3855,9 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 
 ##### Stop Loss Orders
 
-The same as Trigger Orders, but the direction matters. Implemented by specifying a `stopLossPrice` parameter.
+The same as Trigger Orders, but the direction matters. Implemented by specifying a `stopLossPrice` parameter (for the spot loss triggerPrice).
 
-Suppose you entered a long position (you bought) at 1000 and want to protect yourself from losses from a possible a price drop below 700. You would place a stop loss order with triggerPrice at 700. For that stop loss order either you would specify a limit price or it will be executed at market price.
+Suppose you entered a long position (you bought) at 1000 and want to protect yourself from losses from a possible price drop below 700. You would place a stop loss order with triggerPrice at 700. For that stop loss order either you would specify a limit price or it will be executed at market price.
 
 ```
     | price  | amount
@@ -3871,25 +3871,25 @@ Suppose you entered a long position (you bought) at 1000 and want to protect you
     |   900 | 100
 ----|---------------- last price is 900
     |   800 | 100
-    |   700 | 200 <------- you place a stop loss order here at 700 <---------+
-  b |   600 | 100        when a stopLossPrice is reached from above          |
-  i |   500 | 300   it will close your position at market price around 700 --+
-  d |   400 | 200 <----- or it will be executed at your limit price lower
+    |   700 | 200 <------- you place a stop loss order here at 700 <----------------------+
+  b |   600 | 100       when your stopLossPrice is reached from above                     |
+  i |   500 | 300   it will close your position at market price below 700 ----------------+
+  d |   400 | 200 <- or it will be executed at your limit price lower that stopLossPrice -+
     |   300 | 100
     |   200 | 100
 ```
 
-Suppose you entered a short position (you sold) at 700 and want to protect yourself from losses from a possible a price pump above 1300. You would place a stop loss order with triggerPrice at 1300. For that stop loss order either you would specify a limit price or it will be executed at market price.
+Suppose you entered a short position (you sold) at 700 and want to protect yourself from losses from a possible price pump above 1300. You would place a stop loss order with triggerPrice at 1300. For that stop loss order either you would specify a limit price or it will be executed at market price.
 
 ```
     | price  | amount
 ----|----------------
     |  1500 | 200
-    |  1400 | 300 <-------------------------------------------------------------+
-  a |  1300 | 100 <------ you place a stop loss order here at 1300 <----------+ |
-  s |  1200 | 200        when a stopLossPrice is reached from below           | |
-  k |  1100 | 300   it will close your position at market price around 1300 --+ |
-    |  1000 | 100      or it will be executed at your limit price higher -------+
+    |  1400 | 300 <------------------------------------------------------------------------+
+  a |  1300 | 100 <------ you place a stop loss order here at 1300 <---------------------+ |
+  s |  1200 | 200      when your stopLossPrice is reached from below                     | |
+  k |  1100 | 300   it will close your position at market price above 1300 --------------+ |
+    |  1000 | 100    or it will be executed at your limit price higher than stopLossPrice -+
     |   900 | 100
 ----|---------------- last price is 900 (you sold at 700)
     |   800 | 100
@@ -3941,7 +3941,53 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 
 ##### Take Profit Orders
 
-The same as Trigger Orders, but the direction matters. Implemented by specifying a `takeProfitPrice` parameter.
+The same as Stop Loss Orders, but the direction matters. Implemented by specifying a `takeProfitPrice` parameter (for the take profit triggerPrice).
+
+
+Suppose you entered a long position (you bought) at 1000 and want to get your profits from a possible price pump above 1300. You would place a take profit order with triggerPrice at 1300. For that take profit order either you would specify a limit price or it will be executed at market price.
+
+```
+    | price  | amount
+----|----------------
+    |  1500 | 200
+    |  1400 | 300 <------------------------------------------------------------------------------+
+  a |  1300 | 100 <--- it will close your position at market price above 1300                    |
+  s |  1200 | 200        when your takeProfitPrice is reached from below                         |
+  k |  1100 | 300   or it will be executed at your limit price higher than your takeProfitPrice -+
+    |  1000 | 100 <-  you bought to enter a long position here at 1000
+    |   900 | 100
+----|---------------- last price is 900
+    |   800 | 100
+    |   700 | 200
+  b |   600 | 100
+  i |   500 | 300
+  d |   400 | 200
+    |   300 | 100
+    |   200 | 100
+```
+
+Suppose you entered a short position (you sold) at 700 and want to get your profits from a possible price drom below 600. You would place a take profit order with triggerPrice at 600. For that take profit order either you would specify a limit price or it will be executed at market price.
+
+```
+    | price  | amount
+----|----------------
+    |  1500 | 200
+    |  1400 | 300
+  a |  1300 | 100
+  s |  1200 | 200
+  k |  1100 | 300
+    |  1000 | 100
+    |   900 | 100
+----|---------------- last price is 900 (you sold at 700)
+    |   800 | 100
+    |   700 | 200 <--- you sold to enter a short position here at 700
+  b |   600 | 100 <------ you place a take profit order here at 600
+  i |   500 | 300     when your takeProfitPrice is reached from above
+  d |   400 | 200     it will be close your position at market price below 600
+    |   300 | 100 <- or it will be executed at your limit price lower than your takeProfitPrice
+    |   200 | 100
+```
+
 Take Profit orders are activated when the price of the underlying:
 
 * rises above the `takeProfitPrice` from below, for sell orders (eg: to close a long position, at a profit)

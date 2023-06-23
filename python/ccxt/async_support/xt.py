@@ -478,7 +478,7 @@ class xt(Exchange, ImplicitAPI):
                     'WITHDRAW_005': BadRequest,  # The withdrawal address cannot be empty
                     'WITHDRAW_006': BadRequest,  # Memo cannot be empty
                     'WITHDRAW_008': PermissionDenied,  # Risk control is triggered, withdraw of self currency is not currently supported
-                    'WITHDRAW_009': PermissionDenied,  # Withdraw failed, some assets in self withdraw are restricted by T+1 withdraw
+                    'WITHDRAW_009': PermissionDenied,  # Withdraw failed, some hasattr(self, assets) withdraw are restricted by T+1 withdraw
                     'WITHDRAW_010': BadRequest,  # The precision of withdrawal is invalid
                     'WITHDRAW_011': InsufficientFunds,  # free balance is not enough
                     'WITHDRAW_012': PermissionDenied,  # Withdraw failed, your remaining withdrawal limit today is not enough
@@ -3167,13 +3167,15 @@ class xt(Exchange, ImplicitAPI):
         amount = quantity if (marketType == 'spot') else Precise.string_mul(self.number_to_string(quantity), self.number_to_string(market['contractSize']))
         filledQuantity = self.safe_number(order, 'executedQty')
         filled = filledQuantity if (marketType == 'spot') else Precise.string_mul(self.number_to_string(filledQuantity), self.number_to_string(market['contractSize']))
+        lastUpdatedTimestamp = self.safe_integer(order, 'updatedTime')
         return self.safe_order({
             'info': order,
             'id': self.safe_string_n(order, ['orderId', 'result', 'cancelId', 'entrustId', 'profitId']),
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': self.safe_integer(order, 'updatedTime'),
+            'lastTradeTimestamp': lastUpdatedTimestamp,
+            'lastUpdateTimestamp': lastUpdatedTimestamp,
             'symbol': symbol,
             'type': self.safe_string_lower_2(order, 'type', 'orderType'),
             'timeInForce': self.safe_string(order, 'timeInForce'),

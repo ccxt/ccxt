@@ -10,14 +10,34 @@ export default class Exchange {
     options: {
         [key: string]: any;
     };
+    api: any;
+    proxy: any;
+    proxyUrl: string;
+    proxy_url: string;
+    proxyUrlCallback: any;
+    proxy_url_callback: any;
+    httpProxy: string;
+    http_proxy: string;
+    httpProxyCallback: any;
+    http_proxy_callback: any;
+    httpsProxy: string;
+    https_proxy: string;
+    httpsProxyCallback: any;
+    https_proxy_callback: any;
+    socksProxy: string;
+    socks_proxy: string;
+    socksProxyCallback: any;
+    socks_proxy_callback: any;
+    userAgent: {
+        'User-Agent': string;
+    } | false;
+    user_agent: {
+        'User-Agent': string;
+    } | false;
     userAgents: any;
     headers: any;
-    httpAgent: any;
-    httpsAgent: any;
-    agent: any;
-    api: any;
-    proxy: string;
     origin: string;
+    agent: any;
     minFundingAddressLength: number;
     substituteCommonCurrencyCodes: boolean;
     quoteJsonNumbers: boolean;
@@ -31,10 +51,6 @@ export default class Exchange {
     validateClientSsl: boolean;
     timeout: number;
     verbose: boolean;
-    debug: boolean;
-    userAgent: {
-        'User-Agent': string;
-    } | false;
     twofa: any;
     apiKey: string;
     secret: string;
@@ -292,6 +308,7 @@ export default class Exchange {
             fetchDepositAddresses: any;
             fetchDepositAddressesByNetwork: any;
             fetchDeposits: any;
+            fetchDepositsWithdrawals: any;
             fetchTransactionFee: any;
             fetchTransactionFees: any;
             fetchFundingHistory: any;
@@ -448,7 +465,6 @@ export default class Exchange {
     checkAddress(address: any): any;
     initRestRateLimiter(): void;
     throttle(cost?: any): any;
-    setSandboxMode(enabled: any): void;
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
     defineRestApi(api: any, methodName: any, paths?: any[]): void;
     log(...args: any[]): void;
@@ -487,10 +503,13 @@ export default class Exchange {
     convertToBigInt(value: string): bigint;
     valueIsDefined(value: any): boolean;
     arraySlice(array: any, first: any, second?: any): any;
+    getProperty(obj: any, property: any, defaultValue?: any): any;
+    checkProxySettings(url: any, method: any, headers: any, body: any): string[];
     findMessageHashes(client: any, element: string): string[];
     filterByLimit(array: object[], limit?: Int, key?: IndexType): any;
     filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any;
     filterByValueSinceLimit(array: object[], field: IndexType, value?: any, since?: Int, limit?: Int, key?: string, tail?: boolean): any;
+    setSandboxMode(enabled: any): void;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {};
     fetchAccounts(params?: {}): Promise<any>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -619,7 +638,7 @@ export default class Exchange {
     fetchPosition(symbol: string, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     fetchPositionsRisk(symbols?: string[], params?: {}): Promise<void>;
-    fetchBidsAsks(symbols?: string[], params?: {}): Promise<void>;
+    fetchBidsAsks(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
     parseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType): number[];
     safeCurrency(currencyId?: string, currency?: any): any;
     safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): any;
@@ -712,7 +731,7 @@ export default class Exchange {
     filterBySymbolSinceLimit(array: any, symbol?: string, since?: Int, limit?: Int, tail?: boolean): any;
     filterByCurrencySinceLimit(array: any, code?: any, since?: Int, limit?: Int, tail?: boolean): any;
     parseLastPrices(pricesData: any, symbols?: string[], params?: {}): any;
-    parseTickers(tickers: any, symbols?: string[], params?: {}): any;
+    parseTickers(tickers: any, symbols?: string[], params?: {}): Dictionary<Ticker>;
     parseDepositAddresses(addresses: any, codes?: string[], indexed?: boolean, params?: {}): {};
     parseBorrowInterests(response: any, market?: any): any[];
     parseFundingRateHistories(response: any, market?: any, since?: Int, limit?: Int): any;
@@ -743,5 +762,6 @@ export default class Exchange {
     parseIncome(info: any, market?: any): void;
     parseIncomes(incomes: any, market?: any, since?: Int, limit?: Int): any;
     getMarketFromSymbols(symbols?: string[]): any;
+    fetchDepositsWithdrawals(code?: any, since?: any, limit?: any, params?: {}): Promise<any>;
 }
 export { Exchange, };
