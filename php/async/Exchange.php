@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.1.49';
+$version = '3.1.50';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.1.49';
+    const VERSION = '3.1.50';
 
     public $browser;
     public $marketsLoading = null;
@@ -423,6 +423,30 @@ class Exchange extends \ccxt\Exchange {
             return mb_substr($result, -$limit);
         }
         return $this->filter_by_limit($result, $limit, $key);
+    }
+
+    public function set_sandbox_mode($enabled) {
+        if ($enabled) {
+            if (is_array($this->urls) && array_key_exists('test', $this->urls)) {
+                if (gettype($this->urls['api']) === 'string') {
+                    $this->urls['apiBackup'] = $this->urls['api'];
+                    $this->urls['api'] = $this->urls['test'];
+                } else {
+                    $this->urls['apiBackup'] = $this->clone ($this->urls['api']);
+                    $this->urls['api'] = $this->clone ($this->urls['test']);
+                }
+            } else {
+                throw new NotSupported($this->id . ' does not have a sandbox URL');
+            }
+        } elseif (is_array($this->urls) && array_key_exists('apiBackup', $this->urls)) {
+            if (gettype($this->urls['api']) === 'string') {
+                $this->urls['api'] = $this->urls['apiBackup'];
+            } else {
+                $this->urls['api'] = $this->clone ($this->urls['apiBackup']);
+            }
+            $newUrls = $this->omit ($this->urls, 'apiBackup');
+            $this->urls = $newUrls;
+        }
     }
 
     public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null) {
