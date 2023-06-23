@@ -2996,7 +2996,7 @@ export default class ascendex extends Exchange {
          * @description fetch deposit and withdraw fees
          * @see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
          * @param {[string]|undefined} codes list of unified currency codes
-         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @param {object} params extra parameters specific to the ascendex api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
