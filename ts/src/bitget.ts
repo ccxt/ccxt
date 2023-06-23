@@ -4689,7 +4689,7 @@ export default class bitget extends Exchange {
          * @description fetch deposit and withdraw fees
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-list
          * @param {[string]|undefined} codes list of unified currency codes
-         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
