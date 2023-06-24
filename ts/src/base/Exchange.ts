@@ -455,6 +455,7 @@ export default class Exchange {
                 'createStopMarketOrder': undefined,
                 'createOrderWs': undefined,
                 'editOrderWs': undefined,
+                'fetchOrderWs': undefined,
                 'cancelOrderWs': undefined,
                 'cancelOrdersWs': undefined,
                 'cancelAllOrdersWs': undefined,
@@ -1549,6 +1550,11 @@ export default class Exchange {
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' fetchTrades() is not supported yet');
     }
+
+    async fetchTradesWs (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        throw new NotSupported (this.id + ' fetchTradesWs() is not supported yet');
+    }
+
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' watchTrades() is not supported yet');
@@ -3214,6 +3220,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchBalance() is not supported yet');
     }
 
+    async fetchBalanceWs (params = {}): Promise<Balances> {
+        throw new NotSupported (this.id + ' fetchBalanceWs() is not supported yet');
+    }
+
     parseBalance (response): Balances {
         throw new NotSupported (this.id + ' parseBalance() is not supported yet');
     }
@@ -3466,6 +3476,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
     }
 
+    async fetchOrderWs (id: string, symbol: string = undefined, params = {}): Promise<Order> {
+        throw new NotSupported (this.id + ' fetchOrderWs() is not supported yet');
+    }
+
     async fetchOrderStatus (id: string, symbol: string = undefined, params = {}): Promise<string> {
         // TODO: TypeScript: change method signature by replacing
         // Promise<string> with Promise<Order['status']>.
@@ -3501,8 +3515,8 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelAllOrders() is not supported yet');
     }
 
-    async cancelAllOrderWs (symbol: string = undefined, params = {}): Promise<any> {
-        throw new NotSupported (this.id + ' cancelAllOrders() is not supported yet');
+    async cancelAllOrdersWs (symbol: string = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' cancelAllOrdersWs() is not supported yet');
     }
 
     async cancelUnifiedOrder (order, params = {}) {
@@ -3525,12 +3539,20 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOpenOrders() is not supported yet');
     }
 
+    async fetchOpenOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' fetchOpenOrdersWs() is not supported yet');
+    }
+
     async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' fetchClosedOrders() is not supported yet');
     }
 
     async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' fetchMyTrades() is not supported yet');
+    }
+
+    async fetchMyTradesWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        throw new NotSupported (this.id + ' fetchMyTradesWs() is not supported yet');
     }
 
     async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {

@@ -1311,11 +1311,15 @@ export default class binance extends Exchange {
                     'Order would immediately match and take.': OrderImmediatelyFillable, // {"code":-2010,"msg":"Order would immediately match and take."}
                     'Account has insufficient balance for requested action.': InsufficientFunds,
                     'Rest API trading is not enabled.': ExchangeNotAvailable,
+                    'This account may not place or cancel orders.': ExchangeNotAvailable,
                     "You don't have permission.": PermissionDenied, // {"msg":"You don't have permission.","success":false}
                     'Market is closed.': ExchangeNotAvailable, // {"code":-1013,"msg":"Market is closed."}
                     'Too many requests. Please try again later.': DDoSProtection, // {"msg":"Too many requests. Please try again later.","success":false}
                     'This action is disabled on this account.': AccountSuspended, // {"code":-2011,"msg":"This action is disabled on this account."}
+                    'Limit orders require GTC for this phase.': BadRequest,
+                    'This order type is not possible in this trading phase.': BadRequest,
                     'This type of sub-account exceeds the maximum number limit': BadRequest, // {"code":-9000,"msg":"This type of sub-account exceeds the maximum number limit"}
+                    'This symbol is restricted for this account.': PermissionDenied,
                     'This symbol is not permitted for this account.': PermissionDenied, // {"code":-2010,"msg":"This symbol is not permitted for this account."}
                     '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable, // {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
@@ -3693,108 +3697,6 @@ export default class binance extends Exchange {
         const clientOrderId = this.safeStringN (params, [ 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ]);
         let response = undefined;
         if (market['spot']) {
-            const initialUppercaseType = type.toUpperCase ();
-            let uppercaseType = initialUppercaseType;
-            const postOnly = this.isPostOnly (initialUppercaseType === 'MARKET', initialUppercaseType === 'LIMIT_MAKER', params);
-            if (postOnly) {
-                uppercaseType = 'LIMIT_MAKER';
-            }
-            request['type'] = uppercaseType;
-            const stopPrice = this.safeNumber (params, 'stopPrice');
-            if (stopPrice !== undefined) {
-                if (uppercaseType === 'MARKET') {
-                    uppercaseType = 'STOP_LOSS';
-                } else if (uppercaseType === 'LIMIT') {
-                    uppercaseType = 'STOP_LOSS_LIMIT';
-                }
-            }
-            const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
-            if (!this.inArray (uppercaseType, validOrderTypes)) {
-                if (initialUppercaseType !== uppercaseType) {
-                    throw new InvalidOrder (this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
-                } else {
-                    throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
-                }
-            }
-            if (clientOrderId === undefined) {
-                const broker = this.safeValue (this.options, 'broker');
-                if (broker !== undefined) {
-                    const brokerId = this.safeString (broker, 'spot');
-                    if (brokerId !== undefined) {
-                        request['newClientOrderId'] = brokerId + this.uuid22 ();
-                    }
-                }
-            } else {
-                request['newClientOrderId'] = clientOrderId;
-            }
-            request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-            let timeInForceIsRequired = false;
-            let priceIsRequired = false;
-            let stopPriceIsRequired = false;
-            let quantityIsRequired = false;
-            if (uppercaseType === 'MARKET') {
-                const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', true);
-                if (quoteOrderQty) {
-                    const quoteOrderQtyNew = this.safeValue2 (params, 'quoteOrderQty', 'cost');
-                    const precision = market['precision']['price'];
-                    if (quoteOrderQtyNew !== undefined) {
-                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
-                    } else if (price !== undefined) {
-                        const amountString = this.numberToString (amount);
-                        const priceString = this.numberToString (price);
-                        const quoteOrderQuantity = Precise.stringMul (amountString, priceString);
-                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
-                    } else {
-                        quantityIsRequired = true;
-                    }
-                } else {
-                    quantityIsRequired = true;
-                }
-            } else if (uppercaseType === 'LIMIT') {
-                priceIsRequired = true;
-                timeInForceIsRequired = true;
-                quantityIsRequired = true;
-            } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
-                stopPriceIsRequired = true;
-                quantityIsRequired = true;
-            } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
-                quantityIsRequired = true;
-                stopPriceIsRequired = true;
-                priceIsRequired = true;
-                timeInForceIsRequired = true;
-            } else if (uppercaseType === 'LIMIT_MAKER') {
-                priceIsRequired = true;
-                quantityIsRequired = true;
-            }
-            if (quantityIsRequired) {
-                request['quantity'] = this.amountToPrecision (symbol, amount);
-            }
-            if (priceIsRequired) {
-                if (price === undefined) {
-                    throw new InvalidOrder (this.id + ' editOrder() requires a price argument for a ' + type + ' order');
-                }
-                request['price'] = this.priceToPrecision (symbol, price);
-            }
-            if (timeInForceIsRequired) {
-                request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-            }
-            if (stopPriceIsRequired) {
-                if (stopPrice === undefined) {
-                    throw new InvalidOrder (this.id + ' editOrder() requires a stopPrice extra param for a ' + type + ' order');
-                } else {
-                    request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
-                }
-            }
-            request['cancelReplaceMode'] = 'STOP_ON_FAILURE'; // If the cancel request fails, the new order placement will not be attempted.
-            const cancelId = this.safeString2 (params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId');
-            if (cancelId === undefined) {
-                request['cancelOrderId'] = id; // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
-            }
-            // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
-            if (this.safeString (params, 'timeInForce') === 'PO') {
-                params = this.omit (params, [ 'timeInForce' ]);
-            }
-            params = this.omit (params, [ 'quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
             response = await this.privatePostOrderCancelReplace (this.extend (request, params));
         } else {
             request['orderId'] = id;
@@ -3855,10 +3757,122 @@ export default class binance extends Exchange {
         return this.parseOrder (data, market);
     }
 
+    editSpotOrderRequest (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+        const market = this.market (symbol);
+        const clientOrderId = this.safeStringN (params, [ 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ]);
+        const request = {
+            'symbol': market['id'],
+            'side': side.toUpperCase (),
+        };
+        const initialUppercaseType = type.toUpperCase ();
+        let uppercaseType = initialUppercaseType;
+        const postOnly = this.isPostOnly (initialUppercaseType === 'MARKET', initialUppercaseType === 'LIMIT_MAKER', params);
+        if (postOnly) {
+            uppercaseType = 'LIMIT_MAKER';
+        }
+        request['type'] = uppercaseType;
+        const stopPrice = this.safeNumber (params, 'stopPrice');
+        if (stopPrice !== undefined) {
+            if (uppercaseType === 'MARKET') {
+                uppercaseType = 'STOP_LOSS';
+            } else if (uppercaseType === 'LIMIT') {
+                uppercaseType = 'STOP_LOSS_LIMIT';
+            }
+        }
+        const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
+        if (!this.inArray (uppercaseType, validOrderTypes)) {
+            if (initialUppercaseType !== uppercaseType) {
+                throw new InvalidOrder (this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
+            } else {
+                throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
+            }
+        }
+        if (clientOrderId === undefined) {
+            const broker = this.safeValue (this.options, 'broker');
+            if (broker !== undefined) {
+                const brokerId = this.safeString (broker, 'spot');
+                if (brokerId !== undefined) {
+                    request['newClientOrderId'] = brokerId + this.uuid22 ();
+                }
+            }
+        } else {
+            request['newClientOrderId'] = clientOrderId;
+        }
+        request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        let timeInForceIsRequired = false;
+        let priceIsRequired = false;
+        let stopPriceIsRequired = false;
+        let quantityIsRequired = false;
+        if (uppercaseType === 'MARKET') {
+            const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', true);
+            if (quoteOrderQty) {
+                const quoteOrderQtyNew = this.safeValue2 (params, 'quoteOrderQty', 'cost');
+                const precision = market['precision']['price'];
+                if (quoteOrderQtyNew !== undefined) {
+                    request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
+                } else if (price !== undefined) {
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const quoteOrderQuantity = Precise.stringMul (amountString, priceString);
+                    request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
+                } else {
+                    quantityIsRequired = true;
+                }
+            } else {
+                quantityIsRequired = true;
+            }
+        } else if (uppercaseType === 'LIMIT') {
+            priceIsRequired = true;
+            timeInForceIsRequired = true;
+            quantityIsRequired = true;
+        } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
+            stopPriceIsRequired = true;
+            quantityIsRequired = true;
+        } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+            quantityIsRequired = true;
+            stopPriceIsRequired = true;
+            priceIsRequired = true;
+            timeInForceIsRequired = true;
+        } else if (uppercaseType === 'LIMIT_MAKER') {
+            priceIsRequired = true;
+            quantityIsRequired = true;
+        }
+        if (quantityIsRequired) {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        }
+        if (priceIsRequired) {
+            if (price === undefined) {
+                throw new InvalidOrder (this.id + ' editOrder() requires a price argument for a ' + type + ' order');
+            }
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (timeInForceIsRequired) {
+            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+        }
+        if (stopPriceIsRequired) {
+            if (stopPrice === undefined) {
+                throw new InvalidOrder (this.id + ' editOrder() requires a stopPrice extra param for a ' + type + ' order');
+            } else {
+                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            }
+        }
+        request['cancelReplaceMode'] = 'STOP_ON_FAILURE'; // If the cancel request fails, the new order placement will not be attempted.
+        const cancelId = this.safeString2 (params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId');
+        if (cancelId === undefined) {
+            request['cancelOrderId'] = id; // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
+        }
+        // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
+        if (this.safeString (params, 'timeInForce') === 'PO') {
+            params = this.omit (params, [ 'timeInForce' ]);
+        }
+        params = this.omit (params, [ 'quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
+        return this.extend (request, params);
+    }
+
     async editContractOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
-         * @name binance#editOrder
+         * @name binance#editContractOrder
          * @description edit a trade order
          * @see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
          * @see https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
@@ -4234,6 +4248,38 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketType = this.safeString (params, 'type', market['type']);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
+        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        let method = 'privatePostOrder';
+        if (market['linear']) {
+            method = 'fapiPrivatePostOrder';
+        } else if (market['inverse']) {
+            method = 'dapiPrivatePostOrder';
+        } else if (marketType === 'margin' || marginMode !== undefined) {
+            method = 'sapiPostMarginOrder';
+            const reduceOnly = this.safeValue (params, 'reduceOnly');
+            if (reduceOnly) {
+                request['sideEffectType'] = 'AUTO_REPAY';
+                params = this.omit (params, 'reduceOnly');
+            }
+        }
+        if (market['option']) {
+            method = 'eapiPrivatePostOrder';
+        }
+        // support for testing orders
+        if (market['spot'] || marketType === 'margin') {
+            const test = this.safeValue (query, 'test', false);
+            if (test) {
+                method += 'Test';
+            }
+        }
+        const response = await this[method] (request);
+        return this.parseOrder (response, market);
+    }
+
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        const market = this.market (symbol);
+        const marketType = this.safeString (params, 'type', market['type']);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         const initialUppercaseType = type.toUpperCase ();
         const isMarketOrder = initialUppercaseType === 'MARKET';
@@ -4251,25 +4297,7 @@ export default class binance extends Exchange {
             'symbol': market['id'],
             'side': side.toUpperCase (),
         };
-        let method = 'privatePostOrder';
-        if (market['linear']) {
-            method = 'fapiPrivatePostOrder';
-        } else if (market['inverse']) {
-            method = 'dapiPrivatePostOrder';
-        } else if (marketType === 'margin' || marginMode !== undefined) {
-            method = 'sapiPostMarginOrder';
-            const reduceOnly = this.safeValue (params, 'reduceOnly');
-            if (reduceOnly) {
-                request['sideEffectType'] = 'AUTO_REPAY';
-                params = this.omit (params, 'reduceOnly');
-            }
-        }
         if (market['spot'] || marketType === 'margin') {
-            // support for testing orders
-            const test = this.safeValue (query, 'test', false);
-            if (test) {
-                method += 'Test';
-            }
             // only supported for spot/margin api (all margin markets are spot markets)
             if (postOnly) {
                 type = 'LIMIT_MAKER';
@@ -4318,7 +4346,6 @@ export default class binance extends Exchange {
             if (type === 'market') {
                 throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
             }
-            method = 'eapiPrivatePostOrder';
         } else {
             const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
             if (!this.inArray (uppercaseType, validOrderTypes)) {
@@ -4447,8 +4474,7 @@ export default class binance extends Exchange {
             params = this.omit (params, [ 'timeInForce' ]);
         }
         const requestParams = this.omit (params, [ 'quoteOrderQty', 'cost', 'stopPrice', 'test', 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
-        const response = await this[method] (this.extend (request, requestParams));
-        return this.parseOrder (response, market);
+        return this.extend (request, requestParams);
     }
 
     async fetchOrder (id: string, symbol: string = undefined, params = {}) {
@@ -4745,8 +4771,10 @@ export default class binance extends Exchange {
         if (clientOrderId !== undefined) {
             if (market['option']) {
                 request['clientOrderId'] = clientOrderId;
+                delete (request['orderId']);
             } else {
                 request['origClientOrderId'] = clientOrderId;
+                delete (request['orderId']);
             }
         } else {
             request['orderId'] = id;
