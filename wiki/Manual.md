@@ -946,9 +946,10 @@ function decimalToPrecision ($x, $roundingMode = ROUND, $numPrecisionDigits = nu
 
 For examples of how to use the `decimalToPrecision` to format strings and floats, please, see the following files:
 
-- JavaScript: https://github.com/ccxt/ccxt/blob/master/js/test/base/functions/test.number.js
-- Python: https://github.com/ccxt/ccxt/blob/master/python/ccxt/test/test_decimal_to_precision.py
-- PHP: https://github.com/ccxt/ccxt/blob/master/php/test/decimal_to_precision.php
+- Typescript: https://github.com/ccxt/ccxt/blob/master/ts/src/test/base/functions/test.number.ts
+- JavaScript: https://github.com/ccxt/ccxt/blob/master/js/src/test/base/functions/test.number.js
+- Python: https://github.com/ccxt/ccxt/blob/master/python/ccxt/test/base/test_number.py
+- PHP: https://github.com/ccxt/ccxt/blob/master/php/test/base/test_number.php
 
 **Python WARNING! The `decimal_to_precision` method is susceptible to `getcontext().prec!`**
 
