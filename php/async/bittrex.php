@@ -59,6 +59,8 @@ class bittrex extends Exchange {
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -2059,6 +2061,77 @@ class bittrex extends Exchange {
                 'network' => null,
                 'info' => $response,
             );
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //     {
+        //         "symbol" => "APXP",
+        //         "name" => "APEX Protocol",
+        //         "coinType" => "ETH_CONTRACT",
+        //         "status" => "ONLINE",
+        //         "minConfirmations" => 36,
+        //         "notice" => "",
+        //         "txFee" => "4702.00000000",
+        //         "logoUrl" => "https://bittrex.com/content/dynamic/currencies/logos/6cbff899-0ba6-4284-931b-5306a0a2333a.png",
+        //         "prohibitedIn" => array(
+        //           "US"
+        //         ),
+        //         "baseAddress" => "0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98",
+        //         "associatedTermsOfService" => array(
+        //         ),
+        //         "tags" => array(
+        //         )
+        //     }
+        //
+        return array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => $this->safe_number($fee, 'txFee'),
+                'percentage' => false,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+    }
+
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {array} $params extra parameters specific to the bitrue api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetCurrencies ($params));
+            //
+            //   array(
+            //       array(
+            //           "symbol" => "APXP",
+            //           "name" => "APEX Protocol",
+            //           "coinType" => "ETH_CONTRACT",
+            //           "status" => "ONLINE",
+            //           "minConfirmations" => 36,
+            //           "notice" => "",
+            //           "txFee" => "4702.00000000",
+            //           "logoUrl" => "https://bittrex.com/content/dynamic/currencies/logos/6cbff899-0ba6-4284-931b-5306a0a2333a.png",
+            //           "prohibitedIn" => array(
+            //             "US"
+            //           ),
+            //           "baseAddress" => "0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98",
+            //           "associatedTermsOfService" => array(
+            //           ),
+            //           "tags" => array(
+            //           )
+            //       ),
+            //   )
+            //
+            return $this->parse_deposit_withdraw_fees($response, $codes, 'symbol');
         }) ();
     }
 

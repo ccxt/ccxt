@@ -69,6 +69,8 @@ class bittrex(Exchange, ImplicitAPI):
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -1893,6 +1895,73 @@ class bittrex(Exchange, ImplicitAPI):
             'network': None,
             'info': response,
         }
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #     {
+        #         "symbol": "APXP",
+        #         "name": "APEX Protocol",
+        #         "coinType": "ETH_CONTRACT",
+        #         "status": "ONLINE",
+        #         "minConfirmations": 36,
+        #         "notice": "",
+        #         "txFee": "4702.00000000",
+        #         "logoUrl": "https://bittrex.com/content/dynamic/currencies/logos/6cbff899-0ba6-4284-931b-5306a0a2333a.png",
+        #         "prohibitedIn": [
+        #           "US"
+        #         ],
+        #         "baseAddress": "0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98",
+        #         "associatedTermsOfService": [
+        #         ],
+        #         "tags": [
+        #         ]
+        #     }
+        #
+        return {
+            'info': fee,
+            'withdraw': {
+                'fee': self.safe_number(fee, 'txFee'),
+                'percentage': False,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+
+    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+        """
+        fetch deposit and withdraw fees
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.publicGetCurrencies(params)
+        #
+        #   [
+        #       {
+        #           "symbol": "APXP",
+        #           "name": "APEX Protocol",
+        #           "coinType": "ETH_CONTRACT",
+        #           "status": "ONLINE",
+        #           "minConfirmations": 36,
+        #           "notice": "",
+        #           "txFee": "4702.00000000",
+        #           "logoUrl": "https://bittrex.com/content/dynamic/currencies/logos/6cbff899-0ba6-4284-931b-5306a0a2333a.png",
+        #           "prohibitedIn": [
+        #             "US"
+        #           ],
+        #           "baseAddress": "0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98",
+        #           "associatedTermsOfService": [
+        #           ],
+        #           "tags": [
+        #           ]
+        #       },
+        #   ]
+        #
+        return self.parse_deposit_withdraw_fees(response, codes, 'symbol')
 
     def withdraw(self, code: str, amount, address, tag=None, params={}):
         """

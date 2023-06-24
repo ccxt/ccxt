@@ -56,7 +56,7 @@ class luno(Exchange, ImplicitAPI):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
-                'fetchOHLCV': False,  # overload of base fetchOHLCV, doesn't work in self exchange
+                'fetchOHLCV': False,  # overload of base fetchOHLCV, doesn't hasattr(self, work) exchange
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,

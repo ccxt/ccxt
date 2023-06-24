@@ -762,7 +762,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve ($this->orders, $messageHash);
     }
 
-    public function parse_ws_order($order) {
+    public function parse_ws_order($order, $market = null) {
         //
         //  spot
         //
@@ -876,7 +876,7 @@ class coinex extends \ccxt\async\coinex {
         $amount = $this->safe_string($order, 'amount');
         $status = $this->safe_string($order, 'status');
         $defaultType = $this->safe_string($this->options, 'defaultType');
-        $market = $this->safe_market($marketId, null, null, $defaultType);
+        $market = $this->safe_market($marketId, $market, null, $defaultType);
         $cost = $this->safe_string($order, 'deal_money');
         $filled = $this->safe_string($order, 'deal_stock');
         $average = null;

@@ -52,6 +52,7 @@ class wazirx(Exchange, ImplicitAPI):
                 'fetchDepositAddress': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,

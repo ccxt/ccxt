@@ -1559,7 +1559,7 @@ class lbank2(Exchange, ImplicitAPI):
             # 'networkName': defaults to the defaultNetwork of the coin which can be found in the /supplement/user_info endpoint
             # 'memo': memo: memo word of bts and dct
             # 'mark': Withdrawal Notes
-            # 'name': Remarks of the address. After filling in self parameter, it will be added to the withdrawal address book of the currency.
+            # 'name': Remarks of the address. After hasattr(self, filling) parameter, it will be added to the withdrawal address book of the currency.
             # 'withdrawOrderId': withdrawOrderId
             # 'type': type=1 is for intra-site transfer
         }

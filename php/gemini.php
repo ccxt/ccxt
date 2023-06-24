@@ -43,6 +43,7 @@ class gemini extends Exchange {
                 'fetchClosedOrders' => false,
                 'fetchDepositAddress' => null, // TODO
                 'fetchDepositAddressesByNetwork' => true,
+                'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -1415,7 +1416,7 @@ class gemini extends Exchange {
 
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * fetch history of deposits and withdrawals
+         * *DEPRECATED* use fetchDepositsWithdrawals instead
          * @param {string|null} $code not used by gemini.fetchTransactions
          * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
          * @param {int|null} $limit max number of transactions to return, default is null

@@ -3,15 +3,14 @@ import { Int, OrderSide, OrderType } from './base/types.js';
 export default class cryptocom extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
+    fetchTicker(symbol: string, params?: {}): Promise<any>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    parseSwapBalance(response: any): import("./base/types.js").Balances;
-    parseSpotBalance(response: any): import("./base/types.js").Balances;
-    fetchBalance(params?: {}): Promise<any>;
+    parseBalance(response: any): import("./base/types.js").Balances;
+    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
@@ -137,6 +136,35 @@ export default class cryptocom extends Exchange {
         networks: {};
     };
     fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
+    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseLedgerEntry(item: any, currency?: any): {
+        id: string;
+        direction: any;
+        account: string;
+        referenceId: string;
+        referenceAccount: string;
+        type: string;
+        currency: any;
+        amount: number;
+        timestamp: number;
+        datetime: string;
+        before: any;
+        after: any;
+        status: any;
+        fee: {
+            currency: any;
+            cost: any;
+        };
+        info: any;
+    };
+    parseLedgerEntryType(type: any): string;
+    fetchAccounts(params?: {}): Promise<any[]>;
+    parseAccount(account: any): {
+        id: string;
+        type: string;
+        code: any;
+        info: any;
+    };
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

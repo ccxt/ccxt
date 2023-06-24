@@ -48,6 +48,7 @@ class bitso extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => false,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,

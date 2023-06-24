@@ -58,6 +58,7 @@ export default class okx extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
@@ -252,6 +253,7 @@ export default class okx extends Exchange {
                         'account/subaccount/balances': 10,
                         'account/subaccount/interest-limits': 4,
                         'asset/subaccount/bills': 5 / 3,
+                        'asset/subaccount/managed-subaccount-bills': 5 / 3,
                         'users/subaccount/list': 10,
                         'users/subaccount/apikey': 10,
                         'users/entrust-subaccount-list': 10,
@@ -480,6 +482,8 @@ export default class okx extends Exchange {
                     '51028': BadSymbol, // Contract under delivery
                     '51029': BadSymbol, // Contract is being settled
                     '51030': BadSymbol, // Funding fee is being settled
+                    '51046': InvalidOrder, // The take profit trigger price must be higher than the order price
+                    '51047': InvalidOrder, // The stop loss trigger price must be lower than the order price
                     '51031': InvalidOrder, // This order price is not within the closing price range
                     '51100': InvalidOrder, // Trading amount does not meet the min tradable amount
                     '51101': InvalidOrder, // Entered amount exceeds the max pending order amount (Cont) per transaction
@@ -2260,6 +2264,14 @@ export default class okx extends Exchange {
          * @param {object} params extra parameters specific to the okx api endpoint
          * @param {bool|undefined} params.reduceOnly MARGIN orders only, or swap/future orders in net mode
          * @param {bool|undefined} params.postOnly true to place a post only order
+         * @param {object|undefined} params.takeProfit *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {float|undefined} params.takeProfit.triggerPrice take profit trigger price
+         * @param {float|undefined} params.takeProfit.price used for take profit limit orders, not used for take profit market price orders
+         * @param {string|undefined} params.takeProfit.type 'market' or 'limit' used to specify the take profit price type
+         * @param {object|undefined} params.stopLoss *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {float|undefined} params.stopLoss.triggerPrice stop loss trigger price
+         * @param {float|undefined} params.stopLoss.price used for stop loss limit orders, not used for stop loss market price orders
+         * @param {string|undefined} params.stopLoss.type 'market' or 'limit' used to specify the stop loss price type
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2840,6 +2852,7 @@ export default class okx extends Exchange {
         //
         const id = this.safeString2 (order, 'algoId', 'ordId');
         const timestamp = this.safeInteger (order, 'cTime');
+        const lastUpdateTimestamp = this.safeInteger (order, 'uTime');
         const lastTradeTimestamp = this.safeInteger (order, 'fillTime');
         const side = this.safeString (order, 'side');
         let type = this.safeString (order, 'ordType');
@@ -2906,6 +2919,7 @@ export default class okx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
@@ -6231,7 +6245,7 @@ export default class okx extends Exchange {
         }
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchDepositWithdrawFees

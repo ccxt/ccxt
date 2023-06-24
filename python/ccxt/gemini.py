@@ -62,6 +62,7 @@ class gemini(Exchange, ImplicitAPI):
                 'fetchClosedOrders': False,
                 'fetchDepositAddress': None,  # TODO
                 'fetchDepositAddressesByNetwork': True,
+                'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -1364,7 +1365,7 @@ class gemini(Exchange, ImplicitAPI):
 
     def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        fetch history of deposits and withdrawals
+        *DEPRECATED* use fetchDepositsWithdrawals instead
         :param str|None code: not used by gemini.fetchTransactions
         :param int|None since: timestamp in ms of the earliest transaction, default is None
         :param int|None limit: max number of transactions to return, default is None

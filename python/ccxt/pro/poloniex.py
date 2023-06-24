@@ -143,18 +143,11 @@ class poloniex(ccxt.async_support.poloniex):
             ],
         }
         marketIds = []
-        if symbols is not None:
-            if len(symbols) == 1:
-                symbol = symbols[0]
-                marketId = self.market_id(symbol)
-                marketIds.append(marketId)
-                messageHash = messageHash + ':' + symbol
-            else:
-                for i in range(0, len(symbols)):
-                    symbol = symbols[i]
-                    marketIds.append(self.market_id(symbol))
-        else:
+        if self.is_empty(symbols):
             marketIds.append('all')
+        else:
+            messageHash = messageHash + '::' + ','.join(symbols)
+            marketIds = self.market_ids(symbols)
         if name != 'balances':
             subscribe['symbols'] = marketIds
         request = self.extend(subscribe, params)
@@ -190,8 +183,9 @@ class poloniex(ccxt.async_support.poloniex):
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
-        name = 'ticker'
-        return await self.subscribe(name, name, False, [symbol], params)
+        symbol = self.symbol(symbol)
+        tickers = await self.watch_tickers([symbol], params)
+        return self.safe_value(tickers, symbol)
 
     async def watch_tickers(self, symbols=None, params={}):
         """
@@ -203,7 +197,11 @@ class poloniex(ccxt.async_support.poloniex):
         """
         await self.load_markets()
         name = 'ticker'
-        return await self.subscribe(name, name, False, symbols, params)
+        symbols = self.market_symbols(symbols)
+        newTickers = await self.subscribe(name, name, False, symbols, params)
+        if self.newUpdates:
+            return newTickers
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -350,7 +348,7 @@ class poloniex(ccxt.async_support.poloniex):
         symbol = self.safe_symbol(marketId)
         market = self.safe_market(symbol)
         timeframe = self.find_timeframe(channel)
-        messageHash = channel + ':' + symbol
+        messageHash = channel + '::' + symbol
         parsed = self.parse_ws_ohlcv(data, market)
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], timeframe)
@@ -389,7 +387,7 @@ class poloniex(ccxt.async_support.poloniex):
                 trade = self.parse_ws_trade(item)
                 symbol = trade['symbol']
                 type = 'trades'
-                messageHash = type + ':' + symbol
+                messageHash = type + '::' + symbol
                 tradesArray = self.safe_value(self.trades, symbol)
                 if tradesArray is None:
                     tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -632,7 +630,7 @@ class poloniex(ccxt.async_support.poloniex):
             marketId = marketIds[i]
             market = self.market(marketId)
             symbol = market['symbol']
-            messageHash = 'orders:' + symbol
+            messageHash = 'orders::' + symbol
             client.resolve(orders[symbol], messageHash)
         client.resolve(orders, 'orders')
         return message
@@ -730,6 +728,7 @@ class poloniex(ccxt.async_support.poloniex):
         #    }
         #
         data = self.safe_value(message, 'data', [])
+        newTickers = []
         for i in range(0, len(data)):
             item = data[i]
             marketId = self.safe_string(item, 'symbol')
@@ -737,9 +736,17 @@ class poloniex(ccxt.async_support.poloniex):
                 ticker = self.parse_ticker(item)
                 symbol = ticker['symbol']
                 self.tickers[symbol] = ticker
-                messageHash = 'ticker:' + symbol
-                client.resolve(ticker, messageHash)
-        client.resolve(self.tickers, 'ticker')
+                newTickers.append(ticker)
+        messageHashes = self.find_message_hashes(client, 'ticker::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            tickers = self.filter_by_array(newTickers, 'symbol', symbols)
+            if not self.is_empty(tickers):
+                client.resolve(tickers, messageHash)
+        client.resolve(newTickers, 'ticker')
         return message
 
     def handle_order_book(self, client: Client, message):
@@ -800,7 +807,7 @@ class poloniex(ccxt.async_support.poloniex):
             market = self.safe_market(marketId)
             symbol = market['symbol']
             name = 'book_lv2'
-            messageHash = name + ':' + symbol
+            messageHash = name + '::' + symbol
             subscription = self.safe_value(client.subscriptions, messageHash, {})
             limit = self.safe_integer(subscription, 'limit')
             timestamp = self.safe_integer(item, 'ts')

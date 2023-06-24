@@ -83,6 +83,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': False,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
@@ -277,6 +278,7 @@ class okx(Exchange, ImplicitAPI):
                         'account/subaccount/balances': 10,
                         'account/subaccount/interest-limits': 4,
                         'asset/subaccount/bills': 5 / 3,
+                        'asset/subaccount/managed-subaccount-bills': 5 / 3,
                         'users/subaccount/list': 10,
                         'users/subaccount/apikey': 10,
                         'users/entrust-subaccount-list': 10,
@@ -505,6 +507,8 @@ class okx(Exchange, ImplicitAPI):
                     '51028': BadSymbol,  # Contract under delivery
                     '51029': BadSymbol,  # Contract is being settled
                     '51030': BadSymbol,  # Funding fee is being settled
+                    '51046': InvalidOrder,  # The take profit trigger price must be higher than the order price
+                    '51047': InvalidOrder,  # The stop loss trigger price must be lower than the order price
                     '51031': InvalidOrder,  # This order price is not within the closing price range
                     '51100': InvalidOrder,  # Trading amount does not meet the min tradable amount
                     '51101': InvalidOrder,  # Entered amount exceeds the max pending order amount(Cont) per transaction
@@ -2178,6 +2182,14 @@ class okx(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the okx api endpoint
         :param bool|None params['reduceOnly']: MARGIN orders only, or swap/future orders in net mode
         :param bool|None params['postOnly']: True to place a post only order
+        :param dict|None params['takeProfit']: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
+        :param float|None params.takeProfit.triggerPrice: take profit trigger price
+        :param float|None params.takeProfit.price: used for take profit limit orders, not used for take profit market price orders
+        :param str|None params.takeProfit.type: 'market' or 'limit' used to specify the take profit price type
+        :param dict|None params['stopLoss']: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
+        :param float|None params.stopLoss.triggerPrice: stop loss trigger price
+        :param float|None params.stopLoss.price: used for stop loss limit orders, not used for stop loss market price orders
+        :param str|None params.stopLoss.type: 'market' or 'limit' used to specify the stop loss price type
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -2219,6 +2231,10 @@ class okx(Exchange, ImplicitAPI):
         slOrdPx = self.safe_value(params, 'slOrdPx', price)
         slTriggerPxType = self.safe_string(params, 'slTriggerPxType', 'last')
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
+        stopLoss = self.safe_value(params, 'stopLoss')
+        stopLossDefined = (stopLoss is not None)
+        takeProfit = self.safe_value(params, 'takeProfit')
+        takeProfitDefined = (takeProfit is not None)
         defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
         marginMode = self.safe_string_2(params, 'marginMode', 'tdMode')  # cross or isolated, tdMode not ommited so be extended into the request
         margin = False
@@ -2239,7 +2255,7 @@ class okx(Exchange, ImplicitAPI):
         isMarketOrder = type == 'market'
         postOnly = False
         postOnly, params = self.handle_post_only(isMarketOrder, type == 'post_only', params)
-        params = self.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin'])
+        params = self.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit'])
         ioc = (timeInForce == 'IOC') or (type == 'ioc')
         fok = (timeInForce == 'FOK') or (type == 'fok')
         trigger = (triggerPrice is not None) or (type == 'trigger')
@@ -2279,14 +2295,68 @@ class okx(Exchange, ImplicitAPI):
             if (not trigger) and (not conditional):
                 request['px'] = self.price_to_precision(symbol, price)
         if postOnly:
-            method = defaultMethod
             request['ordType'] = 'post_only'
         elif ioc and not marketIOC:
-            method = defaultMethod
             request['ordType'] = 'ioc'
         elif fok:
-            method = defaultMethod
             request['ordType'] = 'fok'
+        elif stopLossDefined or takeProfitDefined:
+            if stopLossDefined:
+                stopLossTriggerPrice = self.safe_value_n(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx'])
+                if stopLossTriggerPrice is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order')
+                request['slTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                stopLossLimitPrice = self.safe_value_n(stopLoss, ['price', 'stopLossPrice', 'slOrdPx'])
+                stopLossOrderType = self.safe_string(stopLoss, 'type')
+                if stopLossOrderType is not None:
+                    stopLossLimitOrderType = (stopLossOrderType == 'limit')
+                    stopLossMarketOrderType = (stopLossOrderType == 'market')
+                    if (not stopLossLimitOrderType) and (not stopLossMarketOrderType):
+                        raise InvalidOrder(self.id + ' createOrder() params["stopLoss"]["type"] must be either "limit" or "market"')
+                    elif stopLossLimitOrderType:
+                        if stopLossLimitPrice is None:
+                            raise InvalidOrder(self.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] or params["stopLoss"]["slOrdPx"] for a stop loss limit order')
+                        else:
+                            request['slOrdPx'] = self.price_to_precision(symbol, stopLossLimitPrice)
+                    elif stopLossOrderType == 'market':
+                        request['slOrdPx'] = '-1'
+                elif stopLossLimitPrice is not None:
+                    request['slOrdPx'] = self.price_to_precision(symbol, stopLossLimitPrice)  # limit sl order
+                else:
+                    request['slOrdPx'] = '-1'  # market sl order
+                stopLossTriggerPriceType = self.safe_string_2(stopLoss, 'triggerPriceType', 'slTriggerPxType')
+                if stopLossTriggerPriceType is not None:
+                    if (stopLossTriggerPriceType != 'last') and (stopLossTriggerPriceType != 'index') and (stopLossTriggerPriceType != 'mark'):
+                        raise InvalidOrder(self.id + ' createOrder() stop loss trigger price type must be one of "last", "index" or "mark"')
+                    request['slTriggerPxType'] = stopLossTriggerPriceType
+            if takeProfitDefined:
+                takeProfitTriggerPrice = self.safe_value_n(takeProfit, ['triggerPrice', 'stopPrice', 'tpTriggerPx'])
+                if takeProfitTriggerPrice is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order')
+                request['tpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                takeProfitLimitPrice = self.safe_value_n(takeProfit, ['price', 'takeProfitPrice', 'tpOrdPx'])
+                takeProfitOrderType = self.safe_string(takeProfit, 'type')
+                if takeProfitOrderType is not None:
+                    takeProfitLimitOrderType = (takeProfitOrderType == 'limit')
+                    takeProfitMarketOrderType = (takeProfitOrderType == 'market')
+                    if (not takeProfitLimitOrderType) and (not takeProfitMarketOrderType):
+                        raise InvalidOrder(self.id + ' createOrder() params["takeProfit"]["type"] must be either "limit" or "market"')
+                    elif takeProfitLimitOrderType:
+                        if takeProfitLimitPrice is None:
+                            raise InvalidOrder(self.id + ' createOrder() requires a limit price in params["takeProfit"]["price"] or params["takeProfit"]["tpOrdPx"] for a take profit limit order')
+                        else:
+                            request['tpOrdPx'] = self.price_to_precision(symbol, takeProfitLimitPrice)
+                    elif takeProfitOrderType == 'market':
+                        request['tpOrdPx'] = '-1'
+                elif takeProfitLimitPrice is not None:
+                    request['tpOrdPx'] = self.price_to_precision(symbol, takeProfitLimitPrice)  # limit tp order
+                else:
+                    request['tpOrdPx'] = '-1'  # market tp order
+                takeProfitTriggerPriceType = self.safe_string_2(stopLoss, 'triggerPriceType', 'tpTriggerPxType')
+                if takeProfitTriggerPriceType is not None:
+                    if (takeProfitTriggerPriceType != 'last') and (takeProfitTriggerPriceType != 'index') and (takeProfitTriggerPriceType != 'mark'):
+                        raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "last", "index" or "mark"')
+                    request['tpTriggerPxType'] = takeProfitTriggerPriceType
         elif trigger:
             method = 'privatePostTradeOrderAlgo'
             request['ordType'] = 'trigger'
@@ -2635,6 +2705,7 @@ class okx(Exchange, ImplicitAPI):
         #
         id = self.safe_string_2(order, 'algoId', 'ordId')
         timestamp = self.safe_integer(order, 'cTime')
+        lastUpdateTimestamp = self.safe_integer(order, 'uTime')
         lastTradeTimestamp = self.safe_integer(order, 'fillTime')
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'ordType')
@@ -2696,6 +2767,7 @@ class okx(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,

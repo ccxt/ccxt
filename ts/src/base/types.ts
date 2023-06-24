@@ -91,6 +91,9 @@ export interface Order {
     amount: number;
     filled: number;
     remaining: number;
+    stopPrice?: number;
+    takeProfitPrice?: number;
+    stopLossPrice?: number;
     cost: number;
     trades: Trade[];
     fee: Fee;

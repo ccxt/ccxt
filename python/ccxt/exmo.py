@@ -56,6 +56,7 @@ class exmo(Exchange, ImplicitAPI):
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
@@ -633,9 +634,9 @@ class exmo(Exchange, ImplicitAPI):
                 for j in range(0, len(providers)):
                     provider = providers[j]
                     typeInner = self.safe_string(provider, 'type')
-                    minValue = self.safe_number(provider, 'min')
-                    maxValue = self.safe_number(provider, 'max')
-                    if maxValue == 0.0:
+                    minValue = self.safe_string(provider, 'min')
+                    maxValue = self.safe_string(provider, 'max')
+                    if Precise.string_eq(maxValue, '0.0'):
                         maxValue = None
                     activeProvider = self.safe_value(provider, 'enabled')
                     if typeInner == 'deposit':
@@ -650,7 +651,8 @@ class exmo(Exchange, ImplicitAPI):
                             withdrawEnabled = False
                     if activeProvider:
                         active = True
-                        if (limits[typeInner]['min'] is None) or (minValue < limits[typeInner]['min']):
+                        limitMin = self.number_to_string(limits[typeInner]['min'])
+                        if (limits[typeInner]['min'] is None) or (Precise.string_lt(minValue, limitMin)):
                             limits[typeInner]['min'] = minValue
                             limits[typeInner]['max'] = maxValue
                             if typeInner == 'withdraw':
@@ -1673,7 +1675,7 @@ class exmo(Exchange, ImplicitAPI):
 
     def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        fetch history of deposits and withdrawals
+        *DEPRECATED* use fetchDepositsWithdrawals instead
         :param str|None code: unified currency code for the currency of the transactions, default is None
         :param int|None since: timestamp in ms of the earliest transaction, default is None
         :param int|None limit: max number of transactions to return, default is None

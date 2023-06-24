@@ -292,6 +292,9 @@ abstract class okex extends \ccxt\async\okx {
     public function private_get_asset_subaccount_bills($params = array()) {
         return $this->request('asset/subaccount/bills', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
+    public function private_get_asset_subaccount_managed_subaccount_bills($params = array()) {
+        return $this->request('asset/subaccount/managed-subaccount-bills', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
     public function private_get_users_subaccount_list($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -897,6 +900,9 @@ abstract class okex extends \ccxt\async\okx {
     }
     public function privateGetAssetSubaccountBills($params = array()) {
         return $this->request('asset/subaccount/bills', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function privateGetAssetSubaccountManagedSubaccountBills($params = array()) {
+        return $this->request('asset/subaccount/managed-subaccount-bills', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
     public function privateGetUsersSubaccountList($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));

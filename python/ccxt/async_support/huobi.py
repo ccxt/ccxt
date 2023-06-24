@@ -918,6 +918,7 @@ class huobi(Exchange, ImplicitAPI):
                     'dw-insufficient-balance': InsufficientFunds,  # {"status":"error","err-code":"dw-insufficient-balance","err-msg":"Insufficient balance. You can only transfer `12.3456` at most.","data":null}
                     'base-withdraw-fee-error': BadRequest,  # {"status":"error","err-code":"base-withdraw-fee-error","err-msg":"withdrawal fee is not within limits","data":null}
                     'dw-withdraw-min-limit': BadRequest,  # {"status":"error","err-code":"dw-withdraw-min-limit","err-msg":"The withdrawal amount is less than the minimum limit.","data":null}
+                    'request limit': RateLimitExceeded,  # {"ts":1687004814731,"status":"error","err-code":"invalid-parameter","err-msg":"request limit"}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -6592,7 +6593,7 @@ class huobi(Exchange, ImplicitAPI):
             # 'endTime': 1546272000000,
             # 'sort': asc,  # asc, desc
             # 'limit': 100,  # range 1-500
-            # 'fromId': 323  # first record ID in self query for pagination
+            # 'fromId': 323  # first record hasattr(self, ID) query for pagination
         }
         currency = None
         if code is not None:

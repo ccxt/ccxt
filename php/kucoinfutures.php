@@ -1659,6 +1659,7 @@ class kucoinfutures extends kucoin {
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $stopPrice = $this->safe_number($order, 'stopPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
+        $lastUpdateTimestamp = $this->safe_integer($order, 'updatedAt');
         return $this->safe_order(array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,
@@ -1680,6 +1681,7 @@ class kucoinfutures extends kucoin {
             'status' => $status,
             'info' => $order,
             'lastTradeTimestamp' => null,
+            'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'average' => $average,
             'trades' => null,
         ), $market);

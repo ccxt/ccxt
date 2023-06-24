@@ -49,7 +49,7 @@ class luno extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
-                'fetchOHLCV' => false, // overload of base fetchOHLCV, doesn't work in this exchange
+                'fetchOHLCV' => false, // overload of base fetchOHLCV, doesn't property_exists($this, work) exchange
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
