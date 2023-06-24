@@ -1414,7 +1414,7 @@ export default class cryptocom extends Exchange {
             const [ address, tag ] = this.parseAddress (addressString);
             this.checkAddress (address);
             const networkId = this.safeString (value, 'network');
-            const network = this.safeNetwork (networkId);
+            const network = this.networkIdToCode (networkId, responseCode);
             result[network] = {
                 'info': value,
                 'currency': responseCode,
