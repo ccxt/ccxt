@@ -1245,6 +1245,7 @@ class krakenfutures extends krakenfutures$1 {
         const marketId = this.safeString(details, 'symbol');
         market = this.safeMarket(marketId, market);
         const timestamp = this.parse8601(this.safeString2(details, 'timestamp', 'receivedTime'));
+        const lastUpdateTimestamp = this.parse8601(this.safeString(details, 'lastUpdateTime'));
         if (price === undefined) {
             price = this.safeString(details, 'limitPrice');
         }
@@ -1317,6 +1318,7 @@ class krakenfutures extends krakenfutures$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': this.safeString(market, 'symbol'),
             'type': this.parseOrderType(type),
             'timeInForce': timeInForce,
