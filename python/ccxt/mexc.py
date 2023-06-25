@@ -4089,7 +4089,7 @@ class mexc(Exchange, ImplicitAPI):
             'unrealizedProfit': None,
             'leverage': self.parse_number(leverage),
             'percentage': None,
-            'marginType': marginType,
+            'marginMode': marginType,
             'notional': None,
             'markPrice': None,
             'lastPrice': None,

@@ -4352,7 +4352,7 @@ export default class mexc extends Exchange {
             'unrealizedProfit': undefined,
             'leverage': this.parseNumber(leverage),
             'percentage': undefined,
-            'marginType': marginType,
+            'marginMode': marginType,
             'notional': undefined,
             'markPrice': undefined,
             'lastPrice': undefined,
