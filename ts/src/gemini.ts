@@ -1664,9 +1664,11 @@ export default class gemini extends Exchange {
         /**
          * @method
          * @name gemini#fetchDepositAddress
+         * @see https://docs.gemini.com/rest-api/#get-deposit-addresses
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the endpoint
+         * @param {string} params.network  *required* The chain of currency
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
@@ -1678,6 +1680,16 @@ export default class gemini extends Exchange {
     }
 
     async fetchDepositAddressesByNetwork (code: string, params = {}) {
+        /**
+         * @method
+         * @name gemini#fetchDepositAddressesByNetwork
+         * @description fetch a dictionary of addresses for a currency, indexed by network
+         * @see https://docs.gemini.com/rest-api/#get-deposit-addresses
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} params extra parameters specific to the gemini api endpoint
+         * @param {string} params.network  *required* The chain of currency
+         * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         code = currency['code'];
