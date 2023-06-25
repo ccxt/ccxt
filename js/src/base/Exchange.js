@@ -2632,8 +2632,10 @@ export default class Exchange {
     }
     async fetch2(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
         if (this.enableRateLimit) {
+            const t1 = this.milliseconds();
             const cost = this.calculateRateLimiterCost(api, method, path, params, config);
             await this.throttle(cost);
+            console.log ("Throttler duration: ", this.milliseconds() - t1);
         }
         this.lastRestRequestTimestamp = this.milliseconds();
         const request = this.sign(path, api, method, params, headers, body);
