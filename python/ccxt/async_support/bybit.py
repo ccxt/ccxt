@@ -7953,7 +7953,7 @@ class bybit(Exchange, ImplicitAPI):
         fetch deposit and withdraw fees
         see https://bybit-exchange.github.io/docs/v5/asset/coin-info
         :param [str]|None codes: list of unified currency codes
-        :param dict params: extra parameters specific to the bitrue api endpoint
+        :param dict params: extra parameters specific to the bybit api endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
         self.check_required_credentials()

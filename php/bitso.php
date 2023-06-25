@@ -1367,7 +1367,7 @@ class bitso extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
          * @see https://bitso.com/api_info#fees

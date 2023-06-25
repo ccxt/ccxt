@@ -4802,7 +4802,7 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdrawal fees
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information

@@ -4548,7 +4548,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config

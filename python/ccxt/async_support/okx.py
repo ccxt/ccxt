@@ -5830,7 +5830,7 @@ class okx(Exchange, ImplicitAPI):
         elif 'x-simulated-trading' in self.headers:
             self.headers = self.omit(self.headers, 'x-simulated-trading')
 
-    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
         see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies

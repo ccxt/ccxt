@@ -6135,7 +6135,7 @@ class okx extends Exchange {
         }
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies

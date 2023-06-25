@@ -1296,6 +1296,7 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_deposit_addresses_by_network(self, code: str, params={}):
         """
         fetch a dictionary of addresses for a currency, indexed by network
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
         :param str code: unified currency code of the currency for the deposit address
         :param dict params: extra parameters specific to the cryptocom api endpoint
         :returns dict: a dictionary of `address structures <https://docs.ccxt.com/#/?id=address-structure>` indexed by the network
@@ -1305,32 +1306,26 @@ class cryptocom(Exchange, ImplicitAPI):
         request = {
             'currency': currency['id'],
         }
-        response = await self.v2PrivatePostPrivateGetDepositAddress(self.extend(request, params))
-        # {
-        #     "id": 11,
-        #     "method": "private/get-deposit-address",
-        #     "code": 0,
-        #     "result": {
-        #          "deposit_address_list": [
-        #              {
-        #                  "currency": "CRO",
-        #                  "create_time": 1615886328000,
-        #                  "id": "12345",
-        #                  "address": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-        #                  "status": "1",
-        #                  "network": "CRO"
-        #              },
-        #              {
-        #                  "currency": "CRO",
-        #                  "create_time": 1615886332000,
-        #                  "id": "12346",
-        #                  "address": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
-        #                  "status": "1",
-        #                  "network": "ETH"
-        #              }
-        #          ]
-        #    }
-        # }
+        response = await self.v1PrivatePostPrivateGetDepositAddress(self.extend(request, params))
+        #
+        #     {
+        #         "id": 1234555011221,
+        #         "method": "private/get-deposit-address",
+        #         "code": 0,
+        #         "result": {
+        #             "deposit_address_list": [
+        #                 {
+        #                     "currency": "BTC",
+        #                     "create_time": 1686730755000,
+        #                     "id": "3737377",
+        #                     "address": "3N9afggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
+        #                     "status":"1",
+        #                     "network": "BTC"
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
         data = self.safe_value(response, 'result', {})
         addresses = self.safe_value(data, 'deposit_address_list', [])
         addressesLength = len(addresses)
@@ -1345,7 +1340,7 @@ class cryptocom(Exchange, ImplicitAPI):
             address, tag = self.parse_address(addressString)
             self.check_address(address)
             networkId = self.safe_string(value, 'network')
-            network = self.safe_network(networkId)
+            network = self.network_id_to_code(networkId, responseCode)
             result[network] = {
                 'info': value,
                 'currency': responseCode,
@@ -2253,7 +2248,7 @@ class cryptocom(Exchange, ImplicitAPI):
                     result['withdraw']['percentage'] = False
         return result
 
-    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
         see https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks

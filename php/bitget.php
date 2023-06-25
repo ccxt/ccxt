@@ -4602,7 +4602,7 @@ class bitget extends Exchange {
          * fetch deposit and withdraw fees
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-list
          * @param {[string]|null} $codes list of unified currency $codes
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
+         * @param {array} $params extra parameters specific to the bitget api endpoint
          * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
          */
         $this->load_markets();

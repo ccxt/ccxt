@@ -1375,6 +1375,7 @@ class cryptocom extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch a dictionary of $addresses for a $currency, indexed by $network
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-$address
              * @param {string} $code unified $currency $code of the $currency for the deposit $address
              * @param {array} $params extra parameters specific to the cryptocom api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$address-structure $address structures~ indexed by the $network
@@ -1384,32 +1385,26 @@ class cryptocom extends Exchange {
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->v2PrivatePostPrivateGetDepositAddress (array_merge($request, $params)));
-            // {
-            //     "id" => 11,
-            //     "method" => "private/get-deposit-$address",
-            //     "code" => 0,
-            //     "result" => {
-            //          "deposit_address_list" => array(
-            //              array(
-            //                  "currency" => "CRO",
-            //                  "create_time" => 1615886328000,
-            //                  "id" => "12345",
-            //                  "address" => "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-            //                  "status" => "1",
-            //                  "network" => "CRO"
-            //              ),
-            //              {
-            //                  "currency" => "CRO",
-            //                  "create_time" => 1615886332000,
-            //                  "id" => "12346",
-            //                  "address" => "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
-            //                  "status" => "1",
-            //                  "network" => "ETH"
-            //              }
-            //          )
-            //    }
-            // }
+            $response = Async\await($this->v1PrivatePostPrivateGetDepositAddress (array_merge($request, $params)));
+            //
+            //     {
+            //         "id" => 1234555011221,
+            //         "method" => "private/get-deposit-$address",
+            //         "code" => 0,
+            //         "result" => {
+            //             "deposit_address_list" => array(
+            //                 array(
+            //                     "currency" => "BTC",
+            //                     "create_time" => 1686730755000,
+            //                     "id" => "3737377",
+            //                     "address" => "3N9afggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
+            //                     "status":"1",
+            //                     "network" => "BTC"
+            //                 ),
+            //             )
+            //         }
+            //     }
+            //
             $data = $this->safe_value($response, 'result', array());
             $addresses = $this->safe_value($data, 'deposit_address_list', array());
             $addressesLength = count($addresses);
@@ -1425,7 +1420,7 @@ class cryptocom extends Exchange {
                 list($address, $tag) = $this->parse_address($addressString);
                 $this->check_address($address);
                 $networkId = $this->safe_string($value, 'network');
-                $network = $this->safe_network($networkId);
+                $network = $this->network_id_to_code($networkId, $responseCode);
                 $result[$network] = array(
                     'info' => $value,
                     'currency' => $responseCode,
@@ -2414,7 +2409,7 @@ class cryptocom extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees

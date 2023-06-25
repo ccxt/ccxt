@@ -1369,6 +1369,7 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchDepositAddressesByNetwork
          * @description fetch a dictionary of addresses for a currency, indexed by network
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
@@ -1378,32 +1379,26 @@ export default class cryptocom extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.v2PrivatePostPrivateGetDepositAddress (this.extend (request, params));
-        // {
-        //     "id": 11,
-        //     "method": "private/get-deposit-address",
-        //     "code": 0,
-        //     "result": {
-        //          "deposit_address_list": [
-        //              {
-        //                  "currency": "CRO",
-        //                  "create_time": 1615886328000,
-        //                  "id": "12345",
-        //                  "address": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-        //                  "status": "1",
-        //                  "network": "CRO"
-        //              },
-        //              {
-        //                  "currency": "CRO",
-        //                  "create_time": 1615886332000,
-        //                  "id": "12346",
-        //                  "address": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
-        //                  "status": "1",
-        //                  "network": "ETH"
-        //              }
-        //          ]
-        //    }
-        // }
+        const response = await this.v1PrivatePostPrivateGetDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1234555011221,
+        //         "method": "private/get-deposit-address",
+        //         "code": 0,
+        //         "result": {
+        //             "deposit_address_list": [
+        //                 {
+        //                     "currency": "BTC",
+        //                     "create_time": 1686730755000,
+        //                     "id": "3737377",
+        //                     "address": "3N9afggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
+        //                     "status":"1",
+        //                     "network": "BTC"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
         const data = this.safeValue (response, 'result', {});
         const addresses = this.safeValue (data, 'deposit_address_list', []);
         const addressesLength = addresses.length;
@@ -1419,7 +1414,7 @@ export default class cryptocom extends Exchange {
             const [ address, tag ] = this.parseAddress (addressString);
             this.checkAddress (address);
             const networkId = this.safeString (value, 'network');
-            const network = this.safeNetwork (networkId);
+            const network = this.networkIdToCode (networkId, responseCode);
             result[network] = {
                 'info': value,
                 'currency': responseCode,

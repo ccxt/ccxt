@@ -8615,7 +8615,7 @@ class bybit extends Exchange {
              * fetch deposit and withdraw fees
              * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
              * @param {[string]|null} $codes list of unified currency $codes
-             * @param {array} $params extra parameters specific to the bitrue api endpoint
+             * @param {array} $params extra parameters specific to the bybit api endpoint
              * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
              */
             $this->check_required_credentials();

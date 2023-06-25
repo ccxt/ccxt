@@ -7646,7 +7646,7 @@ class huobi extends Exchange {
         return $this->sort_by($settlements, 'timestamp');
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2

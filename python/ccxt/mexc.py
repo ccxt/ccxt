@@ -4560,7 +4560,7 @@ class mexc(Exchange, ImplicitAPI):
             result[networkCode] = fee
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdrawal fees
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
