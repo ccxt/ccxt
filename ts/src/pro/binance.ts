@@ -1395,6 +1395,13 @@ export default class binance extends binanceRest {
     }
 
     checkIsSpot (method: string, symbol: string) {
+        /**
+         * @method
+         * @ignore
+         * @description checks if symbols is a spot market if not throws an error
+         * @param {string} method name of the method to be checked
+         * @param {string} symbol symbol or marketId of the market to be checked
+         */
         const market = this.market (symbol);
         if (!market['spot']) {
             throw new BadRequest (this.id + ' ' + method + ' only supports spot markets');

@@ -455,10 +455,13 @@ export default class Exchange {
                 'createStopMarketOrder': undefined,
                 'createOrderWs': undefined,
                 'editOrderWs': undefined,
+                'fetchOpenOrdersWs': undefined,
                 'fetchOrderWs': undefined,
                 'cancelOrderWs': undefined,
                 'cancelOrdersWs': undefined,
                 'cancelAllOrdersWs': undefined,
+                'fetchTradesWs': undefined,
+                'fetchBalanceWs': undefined,
                 'editOrder': 'emulated',
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -1554,7 +1557,6 @@ export default class Exchange {
     async fetchTradesWs (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' fetchTradesWs() is not supported yet');
     }
-
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' watchTrades() is not supported yet');
