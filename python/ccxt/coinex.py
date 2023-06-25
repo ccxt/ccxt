@@ -4344,7 +4344,7 @@ class coinex(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
         see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config

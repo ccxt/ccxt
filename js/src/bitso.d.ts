@@ -72,7 +72,7 @@ export default class bitso extends Exchange {
         info: any;
     }>;
     fetchTransactionFees(codes?: any, params?: {}): Promise<{}>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         id: string;

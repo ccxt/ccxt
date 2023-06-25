@@ -1555,7 +1555,7 @@ class probit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * @see https://docs-en.probit.com/reference/currency
          * fetch deposit and withdraw fees

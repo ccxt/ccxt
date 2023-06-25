@@ -1839,7 +1839,7 @@ class bitrue(Exchange, ImplicitAPI):
                     result['withdraw']['percentage'] = False
         return result
 
-    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
         see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint

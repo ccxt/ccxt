@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.1.50';
+$version = '3.1.51';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.1.50';
+    const VERSION = '3.1.51';
 
     public $browser;
     public $marketsLoading = null;
@@ -1377,6 +1377,53 @@ class Exchange extends \ccxt\Exchange {
             $result[$volume][] = $ohlcvs[$i][5];
         }
         return $result;
+    }
+
+    public function fetch_web_endpoint($method, $endpointMethod, $returnAsJson, $startRegex = null, $endRegex = null) {
+        return Async\async(function () use ($method, $endpointMethod, $returnAsJson, $startRegex, $endRegex) {
+            $errorMessage = '';
+            try {
+                $options = $this->safe_value($this->options, $method, array());
+                // if it was not explicitly disabled, then don't fetch
+                if ($this->safe_value($options, 'webApiEnable', true) !== true) {
+                    return null;
+                }
+                $maxRetries = $this->safe_value($options, 'webApiRetries', 10);
+                $response = null;
+                $retry = 0;
+                while ($retry < $maxRetries) {
+                    try {
+                        $response = Async\await($this->$endpointMethod (array()));
+                        break;
+                    } catch (Exception $e) {
+                        $retry = $retry + 1;
+                        if ($retry === $maxRetries) {
+                            throw $e;
+                        }
+                    }
+                }
+                $content = $response;
+                if ($startRegex !== null) {
+                    $splitted_by_start = explode($startRegex, $content);
+                    $content = $splitted_by_start[1]; // we need second part after start
+                }
+                if ($endRegex !== null) {
+                    $splitted_by_end = explode($endRegex, $content);
+                    $content = $splitted_by_end[0]; // we need first part after start
+                }
+                if ($returnAsJson && (gettype($content) === 'string')) {
+                    $jsoned = $this->parse_json(trim($content)); // $content should be trimmed before json parsing
+                    if ($jsoned) {
+                        return $jsoned; // if parsing was not successfull, exception should be thrown
+                    }
+                } else {
+                    return $content;
+                }
+            } catch (Exception $e) {
+                $errorMessage = (string) $e;
+            }
+            throw new NotSupported($this->id . ' ' . $method . '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.' . $errorMessage);
+        }) ();
     }
 
     public function market_ids($symbols) {

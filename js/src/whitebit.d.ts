@@ -9,7 +9,7 @@ export default class whitebit extends Exchange {
         deposit: {};
         info: any;
     }>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
     fetchTradingFees(params?: {}): Promise<{}>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;

@@ -1869,7 +1869,7 @@ class gate(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
         see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status

@@ -61,6 +61,7 @@ class gemini(Exchange, ImplicitAPI):
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': False,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': None,  # TODO
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDepositsWithdrawals': True,
@@ -105,6 +106,7 @@ class gemini(Exchange, ImplicitAPI):
                     'public': 'https://api.gemini.com',
                     'private': 'https://api.gemini.com',
                     'web': 'https://docs.gemini.com',
+                    'webExchange': 'https://exchange.gemini.com',
                 },
                 'www': 'https://gemini.com/',
                 'doc': [
@@ -127,6 +129,11 @@ class gemini(Exchange, ImplicitAPI):
                 ],
             },
             'api': {
+                'webExchange': {
+                    'get': [
+                        '',
+                    ],
+                },
                 'web': {
                     'get': [
                         'rest-api',
@@ -264,6 +271,14 @@ class gemini(Exchange, ImplicitAPI):
                     'fetchDetailsForAllSymbols': False,
                     'fetchDetailsForMarketIds': [],
                 },
+                'fetchMarkets': {
+                    'webApiEnable': True,  # fetches from WEB
+                    'webApiRetries': 10,
+                },
+                'fetchCurrencies': {
+                    'webApiEnable': True,  # fetches from WEB
+                    'webApiRetries': 10,
+                },
                 'fetchUsdtMarkets': ['btcusdt', 'ethusdt'],  # keep self list updated(not available trough web api)
                 'fetchTickerMethod': 'fetchTickerV1',  # fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
                 'networkIds': {
@@ -275,20 +290,129 @@ class gemini(Exchange, ImplicitAPI):
                     'filecoin': 'FIL',
                     'dogecoin': 'DOGE',
                     'tezos': 'XTZ',
+                    'avalanche': 'AVALANCHE_X',
+                    'solana': 'SOLANA',
+                    'cosmos': 'COSMOS',
+                    'polkadot': 'POLKADOT',
                 },
                 'networks': {
                     'BTC': 'bitcoin',
+                    'ETH': 'ethereum',
                     'ERC20': 'ethereum',
                     'BCH': 'bitcoincash',
                     'LTC': 'litecoin',
+                    'ZCASH': 'zcash',
                     'ZEC': 'zcash',
+                    'FILECOIN': 'filecoin',
                     'FIL': 'filecoin',
+                    'DOGECOIN': 'dogecoin',
                     'DOGE': 'dogecoin',
+                    'TEZOS': 'tezos',
                     'XTZ': 'tezos',
+                    'AVALANCHE_X': 'avalanche',
+                    'SOLANA': 'solana',
+                    'COSMOS': 'cosmos',
+                    'POLKADOT': 'polkadot',
                 },
                 'nonce': 'milliseconds',  # if getting a Network 400 error change to seconds
             },
         })
+
+    async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        return await self.fetch_currencies_from_web(params)
+
+    async def fetch_currencies_from_web(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        data = await self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGet', True, '="currencyData">', '</script>')
+        if data is None:
+            return None
+        #
+        #    {
+        #        "tradingPairs": [
+        #            ["BTCAUD", 2, 8, "0.00001", 10, True],
+        #            ...
+        #        ],
+        #        "currencies": [
+        #            ["ORCA", "Orca", 204, 6, 0, 6, 8, False, null, "solana"],  #, precisions seem to be the 5th index
+        #            ["ATOM", "Cosmos", 44, 6, 0, 6, 8, False, null, "cosmos"],
+        #            ["ETH", "Ether", 2, 6, 0, 18, 8, False, null, "ethereum"],
+        #            ["GBP", "Pound Sterling", 22, 2, 2, 2, 2, True, '£', null],
+        #            ...
+        #        ],
+        #        "networks": [
+        #            ["solana", "SOL", "Solana"],
+        #            ["zcash", "ZEC", "Zcash"],
+        #            ["tezos", "XTZ", "Tezos"],
+        #            ["cosmos", "ATOM", "Cosmos"],
+        #            ["ethereum", "ETH", "Ethereum"],
+        #            ...
+        #        ]
+        #    }
+        #
+        result = {}
+        currenciesArray = self.safe_value(data, 'currencies', [])
+        for i in range(0, len(currenciesArray)):
+            currency = currenciesArray[i]
+            id = self.safe_string(currency, 0)
+            code = self.safe_currency_code(id)
+            type = 'fiat' if self.safe_string(currency, 7) else 'crypto'
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 5)))
+            networks = {}
+            networkId = self.safe_string(currency, 9)
+            networkCode = self.network_id_to_code(networkId)
+            networks[networkCode] = {
+                'info': currency,
+                'id': networkId,
+                'network': networkCode,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
+                'precision': precision,
+                'limits': {
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            }
+            result[code] = {
+                'info': currency,
+                'id': id,
+                'code': code,
+                'name': self.safe_string(currency, 1),
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
+                'type': type,
+                'precision': precision,
+                'limits': {
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'networks': networks,
+            }
+        return result
 
     async def fetch_markets(self, params={}):
         """
@@ -304,24 +428,9 @@ class gemini(Exchange, ImplicitAPI):
         return await self.fetch_markets_from_api(params)
 
     async def fetch_markets_from_web(self, params={}):
-        # This endpoint so we retry
-        maxRetries = self.safe_integer(self.options, 'fetchMarketFromWebRetries', 10)
-        response = None
-        retry = 0
-        while(retry < maxRetries):
-            try:
-                response = await self.webGetRestApi(params)
-                break
-            except Exception as e:
-                retry = retry + 1
-                if retry == maxRetries:
-                    raise e
-        sections = response.split('<h1 id="symbols-and-minimums">Symbols and minimums</h1>')
-        numSections = len(sections)
-        error = self.id + ' fetchMarketsFromWeb() the ' + self.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + self.name + ' markets.'
-        if numSections != 2:
-            raise NotSupported(error)
-        tables = sections[1].split('tbody>')
+        data = await self.fetch_web_endpoint('fetchMarkets', 'webGetRestApi', False, '<h1 id="symbols-and-minimums">Symbols and minimums</h1>')
+        error = self.id + ' fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.'
+        tables = data.split('tbody>')
         numTables = len(tables)
         if numTables < 2:
             raise NotSupported(error)

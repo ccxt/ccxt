@@ -2164,6 +2164,53 @@ export default class Exchange {
         }
         return result;
     }
+    async fetchWebEndpoint(method, endpointMethod, returnAsJson, startRegex = undefined, endRegex = undefined) {
+        let errorMessage = '';
+        try {
+            const options = this.safeValue(this.options, method, {});
+            // if it was not explicitly disabled, then don't fetch
+            if (this.safeValue(options, 'webApiEnable', true) !== true) {
+                return undefined;
+            }
+            const maxRetries = this.safeValue(options, 'webApiRetries', 10);
+            let response = undefined;
+            let retry = 0;
+            while (retry < maxRetries) {
+                try {
+                    response = await this[endpointMethod]({});
+                    break;
+                }
+                catch (e) {
+                    retry = retry + 1;
+                    if (retry === maxRetries) {
+                        throw e;
+                    }
+                }
+            }
+            let content = response;
+            if (startRegex !== undefined) {
+                const splitted_by_start = content.split(startRegex);
+                content = splitted_by_start[1]; // we need second part after start
+            }
+            if (endRegex !== undefined) {
+                const splitted_by_end = content.split(endRegex);
+                content = splitted_by_end[0]; // we need first part after start
+            }
+            if (returnAsJson && (typeof content === 'string')) {
+                const jsoned = this.parseJson(content.trim()); // content should be trimmed before json parsing
+                if (jsoned) {
+                    return jsoned; // if parsing was not successfull, exception should be thrown
+                }
+            }
+            else {
+                return content;
+            }
+        }
+        catch (e) {
+            errorMessage = e.toString();
+        }
+        throw new NotSupported(this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.' + errorMessage);
+    }
     marketIds(symbols) {
         if (symbols === undefined) {
             return symbols;

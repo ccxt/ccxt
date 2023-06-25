@@ -1907,7 +1907,7 @@ class bitrue extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint

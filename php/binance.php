@@ -5873,7 +5873,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
          * @param {[string]|null} $codes not used by binance fetchDepositWithdrawFees ()

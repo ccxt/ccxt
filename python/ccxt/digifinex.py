@@ -3492,7 +3492,7 @@ class digifinex(Exchange, ImplicitAPI):
                 marginMode = 'cross'
         return [marginMode, params]
 
-    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
         see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information

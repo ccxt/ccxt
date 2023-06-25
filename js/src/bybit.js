@@ -8573,7 +8573,7 @@ export default class bybit extends Exchange {
          * @description fetch deposit and withdraw fees
          * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
          * @param {[string]|undefined} codes list of unified currency codes
-         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         this.checkRequiredCredentials();

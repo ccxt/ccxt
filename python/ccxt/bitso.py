@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import OrderSide
 from ccxt.base.types import OrderType
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -1317,7 +1318,7 @@ class bitso(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
         see https://bitso.com/api_info#fees
