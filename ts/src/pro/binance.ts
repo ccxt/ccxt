@@ -1191,7 +1191,8 @@ export default class binance extends binanceRest {
          */
         await this.loadMarkets ();
         const url = this.urls['api']['ws']['ws'];
-        const messageHash = this.requestId (url);
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'createOrderWs', 'returnRateLimits', false);
         const payload = {
@@ -1426,7 +1427,8 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         this.checkIsSpot ('createOrderWs', symbol);
         const url = this.urls['api']['ws']['ws'];
-        const messageHash = this.requestId (url);
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
         const payload = this.createOrderRequest (symbol, type, side, amount, price, params);
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'createOrderWs', 'returnRateLimits', false);
@@ -1446,7 +1448,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    handleOrderWs (client: Client, message: any) {
+    handleOrderWs (client: Client, message) {
         //
         //    {
         //        id: 1,
@@ -1500,7 +1502,7 @@ export default class binance extends binanceRest {
         client.resolve (order, messageHash);
     }
 
-    handleOrdersWs (client: Client, message: any) {
+    handleOrdersWs (client: Client, message) {
         //
         //    {
         //        id: 1,
@@ -1562,7 +1564,8 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         this.checkIsSpot ('editOrderWs', symbol);
         const url = this.urls['api']['ws']['ws'];
-        const messageHash = this.requestId (url);
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
         const payload = this.editSpotOrderRequest (id, symbol, type, side, amount, price, params);
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'editOrderWs', 'returnRateLimits', false);
@@ -1578,7 +1581,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    handleEditOrderWs (client: Client, message: any) {
+    handleEditOrderWs (client: Client, message) {
         //
         //    {
         //        id: 1,
@@ -1666,18 +1669,19 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         this.checkIsSpot ('cancelOrderWs', symbol);
         const url = this.urls['api']['ws']['ws'];
-        const messageHash = this.requestId (url);
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'cancelOrderWs', 'returnRateLimits', false);
         const payload = {
             'symbol': this.marketId (symbol),
-            'orderId': id,
             'returnRateLimits': returnRateLimits,
         };
         const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             payload['origClientOrderId'] = clientOrderId;
-            delete (payload['orderId']);
+        } else {
+            payload['orderId'] = this.parseToInt (id);
         }
         const message = {
             'id': messageHash,
@@ -1702,7 +1706,8 @@ export default class binance extends binanceRest {
          */
         await this.loadMarkets ();
         const url = this.urls['api']['ws']['ws'];
-        const messageHash = this.requestId (url);
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'cancelAllOrdersWs', 'returnRateLimits', false);
         const payload = {
@@ -1733,18 +1738,19 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         this.checkIsSpot ('fetchOrderWs', symbol);
         const url = this.urls['api']['ws']['ws'];
-        const messageHash = this.requestId (url);
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOrderWs', 'returnRateLimits', false);
         const payload = {
             'symbol': this.marketId (symbol),
-            'orderId': this.parseToInt (id),
             'returnRateLimits': returnRateLimits,
         };
         const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             payload['origClientOrderId'] = clientOrderId;
-            delete (payload['orderId']);
+        } else {
+            payload['orderId'] = this.parseToInt (id);
         }
         const message = {
             'id': messageHash,
@@ -1776,7 +1782,8 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         this.checkIsSpot ('fetchOrdersWs', symbol);
         const url = this.urls['api']['ws']['ws'];
-        const messageHash = this.requestId (url);
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOrderWs', 'returnRateLimits', false);
         const payload = {
@@ -1809,7 +1816,8 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         this.checkIsSpot ('fetchOpenOrdersWs', symbol);
         const url = this.urls['api']['ws']['ws'];
-        const messageHash = this.requestId (url);
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchOrderWs', 'returnRateLimits', false);
         const payload = {
@@ -2126,7 +2134,8 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         this.checkIsSpot ('fetchMyTradesWs', symbol);
         const url = this.urls['api']['ws']['ws'];
-        const messageHash = this.requestId (url);
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchMyTradesWs', 'returnRateLimits', false);
         const payload = {

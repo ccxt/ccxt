@@ -1231,12 +1231,12 @@ export default class Exchange {
                             }).catch ((e) => { throw e });
                         } else {
                             client.send (message)
-                            .catch ((e) => { throw e });;
+                            .catch ((e) => { throw e });
                         }
                     }
                 }).catch ((e)=> {
-                    delete (client.subscriptions[subscribeHash])
-                    throw e
+                    delete client.subscriptions[subscribeHash];
+                    throw e;
             });
         }
         return future;

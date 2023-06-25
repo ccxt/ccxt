@@ -4800,10 +4800,8 @@ export default class binance extends Exchange {
         if (clientOrderId !== undefined) {
             if (market['option']) {
                 request['clientOrderId'] = clientOrderId;
-                delete (request['orderId']);
             } else {
                 request['origClientOrderId'] = clientOrderId;
-                delete (request['orderId']);
             }
         } else {
             request['orderId'] = id;
