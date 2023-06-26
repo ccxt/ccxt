@@ -89,7 +89,7 @@ export default class luno extends Exchange {
             'api': {
                 'exchange': {
                     'get': {
-                        'markets': 1,
+                        'markets': 60,
                     },
                 },
                 'public': {
@@ -112,7 +112,7 @@ export default class luno extends Exchange {
                         'listorders': 1,
                         'listtrades': 1,
                         'orders/{id}': 1,
-                        'quotes/{id}': 1,
+                        'send_fee': 1,
                         'withdrawals': 1,
                         'withdrawals/{id}': 1,
                         'transfers': 1,
@@ -134,10 +134,8 @@ export default class luno extends Exchange {
                     },
                     'put': {
                         'accounts/{id}/name': 1,
-                        'quotes/{id}': 1,
                     },
                     'delete': {
-                        'quotes/{id}': 1,
                         'withdrawals/{id}': 1,
                     },
                 },
