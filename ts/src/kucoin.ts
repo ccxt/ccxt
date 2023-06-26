@@ -919,10 +919,10 @@ export default class kucoin extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        return this.parseDepositWithdrawSingleFee (data, currency);
+        return this.parseDepositWithdrawFee (data, currency);
     }
 
-    parseDepositWithdrawSingleFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency = undefined) {
         //
         //    {
         //        "currency": "USDT",
@@ -937,42 +937,6 @@ export default class kucoin extends Exchange {
         //        "precision": 6,
         //        "chain": "ERC20"
         //    }
-        //
-        const result = this.depositWithdrawFee (fee);
-        const isWithdrawEnabled = this.safeValue (fee, 'isWithdrawEnabled');
-        if (isWithdrawEnabled) {
-            const networkId = this.safeString (fee, 'chain');
-            const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
-            result['networks'][networkCode] = {
-                'withdraw': {
-                    'fee': this.safeNumber (fee, 'withdrawMinFee'),
-                    'percentage': undefined,
-                },
-                'deposit': {
-                    'fee': undefined,
-                    'percentage': undefined,
-                },
-            };
-        }
-        return this.assignDefaultDepositWithdrawFees (result);
-    }
-
-    parseDepositWithdrawFee (fee, currency = undefined) {
-        //
-        //   {
-        //       currency: 'ETH',
-        //       name: 'ETH',
-        //       fullName: 'Ethereum',
-        //       precision: 8,
-        //       confirms: 64,
-        //       contractAddress: '',
-        //       withdrawalMinSize: '0.01',
-        //       withdrawalMinFee: '0.005',
-        //       isWithdrawEnabled: true,
-        //       isDepositEnabled: true,
-        //       isMarginEnabled: true,
-        //       isDebitEnabled: true
-        //   }
         //
         const result = {
             'info': fee,
@@ -990,6 +954,17 @@ export default class kucoin extends Exchange {
         if (isWithdrawEnabled) {
             result['withdraw']['fee'] = this.safeNumber (fee, 'withdrawalMinFee');
             result['withdraw']['percentage'] = false;
+            const networkId = this.safeString (fee, 'chain');
+            if (networkId) {
+                const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
+                result['networks'][networkCode] = {
+                    'withdraw': result['withdraw'],
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
         }
         return result;
     }
