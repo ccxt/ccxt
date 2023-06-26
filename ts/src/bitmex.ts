@@ -419,11 +419,7 @@ export default class bitmex extends Exchange {
         return super.amountToPrecision (symbol, amount);
     }
 
-    convertFromRawQuantity (symbol, rawQuantity) {
-        return this.convertFromQuantity (symbol, rawQuantity);
-    }
-
-    convertFromQuantity (symbol, rawQuantity, currencySide = 'base') {
+    convertFromRawQuantity (symbol, rawQuantity, currencySide = 'base') {
         if (this.safeValue (this.options, 'oldPrecision')) {
             return this.parseNumber (rawQuantity);
         }
@@ -436,7 +432,7 @@ export default class bitmex extends Exchange {
     }
 
     convertFromRawCost (symbol, rawQuantity) {
-        return this.convertFromQuantity (symbol, rawQuantity, 'quote');
+        return this.convertFromRawQuantity (symbol, rawQuantity, 'quote');
     }
 
     async fetchMarkets (params = {}) {
