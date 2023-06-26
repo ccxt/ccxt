@@ -1726,13 +1726,12 @@ export default class bitmex extends Exchange {
         //
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'transactTime'));
         const price = this.safeString (order, 'price');
-        const amount = this.convertFromRawMarketQuantity (market['symbol'], this.safeString (order, 'orderQty'));
-        const filled = this.convertFromRawMarketQuantity (market['symbol'], this.safeString (order, 'cumQty'));
+        const amount = this.safeString (order, 'orderQty');
+        const filled = this.safeString (order, 'cumQty');
         const average = this.safeString (order, 'avgPx');
         const id = this.safeString (order, 'orderID');
         const type = this.safeStringLower (order, 'ordType');
