@@ -225,30 +225,30 @@ export default class bitmex extends Exchange {
                 'oldPrecision': false,
                 'networks': {
                     'BTC': 'btc',
-                    'ETH': 'eth',
-                    'BSC': 'bsc',
-                    'BNB': 'bsc',
-                    'TRON': 'tron',
+                    'BITCOIN': 'btc',
                     'ERC20': 'eth',
-                    'BEP20': 'bsc',
+                    'ETH': 'eth',
                     'TRC20': 'tron',
                     'TRX': 'tron',
-                    'AVAX': 'avax',
+                    'BEP20': 'bsc',
+                    'SOLANA': 'sol',
+                    'AVALANCHEC': 'avax',
                     'NEAR': 'near',
-                    'XTZ': 'xtz',
-                    'DOT': 'dot',
-                    'SOL': 'sol',
+                    'TEZOS': 'xtz',
+                    'POLKADOT': 'dot',
+                    'CARDANO': 'ada',
                 },
                 'networksById': {
                     'btc': 'BTC',
                     'eth': 'ERC20',
-                    'bsc': 'BSC',
-                    'tron': 'TRX',
-                    'avax': 'AVAX',
+                    'tron': 'TRC20',
+                    'bsc': 'BEP20',
+                    'sol': 'SOLANA',
+                    'avax': 'AVALANCHEC',
                     'near': 'NEAR',
-                    'xtz': 'XTZ',
-                    'dot': 'DOT',
-                    'sol': 'SOL',
+                    'xtz': 'TEZOS',
+                    'dot': 'POLKADOT',
+                    'ada': 'CARDANO',
                 },
             },
             'commonCurrencies': {
@@ -2347,10 +2347,13 @@ export default class bitmex extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const qty = this.convertFromRealAmount (code, amount);
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const request = {
             'currency': currency['id'],
             'amount': qty,
             'address': address,
+            'network': this.networkCodeToId (networkCode, currency['code']),
             // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
             // 'fee': 0.001, // bitcoin network fee
         };
@@ -2686,19 +2689,19 @@ export default class bitmex extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
-        const networkCode = this.safeStringUpper (params, 'network');
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires params["network"]');
         }
         const currency = this.currency (code);
         let currencyId = currency['id'];
-        const networkId = this.networkCodeToId (networkCode, currency['code']);
         const idLength = currencyId.length;
         currencyId = currencyId.slice (0, idLength - 1) + currencyId.slice (idLength - 1, idLength).toLowerCase ();  // make the last letter lowercase
         params = this.omit (params, 'network');
         const request = {
             'currency': currencyId,
-            'network': networkId,
+            'network': this.networkCodeToId (networkCode, currency['code']),
         };
         const response = await this.privateGetUserDepositAddress (this.extend (request, params));
         //
@@ -2708,7 +2711,7 @@ export default class bitmex extends Exchange {
             'currency': code,
             'address': response.replace ('"', '').replace ('"', ''), // Done twice because some languages only replace the first instance
             'tag': undefined,
-            'network': this.networkIdToCode (networkId).toUpperCase (),
+            'network': networkCode,
             'info': response,
         };
     }
