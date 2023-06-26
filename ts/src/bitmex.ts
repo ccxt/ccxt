@@ -241,7 +241,7 @@ export default class bitmex extends Exchange {
                     'btc': 'BTC',
                     'eth': 'ERC20',
                     'bsc': 'BSC',
-                    'tron': 'TRX',
+                    'tron': 'TRC20',
                     'avax': 'AVAX',
                     'near': 'NEAR',
                     'xtz': 'XTZ',
