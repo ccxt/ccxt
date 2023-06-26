@@ -1390,13 +1390,16 @@ export default class bitmex extends Exchange {
         //         "foreignNotional":0
         //     }
         //
+        const marketId = this.safeString (ohlcv, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const volume = this.convertFromRawQuantity (market['symbol'], this.safeString (ohlcv, 'volume'));
         return [
             this.parse8601 (this.safeString (ohlcv, 'timestamp')),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
             this.safeNumber (ohlcv, 'close'),
-            this.safeNumber (ohlcv, 'volume'),
+            volume,
         ];
     }
 
