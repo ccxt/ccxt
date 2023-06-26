@@ -161,7 +161,7 @@ export default class okx extends Exchange {
                         'market/history-index-candles': 2,
                         'market/index-candles': 1,
                         'market/mark-price-candles': 1,
-                        'market/trades': 1 / 10,
+                        'market/trades': 1,
                         'market/history-trades': 1,
                         'market/platform-24-volume': 10,
                         'market/open-oracle': 40,
