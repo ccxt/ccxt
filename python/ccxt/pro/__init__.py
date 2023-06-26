@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '3.1.51'
+__version__ = '3.1.52'
 
 # ----------------------------------------------------------------------------
 
@@ -32,7 +32,6 @@ from ccxt.pro.bitstamp import bitstamp                                    # noqa
 from ccxt.pro.bittrex import bittrex                                      # noqa: F401
 from ccxt.pro.bitvavo import bitvavo                                      # noqa: F401
 from ccxt.pro.blockchaincom import blockchaincom                          # noqa: F401
-from ccxt.pro.btcex import btcex                                          # noqa: F401
 from ccxt.pro.bybit import bybit                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
 from ccxt.pro.coinbaseprime import coinbaseprime                          # noqa: F401
@@ -93,7 +92,6 @@ exchanges = [
     'bittrex',
     'bitvavo',
     'blockchaincom',
-    'btcex',
     'bybit',
     'cex',
     'coinbaseprime',

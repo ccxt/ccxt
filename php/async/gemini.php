@@ -49,7 +49,7 @@ class gemini extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => false,
                 'fetchCurrencies' => true,
-                'fetchDepositAddress' => null, // TODO
+                'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
@@ -1678,24 +1678,49 @@ class gemini extends Exchange {
         );
     }
 
+    public function fetch_deposit_address(string $code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * @see https://docs.gemini.com/rest-api/#get-deposit-addresses
+             * fetch the deposit address for a currency associated with this account
+             * @param {string} $code unified currency $code
+             * @param {array} $params extra parameters specific to the endpoint
+             * @param {string} $params->network  *required* The chain of currency
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+             */
+            Async\await($this->load_markets());
+            $groupedByNetwork = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
+            $networkGroup = $this->index_by($this->safe_value($groupedByNetwork, $networkCode), 'currency');
+            return $this->safe_value($networkGroup, $code);
+        }) ();
+    }
+
     public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
+            /**
+             * fetch a dictionary of addresses for a $currency, indexed by network
+             * @see https://docs.gemini.com/rest-api/#get-deposit-addresses
+             * @param {string} $code unified $currency $code of the $currency for the deposit address
+             * @param {array} $params extra parameters specific to the gemini api endpoint
+             * @param {string} $params->network  *required* The chain of $currency
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~ indexed by the network
+             */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $network = $this->safe_string($params, 'network');
-            if ($network === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDepositAddressesByNetwork() requires a $network parameter');
+            $code = $currency['code'];
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
+            if ($networkCode === null) {
+                throw new ArgumentsRequired($this->id . ' fetchDepositAddresses() requires a network parameter');
             }
-            $params = $this->omit($params, 'network');
-            $networks = $this->safe_value($this->options, 'networks', array());
-            $networkId = $this->safe_string($networks, $network, $network);
-            $networkIds = $this->safe_value($this->options, 'networkIds', array());
-            $networkCode = $this->safe_string($networkIds, $networkId, $network);
+            $networkId = $this->network_code_to_id($networkCode);
             $request = array(
                 'network' => $networkId,
             );
             $response = Async\await($this->privatePostV1AddressesNetwork (array_merge($request, $params)));
-            $results = $this->parse_deposit_addresses($response, [ $currency['code'] ], false, array( 'network' => $networkCode, 'currency' => $code ));
+            $results = $this->parse_deposit_addresses($response, array( $code ), false, array( 'network' => $networkCode, 'currency' => $code ));
             return $this->group_by($results, 'network');
         }) ();
     }

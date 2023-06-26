@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '3.1.51'
+__version__ = '3.1.52'
 
 # ----------------------------------------------------------------------------
 
@@ -108,7 +108,6 @@ from ccxt.bl3p import bl3p                                            # noqa: F4
 from ccxt.blockchaincom import blockchaincom                          # noqa: F401
 from ccxt.btcalpha import btcalpha                                    # noqa: F401
 from ccxt.btcbox import btcbox                                        # noqa: F401
-from ccxt.btcex import btcex                                          # noqa: F401
 from ccxt.btcmarkets import btcmarkets                                # noqa: F401
 from ccxt.btctradeua import btctradeua                                # noqa: F401
 from ccxt.btcturk import btcturk                                      # noqa: F401
@@ -216,7 +215,6 @@ exchanges = [
     'blockchaincom',
     'btcalpha',
     'btcbox',
-    'btcex',
     'btcmarkets',
     'btctradeua',
     'btcturk',

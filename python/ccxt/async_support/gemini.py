@@ -62,7 +62,7 @@ class gemini(Exchange, ImplicitAPI):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': False,
                 'fetchCurrencies': True,
-                'fetchDepositAddress': None,  # TODO
+                'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
@@ -1570,22 +1570,44 @@ class gemini(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
+    async def fetch_deposit_address(self, code: str, params={}):
+        """
+        see https://docs.gemini.com/rest-api/#get-deposit-addresses
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the endpoint
+        :param str params['network']:  *required* The chain of currency
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
+        await self.load_markets()
+        groupedByNetwork = await self.fetch_deposit_addresses_by_network(code, params)
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        networkGroup = self.index_by(self.safe_value(groupedByNetwork, networkCode), 'currency')
+        return self.safe_value(networkGroup, code)
+
     async def fetch_deposit_addresses_by_network(self, code: str, params={}):
+        """
+        fetch a dictionary of addresses for a currency, indexed by network
+        see https://docs.gemini.com/rest-api/#get-deposit-addresses
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the gemini api endpoint
+        :param str params['network']:  *required* The chain of currency
+        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/#/?id=address-structure>` indexed by the network
+        """
         await self.load_markets()
         currency = self.currency(code)
-        network = self.safe_string(params, 'network')
-        if network is None:
-            raise ArgumentsRequired(self.id + ' fetchDepositAddressesByNetwork() requires a network parameter')
-        params = self.omit(params, 'network')
-        networks = self.safe_value(self.options, 'networks', {})
-        networkId = self.safe_string(networks, network, network)
-        networkIds = self.safe_value(self.options, 'networkIds', {})
-        networkCode = self.safe_string(networkIds, networkId, network)
+        code = currency['code']
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is None:
+            raise ArgumentsRequired(self.id + ' fetchDepositAddresses() requires a network parameter')
+        networkId = self.network_code_to_id(networkCode)
         request = {
             'network': networkId,
         }
         response = await self.privatePostV1AddressesNetwork(self.extend(request, params))
-        results = self.parse_deposit_addresses(response, [currency['code']], False, {'network': networkCode, 'currency': code})
+        results = self.parse_deposit_addresses(response, [code], False, {'network': networkCode, 'currency': code})
         return self.group_by(results, 'network')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

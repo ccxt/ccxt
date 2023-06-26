@@ -47,7 +47,6 @@ var bl3p = require('./src/bl3p.js');
 var blockchaincom = require('./src/blockchaincom.js');
 var btcalpha = require('./src/btcalpha.js');
 var btcbox = require('./src/btcbox.js');
-var btcex = require('./src/btcex.js');
 var btcmarkets = require('./src/btcmarkets.js');
 var btctradeua = require('./src/btctradeua.js');
 var btcturk = require('./src/btcturk.js');
@@ -138,7 +137,6 @@ var bitstamp$1 = require('./src/pro/bitstamp.js');
 var bittrex$1 = require('./src/pro/bittrex.js');
 var bitvavo$1 = require('./src/pro/bitvavo.js');
 var blockchaincom$1 = require('./src/pro/blockchaincom.js');
-var btcex$1 = require('./src/pro/btcex.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbaseprime$1 = require('./src/pro/coinbaseprime.js');
@@ -180,7 +178,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '3.1.51';
+const version = '3.1.52';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -218,7 +216,6 @@ const exchanges = {
     'blockchaincom': blockchaincom,
     'btcalpha': btcalpha,
     'btcbox': btcbox,
-    'btcex': btcex,
     'btcmarkets': btcmarkets,
     'btctradeua': btctradeua,
     'btcturk': btcturk,
@@ -311,7 +308,6 @@ const pro = {
     'bittrex': bittrex$1,
     'bitvavo': bitvavo$1,
     'blockchaincom': blockchaincom$1,
-    'btcex': btcex$1,
     'bybit': bybit$1,
     'cex': cex$1,
     'coinbaseprime': coinbaseprime$1,
@@ -426,7 +422,6 @@ exports.bl3p = bl3p;
 exports.blockchaincom = blockchaincom;
 exports.btcalpha = btcalpha;
 exports.btcbox = btcbox;
-exports.btcex = btcex;
 exports.btcmarkets = btcmarkets;
 exports.btctradeua = btctradeua;
 exports.btcturk = btcturk;

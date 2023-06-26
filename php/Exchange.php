@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.1.51';
+$version = '3.1.52';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '3.1.51';
+    const VERSION = '3.1.52';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -391,7 +391,6 @@ class Exchange {
         'blockchaincom',
         'btcalpha',
         'btcbox',
-        'btcex',
         'btcmarkets',
         'btctradeua',
         'btcturk',

@@ -41,7 +41,7 @@ class gemini extends gemini$1 {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': undefined,
+                'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -1634,23 +1634,49 @@ class gemini extends gemini$1 {
             'info': depositAddress,
         };
     }
+    async fetchDepositAddress(code, params = {}) {
+        /**
+         * @method
+         * @name gemini#fetchDepositAddress
+         * @see https://docs.gemini.com/rest-api/#get-deposit-addresses
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the endpoint
+         * @param {string} params.network  *required* The chain of currency
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets();
+        const groupedByNetwork = await this.fetchDepositAddressesByNetwork(code, params);
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        const networkGroup = this.indexBy(this.safeValue(groupedByNetwork, networkCode), 'currency');
+        return this.safeValue(networkGroup, code);
+    }
     async fetchDepositAddressesByNetwork(code, params = {}) {
+        /**
+         * @method
+         * @name gemini#fetchDepositAddressesByNetwork
+         * @description fetch a dictionary of addresses for a currency, indexed by network
+         * @see https://docs.gemini.com/rest-api/#get-deposit-addresses
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} params extra parameters specific to the gemini api endpoint
+         * @param {string} params.network  *required* The chain of currency
+         * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+         */
         await this.loadMarkets();
         const currency = this.currency(code);
-        const network = this.safeString(params, 'network');
-        if (network === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddressesByNetwork() requires a network parameter');
+        code = currency['code'];
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddresses() requires a network parameter');
         }
-        params = this.omit(params, 'network');
-        const networks = this.safeValue(this.options, 'networks', {});
-        const networkId = this.safeString(networks, network, network);
-        const networkIds = this.safeValue(this.options, 'networkIds', {});
-        const networkCode = this.safeString(networkIds, networkId, network);
+        const networkId = this.networkCodeToId(networkCode);
         const request = {
             'network': networkId,
         };
         const response = await this.privatePostV1AddressesNetwork(this.extend(request, params));
-        const results = this.parseDepositAddresses(response, [currency['code']], false, { 'network': networkCode, 'currency': code });
+        const results = this.parseDepositAddresses(response, [code], false, { 'network': networkCode, 'currency': code });
         return this.groupBy(results, 'network');
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

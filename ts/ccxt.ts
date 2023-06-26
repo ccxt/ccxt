@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '3.1.51';
+const version = '3.1.52';
 
 (Exchange as any).ccxtVersion = version
 
@@ -81,7 +81,6 @@ import bl3p from  './src/bl3p.js'
 import blockchaincom from  './src/blockchaincom.js'
 import btcalpha from  './src/btcalpha.js'
 import btcbox from  './src/btcbox.js'
-import btcex from  './src/btcex.js'
 import btcmarkets from  './src/btcmarkets.js'
 import btctradeua from  './src/btctradeua.js'
 import btcturk from  './src/btcturk.js'
@@ -175,7 +174,6 @@ import bitstampPro from  './src/pro/bitstamp.js'
 import bittrexPro from  './src/pro/bittrex.js'
 import bitvavoPro from  './src/pro/bitvavo.js'
 import blockchaincomPro from  './src/pro/blockchaincom.js'
-import btcexPro from  './src/pro/btcex.js'
 import bybitPro from  './src/pro/bybit.js'
 import cexPro from  './src/pro/cex.js'
 import coinbaseprimePro from  './src/pro/coinbaseprime.js'
@@ -251,7 +249,6 @@ const exchanges = {
     'blockchaincom':          blockchaincom,
     'btcalpha':               btcalpha,
     'btcbox':                 btcbox,
-    'btcex':                  btcex,
     'btcmarkets':             btcmarkets,
     'btctradeua':             btctradeua,
     'btcturk':                btcturk,
@@ -345,7 +342,6 @@ const pro = {
     'bittrex':                bittrexPro,
     'bitvavo':                bitvavoPro,
     'blockchaincom':          blockchaincomPro,
-    'btcex':                  btcexPro,
     'bybit':                  bybitPro,
     'cex':                    cexPro,
     'coinbaseprime':          coinbaseprimePro,
@@ -492,7 +488,6 @@ export {
     blockchaincom,
     btcalpha,
     btcbox,
-    btcex,
     btcmarkets,
     btctradeua,
     btcturk,
