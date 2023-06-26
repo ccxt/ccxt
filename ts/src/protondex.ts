@@ -358,7 +358,7 @@ export default class protondex extends Exchange {
         return this.parseOrderBook (data, market['symbol'], undefined, 'bids', 'asks', 'bid', 'ask');
     }
 
-    parseTrade (trade, market): Trade {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -419,11 +419,11 @@ export default class protondex extends Exchange {
         }, market);
     }
 
-    parseTrades (trades, market, account): Trade[] {
+    parseTrades (trades, market: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         trades = this.toArray (trades);
         const result = [];
         for (let i = 0; i < trades.length; i++) {
-            trades[i]['account'] = account;
+            trades[i]['account'] = params['account'];
             const trade = this.extend (this.parseTrade (trades[i], market));
             result.push (trade);
         }
@@ -478,7 +478,7 @@ export default class protondex extends Exchange {
         //     ]
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseTrades (data, market, { 'account': params['account'] });
+        return this.parseTrades (data, market, 1, 1, { 'account': params['account'] });
     }
 
     async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -568,7 +568,7 @@ export default class protondex extends Exchange {
         //      }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseTrades (data, market, '');
+        return this.parseTrades (data, market, 1, 1);
     }
 
     async fetchTradingFees (params = {}) {
@@ -1043,58 +1043,9 @@ export default class protondex extends Exchange {
     }
 
     privkeyToUint8Array (privkey: PrivKey) {
-        const ec: CurveFn = secp256k1;
+        const ec = secp256k1 as CurveFn;
         const scalar = ec.utils.normPrivateKeyToScalar (privkey);
         return this.int2octets (scalar, ec);
-    }
-
-    create_base58_map () {
-        const base58Chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-        const base58M = Array (256).fill (-1) as number[];
-        for (let i = 0; i < base58Chars.length; ++i) {
-            base58M[base58Chars.charCodeAt (i)] = i;
-        }
-        return base58M;
-    }
-
-    binaryToBase58 (bignum: Uint8Array) {
-        const base58Chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-        const base58Map = this.create_base58_map ();
-        const result = [] as number[];
-        for (let byte = 0; byte < bignum.length; ++byte) {
-            let carry = bignum[byte];
-            for (let j = 0; j < result.length; ++j) {
-                const x = (base58Map[result[j]] * 256) + carry;
-                result[j] = base58Chars.charCodeAt (x % 58);
-                if (carry < 58) {
-                    carry = 0;
-                } else {
-                    carry = (carry / 58);
-                }
-            }
-            while (carry) {
-                result.push (base58Chars.charCodeAt (carry % 58));
-                if (carry < 58) {
-                    carry = 0;
-                } else {
-                    carry = (carry / 58);
-                }
-            }
-        }
-        for (let k = 0; k < bignum.length; ++k) {
-            const byte = bignum[k];
-            if (byte) {
-                break;
-            } else {
-                result.push ('1'.charCodeAt (0));
-            }
-        }
-        result.reverse ();
-        let resultString: String = '';
-        for (let i = 0; i < result.length; i++) {
-            resultString += String.fromCharCode (result[i]);
-        }
-        return resultString;
     }
 
     digestSuffixRipemd160 (data: Uint8Array, suffix: string) {
@@ -1123,7 +1074,7 @@ export default class protondex extends Exchange {
 
     stringToKey (s: string, size: number, suffix: string) {
         const whole = this.base58ToBinary (s);
-        const data: Uint8Array = new Uint8Array (whole.buffer, 0, whole.length - 4);
+        const data = new Uint8Array (whole.buffer, 0, whole.length - 4);
         const digest = new Uint8Array (this.digestSuffixRipemd160 (data, suffix));
         const digestStatus = (digest[0] !== whole[(whole.length) - 4] || digest[1] !== whole[(whole.length) - 3]
                              || digest[2] !== whole[(whole.length) - 2] || digest[3] !== whole[(whole.length) - 1]);
@@ -1137,7 +1088,7 @@ export default class protondex extends Exchange {
         (ellipticSig as any).recovery = ellipticSig.recovery || 0;
         const r = numberToBytesBE (ellipticSig.r, 32);
         const s = numberToBytesBE (ellipticSig.s, 32);
-        let eosioRecoveryParam: number = 0;
+        let eosioRecoveryParam = 0;
         eosioRecoveryParam = ellipticSig.recovery + 27;
         if (ellipticSig.recovery <= 3) {
             eosioRecoveryParam += 4;
@@ -1153,7 +1104,7 @@ export default class protondex extends Exchange {
         if (sandboxMode) {
             chainID = '71ee83bcf52142d61019d95f9cc5427ba6a0d7ff8accd9e2088ae2abeaf3d3dd';
         }
-        const e: CurveFn = secp256k1;
+        const e = secp256k1 as CurveFn;
         const signatures = [] as string[];
         const initData = new Uint8Array (32);
         const signBuf = concatBytes (hexToBytes (chainID), transHex, initData);
@@ -1169,8 +1120,8 @@ export default class protondex extends Exchange {
             }
             arrayData = this.privkeyToUint8Array (keyData);
         }
-        const rawSignature: SignatureType = e.sign (digest, arrayData);
-        const signature: string = this.fromElliptic (rawSignature);
+        const rawSignature = e.sign (digest, arrayData);
+        const signature = this.fromElliptic (rawSignature);
         signatures.push (signature);
         return signatures;
     }
@@ -1219,61 +1170,52 @@ export default class protondex extends Exchange {
         const askMultiplier = (orderAmount * this.parseToInt (market.info.ask_token.multiplier));
         const quantity = (orderSide === 2) ? bidMultiplier.toString () : askMultiplier.toString ();
         const orderPrice = Number (price) * Number (Math.pow (10, askTokenPrecision).toFixed (0));
-        const actions = [
-            {
-                'account': tokenContract,
-                'name': 'transfer',
-                'data': {
-                    'from': accountName,
-                    'to': 'dex',
-                    'quantity': quantityText,
-                    'memo': '',
-                },
-                'authorization': [ {
-                    'actor': accountName,
-                    'permission': 'active',
-                } ],
+        const auth = { 'actor': accountName, 'permission': 'active' };
+        const action1 = {
+            'account': tokenContract,
+            'name': 'transfer',
+            'data': {
+                'from': accountName,
+                'to': 'dex',
+                'quantity': quantityText,
+                'memo': '',
             },
-            {
-                'account': 'dex',
-                'name': 'placeorder',
-                'data': {
-                    'market_id': marketid,
-                    'account': accountName,
-                    'order_type': orderType,
-                    'order_side': orderSide,
-                    'fill_type': orderFillType,
-                    'bid_symbol': {
-                        'sym': bidTokenPrecision + ',' + bidTokenCode,
-                        'contract': bidTokenContract,
-                    },
-                    'ask_symbol': {
-                        'sym': askTokenPrecision + ',' + askTokenCode,
-                        'contract': askTokenContract,
-                    },
-                    'referrer': referrerName,
-                    'quantity': quantity,
-                    'price': orderPrice,
-                    'trigger_price': triggerPrice,
+            'authorization': [ auth ],
+        };
+        const action2 = {
+            'account': 'dex',
+            'name': 'placeorder',
+            'data': {
+                'market_id': marketid,
+                'account': accountName,
+                'order_type': orderType,
+                'order_side': orderSide,
+                'fill_type': orderFillType,
+                'bid_symbol': {
+                    'sym': bidTokenPrecision + ',' + bidTokenCode,
+                    'contract': bidTokenContract,
                 },
-                'authorization': [ {
-                    'actor': accountName,
-                    'permission': 'active',
-                } ],
-            },
-            {
-                'account': 'dex',
-                'name': 'process',
-                'data': {
-                    'q_size': 20,
-                    'show_error_msg': 0,
+                'ask_symbol': {
+                    'sym': askTokenPrecision + ',' + askTokenCode,
+                    'contract': askTokenContract,
                 },
-                'authorization': [ {
-                    'actor': accountName,
-                    'permission': 'active',
-                } ],
+                'referrer': referrerName,
+                'quantity': quantity,
+                'price': orderPrice,
+                'trigger_price': triggerPrice,
             },
-        ];
+            'authorization': [ auth ],
+        };
+        const action3 = {
+            'account': 'dex',
+            'name': 'process',
+            'data': {
+                'q_size': 20,
+                'show_error_msg': 0,
+            },
+            'authorization': [ auth ],
+        };
+        const actions = [ action1, action2, action3 ];
         const request = {
             'transaction': { actions },
         };
@@ -1346,28 +1288,25 @@ export default class protondex extends Exchange {
         }
         const orderId = parseInt (id);
         const accountName = this.safeString (params, 'account');
-        const actions = [ {
+        const auth = { 'actor': accountName, 'permission': 'active' };
+        const action1 = {
             'account': 'dex',
             'name': 'cancelorder',
             'data': {
                 'account': accountName,
                 'order_id': orderId,
             },
-            'authorization': [ {
-                'actor': accountName,
-                'permission': 'active',
-            } ],
-        }, {
+            'authorization': [ auth ],
+        };
+        const action2 = {
             'account': 'dex',
             'name': 'withdrawall',
             'data': {
                 'account': accountName,
             },
-            'authorization': [ {
-                'actor': accountName,
-                'permission': 'active',
-            } ],
-        } ];
+            'authorization': [ auth ],
+        };
+        const actions = [ action1, action2 ];
         const request = {
             'transaction': { actions },
         };
@@ -1443,6 +1382,7 @@ export default class protondex extends Exchange {
             throw new OrderNotFound (' calcelAllOrders() error: no orders found');
         }
         const actions = [];
+        const auth = { 'actor': accountName, 'permission': 'active' };
         for (let i = 0; i < orderList.length; i++) {
             const action = {
                 'account': 'dex',
@@ -1451,10 +1391,7 @@ export default class protondex extends Exchange {
                     'account': accountName,
                     'order_id': orderList[i],
                 },
-                'authorization': [ {
-                    'actor': accountName,
-                    'permission': 'active',
-                } ],
+                'authorization': [ auth ],
             };
             actions.push (action);
         }
@@ -1464,10 +1401,7 @@ export default class protondex extends Exchange {
             'data': {
                 'account': accountName,
             },
-            'authorization': [ {
-                'actor': accountName,
-                'permission': 'active',
-            } ],
+            'authorization': [ auth ],
         };
         actions.push (withdrawAction);
         const request = {
