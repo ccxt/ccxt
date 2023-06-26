@@ -565,9 +565,9 @@ export default class bitmex extends Exchange {
             // so let's take the settlCurrency first and then adjust if needed
             const typ = this.safeString (market, 'typ'); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
             const types = {
-                'IFXXXP': 'spot',
                 'FFWCSX': 'swap',
                 'FFWCSF': 'swap',
+                'IFXXXP': 'spot',
                 'FFCCSX': 'future',
                 'MRBXXX': 'index',
                 'MRCXXX': 'index',
