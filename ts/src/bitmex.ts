@@ -431,6 +431,18 @@ export default class bitmex extends Exchange {
         return this.parseNumber (rawQuantity);
     }
 
+    convertFromRawCost (symbol, rawQuantity) {
+        if (this.safeValue (this.options, 'oldPrecision')) {
+            return this.parseNumber (rawQuantity);
+        }
+        symbol = this.safeSymbol (symbol);
+        const market = this.market (symbol);
+        if (market['spot']) {
+            return this.convertToRealAmount (market['quote'], rawQuantity);
+        }
+        return this.parseNumber (rawQuantity);
+    }
+
     async fetchMarkets (params = {}) {
         /**
          * @method
@@ -1549,13 +1561,13 @@ export default class bitmex extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const priceString = this.safeString2 (trade, 'avgPx', 'price');
         const amountString = this.convertFromRawQuantity (symbol, this.safeString2 (trade, 'size', 'lastQty'));
-        const execCost = this.convertFromRawQuantity (symbol, this.safeString (trade, 'execCost'));
+        const execCost = this.numberToString (this.convertFromRawCost (symbol, this.safeString (trade, 'execCost')));
         const id = this.safeString (trade, 'trdMatchID');
         const order = this.safeString (trade, 'orderID');
         const side = this.safeStringLower (trade, 'side');
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
         let fee = undefined;
-        const feeCostString = this.numberToString (this.convertFromRawQuantity (symbol, this.safeString (trade, 'execComm')));
+        const feeCostString = this.numberToString (this.convertFromRawCost (symbol, this.safeString (trade, 'execComm')));
         if (feeCostString !== undefined) {
             const currencyId = this.safeString (trade, 'settlCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (currencyId);
@@ -1584,7 +1596,7 @@ export default class bitmex extends Exchange {
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': priceString,
-            'cost': execCost,
+            'cost': Precise.stringAbs (execCost),
             'amount': amountString,
             'fee': fee,
         }, market);
