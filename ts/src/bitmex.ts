@@ -1138,10 +1138,6 @@ export default class bitmex extends Exchange {
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-        }
         const request = {
             // 'start': 123,
         };
@@ -1152,6 +1148,11 @@ export default class bitmex extends Exchange {
         //
         if (limit !== undefined) {
             request['count'] = limit;
+        }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
         }
         const response = await this.privateGetUserWalletHistory (this.extend (request, params));
         //
