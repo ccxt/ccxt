@@ -1142,10 +1142,6 @@ export default class bitmex extends Exchange {
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-        }
         const request = {
             // 'start': 123,
         };
@@ -1156,6 +1152,11 @@ export default class bitmex extends Exchange {
         //
         if (limit !== undefined) {
             request['count'] = limit;
+        }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
         }
         const response = await this.privateGetUserWalletHistory (this.extend (request, params));
         //
@@ -1202,15 +1203,16 @@ export default class bitmex extends Exchange {
         //         // date-based pagination not supported
         //     }
         //
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
         if (limit !== undefined) {
             request['count'] = limit;
         }
         const response = await this.privateGetUserWalletHistory (this.extend (request, params));
         const transactions = this.filterByArray (response, 'transactType', [ 'Withdrawal', 'Deposit' ], false);
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-        }
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
