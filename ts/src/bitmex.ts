@@ -612,63 +612,60 @@ export default class bitmex extends Exchange {
             const maxOrderQty = this.safeNumber (market, 'maxOrderQty');
             const initMargin = this.safeString (market, 'initMargin', '1');
             const maxLeverage = this.parseNumber (Precise.stringDiv ('1', initMargin));
-            // temporarily filter out unlisted markets to avoid symbol conflicts
-            if (active) {
-                result.push ({
-                    'id': id,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'settle': settle,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
-                    'settleId': settleId,
-                    'type': type,
-                    'spot': spot,
-                    'margin': false,
-                    'swap': swap,
-                    'future': future,
-                    'option': false,
-                    'index': index,
-                    'active': active,
-                    'contract': contract,
-                    'linear': linear,
-                    'inverse': inverse,
-                    'quanto': isQuanto,
-                    'taker': this.safeNumber (market, 'takerFee'),
-                    'maker': this.safeNumber (market, 'makerFee'),
-                    'contractSize': contractSize,
-                    'expiry': expiry,
-                    'expiryDatetime': expiryDatetime,
-                    'strike': this.safeNumber (market, 'optionStrikePrice'),
-                    'optionType': undefined,
-                    'precision': {
-                        'amount': this.safeNumber (market, 'lotSize'),
-                        'price': this.safeNumber (market, 'tickSize'),
-                        'quote': this.safeNumber (market, 'tickSize'),
-                        'base': this.safeNumber (market, 'tickSize'),
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': type,
+                'spot': spot,
+                'margin': false,
+                'swap': swap,
+                'future': future,
+                'option': false,
+                'index': index,
+                'active': active,
+                'contract': contract,
+                'linear': linear,
+                'inverse': inverse,
+                'quanto': isQuanto,
+                'taker': this.safeNumber (market, 'takerFee'),
+                'maker': this.safeNumber (market, 'makerFee'),
+                'contractSize': contractSize,
+                'expiry': expiry,
+                'expiryDatetime': expiryDatetime,
+                'strike': this.safeNumber (market, 'optionStrikePrice'),
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber (market, 'lotSize'),
+                    'price': this.safeNumber (market, 'tickSize'),
+                    'quote': this.safeNumber (market, 'tickSize'),
+                    'base': this.safeNumber (market, 'tickSize'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': contract ? this.parseNumber ('1') : undefined,
+                        'max': contract ? maxLeverage : undefined,
                     },
-                    'limits': {
-                        'leverage': {
-                            'min': contract ? this.parseNumber ('1') : undefined,
-                            'max': contract ? maxLeverage : undefined,
-                        },
-                        'amount': {
-                            'min': undefined,
-                            'max': positionIsQuote ? undefined : maxOrderQty,
-                        },
-                        'price': {
-                            'min': undefined,
-                            'max': this.safeNumber (market, 'maxPrice'),
-                        },
-                        'cost': {
-                            'min': undefined,
-                            'max': positionIsQuote ? maxOrderQty : undefined,
-                        },
+                    'amount': {
+                        'min': undefined,
+                        'max': positionIsQuote ? undefined : maxOrderQty,
                     },
-                    'info': market,
-                });
-            }
+                    'price': {
+                        'min': undefined,
+                        'max': this.safeNumber (market, 'maxPrice'),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': positionIsQuote ? maxOrderQty : undefined,
+                    },
+                },
+                'info': market,
+            });
         }
         return result;
     }
