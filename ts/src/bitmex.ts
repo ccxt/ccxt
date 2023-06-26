@@ -2351,6 +2351,10 @@ export default class bitmex extends Exchange {
         return quantity;
     }
 
+    newPrecision () {
+        return this.safeValue (this.options, 'oldPrecisions');
+    }
+
     isFiat (currency) {
         if (currency === 'EUR') {
             return true;
@@ -2872,10 +2876,6 @@ export default class bitmex extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
         return undefined;
-    }
-
-    newPrecision () {
-        return this.safeValue (this.options, 'oldPrecisions');
     }
 
     nonce () {
