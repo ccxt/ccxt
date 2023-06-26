@@ -1198,15 +1198,16 @@ export default class bitmex extends Exchange {
         //         // date-based pagination not supported
         //     }
         //
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
         if (limit !== undefined) {
             request['count'] = limit;
         }
         const response = await this.privateGetUserWalletHistory (this.extend (request, params));
         const transactions = this.filterByArray (response, 'transactType', [ 'Withdrawal', 'Deposit' ], false);
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-        }
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
