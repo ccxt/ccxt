@@ -1663,9 +1663,21 @@ export default class bitmex extends Exchange {
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'transactTime'));
         const price = this.safeString (order, 'price');
         const qty = this.safeString (order, 'orderQty');
-        const amount = this.convertFromRawQuantity (symbol, qty);
-        const filled = this.convertFromRawQuantity (symbol, this.safeString (order, 'cumQty'));
+        let cost = undefined;
+        let amount = undefined;
+        if (market['inverse']) {
+            cost = this.convertFromRawQuantity (symbol, qty);
+        } else {
+            amount = this.convertFromRawQuantity (symbol, qty);
+        }
         const average = this.safeString (order, 'avgPx');
+        let filled = undefined;
+        const cumQty = this.numberToString (this.convertFromRawQuantity (symbol, this.safeString (order, 'cumQty')));
+        if (market['inverse']) {
+            filled = Precise.stringDiv (cumQty, average);
+        } else {
+            filled = cumQty;
+        }
         const id = this.safeString (order, 'orderID');
         const type = this.safeStringLower (order, 'ordType');
         const side = this.safeStringLower (order, 'side');
@@ -1693,7 +1705,7 @@ export default class bitmex extends Exchange {
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
             'amount': amount,
-            'cost': undefined,
+            'cost': cost,
             'average': average,
             'filled': filled,
             'remaining': undefined,
