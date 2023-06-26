@@ -137,6 +137,7 @@ export default class bitmex extends Exchange {
                         'trade': 5,
                         'trade/bucketed': 5,
                         'wallet/assets': 5,
+                        'wallet/currencies': 5, // shows a bit more data about precisions, but swagger skips this endpoint, so we don't rely on this in fetchCurrencies
                         'wallet/networks': 5,
                     },
                 },
@@ -215,6 +216,7 @@ export default class bitmex extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'oldPrecisions': false,
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
                 'api-expires': 5, // in seconds
@@ -248,6 +250,7 @@ export default class bitmex extends Exchange {
                 },
             },
             'commonCurrencies': {
+                // USDt, XBt, Gwei - needs to be removed
                 'USDt': 'USDT',
                 'XBt': 'BTC',
                 'XBT': 'BTC',
@@ -429,6 +432,22 @@ export default class bitmex extends Exchange {
                 expiry = this.parse8601 (expiryDatetime);
                 symbol = symbol + '-' + this.yymmdd (expiry);
             }
+            const basePrecisionString = this.safeString (this.options['currencyPrecisions'], base, '8'); // 8 is temporary, it should be replaced by precision from this.tempCurrencies which should be defined in fC
+            const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier')); // multiplier can negative for inverse contracts, i.e. '-100000000' for BTC/USD:BTC
+            const lotSize = this.safeString (market, 'lotSize');
+            const lotsizeWithPrecision = Precise.stringMul (basePrecisionString, lotSize);
+            let precisionAmount = undefined;
+            let contractSize = undefined;
+            if (spot) {
+                precisionAmount = this.parseNumber (lotsizeWithPrecision);
+            } else if (linear) {
+                // the amount precision seems always to be = multiplier/lotsize (same as: lotSize/underlyingToPositionMultiplier)
+                const multiplierDivLot = Precise.stringDiv (multiplierString, lotSize);
+                contractSize = this.parseNumber (multiplierDivLot);
+                precisionAmount = '1'; // constant for swaps
+            } else {
+                precisionAmount = this.parseNumber (lotSize);
+            }
             const positionId = this.safeString2 (market, 'positionCurrency', 'underlying');
             const position = this.safeCurrencyCode (positionId);
             const positionIsQuote = (position === quote);
@@ -464,7 +483,7 @@ export default class bitmex extends Exchange {
                     'strike': this.safeNumber (market, 'optionStrikePrice'),
                     'optionType': undefined,
                     'precision': {
-                        'amount': this.safeNumber (market, 'lotSize'),
+                        'amount': precisionAmount,
                         'price': this.safeNumber (market, 'tickSize'),
                         'quote': this.safeNumber (market, 'tickSize'),
                         'base': this.safeNumber (market, 'tickSize'),
@@ -2116,6 +2135,7 @@ export default class bitmex extends Exchange {
         const maintenanceMargin = this.safeNumber (position, 'maintMargin');
         const unrealisedPnl = this.safeNumber (position, 'unrealisedPnl');
         const contracts = this.omitZero (this.safeNumber (position, 'currentQty'));
+        // const amount = this.parseNumber (Precise.stringDiv (contracts, this.safeString (market['info'], 'lotSize')));
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'account'),
@@ -2146,6 +2166,9 @@ export default class bitmex extends Exchange {
     }
 
     convertValue (value, market = undefined) {
+        if (this.newPrecision ()) {
+            return value;
+        }
         if ((value === undefined) || (market === undefined)) {
             return value;
         }
@@ -2167,6 +2190,65 @@ export default class bitmex extends Exchange {
         }
         resultValue = (resultValue !== undefined) ? parseFloat (resultValue) : undefined;
         return resultValue;
+    }
+
+    convertFromRealAmount (currencyCode, amountNumeric) {
+        const currency = this.currency (currencyCode);
+        if (!this.newPrecision ()) {
+            return amountNumeric;
+        }
+        const amountString = this.numberToString (amountNumeric);
+        const precision = this.safeString (currency, 'precision');
+        return parseFloat (Precise.stringDiv (amountString, precision));
+    }
+
+    convertToRealAmount (currencyCode, amountString) {
+        const currency = this.currency (currencyCode);
+        if (!this.newPrecision ()) {
+            return amountString;
+        }
+        const precision = this.safeString (currency, 'precision');
+        return this.parseNumber (Precise.stringMul (amountString, precision));
+    }
+
+    convertToRawMarketQuantity (symbol, amount) {
+        // if old precisions are used, return whatever was passed
+        if (!this.newPrecision ()) {
+            return amount;
+        }
+        let quantity = undefined;
+        const market = this.market (symbol);
+        if (market['spot']) {
+            quantity = this.convertFromRealAmount (market['base'], amount);
+        } else if (market['linear']) {
+            const lotSize = this.safeString (market['info'], 'lotSize');
+            quantity = parseFloat (Precise.stringMul (this.numberToString (amount), lotSize));
+        } else {
+            quantity = amount;
+        }
+        return parseFloat (this.amountToPrecision (market['symbol'], quantity));
+    }
+
+    convertFromRawMarketQuantity (symbol, amountString) {
+        // if old precisions are used, return whatever was passed
+        if (!this.newPrecision ()) {
+            return amountString;
+        }
+        let quantity = undefined;
+        const market = this.market (symbol);
+        if (market['spot']) {
+            quantity = this.convertToRealAmount (market['base'], amountString);
+        } else if (market['linear']) {
+            const lotSize = this.safeString (market['info'], 'lotSize');
+            quantity = Precise.stringDiv (amountString, lotSize);
+        } else {
+            quantity = amountString;
+        }
+        return quantity;
+    }
+
+    newPrecision () {
+        return this.safeValue (this.options, 'oldPrecisions');
     }
 
     isFiat (currency) {
