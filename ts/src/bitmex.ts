@@ -394,28 +394,35 @@ export default class bitmex extends Exchange {
             const settle = this.safeCurrencyCode (settleId);
             // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
             // so let's take the settlCurrency first and then adjust if needed
-            const typ = this.safeString (market, 'typ'); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
+            const typ = this.safeString (market, 'typ');
+            // Perpetual Contracts - FFWCSX
+            // Perpetual Contracts (FX underliers) - FFWCSF
+            // Spot - IFXXXP
+            // Futures - FFCCSX
+            // BitMEX Basket Index - MRBXXX
+            // BitMEX Crypto Index - MRCXXX
+            // BitMEX FX Index - MRFXXX
+            // BitMEX Lending/Premium Index - MRRXXX
+            // BitMEX Volatility Index - MRIXXX
             const types = {
-                'IFXXXP': 'spot',
                 'FFWCSX': 'swap',
                 'FFWCSF': 'swap',
+                'IFXXXP': 'spot',
                 'FFCCSX': 'future',
-                'MRBXXX': 'index',
-                'MRCXXX': 'index',
-                'MRFXXX': 'index',
-                'MRRXXX': 'index',
-                'MRIXXX': 'index',
             };
             const type = this.safeString (types, typ, typ);
             const swap = type === 'swap';
             const future = type === 'future';
             const spot = type === 'spot';
-            const index = type === 'index';
             const contract = swap || future;
             let symbol = base + '/' + quote;
+            let contractSize = undefined;
             if (contract) {
                 symbol = symbol + ':' + settle;
+                const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier'));
+                contractSize = this.parseNumber (multiplierString);
             }
+            const inverse = this.safeValue (market, 'isInverse');
             const status = this.safeString (market, 'state');
             const active = status !== 'Unlisted';
             let expiry = undefined;
@@ -424,14 +431,7 @@ export default class bitmex extends Exchange {
                 expiryDatetime = this.safeString (market, 'expiry');
                 expiry = this.parse8601 (expiryDatetime);
                 symbol = symbol + '-' + this.yymmdd (expiry);
-            } else if (index) {
-                // for index markets, default to id
-                symbol = id;
             }
-            const isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
-            const isQuanto = this.safeValue (market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-            const inverse = isQuanto || isInverse;
-            const linear = contract ? !inverse : undefined;
             const basePrecisionString = this.safeString (this.options['currencyPrecisions'], base, '8'); // 8 is temporary, it should be replaced by precision from this.tempCurrencies which should be defined in fC
             const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier')); // multiplier can negative for inverse contracts, i.e. '-100000000' for BTC/USD:BTC
             const lotSize = this.safeString (market, 'lotSize');
@@ -474,8 +474,8 @@ export default class bitmex extends Exchange {
                     'index': index,
                     'active': active,
                     'contract': contract,
-                    'linear': linear,
-                    'inverse': inverse,
+                    'linear': contract ? !inverse : undefined,
+                    'inverse': contract ? inverse : undefined,
                     'taker': this.safeNumber (market, 'takerFee'),
                     'maker': this.safeNumber (market, 'makerFee'),
                     'contractSize': contractSize,
