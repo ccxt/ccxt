@@ -563,43 +563,48 @@ export default class bitmex extends Exchange {
             const settle = this.safeCurrencyCode (settleId);
             // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
             // so let's take the settlCurrency first and then adjust if needed
-            const typ = this.safeString (market, 'typ');
-            // Perpetual Contracts - FFWCSX
-            // Perpetual Contracts (FX underliers) - FFWCSF
-            // Spot - IFXXXP
-            // Futures - FFCCSX
-            // BitMEX Basket Index - MRBXXX
-            // BitMEX Crypto Index - MRCXXX
-            // BitMEX FX Index - MRFXXX
-            // BitMEX Lending/Premium Index - MRRXXX
-            // BitMEX Volatility Index - MRIXXX
+            const typ = this.safeString (market, 'typ'); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
             const types = {
                 'FFWCSX': 'swap',
                 'FFWCSF': 'swap',
                 'IFXXXP': 'spot',
                 'FFCCSX': 'future',
+                'MRBXXX': 'index',
+                'MRCXXX': 'index',
+                'MRFXXX': 'index',
+                'MRRXXX': 'index',
+                'MRIXXX': 'index',
             };
             const type = this.safeString (types, typ, typ);
             const swap = type === 'swap';
             const future = type === 'future';
             const spot = type === 'spot';
             const contract = swap || future;
-            let symbol = base + '/' + quote;
             let contractSize = undefined;
-            if (contract) {
-                symbol = symbol + ':' + settle;
-                const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier'));
-                contractSize = this.parseNumber (multiplierString);
-            }
-            const inverse = this.safeValue (market, 'isInverse');
+            const index = type === 'index';
+            const isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
+            const isQuanto = this.safeValue (market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
+            const inverse = isQuanto || isInverse;
+            const linear = contract ? (!inverse && !isQuanto) : undefined;
             const status = this.safeString (market, 'state');
             const active = status !== 'Unlisted';
             let expiry = undefined;
             let expiryDatetime = undefined;
-            if (future) {
-                expiryDatetime = this.safeString (market, 'expiry');
-                expiry = this.parse8601 (expiryDatetime);
-                symbol = symbol + '-' + this.yymmdd (expiry);
+            let symbol = undefined;
+            if (spot) {
+                symbol = base + '/' + quote;
+            } else if (contract) {
+                symbol = base + '/' + quote + ':' + settle;
+                const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier'));
+                contractSize = this.parseNumber (multiplierString);
+                if (future) {
+                    expiryDatetime = this.safeString (market, 'expiry');
+                    expiry = this.parse8601 (expiryDatetime);
+                    symbol = symbol + '-' + this.yymmdd (expiry);
+                }
+            } else {
+                // for index/exotic markets, default to id
+                symbol = id;
             }
             const positionId = this.safeString2 (market, 'positionCurrency', 'underlying');
             const position = this.safeCurrencyCode (positionId);
@@ -624,10 +629,12 @@ export default class bitmex extends Exchange {
                     'swap': swap,
                     'future': future,
                     'option': false,
+                    'index': index,
                     'active': active,
                     'contract': contract,
-                    'linear': contract ? !inverse : undefined,
-                    'inverse': contract ? inverse : undefined,
+                    'linear': linear,
+                    'inverse': inverse,
+                    'quanto': isQuanto,
                     'taker': this.safeNumber (market, 'takerFee'),
                     'maker': this.safeNumber (market, 'makerFee'),
                     'contractSize': contractSize,
@@ -1338,112 +1345,7 @@ export default class bitmex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        //
-        //     {                         symbol: "ETHH19",
-        //                           rootSymbol: "ETH",
-        //                                state: "Open",
-        //                                  typ: "FFCCSX",
-        //                              listing: "2018-12-17T04:00:00.000Z",
-        //                                front: "2019-02-22T12:00:00.000Z",
-        //                               expiry: "2019-03-29T12:00:00.000Z",
-        //                               settle: "2019-03-29T12:00:00.000Z",
-        //                       relistInterval:  null,
-        //                           inverseLeg: "",
-        //                              sellLeg: "",
-        //                               buyLeg: "",
-        //                     optionStrikePcnt:  null,
-        //                    optionStrikeRound:  null,
-        //                    optionStrikePrice:  null,
-        //                     optionMultiplier:  null,
-        //                     positionCurrency: "ETH",
-        //                           underlying: "ETH",
-        //                        quoteCurrency: "XBT",
-        //                     underlyingSymbol: "ETHXBT=",
-        //                            reference: "BMEX",
-        //                      referenceSymbol: ".BETHXBT30M",
-        //                         calcInterval:  null,
-        //                      publishInterval:  null,
-        //                          publishTime:  null,
-        //                          maxOrderQty:  100000000,
-        //                             maxPrice:  10,
-        //                              lotSize:  1,
-        //                             tickSize:  0.00001,
-        //                           multiplier:  100000000,
-        //                        settlCurrency: "XBt",
-        //       underlyingToPositionMultiplier:  1,
-        //         underlyingToSettleMultiplier:  null,
-        //              quoteToSettleMultiplier:  100000000,
-        //                             isQuanto:  false,
-        //                            isInverse:  false,
-        //                           initMargin:  0.02,
-        //                          maintMargin:  0.01,
-        //                            riskLimit:  5000000000,
-        //                             riskStep:  5000000000,
-        //                                limit:  null,
-        //                               capped:  false,
-        //                                taxed:  true,
-        //                           deleverage:  true,
-        //                             makerFee:  -0.0005,
-        //                             takerFee:  0.0025,
-        //                        settlementFee:  0,
-        //                         insuranceFee:  0,
-        //                    fundingBaseSymbol: "",
-        //                   fundingQuoteSymbol: "",
-        //                 fundingPremiumSymbol: "",
-        //                     fundingTimestamp:  null,
-        //                      fundingInterval:  null,
-        //                          fundingRate:  null,
-        //                indicativeFundingRate:  null,
-        //                   rebalanceTimestamp:  null,
-        //                    rebalanceInterval:  null,
-        //                     openingTimestamp: "2019-02-13T08:00:00.000Z",
-        //                     closingTimestamp: "2019-02-13T09:00:00.000Z",
-        //                      sessionInterval: "2000-01-01T01:00:00.000Z",
-        //                       prevClosePrice:  0.03347,
-        //                       limitDownPrice:  null,
-        //                         limitUpPrice:  null,
-        //               bankruptLimitDownPrice:  null,
-        //                 bankruptLimitUpPrice:  null,
-        //                      prevTotalVolume:  1386531,
-        //                          totalVolume:  1387062,
-        //                               volume:  531,
-        //                            volume24h:  17118,
-        //                    prevTotalTurnover:  4741294246000,
-        //                        totalTurnover:  4743103466000,
-        //                             turnover:  1809220000,
-        //                          turnover24h:  57919845000,
-        //                      homeNotional24h:  17118,
-        //                   foreignNotional24h:  579.19845,
-        //                         prevPrice24h:  0.03349,
-        //                                 vwap:  0.03383564,
-        //                            highPrice:  0.03458,
-        //                             lowPrice:  0.03329,
-        //                            lastPrice:  0.03406,
-        //                   lastPriceProtected:  0.03406,
-        //                    lastTickDirection: "ZeroMinusTick",
-        //                       lastChangePcnt:  0.017,
-        //                             bidPrice:  0.03406,
-        //                             midPrice:  0.034065,
-        //                             askPrice:  0.03407,
-        //                       impactBidPrice:  0.03406,
-        //                       impactMidPrice:  0.034065,
-        //                       impactAskPrice:  0.03407,
-        //                         hasLiquidity:  true,
-        //                         openInterest:  83679,
-        //                            openValue:  285010674000,
-        //                           fairMethod: "ImpactMidPrice",
-        //                        fairBasisRate:  0,
-        //                            fairBasis:  0,
-        //                            fairPrice:  0.03406,
-        //                           markMethod: "FairPrice",
-        //                            markPrice:  0.03406,
-        //                    indicativeTaxRate:  0,
-        //                indicativeSettlePrice:  0.03406,
-        //                optionUnderlyingPrice:  null,
-        //                         settledPrice:  null,
-        //                            timestamp: "2019-02-13T08:40:30.000Z",
-        //     }
-        //
+        // see response sample under "fetchMarkets" because same endpoint is being used here
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
@@ -2401,115 +2303,7 @@ export default class bitmex extends Exchange {
     }
 
     parseFundingRate (contract, market = undefined) {
-        //
-        //    {
-        //        "symbol": "LTCUSDT",
-        //        "rootSymbol": "LTC",
-        //        "state": "Open",
-        //        "typ": "FFWCSX",
-        //        "listing": "2021-11-10T04:00:00.000Z",
-        //        "front": "2021-11-10T04:00:00.000Z",
-        //        "expiry": null,
-        //        "settle": null,
-        //        "listedSettle": null,
-        //        "relistInterval": null,
-        //        "inverseLeg": "",
-        //        "sellLeg": "",
-        //        "buyLeg": "",
-        //        "optionStrikePcnt": null,
-        //        "optionStrikeRound": null,
-        //        "optionStrikePrice": null,
-        //        "optionMultiplier": null,
-        //        "positionCurrency": "LTC",
-        //        "underlying": "LTC",
-        //        "quoteCurrency": "USDT",
-        //        "underlyingSymbol": "LTCT=",
-        //        "reference": "BMEX",
-        //        "referenceSymbol": ".BLTCT",
-        //        "calcInterval": null,
-        //        "publishInterval": null,
-        //        "publishTime": null,
-        //        "maxOrderQty": 1000000000,
-        //        "maxPrice": 1000000,
-        //        "lotSize": 1000,
-        //        "tickSize": 0.01,
-        //        "multiplier": 100,
-        //        "settlCurrency": "USDt",
-        //        "underlyingToPositionMultiplier": 10000,
-        //        "underlyingToSettleMultiplier": null,
-        //        "quoteToSettleMultiplier": 1000000,
-        //        "isQuanto": false,
-        //        "isInverse": false,
-        //        "initMargin": 0.03,
-        //        "maintMargin": 0.015,
-        //        "riskLimit": 1000000000000,
-        //        "riskStep": 1000000000000,
-        //        "limit": null,
-        //        "capped": false,
-        //        "taxed": true,
-        //        "deleverage": true,
-        //        "makerFee": -0.0001,
-        //        "takerFee": 0.0005,
-        //        "settlementFee": 0,
-        //        "insuranceFee": 0,
-        //        "fundingBaseSymbol": ".LTCBON8H",
-        //        "fundingQuoteSymbol": ".USDTBON8H",
-        //        "fundingPremiumSymbol": ".LTCUSDTPI8H",
-        //        "fundingTimestamp": "2022-01-14T20:00:00.000Z",
-        //        "fundingInterval": "2000-01-01T08:00:00.000Z",
-        //        "fundingRate": 0.0001,
-        //        "indicativeFundingRate": 0.0001,
-        //        "rebalanceTimestamp": null,
-        //        "rebalanceInterval": null,
-        //        "openingTimestamp": "2022-01-14T17:00:00.000Z",
-        //        "closingTimestamp": "2022-01-14T18:00:00.000Z",
-        //        "sessionInterval": "2000-01-01T01:00:00.000Z",
-        //        "prevClosePrice": 138.511,
-        //        "limitDownPrice": null,
-        //        "limitUpPrice": null,
-        //        "bankruptLimitDownPrice": null,
-        //        "bankruptLimitUpPrice": null,
-        //        "prevTotalVolume": 12699024000,
-        //        "totalVolume": 12702160000,
-        //        "volume": 3136000,
-        //        "volume24h": 114251000,
-        //        "prevTotalTurnover": 232418052349000,
-        //        "totalTurnover": 232463353260000,
-        //        "turnover": 45300911000,
-        //        "turnover24h": 1604331340000,
-        //        "homeNotional24h": 11425.1,
-        //        "foreignNotional24h": 1604331.3400000003,
-        //        "prevPrice24h": 135.48,
-        //        "vwap": 140.42165,
-        //        "highPrice": 146.42,
-        //        "lowPrice": 135.08,
-        //        "lastPrice": 144.36,
-        //        "lastPriceProtected": 144.36,
-        //        "lastTickDirection": "MinusTick",
-        //        "lastChangePcnt": 0.0655,
-        //        "bidPrice": 143.75,
-        //        "midPrice": 143.855,
-        //        "askPrice": 143.96,
-        //        "impactBidPrice": 143.75,
-        //        "impactMidPrice": 143.855,
-        //        "impactAskPrice": 143.96,
-        //        "hasLiquidity": true,
-        //        "openInterest": 38103000,
-        //        "openValue": 547963053300,
-        //        "fairMethod": "FundingRate",
-        //        "fairBasisRate": 0.1095,
-        //        "fairBasis": 0.004,
-        //        "fairPrice": 143.811,
-        //        "markMethod": "FairPrice",
-        //        "markPrice": 143.811,
-        //        "indicativeTaxRate": null,
-        //        "indicativeSettlePrice": 143.807,
-        //        "optionUnderlyingPrice": null,
-        //        "settledPriceAdjustmentRate": null,
-        //        "settledPrice": null,
-        //        "timestamp": "2022-01-14T17:49:55.000Z"
-        //    }
-        //
+        // see response sample under "fetchMarkets" because same endpoint is being used here
         const datetime = this.safeString (contract, 'timestamp');
         const marketId = this.safeString (contract, 'symbol');
         const fundingDatetime = this.safeString (contract, 'fundingTimestamp');
