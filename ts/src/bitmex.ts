@@ -584,8 +584,7 @@ export default class bitmex extends Exchange {
             const index = type === 'index';
             const isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
             const isQuanto = this.safeValue (market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-            const inverse = isQuanto || isInverse;
-            const linear = contract ? (!inverse && !isQuanto) : undefined;
+            const linear = contract ? (!isInverse && !isQuanto) : undefined;
             const status = this.safeString (market, 'state');
             const active = status !== 'Unlisted';
             let expiry = undefined;
@@ -635,7 +634,7 @@ export default class bitmex extends Exchange {
                 'active': active,
                 'contract': contract,
                 'linear': linear,
-                'inverse': inverse,
+                'inverse': isInverse,
                 'quanto': isQuanto,
                 'taker': this.safeNumber (market, 'takerFee'),
                 'maker': this.safeNumber (market, 'makerFee'),
