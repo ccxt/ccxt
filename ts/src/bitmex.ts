@@ -454,7 +454,7 @@ export default class bitmex extends Exchange {
             const maxOrderQty = this.safeNumber (market, 'maxOrderQty');
             const initMargin = this.safeString (market, 'initMargin', '1');
             const maxLeverage = this.parseNumber (Precise.stringDiv ('1', initMargin));
-            // temporarily filter out unlisted markets to avoid symbol conflicts // todo: remove this temp check
+            // temporarily filter out unlisted markets to avoid symbol conflicts
             if (active) {
                 result.push ({
                     'id': id,
@@ -471,7 +471,6 @@ export default class bitmex extends Exchange {
                     'swap': swap,
                     'future': future,
                     'option': false,
-                    'index': index,
                     'active': active,
                     'contract': contract,
                     'linear': contract ? !inverse : undefined,
@@ -2271,9 +2270,7 @@ export default class bitmex extends Exchange {
     }
 
     convertValue (value, market = undefined) {
-        // todo: this method will be removed in future, because it is only for this.options['oldPrecision']=true
         if (this.newPrecision ()) {
-            // if new preciosions are used, no need to do anything
             return value;
         }
         if ((value === undefined) || (market === undefined)) {
