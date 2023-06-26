@@ -130,7 +130,7 @@ export default class bitmex extends Exchange {
                         'trade': 5,
                         'trade/bucketed': 5,
                         'wallet/assets': 5,
-                        // 'wallet/currencies': 5,
+                        'wallet/currencies': 5, // shows a bit more data about precisions, but swagger skips this endpoint, so we don't rely on this in fetchCurrencies
                         'wallet/networks': 5,
                     },
                 },
