@@ -2237,20 +2237,10 @@ export default class bitmex extends Exchange {
         } else {
             notional = this.safeString (position, 'homeNotional');
         }
-        let maintenanceMargin = this.safeNumber (position, 'maintMargin');
-        let unrealisedPnl = this.safeNumber (position, 'unrealisedPnl');
-        let contracts = this.omitZero (this.safeNumber (position, 'currentQty'));
-        if (this.newPrecision ()) {
-            notional = this.parseNumber (notional);
-            const maintenanceMarginString = this.safeString (position, 'maintMargin');
-            const unrealisedPnlString = this.safeString (position, 'unrealisedPnl');
-            const currentQty = this.safeString (position, 'currentQty');
-            const lotSize = this.safeString (market['info'], 'lotSize');
-            contracts = this.parseNumber (Precise.stringDiv (currentQty, lotSize));
-            const settleCurrencyCode = this.safeString (market, 'settle');
-            maintenanceMargin = this.convertToRealAmount (settleCurrencyCode, maintenanceMarginString);
-            unrealisedPnl = this.convertToRealAmount (settleCurrencyCode, unrealisedPnlString);
-        }
+        const maintenanceMargin = this.safeNumber (position, 'maintMargin');
+        const unrealisedPnl = this.safeNumber (position, 'unrealisedPnl');
+        const contracts = this.omitZero (this.safeNumber (position, 'currentQty'));
+        // const amount = this.parseNumber (Precise.stringDiv (contracts, this.safeString (market['info'], 'lotSize')));
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'account'),
@@ -2270,7 +2260,7 @@ export default class bitmex extends Exchange {
             'collateral': undefined,
             'initialMargin': this.safeNumber (position, 'initMargin'),
             'initialMarginPercentage': this.safeNumber (position, 'initMarginReq'),
-            'maintenanceMargin': maintenanceMargin,
+            'maintenanceMargin': this.convertValue (maintenanceMargin, market),
             'maintenanceMarginPercentage': this.safeNumber (position, 'maintMarginReq'),
             'unrealizedPnl': this.convertValue (unrealisedPnl, market),
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
