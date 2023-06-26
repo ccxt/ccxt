@@ -420,27 +420,23 @@ export default class bitmex extends Exchange {
     }
 
     convertFromRawQuantity (symbol, rawQuantity) {
+        return this.convertFromQuantity (symbol, rawQuantity);
+    }
+
+    convertFromQuantity (symbol, rawQuantity, currencySide = 'base') {
         if (this.safeValue (this.options, 'oldPrecision')) {
             return this.parseNumber (rawQuantity);
         }
         symbol = this.safeSymbol (symbol);
         const market = this.market (symbol);
         if (market['spot']) {
-            return this.convertToRealAmount (market['base'], rawQuantity);
+            return this.convertToRealAmount (market[currencySide], rawQuantity);
         }
         return this.parseNumber (rawQuantity);
     }
 
     convertFromRawCost (symbol, rawQuantity) {
-        if (this.safeValue (this.options, 'oldPrecision')) {
-            return this.parseNumber (rawQuantity);
-        }
-        symbol = this.safeSymbol (symbol);
-        const market = this.market (symbol);
-        if (market['spot']) {
-            return this.convertToRealAmount (market['quote'], rawQuantity);
-        }
-        return this.parseNumber (rawQuantity);
+        return this.convertFromQuantity (symbol, rawQuantity, 'quote');
     }
 
     async fetchMarkets (params = {}) {
