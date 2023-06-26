@@ -2172,9 +2172,10 @@ export default class bitmex extends Exchange {
         } else {
             notional = this.safeString (position, 'homeNotional');
         }
-        const maintenanceMargin = this.safeNumber (position, 'maintMargin');
-        const unrealisedPnl = this.safeNumber (position, 'unrealisedPnl');
-        const contracts = this.omitZero (this.safeNumber (position, 'currentQty'));
+        const settleCurrencyCode = this.safeString (market, 'settle');
+        const maintenanceMargin = this.convertToRealAmount (settleCurrencyCode, this.safeString (position, 'maintMargin'));
+        const unrealisedPnl = this.convertToRealAmount (settleCurrencyCode, this.safeString (position, 'unrealisedPnl'));
+        const contracts = this.safeNumber (position, 'currentQty');
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'account'),
@@ -2184,48 +2185,24 @@ export default class bitmex extends Exchange {
             'lastUpdateTimestamp': undefined,
             'hedged': undefined,
             'side': undefined,
-            'contracts': this.convertValue (contracts, market),
+            'contracts': contracts,
             'contractSize': undefined,
             'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
             'markPrice': this.safeNumber (position, 'markPrice'),
             'lastPrice': undefined,
-            'notional': notional,
+            'notional': this.parseNumber (notional),
             'leverage': this.safeNumber (position, 'leverage'),
             'collateral': undefined,
             'initialMargin': this.safeNumber (position, 'initMargin'),
             'initialMarginPercentage': this.safeNumber (position, 'initMarginReq'),
-            'maintenanceMargin': this.convertValue (maintenanceMargin, market),
+            'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': this.safeNumber (position, 'maintMarginReq'),
-            'unrealizedPnl': this.convertValue (unrealisedPnl, market),
+            'unrealizedPnl': unrealisedPnl,
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'marginMode': marginMode,
             'marginRatio': undefined,
             'percentage': this.safeNumber (position, 'unrealisedPnlPcnt'),
         });
-    }
-
-    convertValue (value, market = undefined) {
-        if ((value === undefined) || (market === undefined)) {
-            return value;
-        }
-        let resultValue = undefined;
-        value = this.numberToString (value);
-        if ((market['quote'] === 'USD') || (market['quote'] === 'EUR')) {
-            resultValue = Precise.stringMul (value, '0.00000001');
-        } else if (market['quote'] === 'USDT') {
-            resultValue = Precise.stringMul (value, '0.000001');
-        } else {
-            let currency = undefined;
-            const quote = market['quote'];
-            if (quote !== undefined) {
-                currency = this.currency (market['quote']);
-            }
-            if (currency !== undefined) {
-                resultValue = Precise.stringMul (value, this.numberToString (currency['precision']));
-            }
-        }
-        resultValue = (resultValue !== undefined) ? parseFloat (resultValue) : undefined;
-        return resultValue;
     }
 
     isFiat (currency) {
