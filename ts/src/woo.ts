@@ -997,6 +997,7 @@ export default class woo extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const stop = this.safeValue (params, 'stop', false);
+        params = this.omit (params, 'stop');
         if (!stop) {
             this.checkRequiredSymbol ('cancelOrder', symbol);
         }
@@ -1052,6 +1053,7 @@ export default class woo extends Exchange {
          */
         await this.loadMarkets ();
         const stop = this.safeValue (params, 'stop');
+        params = this.omit (params, 'stop');
         if (stop) {
             return await this.v3PrivateDeleteAlgoOrdersPending (params);
         }
@@ -1085,6 +1087,7 @@ export default class woo extends Exchange {
         await this.loadMarkets ();
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const stop = this.safeValue (params, 'stop');
+        params = this.omit (params, 'stop');
         const request = {};
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         let method = undefined;
@@ -1158,6 +1161,7 @@ export default class woo extends Exchange {
         const request = {};
         let market = undefined;
         const stop = this.safeValue (params, 'stop');
+        params = this.omit (params, 'stop');
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1287,6 +1291,20 @@ export default class woo extends Exchange {
         const feeCurrency = this.safeString2 (order, 'fee_asset', 'feeAsset');
         const transactions = this.safeValue (order, 'Transactions');
         const stopPrice = this.safeNumber (order, 'triggerPrice');
+        let takeProfitPrice = undefined;
+        let stopLossPrice = undefined;
+        const childOrders = this.safeValue (order, 'childOrders');
+        if (childOrders !== undefined) {
+            const first = this.safeValue (childOrders, 0);
+            const innerChildOrders = this.safeValue (first, 'childOrders', []);
+            const innerChildOrdersLength = innerChildOrders.length;
+            if (innerChildOrdersLength > 0) {
+                const takeProfitOrder = this.safeValue (innerChildOrders, 0);
+                const stopLossOrder = this.safeValue (innerChildOrders, 1);
+                takeProfitPrice = this.safeNumber (takeProfitOrder, 'triggerPrice');
+                stopLossPrice = this.safeNumber (stopLossOrder, 'triggerPrice');
+            }
+        }
         return this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1303,6 +1321,8 @@ export default class woo extends Exchange {
             'price': price,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'average': average,
             'amount': amount,
             'filled': filled,
