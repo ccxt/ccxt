@@ -856,13 +856,6 @@ export default class woo extends Exchange {
             }
             request['childOrders'] = [ outterOrder ];
         }
-        const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
-        const brokerId = this.safeString (this.options, 'brokerId', applicationId);
-        if (isStop) {
-            request['brokerId'] = brokerId;
-        } else {
-            request['broker_id'] = brokerId;
-        }
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
         let response = undefined;
         if (isStop) {
@@ -2171,6 +2164,17 @@ export default class woo extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
+            if (method === 'POST' && (path === 'algo/order' || path === 'order')) {
+                const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+                const brokerId = this.safeString (this.options, 'brokerId', applicationId);
+                const isStop = path.indexOf ('algo') > -1;
+                if (isStop) {
+                    params['brokerId'] = brokerId;
+                } else {
+                    params['broker_id'] = brokerId;
+                }
+                params = this.keysort (params);
+            }
             let auth = '';
             const ts = this.nonce ().toString ();
             url += pathWithParams;
