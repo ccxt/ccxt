@@ -77,6 +77,7 @@ export default class luno extends Exchange {
                     'public': 'https://api.luno.com/api',
                     'private': 'https://api.luno.com/api',
                     'exchange': 'https://api.luno.com/api/exchange',
+                    'exchangeprivate': 'https://api.luno.com/api/exchange',
                 },
                 'www': 'https://www.luno.com',
                 'doc': [
@@ -89,6 +90,21 @@ export default class luno extends Exchange {
                 'exchange': {
                     'get': {
                         'markets': 1,
+                    },
+                },
+                'exchangeprivate': {
+                    'get': {
+                        'candles': 1,
+                        // GET /api/exchange/2/listorders
+                        'move': 1,
+                        'move/list_moves': 1,
+                        'orders/{id}': 1,
+                        // GET /api/exchange/2/orders/{id}
+                        // GET /api/exchange/3/order
+                        'transfers': 1,
+                    },
+                    'post': {
+                        'move': 1,
                     },
                 },
                 'public': {
@@ -111,13 +127,10 @@ export default class luno extends Exchange {
                         'listorders': 1,
                         'listtrades': 1,
                         'orders/{id}': 1,
-                        'quotes/{id}': 1,
+                        'send_fee': 1,
                         'withdrawals': 1,
                         'withdrawals/{id}': 1,
                         'transfers': 1,
-                        // GET /api/exchange/2/listorders
-                        // GET /api/exchange/2/orders/{id}
-                        // GET /api/exchange/3/order
                     },
                     'post': {
                         'accounts': 1,
@@ -128,15 +141,12 @@ export default class luno extends Exchange {
                         'funding_address': 1,
                         'withdrawals': 1,
                         'send': 1,
-                        'quotes': 1,
                         'oauth2/grant': 1,
                     },
                     'put': {
                         'accounts/{id}/name': 1,
-                        'quotes/{id}': 1,
                     },
                     'delete': {
-                        'quotes/{id}': 1,
                         'withdrawals/{id}': 1,
                     },
                 },
@@ -145,8 +155,38 @@ export default class luno extends Exchange {
                 'trading': {
                     'tierBased': true, // based on volume from your primary currency (not the same for everyone)
                     'percentage': true,
-                    'taker': this.parseNumber ('0.001'),
-                    'maker': this.parseNumber ('0'),
+                    'taker': this.parseNumber ('0.006'),
+                    'maker': this.parseNumber ('0.004'),
+                    'tiers': {
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.006') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.005') ],
+                            [ this.parseNumber ('200000'), this.parseNumber ('0.004') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.003') ],
+                            [ this.parseNumber ('2000000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0015') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('20000000'), this.parseNumber ('0.0009') ],
+                            [ this.parseNumber ('40000000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('80000000'), this.parseNumber ('0.0007') ],
+                            [ this.parseNumber ('120000000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('160000000'), this.parseNumber ('0.0005') ],
+                        ],
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.004') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.003') ],
+                            [ this.parseNumber ('200000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('2000000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0') ],
+                            [ this.parseNumber ('20000000'), this.parseNumber ('0.0') ],
+                            [ this.parseNumber ('40000000'), this.parseNumber ('-0.0001') ],
+                            [ this.parseNumber ('80000000'), this.parseNumber ('-0.0001') ],
+                            [ this.parseNumber ('120000000'), this.parseNumber ('-0.0002') ],
+                            [ this.parseNumber ('160000000'), this.parseNumber ('-0.0002') ],
+                        ],
+                    },
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -786,7 +826,7 @@ export default class luno extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'pair': market['id'],
         };
         const response = await this.privateGetFeeInfo (this.extend (request, params));
         //
@@ -1024,7 +1064,7 @@ export default class luno extends Exchange {
         if (Object.keys (query).length) {
             url += '?' + this.urlencode (query);
         }
-        if (api === 'private') {
+        if (api === 'private' || api === 'exchangeprivate') {
             this.checkRequiredCredentials ();
             const auth = this.stringToBase64 (this.apiKey + ':' + this.secret);
             headers = {
