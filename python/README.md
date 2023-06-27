@@ -19,14 +19,6 @@ Current feature list:
 - works in Node 10.4+, Python 3, PHP 8.1+, netstandard2.0/2.1 and web browsers
 
 
-## Sponsored Promotion
-
-[![Bitget + CCXT Trading Competition](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/239791258-60aeae70-6f72-4c4b-8f09-1963eb6909ab.png)](https://github.com/ccxt/ccxt/issues/17983)
-
-[![Bitget + CCXT Messi Merch](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/239791257-99eb5ce0-88bd-4ba0-aae1-9662b34b3cb3.png)](https://github.com/ccxt/ccxt/issues/17983)
-
-
-
 ## See Also
 
 - <sub>[![TabTrader](https://user-images.githubusercontent.com/1294454/66755907-9c3e8880-eea1-11e9-846e-0bff349ceb87.png)](https://tab-trader.com/?utm_source=ccxt)</sub> **[TabTrader](https://tab-trader.com/?utm_source=ccxt)** – trading on all exchanges in one app. Available on **[Android](https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt)** and **[iOS](https://itunes.apple.com/app/apple-store/id1095716562?mt=8)**!
