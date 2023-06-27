@@ -2447,8 +2447,7 @@ export default class phemex extends Exchange {
                     if (stopLossTriggerPriceType !== undefined) {
                         if (market['settle'] === 'USDT') {
                             if (!(stopLossTriggerPriceType in triggerPriceTypesMap)) {
-                                const priceTypes = Object.keys (triggerPriceTypesMap);
-                                throw new InvalidOrder (this.id + ' createOrder() stop-loss trigger price type must be one of ' + this.json (priceTypes));
+                                throw new InvalidOrder (this.id + ' createOrder() stop-loss trigger price type must be one of ' + this.json (triggerPriceTypesMap));
                             }
                         } else {
                             if ((stopLossTriggerPriceType !== 'ByMarkPrice') && (stopLossTriggerPriceType !== 'ByLastPrice')) {
@@ -2473,8 +2472,7 @@ export default class phemex extends Exchange {
                     if (takeProfitTriggerPriceType !== undefined) {
                         if (market['settle'] === 'USDT') {
                             if (!(takeProfitTriggerPriceType in triggerPriceTypesMap)) {
-                                const priceTypes = Object.keys (triggerPriceTypesMap);
-                                throw new InvalidOrder (this.id + ' createOrder() take-profit trigger price type must be one of ' + this.json (priceTypes));
+                                throw new InvalidOrder (this.id + ' createOrder() take-profit trigger price type must be one of ' + this.json (triggerPriceTypesMap));
                             }
                         } else {
                             if ((takeProfitTriggerPriceType !== 'ByMarkPrice') && (takeProfitTriggerPriceType !== 'ByLastPrice')) {
