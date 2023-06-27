@@ -315,7 +315,7 @@ export default class wavesexchange extends Exchange {
                 'messagePrefix': 'W', // W for production, T for testnet
                 'networks': {
                     'ERC20': 'ETH',
-                    'BEP20': 'BSC'
+                    'BEP20': 'BSC',
                 },
                 'networksById': {
                     'ETH': 'ERC20',
@@ -2211,7 +2211,7 @@ export default class wavesexchange extends Exchange {
     }
 
     parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined): any {
-        let depositWithdrawFees = {};
+        const depositWithdrawFees = {};
         codes = this.marketCodes (codes);
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -2236,7 +2236,7 @@ export default class wavesexchange extends Exchange {
                     };
                 } else {
                     depositWithdrawFee = depositWithdrawFees[code];
-                    depositWithdrawFee['info'] = this.arrayConcat ( depositWithdrawFee['info'], [ dictionary ]);
+                    depositWithdrawFee['info'] = this.arrayConcat (depositWithdrawFee['info'], [ dictionary ]);
                 }
                 const networkId = this.safeString (dictionary, 'platform_id');
                 const currencyCode = this.safeString (currency, 'code');
@@ -2258,7 +2258,7 @@ export default class wavesexchange extends Exchange {
                 const fees = this.safeValue (dictionary, 'fees');
                 let networkKey = 'deposit';
                 if (feeType === 'withdrawal_currency') {
-                    networkKey = 'withdraw';   
+                    networkKey = 'withdraw';
                 }
                 network[networkKey] = { 'fee': this.safeNumber (fees, 'flat'), 'percentage': false };
                 depositWithdrawFee['networks'][networkCode] = network;
@@ -2273,7 +2273,6 @@ export default class wavesexchange extends Exchange {
             const networkKeys = Object.keys (networks);
             if (networkKeys.length === 1) {
                 const network = this.safeValue (networks, networkKeys[0]);
-                console.log (network);
                 depositWithdrawFees[code]['withdraw'] = this.safeValue (network, 'withdraw');
                 depositWithdrawFees[code]['deposit'] = this.safeValue (network, 'deposit');
             }
@@ -2293,8 +2292,11 @@ export default class wavesexchange extends Exchange {
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const responseDeposit = await this.privateGetDepositCurrencies (params);
-        const responseWithdraw = await this.privateGetWithdrawCurrencies (params);
+        let data = [];
+        let promises = [];
+        promises.push (this.privateGetDepositCurrencies (params));
+        promises.push (this.privateGetWithdrawCurrencies (params));
+        promises = await Promise.all (promises);
         //
         //    {
         //        "type": "list",
@@ -2351,10 +2353,10 @@ export default class wavesexchange extends Exchange {
         //        ]
         //    }
         //
-        const itemsDeposit = this.safeValue (responseDeposit, 'items', {});
-        const itemsWithdraw = this.safeValue (responseWithdraw, 'items', {});
-        const items = this.arrayConcat(itemsDeposit, itemsWithdraw);
-        return this.parseDepositWithdrawFees (items, codes, 'id');
+        for (let i = 0; i < promises.length; i++) {
+            data = this.arrayConcat (data, promises[i]);
+        }
+        return this.parseDepositWithdrawFees (data, codes, 'id');
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
