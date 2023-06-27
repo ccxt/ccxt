@@ -1272,11 +1272,10 @@ export default class bitmex extends Exchange {
             addressTo = this.safeString (transaction, 'address');
             addressFrom = this.safeString (transaction, 'tx');
         }
-        let amountString = this.safeString (transaction, 'amount');
-        const scale = (currency['code'] === 'BTC') ? '1e8' : '1e6';
-        amountString = Precise.stringDiv (Precise.stringAbs (amountString), scale);
-        let feeCostString = this.safeString (transaction, 'fee');
-        feeCostString = Precise.stringDiv (feeCostString, scale);
+        const amountString = this.safeString (transaction, 'amount');
+        const amount = this.convertToRealAmount (currency['code'], amountString);
+        const feeCostString = this.safeString (transaction, 'fee');
+        const feeCost = this.convertToRealAmount (currency['code'], feeCostString);
         let status = this.safeString (transaction, 'transactStatus');
         if (status !== undefined) {
             status = this.parseTransactionStatus (status);
@@ -1288,7 +1287,7 @@ export default class bitmex extends Exchange {
             'type': type,
             'currency': currency['code'],
             'network': this.safeString (transaction, 'network'),
-            'amount': this.parseNumber (amountString),
+            'amount': amount,
             'status': status,
             'timestamp': transactTime,
             'datetime': this.iso8601 (transactTime),
@@ -1302,7 +1301,7 @@ export default class bitmex extends Exchange {
             'comment': undefined,
             'fee': {
                 'currency': currency['code'],
-                'cost': this.parseNumber (feeCostString),
+                'cost': feeCost,
                 'rate': undefined,
             },
         };
