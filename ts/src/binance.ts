@@ -6688,7 +6688,7 @@ export default class binance extends Exchange {
         if (Precise.stringEquals (notionalString, '0')) {
             entryPrice = undefined;
         } else {
-            side = Precise.stringLt (notionalString, '0') ? 'short' : 'long';
+            side = (notionalString[0] === '-') ? 'short' : 'long';
             marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (maintenanceMarginString, collateralString), '5e-5'), '1', 4));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
             if (usdm) {
@@ -6840,7 +6840,7 @@ export default class binance extends Exchange {
         let side = undefined;
         if (Precise.stringGt (notionalString, '0')) {
             side = 'long';
-        } else if (Precise.stringLt (notionalString, '0')) {
+        } else if (notionalString[0] === '-') {
             side = 'short';
         }
         const entryPriceString = this.safeString (position, 'entryPrice');
