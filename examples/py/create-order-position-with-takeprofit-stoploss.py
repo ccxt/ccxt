@@ -27,9 +27,9 @@ async def example():
         'password': 'YOUR_API_PASSWORD',
     })
     symbol = 'DOGE/USDT:USDT'
-    side = 'buy'  # set it to 'buy' for a long position, 'sell' for a short position
-    order_type = 'limit'  # set it to 'market' or 'limit'
-    amount = 1  # how many contracts
+    side = 'buy'  # 'buy' | 'sell'
+    order_type = 'limit'  # 'market' | 'limit'
+    amount = 1  # how many contracts (see `market(symbol).contractSize` to find out coin portion per one contract)
     await exchange.load_markets()
     market = exchange.market(symbol)
     ticker = await exchange.fetch_ticker(symbol)
@@ -49,9 +49,11 @@ async def example():
     params = {
         'stopLoss': {
             'triggerPrice': stop_loss_trigger_price,
+            'price': stop_loss_trigger_price * 0.98,
         },
         'takeProfit': {
             'triggerPrice': take_profit_trigger_price,
+            'price': take_profit_trigger_price * 0.98,
         },
     }
     position_amount = market['contractSize'] * amount
