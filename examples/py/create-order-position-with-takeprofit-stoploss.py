@@ -66,8 +66,8 @@ async def example():
         # Fetch all your open orders for this symbol
         # - use 'fetchOpenOrders' or 'fetchOrders' and filter with 'open' status
         # - note, that some exchanges might return one order object with embedded stoploss/takeprofit fields, while other exchanges might have separate stoploss/takeprofit order objects
-        all_open_rders = await exchange.fetch_open_orders(symbol)
-        print('Fetched all your orders for this symbol', all_open_rders)
+        all_open_orders = await exchange.fetch_open_orders(symbol)
+        print('Fetched all your orders for this symbol', all_open_orders)
     except Exception as e:
         print(str(e))
 

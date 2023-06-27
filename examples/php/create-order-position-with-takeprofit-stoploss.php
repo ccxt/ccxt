@@ -70,8 +70,8 @@ function example() {
             // Fetch all your open orders for this symbol
             // - use 'fetchOpenOrders' or 'fetchOrders' and filter with 'open' status
             // - note, that some exchanges might return one order object with embedded stoploss/takeprofit fields, while other exchanges might have separate stoploss/takeprofit order objects
-            $all_open_rders = Async\await($exchange->fetch_open_orders($symbol));
-            var_dump('Fetched all your orders for this symbol', $all_open_rders);
+            $all_open_orders = Async\await($exchange->fetch_open_orders($symbol));
+            var_dump('Fetched all your orders for this symbol', $all_open_orders);
         } catch(Exception $e) {
             var_dump(((string) $e));
         }

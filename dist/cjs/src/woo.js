@@ -16,7 +16,7 @@ class woo extends woo$1 {
             'countries': ['KY'],
             'rateLimit': 100,
             'version': 'v1',
-            'certified': false,
+            'certified': true,
             'pro': true,
             'hostname': 'woo.org',
             'has': {
