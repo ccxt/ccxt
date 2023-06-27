@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.53'
+__version__ = '3.1.54'
 
 # -----------------------------------------------------------------------------
 
@@ -2496,8 +2496,8 @@ class Exchange(object):
         percentage = self.safe_value(ticker, 'percentage')
         average = self.safe_value(ticker, 'average')
         vwap = self.safe_value(ticker, 'vwap')
-        baseVolume = self.safe_value(ticker, 'baseVolume')
-        quoteVolume = self.safe_value(ticker, 'quoteVolume')
+        baseVolume = self.safe_string(ticker, 'baseVolume')
+        quoteVolume = self.safe_string(ticker, 'quoteVolume')
         if vwap is None:
             vwap = Precise.string_div(quoteVolume, baseVolume)
         if (last is not None) and (close is None):

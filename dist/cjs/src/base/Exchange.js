@@ -2067,8 +2067,8 @@ class Exchange {
         let percentage = this.safeValue(ticker, 'percentage');
         let average = this.safeValue(ticker, 'average');
         let vwap = this.safeValue(ticker, 'vwap');
-        const baseVolume = this.safeValue(ticker, 'baseVolume');
-        const quoteVolume = this.safeValue(ticker, 'quoteVolume');
+        const baseVolume = this.safeString(ticker, 'baseVolume');
+        const quoteVolume = this.safeString(ticker, 'quoteVolume');
         if (vwap === undefined) {
             vwap = Precise["default"].stringDiv(quoteVolume, baseVolume);
         }

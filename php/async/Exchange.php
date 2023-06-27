@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.1.53';
+$version = '3.1.54';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.1.53';
+    const VERSION = '3.1.54';
 
     public $browser;
     public $marketsLoading = null;
@@ -1274,8 +1274,8 @@ class Exchange extends \ccxt\Exchange {
         $percentage = $this->safe_value($ticker, 'percentage');
         $average = $this->safe_value($ticker, 'average');
         $vwap = $this->safe_value($ticker, 'vwap');
-        $baseVolume = $this->safe_value($ticker, 'baseVolume');
-        $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
+        $baseVolume = $this->safe_string($ticker, 'baseVolume');
+        $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         if ($vwap === null) {
             $vwap = Precise::string_div($quoteVolume, $baseVolume);
         }

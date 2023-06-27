@@ -160,6 +160,7 @@ class okx extends okx$1 {
                         'market/index-candles': 1,
                         'market/mark-price-candles': 1,
                         'market/trades': 1,
+                        'market/history-trades': 2,
                         'market/platform-24-volume': 10,
                         'market/open-oracle': 40,
                         'market/index-components': 1,

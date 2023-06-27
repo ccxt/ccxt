@@ -43,6 +43,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function public_get_market_trades($params = array()) {
         return $this->request('market/trades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_market_history_trades($params = array()) {
+        return $this->request('market/history-trades', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function public_get_market_platform_24_volume($params = array()) {
         return $this->request('market/platform-24-volume', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -651,6 +654,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function publicGetMarketTrades($params = array()) {
         return $this->request('market/trades', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetMarketHistoryTrades($params = array()) {
+        return $this->request('market/history-trades', 'public', 'GET', $params, null, null, array("cost" => 2));
     }
     public function publicGetMarketPlatform24Volume($params = array()) {
         return $this->request('market/platform-24-volume', 'public', 'GET', $params, null, null, array("cost" => 10));
