@@ -20,7 +20,7 @@ export default class ascendex extends ascendexRest {
     handleBalance(client: Client, message: any): void;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): any;
+    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleErrorMessage(client: Client, message: any): boolean;
     handleAuthenticate(client: Client, message: any): void;
     handleMessage(client: Client, message: any): any;

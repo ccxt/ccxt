@@ -571,7 +571,7 @@ class wazirx(ccxt.async_support.wazirx):
         messageHash += ':' + parsedOrder['symbol']
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order):
+    def parse_ws_order(self, order, market=None):
         #
         #     {
         #         "E": 1631683058904,

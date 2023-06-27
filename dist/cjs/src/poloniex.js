@@ -35,6 +35,7 @@ class poloniex extends poloniex$1 {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchMarginMode': false,
@@ -290,6 +291,7 @@ class poloniex extends poloniex$1 {
                     '21352': errors.BadSymbol,
                     '21353': errors.PermissionDenied,
                     '21354': errors.PermissionDenied,
+                    '21360': errors.InvalidOrder,
                     '24106': errors.BadRequest,
                     '24201': errors.ExchangeNotAvailable,
                     // Orders
@@ -1247,7 +1249,7 @@ class poloniex extends poloniex$1 {
         // remember the timestamp before issuing the request
         return [request, params];
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#editOrder
@@ -1859,7 +1861,7 @@ class poloniex extends poloniex$1 {
         /**
          * @method
          * @name poloniex#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
          * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined

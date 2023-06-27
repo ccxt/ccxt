@@ -546,6 +546,7 @@ class deribit extends Exchange {
         //         testnet => false
         //     }
         //
+        $parsedMarkets = array();
         $currenciesResult = $this->safe_value($currenciesResponse, 'result', array());
         $result = array();
         for ($i = 0; $i < count($currenciesResult); $i++) {
@@ -670,6 +671,11 @@ class deribit extends Exchange {
                         }
                     }
                 }
+                $parsedMarketValue = $this->safe_value($parsedMarkets, $symbol);
+                if ($parsedMarketValue) {
+                    continue;
+                }
+                $parsedMarkets[$symbol] = true;
                 $minTradeAmount = $this->safe_number($market, 'min_trade_amount');
                 $tickSize = $this->safe_number($market, 'tick_size');
                 $result[] = array(
@@ -1607,7 +1613,7 @@ class deribit extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @see https://docs.deribit.com/#private-buy

@@ -48,6 +48,7 @@ class bitstamp extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
@@ -72,6 +73,7 @@ class bitstamp extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
@@ -321,6 +323,10 @@ class bitstamp extends Exchange {
                         'doge_address/' => 1,
                         'flr_withdrawal/' => 1,
                         'flr_address/' => 1,
+                        'dgld_withdrawal/' => 1,
+                        'dgld_address/' => 1,
+                        'ldo_withdrawal/' => 1,
+                        'ldo_address/' => 1,
                     ),
                 ),
             ),
@@ -658,19 +664,22 @@ class bitstamp extends Exchange {
     public function parse_ticker($ticker, $market = null) {
         //
         // {
-        //     "high" => "37534.15",
-        //     "last" => "36487.44",
-        //     "timestamp":
-        //     "1643370585",
-        //     "bid" => "36475.15",
-        //     "vwap" => "36595.67",
-        //     "volume" => "2848.49168527",
-        //     "low" => "35511.32",
-        //     "ask" => "36487.44",
-        //     "open" => "37179.62"
+        //     "timestamp" => "1686068944",
+        //     "high" => "26252",
+        //     "last" => "26216",
+        //     "bid" => "26208",
+        //     "vwap" => "25681",
+        //     "volume" => "3563.13819902",
+        //     "low" => "25350",
+        //     "ask" => "26211",
+        //     "open" => "25730",
+        //     "open_24" => "25895",
+        //     "percent_change_24" => "1.24",
+        //     "pair" => "BTC/USD"
         // }
         //
-        $symbol = $this->safe_symbol(null, $market);
+        $marketId = $this->safe_string($ticker, 'pair');
+        $symbol = $this->safe_symbol($marketId, $market, null);
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $vwap = $this->safe_string($ticker, 'vwap');
         $baseVolume = $this->safe_string($ticker, 'volume');
@@ -716,19 +725,51 @@ class bitstamp extends Exchange {
             $ticker = Async\await($this->publicGetTickerPair (array_merge($request, $params)));
             //
             // {
-            //     "high" => "37534.15",
-            //     "last" => "36487.44",
-            //     "timestamp":
-            //     "1643370585",
-            //     "bid" => "36475.15",
-            //     "vwap" => "36595.67",
-            //     "volume" => "2848.49168527",
-            //     "low" => "35511.32",
-            //     "ask" => "36487.44",
-            //     "open" => "37179.62"
+            //     "timestamp" => "1686068944",
+            //     "high" => "26252",
+            //     "last" => "26216",
+            //     "bid" => "26208",
+            //     "vwap" => "25681",
+            //     "volume" => "3563.13819902",
+            //     "low" => "25350",
+            //     "ask" => "26211",
+            //     "open" => "25730",
+            //     "open_24" => "25895",
+            //     "percent_change_24" => "1.24"
             // }
             //
             return $this->parse_ticker($ticker, $market);
+        }) ();
+    }
+
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * @see https://www.bitstamp.net/api/#all-tickers
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the bitstamp api endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetTicker ($params));
+            //
+            // {
+            //     "timestamp" => "1686068944",
+            //     "high" => "26252",
+            //     "last" => "26216",
+            //     "bid" => "26208",
+            //     "vwap" => "25681",
+            //     "volume" => "3563.13819902",
+            //     "low" => "25350",
+            //     "ask" => "26211",
+            //     "open" => "25730",
+            //     "open_24" => "25895",
+            //     "percent_change_24" => "1.24",
+            //     "pair" => "BTC/USD"
+            // }
+            //
+            return $this->parse_tickers($response, $symbols);
         }) ();
     }
 
@@ -1216,7 +1257,7 @@ class bitstamp extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
@@ -1290,7 +1331,7 @@ class bitstamp extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -1469,7 +1510,7 @@ class bitstamp extends Exchange {
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch history of deposits and withdrawals
+             * *DEPRECATED* use fetchDepositsWithdrawals instead
              * @param {string|null} $code unified $currency $code for the $currency of the $transactions, default is null
              * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
              * @param {int|null} $limit max number of $transactions to return, default is null

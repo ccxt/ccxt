@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.kraken import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -450,6 +451,7 @@ class kraken(Exchange, ImplicitAPI):
             precisionPrice = self.parse_number(self.parse_precision(self.safe_string(market, 'pair_decimals')))
             result.append({
                 'id': id,
+                'wsId': self.safe_string(market, 'wsname'),
                 'symbol': altname if darkpool else (base + '/' + quote),
                 'base': base,
                 'quote': quote,
@@ -1182,8 +1184,9 @@ class kraken(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
+        see https://docs.kraken.com/rest/#tag/User-Trading/operation/addOrder
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1305,9 +1308,26 @@ class kraken(Exchange, ImplicitAPI):
         #             "order": "buy 0.00075000 XBTUSDT @ limit 13500.0"
         #         }
         #     }
+        #  ws - createOrder
+        #    {
+        #        descr: 'sell 0.00010000 XBTUSDT @ market',
+        #        event: 'addOrderStatus',
+        #        reqid: 1,
+        #        status: 'ok',
+        #        txid: 'OAVXZH-XIE54-JCYYDG'
+        #    }
+        #  ws - editOrder
+        #    {
+        #        "descr": "order edited price = 9000.00000000",
+        #        "event": "editOrderStatus",
+        #        "originaltxid": "O65KZW-J4AW3-VFS74A",
+        #        "reqid": 3,
+        #        "status": "ok",
+        #        "txid": "OTI672-HJFAO-XOIPPK"
+        #    }
         #
         description = self.safe_value(order, 'descr', {})
-        orderDescription = self.safe_string(description, 'order')
+        orderDescription = self.safe_string(description, 'order', description)
         side = None
         type = None
         marketId = None
@@ -1442,10 +1462,13 @@ class kraken(Exchange, ImplicitAPI):
             if closePrice2 is not None:
                 close['price2'] = self.price_to_precision(symbol, closePrice2)
             request['close'] = close
-        params = self.omit(params, ['price', 'stopPrice', 'price2', 'close'])
+        timeInForce = self.safe_string_2(params, 'timeInForce', 'timeinforce')
+        if timeInForce is not None:
+            request['timeinforce'] = timeInForce
+        params = self.omit(params, ['price', 'stopPrice', 'price2', 'close', 'timeInForce'])
         return [request, params]
 
-    def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         edit a trade order
         see https://docs.kraken.com/rest/#tag/User-Trading/operation/editOrder

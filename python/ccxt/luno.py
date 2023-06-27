@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.luno import ImplicitAPI
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -55,7 +56,7 @@ class luno(Exchange, ImplicitAPI):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
-                'fetchOHLCV': False,  # overload of base fetchOHLCV, doesn't work in self exchange
+                'fetchOHLCV': False,  # overload of base fetchOHLCV, doesn't hasattr(self, work) exchange
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -726,7 +727,7 @@ class luno(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id'],
+            'pair': market['id'],
         }
         response = self.privateGetFeeInfo(self.extend(request, params))
         #
@@ -743,7 +744,7 @@ class luno(Exchange, ImplicitAPI):
             'taker': self.safe_number(response, 'taker_fee'),
         }
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

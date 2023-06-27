@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.exmo import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -55,6 +56,7 @@ class exmo(Exchange, ImplicitAPI):
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
@@ -481,7 +483,7 @@ class exmo(Exchange, ImplicitAPI):
         self.options['transactionFees'] = result
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
         see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
@@ -632,9 +634,9 @@ class exmo(Exchange, ImplicitAPI):
                 for j in range(0, len(providers)):
                     provider = providers[j]
                     typeInner = self.safe_string(provider, 'type')
-                    minValue = self.safe_number(provider, 'min')
-                    maxValue = self.safe_number(provider, 'max')
-                    if maxValue == 0.0:
+                    minValue = self.safe_string(provider, 'min')
+                    maxValue = self.safe_string(provider, 'max')
+                    if Precise.string_eq(maxValue, '0.0'):
                         maxValue = None
                     activeProvider = self.safe_value(provider, 'enabled')
                     if typeInner == 'deposit':
@@ -649,7 +651,8 @@ class exmo(Exchange, ImplicitAPI):
                             withdrawEnabled = False
                     if activeProvider:
                         active = True
-                        if (limits[typeInner]['min'] is None) or (minValue < limits[typeInner]['min']):
+                        limitMin = self.number_to_string(limits[typeInner]['min'])
+                        if (limits[typeInner]['min'] is None) or (Precise.string_lt(minValue, limitMin)):
                             limits[typeInner]['min'] = minValue
                             limits[typeInner]['max'] = maxValue
                             if typeInner == 'withdraw':
@@ -1154,7 +1157,7 @@ class exmo(Exchange, ImplicitAPI):
             result = self.array_concat(result, trades)
         return self.filter_by_since_limit(result, since, limit)
 
-    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1672,7 +1675,7 @@ class exmo(Exchange, ImplicitAPI):
 
     def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        fetch history of deposits and withdrawals
+        *DEPRECATED* use fetchDepositsWithdrawals instead
         :param str|None code: unified currency code for the currency of the transactions, default is None
         :param int|None since: timestamp in ms of the earliest transaction, default is None
         :param int|None limit: max number of transactions to return, default is None

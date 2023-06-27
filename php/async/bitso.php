@@ -48,6 +48,7 @@ class bitso extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => false,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
@@ -944,7 +945,7 @@ class bitso extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1061,6 +1062,8 @@ class bitso extends Exchange {
     public function parse_order_status($status) {
         $statuses = array(
             'partial-fill' => 'open', // this is a common substitution in ccxt
+            'partially filled' => 'open',
+            'queued' => 'open',
             'completed' => 'closed',
         );
         return $this->safe_string($statuses, $status, $status);
@@ -1410,7 +1413,7 @@ class bitso extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees

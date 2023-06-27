@@ -49,7 +49,7 @@ class luno extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
-                'fetchOHLCV' => false, // overload of base fetchOHLCV, doesn't work in this exchange
+                'fetchOHLCV' => false, // overload of base fetchOHLCV, doesn't property_exists($this, work) exchange
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -760,7 +760,7 @@ class luno extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'symbol' => $market['id'],
+            'pair' => $market['id'],
         );
         $response = $this->privateGetFeeInfo (array_merge($request, $params));
         //
@@ -778,7 +778,7 @@ class luno extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in

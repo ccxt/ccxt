@@ -90,9 +90,10 @@ diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
 diff=$(echo "$diff" | sed -e "s/python\/tox\.ini//")
 #echo $diff
 
-critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py' # add \/test|
+critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py|test' # add \/test|
 if [[ "$diff" =~ $critical_pattern ]]; then
   echo "$msgPrefix Important changes detected - doing full build & test"
+  echo "$diff"
   build_and_test_all
 fi
 

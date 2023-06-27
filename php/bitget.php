@@ -46,6 +46,8 @@ class bitget extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -183,6 +185,7 @@ class bitget extends Exchange {
                             'wallet/deposit-list' => 1,
                             'account/getInfo' => 20,
                             'account/assets' => 2,
+                            'account/assets-lite' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'account/transferRecords' => 1, // 20 times/1s (UID) => 20/20 = 1
                         ),
                         'post' => array(
@@ -274,10 +277,10 @@ class bitget extends Exchange {
                             'account/setMarginMode' => 4, // 5 times/1s (UID) => 20/5 = 4
                             'account/setPositionMode' => 4, // 5 times/1s (UID) => 20/5 = 4
                             'order/placeOrder' => 2,
-                            'order/modifyOrder' => 2,
                             'order/batch-orders' => 2,
                             'order/cancel-order' => 2,
                             'order/cancel-batch-orders' => 2,
+                            'order/modifyOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'order/cancel-symbol-orders' => 2,
                             'order/cancel-all-orders' => 2,
                             'order/close-all-positions' => 20,
@@ -299,6 +302,15 @@ class bitget extends Exchange {
                             'trace/followerCloseByAll' => 2,
                             'trace/followerSetTpsl' => 2,
                             'trace/cancelCopyTrader' => 4, // 5 times/1s (UID) => 20/5 = 4
+                            'trace/traderUpdateConfig' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/myTraderList' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/myFollowerList' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/removeFollower' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/public/getFollowerConfig' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/report/order/historyList' => 2, // 10 times/1s (IP) => 20/10 = 2
+                            'trace/report/order/currentList' => 2, // 10 times/1s (IP) => 20/10 = 2
+                            'trace/queryTraderTpslRatioConfig' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'trace/traderUpdateTpslRatioConfig' => 2, // 10 times/1s (UID) => 20/10 = 2
                         ),
                     ),
                     'user' => array(
@@ -306,6 +318,10 @@ class bitget extends Exchange {
                             'fee/query' => 2,
                             'sub/virtual-list' => 2,
                             'sub/virtual-api-list' => 2,
+                            'tax/spot-record' => 1,
+                            'tax/future-record' => 1,
+                            'tax/margin-record' => 1,
+                            'tax/p2p-record' => 1,
                         ),
                         'post' => array(
                             'sub/virtual-create' => 4,
@@ -451,7 +467,7 @@ class bitget extends Exchange {
                     '30032' => '\\ccxt\\BadSymbol', // array( "code" => 30032, "message" => "pair does not exist" )
                     '30033' => '\\ccxt\\BadRequest', // array( "code" => 30033, "message" => "exchange domain does not exist" )
                     '30034' => '\\ccxt\\ExchangeError', // array( "code" => 30034, "message" => "exchange ID does not exist" )
-                    '30035' => '\\ccxt\\ExchangeError', // array( "code" => 30035, "message" => "trading is not supported in this website" )
+                    '30035' => '\\ccxt\\ExchangeError', // array( "code" => 30035, "message" => "trading is not property_exists($this, supported) website" )
                     '30036' => '\\ccxt\\ExchangeError', // array( "code" => 30036, "message" => "no relevant data" )
                     '30037' => '\\ccxt\\ExchangeNotAvailable', // array( "code" => 30037, "message" => "endpoint is offline or unavailable" )
                     // '30038' => '\\ccxt\\AuthenticationError', // array( "code" => 30038, "message" => "user does not exist" )
@@ -513,8 +529,8 @@ class bitget extends Exchange {
                     '32064' => '\\ccxt\\ExchangeError', // Time Stringerval of orders should set between 5-120s
                     '32065' => '\\ccxt\\ExchangeError', // Close amount exceeds the limit of Market-close-all (999 for BTC, and 9999 for the rest tokens)
                     '32066' => '\\ccxt\\ExchangeError', // You have open orders. Please cancel all open orders before changing your leverage level.
-                    '32067' => '\\ccxt\\ExchangeError', // Account equity < required margin in this setting. Please adjust your leverage level again.
-                    '32068' => '\\ccxt\\ExchangeError', // The margin for this position will fall short of the required margin in this setting. Please adjust your leverage level or increase your margin to proceed.
+                    '32067' => '\\ccxt\\ExchangeError', // Account equity < required property_exists($this, margin) setting. Please adjust your leverage level again.
+                    '32068' => '\\ccxt\\ExchangeError', // The margin for this position will fall short of the required property_exists($this, margin) setting. Please adjust your leverage level or increase your margin to proceed.
                     '32069' => '\\ccxt\\ExchangeError', // Target leverage level too low. Your account balance is insufficient to cover the margin required. Please adjust the leverage level again.
                     '32070' => '\\ccxt\\ExchangeError', // Please check open position or unfilled order
                     '32071' => '\\ccxt\\ExchangeError', // Your current liquidation mode does not support this action.
@@ -830,7 +846,7 @@ class bitget extends Exchange {
                     '40706' => '\\ccxt\\InvalidOrder', // Wrong order price
                     '40707' => '\\ccxt\\BadRequest', // Start time is greater than end time
                     '40708' => '\\ccxt\\BadRequest', // Parameter verification is abnormal
-                    '40709' => '\\ccxt\\ExchangeError', // There is no position in this position, and no automatic margin call can be set
+                    '40709' => '\\ccxt\\ExchangeError', // There is no property_exists($this, position) position, and no automatic margin call can be set
                     '40710' => '\\ccxt\\ExchangeError', // Abnormal account status
                     '40711' => '\\ccxt\\InsufficientFunds', // Insufficient contract account balance
                     '40712' => '\\ccxt\\InsufficientFunds', // Insufficient margin
@@ -1801,6 +1817,45 @@ class bitget extends Exchange {
         //         $quoteVolume => '5552388715.9215',
         //         usdtVolume => '5552388715.9215'
         //     }
+        // spot tickers
+        //    {
+        //        "symbol":"LINKUSDT",
+        //        "high24h":"5.2816",
+        //        "low24h":"5.0828",
+        //        "close":"5.24",
+        //        "quoteVol":"1427864.6815",
+        //        "baseVol":"276089.9017",
+        //        "usdtVol":"1427864.68148328",
+        //        "ts":"1686653354407",
+        //        "buyOne":"5.239",
+        //        "sellOne":"5.2404",
+        //        "+":"95.187",
+        //        "askSz":"947.6127",
+        //        "openUtc0":"5.1599",
+        //        "changeUtc":"0.01552",
+        //        "change":"0.02594"
+        //    }
+        // swap tickers
+        //    {
+        //        "symbol":"BTCUSDT_UMCBL",
+        //        "last":"26139",
+        //        "bestAsk":"26139",
+        //        "bestBid":"26138.5",
+        //        "bidSz":"4.62",
+        //        "askSz":"11.142",
+        //        "high24h":"26260",
+        //        "low24h":"25637",
+        //        "timestamp":"1686653988192",
+        //        "priceChangePercent":"0.01283",
+        //        "baseVolume":"130207.098",
+        //        "quoteVolume":"3378775678.441",
+        //        "usdtVolume":"3378775678.441",
+        //        "openUtc":"25889",
+        //        "chgUtc":"0.00966",
+        //        "indexPrice":"26159.375846",
+        //        "fundingRate":"0.000062",
+        //        "holdingAmount":"74551.735"
+        //    }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         if (($market === null) && ($marketId !== null) && (mb_strpos($marketId, '_') === -1)) {
@@ -1817,10 +1872,13 @@ class bitget extends Exchange {
         $quoteVolume = $this->safe_string_2($ticker, 'quoteVol', 'quoteVolume');
         $baseVolume = $this->safe_string_2($ticker, 'baseVol', 'baseVolume');
         $timestamp = $this->safe_integer_2($ticker, 'ts', 'timestamp');
+        $bidVolume = $this->safe_string($ticker, 'bidSz');
+        $askVolume = $this->safe_string($ticker, 'askSz');
         $datetime = $this->iso8601($timestamp);
         $bid = $this->safe_string_2($ticker, 'buyOne', 'bestBid');
         $ask = $this->safe_string_2($ticker, 'sellOne', 'bestAsk');
-        $percentage = Precise::string_mul($this->safe_string($ticker, 'priceChangePercent'), '100');
+        $percentage = Precise::string_mul($this->safe_string_n($ticker, array( 'priceChangePercent', 'changeUtc', 'change', 'chgUtc' )), '100');
+        $open = $this->safe_string_2($ticker, 'openUtc0', 'openUtc');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1828,11 +1886,11 @@ class bitget extends Exchange {
             'high' => $high,
             'low' => $low,
             'bid' => $bid,
-            'bidVolume' => null,
+            'bidVolume' => $bidVolume,
             'ask' => $ask,
-            'askVolume' => null,
+            'askVolume' => $askVolume,
             'vwap' => null,
-            'open' => null,
+            'open' => $open,
             'close' => $close,
             'last' => null,
             'previousClose' => null,
@@ -2484,6 +2542,7 @@ class bitget extends Exchange {
         $average = $this->safe_string_2($order, 'fillPrice', 'priceAvg');
         $type = $this->safe_string($order, 'orderType');
         $timestamp = $this->safe_integer($order, 'cTime');
+        $lastUpdatetimestamp = $this->safe_integer($order, 'uTime');
         $side = $this->safe_string_2($order, 'side', 'posSide');
         if (($side === 'open_long') || ($side === 'close_short')) {
             $side = 'buy';
@@ -2520,6 +2579,7 @@ class bitget extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastUpdateTimestamp' => $lastUpdatetimestamp,
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => null,
@@ -2539,7 +2599,7 @@ class bitget extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#place-order
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#place-plan-order
@@ -2631,7 +2691,9 @@ class bitget extends Exchange {
                 $triggerType = $this->safe_string($params, 'triggerType', 'market_price');
                 $request['triggerType'] = $triggerType;
                 $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                if ($price !== null) {
+                    $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                }
                 $method = 'privateSpotPostPlanPlacePlan';
             }
             if ($quantity !== null) {
@@ -2730,7 +2792,7 @@ class bitget extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @param {string} $id cancel order $id
@@ -4466,6 +4528,87 @@ class bitget extends Exchange {
             'toAccount' => $toAccount,
             'status' => $this->parse_transfer_status($msg),
         );
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        // {
+        //     "chains" => array(
+        //       array(
+        //         "browserUrl" => "https://bscscan.com/tx/",
+        //         "chain" => "BEP20",
+        //         "depositConfirm" => "15",
+        //         "extraWithDrawFee" => "0",
+        //         "minDepositAmount" => "0.000001",
+        //         "minWithdrawAmount" => "0.0000078",
+        //         "needTag" => "false",
+        //         "rechargeable" => "true",
+        //         "withdrawConfirm" => "15",
+        //         "withdrawFee" => "0.0000051",
+        //         "withdrawable" => "true"
+        //       ),
+        //       {
+        //         "browserUrl" => "https://blockchair.com/bitcoin/transaction/",
+        //         "chain" => "BTC",
+        //         "depositConfirm" => "1",
+        //         "extraWithDrawFee" => "0",
+        //         "minDepositAmount" => "0.0001",
+        //         "minWithdrawAmount" => "0.002",
+        //         "needTag" => "false",
+        //         "rechargeable" => "true",
+        //         "withdrawConfirm" => "1",
+        //         "withdrawFee" => "0.0005",
+        //         "withdrawable" => "true"
+        //       }
+        //     ),
+        //     "coinId" => "1",
+        //     "coinName" => "BTC",
+        //     "transfer" => "true"
+        // }
+        //
+        $chains = $this->safe_value($fee, 'chains', array());
+        $chainsLength = count($chains);
+        $result = array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+        for ($i = 0; $i < $chainsLength; $i++) {
+            $chain = $chains[$i];
+            $networkId = $this->safe_string($chain, 'chain');
+            $currencyCode = $this->safe_string($currency, 'code');
+            $networkCode = $this->network_id_to_code($networkId, $currencyCode);
+            $result['networks'][$networkCode] = array(
+                'deposit' => array( 'fee' => null, 'percentage' => null ),
+                'withdraw' => array( 'fee' => $this->safe_number($chain, 'withdrawFee'), 'percentage' => false ),
+            );
+            if ($chainsLength === 1) {
+                $result['withdraw']['fee'] = $this->safe_number($chain, 'withdrawFee');
+                $result['withdraw']['percentage'] = false;
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+        /**
+         * fetch deposit and withdraw fees
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-list
+         * @param {[string]|null} $codes list of unified currency $codes
+         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         */
+        $this->load_markets();
+        $response = $this->publicSpotGetPublicCurrencies ($params);
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_deposit_withdraw_fees($data, $codes, 'coinName');
     }
 
     public function parse_transfer_status($status) {

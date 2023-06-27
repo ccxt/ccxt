@@ -6,6 +6,7 @@
 from ccxt.async_support.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import PermissionDenied
@@ -1052,7 +1053,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'percentage': None,
         })
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
         see https://docs.kucoin.com/futures/#place-an-order
@@ -1614,6 +1615,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_number(order, 'stopPrice')
         postOnly = self.safe_value(order, 'postOnly')
+        lastUpdateTimestamp = self.safe_integer(order, 'updatedAt')
         return self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1635,6 +1637,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'status': status,
             'info': order,
             'lastTradeTimestamp': None,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'average': average,
             'trades': None,
         }, market)

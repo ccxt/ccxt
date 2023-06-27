@@ -41,8 +41,10 @@ class gemini extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => false,
-                'fetchDepositAddress' => null, // TODO
+                'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => true,
+                'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -84,6 +86,7 @@ class gemini extends Exchange {
                     'public' => 'https://api.gemini.com',
                     'private' => 'https://api.gemini.com',
                     'web' => 'https://docs.gemini.com',
+                    'webExchange' => 'https://exchange.gemini.com',
                 ),
                 'www' => 'https://gemini.com/',
                 'doc' => array(
@@ -106,6 +109,11 @@ class gemini extends Exchange {
                 ),
             ),
             'api' => array(
+                'webExchange' => array(
+                    'get' => array(
+                        '',
+                    ),
+                ),
                 'web' => array(
                     'get' => array(
                         'rest-api',
@@ -243,6 +251,14 @@ class gemini extends Exchange {
                     'fetchDetailsForAllSymbols' => false,
                     'fetchDetailsForMarketIds' => array(),
                 ),
+                'fetchMarkets' => array(
+                    'webApiEnable' => true, // fetches from WEB
+                    'webApiRetries' => 10,
+                ),
+                'fetchCurrencies' => array(
+                    'webApiEnable' => true, // fetches from WEB
+                    'webApiRetries' => 10,
+                ),
                 'fetchUsdtMarkets' => array( 'btcusdt', 'ethusdt' ), // keep this list updated (not available trough web api)
                 'fetchTickerMethod' => 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
                 'networkIds' => array(
@@ -254,20 +270,133 @@ class gemini extends Exchange {
                     'filecoin' => 'FIL',
                     'dogecoin' => 'DOGE',
                     'tezos' => 'XTZ',
+                    'avalanche' => 'AVALANCHE_X',
+                    'solana' => 'SOLANA',
+                    'cosmos' => 'COSMOS',
+                    'polkadot' => 'POLKADOT',
                 ),
                 'networks' => array(
                     'BTC' => 'bitcoin',
+                    'ETH' => 'ethereum',
                     'ERC20' => 'ethereum',
                     'BCH' => 'bitcoincash',
                     'LTC' => 'litecoin',
+                    'ZCASH' => 'zcash',
                     'ZEC' => 'zcash',
+                    'FILECOIN' => 'filecoin',
                     'FIL' => 'filecoin',
+                    'DOGECOIN' => 'dogecoin',
                     'DOGE' => 'dogecoin',
+                    'TEZOS' => 'tezos',
                     'XTZ' => 'tezos',
+                    'AVALANCHE_X' => 'avalanche',
+                    'SOLANA' => 'solana',
+                    'COSMOS' => 'cosmos',
+                    'POLKADOT' => 'polkadot',
                 ),
                 'nonce' => 'milliseconds', // if getting a Network 400 error change to seconds
             ),
         ));
+    }
+
+    public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {array} $params extra parameters specific to the endpoint
+         * @return {array} an associative dictionary of currencies
+         */
+        return $this->fetch_currencies_from_web($params);
+    }
+
+    public function fetch_currencies_from_web($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {array} $params extra parameters specific to the endpoint
+         * @return {array} an associative dictionary of currencies
+         */
+        $data = $this->fetch_web_endpoint('fetchCurrencies', 'webExchangeGet', true, '="currencyData">', '</script>');
+        if ($data === null) {
+            return null;
+        }
+        //
+        //    {
+        //        "tradingPairs" => array(
+        //            array( "BTCAUD", 2, 8, "0.00001", 10, true ),
+        //            ...
+        //        ),
+        //        "currencies" => array(
+        //            array( "ORCA", "Orca", 204, 6, 0, 6, 8, false, null, "solana" ), //, precisions seem to be the 5th index
+        //            array( "ATOM", "Cosmos", 44, 6, 0, 6, 8, false, null, "cosmos" ),
+        //            array( "ETH", "Ether", 2, 6, 0, 18, 8, false, null, "ethereum" ),
+        //            array( "GBP", "Pound Sterling", 22, 2, 2, 2, 2, true, '£', null ),
+        //            ...
+        //        ),
+        //        "networks" => array(
+        //            array( "solana", "SOL", "Solana" ),
+        //            array( "zcash", "ZEC", "Zcash" ),
+        //            array( "tezos", "XTZ", "Tezos" ),
+        //            array( "cosmos", "ATOM", "Cosmos" ),
+        //            array( "ethereum", "ETH", "Ethereum" ),
+        //            ...
+        //        )
+        //    }
+        //
+        $result = array();
+        $currenciesArray = $this->safe_value($data, 'currencies', array());
+        for ($i = 0; $i < count($currenciesArray); $i++) {
+            $currency = $currenciesArray[$i];
+            $id = $this->safe_string($currency, 0);
+            $code = $this->safe_currency_code($id);
+            $type = $this->safe_string($currency, 7) ? 'fiat' : 'crypto';
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 5)));
+            $networks = array();
+            $networkId = $this->safe_string($currency, 9);
+            $networkCode = $this->network_id_to_code($networkId);
+            $networks[$networkCode] = array(
+                'info' => $currency,
+                'id' => $networkId,
+                'network' => $networkCode,
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
+                'fee' => null,
+                'precision' => $precision,
+                'limits' => array(
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
+            $result[$code] = array(
+                'info' => $currency,
+                'id' => $id,
+                'code' => $code,
+                'name' => $this->safe_string($currency, 1),
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
+                'fee' => null,
+                'type' => $type,
+                'precision' => $precision,
+                'limits' => array(
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'networks' => $networks,
+            );
+        }
+        return $result;
     }
 
     public function fetch_markets($params = array ()) {
@@ -286,28 +415,9 @@ class gemini extends Exchange {
     }
 
     public function fetch_markets_from_web($params = array ()) {
-        // This endpoint so we $retry
-        $maxRetries = $this->safe_integer($this->options, 'fetchMarketFromWebRetries', 10);
-        $response = null;
-        $retry = 0;
-        while ($retry < $maxRetries) {
-            try {
-                $response = $this->webGetRestApi ($params);
-                break;
-            } catch (Exception $e) {
-                $retry = $retry + 1;
-                if ($retry === $maxRetries) {
-                    throw $e;
-                }
-            }
-        }
-        $sections = explode('<h1 id="symbols-and-minimums">Symbols and minimums</h1>', $response);
-        $numSections = count($sections);
-        $error = $this->id . ' fetchMarketsFromWeb() the ' . $this->name . ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' . $this->name . ' markets.';
-        if ($numSections !== 2) {
-            throw new NotSupported($error);
-        }
-        $tables = explode('tbody>', $sections[1]);
+        $data = $this->fetch_web_endpoint('fetchMarkets', 'webGetRestApi', false, '<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
+        $error = $this->id . ' fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.';
+        $tables = explode('tbody>', $data);
         $numTables = count($tables);
         if ($numTables < 2) {
             throw new NotSupported($error);
@@ -1194,7 +1304,7 @@ class gemini extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://docs.gemini.com/rest-api/#new-order
@@ -1415,7 +1525,7 @@ class gemini extends Exchange {
 
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * fetch history of deposits and withdrawals
+         * *DEPRECATED* use fetchDepositsWithdrawals instead
          * @param {string|null} $code not used by gemini.fetchTransactions
          * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
          * @param {int|null} $limit max number of transactions to return, default is null
@@ -1517,23 +1627,46 @@ class gemini extends Exchange {
         );
     }
 
+    public function fetch_deposit_address(string $code, $params = array ()) {
+        /**
+         * @see https://docs.gemini.com/rest-api/#get-deposit-addresses
+         * fetch the deposit address for a currency associated with this account
+         * @param {string} $code unified currency $code
+         * @param {array} $params extra parameters specific to the endpoint
+         * @param {string} $params->network  *required* The chain of currency
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         */
+        $this->load_markets();
+        $groupedByNetwork = $this->fetch_deposit_addresses_by_network($code, $params);
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        $networkGroup = $this->index_by($this->safe_value($groupedByNetwork, $networkCode), 'currency');
+        return $this->safe_value($networkGroup, $code);
+    }
+
     public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+        /**
+         * fetch a dictionary of addresses for a $currency, indexed by network
+         * @see https://docs.gemini.com/rest-api/#get-deposit-addresses
+         * @param {string} $code unified $currency $code of the $currency for the deposit address
+         * @param {array} $params extra parameters specific to the gemini api endpoint
+         * @param {string} $params->network  *required* The chain of $currency
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~ indexed by the network
+         */
         $this->load_markets();
         $currency = $this->currency($code);
-        $network = $this->safe_string($params, 'network');
-        if ($network === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDepositAddressesByNetwork() requires a $network parameter');
+        $code = $currency['code'];
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        if ($networkCode === null) {
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddresses() requires a network parameter');
         }
-        $params = $this->omit($params, 'network');
-        $networks = $this->safe_value($this->options, 'networks', array());
-        $networkId = $this->safe_string($networks, $network, $network);
-        $networkIds = $this->safe_value($this->options, 'networkIds', array());
-        $networkCode = $this->safe_string($networkIds, $networkId, $network);
+        $networkId = $this->network_code_to_id($networkCode);
         $request = array(
             'network' => $networkId,
         );
         $response = $this->privatePostV1AddressesNetwork (array_merge($request, $params));
-        $results = $this->parse_deposit_addresses($response, [ $currency['code'] ], false, array( 'network' => $networkCode, 'currency' => $code ));
+        $results = $this->parse_deposit_addresses($response, array( $code ), false, array( 'network' => $networkCode, 'currency' => $code ));
         return $this->group_by($results, 'network');
     }
 

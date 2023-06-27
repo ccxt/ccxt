@@ -43,6 +43,7 @@ class bitmex extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
+                'fetchDepositsWithdrawals' => 'emulated',
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
@@ -107,6 +108,10 @@ class bitmex extends Exchange {
                     'get' => array(
                         'announcement' => 5,
                         'announcement/urgent' => 5,
+                        'chat' => 5,
+                        'chat/channels' => 5,
+                        'chat/connected' => 5,
+                        'chat/pinned' => 5,
                         'funding' => 5,
                         'instrument' => 5,
                         'instrument/active' => 5,
@@ -114,11 +119,12 @@ class bitmex extends Exchange {
                         'instrument/activeIntervals' => 5,
                         'instrument/compositeIndex' => 5,
                         'instrument/indices' => 5,
+                        'instrument/usdVolume' => 5,
                         'insurance' => 5,
                         'leaderboard' => 5,
                         'liquidation' => 5,
-                        'orderBook' => 5,
                         'orderBook/L2' => 5,
+                        'porl/nonce' => 5,
                         'quote' => 5,
                         'quote/bucketed' => 5,
                         'schema' => 5,
@@ -126,6 +132,7 @@ class bitmex extends Exchange {
                         'settlement' => 5,
                         'stats' => 5,
                         'stats/history' => 5,
+                        'stats/historyUSD' => 5,
                         'trade' => 5,
                         'trade/bucketed' => 5,
                         'wallet/assets' => 5,
@@ -135,13 +142,12 @@ class bitmex extends Exchange {
                 'private' => array(
                     'get' => array(
                         'apiKey' => 5,
-                        'chat' => 5,
-                        'chat/channels' => 5,
-                        'chat/connected' => 5,
                         'execution' => 5,
                         'execution/tradeHistory' => 5,
-                        'notification' => 5,
+                        'globalNotification' => 5,
+                        'leaderboard/name' => 5,
                         'order' => 5,
+                        'porl/snapshots' => 5,
                         'position' => 5,
                         'user' => 5,
                         'user/affiliateStatus' => 5,
@@ -150,21 +156,19 @@ class bitmex extends Exchange {
                         'user/depositAddress' => 5,
                         'user/executionHistory' => 5,
                         'user/margin' => 5,
-                        'user/minWithdrawalFee' => 5,
+                        'user/quoteFillRatio' => 5,
+                        'user/quoteValueRatio' => 5,
+                        'user/tradingVolume' => 5,
                         'user/wallet' => 5,
                         'user/walletHistory' => 5,
                         'user/walletSummary' => 5,
-                        'wallet/assets' => 5,
-                        'wallet/networks' => 5,
                         'userEvent' => 5,
                     ),
                     'post' => array(
-                        'apiKey' => 5,
-                        'apiKey/disable' => 5,
-                        'apiKey/enable' => 5,
                         'chat' => 5,
+                        'guild/join' => 5,
+                        'guild/leave' => 5,
                         'order' => 1,
-                        'order/bulk' => 5,
                         'order/cancelAllAfter' => 5,
                         'order/closePosition' => 5,
                         'position/isolate' => 1,
@@ -172,23 +176,17 @@ class bitmex extends Exchange {
                         'position/riskLimit' => 5,
                         'position/transferMargin' => 1,
                         'user/cancelWithdrawal' => 5,
+                        'user/communicationToken' => 5,
                         'user/confirmEmail' => 5,
-                        'user/confirmEnableTFA' => 5,
                         'user/confirmWithdrawal' => 5,
-                        'user/disableTFA' => 5,
                         'user/logout' => 5,
-                        'user/logoutAll' => 5,
                         'user/preferences' => 5,
-                        'user/requestEnableTFA' => 5,
                         'user/requestWithdrawal' => 5,
                     ),
                     'put' => array(
                         'order' => 1,
-                        'order/bulk' => 5,
-                        'user' => 5,
                     ),
                     'delete' => array(
-                        'apiKey' => 5,
                         'order' => 1,
                         'order/all' => 1,
                     ),
@@ -1010,7 +1008,7 @@ class bitmex extends Exchange {
 
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * fetch history of deposits and withdrawals
+         * *DEPRECATED* use fetchDepositsWithdrawals instead
          * @param {string|null} $code unified $currency $code for the $currency of the $transactions, default is null
          * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
          * @param {int|null} $limit max number of $transactions to return, default is null
@@ -1132,12 +1130,15 @@ class bitmex extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $tickers = $this->fetch_tickers([ $market['symbol'] ], $params);
-        $ticker = $this->safe_value($tickers, $market['symbol']);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetInstrument (array_merge($request, $params));
+        $ticker = $this->safe_value($response, 0);
         if ($ticker === null) {
             throw new BadSymbol($this->id . ' fetchTicker() $symbol ' . $symbol . ' not found');
         }
-        return $ticker;
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
@@ -1673,7 +1674,7 @@ class bitmex extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in

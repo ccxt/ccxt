@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, R
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -37,6 +37,7 @@ export default class poloniex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchMarginMode': false,
@@ -292,6 +293,7 @@ export default class poloniex extends Exchange {
                     '21352': BadSymbol, // Trading for this currency is frozen
                     '21353': PermissionDenied, // Trading for US customers is not supported
                     '21354': PermissionDenied, // Account needs to be verified via email before trading is enabled. Contact support
+                    '21360': InvalidOrder, // { "code" : 21360, "message" : "Order size exceeds the limit.Please enter a smaller amount and try again." }
                     '24106': BadRequest, // Invalid market depth
                     '24201': ExchangeNotAvailable, // Service busy. Try again later
                     // Orders
@@ -1195,7 +1197,7 @@ export default class poloniex extends Exchange {
         return this.parseOrders (response, market, since, limit, extension);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#createOrder
@@ -1267,7 +1269,7 @@ export default class poloniex extends Exchange {
         return [ request, params ];
     }
 
-    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#editOrder
@@ -1893,7 +1895,7 @@ export default class poloniex extends Exchange {
         /**
          * @method
          * @name poloniex#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
          * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
@@ -1937,7 +1939,7 @@ export default class poloniex extends Exchange {
         return this.filterByCurrencySinceLimit (transactions, code, since, limit);
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchDepositWithdrawFees

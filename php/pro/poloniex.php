@@ -146,20 +146,11 @@ class poloniex extends \ccxt\async\poloniex {
                 ),
             );
             $marketIds = [ ];
-            if ($symbols !== null) {
-                if (strlen($symbols) === 1) {
-                    $symbol = $symbols[0];
-                    $marketId = $this->market_id($symbol);
-                    $marketIds[] = $marketId;
-                    $messageHash = $messageHash . ':' . $symbol;
-                } else {
-                    for ($i = 0; $i < count($symbols); $i++) {
-                        $symbol = $symbols[$i];
-                        $marketIds[] = $this->market_id($symbol);
-                    }
-                }
-            } else {
+            if ($this->is_empty($symbols)) {
                 $marketIds[] = 'all';
+            } else {
+                $messageHash = $messageHash . '::' . implode(',', $symbols);
+                $marketIds = $this->market_ids($symbols);
             }
             if ($name !== 'balances') {
                 $subscribe['symbols'] = $marketIds;
@@ -205,8 +196,9 @@ class poloniex extends \ccxt\async\poloniex {
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
-            $name = 'ticker';
-            return Async\await($this->subscribe($name, $name, false, array( $symbol ), $params));
+            $symbol = $this->symbol($symbol);
+            $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
+            return $this->safe_value($tickers, $symbol);
         }) ();
     }
 
@@ -221,7 +213,12 @@ class poloniex extends \ccxt\async\poloniex {
              */
             Async\await($this->load_markets());
             $name = 'ticker';
-            return Async\await($this->subscribe($name, $name, false, $symbols, $params));
+            $symbols = $this->market_symbols($symbols);
+            $newTickers = Async\await($this->subscribe($name, $name, false, $symbols, $params));
+            if ($this->newUpdates) {
+                return $newTickers;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
     }
 
@@ -391,7 +388,7 @@ class poloniex extends \ccxt\async\poloniex {
         $symbol = $this->safe_symbol($marketId);
         $market = $this->safe_market($symbol);
         $timeframe = $this->find_timeframe($channel);
-        $messageHash = $channel . ':' . $symbol;
+        $messageHash = $channel . '::' . $symbol;
         $parsed = $this->parse_ws_ohlcv($data, $market);
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
@@ -433,7 +430,7 @@ class poloniex extends \ccxt\async\poloniex {
                 $trade = $this->parse_ws_trade($item);
                 $symbol = $trade['symbol'];
                 $type = 'trades';
-                $messageHash = $type . ':' . $symbol;
+                $messageHash = $type . '::' . $symbol;
                 $tradesArray = $this->safe_value($this->trades, $symbol);
                 if ($tradesArray === null) {
                     $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -694,7 +691,7 @@ class poloniex extends \ccxt\async\poloniex {
             $marketId = $marketIds[$i];
             $market = $this->market($marketId);
             $symbol = $market['symbol'];
-            $messageHash = 'orders:' . $symbol;
+            $messageHash = 'orders::' . $symbol;
             $client->resolve ($orders[$symbol], $messageHash);
         }
         $client->resolve ($orders, 'orders');
@@ -796,6 +793,7 @@ class poloniex extends \ccxt\async\poloniex {
         //    }
         //
         $data = $this->safe_value($message, 'data', array());
+        $newTickers = array();
         for ($i = 0; $i < count($data); $i++) {
             $item = $data[$i];
             $marketId = $this->safe_string($item, 'symbol');
@@ -803,11 +801,21 @@ class poloniex extends \ccxt\async\poloniex {
                 $ticker = $this->parse_ticker($item);
                 $symbol = $ticker['symbol'];
                 $this->tickers[$symbol] = $ticker;
-                $messageHash = 'ticker:' . $symbol;
-                $client->resolve ($ticker, $messageHash);
+                $newTickers[] = $ticker;
             }
         }
-        $client->resolve ($this->tickers, 'ticker');
+        $messageHashes = $this->find_message_hashes($client, 'ticker::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            $tickers = $this->filter_by_array($newTickers, 'symbol', $symbols);
+            if (!$this->is_empty($tickers)) {
+                $client->resolve ($tickers, $messageHash);
+            }
+        }
+        $client->resolve ($newTickers, 'ticker');
         return $message;
     }
 
@@ -869,7 +877,7 @@ class poloniex extends \ccxt\async\poloniex {
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
             $name = 'book_lv2';
-            $messageHash = $name . ':' . $symbol;
+            $messageHash = $name . '::' . $symbol;
             $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
             $limit = $this->safe_integer($subscription, 'limit');
             $timestamp = $this->safe_integer($item, 'ts');

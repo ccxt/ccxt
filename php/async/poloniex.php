@@ -41,6 +41,7 @@ class poloniex extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchMarginMode' => false,
@@ -296,6 +297,7 @@ class poloniex extends Exchange {
                     '21352' => '\\ccxt\\BadSymbol', // Trading for this currency is frozen
                     '21353' => '\\ccxt\\PermissionDenied', // Trading for US customers is not supported
                     '21354' => '\\ccxt\\PermissionDenied', // Account needs to be verified via email before trading is enabled. Contact support
+                    '21360' => '\\ccxt\\InvalidOrder', // array( "code" : 21360, "message" : "Order size exceeds the limit.Please enter a smaller amount and try again." )
                     '24106' => '\\ccxt\\BadRequest', // Invalid market depth
                     '24201' => '\\ccxt\\ExchangeNotAvailable', // Service busy. Try again later
                     // Orders
@@ -1201,7 +1203,7 @@ class poloniex extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1273,7 +1275,7 @@ class poloniex extends Exchange {
         return array( $request, $params );
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -1902,7 +1904,7 @@ class poloniex extends Exchange {
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch history of $deposits and $withdrawals
+             * *DEPRECATED* use fetchDepositsWithdrawals instead
              * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
              * @param {string|null} $code unified $currency $code for the $currency of the $transactions, default is null
              * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
@@ -1947,7 +1949,7 @@ class poloniex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees

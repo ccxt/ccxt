@@ -39,6 +39,9 @@ class bitopro extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => false,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => false,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -959,7 +962,7 @@ class bitopro extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1559,6 +1562,61 @@ class bitopro extends Exchange {
         //     }
         //
         return $this->parse_transaction($result, $currency);
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //    {
+        //        "currency":"eth",
+        //        "withdrawFee":"0.007",
+        //        "minWithdraw":"0.001",
+        //        "maxWithdraw":"1000",
+        //        "maxDailyWithdraw":"2000",
+        //        "withdraw":true,
+        //        "deposit":true,
+        //        "depositConfirmation":"12"
+        //    }
+        return array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => $this->safe_number($fee, 'withdrawFee'),
+                'percentage' => false,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+    }
+
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+        /**
+         * fetch deposit and withdraw fees
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/open/currencies.md
+         * @param {[string]|null} $codes list of unified currency $codes
+         * @param {array} $params extra parameters specific to the bitopro api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         */
+        $this->load_markets();
+        $response = $this->publicGetProvisioningCurrencies ($params);
+        //
+        //     {
+        //         "data":array(
+        //             {
+        //                 "currency":"eth",
+        //                 "withdrawFee":"0.007",
+        //                 "minWithdraw":"0.001",
+        //                 "maxWithdraw":"1000",
+        //                 "maxDailyWithdraw":"2000",
+        //                 "withdraw":true,
+        //                 "deposit":true,
+        //                 "depositConfirmation":"12"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

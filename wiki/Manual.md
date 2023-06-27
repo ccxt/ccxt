@@ -61,7 +61,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
 
-The CCXT library currently supports the following 100 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 98 cryptocurrency exchange markets and trading APIs:
 
 | logo                                                                                                                                                                                                            | id                 | name                                                                                                    | ver                                                                                                                                                | certified                                                                                                                   | pro                                                                          |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|---------------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -98,7 +98,6 @@ The CCXT library currently supports the following 100 cryptocurrency exchange ma
 | [![blockchaincom](https://user-images.githubusercontent.com/1294454/147515585-1296e91b-7398-45e5-9d32-f6121538533f.jpeg)](https://blockchain.com)                                                               | blockchaincom      | [Blockchain.com](https://blockchain.com)                                                                | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.blockchain.com/v3)                                                        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![btcalpha](https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg)](https://btc-alpha.com/?r=123788)                                                             | btcalpha           | [BTC-Alpha](https://btc-alpha.com/?r=123788)                                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://btc-alpha.github.io/api-docs)                                                 |                                                                                                                             |                                                                              |
 | [![btcbox](https://user-images.githubusercontent.com/51840849/87327317-98c55400-c53c-11ea-9a11-81f7d951cc74.jpg)](https://www.btcbox.co.jp/)                                                                    | btcbox             | [BtcBox](https://www.btcbox.co.jp/)                                                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://blog.btcbox.jp/en/archives/8762)                                              |                                                                                                                             |                                                                              |
-| [![btcex](https://user-images.githubusercontent.com/1294454/173489620-d49807a4-55cd-4f4e-aca9-534921298bbf.jpg)](https://www.btcex.com/en-us/register?i=48biatg1)                                               | btcex              | [BTCEX](https://www.btcex.com/en-us/register?i=48biatg1)                                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.btcex.com/)                                                              |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![btcmarkets](https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg)](https://btcmarkets.net)                                                                   | btcmarkets         | [BTC Markets](https://btcmarkets.net)                                                                   | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.btcmarkets.net/doc/v3)                                                    |                                                                                                                             |                                                                              |
 | [![btctradeua](https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg)](https://btc-trade.com.ua/registration/22689)                                               | btctradeua         | [BTC Trade UA](https://btc-trade.com.ua/registration/22689)                                             | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit) |                                                                                                                             |                                                                              |
 | [![btcturk](https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg)](https://www.btcturk.com)                                                                     | btcturk            | [BTCTurk](https://www.btcturk.com)                                                                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://github.com/BTCTrader/broker-api-docs)                                         |                                                                                                                             |                                                                              |
@@ -161,7 +160,6 @@ The CCXT library currently supports the following 100 cryptocurrency exchange ma
 | [![wazirx](https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg)](https://wazirx.com/invite/k7rrnks5)                                                          | wazirx             | [WazirX](https://wazirx.com/invite/k7rrnks5)                                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.wazirx.com/#public-rest-api-for-wazirx)                                  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![whitebit](https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg)](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                          | whitebit           | [WhiteBit](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                          | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://github.com/whitebit-exchange/api-docs)                                        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![woo](https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg)](https://referral.woo.org/BAJS6oNmZb3vi3RGA)                                                      | woo                | [WOO X](https://referral.woo.org/BAJS6oNmZb3vi3RGA)                                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.woo.org/)                                                                |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![xt](https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg)](https://www.xt.com/en/accounts/register?ref=9PTM9VW)                                             | xt                 | [XT](https://www.xt.com/en/accounts/register?ref=9PTM9VW)                                               | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://doc.xt.com/)                                                                  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) |                                                                              |
 | [![yobit](https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg)](https://www.yobit.net)                                                                          | yobit              | [YoBit](https://www.yobit.net)                                                                          | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.yobit.net/en/api/)                                                        |                                                                                                                             |                                                                              |
 | [![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)](https://zaif.jp)                                                                                 | zaif               | [Zaif](https://zaif.jp)                                                                                 | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://techbureau-api-document.readthedocs.io/ja/latest/index.html)                  |                                                                                                                             |                                                                              |
 | [![zonda](https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg)](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                                 | zonda              | [Zonda](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                                  | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.zonda.exchange/)                                                         |                                                                                                                             |                                                                              |
@@ -946,9 +944,10 @@ function decimalToPrecision ($x, $roundingMode = ROUND, $numPrecisionDigits = nu
 
 For examples of how to use the `decimalToPrecision` to format strings and floats, please, see the following files:
 
-- JavaScript: https://github.com/ccxt/ccxt/blob/master/js/test/base/functions/test.number.js
-- Python: https://github.com/ccxt/ccxt/blob/master/python/ccxt/test/test_decimal_to_precision.py
-- PHP: https://github.com/ccxt/ccxt/blob/master/php/test/decimal_to_precision.php
+- Typescript: https://github.com/ccxt/ccxt/blob/master/ts/src/test/base/functions/test.number.ts
+- JavaScript: https://github.com/ccxt/ccxt/blob/master/js/src/test/base/functions/test.number.js
+- Python: https://github.com/ccxt/ccxt/blob/master/python/ccxt/test/base/test_number.py
+- PHP: https://github.com/ccxt/ccxt/blob/master/php/test/base/test_number.php
 
 **Python WARNING! The `decimal_to_precision` method is susceptible to `getcontext().prec!`**
 
@@ -3382,6 +3381,8 @@ The exchanges' order management APIs differ by design. The user has to understan
 - `fetchOpenOrders()` – fetches a list of open orders.
 - `fetchOrder()` – fetches a single order (open or closed) by order `id`.
 - `fetchOrders()` – fetches a list of all orders (either open or closed/canceled).
+- `createOrder()` – used for placing orders
+- `cancelOrder()` – used for canceling orders
 
 The majority of the exchanges will have a way of fetching currently-open orders. Thus, the `exchange.has['fetchOpenOrders']`. If that method is not available, then most likely the `exchange.has['fetchOrders']` that will provide a list of all orders. The exchange will return a list of open orders either from `fetchOpenOrders()` or from `fetchOrders()`. One of the two methods is usually available from any exchange.
 
@@ -3395,7 +3396,7 @@ In general, the underlying exchanges will usually provide one or more of the fol
 - `fetchOrders()`
 - `fetchMyTrades()`
 
-Any of the above three methods may be missing, if any other of the three methods is present.
+Any of the above three methods may be missing, but the exchanges APIs will usually provide at least one of the three methods.
 
 If the underlying exchange does not provide historical orders, the CCXT library will not emulate the missing functionality – it has to be added on the user side where necessary.
 
@@ -3552,6 +3553,18 @@ Possible values for the`timeInForce` field:
 - `'PO'` = _Post Only_, the order is either placed as a maker order, or it is canceled. This means the order must be placed on orderbook for at at least time in an unfilled state. The unification of `PO` as a `timeInForce` option is a work in progress with unified exchanges having `exchange.has['postOnly'] == True`.
 
 ### Placing Orders
+
+There are different types of orders that a user can send to the exchange, regular orders eventually land in the orderbook of a corresponding symbol, others orders may be more advanced. Here is a list outlining various types of orders:
+
+- [Limit Orders](#limit-orders) – regular orders having an `amount` in base currency (how much you want to buy or sell) and a `price` in quote currency (for which price you want to buy or sell).
+- [Market Orders](#market-orders) – regular orders having an `amount` in base currency (how much you want to buy or sell)
+  - [Market Buys](#market-buys) – some exchanges require market buy orders with an `amount` in quote currency (how much you want to spend for buying)
+- [Trigger Orders](#trigger-orders) – an advanced type of order used to wait for a certain condition on a market and then react automatically: when a `triggerPrice` is reached, the trigger order gets triggered and then a regular limit `price` or market price order is placed, that eventually results in entering a position or exiting a position
+- [Stop Loss Orders](#stop-loss-orders) – almost the same as trigger orders, but used to close a position to stop further losses on that position: when the price eaches `triggerPrice` then the stop loss order is triggered that results in placing another regular limit or market order to close a position at a specific limit `price` or at market price (a position with a stop loss order attached to it).
+- [Take Profit Orders](#take-profit-orders) – a counterpart to stop loss orders, this type of order is used to close a position to take existing profits on that position: when the price reaches `triggerPrice` then the take profit order is triggered that results in placing another regular limit or market order to close a position at a specific limit `price` or at market price (a position with a take profit order attached to it).
+- [StopLoss And TakeProfit Orders Attached To A Position](#stoploss-and-takeprofit-orders-attached-to-a-position) – advanced orders, consisting of three orders of types listed above: a regular limit or market order placed to enter a position with stop loss and/or take profit orders that will be placed upon opening that position and will be used to close that position later (when a stop loss is reached, it will close the position and will cancel its take profit counterpart, and vice versa, when a take profit is reached, it will close the position and will cancel its stop loss counterpart, these two counterparts are also known as "OCO orders – one cancels the other), apart from the `amount` (and `price` for the limit order) to open a position it will also require a `triggerPrice` for a stop loss order (with a limit `price` if it's a stop loss limit order) and/or a `triggerPrice` for a take profit order (with a limit `price` if it's a take profit limit order).
+
+Placing an order always requires a `symbol` that the user has to specify (which market you want to trade).
 
 To place an order use the `createOrder` method. You can use the `id` from the returned unified [order structure](#order-structure) to query the status and the state of the order later.
 
@@ -3787,15 +3800,17 @@ exchange.create_limit_sell_order (symbol, amount, price[, params])
 #### Stop Orders
 
 Stop orders, are placed onto the order book when the price of the underlying asset reaches the trigger price.
+
 * They can be used to close positions when a certain profit level is reached, or to mitigate a large loss.
 * They can be stand-alone orders ([Trigger](#trigger-order), [Stop Loss](#stop-loss-orders), [Take Profit](#take-profit-orders)).
 * Or they can be attached to a primary order ([Conditional Stop Orders](#stopLoss-and-takeProfit-orders-attached-to-a-position)).
 * Stop Orders can be limit or market orders
 
 
-##### Trigger Order
+##### Trigger Orders
 
 Traditional "stop" order (which you might see across exchanges' websites) is now called "trigger" order across CCXT library. Implemented by adding a `triggerPrice` parameter. They are independent basic trigger orders that can open and close a position.
+
 * Activated when price of the underlying asset/contract crosses the `triggerPrice` from **any direction**
 
 ```javascript
@@ -3838,17 +3853,57 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 ```
 
 ##### Stop Loss Orders
-The same as Trigger Orders, but the direction matters. Implemented by specifying a `stopLossPrice` parameter.
+
+The same as Trigger Orders, but the direction matters. Implemented by specifying a `stopLossPrice` parameter (for the spot loss triggerPrice).
+
+Suppose you entered a long position (you bought) at 1000 and want to protect yourself from losses from a possible price drop below 700. You would place a stop loss order with triggerPrice at 700. For that stop loss order either you would specify a limit price or it will be executed at market price.
+
+```
+    | price  | amount
+----|----------------
+    |  1500 | 200
+    |  1400 | 300
+  a |  1300 | 100
+  s |  1200 | 200
+  k |  1100 | 300
+    |  1000 | 100 <--- you bought to enter a long position here at 1000
+    |   900 | 100
+----|---------------- last price is 900
+    |   800 | 100
+    |   700 | 200 <------- you place a stop loss order here at 700 <----------------------+
+  b |   600 | 100       when your stopLossPrice is reached from above                     |
+  i |   500 | 300   it will close your position at market price below 700 ----------------+
+  d |   400 | 200 <- or it will be executed at your limit price lower that stopLossPrice -+
+    |   300 | 100
+    |   200 | 100
+```
+
+Suppose you entered a short position (you sold) at 700 and want to protect yourself from losses from a possible price pump above 1300. You would place a stop loss order with triggerPrice at 1300. For that stop loss order either you would specify a limit price or it will be executed at market price.
+
+```
+    | price  | amount
+----|----------------
+    |  1500 | 200
+    |  1400 | 300 <------------------------------------------------------------------------+
+  a |  1300 | 100 <------ you place a stop loss order here at 1300 <---------------------+ |
+  s |  1200 | 200      when your stopLossPrice is reached from below                     | |
+  k |  1100 | 300   it will close your position at market price above 1300 --------------+ |
+    |  1000 | 100    or it will be executed at your limit price higher than stopLossPrice -+
+    |   900 | 100
+----|---------------- last price is 900 (you sold at 700)
+    |   800 | 100
+    |   700 | 200 <--- you sold to enter a short position here at 700
+  b |   600 | 100
+  i |   500 | 300
+  d |   400 | 200
+    |   300 | 100
+    |   200 | 100
+```
 
 Stop Loss orders are activated when the price of the underlying asset/contract:
+
 * drops below the `stopLossPrice` from above, for sell orders. (eg: to close a long position, and avoid further losses)
 * rises above the `stopLossPrice` from below, for buy orders (eg: to close a short position, and avoid further losses)
-
-##### Take Profit Orders
-The same as Trigger Orders, but the direction matters. Implemented by specifying a `takeProfitPrice` parameter.
-Take Profit orders are activated when the price of the underlying:
-* rises above the `takeProfitPrice` from below, for sell orders (eg: to close a long position, at a profit)
-* drops below the `takeProfitPrice` from above, for buy orders (eg: to close a short position, at a profit)
 
 ```javascript
 // JavaScript
@@ -3856,11 +3911,6 @@ Take Profit orders are activated when the price of the underlying:
 // for a stop loss order
 const params = {
     'stopLossPrice': 55.45, // your stop loss price
-}
-
-// for a take profit order
-const params = {
-    'takeProfitPrice': 120.45, // your take profit price
 }
 
 const order = await exchange.createOrder (symbol, type, side, amount, price, params)
@@ -3874,11 +3924,6 @@ params = {
     'stopLossPrice': 55.45,  # your stop loss price
 }
 
-# for a take profit order
-params = {
-    'takeProfitPrice': 120.45,  # your take profit price
-}
-
 order = exchange.create_order (symbol, type, side, amount, price, params)
 ```
 
@@ -3890,6 +3935,88 @@ $params = {
     'stopLossPrice': 55.45, // your stop loss price
 }
 
+$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+```
+
+##### Take Profit Orders
+
+The same as Stop Loss Orders, but the direction matters. Implemented by specifying a `takeProfitPrice` parameter (for the take profit triggerPrice).
+
+
+Suppose you entered a long position (you bought) at 1000 and want to get your profits from a possible price pump above 1300. You would place a take profit order with triggerPrice at 1300. For that take profit order either you would specify a limit price or it will be executed at market price.
+
+```
+    | price  | amount
+----|----------------
+    |  1500 | 200
+    |  1400 | 300 <------------------------------------------------------------------------------+
+  a |  1300 | 100 <--- it will close your position at market price above 1300                    |
+  s |  1200 | 200        when your takeProfitPrice is reached from below                         |
+  k |  1100 | 300   or it will be executed at your limit price higher than your takeProfitPrice -+
+    |  1000 | 100 <-  you bought to enter a long position here at 1000
+    |   900 | 100
+----|---------------- last price is 900
+    |   800 | 100
+    |   700 | 200
+  b |   600 | 100
+  i |   500 | 300
+  d |   400 | 200
+    |   300 | 100
+    |   200 | 100
+```
+
+Suppose you entered a short position (you sold) at 700 and want to get your profits from a possible price drom below 600. You would place a take profit order with triggerPrice at 600. For that take profit order either you would specify a limit price or it will be executed at market price.
+
+```
+    | price  | amount
+----|----------------
+    |  1500 | 200
+    |  1400 | 300
+  a |  1300 | 100
+  s |  1200 | 200
+  k |  1100 | 300
+    |  1000 | 100
+    |   900 | 100
+----|---------------- last price is 900 (you sold at 700)
+    |   800 | 100
+    |   700 | 200 <--- you sold to enter a short position here at 700
+  b |   600 | 100 <------ you place a take profit order here at 600
+  i |   500 | 300     when your takeProfitPrice is reached from above
+  d |   400 | 200     it will be close your position at market price below 600
+    |   300 | 100 <- or it will be executed at your limit price lower than your takeProfitPrice
+    |   200 | 100
+```
+
+Take Profit orders are activated when the price of the underlying:
+
+* rises above the `takeProfitPrice` from below, for sell orders (eg: to close a long position, at a profit)
+* drops below the `takeProfitPrice` from above, for buy orders (eg: to close a short position, at a profit)
+
+```javascript
+// JavaScript
+
+// for a take profit order
+const params = {
+    'takeProfitPrice': 120.45, // your take profit price
+}
+
+const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+```
+
+```python
+# Python
+
+# for a take profit order
+params = {
+    'takeProfitPrice': 120.45,  # your take profit price
+}
+
+order = exchange.create_order (symbol, type, side, amount, price, params)
+```
+
+```php
+// PHP
+
 // for a take profit order
 $params = {
     'takeProfitPrice': 120.45, // your take profit price
@@ -3898,10 +4025,12 @@ $params = {
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
 
-#### StopLoss and TakeProfit orders attached to a position
+#### StopLoss And TakeProfit Orders Attached To A Position
+
 **Take Profit** / **Stop Loss** Orders which are tied to a position-opening primary order. Implemented by supplying a dictionary parameters for `stopLoss` and `takeProfit` describing each respectively.
-* By default StopLoss and TakeProfit Orders will be the same magnitude as primary order but in the opposite direction.
-* Attached stop orders are conditional on the primary order being executed.§
+
+* By default stopLoss and takeProfit orders will be the same magnitude as primary order but in the opposite direction.
+* Attached stop orders are conditional on the primary order being executed.
 * Not supported by all exchanges.
 * Both `stopLoss` and `takeProfit` or either can be supplied, this depends on exchange.
 
@@ -3912,12 +4041,14 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 
 const params = {
     'stopLoss': {
-        'type': 'limit', // or 'market'
-        'price': 100.33,
+        'type': 'limit', // or 'market', this field is not necessary if limit price is specified
+        'price': 100.33, // limit price for a limit stop loss order
         'triggerPrice': 101.25,
     },
     'takeProfit': {
-        'type': 'market',
+        'type': 'market', // or 'limit', this field is not necessary if limit price is specified
+        // no limit price for a market take profit order
+        // 'price': 160.33, // this field is not necessary for a market take profit order
         'triggerPrice': 150.75,
     }
 }
@@ -3933,13 +4064,15 @@ amount = 123.45  # your amount
 price = 115.321  # your price
 params = {
     'stopLoss': {
-        'type': 'limit', # or 'market'
-        'price': 100.33,
-        'stopLossPrice': 101.25,
+        'type': 'limit',  # or 'market', this field is not necessary if limit price is specified
+        'price': 100.33,  # limit price for a limit stop loss order
+        'triggerPrice': 101.25,
     },
     'takeProfit': {
-        'type': 'market',
-        'takeProfitPrice': 150.75,
+        'type': 'market',  # or 'limit', this field is not necessary if limit price is specified
+        # no limit price for a market take profit order
+        # 'price': 160.33,  # this field is not necessary for a market take profit order
+        'triggerPrice': 150.75,
     }
 }
 order = exchange.create_order (symbol, type, side, amount, price, params)
@@ -3954,19 +4087,19 @@ $amount = 123.45; // your amount
 $price = 115.321; // your price
 $params = {
     'stopLoss': {
-        'type': 'limit', // or 'market'
-        'price': 100.33,
-        'stopLossPrice': 101.25,
+        'type': 'limit', // or 'market', this field is not necessary if limit price is specified
+        'price': 100.33, // limit price for a limit stop loss order
+        'triggerPrice': 101.25,
     },
     'takeProfit': {
-        'type': 'market',
-        'takeProfitPrice': 150.75,
+        'type': 'market', // or 'limit', this field is not necessary if limit price is specified
+        // no limit price for a market take profit order
+        // 'price': 160.33, // this field is not necessary for a market take profit order
+        'triggerPrice': 150.75,
     }
 }
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
-
-
 
 #### Custom Order Params
 

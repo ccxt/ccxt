@@ -460,7 +460,7 @@ export default class deribit extends deribitRest {
         const channel = this.safeString(params, 'channel');
         const marketId = this.safeString(data, 'instrument_name');
         const symbol = this.safeSymbol(marketId);
-        const timestamp = this.safeNumber(data, 'timestamp');
+        const timestamp = this.safeInteger(data, 'timestamp');
         let storedOrderBook = this.safeValue(this.orderbooks, symbol);
         if (storedOrderBook === undefined) {
             storedOrderBook = this.countedOrderBook();

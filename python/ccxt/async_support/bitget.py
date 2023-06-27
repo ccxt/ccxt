@@ -9,6 +9,7 @@ import asyncio
 import hashlib
 import json
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -72,6 +73,8 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -209,6 +212,7 @@ class bitget(Exchange, ImplicitAPI):
                             'wallet/deposit-list': 1,
                             'account/getInfo': 20,
                             'account/assets': 2,
+                            'account/assets-lite': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'account/transferRecords': 1,  # 20 times/1s(UID) => 20/20 = 1
                         },
                         'post': {
@@ -300,10 +304,10 @@ class bitget(Exchange, ImplicitAPI):
                             'account/setMarginMode': 4,  # 5 times/1s(UID) => 20/5 = 4
                             'account/setPositionMode': 4,  # 5 times/1s(UID) => 20/5 = 4
                             'order/placeOrder': 2,
-                            'order/modifyOrder': 2,
                             'order/batch-orders': 2,
                             'order/cancel-order': 2,
                             'order/cancel-batch-orders': 2,
+                            'order/modifyOrder': 2,  # 10 times/1s(UID) => 20/10 = 2
                             'order/cancel-symbol-orders': 2,
                             'order/cancel-all-orders': 2,
                             'order/close-all-positions': 20,
@@ -325,6 +329,15 @@ class bitget(Exchange, ImplicitAPI):
                             'trace/followerCloseByAll': 2,
                             'trace/followerSetTpsl': 2,
                             'trace/cancelCopyTrader': 4,  # 5 times/1s(UID) => 20/5 = 4
+                            'trace/traderUpdateConfig': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/myTraderList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/myFollowerList': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/removeFollower': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/public/getFollowerConfig': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/report/order/historyList': 2,  # 10 times/1s(IP) => 20/10 = 2
+                            'trace/report/order/currentList': 2,  # 10 times/1s(IP) => 20/10 = 2
+                            'trace/queryTraderTpslRatioConfig': 2,  # 10 times/1s(UID) => 20/10 = 2
+                            'trace/traderUpdateTpslRatioConfig': 2,  # 10 times/1s(UID) => 20/10 = 2
                         },
                     },
                     'user': {
@@ -332,6 +345,10 @@ class bitget(Exchange, ImplicitAPI):
                             'fee/query': 2,
                             'sub/virtual-list': 2,
                             'sub/virtual-api-list': 2,
+                            'tax/spot-record': 1,
+                            'tax/future-record': 1,
+                            'tax/margin-record': 1,
+                            'tax/p2p-record': 1,
                         },
                         'post': {
                             'sub/virtual-create': 4,
@@ -477,7 +494,7 @@ class bitget(Exchange, ImplicitAPI):
                     '30032': BadSymbol,  # {"code": 30032, "message": "pair does not exist"}
                     '30033': BadRequest,  # {"code": 30033, "message": "exchange domain does not exist"}
                     '30034': ExchangeError,  # {"code": 30034, "message": "exchange ID does not exist"}
-                    '30035': ExchangeError,  # {"code": 30035, "message": "trading is not supported in self website"}
+                    '30035': ExchangeError,  # {"code": 30035, "message": "trading is not hasattr(self, supported) website"}
                     '30036': ExchangeError,  # {"code": 30036, "message": "no relevant data"}
                     '30037': ExchangeNotAvailable,  # {"code": 30037, "message": "endpoint is offline or unavailable"}
                     # '30038': AuthenticationError,  # {"code": 30038, "message": "user does not exist"}
@@ -539,8 +556,8 @@ class bitget(Exchange, ImplicitAPI):
                     '32064': ExchangeError,  # Time Stringerval of orders should set between 5-120s
                     '32065': ExchangeError,  # Close amount exceeds the limit of Market-close-all(999 for BTC, and 9999 for the rest tokens)
                     '32066': ExchangeError,  # You have open orders. Please cancel all open orders before changing your leverage level.
-                    '32067': ExchangeError,  # Account equity < required margin in self setting. Please adjust your leverage level again.
-                    '32068': ExchangeError,  # The margin for self position will fall short of the required margin in self setting. Please adjust your leverage level or increase your margin to proceed.
+                    '32067': ExchangeError,  # Account equity < required hasattr(self, margin) setting. Please adjust your leverage level again.
+                    '32068': ExchangeError,  # The margin for self position will fall short of the required hasattr(self, margin) setting. Please adjust your leverage level or increase your margin to proceed.
                     '32069': ExchangeError,  # Target leverage level too low. Your account balance is insufficient to cover the margin required. Please adjust the leverage level again.
                     '32070': ExchangeError,  # Please check open position or unfilled order
                     '32071': ExchangeError,  # Your current liquidation mode does not support self action.
@@ -856,7 +873,7 @@ class bitget(Exchange, ImplicitAPI):
                     '40706': InvalidOrder,  # Wrong order price
                     '40707': BadRequest,  # Start time is greater than end time
                     '40708': BadRequest,  # Parameter verification is abnormal
-                    '40709': ExchangeError,  # There is no position in self position, and no automatic margin call can be set
+                    '40709': ExchangeError,  # There is no hasattr(self, position) position, and no automatic margin call can be set
                     '40710': ExchangeError,  # Abnormal account status
                     '40711': InsufficientFunds,  # Insufficient contract account balance
                     '40712': InsufficientFunds,  # Insufficient margin
@@ -1782,6 +1799,45 @@ class bitget(Exchange, ImplicitAPI):
         #         quoteVolume: '5552388715.9215',
         #         usdtVolume: '5552388715.9215'
         #     }
+        # spot tickers
+        #    {
+        #        "symbol":"LINKUSDT",
+        #        "high24h":"5.2816",
+        #        "low24h":"5.0828",
+        #        "close":"5.24",
+        #        "quoteVol":"1427864.6815",
+        #        "baseVol":"276089.9017",
+        #        "usdtVol":"1427864.68148328",
+        #        "ts":"1686653354407",
+        #        "buyOne":"5.239",
+        #        "sellOne":"5.2404",
+        #        "+":"95.187",
+        #        "askSz":"947.6127",
+        #        "openUtc0":"5.1599",
+        #        "changeUtc":"0.01552",
+        #        "change":"0.02594"
+        #    }
+        # swap tickers
+        #    {
+        #        "symbol":"BTCUSDT_UMCBL",
+        #        "last":"26139",
+        #        "bestAsk":"26139",
+        #        "bestBid":"26138.5",
+        #        "bidSz":"4.62",
+        #        "askSz":"11.142",
+        #        "high24h":"26260",
+        #        "low24h":"25637",
+        #        "timestamp":"1686653988192",
+        #        "priceChangePercent":"0.01283",
+        #        "baseVolume":"130207.098",
+        #        "quoteVolume":"3378775678.441",
+        #        "usdtVolume":"3378775678.441",
+        #        "openUtc":"25889",
+        #        "chgUtc":"0.00966",
+        #        "indexPrice":"26159.375846",
+        #        "fundingRate":"0.000062",
+        #        "holdingAmount":"74551.735"
+        #    }
         #
         marketId = self.safe_string(ticker, 'symbol')
         if (market is None) and (marketId is not None) and (marketId.find('_') == -1):
@@ -1797,10 +1853,13 @@ class bitget(Exchange, ImplicitAPI):
         quoteVolume = self.safe_string_2(ticker, 'quoteVol', 'quoteVolume')
         baseVolume = self.safe_string_2(ticker, 'baseVol', 'baseVolume')
         timestamp = self.safe_integer_2(ticker, 'ts', 'timestamp')
+        bidVolume = self.safe_string(ticker, 'bidSz')
+        askVolume = self.safe_string(ticker, 'askSz')
         datetime = self.iso8601(timestamp)
         bid = self.safe_string_2(ticker, 'buyOne', 'bestBid')
         ask = self.safe_string_2(ticker, 'sellOne', 'bestAsk')
-        percentage = Precise.string_mul(self.safe_string(ticker, 'priceChangePercent'), '100')
+        percentage = Precise.string_mul(self.safe_string_n(ticker, ['priceChangePercent', 'changeUtc', 'change', 'chgUtc']), '100')
+        open = self.safe_string_2(ticker, 'openUtc0', 'openUtc')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1808,11 +1867,11 @@ class bitget(Exchange, ImplicitAPI):
             'high': high,
             'low': low,
             'bid': bid,
-            'bidVolume': None,
+            'bidVolume': bidVolume,
             'ask': ask,
-            'askVolume': None,
+            'askVolume': askVolume,
             'vwap': None,
-            'open': None,
+            'open': open,
             'close': close,
             'last': None,
             'previousClose': None,
@@ -2431,6 +2490,7 @@ class bitget(Exchange, ImplicitAPI):
         average = self.safe_string_2(order, 'fillPrice', 'priceAvg')
         type = self.safe_string(order, 'orderType')
         timestamp = self.safe_integer(order, 'cTime')
+        lastUpdatetimestamp = self.safe_integer(order, 'uTime')
         side = self.safe_string_2(order, 'side', 'posSide')
         if (side == 'open_long') or (side == 'close_short'):
             side = 'buy'
@@ -2464,6 +2524,7 @@ class bitget(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdatetimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
@@ -2482,7 +2543,7 @@ class bitget(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         see https://bitgetlimited.github.io/apidoc/en/spot/#place-order
         see https://bitgetlimited.github.io/apidoc/en/spot/#place-plan-order
@@ -2568,7 +2629,8 @@ class bitget(Exchange, ImplicitAPI):
                 triggerType = self.safe_string(params, 'triggerType', 'market_price')
                 request['triggerType'] = triggerType
                 request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-                request['executePrice'] = self.price_to_precision(symbol, price)
+                if price is not None:
+                    request['executePrice'] = self.price_to_precision(symbol, price)
                 method = 'privateSpotPostPlanPlacePlan'
             if quantity is not None:
                 request[quantityKey] = quantity
@@ -2649,7 +2711,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         edit a trade order
         :param str id: cancel order id
@@ -4277,6 +4339,83 @@ class bitget(Exchange, ImplicitAPI):
             'toAccount': toAccount,
             'status': self.parse_transfer_status(msg),
         }
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        # {
+        #     "chains": [
+        #       {
+        #         "browserUrl": "https://bscscan.com/tx/",
+        #         "chain": "BEP20",
+        #         "depositConfirm": "15",
+        #         "extraWithDrawFee": "0",
+        #         "minDepositAmount": "0.000001",
+        #         "minWithdrawAmount": "0.0000078",
+        #         "needTag": "false",
+        #         "rechargeable": "true",
+        #         "withdrawConfirm": "15",
+        #         "withdrawFee": "0.0000051",
+        #         "withdrawable": "true"
+        #       },
+        #       {
+        #         "browserUrl": "https://blockchair.com/bitcoin/transaction/",
+        #         "chain": "BTC",
+        #         "depositConfirm": "1",
+        #         "extraWithDrawFee": "0",
+        #         "minDepositAmount": "0.0001",
+        #         "minWithdrawAmount": "0.002",
+        #         "needTag": "false",
+        #         "rechargeable": "true",
+        #         "withdrawConfirm": "1",
+        #         "withdrawFee": "0.0005",
+        #         "withdrawable": "true"
+        #       }
+        #     ],
+        #     "coinId": "1",
+        #     "coinName": "BTC",
+        #     "transfer": "true"
+        # }
+        #
+        chains = self.safe_value(fee, 'chains', [])
+        chainsLength = len(chains)
+        result = {
+            'info': fee,
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+        for i in range(0, chainsLength):
+            chain = chains[i]
+            networkId = self.safe_string(chain, 'chain')
+            currencyCode = self.safe_string(currency, 'code')
+            networkCode = self.network_id_to_code(networkId, currencyCode)
+            result['networks'][networkCode] = {
+                'deposit': {'fee': None, 'percentage': None},
+                'withdraw': {'fee': self.safe_number(chain, 'withdrawFee'), 'percentage': False},
+            }
+            if chainsLength == 1:
+                result['withdraw']['fee'] = self.safe_number(chain, 'withdrawFee')
+                result['withdraw']['percentage'] = False
+        return result
+
+    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-list
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.publicSpotGetPublicCurrencies(params)
+        data = self.safe_value(response, 'data')
+        return self.parse_deposit_withdraw_fees(data, codes, 'coinName')
 
     def parse_transfer_status(self, status):
         statuses = {

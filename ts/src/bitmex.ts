@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -45,6 +45,9 @@ export default class bitmex extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
+                'fetchDepositsWithdrawals': 'emulated',
+                'fetchDepositWithdrawalFee': 'emulated',
+                'fetchDepositWithdrawalFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
@@ -109,6 +112,10 @@ export default class bitmex extends Exchange {
                     'get': {
                         'announcement': 5,
                         'announcement/urgent': 5,
+                        'chat': 5,
+                        'chat/channels': 5,
+                        'chat/connected': 5,
+                        'chat/pinned': 5,
                         'funding': 5,
                         'instrument': 5,
                         'instrument/active': 5,
@@ -116,11 +123,12 @@ export default class bitmex extends Exchange {
                         'instrument/activeIntervals': 5,
                         'instrument/compositeIndex': 5,
                         'instrument/indices': 5,
+                        'instrument/usdVolume': 5,
                         'insurance': 5,
                         'leaderboard': 5,
                         'liquidation': 5,
-                        'orderBook': 5,
                         'orderBook/L2': 5,
+                        'porl/nonce': 5,
                         'quote': 5,
                         'quote/bucketed': 5,
                         'schema': 5,
@@ -128,6 +136,7 @@ export default class bitmex extends Exchange {
                         'settlement': 5,
                         'stats': 5,
                         'stats/history': 5,
+                        'stats/historyUSD': 5,
                         'trade': 5,
                         'trade/bucketed': 5,
                         'wallet/assets': 5,
@@ -137,13 +146,12 @@ export default class bitmex extends Exchange {
                 'private': {
                     'get': {
                         'apiKey': 5,
-                        'chat': 5,
-                        'chat/channels': 5,
-                        'chat/connected': 5,
                         'execution': 5,
                         'execution/tradeHistory': 5,
-                        'notification': 5,
+                        'globalNotification': 5,
+                        'leaderboard/name': 5,
                         'order': 5,
+                        'porl/snapshots': 5,
                         'position': 5,
                         'user': 5,
                         'user/affiliateStatus': 5,
@@ -152,21 +160,19 @@ export default class bitmex extends Exchange {
                         'user/depositAddress': 5,
                         'user/executionHistory': 5,
                         'user/margin': 5,
-                        'user/minWithdrawalFee': 5,
+                        'user/quoteFillRatio': 5,
+                        'user/quoteValueRatio': 5,
+                        'user/tradingVolume': 5,
                         'user/wallet': 5,
                         'user/walletHistory': 5,
                         'user/walletSummary': 5,
-                        'wallet/assets': 5,
-                        'wallet/networks': 5,
                         'userEvent': 5,
                     },
                     'post': {
-                        'apiKey': 5,
-                        'apiKey/disable': 5,
-                        'apiKey/enable': 5,
                         'chat': 5,
+                        'guild/join': 5,
+                        'guild/leave': 5,
                         'order': 1,
-                        'order/bulk': 5,
                         'order/cancelAllAfter': 5,
                         'order/closePosition': 5,
                         'position/isolate': 1,
@@ -174,23 +180,17 @@ export default class bitmex extends Exchange {
                         'position/riskLimit': 5,
                         'position/transferMargin': 1,
                         'user/cancelWithdrawal': 5,
+                        'user/communicationToken': 5,
                         'user/confirmEmail': 5,
-                        'user/confirmEnableTFA': 5,
                         'user/confirmWithdrawal': 5,
-                        'user/disableTFA': 5,
                         'user/logout': 5,
-                        'user/logoutAll': 5,
                         'user/preferences': 5,
-                        'user/requestEnableTFA': 5,
                         'user/requestWithdrawal': 5,
                     },
                     'put': {
                         'order': 1,
-                        'order/bulk': 5,
-                        'user': 5,
                     },
                     'delete': {
-                        'apiKey': 5,
                         'order': 1,
                         'order/all': 1,
                     },
@@ -1201,7 +1201,7 @@ export default class bitmex extends Exchange {
         /**
          * @method
          * @name bitmex#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined
@@ -1325,12 +1325,15 @@ export default class bitmex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const tickers = await this.fetchTickers ([ market['symbol'] ], params);
-        const ticker = this.safeValue (tickers, market['symbol']);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetInstrument (this.extend (request, params));
+        const ticker = this.safeValue (response, 0);
         if (ticker === undefined) {
             throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' not found');
         }
-        return ticker;
+        return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols: string[] = undefined, params = {}) {
@@ -1789,7 +1792,7 @@ export default class bitmex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#createOrder
@@ -2515,6 +2518,114 @@ export default class bitmex extends Exchange {
             'network': networkCode,
             'info': response,
         };
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    {
+        //        asset: 'XBT',
+        //        currency: 'XBt',
+        //        majorCurrency: 'XBT',
+        //        name: 'Bitcoin',
+        //        currencyType: 'Crypto',
+        //        scale: '8',
+        //        enabled: true,
+        //        isMarginCurrency: true,
+        //        minDepositAmount: '10000',
+        //        minWithdrawalAmount: '1000',
+        //        maxWithdrawalAmount: '100000000000000',
+        //        networks: [
+        //            {
+        //                asset: 'btc',
+        //                tokenAddress: '',
+        //                depositEnabled: true,
+        //                withdrawalEnabled: true,
+        //                withdrawalFee: '20000',
+        //                minFee: '20000',
+        //                maxFee: '10000000'
+        //            }
+        //        ]
+        //    }
+        //
+        const networks = this.safeValue (fee, 'networks', []);
+        const networksLength = networks.length;
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+        if (networksLength !== 0) {
+            const scale = this.safeString (fee, 'scale');
+            const precision = this.parsePrecision (scale);
+            for (let i = 0; i < networksLength; i++) {
+                const network = networks[i];
+                const networkId = this.safeString (network, 'asset');
+                const currencyCode = this.safeString (currency, 'code');
+                const networkCode = this.networkIdToCode (networkId, currencyCode);
+                const withdrawalFeeId = this.safeString (network, 'withdrawalFee');
+                const withdrawalFee = this.parseNumber (Precise.stringMul (withdrawalFeeId, precision));
+                result['networks'][networkCode] = {
+                    'deposit': { 'fee': undefined, 'percentage': undefined },
+                    'withdraw': { 'fee': withdrawalFee, 'percentage': false },
+                };
+                if (networksLength === 1) {
+                    result['withdraw']['fee'] = withdrawalFee;
+                    result['withdraw']['percentage'] = false;
+                }
+            }
+        }
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bitmex api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const assets = await this.publicGetWalletAssets (params);
+        //
+        //    [
+        //        {
+        //            asset: 'XBT',
+        //            currency: 'XBt',
+        //            majorCurrency: 'XBT',
+        //            name: 'Bitcoin',
+        //            currencyType: 'Crypto',
+        //            scale: '8',
+        //            enabled: true,
+        //            isMarginCurrency: true,
+        //            minDepositAmount: '10000',
+        //            minWithdrawalAmount: '1000',
+        //            maxWithdrawalAmount: '100000000000000',
+        //            networks: [
+        //                {
+        //                    asset: 'btc',
+        //                    tokenAddress: '',
+        //                    depositEnabled: true,
+        //                    withdrawalEnabled: true,
+        //                    withdrawalFee: '20000',
+        //                    minFee: '20000',
+        //                    maxFee: '10000000'
+        //                }
+        //            ]
+        //        },
+        //        ...
+        //    ]
+        //
+        return this.parseDepositWithdrawFees (assets, codes, 'asset');
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}) {

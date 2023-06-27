@@ -48,7 +48,6 @@ define ('is_synchronous', stripos(__FILE__, '_async') === false);
 define('rootDirForSkips', __DIR__ . '/../../');
 define('envVars', $_ENV);
 define('ext', 'php');
-define('httpsAgent', null);
 
 function dump(...$s) {
     $args = array_map(function ($arg) {
@@ -87,11 +86,6 @@ function call_method($testFiles, $methodName, $exchange, $skippedProperties, $ar
 function exception_message ($exc) {
     $inner_message = $exc->getMessage();
     return '[' . get_class($exc) . '] ' . substr($inner_message, 0, 500);
-}
-
-function add_proxy ($exchange, $http_proxy) {
-    // just add a simple redirect through proxy
-    $exchange->proxy = $http_proxy;
 }
 
 function exit_script() {
@@ -167,7 +161,6 @@ class testMainClass extends baseMainTestClass {
             $exchangeArgs = array(
                 'verbose' => $this->verbose,
                 'debug' => $this->debug,
-                'httpsAgent' => httpsAgent,
                 'enableRateLimit' => true,
                 'timeout' => 30000,
             );
@@ -248,10 +241,7 @@ class testMainClass extends baseMainTestClass {
             dump ('[SKIPPED] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
             exit_script ();
         }
-        $proxy = $exchange->safe_string($skippedSettingsForExchange, 'httpProxy');
-        if ($proxy !== null) {
-            add_proxy ($exchange, $proxy);
-        }
+        $exchange->httpsProxy = $exchange->safe_string($skippedSettingsForExchange, 'httpsProxy');
         $this->skippedMethods = $exchange->safe_value($skippedSettingsForExchange, 'skipMethods', array());
         $this->checkedPublicTests = array();
     }
@@ -634,65 +624,65 @@ class testMainClass extends baseMainTestClass {
             //     Async\await(test ('InsufficientFunds', $exchange, $symbol, balance)); // danger zone - won't execute with non-empty balance
             // }
             $tests = array(
-                'signIn' => array( $exchange ),
-                'fetchBalance' => array( $exchange ),
-                'fetchAccounts' => array( $exchange ),
-                'fetchTransactionFees' => array( $exchange ),
-                'fetchTradingFees' => array( $exchange ),
-                'fetchStatus' => array( $exchange ),
-                'fetchOrders' => array( $exchange, $symbol ),
-                'fetchOpenOrders' => array( $exchange, $symbol ),
-                'fetchClosedOrders' => array( $exchange, $symbol ),
-                'fetchMyTrades' => array( $exchange, $symbol ),
-                'fetchLeverageTiers' => array( $exchange, $symbol ),
-                'fetchLedger' => array( $exchange, $code ),
-                'fetchTransactions' => array( $exchange, $code ),
-                'fetchDeposits' => array( $exchange, $code ),
-                'fetchWithdrawals' => array( $exchange, $code ),
-                'fetchBorrowRates' => array( $exchange, $code ),
-                'fetchBorrowRate' => array( $exchange, $code ),
-                'fetchBorrowInterest' => array( $exchange, $code, $symbol ),
-                'addMargin' => array( $exchange, $symbol ),
-                'reduceMargin' => array( $exchange, $symbol ),
-                'setMargin' => array( $exchange, $symbol ),
-                'setMarginMode' => array( $exchange, $symbol ),
-                'setLeverage' => array( $exchange, $symbol ),
-                'cancelAllOrders' => array( $exchange, $symbol ),
-                'cancelOrder' => array( $exchange, $symbol ),
-                'cancelOrders' => array( $exchange, $symbol ),
-                'fetchCanceledOrders' => array( $exchange, $symbol ),
-                'fetchClosedOrder' => array( $exchange, $symbol ),
-                'fetchOpenOrder' => array( $exchange, $symbol ),
-                'fetchOrder' => array( $exchange, $symbol ),
-                'fetchOrderTrades' => array( $exchange, $symbol ),
-                'fetchPosition' => array( $exchange, $symbol ),
-                'fetchDeposit' => array( $exchange, $code ),
-                'createDepositAddress' => array( $exchange, $code ),
-                'fetchDepositAddress' => array( $exchange, $code ),
-                'fetchDepositAddresses' => array( $exchange, $code ),
-                'fetchDepositAddressesByNetwork' => array( $exchange, $code ),
-                'editOrder' => array( $exchange, $symbol ),
-                'fetchBorrowRateHistory' => array( $exchange, $symbol ),
-                'fetchBorrowRatesPerSymbol' => array( $exchange, $symbol ),
-                'fetchLedgerEntry' => array( $exchange, $code ),
-                'fetchWithdrawal' => array( $exchange, $code ),
-                'transfer' => array( $exchange, $code ),
-                'withdraw' => array( $exchange, $code ),
+                'signIn' => [ ],
+                'fetchBalance' => [ ],
+                'fetchAccounts' => [ ],
+                'fetchTransactionFees' => [ ],
+                'fetchTradingFees' => [ ],
+                'fetchStatus' => [ ],
+                'fetchOrders' => array( $symbol ),
+                'fetchOpenOrders' => array( $symbol ),
+                'fetchClosedOrders' => array( $symbol ),
+                'fetchMyTrades' => array( $symbol ),
+                'fetchLeverageTiers' => array( $symbol ),
+                'fetchLedger' => array( $code ),
+                'fetchTransactions' => array( $code ),
+                'fetchDeposits' => array( $code ),
+                'fetchWithdrawals' => array( $code ),
+                'fetchBorrowRates' => array( $code ),
+                'fetchBorrowRate' => array( $code ),
+                'fetchBorrowInterest' => array( $code, $symbol ),
+                'addMargin' => array( $symbol ),
+                'reduceMargin' => array( $symbol ),
+                'setMargin' => array( $symbol ),
+                'setMarginMode' => array( $symbol ),
+                'setLeverage' => array( $symbol ),
+                'cancelAllOrders' => array( $symbol ),
+                'cancelOrder' => array( $symbol ),
+                'cancelOrders' => array( $symbol ),
+                'fetchCanceledOrders' => array( $symbol ),
+                'fetchClosedOrder' => array( $symbol ),
+                'fetchOpenOrder' => array( $symbol ),
+                'fetchOrder' => array( $symbol ),
+                'fetchOrderTrades' => array( $symbol ),
+                'fetchPosition' => array( $symbol ),
+                'fetchDeposit' => array( $code ),
+                'createDepositAddress' => array( $code ),
+                'fetchDepositAddress' => array( $code ),
+                'fetchDepositAddresses' => array( $code ),
+                'fetchDepositAddressesByNetwork' => array( $code ),
+                'editOrder' => array( $symbol ),
+                'fetchBorrowRateHistory' => array( $symbol ),
+                'fetchBorrowRatesPerSymbol' => array( $symbol ),
+                'fetchLedgerEntry' => array( $code ),
+                'fetchWithdrawal' => array( $code ),
+                'transfer' => array( $code ),
+                'withdraw' => array( $code ),
             );
             $market = $exchange->market ($symbol);
             $isSpot = $market['spot'];
             if ($isSpot) {
-                $tests['fetchCurrencies'] = array( $exchange, $symbol );
+                $tests['fetchCurrencies'] = array( $symbol );
             } else {
                 // derivatives only
-                $tests['fetchPositions'] = array( $exchange, array( $symbol ) );
-                $tests['fetchPosition'] = array( $exchange, $symbol );
-                $tests['fetchPositionRisk'] = array( $exchange, $symbol );
-                $tests['setPositionMode'] = array( $exchange, $symbol );
-                $tests['setMarginMode'] = array( $exchange, $symbol );
-                $tests['fetchOpenInterestHistory'] = array( $exchange, $symbol );
-                $tests['fetchFundingRateHistory'] = array( $exchange, $symbol );
-                $tests['fetchFundingHistory'] = array( $exchange, $symbol );
+                $tests['fetchPositions'] = array( $symbol ); // this test fetches all positions for 1 $symbol
+                $tests['fetchPosition'] = array( $symbol );
+                $tests['fetchPositionRisk'] = array( $symbol );
+                $tests['setPositionMode'] = array( $symbol );
+                $tests['setMarginMode'] = array( $symbol );
+                $tests['fetchOpenInterestHistory'] = array( $symbol );
+                $tests['fetchFundingRateHistory'] = array( $symbol );
+                $tests['fetchFundingHistory'] = array( $symbol );
             }
             $combinedPublicPrivateTests = $exchange->deep_extend($this->publicTests, $tests);
             $testNames = is_array($combinedPublicPrivateTests) ? array_keys($combinedPublicPrivateTests) : array();
@@ -711,7 +701,8 @@ class testMainClass extends baseMainTestClass {
                     $errors[] = $testName;
                 }
             }
-            if (strlen($errors) > 0) {
+            $errorsCnt = count($errors); // PHP transpile count($errors)
+            if ($errorsCnt > 0) {
                 throw new \Exception('Failed private $tests [' . $market['type'] . '] => ' . implode(', ', $errors));
             } else {
                 if ($this->info) {

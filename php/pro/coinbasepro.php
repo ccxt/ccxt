@@ -254,7 +254,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         return $message;
     }
 
-    public function parse_ws_trade($trade) {
+    public function parse_ws_trade($trade, $market = null) {
         //
         // private trades
         // {
@@ -503,7 +503,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         }
     }
 
-    public function parse_ws_order($order) {
+    public function parse_ws_order($order, $market = null) {
         $id = $this->safe_string($order, 'order_id');
         $clientOrderId = $this->safe_string($order, 'client_oid');
         $marketId = $this->safe_string($order, 'product_id');
