@@ -745,13 +745,8 @@ export default class woo extends Exchange {
          * @param {float|undefined} params.algoType 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase ();
-        if (reduceOnly !== undefined) {
-            if (orderType !== 'LIMIT') {
-                throw new InvalidOrder (this.id + ' createOrder() only support reduceOnly for limit orders');
-            }
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderSide = side.toUpperCase ();
