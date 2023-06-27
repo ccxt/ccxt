@@ -1830,7 +1830,7 @@ export default class coinbase extends Exchange {
         const amountInfo = this.safeValue (item, 'amount', {});
         let amount = this.safeString (amountInfo, 'amount');
         let direction = undefined;
-        if (Precise.stringLt (amount, '0')) {
+        if (amount[0] === '-') {
             direction = 'out';
             amount = Precise.stringNeg (amount);
         } else {
