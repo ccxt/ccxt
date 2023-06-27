@@ -1123,7 +1123,7 @@ export default class ndax extends Exchange {
         if (Precise.stringLt (credit, '0')) {
             amount = credit;
             direction = 'in';
-        } else if (Precise.stringLt (debit, '0')) {
+        } else if (debit[0] === '-') {
             amount = debit;
             direction = 'out';
         }
