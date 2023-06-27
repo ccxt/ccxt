@@ -1223,7 +1223,7 @@ export default class delta extends Exchange {
         if (sizeString !== undefined) {
             if (Precise.stringGt (sizeString, '0')) {
                 side = 'buy';
-            } else if (Precise.stringLt (sizeString, '0')) {
+            } else if (sizeString[0] === '-') {
                 side = 'sell';
             }
         }
