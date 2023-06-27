@@ -579,7 +579,7 @@ export default class bitfinex extends bitfinexRest {
         let amount = this.safeString (order, 2);
         let remaining = this.safeString (order, 3);
         let side = 'buy';
-        if (Precise.stringLt (amount, '0')) {
+        if (amount[0] === '-') {
             amount = Precise.stringAbs (amount);
             remaining = Precise.stringAbs (remaining);
             side = 'sell';

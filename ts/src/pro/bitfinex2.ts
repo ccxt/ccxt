@@ -419,7 +419,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const amount = this.parseNumber (Precise.stringAbs (amountString));
         let side = undefined;
         if (amount !== undefined) {
-            side = Precise.stringGt (amountString, '0') ? 'buy' : 'sell';
+            side = (amountString[0] === '-') ? 'sell' : 'buy';
         }
         const symbol = this.safeSymbol (marketId, market);
         const feeValue = this.safeString (trade, 9);
