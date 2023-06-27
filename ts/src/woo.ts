@@ -2348,10 +2348,10 @@ export default class woo extends Exchange {
         market = this.safeMarket (contract, market);
         let size = this.safeString (position, 'holding');
         let side = undefined;
-        if (Precise.stringGt (size, '0')) {
-            side = 'long';
-        } else {
+        if (size[0] === '-') {
             side = 'short';
+        } else {
+            side = 'long';
         }
         const contractSize = this.safeString (market, 'contractSize');
         const markPrice = this.safeString (position, 'markPrice');
