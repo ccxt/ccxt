@@ -428,6 +428,10 @@ export default class bitmex extends Exchange {
             return this.parseNumber (rawQuantity);
         }
         symbol = this.safeSymbol (symbol);
+        const marketExists = this.inArray (symbol, this.symbols);
+        if (!marketExists) {
+            return this.parseNumber (rawQuantity);
+        }
         const market = this.market (symbol);
         if (market['spot']) {
             return this.convertToRealAmount (market[currencySide], rawQuantity);
@@ -1671,7 +1675,14 @@ export default class bitmex extends Exchange {
         const qty = this.safeString (order, 'orderQty');
         let cost = undefined;
         let amount = undefined;
-        if (market['inverse']) {
+        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
+        let isInverse = false;
+        if (market === undefined) {
+            isInverse = (defaultSubType === 'inverse');
+        } else {
+            isInverse = this.safeValue (market, 'inverse', false);
+        }
+        if (isInverse) {
             cost = this.convertFromRawQuantity (symbol, qty);
         } else {
             amount = this.convertFromRawQuantity (symbol, qty);
@@ -1679,7 +1690,7 @@ export default class bitmex extends Exchange {
         const average = this.safeString (order, 'avgPx');
         let filled = undefined;
         const cumQty = this.numberToString (this.convertFromRawQuantity (symbol, this.safeString (order, 'cumQty')));
-        if (market['inverse']) {
+        if (isInverse) {
             filled = Precise.stringDiv (cumQty, average);
         } else {
             filled = cumQty;
