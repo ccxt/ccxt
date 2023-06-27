@@ -738,8 +738,10 @@ export default class woo extends Exchange {
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the woo api endpoint
          * @param {float} params.triggerPrice The price a trigger order is triggered at
-         * @param {float|undefined} params.stopLoss for setting a stop-loss attached to an order
-         * @param {float|undefined} params.takeProfit for setting a take-profit attached to an order
+         * @param {object|undefined} params.takeProfit *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {float|undefined} params.takeProfit.triggerPrice take profit trigger price
+         * @param {object|undefined} params.stopLoss *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {float|undefined} params.stopLoss.triggerPrice stop loss trigger price
          * @param {float|undefined} params.algoType 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -821,7 +823,7 @@ export default class woo extends Exchange {
                 request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
                 request['algoType'] = 'STOP';
             }
-        } else if (stopLoss || takeProfit) {
+        } else if ((stopLoss !== undefined) || (takeProfit !== undefined)) {
             request['algoType'] = 'BRACKET';
             const outterOrder = {
                 'symbol': market['id'],
@@ -831,20 +833,22 @@ export default class woo extends Exchange {
             };
             const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
             if (stopLoss !== undefined) {
+                const stopLossPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'price', stopLoss);
                 const stopLossOrder = {
                     'side': closeSide,
                     'algoType': 'STOP_LOSS',
-                    'triggerPrice': this.priceToPrecision (symbol, stopLoss),
+                    'triggerPrice': this.priceToPrecision (symbol, stopLossPrice),
                     'type': 'CLOSE_POSITION',
                     'reduceOnly': true,
                 };
                 outterOrder['childOrders'].push (stopLossOrder);
             }
             if (takeProfit !== undefined) {
+                const takeProfitPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'price', takeProfit);
                 const takeProfitOrder = {
                     'side': closeSide,
                     'algoType': 'TAKE_PROFIT',
-                    'triggerPrice': this.priceToPrecision (symbol, takeProfit),
+                    'triggerPrice': this.priceToPrecision (symbol, takeProfitPrice),
                     'type': 'CLOSE_POSITION',
                     'reduceOnly': true,
                 };
