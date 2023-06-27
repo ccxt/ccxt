@@ -45,6 +45,8 @@ export default class bitmex extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDepositsWithdrawals': 'emulated',
+                'fetchDepositWithdrawalFee': 'emulated',
+                'fetchDepositWithdrawalFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
@@ -239,7 +241,7 @@ export default class bitmex extends Exchange {
                     'btc': 'BTC',
                     'eth': 'ERC20',
                     'bsc': 'BSC',
-                    'tron': 'TRX',
+                    'tron': 'TRC20',
                     'avax': 'AVAX',
                     'near': 'NEAR',
                     'xtz': 'XTZ',
@@ -2563,6 +2565,114 @@ export default class bitmex extends Exchange {
             'network': this.networkIdToCode (networkId).toUpperCase (),
             'info': response,
         };
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    {
+        //        asset: 'XBT',
+        //        currency: 'XBt',
+        //        majorCurrency: 'XBT',
+        //        name: 'Bitcoin',
+        //        currencyType: 'Crypto',
+        //        scale: '8',
+        //        enabled: true,
+        //        isMarginCurrency: true,
+        //        minDepositAmount: '10000',
+        //        minWithdrawalAmount: '1000',
+        //        maxWithdrawalAmount: '100000000000000',
+        //        networks: [
+        //            {
+        //                asset: 'btc',
+        //                tokenAddress: '',
+        //                depositEnabled: true,
+        //                withdrawalEnabled: true,
+        //                withdrawalFee: '20000',
+        //                minFee: '20000',
+        //                maxFee: '10000000'
+        //            }
+        //        ]
+        //    }
+        //
+        const networks = this.safeValue (fee, 'networks', []);
+        const networksLength = networks.length;
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+        if (networksLength !== 0) {
+            const scale = this.safeString (fee, 'scale');
+            const precision = this.parsePrecision (scale);
+            for (let i = 0; i < networksLength; i++) {
+                const network = networks[i];
+                const networkId = this.safeString (network, 'asset');
+                const currencyCode = this.safeString (currency, 'code');
+                const networkCode = this.networkIdToCode (networkId, currencyCode);
+                const withdrawalFeeId = this.safeString (network, 'withdrawalFee');
+                const withdrawalFee = this.parseNumber (Precise.stringMul (withdrawalFeeId, precision));
+                result['networks'][networkCode] = {
+                    'deposit': { 'fee': undefined, 'percentage': undefined },
+                    'withdraw': { 'fee': withdrawalFee, 'percentage': false },
+                };
+                if (networksLength === 1) {
+                    result['withdraw']['fee'] = withdrawalFee;
+                    result['withdraw']['percentage'] = false;
+                }
+            }
+        }
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bitmex api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const assets = await this.publicGetWalletAssets (params);
+        //
+        //    [
+        //        {
+        //            asset: 'XBT',
+        //            currency: 'XBt',
+        //            majorCurrency: 'XBT',
+        //            name: 'Bitcoin',
+        //            currencyType: 'Crypto',
+        //            scale: '8',
+        //            enabled: true,
+        //            isMarginCurrency: true,
+        //            minDepositAmount: '10000',
+        //            minWithdrawalAmount: '1000',
+        //            maxWithdrawalAmount: '100000000000000',
+        //            networks: [
+        //                {
+        //                    asset: 'btc',
+        //                    tokenAddress: '',
+        //                    depositEnabled: true,
+        //                    withdrawalEnabled: true,
+        //                    withdrawalFee: '20000',
+        //                    minFee: '20000',
+        //                    maxFee: '10000000'
+        //                }
+        //            ]
+        //        },
+        //        ...
+        //    ]
+        //
+        return this.parseDepositWithdrawFees (assets, codes, 'asset');
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}) {
