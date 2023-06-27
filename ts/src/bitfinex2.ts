@@ -1413,7 +1413,7 @@ export default class bitfinex2 extends Exchange {
         const remaining = Precise.stringAbs (this.safeString (order, 6));
         const signedAmount = this.safeString (order, 7);
         const amount = Precise.stringAbs (signedAmount);
-        const side = Precise.stringLt (signedAmount, '0') ? 'sell' : 'buy';
+        const side = (signedAmount[0] === '-') ? 'sell' : 'buy';
         const orderType = this.safeString (order, 8);
         const type = this.safeString (this.safeValue (this.options, 'exchangeTypes'), orderType);
         const timeInForce = this.parseTimeInForce (orderType);
@@ -2104,7 +2104,7 @@ export default class bitfinex2 extends Exchange {
             const signedAmount = this.safeString (transaction, 12);
             amount = Precise.stringAbs (signedAmount);
             if (signedAmount !== undefined) {
-                if (Precise.stringLt (signedAmount, '0')) {
+                if (signedAmount[0] === '-') {
                     type = 'withdrawal';
                 } else {
                     type = 'deposit';
