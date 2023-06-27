@@ -996,7 +996,7 @@ export default class luno extends Exchange {
         }
         if (Precise.stringGt (balance_delta, '0') || Precise.stringGt (available_delta, '0')) {
             direction = 'in';
-        } else if (Precise.stringLt (balance_delta, '0') || Precise.stringLt (available_delta, '0')) {
+        } else if (balance_delta[0] === '-' || available_delta[0] === '-') {
             direction = 'out';
         }
         return {
