@@ -895,7 +895,7 @@ export default class woo extends Exchange {
         //     },
         //     timestamp: '1686149372216'
         // }
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeValue (response, 'data');
         if (data !== undefined) {
             const rows = this.safeValue (data, 'rows', []);
             return this.parseOrder (rows[0], market);
