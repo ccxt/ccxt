@@ -1746,7 +1746,7 @@ export default class currencycom extends Exchange {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        const direction = Precise.stringLt (amountString, '0') ? 'out' : 'in';
+        const direction = (amountString[0] === '-') ? 'out' : 'in';
         const result = {
             'id': id,
             'timestamp': timestamp,
@@ -1928,7 +1928,7 @@ export default class currencycom extends Exchange {
         const symbol = market['symbol'];
         const timestamp = this.safeNumber (position, 'createdTimestamp');
         const quantityRaw = this.safeString (position, 'openQuantity');
-        const side = Precise.stringGt (quantityRaw, '0') ? 'long' : 'short';
+        const side = (quantityRaw[0] === '-') ? 'short' : 'long';
         const quantity = Precise.stringAbs (quantityRaw);
         const entryPrice = this.safeNumber (position, 'openPrice');
         const unrealizedProfit = this.safeNumber (position, 'upl');
