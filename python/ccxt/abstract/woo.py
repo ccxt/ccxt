@@ -36,6 +36,7 @@ class ImplicitAPI:
     v1_private_get_funding_fee_history = v1PrivateGetFundingFeeHistory = Entry('funding_fee/history', ['v1', 'private'], 'GET', {'cost': 30})
     v1_private_get_positions = v1PrivateGetPositions = Entry('positions', ['v1', 'private'], 'GET', {'cost': 3.33})
     v1_private_get_position_symbol = v1PrivateGetPositionSymbol = Entry('position/{symbol}', ['v1', 'private'], 'GET', {'cost': 3.33})
+    v1_private_get_client_transaction_history = v1PrivateGetClientTransactionHistory = Entry('client/transaction_history', ['v1', 'private'], 'GET', {'cost': 60})
     v1_private_post_order = v1PrivatePostOrder = Entry('order', ['v1', 'private'], 'POST', {'cost': 5})
     v1_private_post_asset_main_sub_transfer = v1PrivatePostAssetMainSubTransfer = Entry('asset/main_sub_transfer', ['v1', 'private'], 'POST', {'cost': 30})
     v1_private_post_asset_withdraw = v1PrivatePostAssetWithdraw = Entry('asset/withdraw', ['v1', 'private'], 'POST', {'cost': 30})

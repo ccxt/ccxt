@@ -44,6 +44,7 @@ export default class bitso extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
@@ -1042,6 +1043,8 @@ export default class bitso extends Exchange {
     parseOrderStatus(status) {
         const statuses = {
             'partial-fill': 'open',
+            'partially filled': 'open',
+            'queued': 'open',
             'completed': 'closed',
         };
         return this.safeString(statuses, status, status);

@@ -6,7 +6,7 @@ import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, Exch
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { IndexType, Int, OrderSide } from './base/types.js';
+import { IndexType, Int, OrderSide, Balances, OrderType } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1780,7 +1780,7 @@ export default class mexc extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#createOrder
@@ -3043,7 +3043,7 @@ export default class mexc extends Exchange {
         return result;
     }
 
-    parseBalance (response, marketType) {
+    customParseBalance (response, marketType): Balances {
         //
         // spot
         //
@@ -3290,7 +3290,7 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        return this.parseBalance (response, marketType);
+        return this.customParseBalance (response, marketType);
     }
 
     async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -4373,7 +4373,7 @@ export default class mexc extends Exchange {
             'unrealizedProfit': undefined,
             'leverage': this.parseNumber (leverage),
             'percentage': undefined,
-            'marginType': marginType,
+            'marginMode': marginType,
             'notional': undefined,
             'markPrice': undefined,
             'lastPrice': undefined,
@@ -4891,7 +4891,7 @@ export default class mexc extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchDepositWithdrawFees
@@ -5024,7 +5024,11 @@ export default class mexc extends Exchange {
         [ path, params ] = this.resolvePath (path, params);
         let url = undefined;
         if (section === 'spot' || section === 'broker') {
-            url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
+            if (section === 'broker') {
+                url = this.urls['api'][section][access] + '/' + path;
+            } else {
+                url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
+            }
             let paramsEncoded = '';
             if (access === 'private') {
                 params['timestamp'] = this.milliseconds ();

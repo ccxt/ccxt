@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, AccountSuspended, Permission
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, Balances, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1486,7 +1486,7 @@ export default class bitmart extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseBalance (response, marketType) {
+    customParseBalance (response, marketType): Balances {
         const data = this.safeValue (response, 'data', {});
         let wallet = undefined;
         if (marketType === 'swap') {
@@ -1661,7 +1661,7 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        return this.parseBalance (response, marketType);
+        return this.customParseBalance (response, marketType);
     }
 
     parseTradingFee (fee, market = undefined) {
@@ -1823,7 +1823,7 @@ export default class bitmart extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#createOrder

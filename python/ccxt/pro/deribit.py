@@ -445,7 +445,7 @@ class deribit(ccxt.async_support.deribit):
         channel = self.safe_string(params, 'channel')
         marketId = self.safe_string(data, 'instrument_name')
         symbol = self.safe_symbol(marketId)
-        timestamp = self.safe_number(data, 'timestamp')
+        timestamp = self.safe_integer(data, 'timestamp')
         storedOrderBook = self.safe_value(self.orderbooks, symbol)
         if storedOrderBook is None:
             storedOrderBook = self.counted_order_book()

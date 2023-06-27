@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.1.26';
+$version = '3.1.53';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.1.26';
+    const VERSION = '3.1.53';
 
     public $browser;
     public $marketsLoading = null;
@@ -53,17 +53,21 @@ class Exchange extends \ccxt\Exchange {
         'maxPingPongMisses' => 2.0,
     );
 
+    public $proxy_files_dir = __DIR__ . '/../static_dependencies/proxies/';
+
     use \ccxt\pro\ClientTrait;
 
     public function __construct($options = array()) {
         parent::__construct($options);
-        $connector = new React\Socket\Connector(Loop::get(), array(
-            'timeout' => $this->timeout,
-        ));
-        if ($this->browser === null) {
-            $this->browser = (new React\Http\Browser(Loop::get(), $connector))->withRejectErrorResponse(false);
-        }
+        $this->set_request_browser();
         $this->throttle = new Throttle($this->tokenBucket);
+    }
+
+    public function set_request_browser($connector_options = array()) {
+        $connector = new React\Socket\Connector(array_merge(array(
+            'timeout' => $this->timeout,
+        ), $connector_options), Loop::get());
+        $this->browser = (new React\Http\Browser($connector, Loop::get()))->withRejectErrorResponse(false);
     }
 
     public static function execute_and_run($closure) {
@@ -75,26 +79,40 @@ class Exchange extends \ccxt\Exchange {
         // wrap this in as a promise so it executes asynchronously
         return React\Async\async(function () use ($url, $method, $headers, $body) {
 
+            // ##### PROXY & HEADERS #####
             $headers = array_merge($this->headers, $headers ? $headers : array());
-            if (!$headers) {
-                $headers = array();
-            }
 
-            if (strlen($this->proxy)) {
+            [ $proxyUrl, $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
+            if ($proxyUrl !== null) {
+                $url = $proxyUrl . $url;
                 $headers['Origin'] = $this->origin;
+            } else if ($httpProxy !== null) {
+                include_once ($this->proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
+                $proxy = new \Clue\React\HttpProxy\ProxyConnector($httpProxy);
+                $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
+            }  else if ($httpsProxy !== null) {
+                include_once ($this->proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
+                $proxy = new \Clue\React\HttpProxy\ProxyConnector($httpsProxy);
+                $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
+                $this->set_request_browser($request_browser_options);
+            } else if ($socksProxy !== null) {
+                if (!class_exists('\Clue\React\Socks\Client')) {
+                    throw new NotSupported($this->id . ' - to use SOCKS proxy with ccxt, at first you need install module "composer require clue/socks-react"');
+                }
+                $proxy = new \Clue\React\Socks\Client($socksProxy);
+                $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
+                $this->set_request_browser($request_browser_options);
             }
 
-            if ($this->userAgent) {
-                if (gettype($this->userAgent) == 'string') {
-                    $headers['User-Agent'] = $this->userAgent;
-                } elseif ((gettype($this->userAgent) == 'array') && array_key_exists('User-Agent', $this->userAgent)) {
-                    $headers['User-Agent'] = $this->userAgent['User-Agent'];
+            $userAgent = ($this->userAgent !== null) ? $this->userAgent : $this->user_agent;
+            if ($userAgent) {
+                if (gettype($userAgent) === 'string') {
+                    $headers['User-Agent'] = $userAgent;
+                } elseif ((gettype($userAgent) === 'array') && array_key_exists('User-Agent', $userAgent)) {
+                    $headers['User-Agent'] = $userAgent['User-Agent'];
                 }
             }
-
-            // this name for the proxy string is deprecated
-            // we should rename it to $this->cors everywhere
-            $url = $this->proxy . $url;
+            // ######## end of proxies ########
 
             if ($this->verbose) {
                 print_r(array('fetch Request:', $this->id, $method, $url, 'RequestHeaders:', $headers, 'RequestBody:', $body));
@@ -270,6 +288,66 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function check_proxy_settings($url, $method, $headers, $body) {
+        $proxyUrl = ($this->proxyUrl !== null) ? $this->proxyUrl : $this->proxy_url;
+        $proxyUrlCallback = ($this->proxyUrlCallback !== null) ? $this->proxyUrlCallback : $this->proxy_url_callback;
+        if ($proxyUrlCallback !== null) {
+            $proxyUrl = $proxyUrlCallback ($url, $method, $headers, $body);
+        }
+        // backwards-compatibility
+        if ($this->proxy !== null) {
+            if (is_callable($this->proxy)) {
+                $proxyUrl = $this->proxy ($url, $method, $headers, $body);
+            } else {
+                $proxyUrl = $this->proxy;
+            }
+        }
+        $httpProxy = ($this->httpProxy !== null) ? $this->httpProxy : $this->http_proxy;
+        $httpProxyCallback = ($this->httpProxyCallback !== null) ? $this->httpProxyCallback : $this->http_proxy_callback;
+        if ($httpProxyCallback !== null) {
+            $httpProxy = $httpProxyCallback ($url, $method, $headers, $body);
+        }
+        $httpsProxy = ($this->httpsProxy !== null) ? $this->httpsProxy : $this->https_proxy;
+        $httpsProxyCallback = ($this->httpsProxyCallback !== null) ? $this->httpsProxyCallback : $this->https_proxy_callback;
+        if ($httpsProxyCallback !== null) {
+            $httpsProxy = $httpsProxyCallback ($url, $method, $headers, $body);
+        }
+        $socksProxy = ($this->socksProxy !== null) ? $this->socksProxy : $this->socks_proxy;
+        $socksProxyCallback = ($this->socksProxyCallback !== null) ? $this->socksProxyCallback : $this->socks_proxy_callback;
+        if ($socksProxyCallback !== null) {
+            $socksProxy = $socksProxyCallback ($url, $method, $headers, $body);
+        }
+        $val = 0;
+        if ($proxyUrl !== null) {
+            $val = $val + 1;
+        }
+        if ($proxyUrlCallback !== null) {
+            $val = $val + 1;
+        }
+        if ($httpProxy !== null) {
+            $val = $val + 1;
+        }
+        if ($httpProxyCallback !== null) {
+            $val = $val + 1;
+        }
+        if ($httpsProxy !== null) {
+            $val = $val + 1;
+        }
+        if ($httpsProxyCallback !== null) {
+            $val = $val + 1;
+        }
+        if ($socksProxy !== null) {
+            $val = $val + 1;
+        }
+        if ($socksProxyCallback !== null) {
+            $val = $val + 1;
+        }
+        if ($val > 1) {
+            throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : $proxyUrl, $httpProxy, $httpsProxy, $socksProxy, userAgent');
+        }
+        return array( $proxyUrl, $httpProxy, $httpsProxy, $socksProxy );
+    }
+
     public function find_message_hashes($client, string $element) {
         $result = array();
         $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
@@ -342,6 +420,30 @@ class Exchange extends \ccxt\Exchange {
             return mb_substr($result, -$limit);
         }
         return $this->filter_by_limit($result, $limit, $key);
+    }
+
+    public function set_sandbox_mode($enabled) {
+        if ($enabled) {
+            if (is_array($this->urls) && array_key_exists('test', $this->urls)) {
+                if (gettype($this->urls['api']) === 'string') {
+                    $this->urls['apiBackup'] = $this->urls['api'];
+                    $this->urls['api'] = $this->urls['test'];
+                } else {
+                    $this->urls['apiBackup'] = $this->clone ($this->urls['api']);
+                    $this->urls['api'] = $this->clone ($this->urls['test']);
+                }
+            } else {
+                throw new NotSupported($this->id . ' does not have a sandbox URL');
+            }
+        } elseif (is_array($this->urls) && array_key_exists('apiBackup', $this->urls)) {
+            if (gettype($this->urls['api']) === 'string') {
+                $this->urls['api'] = $this->urls['apiBackup'];
+            } else {
+                $this->urls['api'] = $this->clone ($this->urls['apiBackup']);
+            }
+            $newUrls = $this->omit ($this->urls, 'apiBackup');
+            $this->urls = $newUrls;
+        }
     }
 
     public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null) {
@@ -434,6 +536,22 @@ class Exchange extends \ccxt\Exchange {
 
     public function parse_borrow_interest($info, $market = null) {
         throw new NotSupported($this->id . ' parseBorrowInterest() is not supported yet');
+    }
+
+    public function parse_ws_trade($trade, $market = null) {
+        throw new NotSupported($this->id . ' parseWsTrade() is not supported yet');
+    }
+
+    public function parse_ws_order($order, $market = null) {
+        throw new NotSupported($this->id . ' parseWsOrder() is not supported yet');
+    }
+
+    public function parse_ws_order_trade($trade, $market = null) {
+        throw new NotSupported($this->id . ' parseWsOrderTrade() is not supported yet');
+    }
+
+    public function parse_ws_ohlcv($ohlcv, $market = null) {
+        throw new NotSupported($this->id . ' parseWsOHLCV() is not supported yet');
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
@@ -884,11 +1002,14 @@ class Exchange extends \ccxt\Exchange {
             $postOnly = $timeInForce === 'PO';
         }
         $timestamp = $this->safe_integer($order, 'timestamp');
+        $lastUpdateTimestamp = $this->safe_integer($order, 'lastUpdateTimestamp');
         $datetime = $this->safe_string($order, 'datetime');
         if ($datetime === null) {
             $datetime = $this->iso8601 ($timestamp);
         }
         $triggerPrice = $this->parse_number($this->safe_string_2($order, 'triggerPrice', 'stopPrice'));
+        $takeProfitPrice = $this->parse_number($this->safe_string($order, 'takeProfitPrice'));
+        $stopLossPrice = $this->parse_number($this->safe_string($order, 'stopLossPrice'));
         return array_merge($order, array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
@@ -898,6 +1019,7 @@ class Exchange extends \ccxt\Exchange {
             'type' => $this->safe_string($order, 'type'),
             'side' => $side,
             'lastTradeTimestamp' => $lastTradeTimeTimestamp,
+            'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'price' => $this->parse_number($price),
             'amount' => $this->parse_number($amount),
             'cost' => $this->parse_number($cost),
@@ -910,6 +1032,8 @@ class Exchange extends \ccxt\Exchange {
             'reduceOnly' => $this->safe_value($order, 'reduceOnly'),
             'stopPrice' => $triggerPrice,  // ! deprecated, use $triggerPrice instead
             'triggerPrice' => $triggerPrice,
+            'takeProfitPrice' => $takeProfitPrice,
+            'stopLossPrice' => $stopLossPrice,
             'status' => $this->safe_string($order, 'status'),
             'fee' => $this->safe_value($order, 'fee'),
         ));
@@ -1250,6 +1374,53 @@ class Exchange extends \ccxt\Exchange {
             $result[$volume][] = $ohlcvs[$i][5];
         }
         return $result;
+    }
+
+    public function fetch_web_endpoint($method, $endpointMethod, $returnAsJson, $startRegex = null, $endRegex = null) {
+        return Async\async(function () use ($method, $endpointMethod, $returnAsJson, $startRegex, $endRegex) {
+            $errorMessage = '';
+            try {
+                $options = $this->safe_value($this->options, $method, array());
+                // if it was not explicitly disabled, then don't fetch
+                if ($this->safe_value($options, 'webApiEnable', true) !== true) {
+                    return null;
+                }
+                $maxRetries = $this->safe_value($options, 'webApiRetries', 10);
+                $response = null;
+                $retry = 0;
+                while ($retry < $maxRetries) {
+                    try {
+                        $response = Async\await($this->$endpointMethod (array()));
+                        break;
+                    } catch (Exception $e) {
+                        $retry = $retry + 1;
+                        if ($retry === $maxRetries) {
+                            throw $e;
+                        }
+                    }
+                }
+                $content = $response;
+                if ($startRegex !== null) {
+                    $splitted_by_start = explode($startRegex, $content);
+                    $content = $splitted_by_start[1]; // we need second part after start
+                }
+                if ($endRegex !== null) {
+                    $splitted_by_end = explode($endRegex, $content);
+                    $content = $splitted_by_end[0]; // we need first part after start
+                }
+                if ($returnAsJson && (gettype($content) === 'string')) {
+                    $jsoned = $this->parse_json(trim($content)); // $content should be trimmed before json parsing
+                    if ($jsoned) {
+                        return $jsoned; // if parsing was not successfull, exception should be thrown
+                    }
+                } else {
+                    return $content;
+                }
+            } catch (Exception $e) {
+                $errorMessage = (string) $e;
+            }
+            throw new NotSupported($this->id . ' ' . $method . '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.' . $errorMessage);
+        }) ();
     }
 
     public function market_ids($symbols) {
@@ -1801,10 +1972,17 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->cancelOrder ($id, $symbol));
             return Async\await($this->create_order($symbol, $type, $side, $amount, $price, $params));
+        }) ();
+    }
+
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            Async\await($this->cancelOrderWs ($id, $symbol));
+            return Async\await($this->createOrderWs ($symbol, $type, $side, $amount, $price, $params));
         }) ();
     }
 
@@ -1962,6 +2140,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchBalance() is not supported yet');
     }
 
+    public function parse_balance($response) {
+        throw new NotSupported($this->id . ' parseBalance() is not supported yet');
+    }
+
     public function watch_balance($params = array ()) {
         throw new NotSupported($this->id . ' watchBalance() is not supported yet');
     }
@@ -2088,7 +2270,7 @@ class Exchange extends \ccxt\Exchange {
             // check if exchange has properties for this method
             $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
             if ($exchangeWideMethodOptions !== null) {
-                // check if the option is defined in this method's props
+                // check if the option is defined inside this method's props
                 $value = $this->safe_value_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
             }
             if ($value === null) {
@@ -2250,11 +2432,27 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+        throw new NotSupported($this->id . ' createOrderWs() is not supported yet');
+    }
+
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelOrder() is not supported yet');
     }
 
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelOrderWs() is not supported yet');
+    }
+
+    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelOrdersWs() is not supported yet');
+    }
+
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelAllOrders() is not supported yet');
+    }
+
+    public function cancel_all_order_ws(?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelAllOrders() is not supported yet');
     }
 
@@ -2839,6 +3037,7 @@ class Exchange extends \ccxt\Exchange {
             if ($this->has['fetchFundingRates']) {
                 Async\await($this->load_markets());
                 $market = $this->market ($symbol);
+                $symbol = $market['symbol'];
                 if (!$market['contract']) {
                     throw new BadSymbol($this->id . ' fetchFundingRate() supports contract markets only');
                 }
@@ -3104,5 +3303,23 @@ class Exchange extends \ccxt\Exchange {
         $firstMarket = $this->safe_string($symbols, 0);
         $market = $this->market ($firstMarket);
         return $market;
+    }
+
+    public function fetch_deposits_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch history of deposits and withdrawals
+             * @param {string|null} $code unified currency $code for the currency of the deposit/withdrawals, default is null
+             * @param {int|null} $since timestamp in ms of the earliest deposit/withdrawal, default is null
+             * @param {int|null} $limit max number of deposit/withdrawals to return, default is null
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            if ($this->has['fetchTransactions']) {
+                return Async\await($this->fetchTransactions ($code, $since, $limit, $params));
+            } else {
+                throw new NotSupported($this->id . ' fetchDepositsWithdrawals () is not supported yet');
+            }
+        }) ();
     }
 }

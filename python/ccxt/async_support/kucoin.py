@@ -9,6 +9,7 @@ import hashlib
 import math
 import json
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -76,7 +77,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': True,
-                'fetchDepositWithdrawFees': False,
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -751,6 +752,7 @@ class kucoin(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
+        see https://docs.kucoin.com/#get-currencies
         :param dict params: extra parameters specific to the kucoin api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -929,22 +931,33 @@ class kucoin(Exchange, ImplicitAPI):
         #        "chain": "ERC20"
         #    }
         #
-        result = self.deposit_withdraw_fee(fee)
+        result = {
+            'info': fee,
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
         isWithdrawEnabled = self.safe_value(fee, 'isWithdrawEnabled')
         if isWithdrawEnabled:
+            result['withdraw']['fee'] = self.safe_number(fee, 'withdrawalMinFee')
+            result['withdraw']['percentage'] = False
             networkId = self.safe_string(fee, 'chain')
-            networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
-            result['networks'][networkCode] = {
-                'withdraw': {
-                    'fee': self.safe_number(fee, 'withdrawMinFee'),
-                    'percentage': None,
-                },
-                'deposit': {
-                    'fee': None,
-                    'percentage': None,
-                },
-            }
-        return self.assign_default_deposit_withdraw_fees(result)
+            if networkId:
+                networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
+                result['networks'][networkCode] = {
+                    'withdraw': result['withdraw'],
+                    'deposit': {
+                        'fee': None,
+                        'percentage': None,
+                    },
+                }
+        return result
 
     def is_futures_method(self, methodName, params):
         #
@@ -1420,7 +1433,7 @@ class kucoin(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
         see https://docs.kucoin.com/spot#place-a-new-order
@@ -1527,7 +1540,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         edit an order, kucoin currently only supports the modification of HF orders
         see https://docs.kucoin.com/spot-hf/#modify-order
@@ -3495,6 +3508,37 @@ class kucoin(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'info': info,
         }
+
+    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+        """
+        fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get more in-depth info
+        see https://docs.kucoin.com/#get-currencies
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the kucoin api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.publicGetCurrencies(params)
+        #
+        #  [
+        #      {
+        #        "currency": "CSP",
+        #        "name": "CSP",
+        #        "fullName": "Caspian",
+        #        "precision": 8,
+        #        "confirms": 12,
+        #        "contractAddress": "0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
+        #        "withdrawalMinSize": "2000",
+        #        "withdrawalMinFee": "1000",
+        #        "isWithdrawEnabled": True,
+        #        "isDepositEnabled": True,
+        #        "isMarginEnabled": False,
+        #        "isDebitEnabled": False
+        #      },
+        #  ]
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         #

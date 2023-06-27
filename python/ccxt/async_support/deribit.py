@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -558,6 +559,7 @@ class deribit(Exchange, ImplicitAPI):
         #         testnet: False
         #     }
         #
+        parsedMarkets = {}
         currenciesResult = self.safe_value(currenciesResponse, 'result', [])
         result = []
         for i in range(0, len(currenciesResult)):
@@ -678,6 +680,10 @@ class deribit(Exchange, ImplicitAPI):
                             optionType = self.safe_string(market, 'option_type')
                             letter = 'C' if (optionType == 'call') else 'P'
                             symbol = symbol + '-' + self.number_to_string(strike) + '-' + letter
+                parsedMarketValue = self.safe_value(parsedMarkets, symbol)
+                if parsedMarketValue:
+                    continue
+                parsedMarkets[symbol] = True
                 minTradeAmount = self.safe_number(market, 'min_trade_amount')
                 tickSize = self.safe_number(market, 'tick_size')
                 result.append({
@@ -1575,7 +1581,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result')
         return self.parse_order(result)
 
-    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://docs.deribit.com/#private-buy

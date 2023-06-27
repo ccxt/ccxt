@@ -104,7 +104,7 @@ export default class wazirx extends wazirxRest {
         client.resolve (this.balance, messageHash);
     }
 
-    parseWSTrade (trade, market = undefined) {
+    parseWsTrade (trade, market = undefined) {
         //
         // trade
         //     {
@@ -353,7 +353,7 @@ export default class wazirx extends wazirxRest {
             this.trades[symbol] = trades;
         }
         for (let i = 0; i < rawTrades.length; i++) {
-            const parsedTrade = this.parseWSTrade (rawTrades[i], market);
+            const parsedTrade = this.parseWsTrade (rawTrades[i], market);
             trades.append (parsedTrade);
         }
         client.resolve (trades, messageHash);
@@ -603,7 +603,7 @@ export default class wazirx extends wazirxRest {
         //     }
         //
         const order = this.safeValue (message, 'data', {});
-        const parsedOrder = this.parseWSOrder (order);
+        const parsedOrder = this.parseWsOrder (order);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -615,7 +615,7 @@ export default class wazirx extends wazirxRest {
         client.resolve (this.orders, messageHash);
     }
 
-    parseWSOrder (order) {
+    parseWsOrder (order, market = undefined) {
         //
         //     {
         //         "E": 1631683058904,
@@ -635,7 +635,7 @@ export default class wazirx extends wazirxRest {
         const timestamp = this.safeInteger (order, 'O');
         const marketId = this.safeString (order, 's');
         const status = this.safeString (order, 'X');
-        const market = this.safeMarket (marketId);
+        market = this.safeMarket (marketId);
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'i'),
@@ -695,7 +695,7 @@ export default class wazirx extends wazirxRest {
         } else {
             myTrades = this.myTrades;
         }
-        const parsedTrade = this.parseWSTrade (trade);
+        const parsedTrade = this.parseWsTrade (trade);
         myTrades.append (parsedTrade);
         client.resolve (myTrades, messageHash);
     }

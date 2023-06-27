@@ -111,7 +111,7 @@ class xt extends Exchange {
                 'transfer' => true,
                 'withdraw' => true,
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg',
                 'api' => array(
@@ -461,7 +461,7 @@ class xt extends Exchange {
                     'WITHDRAW_005' => '\\ccxt\\BadRequest', // The withdrawal address cannot be empty
                     'WITHDRAW_006' => '\\ccxt\\BadRequest', // Memo cannot be empty
                     'WITHDRAW_008' => '\\ccxt\\PermissionDenied', // Risk control is triggered, withdraw of this currency is not currently supported
-                    'WITHDRAW_009' => '\\ccxt\\PermissionDenied', // Withdraw failed, some assets in this withdraw are restricted by T+1 withdraw
+                    'WITHDRAW_009' => '\\ccxt\\PermissionDenied', // Withdraw failed, some property_exists($this, assets) withdraw are restricted by T+1 withdraw
                     'WITHDRAW_010' => '\\ccxt\\BadRequest', // The precision of withdrawal is invalid
                     'WITHDRAW_011' => '\\ccxt\\InsufficientFunds', // free balance is not enough
                     'WITHDRAW_012' => '\\ccxt\\PermissionDenied', // Withdraw failed, your remaining withdrawal limit today is not enough
@@ -699,7 +699,35 @@ class xt extends Exchange {
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $response = $this->publicSpotGetWalletSupportCurrency ($params);
+        $promisesRaw = array( $this->publicSpotGetWalletSupportCurrency ($params), $this->publicSpotGetCurrencies ($params) );
+        list($chainsResponse, $currenciesResponse) = $promisesRaw;
+        //
+        // currencies
+        //
+        //    {
+        //        "time" => "1686626116145",
+        //        "version" => "5dbbb2f2527c22b2b2e3b47187ef13d1",
+        //        "currencies" => [
+        //            array(
+        //                "id" => "2",
+        //                "currency" => "btc",
+        //                "fullName" => "Bitcoin",
+        //                "logo" => "https://a.static-global.com/1/currency/btc.png",
+        //                "cmcLink" => "https://coinmarketcap.com/currencies/bitcoin/",
+        //                "weight" => "99999",
+        //                "maxPrecision" => "10",
+        //                "depositStatus" => "1",
+        //                "withdrawStatus" => "1",
+        //                "convertEnabled" => "1",
+        //                "transferEnabled" => "1",
+        //                "isChainExist" => "1",
+        //                "plates" => [152]
+        //            ),
+        //        ],
+        //    }
+        //
+        //
+        // chains
         //
         //     {
         //         "rc" => 0,
@@ -722,13 +750,20 @@ class xt extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'result', array());
+        // note => individual network's full data is available on per-currency endpoint => https://www.xt.com/sapi/v4/balance/public/currency/11
+        //
+        $chainsData = $this->safe_value($chainsResponse, 'result', array());
+        $currenciesResult = $this->safe_value($currenciesResponse, 'result', array());
+        $currenciesData = $this->safe_value($currenciesResult, 'currencies', array());
+        $chainsDataIndexed = $this->index_by($chainsData, 'currency');
         $result = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
+        for ($i = 0; $i < count($currenciesData); $i++) {
+            $entry = $currenciesData[$i];
             $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $rawNetworks = $this->safe_value($entry, 'supportChains', array());
+            $minPrecision = $this->parse_number($this->parse_precision($this->safe_string($entry, 'maxPrecision')));
+            $networkEntry = $this->safe_value($chainsDataIndexed, $currencyId, array());
+            $rawNetworks = $this->safe_value($networkEntry, 'supportChains', array());
             $networks = array();
             $minWithdrawString = null;
             $minWithdrawFeeString = null;
@@ -760,7 +795,7 @@ class xt extends Exchange {
                     'name' => null,
                     'active' => $networkActive,
                     'fee' => $this->parse_number($withdrawFeeString),
-                    'precision' => null,
+                    'precision' => $minPrecision,
                     'deposit' => $depositEnabled,
                     'withdraw' => $withdrawEnabled,
                     'limits' => array(
@@ -783,7 +818,7 @@ class xt extends Exchange {
                 'info' => $entry,
                 'id' => $currencyId,
                 'code' => $code,
-                'name' => null,
+                'name' => $this->safe_string($entry, 'fullName'),
                 'active' => $active,
                 'fee' => $this->parse_number($minWithdrawFeeString),
                 'precision' => null,
@@ -1189,8 +1224,10 @@ class xt extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'price' => $this->safe_integer($market, 'pricePrecision'),
-                'amount' => $this->safe_integer($market, 'quantityPrecision'),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision'))),
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityPrecision'))),
+                'base' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseCoinPrecision'))),
+                'quote' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quoteCoinPrecision'))),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -3247,13 +3284,15 @@ class xt extends Exchange {
         $amount = ($marketType === 'spot') ? $quantity : Precise::string_mul($this->number_to_string($quantity), $this->number_to_string($market['contractSize']));
         $filledQuantity = $this->safe_number($order, 'executedQty');
         $filled = ($marketType === 'spot') ? $filledQuantity : Precise::string_mul($this->number_to_string($filledQuantity), $this->number_to_string($market['contractSize']));
+        $lastUpdatedTimestamp = $this->safe_integer($order, 'updatedTime');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string_n($order, array( 'orderId', 'result', 'cancelId', 'entrustId', 'profitId' )),
             'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $this->safe_integer($order, 'updatedTime'),
+            'lastTradeTimestamp' => $lastUpdatedTimestamp,
+            'lastUpdateTimestamp' => $lastUpdatedTimestamp,
             'symbol' => $symbol,
             'type' => $this->safe_string_lower_2($order, 'type', 'orderType'),
             'timeInForce' => $this->safe_string($order, 'timeInForce'),
@@ -4490,7 +4529,7 @@ class xt extends Exchange {
         //     }
         //
         $status = $this->safe_string_upper_2($response, 'msgInfo', 'mc');
-        if ($status !== 'SUCCESS') {
+        if ($status !== null && $status !== 'SUCCESS') {
             $feedback = $this->id . ' ' . $body;
             $error = $this->safe_value($response, 'error', array());
             $spotErrorCode = $this->safe_string($response, 'mc');

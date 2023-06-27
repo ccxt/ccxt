@@ -36,6 +36,7 @@ class btcmarkets extends btcmarkets$1 {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': 'emulated',
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -185,7 +186,7 @@ class btcmarkets extends btcmarkets$1 {
         /**
          * @method
          * @name btcmarkets#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *deprecated* use fetchDepositsWithdrawals instead
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined

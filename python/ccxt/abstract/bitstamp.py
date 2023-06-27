@@ -204,3 +204,7 @@ class ImplicitAPI:
     private_post_doge_address = privatePostDogeAddress = Entry('doge_address/', 'private', 'POST', {'cost': 1})
     private_post_flr_withdrawal = privatePostFlrWithdrawal = Entry('flr_withdrawal/', 'private', 'POST', {'cost': 1})
     private_post_flr_address = privatePostFlrAddress = Entry('flr_address/', 'private', 'POST', {'cost': 1})
+    private_post_dgld_withdrawal = privatePostDgldWithdrawal = Entry('dgld_withdrawal/', 'private', 'POST', {'cost': 1})
+    private_post_dgld_address = privatePostDgldAddress = Entry('dgld_address/', 'private', 'POST', {'cost': 1})
+    private_post_ldo_withdrawal = privatePostLdoWithdrawal = Entry('ldo_withdrawal/', 'private', 'POST', {'cost': 1})
+    private_post_ldo_address = privatePostLdoAddress = Entry('ldo_address/', 'private', 'POST', {'cost': 1})

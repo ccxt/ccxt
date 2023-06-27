@@ -3038,7 +3038,7 @@ export default class mexc extends Exchange {
         }
         return result;
     }
-    parseBalance(response, marketType) {
+    customParseBalance(response, marketType) {
         //
         // spot
         //
@@ -3288,7 +3288,7 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        return this.parseBalance(response, marketType);
+        return this.customParseBalance(response, marketType);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -4352,7 +4352,7 @@ export default class mexc extends Exchange {
             'unrealizedProfit': undefined,
             'leverage': this.parseNumber(leverage),
             'percentage': undefined,
-            'marginType': marginType,
+            'marginMode': marginType,
             'notional': undefined,
             'markPrice': undefined,
             'lastPrice': undefined,
@@ -4987,7 +4987,12 @@ export default class mexc extends Exchange {
         [path, params] = this.resolvePath(path, params);
         let url = undefined;
         if (section === 'spot' || section === 'broker') {
-            url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
+            if (section === 'broker') {
+                url = this.urls['api'][section][access] + '/' + path;
+            }
+            else {
+                url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
+            }
             let paramsEncoded = '';
             if (access === 'private') {
                 params['timestamp'] = this.milliseconds();

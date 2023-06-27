@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, I
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -40,6 +40,7 @@ export default class exmo extends Exchange {
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
@@ -495,7 +496,7 @@ export default class exmo extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchDepositWithdrawFees
@@ -655,9 +656,9 @@ export default class exmo extends Exchange {
                 for (let j = 0; j < providers.length; j++) {
                     const provider = providers[j];
                     const typeInner = this.safeString (provider, 'type');
-                    const minValue = this.safeNumber (provider, 'min');
-                    let maxValue = this.safeNumber (provider, 'max');
-                    if (maxValue === 0.0) {
+                    const minValue = this.safeString (provider, 'min');
+                    let maxValue = this.safeString (provider, 'max');
+                    if (Precise.stringEq (maxValue, '0.0')) {
                         maxValue = undefined;
                     }
                     const activeProvider = this.safeValue (provider, 'enabled');
@@ -676,7 +677,8 @@ export default class exmo extends Exchange {
                     }
                     if (activeProvider) {
                         active = true;
-                        if ((limits[typeInner]['min'] === undefined) || (minValue < limits[typeInner]['min'])) {
+                        const limitMin = this.numberToString (limits[typeInner]['min']);
+                        if ((limits[typeInner]['min'] === undefined) || (Precise.stringLt (minValue, limitMin))) {
                             limits[typeInner]['min'] = minValue;
                             limits[typeInner]['max'] = maxValue;
                             if (typeInner === 'withdraw') {
@@ -1241,7 +1243,7 @@ export default class exmo extends Exchange {
         return this.filterBySinceLimit (result, since, limit) as any;
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name exmo#createOrder
@@ -1819,7 +1821,7 @@ export default class exmo extends Exchange {
         /**
          * @method
          * @name exmo#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined

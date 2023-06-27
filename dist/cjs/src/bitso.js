@@ -41,6 +41,7 @@ class bitso extends bitso$1 {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
@@ -1039,6 +1040,8 @@ class bitso extends bitso$1 {
     parseOrderStatus(status) {
         const statuses = {
             'partial-fill': 'open',
+            'partially filled': 'open',
+            'queued': 'open',
             'completed': 'closed',
         };
         return this.safeString(statuses, status, status);

@@ -274,6 +274,7 @@ class lbank2 extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves $data on all markets for lbank2
+         * @see https://www.lbank.com/en-US/docs/index.html#trading-pairs
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of objects representing $market $data
          */
@@ -298,23 +299,7 @@ class lbank2 extends Exchange {
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
             $symbol = $base . '/' . $quote;
-            $productTypes = array(
-                '3l' => true,
-                '5l' => true,
-                '3s' => true,
-                '5s' => true,
-            );
             $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityAccuracy')));
-            $contractSize = $amountPrecision;
-            $ending = mb_substr($baseId, -2);
-            $isLeveragedProduct = $this->safe_value($productTypes, $ending, false);
-            if ($isLeveragedProduct) {
-                $symbol .= ':' . $quote;
-            }
-            $linear = null;
-            if ($isLeveragedProduct === true) {
-                $linear = true;
-            }
             $result[] = array(
                 'id' => $marketId,
                 'symbol' => $symbol,
@@ -327,14 +312,14 @@ class lbank2 extends Exchange {
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => false,
-                'swap' => $isLeveragedProduct,
+                'swap' => false,
                 'future' => false,
                 'option' => false,
                 'active' => true,
-                'contract' => $isLeveragedProduct,
-                'linear' => $linear, // all leveraged ETF products are in USDT
+                'contract' => null,
+                'linear' => null,
                 'inverse' => null,
-                'contractSize' => $isLeveragedProduct ? $contractSize : null,
+                'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
@@ -938,7 +923,7 @@ class lbank2 extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1642,7 +1627,7 @@ class lbank2 extends Exchange {
             // 'networkName' => defaults to the defaultNetwork of the coin which can be found in the /supplement/user_info endpoint
             // 'memo' => memo => memo word of bts and dct
             // 'mark' => Withdrawal Notes
-            // 'name' => Remarks of the $address-> After filling in this parameter, it will be added to the withdrawal $address book of the $currency->
+            // 'name' => Remarks of the $address-> After property_exists($this, filling) parameter, it will be added to the withdrawal $address book of the $currency->
             // 'withdrawOrderId' => withdrawOrderId
             // 'type' => type=1 is for intra-site transfer
         );
@@ -2031,7 +2016,7 @@ class lbank2 extends Exchange {
         );
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * when using private endpoint, only returns information for currencies with non-zero balance, use public $method by specifying $this->options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
          * @param {[string]|null} $codes array of unified currency $codes

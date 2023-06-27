@@ -19,13 +19,16 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
     │                              .                              |
     │                  The Unified CCXT Pro API                   |
     |                              .                              |
-    |       loadMarkets            .           watchBalance       |
-    |       watchTicker            .           watchOrders        |
-    |       watchTickers           .           watchMyTrades      |
-    |       watchOrderBook         .           watchPositions     |
-    |       watchOHLCV             .                              |
-    |       watchStatus            .                              |
-    |       watchTrades            .                              |
+    |       loadMarkets            .         watchBalance         |
+    |       watchTicker            .         watchOrders          |
+    |       watchTickers           .         watchMyTrades        |
+    |       watchOrderBook         .         watchPositions       |
+    |       watchOHLCV             .         createOrderWs        |
+    |       watchStatus            .         editOrderWs          |
+    |       watchTrades            .         cancelOrderWs        |
+    │                              .         cancelOrdersWs       |
+    │                              .         cancelAllOrdersWs    |
+    │                              .                              |
     │                              .                              |
     +=============================================================+
     │                              .                              |
@@ -47,7 +50,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
 
 ## Exchanges
 
-The CCXT Pro library currently supports the following 53 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 52 cryptocurrency exchange markets and WebSocket trading APIs:
 
 | logo                                                                                                                                                                                                            | id                 | name                                                                                                    | ver                                                                                                                                              | certified                                                                                                                   | pro                                                                          |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|---------------------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -69,7 +72,6 @@ The CCXT Pro library currently supports the following 53 cryptocurrency exchange
 | [![bittrex](https://user-images.githubusercontent.com/51840849/87153921-edf53180-c2c0-11ea-96b9-f2a9a95a455b.jpg)](https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B)                               | bittrex            | [Bittrex](https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B)                                | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://bittrex.github.io/api/v3)                                                   |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bitvavo](https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg)](https://bitvavo.com/?a=24F34952F7)                                                           | bitvavo            | [Bitvavo](https://bitvavo.com/?a=24F34952F7)                                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.bitvavo.com/)                                                          | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![blockchaincom](https://user-images.githubusercontent.com/1294454/147515585-1296e91b-7398-45e5-9d32-f6121538533f.jpeg)](https://blockchain.com)                                                               | blockchaincom      | [Blockchain.com](https://blockchain.com)                                                                | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.blockchain.com/v3)                                                      |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![btcex](https://user-images.githubusercontent.com/1294454/173489620-d49807a4-55cd-4f4e-aca9-534921298bbf.jpg)](https://www.btcex.com/en-us/register?i=48biatg1)                                               | btcex              | [BTCEX](https://www.btcex.com/en-us/register?i=48biatg1)                                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.btcex.com/)                                                            |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bybit](https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg)](https://www.bybit.com/register?affiliate_id=35953)                                             | bybit              | [Bybit](https://www.bybit.com/register?affiliate_id=35953)                                              | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://bybit-exchange.github.io/docs/inverse/)                                     | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![cex](https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg)](https://cex.io/r/0/up105393824/0/)                                                                | cex                | [CEX.IO](https://cex.io/r/0/up105393824/0/)                                                             | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://cex.io/cex-api)                                                             |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![coinbaseprime](https://user-images.githubusercontent.com/1294454/44539184-29f26e00-a70c-11e8-868f-e907fc236a7c.jpg)](https://exchange.coinbase.com)                                                          | coinbaseprime      | [Coinbase Prime](https://exchange.coinbase.com)                                                         | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.exchange.coinbase.com)                                                 |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -166,7 +168,14 @@ In CCXT Pro each public and private unified RESTful method having a `fetch*` pre
   - `fetchBalance` → `watchBalance`
   - `fetchOrders` → `watchOrders` <sup>*(notice the `watch` prefix)*</sup>
   - `fetchMyTrades` → `watchMyTrades`
-  - `fetchPositions` → `watchPositions` <sup>*soon*</sup>
+  - `fetchPositions` → `watchPositions`
+  <sup>*soon*</sup>
+  - `createOrder` → `createOrderWs`
+  - `editOrder` → `editOrderWs`
+  - `cancelOrder` → `cancelOrderWs`
+  - `cancelOrders` → `cancelOrdersWs`
+  - `cancelAllOrders` → `cancelAllOrdersWs`
+
 
 The Unified CCXT Pro Streaming API inherits CCXT usage patterns to make migration easier.
 
@@ -816,10 +825,6 @@ if ($exchange->has['watchTrades']) {
 
 ### Private Methods
 
-```diff
-- work in progress now
-```
-
 #### Authentication
 
 In most cases the authentication logic is borrowed from CCXT since the exchanges use the same keypairs and signing algorithms for REST APIs and WebSocket APIs. See [API Keys Setup](https://docs.ccxt.com/#/?id=api-keys-setup) for more details.
@@ -905,6 +910,90 @@ watch_my_trades(symbol=None, since=None, limit=None, params={})
 ```php
 // PHP
 watch_my_trades($symbol = null, $since = null, $lmit = null, $params = array());
+```
+
+#### Trading
+##### createOrderWs
+
+```typescript
+// JavaScript
+createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {})
+```
+
+```python
+# Python
+create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={})
+```
+
+```php
+// PHP
+create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ())
+```
+
+##### editOrderWs
+
+```typescript
+// JavaScript
+editOrderWs (id, symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {})
+```
+
+```python
+# Python
+edit_order_ws(self, id, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={})
+```
+
+```php
+// PHP
+edit_order_ws(string id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ())
+```
+##### cancelOrderWs
+
+```typescript
+// JavaScript
+cancelOrderWs(id: string, symbol: string = undefined, params = {})
+```
+
+```python
+# Python
+cancel_order_ws(self, id, symbol: str, params={})
+```
+
+```php
+// PHP
+cancel_order_ws(string $id, string $symbol, $params = array ())
+```
+
+##### cancelOrdersWs
+
+```typescript
+// JavaScript
+cancelOrdersWs(ids: string[], symbol: string = undefined, params = {})
+```
+
+```python
+# Python
+cancel_orders_ws(self, ids, symbol: str, params={})
+```
+
+```php
+// PHP
+cancel_orders_ws(string[] $ids, string $symbol, $params = array ())
+```
+##### cancelAllOrdersWs
+
+```typescript
+// JavaScript
+cancelAllOrdersWs(symbol: string = undefined, params = {})
+```
+
+```python
+# Python
+cancel_all_orders_ws(self, symbol: str, params={})
+```
+
+```php
+// PHP
+cancel__all_orders_ws(string $symbol, $params = array ())
 ```
 
 #### Funding
