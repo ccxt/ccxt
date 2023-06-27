@@ -6706,7 +6706,7 @@ export default class bybit extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const amount = this.safeString2 (item, 'amount', 'change');
         const after = this.safeString2 (item, 'wallet_balance', 'cashBalance');
-        const direction = Precise.stringLt (amount, '0') ? 'out' : 'in';
+        const direction = (amount[0] === '-') ? 'out' : 'in';
         let before = undefined;
         if (after !== undefined && amount !== undefined) {
             const difference = (direction === 'out') ? amount : Precise.stringNeg (amount);
