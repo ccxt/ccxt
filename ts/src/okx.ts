@@ -4733,7 +4733,7 @@ export default class okx extends Exchange {
                 if (side === 'net') {
                     if (Precise.stringGt (pos, '0')) {
                         side = 'long';
-                    } else if (Precise.stringLt (pos, '0')) {
+                    } else if (pos[0] === '-') {
                         side = 'short';
                     } else {
                         side = undefined;
