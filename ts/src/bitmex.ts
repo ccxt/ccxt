@@ -2184,16 +2184,21 @@ export default class bitmex extends Exchange {
         const datetime = this.safeString (position, 'timestamp');
         const crossMargin = this.safeValue (position, 'crossMargin');
         const marginMode = (crossMargin === true) ? 'cross' : 'isolated';
-        let notional = undefined;
-        if (market['quote'] === 'USDT' || market['quote'] === 'USD' || market['quote'] === 'EUR') {
-            notional = Precise.stringMul (this.safeString (position, 'foreignNotional'), '-1');
-        } else {
-            notional = this.safeString (position, 'homeNotional');
-        }
+        const notionalString = Precise.stringAbs (this.safeString (position, 'foreignNotional', 'homeNotional'));
         const settleCurrencyCode = this.safeString (market, 'settle');
         const maintenanceMargin = this.convertToRealAmount (settleCurrencyCode, this.safeString (position, 'maintMargin'));
         const unrealisedPnl = this.convertToRealAmount (settleCurrencyCode, this.safeString (position, 'unrealisedPnl'));
-        const contracts = this.safeNumber (position, 'currentQty');
+        const contracts = this.parseNumber (Precise.stringAbs (this.safeString (position, 'currentQty')));
+        const contractSize = this.safeNumber (market, 'contractSize');
+        let side = undefined;
+        const homeNotional = this.safeString (position, 'homeNotional');
+        if (homeNotional !== undefined) {
+            if (homeNotional[0] === '-') {
+                side = 'short';
+            } else {
+                side = 'long';
+            }
+        }
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'account'),
@@ -2202,13 +2207,13 @@ export default class bitmex extends Exchange {
             'datetime': datetime,
             'lastUpdateTimestamp': undefined,
             'hedged': undefined,
-            'side': undefined,
+            'side': side,
             'contracts': contracts,
-            'contractSize': undefined,
+            'contractSize': contractSize,
             'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
             'markPrice': this.safeNumber (position, 'markPrice'),
             'lastPrice': undefined,
-            'notional': this.parseNumber (notional),
+            'notional': this.parseNumber (notionalString),
             'leverage': this.safeNumber (position, 'leverage'),
             'collateral': undefined,
             'initialMargin': this.safeNumber (position, 'initMargin'),
@@ -2221,16 +2226,6 @@ export default class bitmex extends Exchange {
             'marginRatio': undefined,
             'percentage': this.safeNumber (position, 'unrealisedPnlPcnt'),
         });
-    }
-
-    isFiat (currency) {
-        if (currency === 'EUR') {
-            return true;
-        }
-        if (currency === 'PLN') {
-            return true;
-        }
-        return false;
     }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
