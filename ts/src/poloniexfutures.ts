@@ -1067,7 +1067,7 @@ export default class poloniexfutures extends Exchange {
         let side = undefined;
         if (Precise.stringGt (size, '0')) {
             side = 'long';
-        } else if (Precise.stringLt (size, '0')) {
+        } else if (size[0] === '-') {
             side = 'short';
         }
         const notional = Precise.stringAbs (this.safeString (position, 'posCost'));
