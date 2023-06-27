@@ -42,6 +42,8 @@ export default class wavesexchange extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -313,9 +315,9 @@ export default class wavesexchange extends Exchange {
                 'messagePrefix': 'W', // W for production, T for testnet
                 'networks': {
                     'ERC20': 'ETH',
-                    'BEP20': 'BSC',
+                    'BEP20': 'BSC'
                 },
-                'reverseNetworks': {
+                'networksById': {
                     'ETH': 'ERC20',
                     'BSC': 'BEP20',
                 },
@@ -1159,8 +1161,8 @@ export default class wavesexchange extends Exchange {
         // }
         const currency = this.safeValue (response, 'currency');
         const networkId = this.safeString (currency, 'platform_id');
-        const reverseNetworks = this.safeValue (this.options, 'reverseNetworks', {});
-        const unifiedNetwork = this.safeString (reverseNetworks, networkId, networkId);
+        const networkByIds = this.safeValue (this.options, 'networkByIds', {});
+        const unifiedNetwork = this.safeString (networkByIds, networkId, networkId);
         const addresses = this.safeValue (response, 'deposit_addresses');
         const address = this.safeString (addresses, 0);
         return {
@@ -2208,45 +2210,75 @@ export default class wavesexchange extends Exchange {
         }, market);
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
-        //
-        //    {
-        //      "type": "deposit_currency",
-        //      "id": "WEST",
-        //      "platform_id": "WEST",
-        //      "waves_asset_id": "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8",
-        //      "platform_asset_id": "WEST",
-        //      "decimals": 8,
-        //      "status": "active",
-        //      "allowed_amount": {
-        //        "min": 0.1,
-        //        "max": 2000000
-        //      },
-        //      "fees": {
-        //        "flat": 0,
-        //        "rate": 0
-        //      }
-        //    }
-        //
-        //
-        //    {
-        //      "type": "withdrawal_currency",
-        //      "id": "BTC",
-        //      "platform_id": "BTC",
-        //      "waves_asset_id": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
-        //      "platform_asset_id": "BTC",
-        //      "decimals": 8,
-        //      "status": "inactive",
-        //      "allowed_amount": {
-        //        "min": 0.001,
-        //        "max": 10
-        //      },
-        //      "fees": {
-        //        "flat": 0.001,
-        //        "rate": 0
-        //      }
-        //    }
-        //
+    parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined): any {
+        let depositWithdrawFees = {};
+        codes = this.marketCodes (codes);
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const dictionary = entry;
+            const currencyId = this.safeString (dictionary, currencyIdKey);
+            const currency = this.safeValue (this.currencies_by_id, currencyId);
+            const code = this.safeString (currency, 'code', currencyId);
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                let depositWithdrawFee = this.safeValue (depositWithdrawFees, code);
+                if (depositWithdrawFee === undefined) {
+                    depositWithdrawFee = {
+                        'info': [ dictionary ],
+                        'withdraw': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                        'deposit': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                        'networks': {},
+                    };
+                } else {
+                    depositWithdrawFee = depositWithdrawFees[code];
+                    depositWithdrawFee['info'] = this.arrayConcat ( depositWithdrawFee['info'], [ dictionary ]);
+                }
+                const networkId = this.safeString (dictionary, 'platform_id');
+                const currencyCode = this.safeString (currency, 'code');
+                const networkCode = this.networkIdToCode (networkId, currencyCode);
+                let network = this.safeValue (depositWithdrawFee['networks'], networkCode);
+                if (network === undefined) {
+                    network = {
+                        'withdraw': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                        'deposit': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                    };
+                }
+                const feeType = this.safeString (dictionary, 'type');
+                const fees = this.safeValue (dictionary, 'fees');
+                let networkKey = 'deposit';
+                if (feeType === 'withdrawal_currency') {
+                    networkKey = 'withdraw';   
+                }
+                network[networkKey] = { 'fee': this.safeNumber (fees, 'flat'), 'percentage': false };
+                depositWithdrawFee['networks'][networkCode] = network;
+                depositWithdrawFees[code] = depositWithdrawFee;
+            }
+        }
+        const depositWithdrawFeesKeys = Object.keys (depositWithdrawFees);
+        for (let i = 0; i < depositWithdrawFeesKeys.length; i++) {
+            const code = depositWithdrawFeesKeys[i];
+            const entry = depositWithdrawFees[code];
+            const networks = this.safeValue (entry, 'networks');
+            const networkKeys = Object.keys (networks);
+            if (networkKeys.length === 1) {
+                const network = this.safeValue (networks, networkKeys[0]);
+                console.log (network);
+                depositWithdrawFees[code]['withdraw'] = this.safeValue (network, 'withdraw');
+                depositWithdrawFees[code]['deposit'] = this.safeValue (network, 'deposit');
+            }
+        }
+        return depositWithdrawFees;
     }
 
     async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
@@ -2255,12 +2287,11 @@ export default class wavesexchange extends Exchange {
          * @name wavesexchange#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
          * @see https://docs.waves.exchange/en/api/gateways/deposit/currencies
-         * @see https://docs.waves.exchange/en/api/gateways/deposit/currencies
+         * @see https://docs.waves.exchange/en/api/gateways/withdraw/currencies
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the wavesexchange api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
-        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const responseDeposit = await this.privateGetDepositCurrencies (params);
         const responseWithdraw = await this.privateGetWithdrawCurrencies (params);
@@ -2322,7 +2353,7 @@ export default class wavesexchange extends Exchange {
         //
         const itemsDeposit = this.safeValue (responseDeposit, 'items', {});
         const itemsWithdraw = this.safeValue (responseWithdraw, 'items', {});
-        const items = itemsDeposit.concat(itemsWithdraw);
+        const items = this.arrayConcat(itemsDeposit, itemsWithdraw);
         return this.parseDepositWithdrawFees (items, codes, 'id');
     }
 
