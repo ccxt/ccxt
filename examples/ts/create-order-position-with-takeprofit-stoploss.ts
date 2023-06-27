@@ -71,8 +71,8 @@ async function example () {
         // Fetch all your open orders for this symbol
         // - use 'fetchOpenOrders' or 'fetchOrders' and filter with 'open' status
         // - note, that some exchanges might return one order object with embedded stoploss/takeprofit fields, while other exchanges might have separate stoploss/takeprofit order objects
-        const all_open_rders = await exchange.fetchOpenOrders (symbol);
-        console.log ("Fetched all your orders for this symbol", all_open_rders);
+        const all_open_orders = await exchange.fetchOpenOrders (symbol);
+        console.log ("Fetched all your orders for this symbol", all_open_orders);
 
         // To cancel a limit order, use "exchange.cancel_order(created_order['id'], symbol)""
     } catch (e) {
