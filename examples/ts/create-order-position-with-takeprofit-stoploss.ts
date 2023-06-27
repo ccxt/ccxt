@@ -45,13 +45,13 @@ async function example () {
     const params = {
         'stopLoss': {
             'triggerPrice': stop_loss_trigger_price,
-            // 'triggerPriceType': 'mark', // mark, last, index, bid, ask
-            'price': stop_loss_trigger_price * 0.98, // set 'price' to act as limit order (omit this field for market order)
+            // set a 'price' to act as limit order, otherwise remove it for a market order
+            'price': stop_loss_trigger_price * 0.98,
         },
         'takeProfit': {
             'triggerPrice': take_profit_trigger_price,
-            // 'triggerPriceType': 'mark', // mark, last, index, bid, ask
-            'price': take_profit_trigger_price * 0.98, // set 'price' to act as limit order (omit this field for market order)
+            // set a 'price' to act as limit order, otherwise remove it for a market order
+            'price': take_profit_trigger_price * 0.98,
         },
         // note that some exchanges might require some exchange specific parameter when opening a position, i.e.:
         // 'posSide': 'long',  // for phemex hedge-mode api
