@@ -105,7 +105,33 @@ function testMarket (exchange, skippedProperties, method, market) {
         // linear & inverse should have different values (true/false)
         // todo: expand logic on other market types
         if (isSwapOrFuture) {
-            assert (market['linear'] !== market['inverse'], 'market linear and inverse must not be the same' + logText);
+            // todo:
+            if (!('quanto' in market)) {
+                assert (market['linear'] !== market['inverse'], 'linear and inverse must not be the same' + logText);
+            } else {
+                const linear = exchange.safeValue (market, 'linear');
+                const inverse = exchange.safeValue (market, 'inverse');
+                const quanto = exchange.safeValue (market, 'quanto');
+                let allTrues = 0;
+                let allFalses = 0;
+                if (linear) {
+                    allTrues = allTrues + 1;
+                } else if (linear === false) {
+                    allFalses = allFalses + 1;
+                }
+                if (inverse) {
+                    allTrues = allTrues + 1;
+                } else if (inverse === false) {
+                    allFalses = allFalses + 1;
+                }
+                if (quanto) {
+                    allTrues = allTrues + 1;
+                } else if (quanto === false) {
+                    allFalses = allFalses + 1;
+                }
+                assert (allTrues === 1, 'only one be true: "linear", "inverse" or "quanto"' + logText);
+                assert (allFalses === 2, '"false" should be assigned to two inapplicable fields from : "linear" | "inverse" | "quanto"' + logText);
+            }
             if (!('contractSize' in skippedProperties)) {
                 // contract size should be defined
                 assert (contractSize !== undefined, '"contractSize" must be defined when "contract" is true' + logText);
