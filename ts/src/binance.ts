@@ -7768,9 +7768,9 @@ export default class binance extends Exchange {
         //
         let amount = this.safeString2 (item, 'amount', 'income');
         let direction = undefined;
-        if (Precise.stringLe (amount, '0')) {
+        if (amount[0] === '-') {
             direction = 'out';
-            amount = Precise.stringMul ('-1', amount);
+            amount = Precise.stringAbs (amount);
         } else {
             direction = 'in';
         }
