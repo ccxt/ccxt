@@ -2672,7 +2672,7 @@ export default class cryptocom extends Exchange {
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
-        this.checkRequiredArgument ('fetchSettlementHistory', type, 'type', [ 'future', 'option' ]);
+        this.checkRequiredArgument ('fetchSettlementHistory', type, 'type', [ 'future', 'option', 'WARRANT', 'FUTURE' ]);
         if (type === 'option') {
             type = 'WARRANT';
         }
