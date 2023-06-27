@@ -1293,12 +1293,14 @@ export default class woo extends Exchange {
                 stopLossPrice = this.safeNumber (stopLossOrder, 'triggerPrice');
             }
         }
+        const lastUpdateTimestamp = this.safeTimestamp2 (order, 'updatedTime', 'updated_time');
         return this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'status': this.parseOrderStatus (status),
             'symbol': symbol,
             'type': orderType,
