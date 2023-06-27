@@ -1105,10 +1105,12 @@ export default class zonda extends Exchange {
         const currencyId = this.safeString (balance, 'currency');
         const change = this.safeValue (item, 'change', {});
         let amount = this.safeString (change, 'total');
-        let direction = 'in';
-        if (Precise.stringLt (amount, '0')) {
+        let direction = undefined;
+        if (amount[0] === '-') {
             direction = 'out';
-            amount = Precise.stringNeg (amount);
+            amount = Precise.stringAbs (amount);
+        } else {
+            direction = 'in';
         }
         // there are 2 undocumented api calls: (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
         // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId as a parameter)
