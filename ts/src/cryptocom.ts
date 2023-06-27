@@ -2662,20 +2662,23 @@ export default class cryptocom extends Exchange {
          * @param {int|undefined} since timestamp in ms
          * @param {int|undefined} limit number of records
          * @param {object} params exchange specific params
-         * @param {int|undefined} params.type 'FUTURE', 'WARRANT'
+         * @param {int|undefined} params.type 'future', 'option'
          * @returns {[object]} a list of [settlement history objects]
          */
-        const type = this.safeStringUpper2 (params, 'type', 'instrument_type');
-        this.checkRequiredArgument ('fetchSettlementHistory', type, 'type', [ 'FUTURE', 'WARRANT' ]);
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
+        this.checkRequiredArgument ('fetchSettlementHistory', type, 'type', [ 'future', 'option' ]);
+        if (type === 'option') {
+            type = 'WARRANT';
+        }
         const request = {
-            'instrument_type': type,
+            'instrument_type': type.toUpperCase (),
         };
-        params = this.omit (params, 'type');
         const response = await this.v1PublicGetPublicGetExpiredSettlementPrice (this.extend (request, params));
         //
         //     {
