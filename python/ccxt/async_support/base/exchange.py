@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.1.52'
+__version__ = '3.1.53'
 
 # -----------------------------------------------------------------------------
 
@@ -564,8 +564,6 @@ class Exchange(BaseExchange):
             val = val + 1
         if val > 1:
             raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy, userAgent')
-        if (val == 1) and (self.proxy is not None):
-            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, instead of deprecated .proxy please use from: proxyUrl, httpProxy, httpsProxy, socksProxy')
         return [proxyUrl, httpProxy, httpsProxy, socksProxy]
 
     def find_message_hashes(self, client, element: str):
