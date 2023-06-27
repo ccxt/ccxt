@@ -3165,7 +3165,7 @@ export default class gate extends Exchange {
         market = this.safeMarket (marketId, market, '_', marketType);
         let amountString = this.safeString2 (trade, 'amount', 'size');
         const priceString = this.safeString (trade, 'price');
-        const contractSide = Precise.stringLt (amountString, '0') ? 'sell' : 'buy';
+        const contractSide = (amountString[0] === '-') ? 'sell' : 'buy';
         amountString = Precise.stringAbs (amountString);
         const side = this.safeString2 (trade, 'side', 'type', contractSide);
         const orderId = this.safeString (trade, 'order_id');
@@ -3372,7 +3372,7 @@ export default class gate extends Exchange {
         if (id !== undefined) {
             if (id[0] === 'b') {
                 // GateCode handling
-                type = Precise.stringGt (amountString, '0') ? 'deposit' : 'withdrawal';
+                type = (amountString[0] === '-') ? 'withdrawal' : 'deposit';
                 amountString = Precise.stringAbs (amountString);
             } else {
                 type = this.parseTransactionType (id[0]);
@@ -3996,7 +3996,7 @@ export default class gate extends Exchange {
         if (contract) {
             const isMarketOrder = Precise.stringEquals (price, '0') && (timeInForce === 'IOC');
             type = isMarketOrder ? 'market' : 'limit';
-            side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
+            side = (amount[0] === '-') ? 'sell' : 'buy';
             rawStatus = this.safeString (order, 'finish_as', 'open');
         } else {
             rawStatus = this.safeString (order, 'status');
@@ -4724,7 +4724,7 @@ export default class gate extends Exchange {
         let side = undefined;
         if (Precise.stringGt (size, '0')) {
             side = 'long';
-        } else if (Precise.stringLt (size, '0')) {
+        } else if (size[0] === '-') {
             side = 'short';
         }
         const maintenanceRate = this.safeString (position, 'maintenance_rate');
@@ -5884,7 +5884,7 @@ export default class gate extends Exchange {
         //
         let direction = undefined;
         let amount = this.safeString (item, 'change');
-        if (Precise.stringLt (amount, '0')) {
+        if (amount[0] === '-') {
             direction = 'out';
             amount = Precise.stringAbs (amount);
         } else {
