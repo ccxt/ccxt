@@ -920,8 +920,7 @@ export default class bitstamp extends Exchange {
         // if it is a private trade
         if ('id' in trade) {
             if (amountString !== undefined) {
-                const isAmountNeg = Precise.stringLt (amountString, '0');
-                if (isAmountNeg) {
+                if (amountString[0] === '-') {
                     side = 'sell';
                     amountString = Precise.stringNeg (amountString);
                 } else {
@@ -1889,12 +1888,12 @@ export default class bitstamp extends Exchange {
             let direction = undefined;
             if ('amount' in item) {
                 const amount = this.safeString (item, 'amount');
-                direction = Precise.stringGt (amount, '0') ? 'in' : 'out';
+                direction = (amount[0] === '-') ? 'out' : 'in';
             } else if (('currency' in parsedTransaction) && parsedTransaction['currency'] !== undefined) {
                 const currencyCode = this.safeString (parsedTransaction, 'currency');
                 currency = this.currency (currencyCode);
                 const amount = this.safeString (item, currency['id']);
-                direction = Precise.stringGt (amount, '0') ? 'in' : 'out';
+                direction = (amount[0] === '-') ? 'out' : 'in';
             }
             return {
                 'id': parsedTransaction['id'],
