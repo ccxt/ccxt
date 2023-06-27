@@ -1414,7 +1414,7 @@ export default class coinbasepro extends Exchange {
         let direction = undefined;
         const afterString = this.safeString (item, 'balance');
         const beforeString = Precise.stringSub (afterString, amountString);
-        if (Precise.stringLt (amountString, '0')) {
+        if (amountString[0] === '-') {
             direction = 'out';
             amountString = Precise.stringAbs (amountString);
         } else {
