@@ -2509,7 +2509,7 @@ export default class cryptocom extends Exchange {
         const currencyId = this.safeString (item, 'instrument_name');
         let amount = this.safeString (item, 'transaction_qty');
         let direction = undefined;
-        if (Precise.stringLt (amount, '0')) {
+        if (amount[0] === '-') {
             direction = 'out';
             amount = Precise.stringAbs (amount);
         } else {
