@@ -714,7 +714,7 @@ Each currency is an associative array (aka dictionary) with the following keys:
 - `precision`. Precision accepted in values by exchanges upon referencing this currency. The value of this property depends on [`exchange.precisionMode`](#precision-mode).
 - `limits`. The minimums and maximums for amounts (volumes), withdrawals and deposits.
 
-## Network structure
+## Network Structure
 
 ```javascript
 {
@@ -1671,7 +1671,7 @@ exchange.seconds ()      // integer UTC timestamp in seconds
 exchange.milliseconds () // integer UTC timestamp in milliseconds
 ```
 
-### Date-based pagination
+### Date-based Pagination
 
 This is the type of pagination currently used throughout the CCXT Unified API. The user supplies a `since` timestamp **in milliseconds** (!) and a number to `limit` results. To traverse the objects of interest page by page, the user runs the following (below is pseudocode, it may require overriding some exchange-specific params, depending on the exchange in question):
 
@@ -1735,7 +1735,7 @@ if ($exchange->has['fetchMyTrades']) {
 }
 ```
 
-### id-based pagination
+### id-based Pagination
 
 The user supplies a `from_id` of the object, from where the query should continue returning results, and a number to `limit` results. This is the default with some exchanges, however, this type is not unified (yet). To paginate objects based on their ids, the user would run the following:
 
@@ -4233,7 +4233,7 @@ Returns
 
 - An array of [order structures](#order-structure)
 
-#### Exceptions on order canceling
+#### Exceptions Upon Canceling Orders
 
 The `cancelOrder()` is usually used on open orders only. However, it may happen that your order gets executed (filled and closed)
 before your cancel-request comes in, so a cancel-request might hit an already-closed order.
@@ -4372,7 +4372,7 @@ if ($exchange->has['fetchMyTrades']) {
 
 Returns ordered array `[]` of trades (most recent trade last).
 
-#### Trade structure
+#### Trade Structure
 
 ```javascript
 {
@@ -4862,7 +4862,7 @@ Returns
 
 - an array of [address structures](#address-structure)
 
-#### Address structure
+#### Address Structure
 
 The address structures returned from `fetchDepositAddress`, `fetchDepositAddresses`, `fetchDepositAddressesByNetwork` and `createDepositAddress` look like this:
 
@@ -5352,7 +5352,7 @@ Returns
 
 - response from the exchange
 
-### Exchanges without setMarginMode
+### Exchanges Without setMarginMode
 
 Common reasons for why an exchange might have
 
@@ -5365,7 +5365,8 @@ include
 - the exchange does not offer leveraged trading
 - the exchange only offers one of `cross` or `isolated` margin modes, but does not offer both
 - margin mode must be set using an exchange specific parameter within `params` when using `createOrder`
-### Notes on suppressed errors for setMarginMode
+
+### Notes On Suppressed Errors For setMarginMode
 
 Some exchange apis return an error response when a request is sent to set the margin mode to the mode that it is already set to (e.g. Sending a request to set the margin mode to `cross` for the market `BTC/USDT:USDT` when the account already has `BTC/USDT:USDT` set to use cross margin). CCXT doesn't see this as an error because the end result is what the user wanted, so the error is suppressed and the error result is returned as an object.
 
@@ -5475,7 +5476,7 @@ It is recommended to use the `maintenanceMargin` and `initialMargin` instead of 
 
 An inverse contract will allow you to go long or short on BTC/USD by putting up BTC as collateral. Our API for inverse contracts is the same as for linear contracts. The amounts in an inverse contracts are quoted as if they were traded USD/BTC, however the price is still quoted terms of BTC/USD.  The formula for the profit and loss of a inverse contract is `(1/markPrice - 1/price) * contracts`. The profit and loss and collateral will now be quoted in BTC, and the number of contracts are quoted in USD.
 
-### Liquidation price
+### Liquidation Price
 
 It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin collateral left and if it goes any further the position will have negative collateral.
 
